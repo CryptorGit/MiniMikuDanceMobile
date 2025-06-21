@@ -26,3 +26,5 @@
 - Added recording indicator support in UIManager and toggle logic in AppInitializer
 - Added showRecordingIndicator flag to UIConfig and conditional UI creation
 - Added progress callbacks in PoseEstimator and progress bar updates in AppInitializer
+- Updated StreamingAssets UIConfig with recording indicator flag and documented it
+- Fixed outdated JSON snippet in development guide to match current UIConfig schema

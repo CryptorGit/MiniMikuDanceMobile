@@ -245,18 +245,19 @@ public class BoneCurve {
 ```json
 {
   "buttons": [
-    { "id":"ImportModel","text":"モデル読込","anchor":"top-left" },
-    { "id":"ImportVideo","text":"動画読込" },
-    { "id":"Generate","text":"モーション生成" },
-    { "id":"Play","text":"再生" },
-    { "id":"Record","text":"録画" }
+    { "label": "Load Model", "message": "load_model" },
+    { "label": "Analyze Video", "message": "analyze_video" },
+    { "label": "Generate Motion", "message": "generate_motion" },
+    { "label": "Play Motion", "message": "play_motion" },
+    { "label": "Record", "message": "toggle_record" }
   ],
   "toggles": [
-    { "id":"GyroCam","text":"カメラ同期","default":true },
-    { "id":"Smoothing","text":"モーション平滑化","default":true }
+    { "label": "Gyro Cam", "id": "gyro_cam", "defaultValue": true },
+    { "label": "Smoothing", "id": "smoothing", "defaultValue": true }
   ],
   "showProgressBar": true,
-  "showMessage": true
+  "showMessage": true,
+  "showRecordingIndicator": true
 }
 ```
 
