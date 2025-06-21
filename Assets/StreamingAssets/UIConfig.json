@@ -38,5 +38,6 @@
         }
     ],
     "showProgressBar": true,
-    "showMessage": true
+    "showMessage": true,
+    "showRecordingIndicator": true
 }
