@@ -9,19 +9,34 @@ FBX や PMX モデルを実行時に利用するための変換手順は [docs/m
 現在のタスクカードを基にした機能一覧は [docs/features.md](docs/features.md) で確認できます。
 
 ## 環境セットアップ
-このリポジトリをビルドするには .NET 8 SDK と Assimp のネイティブライブラリが必要です。
-Ubuntu 系ディストリビューションの場合、以下のコマンドでインストールできます。
+本プロジェクトを動かすには .NET 8 SDK と Assimp のネイティブライブラリが必要です。
+以下の手順で導入してください。
 
-```bash
-sudo apt-get update
-sudo apt-get install -y dotnet-sdk-8.0 libassimp-dev
-```
+1. Microsoft のパッケージリポジトリを追加し .NET 8 SDK をインストールします。
 
-一部環境では `libdl.so` が見つからず起動に失敗することがあります。その際は次のようにシンボリックリンクを作成してください。
+   ```bash
+   sudo apt-get update
+   sudo apt-get install -y dotnet-sdk-8.0 libassimp-dev
+   ```
 
-```bash
-sudo ln -s /usr/lib/x86_64-linux-gnu/libdl.so.2 /usr/lib/x86_64-linux-gnu/libdl.so
-```
+2. `dotnet --version` を実行し、8.x 系であることを確認します。
+
+3. 一部の環境では `libdl.so` が見つからず実行に失敗することがあります。その場合は次のコマンドでシンボリックリンクを作成します。
+
+   ```bash
+   sudo ln -s /usr/lib/x86_64-linux-gnu/libdl.so.2 /usr/lib/x86_64-linux-gnu/libdl.so
+   ```
+
+## クイックスタート
+1. 上記手順で必要なパッケージをインストールします。
+2. リポジトリをクローンしたディレクトリで以下を実行します。
+
+   ```bash
+   dotnet build
+   dotnet run --project AppDemo/AppDemo.csproj
+   ```
+
+3. コンソールにフレーム番号が表示されれば成功です。録画メタデータは `output/` フォルダに保存されます。
 
 ## デモの実行
 依存関係を導入後、`AppDemo` プロジェクトを実行するとスタブ動作を確認できます。
