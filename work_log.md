@@ -8,3 +8,4 @@
 - JointData struct と MotionData/BoneCurve クラスを実装
 
 - MotionGenerator と MotionPlayer の簡易実装を追加
+- PoseEstimator と EstimatorWorker の雛形実装を追加
