@@ -6,3 +6,5 @@
 - UIManager スケルトン実装: JSON からボタン生成しデバッグ出力
 - FBX/PMX 事前変換手順ドキュメントを追加
 - JointData struct と MotionData/BoneCurve クラスを実装
+
+- MotionGenerator と MotionPlayer の簡易実装を追加
