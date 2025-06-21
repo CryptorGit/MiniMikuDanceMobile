@@ -7,6 +7,8 @@ using UnityEngine;
 public class MotionPlayer : MonoBehaviour
 {
     [SerializeField] private Transform[] jointTargets;
+    [SerializeField] private bool loop = true;
+    [SerializeField] private float playbackSpeed = 1f;
 
     private MotionData _motion;
     private float _time;
@@ -35,16 +37,36 @@ public class MotionPlayer : MonoBehaviour
         _time = 0f;
     }
 
+    public void Restart()
+    {
+        _time = 0f;
+        Play();
+    }
+
+    public void SetPlaybackSpeed(float speed)
+    {
+        playbackSpeed = Mathf.Max(0.1f, speed);
+    }
+
     private void Update()
     {
         if (!_playing || _motion == null || _motion.boneCurves.Count == 0)
             return;
 
         int frameIndex = Mathf.FloorToInt(_time / _motion.frameInterval);
-        if (frameIndex >= _motion.boneCurves["Joint0"].positions.Length)
+        int lastFrame = _motion.boneCurves["Joint0"].positions.Length - 1;
+        if (frameIndex > lastFrame)
         {
-            Stop();
-            return;
+            if (loop)
+            {
+                frameIndex = 0;
+                _time = 0f;
+            }
+            else
+            {
+                Stop();
+                return;
+            }
         }
 
         int jointCount = Mathf.Min(jointTargets.Length, _motion.boneCurves.Count);
@@ -61,6 +83,6 @@ public class MotionPlayer : MonoBehaviour
             }
         }
 
-        _time += Time.deltaTime;
+        _time += Time.deltaTime * playbackSpeed;
     }
 }
