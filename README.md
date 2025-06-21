@@ -11,3 +11,6 @@ The full development document is available in
 
 For instructions on preparing FBX or PMX models for runtime use, see
 [docs/model_conversion.md](docs/model_conversion.md).
+
+An overview of the planned features based on the current task cards is
+available in [docs/features.md](docs/features.md).
