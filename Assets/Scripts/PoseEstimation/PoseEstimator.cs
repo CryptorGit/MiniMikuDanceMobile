@@ -24,6 +24,8 @@ public class PoseEstimator : MonoBehaviour
             return new JointData[0];
         }
 
+        var sw = System.Diagnostics.Stopwatch.StartNew();
+
         var playerGO = new GameObject("VideoPlayer");
         var videoPlayer = playerGO.AddComponent<VideoPlayer>();
         var renderTexture = new RenderTexture(256, 256, 0);
@@ -74,6 +76,9 @@ public class PoseEstimator : MonoBehaviour
         Object.Destroy(playerGO);
 
         onProgress?.Invoke(1f);
+
+        sw.Stop();
+        Debug.Log($"PoseEstimator.EstimateMotion: processed {results.Count} frames in {sw.ElapsedMilliseconds} ms");
 
         return results.ToArray();
     }
