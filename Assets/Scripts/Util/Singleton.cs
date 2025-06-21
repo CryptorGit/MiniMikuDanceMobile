@@ -13,8 +13,7 @@ public class Singleton<T> : MonoBehaviour where T : MonoBehaviour
                 _instance = FindObjectOfType<T>();
                 if (_instance == null)
                 {
-                    var obj = new GameObject(typeof(T).Name);
-                    _instance = obj.AddComponent<T>();
+                    Debug.LogError($"Singleton: {typeof(T).Name} not found in scene.");
                 }
             }
             return _instance;
@@ -31,6 +30,14 @@ public class Singleton<T> : MonoBehaviour where T : MonoBehaviour
         else if (_instance != this)
         {
             Destroy(gameObject);
+        }
+    }
+
+    protected virtual void OnDestroy()
+    {
+        if (_instance == this)
+        {
+            _instance = null;
         }
     }
 }
