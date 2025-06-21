@@ -278,7 +278,8 @@ Assets/
 │   │   └ PMXImporter.cs
 │   ├─ PoseEstimation/
 │   │   ├ PoseEstimator.cs
-│   │   └ EstimatorWorker.cs
+│   │   ├ EstimatorWorker.cs
+│   │   └ PoseDebugVisualizer.cs
 │   ├─ Motion/
 │   │   ├ MotionGenerator.cs
 │   │   ├ MotionPlayer.cs
