@@ -9,3 +9,5 @@
 - AppInitializer 実装: 設定読込と UI 初期化を追加
 - ModelImporter と VRM/PMXImporter のスタブ実装
 - UIManager にボタンイベントを追加し、AppInitializer からモデル読込を呼び出す
+- PoseEstimator skeleton implemented with EstimatorWorker and JointData
+- Added Analyze Video button and hookup in AppInitializer
