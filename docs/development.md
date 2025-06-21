@@ -118,7 +118,7 @@
 
 ```mermaid
 flowchart TD
-    subgraph モバイルアプリ (Unity+C#)
+    subgraph モバイルアプリ (C#)
       UIManager
       ModelImporter
       PoseEstimator
@@ -160,7 +160,7 @@ Avatar CreateAvatar(GameObject model);
 ```csharp
 Task<JointData[]> EstimateMotion(string videoPath, Action<float> onProgress = null);
 ```
-- **技術**: Unity Sentis, MediaPipe Pose ONNX, VideoPlayer
+- **技術**: ONNX Runtime, MediaPipe Pose ONNX, VideoPlayer
 
 ### 9.3 MotionGenerator
 - **機能**: JointData→MotionData/AnimationClip 変換
@@ -414,8 +414,8 @@ sequenceDiagram
 5. コーディング規約共有 プロンプトに規約を組み込み、一貫性確保
 
 ## 20. 付録：外部ライブラリ・参考資料
-- UniVRM: VRM 1.0/Runtime Importer for Unity
-- Unity Sentis / Barracuda: ONNX推論フレームワーク
+- UniVRM CLI: VRM 1.0 変換ツール
+- ONNX Runtime: ONNX推論フレームワーク
 - MediaPipe Pose ONNXモデル: BlazePose 解剖モデル
 - NatCorder: モバイル画面録画プラグイン
 - Assimp.NET: FBXランタイムパーサ（将来導入候補）

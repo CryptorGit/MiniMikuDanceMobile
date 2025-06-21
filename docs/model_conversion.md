@@ -4,8 +4,8 @@
 
 ## 必要ツール
 
-- Unity（UniVRMパッケージ導入）
 - Blender または MMD4Mecanim などのPMX変換プラグイン
+- VRMExporter (UniVRM CLI など)
 
 ## 変換フロー
 
@@ -13,10 +13,10 @@
     - FBX、PMXのどちらもBlenderでインポート可能です。
 2. **不要なモディファイアやボーンの整理**
     - 変換後に不要なパーツを削除し、Humanoid互換のボーン構造に調整します。
-3. **Unityにエクスポート**
-    - FBX形式でUnityプロジェクトに書き出します。
-4. **UniVRMでVRM化**
-    - Unity上でFBXを読み込み、UniVRMのエクスポーターからVRMファイルを生成します。
+3. **FBXにエクスポート**
+    - Blender から FBX 形式で書き出します。
+4. **VRM に変換**
+    - VRMExporter などのツールで FBX を VRM ファイルに変換します。
 5. **Runtimeフォルダへ配置**
     - 生成したVRMファイルを端末のストレージにコピーするか、StreamingAssetsに入れてアプリから読み込みます。
 

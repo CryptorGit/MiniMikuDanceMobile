@@ -1,48 +1,40 @@
 # Architecture Overview
 
 This document summarizes the design of the smartphone
-MMD-compatible dance video application.
+MMD-compatible dance video application. The app ships with a
+standalone viewer implemented in pure C# using OpenTK.
 
 ## Goals
 
 - Import 3D character models (VRM, FBX, PMX).
 - Extract dance motion from user-provided videos via pose estimation.
-- Apply generated motions to humanoid models within Unity.
+- Apply generated motions to humanoid models in the custom viewer.
 - Synchronize the virtual camera with device movement and record the result.
 
 ## Components
 
 1. **Model Import**
-   - VRM models are loaded at runtime using UniVRM.
+   - VRM models are loaded at runtime using a VRM parsing library.
    - FBX/PMX require pre-conversion or future importer support.
 2. **Pose Estimation**
-   - Utilizes MediaPipe Pose models executed with Unity Sentis.
+   - Utilizes MediaPipe Pose models executed with an ONNX runtime.
    - Generates joint trajectories from input videos.
 3. **Motion Generation**
-   - Converts joint data into animation clips or runtime bone transforms.
+   - Converts joint data into animation frames applied to the model.
 4. **Camera Control**
-   - Reads device sensors (gyroscope/AR tracking) to move the Unity camera.
+   - Reads device sensors (gyroscope/AR tracking) to move the viewer camera.
 5. **Recording**
-   - Encodes rendered frames into a video file (e.g., using NatCorder).
+   - Encodes rendered frames into a video file using platform APIs.
 6. **UI System**
    - UI layout is defined via JSON and instantiated by scripts at runtime.
 
 ## Folder Structure
 
 ```text
-Assets/
-  Scenes/           - Minimal scenes (e.g., Main.unity)
-  Scripts/
-    App/            - Initialization and settings
-    UI/             - Runtime UI generation
-    Import/         - Model import logic
-    PoseEstimation/ - Pose detection workers
-    Motion/         - Motion data and playback
-    Camera/         - Camera controllers
-    Recording/      - Screen recording
-    Util/           - Utility classes
-  Plugins/          - Third-party packages (UniVRM, NatCorder, etc.)
-  StreamingAssets/  - ML models and large data files
+PureViewer/
+  Viewer/        - Source code for the OpenTK viewer
+  Assets/        - Sample models
+docs/            - Project documentation
 ```
 
 ### Why document these folders?
@@ -51,14 +43,8 @@ Documenting the directory layout clarifies where new files belong and helps
 contributors and LLM tools generate code in the correct location. Each folder
 has a specific role:
 
-- **Scenes** – contains minimal Unity scenes that bootstrap the app.
-- **Scripts** – holds all runtime C# code organised by feature so the project
-  can be maintained without manual editor work.
-- **Plugins** – third-party packages (e.g. UniVRM) kept separate from custom
-  code for easy updates.
-- **StreamingAssets** – large assets like the pose estimation model that must be
-  included verbatim in the build.
-- **Resources** – small prefabs and data loaded via `Resources.Load`.
+- **PureViewer** – stand‑alone OpenTK application and sample assets.
+- **docs** – design documents and guides for contributors.
 
 Keeping this structure documented makes it easier to understand the project and
 maintain consistency as the codebase grows.
