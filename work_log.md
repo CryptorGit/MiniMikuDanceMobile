@@ -13,4 +13,8 @@
 - Added Analyze Video button and hookup in AppInitializer
 - Implemented MotionData, MotionGenerator and MotionPlayer basics
 - Added Generate/Play buttons and logic in AppInitializer
+- Implemented CameraController with gyro and editor mouse look
+- Added Toggle Camera button and functionality
+- Added basic RecorderController saving PNG frames
+- Added Start/Stop Recording UI and logic
 
