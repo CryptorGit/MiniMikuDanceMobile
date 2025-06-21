@@ -4,6 +4,7 @@ using OpenTK.Windowing.Common;
 using OpenTK.Windowing.Desktop;
 using OpenTK.Graphics.OpenGL4;
 using OpenTK.Mathematics;
+using OpenTK.Windowing.GraphicsLibraryFramework;
 using Assimp;
 
 namespace ViewerApp
@@ -23,6 +24,11 @@ namespace ViewerApp
         private int _viewLocation;
         private int _projectionLocation;
         private float _rotation;
+        private Vector3 _cameraPos = new(0, 0, 3);
+        private float _yaw = -90f;
+        private float _pitch;
+        private Vector2 _lastMouse;
+        private bool _firstMove = true;
 
         public Viewer(string modelPath) : base(GameWindowSettings.Default, NativeWindowSettings.Default)
         {
@@ -37,8 +43,11 @@ namespace ViewerApp
             GL.ClearColor(Color4.CornflowerBlue);
             GL.Enable(EnableCap.DepthTest);
             LoadModel(_modelPath);
-            _shaderProgram = CreateBasicShader();
-            _viewMatrix = Matrix4.LookAt(new Vector3(0, 0, 3), Vector3.Zero, Vector3.UnitY);
+            string shaderDir = Path.Combine(AppContext.BaseDirectory, "Shaders");
+            string vert = Path.Combine(shaderDir, "basic.vert");
+            string frag = Path.Combine(shaderDir, "basic.frag");
+            _shaderProgram = CreateShaderProgram(vert, frag);
+            _viewMatrix = Matrix4.LookAt(_cameraPos, Vector3.Zero, Vector3.UnitY);
             _projectionMatrix = Matrix4.CreatePerspectiveFieldOfView(MathHelper.DegreesToRadians(45f), Size.X / (float)Size.Y, 0.1f, 100f);
             _modelLocation = GL.GetUniformLocation(_shaderProgram, "model");
             _viewLocation = GL.GetUniformLocation(_shaderProgram, "view");
@@ -57,6 +66,34 @@ namespace ViewerApp
             base.OnUpdateFrame(args);
             _rotation += (float)args.Time;
             _modelMatrix = Matrix4.CreateRotationY(_rotation);
+
+            float speed = 2.5f * (float)args.Time;
+            var input = KeyboardState;
+            Vector3 forward = GetForwardVector();
+            Vector3 right = Vector3.Normalize(Vector3.Cross(forward, Vector3.UnitY));
+            if (input.IsKeyDown(Keys.W)) _cameraPos += forward * speed;
+            if (input.IsKeyDown(Keys.S)) _cameraPos -= forward * speed;
+            if (input.IsKeyDown(Keys.A)) _cameraPos -= right * speed;
+            if (input.IsKeyDown(Keys.D)) _cameraPos += right * speed;
+
+            var mouse = MouseState;
+            if (_firstMove)
+            {
+                _lastMouse = new Vector2(mouse.X, mouse.Y);
+                _firstMove = false;
+            }
+            else
+            {
+                var deltaX = mouse.X - _lastMouse.X;
+                var deltaY = mouse.Y - _lastMouse.Y;
+                _lastMouse = new Vector2(mouse.X, mouse.Y);
+                const float sensitivity = 0.2f;
+                _yaw += deltaX * sensitivity;
+                _pitch -= deltaY * sensitivity;
+                _pitch = Math.Clamp(_pitch, -89f, 89f);
+            }
+
+            _viewMatrix = Matrix4.LookAt(_cameraPos, _cameraPos + GetForwardVector(), Vector3.UnitY);
         }
 
         protected override void OnRenderFrame(FrameEventArgs args)
@@ -70,6 +107,15 @@ namespace ViewerApp
             GL.BindVertexArray(_vao);
             GL.DrawElements(OpenTK.Graphics.OpenGL4.PrimitiveType.Triangles, _vertexCount, DrawElementsType.UnsignedInt, 0);
             SwapBuffers();
+        }
+
+        protected override void OnUnload()
+        {
+            GL.DeleteBuffer(_vbo);
+            GL.DeleteBuffer(_ebo);
+            GL.DeleteVertexArray(_vao);
+            GL.DeleteProgram(_shaderProgram);
+            base.OnUnload();
         }
 
         private void LoadModel(string path)
@@ -104,10 +150,10 @@ namespace ViewerApp
             GL.BindVertexArray(0);
         }
 
-        private int CreateBasicShader()
+        private int CreateShaderProgram(string vertexPath, string fragmentPath)
         {
-            string vertexShaderSource = "#version 330 core\nlayout(location=0) in vec3 aPos;\nlayout(location=1) in vec3 aNormal;\nuniform mat4 model;\nuniform mat4 view;\nuniform mat4 projection;\nvoid main(){gl_Position = projection * view * model * vec4(aPos,1.0);}";
-            string fragmentShaderSource = "#version 330 core\nout vec4 FragColor;\nvoid main(){FragColor = vec4(1.0,1.0,1.0,1.0);}";
+            string vertexShaderSource = File.ReadAllText(vertexPath);
+            string fragmentShaderSource = File.ReadAllText(fragmentPath);
             int vertexShader = GL.CreateShader(ShaderType.VertexShader);
             GL.ShaderSource(vertexShader, vertexShaderSource);
             GL.CompileShader(vertexShader);
@@ -121,6 +167,15 @@ namespace ViewerApp
             GL.DeleteShader(vertexShader);
             GL.DeleteShader(fragmentShader);
             return program;
+        }
+
+        private Vector3 GetForwardVector()
+        {
+            Vector3 forward;
+            forward.X = MathF.Cos(MathHelper.DegreesToRadians(_pitch)) * MathF.Cos(MathHelper.DegreesToRadians(_yaw));
+            forward.Y = MathF.Sin(MathHelper.DegreesToRadians(_pitch));
+            forward.Z = MathF.Cos(MathHelper.DegreesToRadians(_pitch)) * MathF.Sin(MathHelper.DegreesToRadians(_yaw));
+            return Vector3.Normalize(forward);
         }
     }
 
