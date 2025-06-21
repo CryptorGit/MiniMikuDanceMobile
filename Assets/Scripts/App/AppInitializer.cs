@@ -56,8 +56,8 @@ public class AppInitializer : MonoBehaviour
             recorderController = FindObjectOfType<RecorderController>();
         }
 
-        // Build basic UI from default config packaged with the app
-        uiManager?.BuildUIFromFile("UIConfig.json");
+        // Build basic UI from saved config or bundled default
+        uiManager?.BuildUIFromDataManager("UIConfig.json");
         if (uiManager != null)
         {
             uiManager.BindCallbacks();

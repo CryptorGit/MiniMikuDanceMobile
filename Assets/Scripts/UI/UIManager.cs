@@ -9,6 +9,8 @@ public class UIManager : MonoBehaviour
     [SerializeField] private RectTransform buttonContainer;
     [SerializeField] private Button buttonPrefab;
 
+    [SerializeField] private string configKey = "ui";
+
     private UIConfig _config;
 
     /// <summary>
@@ -22,7 +24,16 @@ public class UIManager : MonoBehaviour
     /// </summary>
     public void BuildUI(string configJson)
     {
-        _config = JsonUtility.FromJson<UIConfig>(configJson);
+        var cfg = JsonUtility.FromJson<UIConfig>(configJson);
+        BuildUI(cfg);
+    }
+
+    /// <summary>
+    /// Build the runtime UI from a config object.
+    /// </summary>
+    public void BuildUI(UIConfig config)
+    {
+        _config = config;
         foreach (var btn in _config.buttons)
         {
             CreateButton(btn);
@@ -37,6 +48,22 @@ public class UIManager : MonoBehaviour
         var fullPath = Path.Combine(Application.streamingAssetsPath, configPath);
         var json = File.ReadAllText(fullPath);
         BuildUI(json);
+    }
+
+    /// <summary>
+    /// Load configuration via DataManager with a fallback to a bundled file.
+    /// </summary>
+    public void BuildUIFromDataManager(string defaultFile = "UIConfig.json")
+    {
+        UIConfig cfg = DataManager.LoadConfig<UIConfig>(configKey);
+        if (cfg.buttons == null || cfg.buttons.Count == 0)
+        {
+            var path = Path.Combine(Application.streamingAssetsPath, defaultFile);
+            var json = File.ReadAllText(path);
+            cfg = JsonUtility.FromJson<UIConfig>(json);
+            DataManager.SaveConfig(configKey, cfg);
+        }
+        BuildUI(cfg);
     }
 
     /// <summary>
