@@ -14,9 +14,14 @@ public class MotionGenerator : MonoBehaviour
     /// </summary>
     public MotionData GenerateData(JointData[] joints)
     {
+        var sw = System.Diagnostics.Stopwatch.StartNew();
         var data = new MotionData();
         if (joints == null || joints.Length == 0)
+        {
+            sw.Stop();
+            Debug.Log($"MotionGenerator.GenerateData: no joints, 0ms");
             return data;
+        }
 
         int jointCount = joints[0].positions.Length;
         for (int i = 0; i < jointCount; i++)
@@ -53,6 +58,8 @@ public class MotionGenerator : MonoBehaviour
         if (joints.Length > 1)
             data.frameInterval = joints[1].timestamp - joints[0].timestamp;
 
+        sw.Stop();
+        Debug.Log($"MotionGenerator.GenerateData: {joints.Length} frames in {sw.ElapsedMilliseconds} ms");
         return data;
     }
 

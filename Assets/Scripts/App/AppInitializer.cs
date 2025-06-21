@@ -16,6 +16,7 @@ public class AppInitializer : MonoBehaviour
     [SerializeField] private CameraController cameraController;
     [SerializeField] private RecorderController recorderController;
     [SerializeField] private PoseDebugVisualizer poseVisualizer;
+    [SerializeField] private PerformanceLogger performanceLogger;
 
     private AppSettings _settings;
     private JointData[] _lastJoints;
@@ -62,6 +63,15 @@ public class AppInitializer : MonoBehaviour
         if (poseVisualizer == null)
         {
             poseVisualizer = FindObjectOfType<PoseDebugVisualizer>();
+        }
+        if (performanceLogger == null)
+        {
+            performanceLogger = FindObjectOfType<PerformanceLogger>();
+            if (performanceLogger == null)
+            {
+                performanceLogger = new GameObject("PerformanceLogger")
+                    .AddComponent<PerformanceLogger>();
+            }
         }
 
         // Build basic UI from saved config or bundled default
@@ -150,6 +160,13 @@ public class AppInitializer : MonoBehaviour
                         uiManager?.SetMessage("Recording...");
                         uiManager?.SetRecordingIndicator(true);
                     }
+                }
+                break;
+            case "share_recording":
+                if (recorderController != null)
+                {
+                    recorderController.ShareRecording();
+                    uiManager?.SetMessage("Sharing recording");
                 }
                 break;
         }
