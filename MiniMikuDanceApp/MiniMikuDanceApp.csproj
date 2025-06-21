@@ -6,8 +6,11 @@
   </ItemGroup>
 
   <ItemGroup>
+    <!-- ImGui.NET は最新安定版を使用 -->
     <PackageReference Include="ImGui.NET" Version="1.90.5.1" />
-    <PackageReference Include="OpenTK.Windowing.Desktop" Version="4.9.4" />
+    <!-- OpenTK は依存制約に合わせて 4.7 系を利用 -->
+    <PackageReference Include="OpenTK.Windowing.Desktop" Version="4.7.6" />
+    <PackageReference Include="OpenTK.Windowing.Common" Version="4.7.6" />
   </ItemGroup>
 
   <PropertyGroup>

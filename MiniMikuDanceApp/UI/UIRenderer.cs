@@ -1,26 +1,31 @@
 using System;
 using MiniMikuDance.UI;
 using ViewerApp;
+using OpenTK.Windowing.Common;
+using OpenTK.Windowing.Desktop;
 
 namespace MiniMikuDanceApp.UI;
 
 public class UIRenderer : IDisposable
 {
     private readonly ImGuiController _controller;
-    private readonly Viewer _viewer;
 
-    public UIRenderer(Viewer viewer)
+    public UIRenderer(GameWindow window)
     {
-        _viewer = viewer;
-        _controller = new ImGuiController(viewer.Size.X, viewer.Size.Y);
+        _controller = new ImGuiController(window.Size.X, window.Size.Y);
         UIManager.Instance.RegisterTextureLoader(_controller.CreateTexture);
-        viewer.UIFrameUpdated += dt => _controller.Update(viewer, dt);
-        viewer.RenderUI += () =>
+        window.UpdateFrame += args => _controller.Update(window, (float)args.Time);
+        window.RenderFrame += _ =>
         {
             UIManager.Instance.Render();
             _controller.Render();
         };
-        viewer.Resize += e => _controller.WindowResized(viewer.Size.X, viewer.Size.Y);
+        window.Resize += OnResize;
+    }
+
+    private void OnResize(ResizeEventArgs e)
+    {
+        _controller.WindowResized(e.Width, e.Height);
     }
 
     public void Dispose()
