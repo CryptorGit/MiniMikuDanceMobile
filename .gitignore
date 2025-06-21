@@ -5,3 +5,14 @@ AppCore/bin/
 AppCore/obj/
 MiniMikuDanceApp/bin/
 MiniMikuDanceApp/obj/
+
+# Generated directories
+Recordings/
+Temp/
+
+# IDE-specific files
+.vscode/
+.idea/
+.vs/
+*.user
+*.suo
