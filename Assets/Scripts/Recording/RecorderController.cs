@@ -27,6 +27,9 @@ public class RecorderController : MonoBehaviour
             return;
         }
 
+        // Clear temporary cache so old frames do not accumulate
+        DataManager.CleanupTemp();
+
         _outputDir = Path.Combine(Application.persistentDataPath,
             $"recording_{DateTime.Now:yyyyMMdd_HHmmss}");
         Directory.CreateDirectory(_outputDir);

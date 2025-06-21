@@ -29,3 +29,8 @@
 - Updated StreamingAssets UIConfig with recording indicator flag and documented it
 - Fixed outdated JSON snippet in development guide to match current UIConfig schema
 - Added features overview document and linked from README
+- Implemented ARPoseManager for AR tracking and integrated with CameraController
+- Added PoseDebugVisualizer and auto registration in AppInitializer
+- Enabled DataManager.CleanupTemp during startup and recording
+- Documented ARPoseManager and PoseDebugVisualizer sections
+- Added loop and playback speed options to MotionPlayer and documented in development guide

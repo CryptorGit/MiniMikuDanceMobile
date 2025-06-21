@@ -9,7 +9,14 @@ public static class PMXImporter
     public static GameObject Import(string path)
     {
         Debug.Log($"PMXImporter.Import: {path}");
-        // TODO: integrate MMD loader
+#if UNITY_MMD_LOADER
+        var bytes = System.IO.File.ReadAllBytes(path);
+        var loader = new MMD.PMX.PMXLoader();
+        var model = loader.Load(bytes);
+        return model;
+#else
+        Debug.LogWarning("PMXImporter: MMD loader not available, returning dummy object");
         return new GameObject("PMXModel");
+#endif
     }
 }

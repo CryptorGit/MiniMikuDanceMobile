@@ -172,14 +172,16 @@ MotionData GenerateData(JointData[] joints);
 - **補助**: 平滑化フィルタ、BVHエクスポート
 
 ### 9.4 MotionPlayer
-- **機能**: AnimationClip再生 or スクリプト制御再生
+- **機能**: AnimationClip再生 or スクリプト制御再生。ループ再生や再生速度変更に対応
 - **主メソッド**
 ```csharp
 void Play();
 void Pause();
 void Stop();
+void Restart();
+void SetPlaybackSpeed(float speed);
 ```
-- **実装**: Animator or Update() bone.localRotation
+- **実装**: Animator もしくは Update() で bone.localRotation/Position を適用
 
 ### 9.5 CameraController
 - **機能**: ジャイロ/ARによるカメラ同期
@@ -216,6 +218,20 @@ void BindCallbacks();
 T LoadConfig<T>(string key);
 void SaveConfig<T>(string key, T data);
 void CleanupTemp();
+```
+
+### 9.9 ARPoseManager
+- **機能**: ARFoundation からカメラの現在姿勢を取得
+- **主メソッド**
+```csharp
+Pose CurrentPose { get; }
+```
+
+### 9.10 PoseDebugVisualizer
+- **機能**: JointData を Gizmos 表示して推論結果を検証
+- **主メソッド**
+```csharp
+void SetFrames(JointData[] data);
 ```
 
 ## 10. データ設計
@@ -278,14 +294,15 @@ Assets/
 │   │   └ PMXImporter.cs
 │   ├─ PoseEstimation/
 │   │   ├ PoseEstimator.cs
-│   │   └ EstimatorWorker.cs
+│   │   ├ EstimatorWorker.cs
+│   │   └ PoseDebugVisualizer.cs
 │   ├─ Motion/
 │   │   ├ MotionGenerator.cs
 │   │   ├ MotionPlayer.cs
 │   │   └ MotionData.cs
 │   ├─ Camera/
 │   │   ├ CameraController.cs
-│   │   └ ARCameraManager.cs
+│   │   └ ARPoseManager.cs
 │   ├─ Recording/
 │   │   └ RecorderController.cs
 │   └─ Util/

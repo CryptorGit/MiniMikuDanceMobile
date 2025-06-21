@@ -15,6 +15,7 @@ public class AppInitializer : MonoBehaviour
     [SerializeField] private MotionPlayer motionPlayer;
     [SerializeField] private CameraController cameraController;
     [SerializeField] private RecorderController recorderController;
+    [SerializeField] private PoseDebugVisualizer poseVisualizer;
 
     private AppSettings _settings;
     private JointData[] _lastJoints;
@@ -25,6 +26,9 @@ public class AppInitializer : MonoBehaviour
     {
         // Load or create persistent settings
         _settings = AppSettings.Load();
+
+        // Clean up any temporary files from previous runs
+        DataManager.CleanupTemp();
 
         // Ensure references are assigned
         if (uiManager == null)
@@ -54,6 +58,10 @@ public class AppInitializer : MonoBehaviour
         if (recorderController == null)
         {
             recorderController = FindObjectOfType<RecorderController>();
+        }
+        if (poseVisualizer == null)
+        {
+            poseVisualizer = FindObjectOfType<PoseDebugVisualizer>();
         }
 
         // Build basic UI from saved config or bundled default
@@ -158,6 +166,7 @@ public class AppInitializer : MonoBehaviour
 
         _lastJoints = await poseEstimator.EstimateMotion(path, p => uiManager?.SetProgress(p));
         Debug.Log($"PoseEstimator returned {_lastJoints.Length} frames");
+        poseVisualizer?.SetFrames(_lastJoints);
         uiManager?.SetProgress(1f);
         uiManager?.SetMessage("Estimation complete");
     }
