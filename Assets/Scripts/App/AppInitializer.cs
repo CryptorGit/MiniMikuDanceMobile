@@ -11,8 +11,12 @@ public class AppInitializer : MonoBehaviour
     [SerializeField] private UIManager uiManager;
     [SerializeField] private ModelImporter modelImporter;
     [SerializeField] private PoseEstimator poseEstimator;
+    [SerializeField] private MotionGenerator motionGenerator;
+    [SerializeField] private MotionPlayer motionPlayer;
 
     private AppSettings _settings;
+    private JointData[] _lastJoints;
+    private MotionData _motion;
 
     private void Awake()
     {
@@ -31,6 +35,14 @@ public class AppInitializer : MonoBehaviour
         if (poseEstimator == null)
         {
             poseEstimator = FindObjectOfType<PoseEstimator>();
+        }
+        if (motionGenerator == null)
+        {
+            motionGenerator = FindObjectOfType<MotionGenerator>();
+        }
+        if (motionPlayer == null)
+        {
+            motionPlayer = FindObjectOfType<MotionPlayer>();
         }
 
         // Build basic UI from default config packaged with the app
@@ -56,6 +68,21 @@ public class AppInitializer : MonoBehaviour
                 var videoPath = Path.Combine(Application.streamingAssetsPath, "SampleDance.mp4");
                 _ = RunPoseEstimation(videoPath);
                 break;
+            case "generate_motion":
+                if (_lastJoints != null && motionGenerator != null)
+                {
+                    _motion = motionGenerator.GenerateData(_lastJoints);
+                    motionGenerator.Smooth(_motion, 2);
+                    Debug.Log($"MotionGenerator produced {_motion.boneCurves.Count} curves");
+                }
+                break;
+            case "play_motion":
+                if (_motion != null && motionPlayer != null)
+                {
+                    motionPlayer.LoadMotion(_motion);
+                    motionPlayer.Play();
+                }
+                break;
         }
     }
 
@@ -67,7 +94,7 @@ public class AppInitializer : MonoBehaviour
             return;
         }
 
-        var results = await poseEstimator.EstimateMotion(path);
-        Debug.Log($"PoseEstimator returned {results.Length} frames");
+        _lastJoints = await poseEstimator.EstimateMotion(path);
+        Debug.Log($"PoseEstimator returned {_lastJoints.Length} frames");
     }
 }

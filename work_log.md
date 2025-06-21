@@ -11,3 +11,6 @@
 - UIManager にボタンイベントを追加し、AppInitializer からモデル読込を呼び出す
 - PoseEstimator skeleton implemented with EstimatorWorker and JointData
 - Added Analyze Video button and hookup in AppInitializer
+- Implemented MotionData, MotionGenerator and MotionPlayer basics
+- Added Generate/Play buttons and logic in AppInitializer
+

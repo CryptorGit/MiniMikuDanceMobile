@@ -5,12 +5,16 @@
             "message": "load_model"
         },
         {
-            "label": "Test Button",
-            "message": "Test button pressed"
-        },
-        {
             "label": "Analyze Video",
             "message": "analyze_video"
+        },
+        {
+            "label": "Generate Motion",
+            "message": "generate_motion"
+        },
+        {
+            "label": "Play Motion",
+            "message": "play_motion"
         }
     ]
 }
