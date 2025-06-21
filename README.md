@@ -27,6 +27,11 @@ FBX や PMX モデルを実行時に利用するための変換手順は [docs/m
    sudo ln -s /usr/lib/x86_64-linux-gnu/libdl.so.2 /usr/lib/x86_64-linux-gnu/libdl.so
    ```
 
+## ONNX モデルの準備
+姿勢推定には MediaPipe Pose を ONNX 形式に変換したモデルが必要です。ライセンス上の理由とファイルサイズの都合により、このリポジトリにはモデルファイルを含めていません。以下のリンクから `pose_landmark_full.onnx` をダウンロードし、リポジトリ直下に `StreamingAssets` フォルダを作成して `pose_model.onnx`（`StreamingAssets/pose_model.onnx`）という名前で配置してください。
+
+- <https://github.com/onnx/models/tree/main/vision/body_analysis/mediapipe_pose>
+
 ## クイックスタート
 1. 上記手順で必要なパッケージをインストールします。
 2. リポジトリをクローンしたディレクトリで以下を実行します。
