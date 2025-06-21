@@ -5,6 +5,8 @@ AppCore/bin/
 AppCore/obj/
 MiniMikuDanceApp/bin/
 MiniMikuDanceApp/obj/
+Tests/**/bin/
+Tests/**/obj/
 
 # Generated directories
 Recordings/
