@@ -33,23 +33,22 @@ FBX や PMX モデルを実行時に利用するための変換手順は [docs/m
 
    ```bash
    dotnet build
-   dotnet run --project AppDemo/AppDemo.csproj
+   dotnet run --project MiniMikuDanceApp/MiniMikuDanceApp.csproj
    ```
 
-3. コンソールにフレーム番号が表示されれば成功です。録画メタデータは `output/` フォルダに保存されます。
+3. ウィンドウが表示され、モデル読込や姿勢推定の進捗がコンソールに表示されれば成功です。録画メタデータは `Recordings/` フォルダに保存されます。
 
 ## デモの実行
-依存関係を導入後、`AppDemo` プロジェクトを実行するとスタブ動作を確認できます。
+依存関係を導入後、`MiniMikuDanceApp` を実行することでモデル表示や姿勢推定の一連の
+流れを確認できます。
 
 ```bash
-dotnet run --project AppDemo/AppDemo.csproj
+dotnet run --project MiniMikuDanceApp/MiniMikuDanceApp.csproj
 ```
 
 ## AppCore ライブラリ
 Viewer とは別に、姿勢推定やモーション生成、録画管理などの基盤クラスをまとめた `AppCore` ライブラリを追加しました。現状はスタブ実装ですが、今後モバイル向けアプリの中核として拡張予定です。
 
-## AppDemo
-`AppCore` の簡易デモとして `AppDemo` コンソールアプリを用意しました。モデル読込から姿勢推定、モーション再生、録画メタデータ出力までの流れを確認できます。
 
 ## PureViewer
 純粋な C# で実装した OpenGL ビューワーです。Unity には一切依存していません。詳しくは [PureViewer/README.md](PureViewer/README.md) を参照してください。
