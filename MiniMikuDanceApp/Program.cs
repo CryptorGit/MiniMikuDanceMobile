@@ -10,8 +10,8 @@ class Program
 {
     static async Task Main(string[] args)
     {
-        string modelPath = args.Length > 0 ? args[0] : "PureViewer/Assets/Models/sample.obj";
-        string videoPath = args.Length > 1 ? args[1] : "sample.mp4";
+        string modelPath = args.Length > 0 ? args[0] : string.Empty;
+        string videoPath = args.Length > 1 ? args[1] : string.Empty;
         string poseModelPath = "pose_model.onnx";
 
         var app = new AppInitializer();
