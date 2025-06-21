@@ -36,3 +36,4 @@
 - Added loop and playback speed options to MotionPlayer and documented in development guide
 - Added BVH export option with new UI button and AppInitializer handler
 - Implemented recording thumbnail preview and UI display
+- Added optional NatCorder integration with fallback screenshot capture
