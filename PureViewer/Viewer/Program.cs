@@ -56,6 +56,11 @@ namespace ViewerApp
             _useAutoRotate = false;
         }
 
+        public void SetViewMatrix(Matrix4 matrix)
+        {
+            _viewMatrix = matrix;
+        }
+
         public byte[] CaptureFrame()
         {
             byte[] data = new byte[Size.X * Size.Y * 4];

@@ -12,6 +12,7 @@ public class RecorderController
     private string _infoPath = string.Empty;
     private int _frameIndex;
     private VideoWriter? _writer;
+    private string _thumbnailPath = string.Empty;
 
     public string StartRecording(int width, int height, int fps)
     {
@@ -41,6 +42,8 @@ public class RecorderController
         return _savedPath;
     }
 
+    public string ThumbnailPath => _thumbnailPath;
+
     public bool IsRecording => _recording;
 
     public void Capture(byte[] rgba, int width, int height)
@@ -51,6 +54,11 @@ public class RecorderController
         Marshal.Copy(rgba, 0, mat.Data, rgba.Length);
         Cv2.CvtColor(mat, mat, ColorConversionCodes.RGBA2BGR);
         Cv2.Flip(mat, mat, FlipMode.X);
+        if (_frameIndex == 0)
+        {
+            _thumbnailPath = Path.Combine(Path.GetDirectoryName(_savedPath)!, "thumb.png");
+            Cv2.ImWrite(_thumbnailPath, mat);
+        }
         _writer.Write(mat);
         _frameIndex++;
     }

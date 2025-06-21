@@ -15,8 +15,13 @@ public class MotionApplier
 
     public void Apply(JointData joint)
     {
-        // For demonstration, rotate the model around Y axis using first joint X value
-        float angle = joint.Positions.Length > 0 ? joint.Positions[0].X : 0f;
-        _model.Transform = Matrix4x4.CreateRotationY(angle);
+        if (joint.Positions.Length == 0)
+            return;
+
+        var pos = joint.Positions[0];
+        var rotAngle = joint.Positions.Length > 1 ? joint.Positions[1].Y : 0f;
+        var trans = Matrix4x4.CreateTranslation(pos);
+        var rot = Matrix4x4.CreateFromAxisAngle(Vector3.UnitY, rotAngle);
+        _model.Transform = rot * trans;
     }
 }

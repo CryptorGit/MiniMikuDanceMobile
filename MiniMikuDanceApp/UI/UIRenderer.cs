@@ -13,6 +13,7 @@ public class UIRenderer : IDisposable
     {
         _viewer = viewer;
         _controller = new ImGuiController(viewer.Size.X, viewer.Size.Y);
+        UIManager.Instance.RegisterTextureLoader(_controller.CreateTexture);
         viewer.UIFrameUpdated += dt => _controller.Update(viewer, dt);
         viewer.RenderUI += () =>
         {
