@@ -1,6 +1,7 @@
 # Architecture Overview
 
-This document summarizes the design of the smartphone MMD-compatible dance video application.
+This document summarizes the design of the smartphone
+MMD-compatible dance video application.
 
 ## Goals
 
@@ -28,7 +29,7 @@ This document summarizes the design of the smartphone MMD-compatible dance video
 
 ## Folder Structure
 
-```
+```text
 Assets/
   Scenes/           - Minimal scenes (e.g., Main.unity)
   Scripts/

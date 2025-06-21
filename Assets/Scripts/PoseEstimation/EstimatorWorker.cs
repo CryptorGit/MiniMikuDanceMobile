@@ -46,8 +46,16 @@ public class EstimatorWorker
             return new Vector3[0];
         }
 
-        // Placeholder inference - return empty array
+        // Placeholder inference - return random positions
         var joints = new Vector3[33];
+        for (int i = 0; i < joints.Length; i++)
+        {
+            joints[i] = new Vector3(
+                Random.Range(-0.5f, 0.5f),
+                Random.Range(-0.5f, 0.5f),
+                Random.Range(-0.5f, 0.5f));
+        }
+
         // Real implementation would feed the texture to Sentis and read outputs
         return joints;
     }
