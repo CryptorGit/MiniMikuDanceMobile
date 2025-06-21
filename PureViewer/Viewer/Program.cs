@@ -16,6 +16,13 @@ namespace ViewerApp
         private int _ebo;
         private int _shaderProgram;
         private int _vertexCount;
+        private Matrix4 _modelMatrix = Matrix4.Identity;
+        private Matrix4 _viewMatrix;
+        private Matrix4 _projectionMatrix;
+        private int _modelLocation;
+        private int _viewLocation;
+        private int _projectionLocation;
+        private float _rotation;
 
         public Viewer(string modelPath) : base(GameWindowSettings.Default, NativeWindowSettings.Default)
         {
@@ -28,8 +35,28 @@ namespace ViewerApp
         {
             base.OnLoad();
             GL.ClearColor(Color4.CornflowerBlue);
+            GL.Enable(EnableCap.DepthTest);
             LoadModel(_modelPath);
             _shaderProgram = CreateBasicShader();
+            _viewMatrix = Matrix4.LookAt(new Vector3(0, 0, 3), Vector3.Zero, Vector3.UnitY);
+            _projectionMatrix = Matrix4.CreatePerspectiveFieldOfView(MathHelper.DegreesToRadians(45f), Size.X / (float)Size.Y, 0.1f, 100f);
+            _modelLocation = GL.GetUniformLocation(_shaderProgram, "model");
+            _viewLocation = GL.GetUniformLocation(_shaderProgram, "view");
+            _projectionLocation = GL.GetUniformLocation(_shaderProgram, "projection");
+        }
+
+        protected override void OnResize(ResizeEventArgs e)
+        {
+            base.OnResize(e);
+            GL.Viewport(0, 0, Size.X, Size.Y);
+            _projectionMatrix = Matrix4.CreatePerspectiveFieldOfView(MathHelper.DegreesToRadians(45f), Size.X / (float)Size.Y, 0.1f, 100f);
+        }
+
+        protected override void OnUpdateFrame(FrameEventArgs args)
+        {
+            base.OnUpdateFrame(args);
+            _rotation += (float)args.Time;
+            _modelMatrix = Matrix4.CreateRotationY(_rotation);
         }
 
         protected override void OnRenderFrame(FrameEventArgs args)
@@ -37,6 +64,9 @@ namespace ViewerApp
             base.OnRenderFrame(args);
             GL.Clear(ClearBufferMask.ColorBufferBit | ClearBufferMask.DepthBufferBit);
             GL.UseProgram(_shaderProgram);
+            GL.UniformMatrix4(_modelLocation, false, ref _modelMatrix);
+            GL.UniformMatrix4(_viewLocation, false, ref _viewMatrix);
+            GL.UniformMatrix4(_projectionLocation, false, ref _projectionMatrix);
             GL.BindVertexArray(_vao);
             GL.DrawElements(OpenTK.Graphics.OpenGL4.PrimitiveType.Triangles, _vertexCount, DrawElementsType.UnsignedInt, 0);
             SwapBuffers();
