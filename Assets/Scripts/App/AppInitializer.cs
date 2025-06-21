@@ -76,10 +76,12 @@ public class AppInitializer : MonoBehaviour
             case "load_model":
                 var modelPath = Path.Combine(Application.streamingAssetsPath, "SampleModel.vrm");
                 modelImporter?.ImportModel(modelPath);
+                uiManager?.SetMessage("Model loaded");
                 break;
             case "analyze_video":
                 var videoPath = Path.Combine(Application.streamingAssetsPath, "SampleDance.mp4");
                 _ = RunPoseEstimation(videoPath);
+                uiManager?.SetMessage("Analyzing video...");
                 break;
             case "generate_motion":
                 if (_lastJoints != null && motionGenerator != null)
@@ -87,6 +89,7 @@ public class AppInitializer : MonoBehaviour
                     _motion = motionGenerator.GenerateData(_lastJoints);
                     motionGenerator.Smooth(_motion, 2);
                     Debug.Log($"MotionGenerator produced {_motion.boneCurves.Count} curves");
+                    uiManager?.SetMessage("Motion generated");
                 }
                 break;
             case "play_motion":
@@ -94,6 +97,7 @@ public class AppInitializer : MonoBehaviour
                 {
                     motionPlayer.LoadMotion(_motion);
                     motionPlayer.Play();
+                    uiManager?.SetMessage("Playing motion");
                 }
                 break;
             case "toggle_camera":
@@ -102,6 +106,7 @@ public class AppInitializer : MonoBehaviour
                     var enable = !Input.gyro.enabled;
                     cameraController.EnableGyro(enable);
                     Debug.Log($"Gyro mode {(enable ? "on" : "off")}");
+                    uiManager?.SetMessage(enable ? "Gyro on" : "Gyro off");
                 }
                 break;
             case "toggle_record":
@@ -118,11 +123,13 @@ public class AppInitializer : MonoBehaviour
                         recorderController.StopRecording();
                         Debug.Log($"Recording saved to {recorderController.GetSavedPath()}");
                         _isRecording = false;
+                        uiManager?.SetMessage("Recording saved");
                     }
                     else
                     {
                         recorderController.StartRecording(1280, 720, 30);
                         _isRecording = true;
+                        uiManager?.SetMessage("Recording...");
                     }
                 }
                 break;
@@ -136,9 +143,12 @@ public class AppInitializer : MonoBehaviour
             Debug.LogWarning("PoseEstimator not assigned");
             return;
         }
+        uiManager?.SetProgress(0f);
 
         _lastJoints = await poseEstimator.EstimateMotion(path);
         Debug.Log($"PoseEstimator returned {_lastJoints.Length} frames");
+        uiManager?.SetProgress(1f);
+        uiManager?.SetMessage("Estimation complete");
     }
 
     private bool IsRecording() => _isRecording;

@@ -24,5 +24,7 @@
             "label": "Record",
             "message": "toggle_record"
         }
-    ]
+    ],
+    "showProgressBar": true,
+    "showMessage": true
 }

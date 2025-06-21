@@ -12,4 +12,6 @@ public class UIButtonConfig
 public class UIConfig
 {
     public List<UIButtonConfig> buttons = new List<UIButtonConfig>();
+    public bool showProgressBar;
+    public bool showMessage;
 }

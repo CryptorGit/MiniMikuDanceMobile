@@ -253,7 +253,9 @@ public class BoneCurve {
   ],
   "toggles": [
     { "id":"GyroCam","text":"カメラ同期","default":true }
-  ]
+  ],
+  "showProgressBar": true,
+  "showMessage": true
 }
 ```
 

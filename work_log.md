@@ -20,3 +20,4 @@
 
 - Added DataManager for persistent configs and UIManager integration
 - Added orientation generation and rotation playback in Motion system
+- Added progress bar and status message UI with config flags

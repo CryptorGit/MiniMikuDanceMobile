@@ -8,10 +8,14 @@ public class UIManager : MonoBehaviour
 {
     [SerializeField] private RectTransform buttonContainer;
     [SerializeField] private Button buttonPrefab;
+    [SerializeField] private Slider progressBarPrefab;
+    [SerializeField] private Text messageTextPrefab;
 
     [SerializeField] private string configKey = "ui";
 
     private UIConfig _config;
+    private Slider _progressBar;
+    private Text _messageText;
 
     /// <summary>
     /// Fired when any runtime UI button is pressed.
@@ -37,6 +41,20 @@ public class UIManager : MonoBehaviour
         foreach (var btn in _config.buttons)
         {
             CreateButton(btn);
+        }
+
+        if (_config.showProgressBar && progressBarPrefab != null)
+        {
+            _progressBar = Instantiate(progressBarPrefab, buttonContainer);
+            _progressBar.gameObject.SetActive(true);
+            _progressBar.value = 0f;
+        }
+
+        if (_config.showMessage && messageTextPrefab != null)
+        {
+            _messageText = Instantiate(messageTextPrefab, buttonContainer);
+            _messageText.gameObject.SetActive(true);
+            _messageText.text = string.Empty;
         }
     }
 
@@ -90,5 +108,27 @@ public class UIManager : MonoBehaviour
     {
         Debug.Log($"Button pressed: {message}");
         ButtonPressed?.Invoke(message);
+    }
+
+    /// <summary>
+    /// Update the progress bar value between 0 and 1.
+    /// </summary>
+    public void SetProgress(float value)
+    {
+        if (_progressBar != null)
+        {
+            _progressBar.value = Mathf.Clamp01(value);
+        }
+    }
+
+    /// <summary>
+    /// Display a status message in the UI.
+    /// </summary>
+    public void SetMessage(string message)
+    {
+        if (_messageText != null)
+        {
+            _messageText.text = message;
+        }
     }
 }
