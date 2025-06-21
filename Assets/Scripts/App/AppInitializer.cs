@@ -130,6 +130,7 @@ public class AppInitializer : MonoBehaviour
                         Debug.Log($"Recording saved to {recorderController.GetSavedPath()}");
                         _isRecording = false;
                         uiManager?.SetMessage("Recording saved");
+                        uiManager?.SetRecordingIndicator(false);
                     }
                     else
                     {
@@ -139,6 +140,7 @@ public class AppInitializer : MonoBehaviour
                             _settings.recordingFPS);
                         _isRecording = true;
                         uiManager?.SetMessage("Recording...");
+                        uiManager?.SetRecordingIndicator(true);
                     }
                 }
                 break;

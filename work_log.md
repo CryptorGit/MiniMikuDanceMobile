@@ -23,3 +23,4 @@
 - Added progress bar and status message UI with config flags
 - Implemented toggle UI elements with gyro and smoothing options
 - AppInitializer now respects AppSettings for recording and smoothing
+- Added recording indicator support in UIManager and toggle logic in AppInitializer
