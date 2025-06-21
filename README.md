@@ -14,3 +14,6 @@ For instructions on preparing FBX or PMX models for runtime use, see
 
 An overview of the planned features based on the current task cards is
 available in [docs/features.md](docs/features.md).
+
+## PureViewer
+A simple OpenGL-based viewer implemented in pure C#. See [PureViewer/README.md](PureViewer/README.md) for details.
