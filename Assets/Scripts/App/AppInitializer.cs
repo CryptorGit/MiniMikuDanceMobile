@@ -1,4 +1,5 @@
 using UnityEngine;
+using System.IO;
 
 /// <summary>
 /// Bootstraps the application at startup.
@@ -28,8 +29,23 @@ public class AppInitializer : MonoBehaviour
 
         // Build basic UI from default config packaged with the app
         uiManager?.BuildUIFromFile("UIConfig.json");
-        uiManager?.BindCallbacks();
+        if (uiManager != null)
+        {
+            uiManager.BindCallbacks();
+            uiManager.ButtonPressed += HandleUIButton;
+        }
 
         Debug.Log($"AppInitializer: settings loaded from {AppSettings.FilePath}");
+    }
+
+    private void HandleUIButton(string message)
+    {
+        switch (message)
+        {
+            case "load_model":
+                var modelPath = Path.Combine(Application.streamingAssetsPath, "SampleModel.vrm");
+                modelImporter?.ImportModel(modelPath);
+                break;
+        }
     }
 }

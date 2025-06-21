@@ -1,6 +1,10 @@
 {
     "buttons": [
         {
+            "label": "Load Model",
+            "message": "load_model"
+        },
+        {
             "label": "Test Button",
             "message": "Test button pressed"
         }

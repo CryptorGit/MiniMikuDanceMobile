@@ -2,12 +2,20 @@ using System.IO;
 using UnityEngine;
 using UnityEngine.UI;
 
+using System;
+
 public class UIManager : MonoBehaviour
 {
     [SerializeField] private RectTransform buttonContainer;
     [SerializeField] private Button buttonPrefab;
 
     private UIConfig _config;
+
+    /// <summary>
+    /// Fired when any runtime UI button is pressed.
+    /// The string parameter contains the message defined in the config.
+    /// </summary>
+    public event Action<string> ButtonPressed;
 
     /// <summary>
     /// Build the runtime UI from a JSON string.
@@ -54,5 +62,6 @@ public class UIManager : MonoBehaviour
     private void OnButtonPressed(string message)
     {
         Debug.Log($"Button pressed: {message}");
+        ButtonPressed?.Invoke(message);
     }
 }

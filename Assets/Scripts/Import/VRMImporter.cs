@@ -1,4 +1,15 @@
-// TODO: Runtime loader for VRM models
-// - Utilize UniVRM APIs to load VRM files at runtime
-// - Should return instantiated GameObject with Humanoid Avatar
-// - Called from ModelImporter when a .vrm file is selected
+using UnityEngine;
+
+/// <summary>
+/// Minimal placeholder for runtime VRM loading.
+/// Replace with UniVRM integration in the future.
+/// </summary>
+public static class VRMImporter
+{
+    public static GameObject Import(string path)
+    {
+        Debug.Log($"VRMImporter.Import: {path}");
+        // TODO: implement using UniVRM
+        return new GameObject("VRMModel");
+    }
+}
