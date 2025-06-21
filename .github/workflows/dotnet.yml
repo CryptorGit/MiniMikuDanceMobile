@@ -18,5 +18,5 @@ jobs:
       - name: Build
         run: dotnet build MiniMikuDanceApp/MiniMikuDanceApp.csproj --configuration Release --no-restore
       - name: Test
-        run: dotnet test MiniMikuDanceApp/MiniMikuDanceApp.csproj --no-build --verbosity normal
+        run: dotnet test Tests/AppCore.Tests/AppCore.Tests.csproj --no-build --verbosity normal
         continue-on-error: true
