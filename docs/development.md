@@ -172,14 +172,16 @@ MotionData GenerateData(JointData[] joints);
 - **補助**: 平滑化フィルタ、BVHエクスポート
 
 ### 9.4 MotionPlayer
-- **機能**: AnimationClip再生 or スクリプト制御再生
+- **機能**: AnimationClip再生 or スクリプト制御再生。ループ再生や再生速度変更に対応
 - **主メソッド**
 ```csharp
 void Play();
 void Pause();
 void Stop();
+void Restart();
+void SetPlaybackSpeed(float speed);
 ```
-- **実装**: Animator or Update() bone.localRotation
+- **実装**: Animator もしくは Update() で bone.localRotation/Position を適用
 
 ### 9.5 CameraController
 - **機能**: ジャイロ/ARによるカメラ同期
