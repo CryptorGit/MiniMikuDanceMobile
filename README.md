@@ -52,3 +52,6 @@ Viewer とは別に、姿勢推定やモーション生成、録画管理など�
 
 ## PureViewer
 純粋な C# で実装した OpenGL ビューワーです。Unity には一切依存していません。詳しくは [PureViewer/README.md](PureViewer/README.md) を参照してください。
+
+## ライセンス
+このリポジトリは MIT ライセンスの下で公開されています。詳細は [LICENSE](LICENSE) を参照してください。
