@@ -9,31 +9,31 @@
 - AppInitializer 実装: 設定読込と UI 初期化を追加
 - ModelImporter と VRM/PMXImporter のスタブ実装
 - UIManager にボタンイベントを追加し、AppInitializer からモデル読込を呼び出す
-- PoseEstimator skeleton implemented with EstimatorWorker and JointData
-- Added Analyze Video button and hookup in AppInitializer
-- Implemented MotionData, MotionGenerator and MotionPlayer basics
-- Added Generate/Play buttons and logic in AppInitializer
-- Implemented CameraController with gyro and editor mouse look
-- Added Toggle Camera button and functionality
-- Implemented RecorderController placeholder frame capture
-- Added Record button and toggle logic in AppInitializer
+- PoseEstimator の骨組み実装 (EstimatorWorker と JointData を追加)
+- AppInitializer に Analyze Video ボタンを追加し連携
+- MotionData, MotionGenerator, MotionPlayer の基本処理を実装
+- AppInitializer に Generate/Play ボタンとロジックを追加
+- ジャイロとエディタマウス操作を備えた CameraController を実装
+- カメラ切り替えボタンを追加
+- RecorderController のプレースホルダーとしてフレームキャプチャを実装
+- Record ボタンとトグル処理を AppInitializer に追加
 
-- Added DataManager for persistent configs and UIManager integration
-- Added orientation generation and rotation playback in Motion system
-- Added progress bar and status message UI with config flags
-- Implemented toggle UI elements with gyro and smoothing options
-- AppInitializer now respects AppSettings for recording and smoothing
-- Added recording indicator support in UIManager and toggle logic in AppInitializer
-- Added showRecordingIndicator flag to UIConfig and conditional UI creation
-- Added progress callbacks in PoseEstimator and progress bar updates in AppInitializer
-- Updated StreamingAssets UIConfig with recording indicator flag and documented it
-- Fixed outdated JSON snippet in development guide to match current UIConfig schema
-- Added features overview document and linked from README
-- Implemented ARPoseManager for AR tracking and integrated with CameraController
-- Added PoseDebugVisualizer and auto registration in AppInitializer
-- Enabled DataManager.CleanupTemp during startup and recording
-- Documented ARPoseManager and PoseDebugVisualizer sections
-- Added loop and playback speed options to MotionPlayer and documented in development guide
-- Added BVH export option with new UI button and AppInitializer handler
-- Implemented recording thumbnail preview and UI display
-- Added optional NatCorder integration with fallback screenshot capture
+- 設定保存用 DataManager を追加し UIManager と統合
+- Motion システムでオリエンテーション生成と回転再生を追加
+- プログレスバーとメッセージ UI を設定フラグ付きで追加
+- ジャイロとスムージングのトグル UI 要素を実装
+- AppInitializer が録画とスムージングの設定を尊重するよう更新
+- UIManager に録画インジケータ対応を追加し AppInitializer でトグル
+- UIConfig に showRecordingIndicator フラグを追加し条件付きで UI を生成
+- PoseEstimator に進捗コールバックを追加し AppInitializer でバー更新
+- StreamingAssets の UIConfig を録画インジケータ対応版に更新し文書化
+- 開発ガイドの JSON スニペットを最新 UIConfig スキーマに合わせて修正
+- 機能一覧ドキュメントを追加し README からリンク
+- ARPoseManager を実装してカメラ制御と統合
+- PoseDebugVisualizer を追加し AppInitializer で自動登録
+- 起動時と録画時に DataManager.CleanupTemp を有効化
+- ARPoseManager と PoseDebugVisualizer の節をドキュメントに追記
+- MotionPlayer にループと再生速度オプションを追加し開発ガイドに記載
+- BVH 出力オプションを追加。新しい UI ボタンと AppInitializer 処理を実装
+- 録画サムネイル表示を実装し UI でプレビュー
+- 任意で NatCorder を統合し、未導入時はスクリーンショット保存にフォールバック

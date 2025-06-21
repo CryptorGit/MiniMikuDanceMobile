@@ -1,19 +1,12 @@
 # MiniMikuDance
 
-This repository contains an experimental design for a smartphone application
-that allows users to create dance videos using MMD-compatible 3D models.
-Pose estimation runs locally on the device and the phone's motion acts as a
-virtual camera.
+このリポジトリは、MMD 互換の 3D モデルを使ってスマートフォンだけでダンス動画を作成できるアプリの実験的設計をまとめたものです。姿勢推定は端末上で実行され、端末の動きが仮想カメラとして利用されます。
 
-The full development document is available in
-[docs/development.md](docs/development.md). A shorter architecture summary is in
-[docs/architecture.md](docs/architecture.md).
+詳細な開発ドキュメントは [docs/development.md](docs/development.md) を参照してください。簡潔なアーキテクチャ概要は [docs/architecture.md](docs/architecture.md) にあります。
 
-For instructions on preparing FBX or PMX models for runtime use, see
-[docs/model_conversion.md](docs/model_conversion.md).
+FBX や PMX モデルを実行時に利用するための変換手順は [docs/model_conversion.md](docs/model_conversion.md) に記載しています。
 
-An overview of the planned features based on the current task cards is
-available in [docs/features.md](docs/features.md).
+現在のタスクカードを基にした機能一覧は [docs/features.md](docs/features.md) で確認できます。
 
 ## PureViewer
-A simple OpenGL-based viewer implemented in pure C#. See [PureViewer/README.md](PureViewer/README.md) for details.
+純粋な C# で実装した OpenGL ビューワーです。詳しくは [PureViewer/README.md](PureViewer/README.md) を参照してください。
