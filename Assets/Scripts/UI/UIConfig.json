@@ -15,6 +15,10 @@
         {
             "label": "Play Motion",
             "message": "play_motion"
+        },
+        {
+            "label": "Toggle Camera",
+            "message": "toggle_camera"
         }
     ]
 }

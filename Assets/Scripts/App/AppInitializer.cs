@@ -13,6 +13,7 @@ public class AppInitializer : MonoBehaviour
     [SerializeField] private PoseEstimator poseEstimator;
     [SerializeField] private MotionGenerator motionGenerator;
     [SerializeField] private MotionPlayer motionPlayer;
+    [SerializeField] private CameraController cameraController;
 
     private AppSettings _settings;
     private JointData[] _lastJoints;
@@ -44,6 +45,10 @@ public class AppInitializer : MonoBehaviour
         {
             motionPlayer = FindObjectOfType<MotionPlayer>();
         }
+        if (cameraController == null)
+        {
+            cameraController = FindObjectOfType<CameraController>();
+        }
 
         // Build basic UI from default config packaged with the app
         uiManager?.BuildUIFromFile("UIConfig.json");
@@ -52,6 +57,8 @@ public class AppInitializer : MonoBehaviour
             uiManager.BindCallbacks();
             uiManager.ButtonPressed += HandleUIButton;
         }
+
+        cameraController?.EnableGyro(true);
 
         Debug.Log($"AppInitializer: settings loaded from {AppSettings.FilePath}");
     }
@@ -81,6 +88,14 @@ public class AppInitializer : MonoBehaviour
                 {
                     motionPlayer.LoadMotion(_motion);
                     motionPlayer.Play();
+                }
+                break;
+            case "toggle_camera":
+                if (cameraController != null)
+                {
+                    var enable = !Input.gyro.enabled;
+                    cameraController.EnableGyro(enable);
+                    Debug.Log($"Gyro mode {(enable ? "on" : "off")}");
                 }
                 break;
         }
