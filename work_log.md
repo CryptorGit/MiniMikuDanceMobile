@@ -18,3 +18,4 @@
 - Implemented RecorderController placeholder frame capture
 - Added Record button and toggle logic in AppInitializer
 
+- Added DataManager for persistent configs and UIManager integration
