@@ -47,5 +47,6 @@
     ],
     "showProgressBar": true,
     "showMessage": true,
-    "showRecordingIndicator": true
+    "showRecordingIndicator": true,
+    "showThumbnail": true
 }

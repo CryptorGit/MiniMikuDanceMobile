@@ -175,6 +175,7 @@ public class AppInitializer : MonoBehaviour
                         _isRecording = false;
                         uiManager?.SetMessage("Recording saved");
                         uiManager?.SetRecordingIndicator(false);
+                        uiManager?.SetThumbnail(recorderController.GetThumbnailPath());
                     }
                     else
                     {
@@ -185,6 +186,7 @@ public class AppInitializer : MonoBehaviour
                         _isRecording = true;
                         uiManager?.SetMessage("Recording...");
                         uiManager?.SetRecordingIndicator(true);
+                        uiManager?.SetThumbnail(null);
                     }
                 }
                 break;

@@ -275,7 +275,8 @@ public class BoneCurve {
   ],
   "showProgressBar": true,
   "showMessage": true,
-  "showRecordingIndicator": true
+  "showRecordingIndicator": true,
+  "showThumbnail": true
 }
 ```
 
