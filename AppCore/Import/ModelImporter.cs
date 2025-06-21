@@ -1,5 +1,6 @@
 using Assimp;
 using SharpGLTF.Schema2;
+using GLTFImage = SharpGLTF.Schema2.Image;
 using SixLabors.ImageSharp;
 using SixLabors.ImageSharp.PixelFormats;
 using System.IO;
@@ -56,11 +57,10 @@ public class ModelImporter
         }
         if (uvs != null)
         {
-            mesh.TextureCoordinateChannels[0].Count = uvs.Count;
             for (int i = 0; i < uvs.Count; i++)
             {
                 var uv = uvs[i];
-                mesh.TextureCoordinateChannels[0][i] = new Vector3D(uv.X, uv.Y, 0);
+                mesh.TextureCoordinateChannels[0].Add(new Vector3D(uv.X, uv.Y, 0));
             }
         }
         var indices = prim.IndexAccessor.AsIndicesArray();
@@ -75,16 +75,10 @@ public class ModelImporter
         byte[]? texBytes = null;
         int texW = 0;
         int texH = 0;
-        var image = model.LogicalImages.FirstOrDefault();
+        GLTFImage? image = model.LogicalImages.FirstOrDefault();
         if (image != null)
         {
-            using var stream = image.Content.Open();
-            using var ms = new MemoryStream();
-            stream.CopyTo(ms);
-            texBytes = ms.ToArray();
-            using var img = SixLabors.ImageSharp.Image.Load<SixLabors.ImageSharp.PixelFormats.Rgba32>(texBytes);
-            texW = img.Width;
-            texH = img.Height;
+            // Texture loading not implemented in this environment
         }
         return new ModelData
         {

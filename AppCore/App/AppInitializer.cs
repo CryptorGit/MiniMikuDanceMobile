@@ -50,8 +50,12 @@ public class AppInitializer
                 {
                     var pos = Camera.Position;
                     var rot = Camera.Rotation;
-                    var forward = Vector3.Transform(-Vector3.UnitZ, rot);
-                    Viewer.SetViewMatrix(Matrix4.LookAt(pos, pos + forward, Vector3.UnitY));
+                    var forward = System.Numerics.Vector3.Transform(-System.Numerics.Vector3.UnitZ, rot);
+                    var lookAt = pos + forward;
+                    Viewer.SetViewMatrix(Matrix4.LookAt(
+                        new OpenTK.Mathematics.Vector3(pos.X, pos.Y, pos.Z),
+                        new OpenTK.Mathematics.Vector3(lookAt.X, lookAt.Y, lookAt.Z),
+                        OpenTK.Mathematics.Vector3.UnitY));
                 }
             };
             Viewer.FrameUpdated += dt =>
