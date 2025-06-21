@@ -1,4 +1,5 @@
 # スマホで完結する MMD 風ダンス生成アプリ開発文書
+本ドキュメントで扱うアプリは **Unity を利用せず**、C# と各種ライブラリのみで 3D ビューワーを自作する方針です。
 
 ## 1. 文書管理
 
@@ -146,33 +147,30 @@ flowchart TD
 ## 9. コンポーネント設計
 
 ### 9.1 ModelImporter
-- **機能**: FBX/VRM/PMX判別→インポート→Humanoid Avatar生成
+- **機能**: FBX/VRM/PMX判別→インポート→Humanoid Avatar 生成
 - **主メソッド**
 ```csharp
-GameObject ImportModel(string path);
-Avatar CreateAvatar(GameObject model);
+ModelData ImportModel(string path);
+HumanoidAvatar CreateAvatar(ModelData model);
 ```
-- **利用ライブラリ**: UniVRM、Assimp（将来）、MMD4Mecanim（参考）
+- **利用ライブラリ**: UniVRM (CLI)、Assimp（将来）、MMD4Mecanim（参考）
 
-### 9.2 PoseEstimator
-- **機能**: 動画→フレーム抽出→Sentis ONNX推論→JointData生成
+- **機能**: 動画→フレーム抽出→ONNX Runtime 推論→JointData 生成
 - **主メソッド**
 ```csharp
 Task<JointData[]> EstimateMotion(string videoPath, Action<float> onProgress = null);
 ```
-- **技術**: ONNX Runtime, MediaPipe Pose ONNX, VideoPlayer
+- **技術**: ONNX Runtime, MediaPipe Pose ONNX, FFmpeg ベースのデコーダ
 
-### 9.3 MotionGenerator
-- **機能**: JointData→MotionData/AnimationClip 変換
+- **機能**: JointData→MotionData/AnimationClip (自作フォーマット) 変換
 - **主メソッド**
 ```csharp
-AnimationClip GenerateClip(MotionData data);
+AnimationClip GenerateClip(MotionData data); // 独自実装のアニメーションクリップ
 MotionData GenerateData(JointData[] joints);
 ```
 - **補助**: 平滑化フィルタ、BVHエクスポート
 
-### 9.4 MotionPlayer
-- **機能**: AnimationClip再生 or スクリプト制御再生。ループ再生や再生速度変更に対応
+- **機能**: 自作 AnimationClip の再生またはスクリプト制御再生。ループ再生や再生速度変更に対応
 - **主メソッド**
 ```csharp
 void Play();
@@ -181,7 +179,7 @@ void Stop();
 void Restart();
 void SetPlaybackSpeed(float speed);
 ```
-- **実装**: Animator もしくは Update() で bone.localRotation/Position を適用
+- **実装**: 独自の更新ループでボーンの回転と位置を適用
 
 ### 9.5 CameraController
 - **機能**: ジャイロ/ARによるカメラ同期
@@ -311,7 +309,7 @@ Assets/
 │   └─ Util/
 │       ├ Singleton.cs
 │       └ JSONUtil.cs
-├─ Plugins/
+├─ Plugins/                # 外部ライブラリ格納用（Unity プロジェクトではない）
 │   ├ UniVRM/
 │   ├ NatCorder/
 │   └ ARFoundation/
@@ -420,4 +418,5 @@ sequenceDiagram
 - NatCorder: モバイル画面録画プラグイン
 - Assimp.NET: FBXランタイムパーサ（将来導入候補）
 - MMD4Mecanim: PMX→Humanoid変換参考
+※ いずれも Unity から独立して利用可能なライブラリです。
 
