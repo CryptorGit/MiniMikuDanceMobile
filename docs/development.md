@@ -265,7 +265,9 @@ public class BoneCurve {
     { "label": "Analyze Video", "message": "analyze_video" },
     { "label": "Generate Motion", "message": "generate_motion" },
     { "label": "Play Motion", "message": "play_motion" },
-    { "label": "Record", "message": "toggle_record" }
+    { "label": "Record", "message": "toggle_record" },
+    { "label": "Export BVH", "message": "export_bvh" },
+    { "label": "Share", "message": "share_recording" }
   ],
   "toggles": [
     { "label": "Gyro Cam", "id": "gyro_cam", "defaultValue": true },
@@ -273,7 +275,8 @@ public class BoneCurve {
   ],
   "showProgressBar": true,
   "showMessage": true,
-  "showRecordingIndicator": true
+  "showRecordingIndicator": true,
+  "showThumbnail": true
 }
 ```
 

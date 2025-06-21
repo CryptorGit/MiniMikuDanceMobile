@@ -24,4 +24,5 @@ public class UIConfig
     public bool showProgressBar;
     public bool showMessage;
     public bool showRecordingIndicator;
+    public bool showThumbnail;
 }

@@ -96,13 +96,27 @@ public class AppInitializer : MonoBehaviour
         {
             case "load_model":
                 var modelPath = Path.Combine(Application.streamingAssetsPath, "SampleModel.vrm");
-                modelImporter?.ImportModel(modelPath);
-                uiManager?.SetMessage("Model loaded");
+                if (!File.Exists(modelPath))
+                {
+                    uiManager?.ShowError("Model file not found");
+                }
+                else
+                {
+                    modelImporter?.ImportModel(modelPath);
+                    uiManager?.SetMessage("Model loaded");
+                }
                 break;
             case "analyze_video":
                 var videoPath = Path.Combine(Application.streamingAssetsPath, "SampleDance.mp4");
-                _ = RunPoseEstimation(videoPath);
-                uiManager?.SetMessage("Analyzing video...");
+                if (!File.Exists(videoPath))
+                {
+                    uiManager?.ShowError("Video file not found");
+                }
+                else
+                {
+                    _ = RunPoseEstimation(videoPath);
+                    uiManager?.SetMessage("Analyzing video...");
+                }
                 break;
             case "generate_motion":
                 if (_lastJoints != null && motionGenerator != null)
@@ -122,6 +136,18 @@ public class AppInitializer : MonoBehaviour
                     motionPlayer.LoadMotion(_motion);
                     motionPlayer.Play();
                     uiManager?.SetMessage("Playing motion");
+                }
+                break;
+            case "export_bvh":
+                if (_motion != null)
+                {
+                    var file = Path.Combine(Application.persistentDataPath, "motion.bvh");
+                    BVHExporter.Export(_motion, file);
+                    uiManager?.SetMessage($"BVH saved to {file}");
+                }
+                else
+                {
+                    uiManager?.ShowError("No motion data");
                 }
                 break;
             case "toggle_camera":
@@ -149,6 +175,7 @@ public class AppInitializer : MonoBehaviour
                         _isRecording = false;
                         uiManager?.SetMessage("Recording saved");
                         uiManager?.SetRecordingIndicator(false);
+                        uiManager?.SetThumbnail(recorderController.GetThumbnailPath());
                     }
                     else
                     {
@@ -159,6 +186,7 @@ public class AppInitializer : MonoBehaviour
                         _isRecording = true;
                         uiManager?.SetMessage("Recording...");
                         uiManager?.SetRecordingIndicator(true);
+                        uiManager?.SetThumbnail(null);
                     }
                 }
                 break;
