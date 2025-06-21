@@ -71,6 +71,26 @@ public class RecorderController : MonoBehaviour
     /// </summary>
     public string GetThumbnailPath() => _thumbnailPath;
 
+    /// <summary>
+    /// Invoke the platform share dialog for the saved recording.
+    /// </summary>
+    public void ShareRecording()
+    {
+        string target = _thumbnailPath;
+        if (string.IsNullOrEmpty(target) || !File.Exists(target))
+        {
+            target = _savedPath;
+        }
+
+        if (string.IsNullOrEmpty(target))
+        {
+            Debug.LogWarning("RecorderController.ShareRecording: nothing to share");
+            return;
+        }
+
+        ShareUtility.ShareFile(target, "Check out my dance!");
+    }
+
     private IEnumerator CaptureFrames(int width, int height)
     {
         while (_recording)

@@ -162,6 +162,13 @@ public class AppInitializer : MonoBehaviour
                     }
                 }
                 break;
+            case "share_recording":
+                if (recorderController != null)
+                {
+                    recorderController.ShareRecording();
+                    uiManager?.SetMessage("Sharing recording");
+                }
+                break;
         }
     }
 
