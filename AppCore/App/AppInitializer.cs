@@ -5,6 +5,7 @@ using MiniMikuDance.Recording;
 using MiniMikuDance.UI;
 using MiniMikuDance.Data;
 using MiniMikuDance.Util;
+using MiniMikuDance.PoseEstimation;
 using System.IO;
 using ViewerApp;
 
@@ -20,8 +21,6 @@ public class AppInitializer
     public void Initialize(string uiConfigPath, string? modelPath, string poseModelPath)
     {
         UIManager.Instance.LoadConfig(uiConfigPath);
-        var importer = new ModelImporter();
-        var model = importer.ImportModel(modelPath);
         ModelData? model = null;
         if (!string.IsNullOrEmpty(modelPath) && File.Exists(modelPath))
         {

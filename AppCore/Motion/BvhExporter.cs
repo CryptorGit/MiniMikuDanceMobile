@@ -1,66 +1,77 @@
 using System.Globalization;
 using System.Text;
+using System.IO;
 
-namespace MiniMikuDance.Motion;
-
-public static class BvhExporter
+namespace MiniMikuDance.Motion
 {
-    public static void Export(MotionData data, string path)
+    public static class BvhExporter
     {
-        if (data.Frames.Length == 0)
-            throw new InvalidOperationException("No frames to export");
-
-        int jointCount = data.Frames[0].Positions.Length;
-
-        using var writer = new StreamWriter(path);
-        writer.WriteLine("HIERARCHY");
-        writer.WriteLine("ROOT root");
-        writer.WriteLine("{");
-        writer.WriteLine("    OFFSET 0 0 0");
-        writer.WriteLine("    CHANNELS 3 Xposition Yposition Zposition");
-        for (int i = 0; i < jointCount; i++)
+        public static void Export(MotionData motion, string path)
         {
-            writer.WriteLine($"    JOINT J{i}");
-            writer.WriteLine("    {");
-            writer.WriteLine("        OFFSET 0 0 0");
-            writer.WriteLine("        CHANNELS 3 Xposition Yposition Zposition");
-            writer.WriteLine("        End Site");
-            writer.WriteLine("        {");
-            writer.WriteLine("            OFFSET 0 0 0");
-            writer.WriteLine("        }");
-            writer.WriteLine("    }");
-        }
-        writer.WriteLine("}");
-        writer.WriteLine("MOTION");
-        writer.WriteLine($"Frames: {data.Frames.Length}");
-        writer.WriteLine($"Frame Time: {data.FrameInterval.ToString(CultureInfo.InvariantCulture)}");
-        foreach (var frame in data.Frames)
-        {
-            var line = new StringBuilder();
-            if (frame.Positions.Length > 0)
+            if (motion.Frames.Length == 0)
+                throw new InvalidOperationException("No frames to export");
+
+            int jointCount = motion.Frames[0].Positions.Length;
+
+            using var writer = new StreamWriter(path);
+            // HIERARCHY
+            writer.WriteLine("HIERARCHY");
+            writer.WriteLine("ROOT Hip");
+            writer.WriteLine("{");
+            writer.WriteLine("    OFFSET 0 0 0");
+            // ルートは Xposition Yposition Zposition Zrotation Xrotation Yrotation
+            writer.WriteLine("    CHANNELS 6 Xposition Yposition Zposition Zrotation Xrotation Yrotation");
+
+            // 子ジョイントは回転のみ (例として jointCount-1 個)
+            for (int i = 1; i < jointCount; i++)
             {
+                writer.WriteLine($"    JOINT J{i}");
+                writer.WriteLine("    {");
+                writer.WriteLine("        OFFSET 0 0 0");
+                writer.WriteLine("        CHANNELS 3 Xrotation Yrotation Zrotation");
+                writer.WriteLine("        End Site");
+                writer.WriteLine("        {");
+                writer.WriteLine("            OFFSET 0 0 0");
+                writer.WriteLine("        }");
+                writer.WriteLine("    }");
+            }
+            writer.WriteLine("}");
+
+            // MOTION
+            writer.WriteLine("MOTION");
+            writer.WriteLine($"Frames: {motion.Frames.Length}");
+            writer.WriteLine($"Frame Time: {motion.FrameInterval.ToString(CultureInfo.InvariantCulture)}");
+
+            // 各フレームの出力
+            foreach (var frame in motion.Frames)
+            {
+                var sb = new StringBuilder();
+
+                // ルート位置
                 var rootPos = frame.Positions[0];
-                line.Append(rootPos.X.ToString(CultureInfo.InvariantCulture));
-                line.Append(' ');
-                line.Append(rootPos.Y.ToString(CultureInfo.InvariantCulture));
-                line.Append(' ');
-                line.Append(rootPos.Z.ToString(CultureInfo.InvariantCulture));
+                sb.Append(rootPos.X.ToString(CultureInfo.InvariantCulture)).Append(' ')
+                  .Append(rootPos.Y.ToString(CultureInfo.InvariantCulture)).Append(' ')
+                  .Append(rootPos.Z.ToString(CultureInfo.InvariantCulture)).Append(' ');
+
+                // ルート回転 (仮に frame.Rotations がある場合)
+                var rootRot = frame.Rotations[0];
+                sb.Append(rootRot.Z.ToString(CultureInfo.InvariantCulture)).Append(' ')
+                  .Append(rootRot.X.ToString(CultureInfo.InvariantCulture)).Append(' ')
+                  .Append(rootRot.Y.ToString(CultureInfo.InvariantCulture));
+
+                // 子ジョイント回転
+                for (int j = 1; j < jointCount; j++)
+                {
+                    var rot = frame.Rotations[j];
+                    sb.Append(' ')
+                      .Append(rot.X.ToString(CultureInfo.InvariantCulture)).Append(' ')
+                      .Append(rot.Y.ToString(CultureInfo.InvariantCulture)).Append(' ')
+                      .Append(rot.Z.ToString(CultureInfo.InvariantCulture));
+                }
+
+                writer.WriteLine(sb.ToString());
             }
-            else
-            {
-                line.Append("0 0 0");
-            }
-            for (int j = 1; j < frame.Positions.Length; j++)
-            {
-                var pos = frame.Positions[j];
-                line.Append(' ');
-                line.Append(pos.X.ToString(CultureInfo.InvariantCulture));
-                line.Append(' ');
-                line.Append(pos.Y.ToString(CultureInfo.InvariantCulture));
-                line.Append(' ');
-                line.Append(pos.Z.ToString(CultureInfo.InvariantCulture));
-            }
-            writer.WriteLine(line.ToString());
         }
     }
 }
+
