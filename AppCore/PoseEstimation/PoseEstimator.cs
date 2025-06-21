@@ -94,7 +94,30 @@ public class PoseEstimator
                     Positions = new Vector3[jointCount],
                     Confidences = new float[jointCount]
                 };
-                // TODO: parse actual output. For now fill zeros
+
+                // BlazePose などの ONNX モデルは [1, 33, N] 形式で座標を返すことが多い。
+                // 取得したテンソルをフラットな配列に変換し、33 関節分の
+                // (x, y, z, score) を JointData に格納する。
+                var outTensor = output.First().AsTensor<float>();
+                var data = outTensor.ToArray();
+                int stride;
+
+                if (outTensor.Dimensions.Length >= 3 && outTensor.Dimensions[^2] == jointCount)
+                {
+                    stride = outTensor.Dimensions[^1];
+                }
+                else
+                {
+                    stride = data.Length / jointCount;
+                }
+
+                for (int j = 0; j < jointCount && j * stride + 2 < data.Length; j++)
+                {
+                    int idx = j * stride;
+                    jd.Positions[j] = new Vector3(data[idx], data[idx + 1], data[idx + 2]);
+                    jd.Confidences[j] = stride > 3 && idx + 3 < data.Length ? data[idx + 3] : 1f;
+                }
+
                 results[i] = jd;
                 onProgress?.Invoke((i + 1) / (float)total);
             }

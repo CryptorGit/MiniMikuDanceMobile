@@ -5,6 +5,7 @@ using MiniMikuDance.Recording;
 using MiniMikuDance.UI;
 using MiniMikuDance.Data;
 using MiniMikuDance.Util;
+using System.IO;
 using ViewerApp;
 
 namespace MiniMikuDance.App;
@@ -16,26 +17,38 @@ public class AppInitializer
     public MotionApplier? Applier { get; private set; }
     public RecorderController? Recorder { get; private set; }
 
-    public void Initialize(string uiConfigPath, string modelPath)
+    public void Initialize(string uiConfigPath, string? modelPath, string poseModelPath)
     {
         UIManager.Instance.LoadConfig(uiConfigPath);
         var importer = new ModelImporter();
         var model = importer.ImportModel(modelPath);
+        ModelData? model = null;
+        if (!string.IsNullOrEmpty(modelPath) && File.Exists(modelPath))
+        {
+            var importer = new ModelImporter();
+            model = importer.ImportModel(modelPath);
+        }
+        var estimator = new PoseEstimator(poseModelPath);
+        var generator = new MotionGenerator();
+
         MotionPlayer = new MotionPlayer();
         var camera = new CameraController();
         Recorder = new RecorderController();
-        Applier = new MotionApplier(model);
-        MotionPlayer.OnFramePlayed += Applier.Apply;
-        Viewer = new Viewer(modelPath);
-        Viewer.FrameUpdated += dt => MotionPlayer.Update(dt);
-        Viewer.FrameUpdated += dt =>
+        if (model != null)
         {
-            if (Recorder != null && Recorder.IsRecording)
+            Applier = new MotionApplier(model);
+            MotionPlayer.OnFramePlayed += Applier.Apply;
+            Viewer = new Viewer(modelPath!);
+            Viewer.FrameUpdated += dt => MotionPlayer.Update(dt);
+            Viewer.FrameUpdated += dt =>
             {
-                var pixels = Viewer.CaptureFrame();
-                Recorder.Capture(pixels, Viewer.Size.X, Viewer.Size.Y);
-            }
-        };
+                if (Recorder != null && Recorder.IsRecording)
+                {
+                    var pixels = Viewer.CaptureFrame();
+                    Recorder.Capture(pixels, Viewer.Size.X, Viewer.Size.Y);
+                }
+            };
+        }
         DataManager.Instance.CleanupTemp();
         // Additional processing can be handled by the host application
     }
