@@ -1,5 +1,4 @@
 using MiniMikuDance.Import;
-using MiniMikuDance.PoseEstimation;
 using MiniMikuDance.Motion;
 using MiniMikuDance.Camera;
 using MiniMikuDance.Recording;
@@ -17,13 +16,11 @@ public class AppInitializer
     public MotionApplier? Applier { get; private set; }
     public RecorderController? Recorder { get; private set; }
 
-    public void Initialize(string uiConfigPath, string modelPath, string poseModelPath)
+    public void Initialize(string uiConfigPath, string modelPath)
     {
         UIManager.Instance.LoadConfig(uiConfigPath);
         var importer = new ModelImporter();
         var model = importer.ImportModel(modelPath);
-        var estimator = new PoseEstimator(poseModelPath);
-        var generator = new MotionGenerator();
         MotionPlayer = new MotionPlayer();
         var camera = new CameraController();
         Recorder = new RecorderController();
