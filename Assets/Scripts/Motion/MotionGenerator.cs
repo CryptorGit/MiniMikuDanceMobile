@@ -33,7 +33,20 @@ public class MotionGenerator : MonoBehaviour
             for (int j = 0; j < jointCount; j++)
             {
                 data.boneCurves[$"Joint{j}"].positions[frame] = joints[frame].positions[j];
-                data.boneCurves[$"Joint{j}"].rotations[frame] = Quaternion.identity;
+
+                if (frame > 0)
+                {
+                    Vector3 prev = joints[frame - 1].positions[j];
+                    Vector3 dir = joints[frame].positions[j] - prev;
+                    data.boneCurves[$"Joint{j}"].rotations[frame] =
+                        dir.sqrMagnitude > 1e-6f
+                            ? Quaternion.LookRotation(dir)
+                            : data.boneCurves[$"Joint{j}"].rotations[frame - 1];
+                }
+                else
+                {
+                    data.boneCurves[$"Joint{j}"].rotations[frame] = Quaternion.identity;
+                }
             }
         }
 

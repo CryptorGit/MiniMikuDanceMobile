@@ -54,6 +54,10 @@ public class MotionPlayer : MonoBehaviour
             if (_motion.boneCurves.TryGetValue($"Joint{i}", out var curve))
             {
                 jointTargets[i].localPosition = curve.positions[frameIndex];
+                if (curve.rotations != null && curve.rotations.Length > frameIndex)
+                {
+                    jointTargets[i].localRotation = curve.rotations[frameIndex];
+                }
             }
         }
 

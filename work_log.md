@@ -19,3 +19,4 @@
 - Added Record button and toggle logic in AppInitializer
 
 - Added DataManager for persistent configs and UIManager integration
+- Added orientation generation and rotation playback in Motion system
