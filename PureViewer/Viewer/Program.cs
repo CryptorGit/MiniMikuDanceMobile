@@ -23,12 +23,20 @@ namespace ViewerApp
         private int _modelLocation;
         private int _viewLocation;
         private int _projectionLocation;
+        private int _lightDirLocation;
+        private int _lightColorLocation;
+        private int _ambientLocation;
+        private int _objectColorLocation;
         private float _rotation;
         private Vector3 _cameraPos = new(0, 0, 3);
         private float _yaw = -90f;
         private float _pitch;
         private Vector2 _lastMouse;
         private bool _firstMove = true;
+        private readonly Vector3 _lightDir = new(-0.2f, -1.0f, -0.3f);
+        private readonly Vector3 _lightColor = Vector3.One;
+        private readonly Vector3 _ambient = new(0.1f, 0.1f, 0.1f);
+        private readonly Vector3 _objectColor = new(1.0f, 0.5f, 0.31f);
 
         public Viewer(string modelPath) : base(GameWindowSettings.Default, NativeWindowSettings.Default)
         {
@@ -42,6 +50,7 @@ namespace ViewerApp
             base.OnLoad();
             GL.ClearColor(Color4.CornflowerBlue);
             GL.Enable(EnableCap.DepthTest);
+            CursorState = CursorState.Grabbed;
             LoadModel(_modelPath);
             string shaderDir = Path.Combine(AppContext.BaseDirectory, "Shaders");
             string vert = Path.Combine(shaderDir, "basic.vert");
@@ -52,6 +61,15 @@ namespace ViewerApp
             _modelLocation = GL.GetUniformLocation(_shaderProgram, "model");
             _viewLocation = GL.GetUniformLocation(_shaderProgram, "view");
             _projectionLocation = GL.GetUniformLocation(_shaderProgram, "projection");
+            _lightDirLocation = GL.GetUniformLocation(_shaderProgram, "lightDir");
+            _lightColorLocation = GL.GetUniformLocation(_shaderProgram, "lightColor");
+            _ambientLocation = GL.GetUniformLocation(_shaderProgram, "ambient");
+            _objectColorLocation = GL.GetUniformLocation(_shaderProgram, "objectColor");
+            GL.UseProgram(_shaderProgram);
+            GL.Uniform3(_lightDirLocation, _lightDir);
+            GL.Uniform3(_lightColorLocation, _lightColor);
+            GL.Uniform3(_ambientLocation, _ambient);
+            GL.Uniform3(_objectColorLocation, _objectColor);
         }
 
         protected override void OnResize(ResizeEventArgs e)
@@ -69,6 +87,11 @@ namespace ViewerApp
 
             float speed = 2.5f * (float)args.Time;
             var input = KeyboardState;
+            if (input.IsKeyDown(Keys.Escape))
+            {
+                Close();
+                return;
+            }
             Vector3 forward = GetForwardVector();
             Vector3 right = Vector3.Normalize(Vector3.Cross(forward, Vector3.UnitY));
             if (input.IsKeyDown(Keys.W)) _cameraPos += forward * speed;
@@ -104,6 +127,10 @@ namespace ViewerApp
             GL.UniformMatrix4(_modelLocation, false, ref _modelMatrix);
             GL.UniformMatrix4(_viewLocation, false, ref _viewMatrix);
             GL.UniformMatrix4(_projectionLocation, false, ref _projectionMatrix);
+            GL.Uniform3(_lightDirLocation, _lightDir);
+            GL.Uniform3(_lightColorLocation, _lightColor);
+            GL.Uniform3(_ambientLocation, _ambient);
+            GL.Uniform3(_objectColorLocation, _objectColor);
             GL.BindVertexArray(_vao);
             GL.DrawElements(OpenTK.Graphics.OpenGL4.PrimitiveType.Triangles, _vertexCount, DrawElementsType.UnsignedInt, 0);
             SwapBuffers();
@@ -115,6 +142,7 @@ namespace ViewerApp
             GL.DeleteBuffer(_ebo);
             GL.DeleteVertexArray(_vao);
             GL.DeleteProgram(_shaderProgram);
+            CursorState = CursorState.Normal;
             base.OnUnload();
         }
 
@@ -157,13 +185,31 @@ namespace ViewerApp
             int vertexShader = GL.CreateShader(ShaderType.VertexShader);
             GL.ShaderSource(vertexShader, vertexShaderSource);
             GL.CompileShader(vertexShader);
+            GL.GetShader(vertexShader, ShaderParameter.CompileStatus, out int vStatus);
+            if (vStatus != (int)All.True)
+            {
+                string info = GL.GetShaderInfoLog(vertexShader);
+                throw new Exception($"Vertex shader compile error: {info}");
+            }
             int fragmentShader = GL.CreateShader(ShaderType.FragmentShader);
             GL.ShaderSource(fragmentShader, fragmentShaderSource);
             GL.CompileShader(fragmentShader);
+            GL.GetShader(fragmentShader, ShaderParameter.CompileStatus, out int fStatus);
+            if (fStatus != (int)All.True)
+            {
+                string info = GL.GetShaderInfoLog(fragmentShader);
+                throw new Exception($"Fragment shader compile error: {info}");
+            }
             int program = GL.CreateProgram();
             GL.AttachShader(program, vertexShader);
             GL.AttachShader(program, fragmentShader);
             GL.LinkProgram(program);
+            GL.GetProgram(program, GetProgramParameterName.LinkStatus, out int link);
+            if (link != (int)All.True)
+            {
+                string info = GL.GetProgramInfoLog(program);
+                throw new Exception($"Program link error: {info}");
+            }
             GL.DeleteShader(vertexShader);
             GL.DeleteShader(fragmentShader);
             return program;

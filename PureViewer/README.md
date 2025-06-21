@@ -10,4 +10,7 @@
 ```bash
 dotnet run --project Viewer [path/to/model]
 ```
-モデルパスを指定しない場合は `Assets/Models/sample.obj` に含まれるサンプルのキューブを読み込みます。
+モデルパスを指定しない場合は `Assets/Models/sample.obj` を読み込みます。
+
+起動後は `WASD` キーとマウス移動でカメラを操作できます。簡易的なライティングも追加されており、
+立体感のある表示が可能です。`Esc` キーでウィンドウを閉じます。
