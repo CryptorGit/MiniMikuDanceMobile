@@ -6,6 +6,7 @@ using MiniMikuDance.UI;
 using MiniMikuDance.Util;
 using ViewerApp;
 using MiniMikuDanceApp.UI;
+using OpenTK.Windowing.Desktop;
 using System.IO;
 
 class Program

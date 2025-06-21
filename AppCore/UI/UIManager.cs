@@ -21,9 +21,11 @@ public class UIManager : Singleton<UIManager>
     private int _thumbnailTexture;
     private Vector2 _thumbnailSize;
 
+    public delegate int TextureLoaderDelegate(ReadOnlySpan<byte> data, int width, int height);
+
     public event Action<string>? OnButtonPressed;
     public event Action<string, bool>? OnToggleChanged;
-    private Func<ReadOnlySpan<byte>, int, int, int>? _textureLoader;
+    private TextureLoaderDelegate? _textureLoader;
 
     public void LoadConfig(string path)
     {
@@ -35,7 +37,7 @@ public class UIManager : Singleton<UIManager>
         }
     }
 
-    public void RegisterTextureLoader(Func<ReadOnlySpan<byte>, int, int, int> loader)
+    public void RegisterTextureLoader(TextureLoaderDelegate loader)
     {
         _textureLoader = loader;
     }

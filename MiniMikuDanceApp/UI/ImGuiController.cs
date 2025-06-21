@@ -3,6 +3,7 @@ using System.Numerics;
 using OpenTK.Graphics.OpenGL4;
 using OpenTK.Windowing.Common;
 using OpenTK.Windowing.GraphicsLibraryFramework;
+using OpenTK.Windowing.Desktop;
 using ImGuiNET;
 
 namespace MiniMikuDanceApp.UI;
@@ -51,14 +52,16 @@ public class ImGuiController : IDisposable
     {
         var io = ImGui.GetIO();
         var mouse = window.MouseState;
-        io.MousePos = new Vector2(mouse.X, mouse.Y);
-        io.MouseDown[0] = mouse.IsButtonDown(MouseButton.Left);
-        io.MouseDown[1] = mouse.IsButtonDown(MouseButton.Right);
-        io.MouseDown[2] = mouse.IsButtonDown(MouseButton.Middle);
+        io.AddMousePosEvent(mouse.X, mouse.Y);
+        io.AddMouseButtonEvent(0, mouse.IsButtonDown(MouseButton.Left));
+        io.AddMouseButtonEvent(1, mouse.IsButtonDown(MouseButton.Right));
+        io.AddMouseButtonEvent(2, mouse.IsButtonDown(MouseButton.Middle));
+
         var keyboard = window.KeyboardState;
-        for (int i = 0; i < io.KeysDown.Count; i++)
+        for (ImGuiKey key = ImGuiKey.Tab; key < ImGuiKey.COUNT; key++)
         {
-            io.KeysDown[i] = keyboard.IsKeyDown((Keys)i);
+            var k = (Keys)key;
+            io.AddKeyEvent(key, keyboard.IsKeyDown(k));
         }
     }
 
@@ -154,17 +157,17 @@ public class ImGuiController : IDisposable
         float r = io.DisplaySize.X;
         float t = 0.0f;
         float b = io.DisplaySize.Y;
-        var mvp = new Matrix4x4(
+        var mvp = new OpenTK.Mathematics.Matrix4(
             2.0f / (r - l), 0, 0, 0,
             0, 2.0f / (t - b), 0, 0,
             0, 0, -1, 0,
             (r + l) / (l - r), (t + b) / (b - t), 0, 1);
-        GL.UniformMatrix4fv(_projLocation, 1, false, (float*)&mvp);
+        GL.UniformMatrix4(_projLocation, false, ref mvp);
 
         GL.BindVertexArray(_vertexArray);
         for (int n = 0; n < drawData.CmdListsCount; n++)
         {
-            var cmd = drawData.CmdListsRange[n];
+            var cmd = drawData.CmdLists[n];
             int vtxSize = cmd.VtxBuffer.Size * sizeof(ImDrawVert);
             int idxSize = cmd.IdxBuffer.Size * sizeof(ushort);
             GL.BindBuffer(BufferTarget.ArrayBuffer, _vertexBuffer);
