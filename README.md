@@ -48,9 +48,11 @@ FBX や PMX モデルを実行時に利用するための変換手順は [docs/m
 ```bash
 dotnet run --project MiniMikuDanceApp/MiniMikuDanceApp.csproj
 ```
+詳しい使い方は [MiniMikuDanceApp/README.md](MiniMikuDanceApp/README.md) を参照してください。
 
 ## AppCore ライブラリ
 Viewer とは別に、姿勢推定やモーション生成、録画管理などの基盤クラスをまとめた `AppCore` ライブラリを追加しました。現状はスタブ実装ですが、今後モバイル向けアプリの中核として拡張予定です。
+各サブモジュールの構成は [AppCore/README.md](AppCore/README.md) に整理しています。
 
 
 ## PureViewer
