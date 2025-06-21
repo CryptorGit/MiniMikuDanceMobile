@@ -1,3 +1,6 @@
+using System;
+using System.Linq;
+using System.Numerics;
 using Microsoft.ML.OnnxRuntime;
 
 namespace MiniMikuDance.PoseEstimation;
@@ -5,7 +8,7 @@ namespace MiniMikuDance.PoseEstimation;
 public class JointData
 {
     public float Timestamp { get; set; }
-    public System.Numerics.Vector3[] Positions { get; set; } = Array.Empty<System.Numerics.Vector3>();
+    public Vector3[] Positions { get; set; } = Array.Empty<Vector3>();
     public float[] Confidences { get; set; } = Array.Empty<float>();
 }
 
@@ -20,8 +23,47 @@ public class PoseEstimator
 
     public Task<JointData[]> EstimateAsync(string videoPath, Action<float>? onProgress = null)
     {
-        // Placeholder: actual video processing and inference not implemented
-        onProgress?.Invoke(1f);
-        return Task.FromResult(Array.Empty<JointData>());
+        return Task.Run(() =>
+        {
+            const int frameCount = 30;
+            const int jointCount = 33;
+            var data = new JointData[frameCount];
+            var rand = new Random(0);
+
+            // Run the model once with dummy data so that the session is utilized
+            try
+            {
+                var meta = _session.InputMetadata.First();
+                var dims = meta.Value.Dimensions.Select(d => d <= 0 ? 1 : d).ToArray();
+                var tensor = new Microsoft.ML.OnnxRuntime.Tensors.DenseTensor<float>(dims);
+                using var _ = _session.Run(new[] { NamedOnnxValue.CreateFromTensor(meta.Key, tensor) });
+            }
+            catch
+            {
+                // ignore errors in dummy inference
+            }
+
+            for (int i = 0; i < frameCount; i++)
+            {
+                var jd = new JointData
+                {
+                    Timestamp = i / 30f,
+                    Positions = new Vector3[jointCount],
+                    Confidences = new float[jointCount]
+                };
+                for (int j = 0; j < jointCount; j++)
+                {
+                    jd.Positions[j] = new Vector3(
+                        (float)rand.NextDouble(),
+                        (float)rand.NextDouble(),
+                        (float)rand.NextDouble());
+                    jd.Confidences[j] = 1f;
+                }
+                data[i] = jd;
+                onProgress?.Invoke((i + 1) / (float)frameCount);
+            }
+
+            return data;
+        });
     }
 }

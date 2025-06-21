@@ -1,12 +1,64 @@
+using System;
+using MiniMikuDance.PoseEstimation;
+
 namespace MiniMikuDance.Motion;
 
 public class MotionPlayer
 {
-    public float PlaybackSpeed { get; private set; } = 1f;
+    private MotionData? _current;
+    private int _frameIndex;
+    private bool _playing;
+    private float _elapsed;
 
-    public void Play(MotionData data) { /* stub */ }
-    public void Pause() { }
-    public void Stop() { }
-    public void Restart() { }
+    public float PlaybackSpeed { get; private set; } = 1f;
+    public bool IsPlaying => _playing;
+    public event Action<JointData>? OnFramePlayed;
+
+    public void Play(MotionData data)
+    {
+        _current = data;
+        _frameIndex = 0;
+        _elapsed = 0f;
+        _playing = true;
+    }
+
+    public void Pause() => _playing = false;
+
+    public void Stop()
+    {
+        _playing = false;
+        _frameIndex = 0;
+        _elapsed = 0f;
+    }
+
+    public void Restart()
+    {
+        if (_current == null) return;
+        _frameIndex = 0;
+        _elapsed = 0f;
+        _playing = true;
+    }
+
     public void SetPlaybackSpeed(float speed) => PlaybackSpeed = speed;
+
+    public void Update(float deltaTime)
+    {
+        if (!_playing || _current == null || _current.Frames.Length == 0)
+            return;
+
+        _elapsed += deltaTime * PlaybackSpeed;
+        while (_elapsed >= _current.FrameInterval && _playing)
+        {
+            _elapsed -= _current.FrameInterval;
+            if (_frameIndex < _current.Frames.Length)
+            {
+                OnFramePlayed?.Invoke(_current.Frames[_frameIndex]);
+                _frameIndex++;
+            }
+            else
+            {
+                _playing = false;
+            }
+        }
+    }
 }
