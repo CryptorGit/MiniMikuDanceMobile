@@ -4,4 +4,4 @@ This repository contains an experimental design for a smartphone application tha
 
 The full development document is available in [docs/development.md](docs/development.md). A shorter architecture summary can be found in [docs/architecture.md](docs/architecture.md).
 
-For instructions on preparing FBX or PMX models for runtime use, see [docs/model_conversion.md](docs/model_conversion.md).
+For instructions on preparing FBX or PMX models for runtime use, see [docs/model_conversion.md](docs/model_conversion.md

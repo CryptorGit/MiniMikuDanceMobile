@@ -42,7 +42,6 @@ Assets/
     Util/           - Utility classes
   Plugins/          - Third-party packages (UniVRM, NatCorder, etc.)
   StreamingAssets/  - ML models and large data files
-Resources/        - Default assets such as stage prefabs
 ```
 
 ### Why document these folders?
@@ -62,11 +61,3 @@ has a specific role:
 
 Keeping this structure documented makes it easier to understand the project and
 maintain consistency as the codebase grows.
-
-## Development Notes
-
-- Entire scene and UI are created from code and JSON without manual editor work.
-- Offline processing: pose estimation and video creation run locally on the device.
-- Designed for future extensibility (multiple characters, AR background, etc.).
-- LLM tools like ChatGPT can be used during development for code generation.
-
