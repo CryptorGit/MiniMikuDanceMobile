@@ -5,6 +5,7 @@ using MiniMikuDance.Motion;
 using MiniMikuDance.UI;
 using MiniMikuDance.Util;
 using ViewerApp;
+using MiniMikuDanceApp.UI;
 
 class Program
 {
@@ -15,7 +16,9 @@ class Program
         string poseModelPath = "pose_model.onnx";
 
         var app = new AppInitializer();
-        app.Initialize("Configs/UIConfig.json", modelPath);
+
+        app.Initialize("Configs/UIConfig.json", modelPath, poseModelPath);
+        UIRenderer? ui = null;
         Console.WriteLine("Commands: analyze, generate, play, record, stop, quit");
         string? line;
         MotionData? motion = null;
@@ -25,9 +28,9 @@ class Program
             {
                 case "analyze":
                     var estimator = new PoseEstimator(poseModelPath);
-                    var joints = await estimator.EstimateAsync(videoPath, p => Console.WriteLine($"Pose {p:P0}"));
+                    var joints = await estimator.EstimateAsync(videoPath, p => UIManager.Instance.Progress = p);
                     motion = new MotionGenerator().Generate(joints);
-                    Console.WriteLine("Analysis done");
+                    UIManager.Instance.SetMessage("Analysis done");
                     break;
                 case "generate":
                     if (motion == null)
@@ -35,11 +38,15 @@ class Program
                         Console.WriteLine("Run analyze first");
                         break;
                     }
-                    Console.WriteLine("Motion generated");
+                    UIManager.Instance.SetMessage("Motion generated");
                     break;
                 case "play":
                     if (motion != null && app.MotionPlayer != null)
                     {
+                        if (app.Viewer != null && ui == null)
+                        {
+                            ui = new UIRenderer(app.Viewer);
+                        }
                         app.MotionPlayer.Play(motion);
                         app.Viewer?.Run();
                     }
@@ -50,11 +57,13 @@ class Program
                     break;
                 case "record":
                     app.Recorder?.StartRecording(800, 600, 30);
-                    Console.WriteLine("Recording started");
+                    UIManager.Instance.IsRecording = true;
+                    UIManager.Instance.SetMessage("Recording started");
                     break;
                 case "stop":
                     app.Recorder?.StopRecording();
-                    Console.WriteLine("Recording stopped");
+                    UIManager.Instance.IsRecording = false;
+                    UIManager.Instance.SetMessage("Recording stopped");
                     break;
                 case "quit":
                     return;

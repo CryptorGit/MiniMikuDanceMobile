@@ -40,6 +40,8 @@ namespace ViewerApp
         private readonly Vector3 _objectColor = new(1.0f, 0.5f, 0.31f);
 
         public event Action<float>? FrameUpdated;
+        public event Action<float>? UIFrameUpdated;
+        public event Action? RenderUI;
 
         public Viewer(string modelPath) : base(GameWindowSettings.Default, NativeWindowSettings.Default)
         {
@@ -137,6 +139,7 @@ namespace ViewerApp
 
             _viewMatrix = Matrix4.LookAt(_cameraPos, _cameraPos + GetForwardVector(), Vector3.UnitY);
             FrameUpdated?.Invoke((float)args.Time);
+            UIFrameUpdated?.Invoke((float)args.Time);
         }
 
         protected override void OnRenderFrame(FrameEventArgs args)
@@ -153,6 +156,7 @@ namespace ViewerApp
             GL.Uniform3(_objectColorLocation, _objectColor);
             GL.BindVertexArray(_vao);
             GL.DrawElements(OpenTK.Graphics.OpenGL4.PrimitiveType.Triangles, _vertexCount, DrawElementsType.UnsignedInt, 0);
+            RenderUI?.Invoke();
             SwapBuffers();
         }
 
