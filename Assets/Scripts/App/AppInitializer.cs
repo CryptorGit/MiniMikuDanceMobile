@@ -14,10 +14,12 @@ public class AppInitializer : MonoBehaviour
     [SerializeField] private MotionGenerator motionGenerator;
     [SerializeField] private MotionPlayer motionPlayer;
     [SerializeField] private CameraController cameraController;
+    [SerializeField] private RecorderController recorderController;
 
     private AppSettings _settings;
     private JointData[] _lastJoints;
     private MotionData _motion;
+    private bool _isRecording;
 
     private void Awake()
     {
@@ -48,6 +50,10 @@ public class AppInitializer : MonoBehaviour
         if (cameraController == null)
         {
             cameraController = FindObjectOfType<CameraController>();
+        }
+        if (recorderController == null)
+        {
+            recorderController = FindObjectOfType<RecorderController>();
         }
 
         // Build basic UI from default config packaged with the app
@@ -98,6 +104,28 @@ public class AppInitializer : MonoBehaviour
                     Debug.Log($"Gyro mode {(enable ? "on" : "off")}");
                 }
                 break;
+            case "toggle_record":
+                if (recorderController != null)
+                {
+                    if (!recorderController.enabled)
+                    {
+                        // ensure component enabled before recording
+                        recorderController.enabled = true;
+                    }
+
+                    if (IsRecording())
+                    {
+                        recorderController.StopRecording();
+                        Debug.Log($"Recording saved to {recorderController.GetSavedPath()}");
+                        _isRecording = false;
+                    }
+                    else
+                    {
+                        recorderController.StartRecording(1280, 720, 30);
+                        _isRecording = true;
+                    }
+                }
+                break;
         }
     }
 
@@ -112,4 +140,6 @@ public class AppInitializer : MonoBehaviour
         _lastJoints = await poseEstimator.EstimateMotion(path);
         Debug.Log($"PoseEstimator returned {_lastJoints.Length} frames");
     }
+
+    private bool IsRecording() => _isRecording;
 }

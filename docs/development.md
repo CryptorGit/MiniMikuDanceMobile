@@ -192,6 +192,8 @@ void SyncARPose();
 
 ### 9.6 RecorderController
 - **機能**: 録画開始/停止、MP4エンコード
+- **備考**: 現時点では NatCorder 未統合のため `ScreenCapture` による
+  フレームPNG保存の簡易実装を使用
 - **主メソッド**
 ```csharp
 void StartRecording(int width, int height, int fps);

@@ -15,4 +15,6 @@
 - Added Generate/Play buttons and logic in AppInitializer
 - Implemented CameraController with gyro and editor mouse look
 - Added Toggle Camera button and functionality
+- Implemented RecorderController placeholder frame capture
+- Added Record button and toggle logic in AppInitializer
 
