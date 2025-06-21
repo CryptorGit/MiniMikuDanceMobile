@@ -16,7 +16,21 @@ public static class ShareUtility
             return;
         }
 
-#if UNITY_ANDROID || UNITY_IOS
+#if NATIVE_SHARE
+        try
+        {
+            new NativeShare()
+                .AddFile(path)
+                .SetSubject("Share")
+                .SetText(message)
+                .Share();
+        }
+        catch (System.Exception ex)
+        {
+            Debug.LogError($"ShareUtility: NativeShare failed {ex}");
+            Application.OpenURL($"file://{path}");
+        }
+#elif UNITY_ANDROID || UNITY_IOS
         Application.OpenURL($"file://{path}");
 #else
         Application.OpenURL(path);
