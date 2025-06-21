@@ -1,0 +1,8 @@
+{
+    "buttons": [
+        {
+            "label": "Test Button",
+            "message": "Test button pressed"
+        }
+    ]
+}
