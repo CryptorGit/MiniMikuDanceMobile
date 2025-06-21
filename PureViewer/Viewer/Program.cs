@@ -28,6 +28,7 @@ namespace ViewerApp
         private int _ambientLocation;
         private int _objectColorLocation;
         private float _rotation;
+        private bool _useAutoRotate = true;
         private Vector3 _cameraPos = new(0, 0, 3);
         private float _yaw = -90f;
         private float _pitch;
@@ -38,11 +39,26 @@ namespace ViewerApp
         private readonly Vector3 _ambient = new(0.1f, 0.1f, 0.1f);
         private readonly Vector3 _objectColor = new(1.0f, 0.5f, 0.31f);
 
+        public event Action<float>? FrameUpdated;
+
         public Viewer(string modelPath) : base(GameWindowSettings.Default, NativeWindowSettings.Default)
         {
             _modelPath = modelPath;
             Title = "MiniMikuDance Viewer";
             Size = new Vector2i(800, 600);
+        }
+
+        public void SetModelMatrix(Matrix4 matrix)
+        {
+            _modelMatrix = matrix;
+            _useAutoRotate = false;
+        }
+
+        public byte[] CaptureFrame()
+        {
+            byte[] data = new byte[Size.X * Size.Y * 4];
+            GL.ReadPixels(0, 0, Size.X, Size.Y, PixelFormat.Rgba, PixelType.UnsignedByte, data);
+            return data;
         }
 
         protected override void OnLoad()
@@ -83,7 +99,10 @@ namespace ViewerApp
         {
             base.OnUpdateFrame(args);
             _rotation += (float)args.Time;
-            _modelMatrix = Matrix4.CreateRotationY(_rotation);
+            if (_useAutoRotate)
+            {
+                _modelMatrix = Matrix4.CreateRotationY(_rotation);
+            }
 
             float speed = 2.5f * (float)args.Time;
             var input = KeyboardState;
@@ -117,6 +136,7 @@ namespace ViewerApp
             }
 
             _viewMatrix = Matrix4.LookAt(_cameraPos, _cameraPos + GetForwardVector(), Vector3.UnitY);
+            FrameUpdated?.Invoke((float)args.Time);
         }
 
         protected override void OnRenderFrame(FrameEventArgs args)

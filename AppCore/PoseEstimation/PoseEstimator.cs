@@ -2,6 +2,8 @@ using System;
 using System.Linq;
 using System.Numerics;
 using Microsoft.ML.OnnxRuntime;
+using Microsoft.ML.OnnxRuntime.Tensors;
+using OpenCvSharp;
 
 namespace MiniMikuDance.PoseEstimation;
 
@@ -32,48 +34,71 @@ public class PoseEstimator
     {
         return Task.Run(() =>
         {
-            const int frameCount = 30;
             const int jointCount = 33;
-            var data = new JointData[frameCount];
-            var rand = new Random(0);
 
-            // Optionally warm up the model if available
-            if (_session != null)
+            if (_session == null || !File.Exists(videoPath))
             {
-                try
+                // fallback to dummy values
+                int frameCount = 30;
+                var rand = new Random(0);
+                var dummy = new JointData[frameCount];
+                for (int i = 0; i < frameCount; i++)
                 {
-                    var meta = _session.InputMetadata.First();
-                    var dims = meta.Value.Dimensions.Select(d => d <= 0 ? 1 : d).ToArray();
-                    var tensor = new Microsoft.ML.OnnxRuntime.Tensors.DenseTensor<float>(dims);
-                    using var _ = _session.Run(new[] { NamedOnnxValue.CreateFromTensor(meta.Key, tensor) });
+                    var jd = new JointData
+                    {
+                        Timestamp = i / 30f,
+                        Positions = new Vector3[jointCount],
+                        Confidences = new float[jointCount]
+                    };
+                    for (int j = 0; j < jointCount; j++)
+                    {
+                        jd.Positions[j] = new Vector3(
+                            (float)rand.NextDouble(),
+                            (float)rand.NextDouble(),
+                            (float)rand.NextDouble());
+                        jd.Confidences[j] = 1f;
+                    }
+                    dummy[i] = jd;
+                    onProgress?.Invoke((i + 1) / (float)frameCount);
                 }
-                catch
-                {
-                    // ignore errors in dummy inference
-                }
+                return dummy;
             }
 
-            for (int i = 0; i < frameCount; i++)
+            using var capture = new VideoCapture(videoPath);
+            int total = (int)capture.FrameCount;
+            var results = new JointData[total];
+            var meta = _session.InputMetadata.First();
+            var dims = meta.Value.Dimensions.Select(d => d <= 0 ? 1 : d).ToArray();
+            for (int i = 0; i < total; i++)
             {
+                using var frame = new Mat();
+                if (!capture.Read(frame) || frame.Empty()) break;
+                using var resized = frame.Resize(new Size(dims[3], dims[2]));
+                var tensor = new DenseTensor<float>(dims);
+                var span = tensor.Buffer.Span;
+                for (int y = 0; y < dims[2]; y++)
+                {
+                    for (int x = 0; x < dims[3]; x++)
+                    {
+                        var color = resized.At<Vec3b>(y, x);
+                        int idx = (y * dims[3] + x) * 3;
+                        span[idx + 0] = color.Item2 / 255f; // R
+                        span[idx + 1] = color.Item1 / 255f; // G
+                        span[idx + 2] = color.Item0 / 255f; // B
+                    }
+                }
+                using var output = _session.Run(new[] { NamedOnnxValue.CreateFromTensor(meta.Key, tensor) });
                 var jd = new JointData
                 {
                     Timestamp = i / 30f,
                     Positions = new Vector3[jointCount],
                     Confidences = new float[jointCount]
                 };
-                for (int j = 0; j < jointCount; j++)
-                {
-                    jd.Positions[j] = new Vector3(
-                        (float)rand.NextDouble(),
-                        (float)rand.NextDouble(),
-                        (float)rand.NextDouble());
-                    jd.Confidences[j] = 1f;
-                }
-                data[i] = jd;
-                onProgress?.Invoke((i + 1) / (float)frameCount);
+                // TODO: parse actual output. For now fill zeros
+                results[i] = jd;
+                onProgress?.Invoke((i + 1) / (float)total);
             }
-
-            return data;
+            return results;
         });
     }
 }
