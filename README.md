@@ -8,5 +8,8 @@ FBX や PMX モデルを実行時に利用するための変換手順は [docs/m
 
 現在のタスクカードを基にした機能一覧は [docs/features.md](docs/features.md) で確認できます。
 
+## AppCore ライブラリ
+Viewer とは別に、姿勢推定やモーション生成、録画管理などの基盤クラスをまとめた `AppCore` ライブラリを追加しました。現状はスタブ実装ですが、今後モバイル向けアプリの中核として拡張予定です。
+
 ## PureViewer
 純粋な C# で実装した OpenGL ビューワーです。Unity には一切依存していません。詳しくは [PureViewer/README.md](PureViewer/README.md) を参照してください。
