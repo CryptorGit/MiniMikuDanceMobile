@@ -19,9 +19,20 @@ class Program
 
         app.Initialize("Configs/UIConfig.json", modelPath, poseModelPath);
         UIRenderer? ui = null;
-        Console.WriteLine("Commands: analyze, generate, play, record, stop, quit");
-        string? line;
+        Console.WriteLine("Commands: analyze, generate, play, record, stop, export_bvh, quit");
+
         MotionData? motion = null;
+
+        UIManager.Instance.OnButtonPressed += msg =>
+        {
+            if (msg == "export_bvh" && motion != null)
+            {
+                BvhExporter.Export(motion, "exported.bvh");
+                UIManager.Instance.SetMessage("BVH exported");
+            }
+        };
+
+        string? line;
         while ((line = Console.ReadLine()) != null)
         {
             switch (line)
@@ -64,6 +75,17 @@ class Program
                     app.Recorder?.StopRecording();
                     UIManager.Instance.IsRecording = false;
                     UIManager.Instance.SetMessage("Recording stopped");
+                    break;
+                case "export_bvh":
+                    if (motion != null)
+                    {
+                        BvhExporter.Export(motion, "exported.bvh");
+                        Console.WriteLine("Exported to exported.bvh");
+                    }
+                    else
+                    {
+                        Console.WriteLine("No motion");
+                    }
                     break;
                 case "quit":
                     return;
