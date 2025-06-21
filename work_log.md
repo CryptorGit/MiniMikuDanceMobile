@@ -25,3 +25,4 @@
 - AppInitializer now respects AppSettings for recording and smoothing
 - Added recording indicator support in UIManager and toggle logic in AppInitializer
 - Added showRecordingIndicator flag to UIConfig and conditional UI creation
+- Added progress callbacks in PoseEstimator and progress bar updates in AppInitializer

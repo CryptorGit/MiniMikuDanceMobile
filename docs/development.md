@@ -158,7 +158,7 @@ Avatar CreateAvatar(GameObject model);
 - **機能**: 動画→フレーム抽出→Sentis ONNX推論→JointData生成
 - **主メソッド**
 ```csharp
-Task<JointData[]> EstimateMotion(string videoPath);
+Task<JointData[]> EstimateMotion(string videoPath, Action<float> onProgress = null);
 ```
 - **技術**: Unity Sentis, MediaPipe Pose ONNX, VideoPlayer
 
@@ -336,7 +336,7 @@ sequenceDiagram
     participant MP as MotionPlayer
 
     U->>UI: "動画読込" 指示
-    UI->>P: EstimateMotion(videoPath)
+    UI->>P: EstimateMotion(videoPath, onProgress)
     P->>P: 推論 & フィルタ
     P-->>UI: JointData[]
     UI->>M: GenerateMotion(JointData[])

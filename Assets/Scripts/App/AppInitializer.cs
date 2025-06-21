@@ -156,7 +156,7 @@ public class AppInitializer : MonoBehaviour
         }
         uiManager?.SetProgress(0f);
 
-        _lastJoints = await poseEstimator.EstimateMotion(path);
+        _lastJoints = await poseEstimator.EstimateMotion(path, p => uiManager?.SetProgress(p));
         Debug.Log($"PoseEstimator returned {_lastJoints.Length} frames");
         uiManager?.SetProgress(1f);
         uiManager?.SetMessage("Estimation complete");
