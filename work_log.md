@@ -28,3 +28,4 @@
 - Added progress callbacks in PoseEstimator and progress bar updates in AppInitializer
 - Updated StreamingAssets UIConfig with recording indicator flag and documented it
 - Fixed outdated JSON snippet in development guide to match current UIConfig schema
+- Added features overview document and linked from README
