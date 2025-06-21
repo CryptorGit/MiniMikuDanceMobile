@@ -138,6 +138,18 @@ public class AppInitializer : MonoBehaviour
                     uiManager?.SetMessage("Playing motion");
                 }
                 break;
+            case "export_bvh":
+                if (_motion != null)
+                {
+                    var file = Path.Combine(Application.persistentDataPath, "motion.bvh");
+                    BVHExporter.Export(_motion, file);
+                    uiManager?.SetMessage($"BVH saved to {file}");
+                }
+                else
+                {
+                    uiManager?.ShowError("No motion data");
+                }
+                break;
             case "toggle_camera":
                 if (cameraController != null)
                 {
