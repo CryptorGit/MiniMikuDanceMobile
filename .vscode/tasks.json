@@ -7,7 +7,7 @@
             "type": "process",
             "args": [
                 "build",
-                "${workspaceFolder}/AppDemo/AppDemo.csproj",
+                "${workspaceFolder}/MiniMikuDanceApp/MiniMikuDanceApp.csproj",
                 "/property:GenerateFullPaths=true",
                 "/consoleloggerparameters:NoSummary;ForceNoAlign"
             ],
@@ -19,7 +19,7 @@
             "type": "process",
             "args": [
                 "publish",
-                "${workspaceFolder}/AppDemo/AppDemo.csproj",
+                "${workspaceFolder}/MiniMikuDanceApp/MiniMikuDanceApp.csproj",
                 "/property:GenerateFullPaths=true",
                 "/consoleloggerparameters:NoSummary;ForceNoAlign"
             ],
@@ -33,7 +33,7 @@
                 "watch",
                 "run",
                 "--project",
-                "${workspaceFolder}/AppDemo/AppDemo.csproj"
+                "${workspaceFolder}/MiniMikuDanceApp/MiniMikuDanceApp.csproj"
             ],
             "problemMatcher": "$msCompile"
         }
