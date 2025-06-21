@@ -9,11 +9,16 @@ public class MotionGenerator
 {
     /// <summary>
     /// Convert joint arrays to a serializable motion container.
+    /// Applies simple exponential smoothing when smoothingFactor &gt; 0.
     /// </summary>
-    public MotionData GenerateData(JointData[] joints)
+    public MotionData GenerateData(JointData[] joints, float smoothingFactor = 0f)
     {
         var data = new MotionData();
         int frameCount = joints.Length;
+        if (frameCount &gt;= 2)
+        {
+            data.frameInterval = joints[1].timestamp - joints[0].timestamp;
+        }
         foreach (var jointName in new[] {"Hips"})
         {
             var curve = new BoneCurve
@@ -21,10 +26,17 @@ public class MotionGenerator
                 positions = new Vector3[frameCount],
                 rotations = new Quaternion[frameCount]
             };
-            for (int i = 0; i < frameCount; i++)
+            Vector3 prevPos = joints[0].positions[0];
+            for (int i = 0; i &lt; frameCount; i++)
             {
-                curve.positions[i] = joints[i].positions[0];
+                Vector3 pos = joints[i].positions[0];
+                if (i &gt; 0 && smoothingFactor &gt; 0f)
+                {
+                    pos = Vector3.Lerp(prevPos, pos, 1f - smoothingFactor);
+                }
+                curve.positions[i] = pos;
                 curve.rotations[i] = Quaternion.identity;
+                prevPos = pos;
             }
             data.boneCurves[jointName] = curve;
         }

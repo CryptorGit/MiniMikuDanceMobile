@@ -7,3 +7,5 @@
 - FBX/PMX 事前変換手順ドキュメントを追加
 - JointData/MotionData 定義と DataManager, PoseEstimator 雛形追加
 - AppSettings and AppInitializer implemented; basic MotionGenerator stub
+- Added smoothing to MotionGenerator and implemented MotionPlayer for
+  playback of generated motions
