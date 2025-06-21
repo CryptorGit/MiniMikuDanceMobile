@@ -15,6 +15,18 @@
         {
             "label": "Play Motion",
             "message": "play_motion"
+        },
+        {
+            "label": "Toggle Camera",
+            "message": "toggle_camera"
+        },
+        {
+            "label": "Start Recording",
+            "message": "start_recording"
+        },
+        {
+            "label": "Stop Recording",
+            "message": "stop_recording"
         }
     ]
 }
