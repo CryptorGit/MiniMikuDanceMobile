@@ -130,6 +130,7 @@ public class AppInitializer : MonoBehaviour
                         Debug.Log($"Recording saved to {recorderController.GetSavedPath()}");
                         _isRecording = false;
                         uiManager?.SetMessage("Recording saved");
+                        uiManager?.SetRecordingIndicator(false);
                     }
                     else
                     {
@@ -139,6 +140,7 @@ public class AppInitializer : MonoBehaviour
                             _settings.recordingFPS);
                         _isRecording = true;
                         uiManager?.SetMessage("Recording...");
+                        uiManager?.SetRecordingIndicator(true);
                     }
                 }
                 break;
@@ -154,7 +156,7 @@ public class AppInitializer : MonoBehaviour
         }
         uiManager?.SetProgress(0f);
 
-        _lastJoints = await poseEstimator.EstimateMotion(path);
+        _lastJoints = await poseEstimator.EstimateMotion(path, p => uiManager?.SetProgress(p));
         Debug.Log($"PoseEstimator returned {_lastJoints.Length} frames");
         uiManager?.SetProgress(1f);
         uiManager?.SetMessage("Estimation complete");

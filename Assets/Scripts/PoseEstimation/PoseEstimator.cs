@@ -14,8 +14,9 @@ public class PoseEstimator : MonoBehaviour
 
     /// <summary>
     /// Estimate body pose for each frame of the specified video.
+    /// Optionally reports progress via callback in range [0,1].
     /// </summary>
-    public async Task<JointData[]> EstimateMotion(string videoPath)
+    public async Task<JointData[]> EstimateMotion(string videoPath, System.Action<float> onProgress = null)
     {
         if (!File.Exists(videoPath))
         {
@@ -41,6 +42,8 @@ public class PoseEstimator : MonoBehaviour
             await Task.Yield();
         }
 
+        long totalFrames = (long)videoPlayer.frameCount;
+
         while (videoPlayer.isPlaying)
         {
             var texture = new Texture2D(renderTexture.width, renderTexture.height, TextureFormat.RGB24, false);
@@ -57,11 +60,20 @@ public class PoseEstimator : MonoBehaviour
             };
             results.Add(data);
             Object.Destroy(texture);
+
+            if (totalFrames > 0)
+            {
+                float progress = videoPlayer.frame / (float)totalFrames;
+                onProgress?.Invoke(progress);
+            }
+
             await Task.Yield();
         }
 
         Object.Destroy(renderTexture);
         Object.Destroy(playerGO);
+
+        onProgress?.Invoke(1f);
 
         return results.ToArray();
     }

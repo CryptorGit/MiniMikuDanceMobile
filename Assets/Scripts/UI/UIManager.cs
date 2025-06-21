@@ -12,12 +12,14 @@ public class UIManager : MonoBehaviour
     [SerializeField] private Toggle togglePrefab;
     [SerializeField] private Slider progressBarPrefab;
     [SerializeField] private Text messageTextPrefab;
+    [SerializeField] private Image recordingIndicatorPrefab;
 
     [SerializeField] private string configKey = "ui";
 
     private UIConfig _config;
     private Slider _progressBar;
     private Text _messageText;
+    private Image _recordingIndicator;
     private readonly Dictionary<string, Toggle> _toggles = new Dictionary<string, Toggle>();
 
     /// <summary>
@@ -69,6 +71,24 @@ public class UIManager : MonoBehaviour
             _messageText = Instantiate(messageTextPrefab, buttonContainer);
             _messageText.gameObject.SetActive(true);
             _messageText.text = string.Empty;
+        }
+
+        if (_config.showRecordingIndicator)
+        {
+            if (recordingIndicatorPrefab != null)
+            {
+                _recordingIndicator = Instantiate(recordingIndicatorPrefab, buttonContainer);
+            }
+            else
+            {
+                var go = new GameObject("RecordingIndicator", typeof(Image));
+                go.transform.SetParent(buttonContainer, false);
+                var img = go.GetComponent<Image>();
+                img.color = Color.red;
+                img.rectTransform.sizeDelta = new Vector2(20f, 20f);
+                _recordingIndicator = img;
+            }
+            _recordingIndicator.gameObject.SetActive(false);
         }
     }
 
@@ -176,6 +196,17 @@ public class UIManager : MonoBehaviour
         if (_messageText != null)
         {
             _messageText.text = message;
+        }
+    }
+
+    /// <summary>
+    /// Show or hide the recording indicator.
+    /// </summary>
+    public void SetRecordingIndicator(bool recording)
+    {
+        if (_recordingIndicator != null)
+        {
+            _recordingIndicator.gameObject.SetActive(recording);
         }
     }
 }

@@ -23,4 +23,5 @@ public class UIConfig
     public List<UIToggleConfig> toggles = new List<UIToggleConfig>();
     public bool showProgressBar;
     public bool showMessage;
+    public bool showRecordingIndicator;
 }
