@@ -252,8 +252,11 @@ public class BoneCurve {
     { "id":"Record","text":"録画" }
   ],
   "toggles": [
-    { "id":"GyroCam","text":"カメラ同期","default":true }
-  ]
+    { "id":"GyroCam","text":"カメラ同期","default":true },
+    { "id":"Smoothing","text":"モーション平滑化","default":true }
+  ],
+  "showProgressBar": true,
+  "showMessage": true
 }
 ```
 

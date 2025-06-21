@@ -3,15 +3,28 @@ using UnityEngine;
 using UnityEngine.UI;
 
 using System;
+using System.Collections.Generic;
 
 public class UIManager : MonoBehaviour
 {
     [SerializeField] private RectTransform buttonContainer;
     [SerializeField] private Button buttonPrefab;
+    [SerializeField] private Toggle togglePrefab;
+    [SerializeField] private Slider progressBarPrefab;
+    [SerializeField] private Text messageTextPrefab;
 
     [SerializeField] private string configKey = "ui";
 
     private UIConfig _config;
+    private Slider _progressBar;
+    private Text _messageText;
+    private readonly Dictionary<string, Toggle> _toggles = new Dictionary<string, Toggle>();
+
+    /// <summary>
+    /// Fired when a UI toggle value changes.
+    /// The string parameter is the toggle id, bool is the new state.
+    /// </summary>
+    public event Action<string, bool> ToggleChanged;
 
     /// <summary>
     /// Fired when any runtime UI button is pressed.
@@ -37,6 +50,25 @@ public class UIManager : MonoBehaviour
         foreach (var btn in _config.buttons)
         {
             CreateButton(btn);
+        }
+
+        foreach (var tgl in _config.toggles)
+        {
+            CreateToggle(tgl);
+        }
+
+        if (_config.showProgressBar && progressBarPrefab != null)
+        {
+            _progressBar = Instantiate(progressBarPrefab, buttonContainer);
+            _progressBar.gameObject.SetActive(true);
+            _progressBar.value = 0f;
+        }
+
+        if (_config.showMessage && messageTextPrefab != null)
+        {
+            _messageText = Instantiate(messageTextPrefab, buttonContainer);
+            _messageText.gameObject.SetActive(true);
+            _messageText.text = string.Empty;
         }
     }
 
@@ -86,9 +118,64 @@ public class UIManager : MonoBehaviour
         button.onClick.AddListener(() => OnButtonPressed(cfg.message));
     }
 
+    private void CreateToggle(UIToggleConfig cfg)
+    {
+        if (togglePrefab == null)
+            return;
+
+        var toggle = Instantiate(togglePrefab, buttonContainer);
+        var text = toggle.GetComponentInChildren<Text>();
+        if (text != null)
+        {
+            text.text = cfg.label;
+        }
+        toggle.isOn = cfg.defaultValue;
+        toggle.onValueChanged.AddListener(value => OnToggleChanged(cfg.id, value));
+        _toggles[cfg.id] = toggle;
+    }
+
     private void OnButtonPressed(string message)
     {
         Debug.Log($"Button pressed: {message}");
         ButtonPressed?.Invoke(message);
+    }
+
+    private void OnToggleChanged(string id, bool value)
+    {
+        Debug.Log($"Toggle changed: {id}={value}");
+        ToggleChanged?.Invoke(id, value);
+    }
+
+    /// <summary>
+    /// Programmatically set the value of a toggle by id.
+    /// </summary>
+    public void SetToggle(string id, bool value)
+    {
+        if (_toggles.TryGetValue(id, out var toggle))
+        {
+            toggle.isOn = value;
+        }
+    }
+
+    /// <summary>
+    /// Update the progress bar value between 0 and 1.
+    /// </summary>
+    public void SetProgress(float value)
+    {
+        if (_progressBar != null)
+        {
+            _progressBar.value = Mathf.Clamp01(value);
+        }
+    }
+
+    /// <summary>
+    /// Display a status message in the UI.
+    /// </summary>
+    public void SetMessage(string message)
+    {
+        if (_messageText != null)
+        {
+            _messageText.text = message;
+        }
     }
 }

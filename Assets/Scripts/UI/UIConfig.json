@@ -24,5 +24,19 @@
             "label": "Record",
             "message": "toggle_record"
         }
-    ]
+    ],
+    "toggles": [
+        {
+            "label": "Gyro Cam",
+            "id": "gyro_cam",
+            "defaultValue": true
+        },
+        {
+            "label": "Smoothing",
+            "id": "smoothing",
+            "defaultValue": true
+        }
+    ],
+    "showProgressBar": true,
+    "showMessage": true
 }

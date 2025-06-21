@@ -20,3 +20,6 @@
 
 - Added DataManager for persistent configs and UIManager integration
 - Added orientation generation and rotation playback in Motion system
+- Added progress bar and status message UI with config flags
+- Implemented toggle UI elements with gyro and smoothing options
+- AppInitializer now respects AppSettings for recording and smoothing
