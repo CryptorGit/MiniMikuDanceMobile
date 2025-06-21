@@ -62,9 +62,12 @@ public class AppInitializer : MonoBehaviour
         {
             uiManager.BindCallbacks();
             uiManager.ButtonPressed += HandleUIButton;
+            uiManager.ToggleChanged += HandleUIToggle;
+            uiManager.SetToggle("smoothing", _settings.smoothing);
         }
 
         cameraController?.EnableGyro(true);
+        uiManager?.SetToggle("gyro_cam", true);
 
         Debug.Log($"AppInitializer: settings loaded from {AppSettings.FilePath}");
     }
@@ -87,7 +90,10 @@ public class AppInitializer : MonoBehaviour
                 if (_lastJoints != null && motionGenerator != null)
                 {
                     _motion = motionGenerator.GenerateData(_lastJoints);
-                    motionGenerator.Smooth(_motion, 2);
+                    if (_settings.smoothing)
+                    {
+                        motionGenerator.Smooth(_motion, 2);
+                    }
                     Debug.Log($"MotionGenerator produced {_motion.boneCurves.Count} curves");
                     uiManager?.SetMessage("Motion generated");
                 }
@@ -127,7 +133,10 @@ public class AppInitializer : MonoBehaviour
                     }
                     else
                     {
-                        recorderController.StartRecording(1280, 720, 30);
+                        recorderController.StartRecording(
+                            _settings.recordingWidth,
+                            _settings.recordingHeight,
+                            _settings.recordingFPS);
                         _isRecording = true;
                         uiManager?.SetMessage("Recording...");
                     }
@@ -149,6 +158,31 @@ public class AppInitializer : MonoBehaviour
         Debug.Log($"PoseEstimator returned {_lastJoints.Length} frames");
         uiManager?.SetProgress(1f);
         uiManager?.SetMessage("Estimation complete");
+    }
+
+    private void OnDestroy()
+    {
+        if (uiManager != null)
+        {
+            uiManager.ButtonPressed -= HandleUIButton;
+            uiManager.ToggleChanged -= HandleUIToggle;
+        }
+    }
+
+    private void HandleUIToggle(string id, bool value)
+    {
+        switch (id)
+        {
+            case "gyro_cam":
+                cameraController?.EnableGyro(value);
+                uiManager?.SetMessage(value ? "Gyro on" : "Gyro off");
+                break;
+            case "smoothing":
+                _settings.smoothing = value;
+                _settings.Save();
+                uiManager?.SetMessage(value ? "Smoothing on" : "Smoothing off");
+                break;
+        }
     }
 
     private bool IsRecording() => _isRecording;
