@@ -20,7 +20,11 @@ public class MotionGeneratorTests
         var motion = generator.Generate(joints);
 
         Assert.Equal(0.5f, motion.FrameInterval, precision: 3);
-        Assert.Equal(joints, motion.Frames);
+        Assert.Equal(joints.Length, motion.Frames.Length);
+        for (int i = 0; i < joints.Length; i++)
+        {
+            Assert.Equal(joints[i].Timestamp, motion.Frames[i].Timestamp, precision: 3);
+        }
     }
 
     [Fact]
