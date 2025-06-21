@@ -30,6 +30,13 @@ public class CameraController : MonoBehaviour
 
     private void Update()
     {
+#if UNITY_ARFOUNDATION
+        if (arPoseManager != null)
+        {
+            SyncARPose();
+        }
+#endif
+
         if (_gyroEnabled)
         {
             SyncGyro();

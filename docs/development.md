@@ -218,6 +218,20 @@ void SaveConfig<T>(string key, T data);
 void CleanupTemp();
 ```
 
+### 9.9 ARPoseManager
+- **機能**: ARFoundation からカメラの現在姿勢を取得
+- **主メソッド**
+```csharp
+Pose CurrentPose { get; }
+```
+
+### 9.10 PoseDebugVisualizer
+- **機能**: JointData を Gizmos 表示して推論結果を検証
+- **主メソッド**
+```csharp
+void SetFrames(JointData[] data);
+```
+
 ## 10. データ設計
 
 ### 10.1 JointData

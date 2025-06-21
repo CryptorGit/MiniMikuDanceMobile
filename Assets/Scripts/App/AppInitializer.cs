@@ -27,6 +27,9 @@ public class AppInitializer : MonoBehaviour
         // Load or create persistent settings
         _settings = AppSettings.Load();
 
+        // Clean up any temporary files from previous runs
+        DataManager.CleanupTemp();
+
         // Ensure references are assigned
         if (uiManager == null)
         {
