@@ -6,7 +6,8 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="ImGui.NET" Version="1.90.3" />
+    <PackageReference Include="ImGui.NET" Version="1.90.5.1" />
+    <PackageReference Include="OpenTK.Windowing.Desktop" Version="4.9.4" />
   </ItemGroup>
 
   <PropertyGroup>
@@ -14,6 +15,7 @@
     <TargetFramework>net8.0</TargetFramework>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
   </PropertyGroup>
 
 </Project>
