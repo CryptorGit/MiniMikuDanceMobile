@@ -15,7 +15,7 @@ class Program
         string poseModelPath = "pose_model.onnx";
 
         var app = new AppInitializer();
-        app.Initialize("Configs/UIConfig.json", modelPath, poseModelPath);
+        app.Initialize("Configs/UIConfig.json", modelPath);
         Console.WriteLine("Commands: analyze, generate, play, record, stop, quit");
         string? line;
         MotionData? motion = null;
