@@ -236,6 +236,14 @@ void SaveConfig<T>(string key, T data);
 void CleanupTemp();
 ```
 
+### AppSettings
+- **機能**: ユーザー設定の保存と読み込み
+- **主メソッド**
+```csharp
+static AppSettings Load(string path = "appsettings.json");
+void Save(string path = "appsettings.json");
+```
+
 ### 9.9 ARPoseManager
 - **機能**: ARFoundation からカメラの現在姿勢を取得
 - **主メソッド**
@@ -244,7 +252,7 @@ Pose CurrentPose { get; }
 ```
 
 ### 9.10 PoseDebugVisualizer
-- **機能**: JointData を Gizmos 表示して推論結果を検証
+- **機能**: JointData をコンソール出力で可視化して推論結果を検証
 - **主メソッド**
 ```csharp
 void SetFrames(JointData[] data);
