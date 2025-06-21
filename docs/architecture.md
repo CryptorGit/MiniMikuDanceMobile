@@ -42,13 +42,22 @@ Assets/
     Util/           - Utility classes
   Plugins/          - Third-party packages (UniVRM, NatCorder, etc.)
   StreamingAssets/  - ML models and large data files
-  Resources/        - Default assets such as stage prefabs
 ```
 
-## Development Notes
+### Why document these folders?
 
-- Entire scene and UI are created from code and JSON without manual editor work.
-- Offline processing: pose estimation and video creation run locally on the device.
-- Designed for future extensibility (multiple characters, AR background, etc.).
-- LLM tools like ChatGPT can be used during development for code generation.
+Documenting the directory layout clarifies where new files belong and helps
+contributors and LLM tools generate code in the correct location. Each folder
+has a specific role:
 
+- **Scenes** – contains minimal Unity scenes that bootstrap the app.
+- **Scripts** – holds all runtime C# code organised by feature so the project
+  can be maintained without manual editor work.
+- **Plugins** – third-party packages (e.g. UniVRM) kept separate from custom
+  code for easy updates.
+- **StreamingAssets** – large assets like the pose estimation model that must be
+  included verbatim in the build.
+- **Resources** – small prefabs and data loaded via `Resources.Load`.
+
+Keeping this structure documented makes it easier to understand the project and
+maintain consistency as the codebase grows.

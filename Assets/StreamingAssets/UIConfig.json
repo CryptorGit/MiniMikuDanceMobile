@@ -1,0 +1,28 @@
+{
+    "buttons": [
+        {
+            "label": "Load Model",
+            "message": "load_model"
+        },
+        {
+            "label": "Analyze Video",
+            "message": "analyze_video"
+        },
+        {
+            "label": "Generate Motion",
+            "message": "generate_motion"
+        },
+        {
+            "label": "Play Motion",
+            "message": "play_motion"
+        },
+        {
+            "label": "Toggle Camera",
+            "message": "toggle_camera"
+        },
+        {
+            "label": "Record",
+            "message": "toggle_record"
+        }
+    ]
+}
