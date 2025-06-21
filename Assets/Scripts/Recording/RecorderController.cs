@@ -14,6 +14,7 @@ public class RecorderController : MonoBehaviour
     private int _frameIndex;
     private string _outputDir;
     private string _savedPath;
+    private string _thumbnailPath;
 
     /// <summary>
     /// Begin recording at the specified resolution and framerate.
@@ -56,6 +57,7 @@ public class RecorderController : MonoBehaviour
 
         _recording = false;
         Time.captureFramerate = 0;
+        SaveThumbnail();
         Debug.Log($"RecorderController: recording stopped. Frames saved to {_outputDir}");
     }
 
@@ -63,6 +65,11 @@ public class RecorderController : MonoBehaviour
     /// Return the directory containing captured frames.
     /// </summary>
     public string GetSavedPath() => _savedPath;
+
+    /// <summary>
+    /// Return the path to a small thumbnail image of the recording.
+    /// </summary>
+    public string GetThumbnailPath() => _thumbnailPath;
 
     private IEnumerator CaptureFrames(int width, int height)
     {
@@ -72,6 +79,24 @@ public class RecorderController : MonoBehaviour
             ScreenCapture.CaptureScreenshot(filename, 1);
             _frameIndex++;
             yield return new WaitForEndOfFrame();
+        }
+    }
+
+    private void SaveThumbnail()
+    {
+        var firstFrame = Path.Combine(_outputDir, "frame_0000.png");
+        if (!File.Exists(firstFrame))
+            return;
+
+        _thumbnailPath = Path.Combine(_outputDir, "thumbnail.png");
+        try
+        {
+            File.Copy(firstFrame, _thumbnailPath, true);
+        }
+        catch (System.Exception ex)
+        {
+            Debug.LogError($"RecorderController.SaveThumbnail: {ex}");
+            _thumbnailPath = null;
         }
     }
 }
