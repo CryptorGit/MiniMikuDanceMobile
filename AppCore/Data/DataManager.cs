@@ -1,3 +1,5 @@
+using System.IO;
+
 namespace MiniMikuDance.Data;
 
 public class DataManager : Util.Singleton<DataManager>
@@ -12,5 +14,13 @@ public class DataManager : Util.Singleton<DataManager>
         Util.JSONUtil.Save($"Configs/{key}.json", data);
     }
 
-    public void CleanupTemp() { }
+    public void CleanupTemp()
+    {
+        const string tempDir = "Temp";
+        if (Directory.Exists(tempDir))
+        {
+            Directory.Delete(tempDir, true);
+        }
+        Directory.CreateDirectory(tempDir);
+    }
 }
