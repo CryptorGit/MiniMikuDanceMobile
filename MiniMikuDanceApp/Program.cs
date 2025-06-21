@@ -6,6 +6,7 @@ using MiniMikuDance.UI;
 using MiniMikuDance.Util;
 using ViewerApp;
 using MiniMikuDanceApp.UI;
+using System.IO;
 
 class Program
 {
@@ -19,20 +20,21 @@ class Program
 
         app.Initialize("Configs/UIConfig.json", modelPath, poseModelPath);
         UIRenderer? ui = null;
-        Console.WriteLine("Commands: analyze, generate, play, record, stop, quit");
-        string? line;
         MotionData? motion = null;
-        while ((line = Console.ReadLine()) != null)
+
+        async Task HandleCommand(string command)
         {
-            switch (line)
+            switch (command)
             {
                 case "analyze":
+                case "analyze_video":
                     var estimator = new PoseEstimator(poseModelPath);
                     var joints = await estimator.EstimateAsync(videoPath, p => UIManager.Instance.Progress = p);
                     motion = new MotionGenerator().Generate(joints);
                     UIManager.Instance.SetMessage("Analysis done");
                     break;
                 case "generate":
+                case "generate_motion":
                     if (motion == null)
                     {
                         Console.WriteLine("Run analyze first");
@@ -41,6 +43,7 @@ class Program
                     UIManager.Instance.SetMessage("Motion generated");
                     break;
                 case "play":
+                case "play_motion":
                     if (motion != null && app.MotionPlayer != null)
                     {
                         if (app.Viewer != null && ui == null)
@@ -65,9 +68,55 @@ class Program
                     UIManager.Instance.IsRecording = false;
                     UIManager.Instance.SetMessage("Recording stopped");
                     break;
+                case "toggle_record":
+                    if (app.Recorder != null && app.Recorder.IsRecording)
+                    {
+                        app.Recorder.StopRecording();
+                        UIManager.Instance.IsRecording = false;
+                        UIManager.Instance.SetMessage("Recording stopped");
+                    }
+                    else
+                    {
+                        app.Recorder?.StartRecording(800, 600, 30);
+                        UIManager.Instance.IsRecording = true;
+                        UIManager.Instance.SetMessage("Recording started");
+                    }
+                    break;
+                case "export_bvh":
+                    if (motion != null)
+                    {
+                        Directory.CreateDirectory("Exports");
+                        string path = Path.Combine("Exports", "motion.bvh");
+                        BvhExporter.Export(motion, path);
+                        UIManager.Instance.SetMessage($"BVH exported: {path}");
+                    }
+                    break;
+                case "share_recording":
+                    if (app.Recorder != null)
+                    {
+                        string saved = app.Recorder.GetSavedPath();
+                        if (!string.IsNullOrEmpty(saved) && File.Exists(saved))
+                        {
+                            Directory.CreateDirectory("Shared");
+                            string dest = Path.Combine("Shared", Path.GetFileName(saved));
+                            File.Copy(saved, dest, true);
+                            UIManager.Instance.SetMessage($"Shared: {dest}");
+                        }
+                    }
+                    break;
                 case "quit":
-                    return;
+                    Environment.Exit(0);
+                    break;
             }
+        }
+
+        UIManager.Instance.OnButtonPressed += async msg => await HandleCommand(msg);
+
+        Console.WriteLine("Commands: analyze, generate, play, record, stop, quit");
+        string? line;
+        while ((line = Console.ReadLine()) != null)
+        {
+            await HandleCommand(line);
         }
     }
 }
