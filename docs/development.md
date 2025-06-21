@@ -214,9 +214,8 @@ void SyncARPose();
   未導入の場合は `ScreenCapture` を用いたフレームPNG保存にフォールバック
 - **主メソッド**
 ```csharp
-void StartRecording(int width, int height, int fps);
-void StopRecording();
-string GetSavedPath();
+string StartRecording(int width, int height, int fps);
+string StopRecording();
 ```
 
 ### 9.7 UIManager
