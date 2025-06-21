@@ -7,7 +7,9 @@ using MiniMikuDance.Data;
 using MiniMikuDance.Util;
 using MiniMikuDance.PoseEstimation;
 using System.IO;
+using System.Numerics;
 using ViewerApp;
+using OpenTK.Mathematics;
 
 namespace MiniMikuDance.App;
 
@@ -17,6 +19,7 @@ public class AppInitializer
     public MotionPlayer? MotionPlayer { get; private set; }
     public MotionApplier? Applier { get; private set; }
     public RecorderController? Recorder { get; private set; }
+    public CameraController? Camera { get; private set; }
 
     public void Initialize(string uiConfigPath, string? modelPath, string poseModelPath)
     {
@@ -31,14 +34,26 @@ public class AppInitializer
         var generator = new MotionGenerator();
 
         MotionPlayer = new MotionPlayer();
-        var camera = new CameraController();
+        Camera = new CameraController();
+        Camera.EnableGyro(UIManager.Instance.GetToggle("gyro_cam"));
         Recorder = new RecorderController();
         if (model != null)
         {
             Applier = new MotionApplier(model);
             MotionPlayer.OnFramePlayed += Applier.Apply;
             Viewer = new Viewer(modelPath!);
-            Viewer.FrameUpdated += dt => MotionPlayer.Update(dt);
+            Viewer.FrameUpdated += dt =>
+            {
+                MotionPlayer.Update(dt);
+                Camera?.Update();
+                if (Camera != null)
+                {
+                    var pos = Camera.Position;
+                    var rot = Camera.Rotation;
+                    var forward = Vector3.Transform(-Vector3.UnitZ, rot);
+                    Viewer.SetViewMatrix(Matrix4.LookAt(pos, pos + forward, Vector3.UnitY));
+                }
+            };
             Viewer.FrameUpdated += dt =>
             {
                 if (Recorder != null && Recorder.IsRecording)

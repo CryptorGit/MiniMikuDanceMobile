@@ -17,10 +17,14 @@ public class CameraController
     public void SyncGyro()
     {
         if (!_gyroEnabled) return;
-        // Gyroscope access is platform dependent; here we simply rotate
-        // the camera slightly each call to simulate gyro motion.
         var delta = System.Numerics.Quaternion.CreateFromAxisAngle(System.Numerics.Vector3.UnitY, 0.01f);
         _rotation = System.Numerics.Quaternion.Normalize(System.Numerics.Quaternion.Concatenate(_rotation, delta));
+    }
+
+    public void Update()
+    {
+        SyncGyro();
+        SyncARPose();
     }
 
     public void SyncARPose()

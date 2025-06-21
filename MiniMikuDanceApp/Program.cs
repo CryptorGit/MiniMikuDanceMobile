@@ -16,9 +16,12 @@ class Program
         string videoPath = args.Length > 1 ? args[1] : string.Empty;
         string poseModelPath = "pose_model.onnx";
 
+        var settings = AppSettings.Load();
         var app = new AppInitializer();
 
         app.Initialize("Configs/UIConfig.json", modelPath, poseModelPath);
+        UIManager.Instance.SetToggleState("gyro_cam", settings.GyroEnabled);
+        UIManager.Instance.SetToggleState("smoothing", settings.SmoothingEnabled);
         UIRenderer? ui = null;
         MotionData? motion = null;
 
@@ -31,6 +34,11 @@ class Program
                     var estimator = new PoseEstimator(poseModelPath);
                     var joints = await estimator.EstimateAsync(videoPath, p => UIManager.Instance.Progress = p);
                     motion = new MotionGenerator().Generate(joints);
+                    settings.LastVideoPath = videoPath;
+                    settings.Save();
+                    var visualizer = new PoseDebugVisualizer();
+                    visualizer.SetFrames(joints);
+                    visualizer.PrintNextFrame();
                     UIManager.Instance.SetMessage("Analysis done");
                     break;
                 case "generate":
@@ -64,9 +72,13 @@ class Program
                     UIManager.Instance.SetMessage("Recording started");
                     break;
                 case "stop":
-                    app.Recorder?.StopRecording();
-                    UIManager.Instance.IsRecording = false;
-                    UIManager.Instance.SetMessage("Recording stopped");
+                    if (app.Recorder != null)
+                    {
+                        app.Recorder.StopRecording();
+                        UIManager.Instance.IsRecording = false;
+                        UIManager.Instance.SetMessage("Recording stopped");
+                        UIManager.Instance.SetThumbnail(app.Recorder.ThumbnailPath);
+                    }
                     break;
                 case "toggle_record":
                     if (app.Recorder != null && app.Recorder.IsRecording)
@@ -74,6 +86,7 @@ class Program
                         app.Recorder.StopRecording();
                         UIManager.Instance.IsRecording = false;
                         UIManager.Instance.SetMessage("Recording stopped");
+                        UIManager.Instance.SetThumbnail(app.Recorder.ThumbnailPath);
                     }
                     else
                     {
@@ -95,11 +108,17 @@ class Program
                     if (app.Recorder != null)
                     {
                         string saved = app.Recorder.GetSavedPath();
+                        string thumb = app.Recorder.ThumbnailPath;
                         if (!string.IsNullOrEmpty(saved) && File.Exists(saved))
                         {
                             Directory.CreateDirectory("Shared");
                             string dest = Path.Combine("Shared", Path.GetFileName(saved));
                             File.Copy(saved, dest, true);
+                            if (File.Exists(thumb))
+                            {
+                                string tdest = Path.Combine("Shared", Path.GetFileName(thumb));
+                                File.Copy(thumb, tdest, true);
+                            }
                             UIManager.Instance.SetMessage($"Shared: {dest}");
                         }
                     }
@@ -111,6 +130,16 @@ class Program
         }
 
         UIManager.Instance.OnButtonPressed += async msg => await HandleCommand(msg);
+        UIManager.Instance.OnToggleChanged += (id, value) =>
+        {
+            if (id == "gyro_cam" && app.Camera != null)
+            {
+                app.Camera.EnableGyro(value);
+            }
+            if (id == "gyro_cam") settings.GyroEnabled = value;
+            if (id == "smoothing") settings.SmoothingEnabled = value;
+            settings.Save();
+        };
 
         Console.WriteLine("Commands: analyze, generate, play, record, stop, quit");
         string? line;
