@@ -73,20 +73,23 @@ public class UIManager : MonoBehaviour
             _messageText.text = string.Empty;
         }
 
-        if (recordingIndicatorPrefab != null)
+        if (_config.showRecordingIndicator)
         {
-            _recordingIndicator = Instantiate(recordingIndicatorPrefab, buttonContainer);
+            if (recordingIndicatorPrefab != null)
+            {
+                _recordingIndicator = Instantiate(recordingIndicatorPrefab, buttonContainer);
+            }
+            else
+            {
+                var go = new GameObject("RecordingIndicator", typeof(Image));
+                go.transform.SetParent(buttonContainer, false);
+                var img = go.GetComponent<Image>();
+                img.color = Color.red;
+                img.rectTransform.sizeDelta = new Vector2(20f, 20f);
+                _recordingIndicator = img;
+            }
+            _recordingIndicator.gameObject.SetActive(false);
         }
-        else
-        {
-            var go = new GameObject("RecordingIndicator", typeof(Image));
-            go.transform.SetParent(buttonContainer, false);
-            var img = go.GetComponent<Image>();
-            img.color = Color.red;
-            img.rectTransform.sizeDelta = new Vector2(20f, 20f);
-            _recordingIndicator = img;
-        }
-        _recordingIndicator.gameObject.SetActive(false);
     }
 
     /// <summary>

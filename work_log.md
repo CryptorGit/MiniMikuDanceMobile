@@ -24,3 +24,4 @@
 - Implemented toggle UI elements with gyro and smoothing options
 - AppInitializer now respects AppSettings for recording and smoothing
 - Added recording indicator support in UIManager and toggle logic in AppInitializer
+- Added showRecordingIndicator flag to UIConfig and conditional UI creation
