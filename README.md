@@ -36,7 +36,10 @@ FBX や PMX モデルを実行時に利用するための変換手順は [docs/m
    dotnet run --project MiniMikuDanceApp/MiniMikuDanceApp.csproj
    ```
 
-3. ウィンドウが表示され、モデル読込や姿勢推定の進捗がコンソールに表示されれば成功です。録画メタデータは `Recordings/` フォルダに保存されます。
+3. UI 設定のサンプルとして `Configs/UIConfig.json` を同梱しています。必要に応じて
+   ボタンやトグルを編集してください。
+
+4. ウィンドウが表示され、モデル読込や姿勢推定の進捗がコンソールに表示されれば成功です。録画メタデータは `Recordings/` フォルダに保存されます。
 
 ## デモの実行
 依存関係を導入後、`MiniMikuDanceApp` を実行することでモデル表示や姿勢推定の一連の
