@@ -1,50 +1,45 @@
-# Architecture Overview
+# アーキテクチャ概要
 
-This document summarizes the design of the smartphone
-MMD-compatible dance video application. The app ships with a
-standalone viewer implemented in pure C# using OpenTK.
+このドキュメントでは、スマートフォン向け MMD 互換ダンス動画アプリの設計をまとめます。アプリには OpenTK を用いた純粋 C# 実装のビューワーが同梱されます。
 
-## Goals
+## 目標
 
-- Import 3D character models (VRM, FBX, PMX).
-- Extract dance motion from user-provided videos via pose estimation.
-- Apply generated motions to humanoid models in the custom viewer.
-- Synchronize the virtual camera with device movement and record the result.
+- VRM・FBX・PMX 形式の 3D キャラクターモデルを読み込む
+- ユーザー提供の動画から姿勢推定を行いダンスモーションを抽出する
+- 生成したモーションをカスタムビューワー上でモデルに適用する
+- 端末の動きと連動した仮想カメラで録画する
 
-## Components
+## コンポーネント
 
-1. **Model Import**
-   - VRM models are loaded at runtime using a VRM parsing library.
-   - FBX/PMX require pre-conversion or future importer support.
-2. **Pose Estimation**
-   - Utilizes MediaPipe Pose models executed with an ONNX runtime.
-   - Generates joint trajectories from input videos.
-3. **Motion Generation**
-   - Converts joint data into animation frames applied to the model.
-4. **Camera Control**
-   - Reads device sensors (gyroscope/AR tracking) to move the viewer camera.
-5. **Recording**
-   - Encodes rendered frames into a video file using platform APIs.
-6. **UI System**
-   - UI layout is defined via JSON and instantiated by scripts at runtime.
+1. **モデル読み込み**
+   - 実行時に VRM パーサーでモデルをロード
+   - FBX/PMX は事前変換もしくは将来のインポータ対応を想定
+2. **姿勢推定**
+   - MediaPipe Pose を ONNX Runtime で実行
+   - 動画から関節軌跡を生成
+3. **モーション生成**
+   - JointData をアニメーションフレームへ変換しモデルに適用
+4. **カメラ制御**
+   - ジャイロや AR トラッキング情報を読み取りカメラを移動
+5. **録画**
+   - 描画フレームをプラットフォーム API で動画にエンコード
+6. **UI システム**
+   - JSON で定義したレイアウトをスクリプトで生成
 
-## Folder Structure
+## フォルダ構成
 
 ```text
 PureViewer/
-  Viewer/        - Source code for the OpenTK viewer
-  Assets/        - Sample models
-docs/            - Project documentation
+  Viewer/        - OpenTK ビューワーのソースコード
+  Assets/        - サンプルモデル
+docs/            - 各種ドキュメント
 ```
 
-### Why document these folders?
+### なぜフォルダを明示するのか
 
-Documenting the directory layout clarifies where new files belong and helps
-contributors and LLM tools generate code in the correct location. Each folder
-has a specific role:
+ディレクトリ構成を記載しておくことで、新しいファイルの配置場所が明確になり、貢献者や LLM ツールが適切な場所にコードを生成できます。
 
-- **PureViewer** – stand‑alone OpenTK application and sample assets.
-- **docs** – design documents and guides for contributors.
+- **PureViewer** – スタンドアロンの OpenTK アプリとサンプルアセット
+- **docs** – 設計資料やガイドを配置
 
-Keeping this structure documented makes it easier to understand the project and
-maintain consistency as the codebase grows.
+この構造を文書化しておくことで、プロジェクト全体の理解が容易になり、コードベースの一貫性を保ちやすくなります。

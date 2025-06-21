@@ -1,14 +1,13 @@
 # PureViewer
 
-This directory contains a minimal OpenGL viewer implemented in pure C# without Unity.
-It loads a 3D model via AssimpNet and displays it using OpenTK.
+このディレクトリには、Unity を使用せず純粋な C# で実装した最小構成の OpenGL ビューワーが含まれています。AssimpNet 経由で 3D モデルを読み込み、OpenTK を用いて表示します。
 
-## Requirements
+## 必要環境
 - .NET 8 SDK
-- OpenGL capable device
+- OpenGL が利用可能なデバイス
 
-## Running
-```
+## 実行方法
+```bash
 dotnet run --project Viewer [path/to/model]
 ```
-If no model path is provided, a sample cube OBJ is loaded from `Assets/Models/sample.obj`.
+モデルパスを指定しない場合は `Assets/Models/sample.obj` に含まれるサンプルのキューブを読み込みます。
