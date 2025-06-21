@@ -1,4 +1,4 @@
-# MikuMikuMobile
+# MiniMikuDance
 
 This repository contains an experimental design for a smartphone application
 that allows users to create dance videos using MMD-compatible 3D models.
