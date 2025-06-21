@@ -14,11 +14,18 @@ public class JointData
 
 public class PoseEstimator
 {
-    private readonly InferenceSession _session;
+    private readonly InferenceSession? _session;
 
     public PoseEstimator(string modelPath)
     {
-        _session = new InferenceSession(modelPath);
+        if (File.Exists(modelPath))
+        {
+            _session = new InferenceSession(modelPath);
+        }
+        else
+        {
+            _session = null;
+        }
     }
 
     public Task<JointData[]> EstimateAsync(string videoPath, Action<float>? onProgress = null)
@@ -30,17 +37,20 @@ public class PoseEstimator
             var data = new JointData[frameCount];
             var rand = new Random(0);
 
-            // Run the model once with dummy data so that the session is utilized
-            try
+            // Optionally warm up the model if available
+            if (_session != null)
             {
-                var meta = _session.InputMetadata.First();
-                var dims = meta.Value.Dimensions.Select(d => d <= 0 ? 1 : d).ToArray();
-                var tensor = new Microsoft.ML.OnnxRuntime.Tensors.DenseTensor<float>(dims);
-                using var _ = _session.Run(new[] { NamedOnnxValue.CreateFromTensor(meta.Key, tensor) });
-            }
-            catch
-            {
-                // ignore errors in dummy inference
+                try
+                {
+                    var meta = _session.InputMetadata.First();
+                    var dims = meta.Value.Dimensions.Select(d => d <= 0 ? 1 : d).ToArray();
+                    var tensor = new Microsoft.ML.OnnxRuntime.Tensors.DenseTensor<float>(dims);
+                    using var _ = _session.Run(new[] { NamedOnnxValue.CreateFromTensor(meta.Key, tensor) });
+                }
+                catch
+                {
+                    // ignore errors in dummy inference
+                }
             }
 
             for (int i = 0; i < frameCount; i++)
