@@ -4,6 +4,7 @@ using UnityEngine.UI;
 
 using System;
 using System.Collections.Generic;
+using System.Collections;
 
 public class UIManager : MonoBehaviour
 {
@@ -12,6 +13,7 @@ public class UIManager : MonoBehaviour
     [SerializeField] private Toggle togglePrefab;
     [SerializeField] private Slider progressBarPrefab;
     [SerializeField] private Text messageTextPrefab;
+    [SerializeField] private Text errorTextPrefab;
     [SerializeField] private Image recordingIndicatorPrefab;
 
     [SerializeField] private string configKey = "ui";
@@ -19,6 +21,8 @@ public class UIManager : MonoBehaviour
     private UIConfig _config;
     private Slider _progressBar;
     private Text _messageText;
+    private Text _errorText;
+    private Coroutine _hideErrorRoutine;
     private Image _recordingIndicator;
     private readonly Dictionary<string, Toggle> _toggles = new Dictionary<string, Toggle>();
 
@@ -71,6 +75,23 @@ public class UIManager : MonoBehaviour
             _messageText = Instantiate(messageTextPrefab, buttonContainer);
             _messageText.gameObject.SetActive(true);
             _messageText.text = string.Empty;
+        }
+
+        if (_config.showMessage)
+        {
+            if (errorTextPrefab != null)
+            {
+                _errorText = Instantiate(errorTextPrefab, buttonContainer);
+            }
+            else if (messageTextPrefab != null)
+            {
+                _errorText = Instantiate(messageTextPrefab, buttonContainer);
+            }
+            if (_errorText != null)
+            {
+                _errorText.gameObject.SetActive(false);
+                _errorText.color = Color.red;
+            }
         }
 
         if (_config.showRecordingIndicator)
@@ -196,6 +217,32 @@ public class UIManager : MonoBehaviour
         if (_messageText != null)
         {
             _messageText.text = message;
+        }
+    }
+
+    /// <summary>
+    /// Display an error message in the UI for a short time.
+    /// </summary>
+    public void ShowError(string message, float duration = 2f)
+    {
+        if (_errorText == null)
+            return;
+
+        _errorText.text = message;
+        _errorText.gameObject.SetActive(true);
+        if (_hideErrorRoutine != null)
+        {
+            StopCoroutine(_hideErrorRoutine);
+        }
+        _hideErrorRoutine = StartCoroutine(HideErrorAfter(duration));
+    }
+
+    private IEnumerator HideErrorAfter(float time)
+    {
+        yield return new WaitForSeconds(time);
+        if (_errorText != null)
+        {
+            _errorText.gameObject.SetActive(false);
         }
     }
 
