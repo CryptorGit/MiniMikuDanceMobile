@@ -285,7 +285,7 @@ Assets/
 │   │   └ MotionData.cs
 │   ├─ Camera/
 │   │   ├ CameraController.cs
-│   │   └ ARCameraManager.cs
+│   │   └ ARPoseManager.cs
 │   ├─ Recording/
 │   │   └ RecorderController.cs
 │   └─ Util/

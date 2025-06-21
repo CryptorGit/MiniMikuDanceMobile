@@ -8,6 +8,7 @@ public class CameraController : MonoBehaviour
 {
     [SerializeField] private bool useGyro = true;
     [SerializeField] private float mouseSensitivity = 1f;
+    [SerializeField] private ARPoseManager arPoseManager;
 
     private bool _gyroEnabled;
     private Quaternion _baseRotation;
@@ -52,11 +53,17 @@ public class CameraController : MonoBehaviour
     }
 
     /// <summary>
-    /// Placeholder for ARFoundation pose sync.
+    /// Apply ARFoundation pose to the camera transform if available.
     /// </summary>
     public void SyncARPose()
     {
-        // TODO: integrate ARFoundation tracking
+#if UNITY_ARFOUNDATION
+        if (arPoseManager != null)
+        {
+            var pose = arPoseManager.CurrentPose;
+            transform.SetPositionAndRotation(pose.position, pose.rotation);
+        }
+#endif
     }
 
 #if UNITY_EDITOR

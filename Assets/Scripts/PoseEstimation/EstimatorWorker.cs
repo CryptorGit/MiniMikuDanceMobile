@@ -9,6 +9,7 @@ public class EstimatorWorker
 {
     private const string ModelFile = "pose_model.onnx";
     private bool _loaded;
+    private byte[] _modelData;
 
     /// <summary>
     /// Load the ONNX model from StreamingAssets if not already loaded.
@@ -24,7 +25,13 @@ public class EstimatorWorker
             return;
         }
 
-        // TODO: use Sentis or Barracuda to load the model
+        // Load the ONNX bytes so a Barracuda or Sentis model can be created
+        _modelData = File.ReadAllBytes(path);
+#if UNITY_BARRACUDA || UNITY_SENTIS
+        // In a real build this byte array would be passed to the inference
+        // backend. We keep the reference here so the worker can be created
+        // when the libraries are available.
+#endif
         Debug.Log($"EstimatorWorker: loaded model from {path}");
         _loaded = true;
     }
