@@ -1,6 +1,20 @@
 # スマホで完結する MMD 風ダンス生成アプリ開発文書
 本ドキュメントで扱うアプリは **Unity を利用せず**、C# と各種ライブラリのみで 3D ビューワーを自作する方針です。
 
+## 開発環境セットアップ
+ビルドには .NET 8 SDK と Assimp ネイティブライブラリが必要です。Ubuntu 系なら次のコマンドで導入できます。
+
+```bash
+sudo apt-get update
+sudo apt-get install -y dotnet-sdk-8.0 libassimp-dev
+```
+
+`libdl.so` が存在しない環境では以下のリンクを作成してください。
+
+```bash
+sudo ln -s /usr/lib/x86_64-linux-gnu/libdl.so.2 /usr/lib/x86_64-linux-gnu/libdl.so
+```
+
 ## 1. 文書管理
 
 | 項目 | 内容 |

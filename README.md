@@ -8,6 +8,28 @@ FBX や PMX モデルを実行時に利用するための変換手順は [docs/m
 
 現在のタスクカードを基にした機能一覧は [docs/features.md](docs/features.md) で確認できます。
 
+## 環境セットアップ
+このリポジトリをビルドするには .NET 8 SDK と Assimp のネイティブライブラリが必要です。
+Ubuntu 系ディストリビューションの場合、以下のコマンドでインストールできます。
+
+```bash
+sudo apt-get update
+sudo apt-get install -y dotnet-sdk-8.0 libassimp-dev
+```
+
+一部環境では `libdl.so` が見つからず起動に失敗することがあります。その際は次のようにシンボリックリンクを作成してください。
+
+```bash
+sudo ln -s /usr/lib/x86_64-linux-gnu/libdl.so.2 /usr/lib/x86_64-linux-gnu/libdl.so
+```
+
+## デモの実行
+依存関係を導入後、`AppDemo` プロジェクトを実行するとスタブ動作を確認できます。
+
+```bash
+dotnet run --project AppDemo/AppDemo.csproj
+```
+
 ## AppCore ライブラリ
 Viewer とは別に、姿勢推定やモーション生成、録画管理などの基盤クラスをまとめた `AppCore` ライブラリを追加しました。現状はスタブ実装ですが、今後モバイル向けアプリの中核として拡張予定です。
 
