@@ -5,15 +5,18 @@
              BackgroundColor="Transparent">
     <AbsoluteLayout x:Name="Root">
         <ContentView x:Name="Viewer" BackgroundColor="Black" />
-        <Button x:Name="FsToggleBtn" Text="⤢" WidthRequest="56" HeightRequest="56"
-                BackgroundColor="#3D3D3D" TextColor="White" CornerRadius="6"
-                Visual="Material" />
         <ScrollView x:Name="ModeCarousel"
                     Orientation="Horizontal"
                     BackgroundColor="#1A1A1A"
-                    HorizontalScrollBarVisibility="Never">
+                    HorizontalScrollBarVisibility="Never"
+                    InputTransparent="True"
+                    HeightRequest="48">
             <HorizontalStackLayout x:Name="ModeStack" Spacing="0" />
         </ScrollView>
+        <Grid x:Name="ModeTapOverlay" ColumnDefinitions="*,*" BackgroundColor="Transparent" HeightRequest="48">
+            <BoxView x:Name="LeftTapArea" BackgroundColor="Transparent" />
+            <BoxView x:Name="RightTapArea" Grid.Column="1" BackgroundColor="Transparent" />
+        </Grid>
         <!-- モードバーと下ペインの境界ライン -->
         <BoxView x:Name="ModeSeparator" HeightRequest="1" BackgroundColor="#00000066" />
         <Grid x:Name="LowerPaneBody" BackgroundColor="#222">
@@ -30,14 +33,25 @@
                 </BoxView.Background>
             </BoxView>
         </Grid>
-        <Border x:Name="ShutterBtn" WidthRequest="88" HeightRequest="88"
-                StrokeThickness="2" Stroke="#FFFFFF" BackgroundColor="Transparent"
-                StrokeShape="RoundRectangle 44">
-            <Border.Shadow>
-                <Shadow Brush="#00000040" Radius="4" Offset="0,3" />
-            </Border.Shadow>
-            <BoxView x:Name="ShutterInner" WidthRequest="70" HeightRequest="70" CornerRadius="35" Color="White" />
-        </Border>
+        <AbsoluteLayout x:Name="StickPad" WidthRequest="120" HeightRequest="120">
+            <Border x:Name="ShutterBtn" WidthRequest="88" HeightRequest="88"
+                    StrokeThickness="2" Stroke="#FFFFFF" BackgroundColor="Transparent"
+                    StrokeShape="RoundRectangle 44">
+                <Border.Shadow>
+                    <Shadow Brush="#00000040" Radius="4" Offset="0,3" />
+                </Border.Shadow>
+                <BoxView x:Name="ShutterInner" WidthRequest="70" HeightRequest="70" CornerRadius="35" Color="White" />
+            </Border>
+            <!-- directional buttons around the stick -->
+            <BoxView x:Name="StickDir0" Color="#333" WidthRequest="20" HeightRequest="20" CornerRadius="10" InputTransparent="True" />
+            <BoxView x:Name="StickDir1" Color="#333" WidthRequest="20" HeightRequest="20" CornerRadius="10" InputTransparent="True" />
+            <BoxView x:Name="StickDir2" Color="#333" WidthRequest="20" HeightRequest="20" CornerRadius="10" InputTransparent="True" />
+            <BoxView x:Name="StickDir3" Color="#333" WidthRequest="20" HeightRequest="20" CornerRadius="10" InputTransparent="True" />
+            <BoxView x:Name="StickDir4" Color="#333" WidthRequest="20" HeightRequest="20" CornerRadius="10" InputTransparent="True" />
+            <BoxView x:Name="StickDir5" Color="#333" WidthRequest="20" HeightRequest="20" CornerRadius="10" InputTransparent="True" />
+            <BoxView x:Name="StickDir6" Color="#333" WidthRequest="20" HeightRequest="20" CornerRadius="10" InputTransparent="True" />
+            <BoxView x:Name="StickDir7" Color="#333" WidthRequest="20" HeightRequest="20" CornerRadius="10" InputTransparent="True" />
+        </AbsoluteLayout>
         <ContentView x:Name="Sidebar" BackgroundColor="#1E1E1EEB" />
     </AbsoluteLayout>
 </ContentPage>
