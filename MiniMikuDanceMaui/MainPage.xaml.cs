@@ -12,22 +12,44 @@ public partial class MainPage : ContentPage
 {
     private readonly AppInitializer _initializer = new();
     private GyroService? _gyroService;
+    private bool _uiLoaded;
+    private string? _configPath;
 
     public MainPage()
     {
         InitializeComponent();
     }
 
+    protected override async void OnAppearing()
+    {
+        base.OnAppearing();
+        if (!_uiLoaded)
+        {
+            _configPath = await LoadUIConfig();
+            GenerateDynamicUI();
+            UIManager.Instance.OnToggleChanged += OnToggleChanged;
+            _uiLoaded = true;
+        }
+    }
+
     private async void OnStartClicked(object sender, EventArgs e)
     {
-        var configPath = await LoadUIConfig();
-        GenerateDynamicUI();
-        UIManager.Instance.OnToggleChanged += OnToggleChanged;
         StartButton.IsEnabled = false;
+
+        if (!_uiLoaded)
+        {
+            _configPath = await LoadUIConfig();
+            GenerateDynamicUI();
+            UIManager.Instance.OnToggleChanged += OnToggleChanged;
+            _uiLoaded = true;
+        }
+
+        if (_configPath == null)
+            return;
 
         // pose model path should be prepared beforehand
         var posePath = Path.Combine(FileSystem.CacheDirectory, "pose_model.onnx");
-        _initializer.Initialize(configPath, null, posePath);
+        _initializer.Initialize(_configPath, null, posePath);
         if (_initializer.Camera != null)
         {
             _gyroService = new GyroService(_initializer.Camera);
