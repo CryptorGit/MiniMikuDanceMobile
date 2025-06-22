@@ -2,15 +2,33 @@
 <ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
              x:Class="MiniMikuDanceMaui.MainPage">
-    <ScrollView>
-        <VerticalStackLayout x:Name="RootLayout" Margin="20" Spacing="10">
-            <Label Text="MiniMikuDance MAUI" FontSize="24" HorizontalOptions="Center" />
-            <VerticalStackLayout x:Name="ButtonContainer" Spacing="10" />
-            <VerticalStackLayout x:Name="ToggleContainer" Spacing="10" />
-            <ProgressBar x:Name="ProgressBar" IsVisible="False" />
-            <Label x:Name="MessageLabel" />
-            <Label x:Name="RecordingLabel" Text="● REC" TextColor="Red" IsVisible="False" />
-            <Image x:Name="ThumbnailImage" IsVisible="False" />
-        </VerticalStackLayout>
-    </ScrollView>
+    <Grid RowDefinitions="*,Auto" ColumnDefinitions="200,*">
+        <!-- 左側: モデルやボーン操作用のパネル -->
+        <ScrollView Grid.Row="0" Grid.Column="0" Padding="10">
+            <VerticalStackLayout>
+                <Label Text="MiniMikuDance MAUI" FontSize="24" HorizontalOptions="Center" />
+                <VerticalStackLayout x:Name="ButtonContainer" Spacing="10" />
+                <VerticalStackLayout x:Name="ToggleContainer" Spacing="10" />
+            </VerticalStackLayout>
+        </ScrollView>
+
+        <!-- 右側: 3D ビューポート領域（現状はプレースホルダー） -->
+        <Grid Grid.Row="0" Grid.Column="1" BackgroundColor="Black">
+            <BoxView Color="Gray" />
+            <Label Text="Viewport" HorizontalOptions="Center" VerticalOptions="Center" TextColor="White" />
+        </Grid>
+
+        <!-- 下部: タイムラインを模したスライダーと各種表示 -->
+        <Grid Grid.Row="1" Grid.ColumnSpan="2" Padding="10" RowDefinitions="Auto,Auto,Auto">
+            <Slider x:Name="TimelineSlider" Minimum="0" Maximum="100" Value="0" />
+            <Grid Grid.Row="1" ColumnDefinitions="*,Auto" VerticalOptions="Center">
+                <ProgressBar x:Name="ProgressBar" IsVisible="False" />
+                <Label x:Name="MessageLabel" Grid.Column="1" />
+            </Grid>
+            <Grid Grid.Row="2" ColumnDefinitions="Auto,*" VerticalOptions="Center">
+                <Label x:Name="RecordingLabel" Text="● REC" TextColor="Red" IsVisible="False" />
+                <Image x:Name="ThumbnailImage" Grid.Column="1" IsVisible="False" HeightRequest="40" />
+            </Grid>
+        </Grid>
+    </Grid>
 </ContentPage>
