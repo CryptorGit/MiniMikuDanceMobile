@@ -1,6 +1,6 @@
 # MiniMikuDance
 
-このリポジトリは、MMD 互換の 3D モデルを使ってスマートフォンだけでダンス動画を作成できるアプリの実験的設計をまとめたものです。姿勢推定は端末上で実行され、端末の動きが仮想カメラとして利用されます。なお、本プロジェクトは **Unity を一切使用せず**、C# と OpenTK を基盤とした自作ビューワーで動作します。
+このリポジトリは、MMD 互換の 3D モデルをスマートフォン上で再生・撮影できるモバイル向けアプリを構築するためのものです。姿勢推定や録画処理も端末で完結し、PC 版のビューアーは含まれていません。なお、本プロジェクトは **Unity を一切使用せず**、C# と OpenTK を基盤とした自作ビューワーで動作します。
 
 
 ## 環境セットアップ
@@ -14,7 +14,7 @@
    sudo apt-get install -y dotnet-sdk-8.0 libassimp-dev
    ```
 
-2. `dotnet --version` を実行し、8.x 系であることを確認します。
+2. `dotnet --version` を実行し、`8.0.411` であることを確認します。
 
 3. MAUI 用のワークロードを導入します。
 
@@ -35,17 +35,15 @@
 
 ## クイックスタート
 1. 上記手順で必要なパッケージと MAUI ワークロードをインストールします。
-2. リポジトリをクローンしたディレクトリで以下を実行します。
+2. Android もしくは iOS のエミュレータ／実機を用意し、次のコマンドでビルドと実行を行います。
 
    ```bash
-   dotnet build MiniMikuDance.sln
-   dotnet run --project MiniMikuDanceMaui/MiniMikuDanceMaui.csproj
+   dotnet build MiniMikuDanceMaui/MiniMikuDanceMaui.csproj -t:Run -f net8.0-android34.0
    ```
 
-3. UI 設定のサンプルとして `Configs/UIConfig.json` を同梱しています。必要に応じて
-   ボタンやトグルを編集してください。
+3. UI 設定のサンプルとして `Configs/UIConfig.json` を同梱しています。必要に応じてボタンやトグルを編集してください。
 
-4. ウィンドウが表示され、モデル読込や姿勢推定の進捗がコンソールに表示されれば成功です。録画メタデータは `Recordings/` フォルダに保存されます。
+4. アプリが起動し、モデル読込や姿勢推定の進捗が表示されれば成功です。録画メタデータは `Recordings/` フォルダに保存されます。
 
 ## デモの実行
 依存関係を導入後、`MiniMikuDanceMaui` を実行することでモデル表示や姿勢推定の一連の
