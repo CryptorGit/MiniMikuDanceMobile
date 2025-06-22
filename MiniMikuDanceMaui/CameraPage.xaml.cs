@@ -12,8 +12,8 @@ public partial class CameraPage : ContentPage
 {
     private bool _isFullscreen;
     private bool _sidebarOpen;
-    private const double ModeItemWidth = 110;
-    private const double HighlightThreshold = 55;
+    private const double ModeItemWidth = 160;
+    private const double HighlightThreshold = 80;
     private const double SidebarWidth = 340;
     private const double SidebarEdgeWidth = 12;
     private bool _panTracking;
@@ -136,6 +136,8 @@ public partial class CameraPage : ContentPage
         AbsoluteLayout.SetLayoutBounds(ModeCarousel, new Rect(0, viewerH, W, 64));
         AbsoluteLayout.SetLayoutFlags(ModeCarousel, AbsoluteLayoutFlags.None);
         ModeCarousel.Opacity = _isFullscreen ? 0 : 1;
+        double sidePad = Math.Max(0, (W - ModeItemWidth) / 2);
+        ModeStack.Padding = new Thickness(sidePad, 0);
         AbsoluteLayout.SetLayoutBounds(ModeSeparator, new Rect(0, viewerH + 64, W, 1));
         AbsoluteLayout.SetLayoutFlags(ModeSeparator, AbsoluteLayoutFlags.None);
 
