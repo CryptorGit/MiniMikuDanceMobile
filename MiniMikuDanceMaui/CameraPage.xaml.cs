@@ -1,12 +1,17 @@
-using System;
+#if ANDROID
+using Android.Graphics.Drawables.Shapes;
+#endif
 using Microsoft.Maui;
-using Microsoft.Maui.Controls;
-using Microsoft.Maui.Layouts;
-
-using Microsoft.Maui.Graphics;
-using Microsoft.Maui.Controls.Shapes;
-using System.Threading.Tasks;
 using Microsoft.Maui.ApplicationModel;
+using Microsoft.Maui.Controls;
+using Microsoft.Maui.Controls.Shapes;
+using Microsoft.Maui.Graphics;
+using Microsoft.Maui.Layouts;
+using System;
+using System.Threading.Tasks;
+
+using PathShape = Microsoft.Maui.Controls.Shapes.Path;
+
 
 namespace MiniMikuDanceMaui;
 
@@ -259,9 +264,12 @@ public partial class CameraPage : ContentPage
 
         for (int i = 0; i < 4; i++)
         {
-            if (StickPad.FindByName<Path>($"ArcBtn{i}") is Path path)
+            if (StickPad.FindByName<PathShape>($"ArcBtn{i}") is PathShape path)
             {
-                path.Data = Microsoft.Maui.Graphics.PathParser.ParsePathString(BuildArc(angles[i].start, angles[i].end));
+                // Geometry.Parse Ç≈ï∂éöóÒ Å® Geometry Ç÷ïœä∑
+                var geoConv = new GeometryTypeConverter();
+                path.Data = (Geometry)geoConv.ConvertFromInvariantString(BuildArc(angles[i].start, angles[i].end));
+
                 AbsoluteLayout.SetLayoutBounds(path, new Rect(0, 0, 120, 120));
                 AbsoluteLayout.SetLayoutFlags(path, AbsoluteLayoutFlags.None);
             }
