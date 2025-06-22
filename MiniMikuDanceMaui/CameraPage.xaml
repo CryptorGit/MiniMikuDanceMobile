@@ -1,7 +1,8 @@
 <?xml version="1.0" encoding="utf-8" ?>
 <ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
-             x:Class="MiniMikuDanceMaui.CameraPage">
+             x:Class="MiniMikuDanceMaui.CameraPage"
+             BackgroundColor="Transparent">
     <AbsoluteLayout x:Name="Root">
         <ContentView x:Name="Viewer" BackgroundColor="Black" />
         <Button x:Name="FsToggleBtn" Text="⤢" WidthRequest="56" HeightRequest="56"
@@ -30,7 +31,7 @@
             </BoxView>
         </Grid>
         <Border x:Name="ShutterBtn" WidthRequest="88" HeightRequest="88"
-                StrokeThickness="2" Stroke="#FFFFFF80" BackgroundColor="Transparent"
+                StrokeThickness="2" Stroke="#FFFFFF" BackgroundColor="Transparent"
                 StrokeShape="RoundRectangle 44">
             <Border.Shadow>
                 <Shadow Brush="#00000040" Radius="4" Offset="0,3" />
