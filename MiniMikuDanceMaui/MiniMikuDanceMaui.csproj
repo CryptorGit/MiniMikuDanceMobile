@@ -24,6 +24,7 @@
     <PackageReference Include="Microsoft.Maui.Controls" Version="8.0.100" />
   </ItemGroup>
   <ItemGroup>
-    <MauiAsset Include="../Configs/UIConfig.json" LogicalName="UIConfig.json" />
+    <!-- UI 設定ファイルをパッケージへ含める -->
+    <MauiAsset Include="Resources/Raw/UIConfig.json" LogicalName="UIConfig.json" />
   </ItemGroup>
 </Project>
