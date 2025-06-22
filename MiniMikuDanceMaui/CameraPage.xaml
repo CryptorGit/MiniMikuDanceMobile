@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             x:Class="MiniMikuDanceMaui.CameraPage">
+    <AbsoluteLayout x:Name="Root">
+        <ContentView x:Name="Viewer" BackgroundColor="Black" />
+        <Button x:Name="FsToggleBtn" Text="⤢" WidthRequest="56" HeightRequest="56"
+                BackgroundColor="#3D3D3D" TextColor="White" CornerRadius="6" />
+        <ScrollView x:Name="ModeCarousel" Orientation="Horizontal">
+            <HorizontalStackLayout x:Name="ModeStack" Spacing="0" />
+        </ScrollView>
+        <ContentView x:Name="LowerPaneBody" BackgroundColor="#222" />
+        <Button x:Name="ShutterBtn" WidthRequest="96" HeightRequest="96"
+                BackgroundColor="White" CornerRadius="48" />
+        <ContentView x:Name="Sidebar" BackgroundColor="#1E1E1EEB" />
+    </AbsoluteLayout>
+</ContentPage>
