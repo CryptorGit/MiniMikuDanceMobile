@@ -254,13 +254,4 @@ namespace ViewerApp
         }
     }
 
-    public static class Program
-    {
-        public static void Main(string[] args)
-        {
-            string modelPath = args.Length > 0 ? args[0] : Path.Combine("..", "Assets", "Models", "sample.obj");
-            using var viewer = new Viewer(modelPath);
-            viewer.Run();
-        }
-    }
 }

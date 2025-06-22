@@ -10,9 +10,9 @@
             "request": "launch",
             "preLaunchTask": "build",
             // If you have changed target frameworks, make sure to update the program path.
-            "program": "${workspaceFolder}/MiniMikuDanceApp/bin/Debug/net8.0/MiniMikuDanceApp.dll",
+            "program": "${workspaceFolder}/MiniMikuDanceMaui/bin/Debug/net8.0-android/MiniMikuDanceMaui.dll",
             "args": [],
-            "cwd": "${workspaceFolder}/MiniMikuDanceApp",
+            "cwd": "${workspaceFolder}/MiniMikuDanceMaui",
             // For more information about the 'console' field, see https://aka.ms/VSCode-CS-LaunchJson-Console
             "console": "internalConsole",
             "stopAtEntry": false
