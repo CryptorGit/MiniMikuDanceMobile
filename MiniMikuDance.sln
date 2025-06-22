@@ -3,9 +3,9 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 17
 VisualStudioVersion = 17.0.31903.59
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MiniMikuDanceMaui", "MiniMikuDanceMaui\MiniMikuDanceMaui.csproj", "{84987C8A-05D2-4CCF-9F3A-B028D9FDD1BB}"
-EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AppCore", "AppCore\AppCore.csproj", "{1E46F372-65C0-4E9F-8F4E-7459531EEF69}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ViewerApp", "ViewerApp\ViewerApp.csproj", "{65585BDD-2FC1-4075-AC13-87EF0D54364D}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -16,13 +16,13 @@ Global
 		HideSolutionNode = FALSE
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
-		{84987C8A-05D2-4CCF-9F3A-B028D9FDD1BB}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{84987C8A-05D2-4CCF-9F3A-B028D9FDD1BB}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{84987C8A-05D2-4CCF-9F3A-B028D9FDD1BB}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{84987C8A-05D2-4CCF-9F3A-B028D9FDD1BB}.Release|Any CPU.Build.0 = Release|Any CPU
 		{1E46F372-65C0-4E9F-8F4E-7459531EEF69}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{1E46F372-65C0-4E9F-8F4E-7459531EEF69}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{1E46F372-65C0-4E9F-8F4E-7459531EEF69}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{1E46F372-65C0-4E9F-8F4E-7459531EEF69}.Release|Any CPU.Build.0 = Release|Any CPU
+		{65585BDD-2FC1-4075-AC13-87EF0D54364D}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{65585BDD-2FC1-4075-AC13-87EF0D54364D}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{65585BDD-2FC1-4075-AC13-87EF0D54364D}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{65585BDD-2FC1-4075-AC13-87EF0D54364D}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 EndGlobal

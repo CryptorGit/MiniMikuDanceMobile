@@ -14,4 +14,7 @@
     <PackageReference Include="SixLabors.ImageSharp" Version="3.1.0" />
     <PackageReference Include="ImGui.NET" Version="1.90.5.1" />
   </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\ViewerApp\ViewerApp.csproj" />
+  </ItemGroup>
 </Project>
