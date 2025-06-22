@@ -47,6 +47,7 @@
 
 ## デザイントークン
 `Configs` フォルダに `style_tokens_dark.json` と `style_tokens_light.json` を追加しました。UI の配色や角丸、余白量を一元管理する設定ファイルです。ImGui スタイルを適用する際はこれらの JSON を読み込んでください。
+あわせて、カメラ画面向けのレイアウト仕様を [Docs/Design/camera_layout_v3.md](Docs/Design/camera_layout_v3.md) にまとめています。
 
 ## デモの実行
 依存関係を導入後、`MiniMikuDanceMaui` を実行することでモデル表示や姿勢推定の一連の
