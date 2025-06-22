@@ -23,19 +23,11 @@ public partial class MainPage : ContentPage
     protected override async void OnAppearing()
     {
         base.OnAppearing();
-        if (!_uiLoaded)
-        {
-            _configPath = await LoadUIConfig();
-            GenerateDynamicUI();
-            UIManager.Instance.OnToggleChanged += OnToggleChanged;
-            _uiLoaded = true;
-        }
+        await InitializeApp();
     }
 
-    private async void OnStartClicked(object sender, EventArgs e)
+    private async Task InitializeApp()
     {
-        StartButton.IsEnabled = false;
-
         if (!_uiLoaded)
         {
             _configPath = await LoadUIConfig();
@@ -47,7 +39,6 @@ public partial class MainPage : ContentPage
         if (_configPath == null)
             return;
 
-        // pose model path should be prepared beforehand
         var posePath = Path.Combine(FileSystem.CacheDirectory, "pose_model.onnx");
         _initializer.Initialize(_configPath, null, posePath);
         if (_initializer.Camera != null)
