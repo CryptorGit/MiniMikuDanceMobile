@@ -1,0 +1,12 @@
+{
+	"profiles": {
+		"MiniMikuDanceMaui (Android)": {
+			"commandName": "Maui",
+			"targetFramework": "net8.0-android34.0",
+			"environmentVariables": {
+				"DOTNET_ENVIRONMENT": "Development"
+			},
+			"hotReloadEnabled": true
+		}
+	}
+}

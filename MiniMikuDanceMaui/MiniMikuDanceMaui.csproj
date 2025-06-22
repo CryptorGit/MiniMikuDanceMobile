@@ -1,16 +1,26 @@
 <Project Sdk="Microsoft.NET.Sdk">
-  <PropertyGroup>
-    <TargetFrameworks>net8.0-android;net8.0-ios</TargetFrameworks>
-    <UseMaui>true</UseMaui>
-    <SkipValidateMauiImplicitPackageReferences>true</SkipValidateMauiImplicitPackageReferences>
-    <Nullable>enable</Nullable>
-  </PropertyGroup>
-  <ItemGroup>
-    <ProjectReference Include="..\AppCore\AppCore.csproj" />
-  </ItemGroup>
+	<PropertyGroup>
+		<!-- ターゲットは Android と iOS のみ -->
+		<TargetFrameworks>net8.0-android34.0;net8.0-ios17.0</TargetFrameworks>
 
-  <ItemGroup>
-    <!-- .NET 8 以降は暗黙参照されないので明示的に MAUI パッケージを追加 -->
-	<PackageReference Include="Microsoft.Maui.Controls" Version="8.0.100" />
-  </ItemGroup>
+		<!-- MAUI シングルプロジェクト有効化 -->
+		<UseMaui>true</UseMaui>
+		<SingleProject>true</SingleProject>
+		<OutputType>Exe</OutputType>
+
+		<!-- Windows パッケージを無効化 -->
+		<WindowsPackageType>None</WindowsPackageType>
+
+		<!-- 暗黙参照の警告抑制など（任意） -->
+		<SkipValidateMauiImplicitPackageReferences>true</SkipValidateMauiImplicitPackageReferences>
+		<ImplicitUsings>enable</ImplicitUsings>
+		<Nullable>enable</Nullable>
+	</PropertyGroup>
+
+	<ItemGroup>
+		<ProjectReference Include="..\AppCore\AppCore.csproj" />
+	</ItemGroup>
+	<ItemGroup>
+		<PackageReference Include="Microsoft.Maui.Controls" Version="8.0.100" />
+	</ItemGroup>
 </Project>
