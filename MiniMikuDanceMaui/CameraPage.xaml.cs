@@ -5,6 +5,7 @@ using Microsoft.Maui.Layouts;
 
 using Microsoft.Maui.Graphics;
 using Microsoft.Maui.Controls.Shapes;
+using ShapePath = Microsoft.Maui.Controls.Shapes.Path;
 using System.Threading.Tasks;
 using Microsoft.Maui.ApplicationModel;
 
@@ -259,7 +260,7 @@ public partial class CameraPage : ContentPage
 
         for (int i = 0; i < 4; i++)
         {
-            if (StickPad.FindByName<Path>($"ArcBtn{i}") is Path path)
+            if (StickPad.FindByName<ShapePath>($"ArcBtn{i}") is ShapePath path)
             {
                 path.Data = Microsoft.Maui.Graphics.PathParser.ParsePathString(BuildArc(angles[i].start, angles[i].end));
                 AbsoluteLayout.SetLayoutBounds(path, new Rect(0, 0, 120, 120));
