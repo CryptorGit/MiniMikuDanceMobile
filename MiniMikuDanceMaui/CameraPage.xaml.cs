@@ -8,21 +8,17 @@ using Microsoft.Maui.Controls.Shapes;
 using Microsoft.Maui.Graphics;
 using Microsoft.Maui.Layouts;
 using System;
+using System.Diagnostics;
 using System.Threading.Tasks;
-
-using Microsoft.Maui.Graphics;
-using Microsoft.Maui.Controls.Shapes;
 using ShapePath = Microsoft.Maui.Controls.Shapes.Path;
-using System.Threading.Tasks;
-using Microsoft.Maui.ApplicationModel;
 
 namespace MiniMikuDanceMaui;
 
 public partial class CameraPage : ContentPage
 {
     private bool _sidebarOpen;
-    private const double ModeItemWidth = 160;
-    private const double HighlightThreshold = 80;
+    private const double ModeItemWidth = 88;
+    private const double HighlightThreshold = 44;
     private const double SidebarWidth = 340;
     private const double SidebarEdgeWidth = 12;
     private bool _panTracking;
@@ -188,11 +184,10 @@ public partial class CameraPage : ContentPage
         AbsoluteLayout.SetLayoutBounds(LowerPaneBody, new Rect(0, lowerY, W, H - lowerY));
         AbsoluteLayout.SetLayoutFlags(LowerPaneBody, AbsoluteLayoutFlags.None);
         LowerPaneBody.Opacity = 1;
-        AbsoluteLayout.SetLayoutBounds(StickPad, new Rect((W - 120) / 2, (H - 120) / 2, 120, 120));
+        AbsoluteLayout.SetLayoutBounds(StickPad, new Rect((W - 120) / 2, H * 0.75 - 60, 120, 120));
         AbsoluteLayout.SetLayoutFlags(StickPad, AbsoluteLayoutFlags.None);
-        LayoutArcButtons();
-
         double sidebarX = _sidebarOpen ? 0 : -SidebarWidth;
+
         AbsoluteLayout.SetLayoutBounds(Sidebar, new Rect(sidebarX, 0, SidebarWidth, H));
         AbsoluteLayout.SetLayoutFlags(Sidebar, AbsoluteLayoutFlags.None);
 
@@ -229,55 +224,28 @@ public partial class CameraPage : ContentPage
                 break;
             case GestureStatus.Canceled:
             case GestureStatus.Completed:
+                int dir = GetDirection(ShutterInner.TranslationX, ShutterInner.TranslationY);
+                OnStickAction(dir);
                 ShutterInner.TranslateTo(0, 0, 80, Easing.SinOut);
                 break;
         }
     }
 
-    private void LayoutArcButtons()
+    private int GetDirection(double dx, double dy)
     {
-        if (StickPad == null)
-            return;
-
-        string BuildArc(double startDeg, double endDeg)
-        {
-            const double outerR = 60;
-            const double innerR = 40;
-            const double cx = 60;
-            const double cy = 60;
-            double rad(double d) => Math.PI / 180 * d;
-            double sx = cx + outerR * Math.Cos(rad(startDeg));
-            double sy = cy + outerR * Math.Sin(rad(startDeg));
-            double ex = cx + outerR * Math.Cos(rad(endDeg));
-            double ey = cy + outerR * Math.Sin(rad(endDeg));
-            double ix = cx + innerR * Math.Cos(rad(endDeg));
-            double iy = cy + innerR * Math.Sin(rad(endDeg));
-            double ox = cx + innerR * Math.Cos(rad(startDeg));
-            double oy = cy + innerR * Math.Sin(rad(startDeg));
-            return $"M{sx},{sy} A{outerR},{outerR} 0 0 1 {ex},{ey} L{ix},{iy} A{innerR},{innerR} 0 0 0 {ox},{oy} Z";
-        }
-
-        var angles = new(double start, double end)[]
-        {
-            (315, 45),  // top
-            (45, 135),   // right
-            (135, 225),  // bottom
-            (225, 315)   // left
-        };
-
-        for (int i = 0; i < 4; i++)
-        {
-            if (StickPad.FindByName<ShapePath>($"ArcBtn{i}") is ShapePath path)
-            {
-                // Geometry.Parse Ç≈ï∂éöóÒ Å® Geometry Ç÷ïœä∑
-                var geoConv = new PathGeometryConverter();
-                path.Data = (Geometry)geoConv.ConvertFromInvariantString(BuildArc(angles[i].start, angles[i].end));
-
-                AbsoluteLayout.SetLayoutBounds(path, new Rect(0, 0, 120, 120));
-                AbsoluteLayout.SetLayoutFlags(path, AbsoluteLayoutFlags.None);
-            }
-        }
+        double r = Math.Sqrt(dx * dx + dy * dy);
+        if (r < 10) return 8;
+        double ang = Math.Atan2(-dy, dx);
+        ang = (ang + Math.PI * 2) % (Math.PI * 2);
+        int dir = (int)Math.Round(ang / (Math.PI / 4)) % 8;
+        return dir;
     }
+
+    private void OnStickAction(int dir)
+    {
+        System.Diagnostics.Debug.WriteLine($"Stick dir {dir}");
+    }
+
 
     private async void OnRootPan(object? sender, PanUpdatedEventArgs e)
     {
