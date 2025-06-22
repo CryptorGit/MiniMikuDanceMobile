@@ -5,6 +5,7 @@ using Microsoft.Maui.Controls;
 using Microsoft.Maui.Storage;
 using MiniMikuDance.App;
 using MiniMikuDance.UI;
+using MiniMikuDance.Util;
 
 namespace MiniMikuDanceMaui;
 
@@ -51,20 +52,57 @@ public partial class MainPage : ContentPage
 
     private async Task<string?> LoadUIConfig()
     {
+        var temp = Path.Combine(FileSystem.CacheDirectory, "UIConfig.json");
         try
         {
             using var stream = await FileSystem.OpenAppPackageFileAsync("UIConfig.json");
-            var temp = Path.Combine(FileSystem.CacheDirectory, "UIConfig.json");
             using var fs = File.Create(temp);
             await stream.CopyToAsync(fs);
             UIManager.Instance.LoadConfig(temp);
-            return temp;
         }
         catch (Exception ex)
         {
-            await DisplayAlert("Error", $"UIConfig.json not found: {ex.Message}", "OK");
-            return null;
+            await DisplayAlert("Error", $"UIConfig.json not found: {ex.Message}\nUsing default UI.", "OK");
+            var cfg = CreateDefaultConfig();
+            JSONUtil.Save(temp, cfg);
+            UIManager.Instance.LoadConfig(temp);
         }
+
+        if (UIManager.Instance.Config.Buttons.Count == 0 && UIManager.Instance.Config.Toggles.Count == 0)
+        {
+            await DisplayAlert("Error", "UI configuration is empty. Using default UI.", "OK");
+            var cfg = CreateDefaultConfig();
+            JSONUtil.Save(temp, cfg);
+            UIManager.Instance.LoadConfig(temp);
+        }
+
+        return temp;
+    }
+
+    private static UIConfig CreateDefaultConfig()
+    {
+        return new UIConfig
+        {
+            Buttons = new()
+            {
+                new UIButton { Label = "Load Model", Message = "load_model" },
+                new UIButton { Label = "Analyze Video", Message = "analyze_video" },
+                new UIButton { Label = "Generate Motion", Message = "generate_motion" },
+                new UIButton { Label = "Play Motion", Message = "play_motion" },
+                new UIButton { Label = "Record", Message = "toggle_record" },
+                new UIButton { Label = "Export BVH", Message = "export_bvh" },
+                new UIButton { Label = "Share", Message = "share_recording" },
+            },
+            Toggles = new()
+            {
+                new UIToggle { Label = "Gyro Cam", Id = "gyro_cam", DefaultValue = true },
+                new UIToggle { Label = "Smoothing", Id = "smoothing", DefaultValue = true },
+            },
+            ShowProgressBar = true,
+            ShowMessage = true,
+            ShowRecordingIndicator = true,
+            ShowThumbnail = true,
+        };
     }
 
     private void GenerateDynamicUI()
