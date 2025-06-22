@@ -1,6 +1,4 @@
 # Ignore build artifacts
-PureViewer/Viewer/bin/
-PureViewer/Viewer/obj/
 AppCore/bin/
 AppCore/obj/
 Tests/**/bin/
