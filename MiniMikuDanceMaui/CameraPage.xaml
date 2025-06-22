@@ -7,7 +7,10 @@
         <Button x:Name="FsToggleBtn" Text="⤢" WidthRequest="56" HeightRequest="56"
                 BackgroundColor="#3D3D3D" TextColor="White" CornerRadius="6"
                 Visual="Material" />
-        <ScrollView x:Name="ModeCarousel" Orientation="Horizontal">
+        <ScrollView x:Name="ModeCarousel"
+                    Orientation="Horizontal"
+                    BackgroundColor="Transparent"
+                    HorizontalScrollBarVisibility="Never">
             <HorizontalStackLayout x:Name="ModeStack" Spacing="0" />
         </ScrollView>
         <!-- モードバーと下ペインの境界ライン -->
