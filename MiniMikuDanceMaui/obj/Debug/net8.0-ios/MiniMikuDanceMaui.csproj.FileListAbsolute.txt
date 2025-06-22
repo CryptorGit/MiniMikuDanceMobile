@@ -1,0 +1,14 @@
+C:\Users\crypt\source\repos\CryptorGit\MiniMikuDance\MiniMikuDanceMaui\obj\Debug\net8.0-ios\actool\_PartialAppManifest.items
+C:\Users\crypt\source\repos\CryptorGit\MiniMikuDance\MiniMikuDanceMaui\obj\Debug\net8.0-ios\actool\_BundleResourceWithLogicalName.items
+C:\Users\crypt\source\repos\CryptorGit\MiniMikuDance\MiniMikuDanceMaui\obj\Debug\net8.0-ios\actool\_ProcessedImageAssetsPath.items
+C:\Users\crypt\source\repos\CryptorGit\MiniMikuDance\MiniMikuDanceMaui\obj\Debug\net8.0-ios\coremlc\_PartialAppManifest.items
+C:\Users\crypt\source\repos\CryptorGit\MiniMikuDance\MiniMikuDanceMaui\obj\Debug\net8.0-ios\coremlc\_BundleResourceWithLogicalName.items
+C:\Users\crypt\source\repos\CryptorGit\MiniMikuDance\MiniMikuDanceMaui\obj\Debug\net8.0-ios\coremlc\_ProcessedCoreMLModelsPath.items
+C:\Users\crypt\source\repos\CryptorGit\MiniMikuDance\MiniMikuDanceMaui\obj\Debug\net8.0-ios\_ProcessedBundleResourcesPath.items
+C:\Users\crypt\source\repos\CryptorGit\MiniMikuDance\MiniMikuDanceMaui\obj\Debug\net8.0-ios\_ProcessedContentPath.items
+C:\Users\crypt\source\repos\CryptorGit\MiniMikuDance\MiniMikuDanceMaui\obj\Debug\net8.0-ios\MiniMikuDanceMaui.csproj.AssemblyReference.cache
+C:\Users\crypt\source\repos\CryptorGit\MiniMikuDance\MiniMikuDanceMaui\obj\Debug\net8.0-ios\MiniMikuDanceMaui.GeneratedMSBuildEditorConfig.editorconfig
+C:\Users\crypt\source\repos\CryptorGit\MiniMikuDance\MiniMikuDanceMaui\obj\Debug\net8.0-ios\MiniMikuDanceMaui.AssemblyInfoInputs.cache
+C:\Users\crypt\source\repos\CryptorGit\MiniMikuDance\MiniMikuDanceMaui\obj\Debug\net8.0-ios\MiniMikuDanceMaui.AssemblyInfo.cs
+C:\Users\crypt\source\repos\CryptorGit\MiniMikuDance\MiniMikuDanceMaui\obj\Debug\net8.0-ios\MiniMikuDanceMaui.csproj.CoreCompileInputs.cache
+C:\Users\crypt\source\repos\CryptorGit\MiniMikuDance\MiniMikuDanceMaui\obj\Debug\net8.0-ios\MiniMikuDanceMaui.sourcelink.json
