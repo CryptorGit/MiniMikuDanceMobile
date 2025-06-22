@@ -5,6 +5,7 @@ using Microsoft.Maui.Layouts;
 
 using Microsoft.Maui.Graphics;
 using System.Threading.Tasks;
+using Microsoft.Maui.ApplicationModel;
 
 namespace MiniMikuDanceMaui;
 
@@ -18,6 +19,8 @@ public partial class CameraPage : ContentPage
     private const double SidebarEdgeWidth = 12;
     private bool _panTracking;
     private int _centerIndex;
+    private CancellationTokenSource? _scrollEndCts;
+    private bool _snapping;
     private readonly string[] _modeTitles =
     {
         "IMPORT",
@@ -72,30 +75,52 @@ public partial class CameraPage : ContentPage
 
     private void OnModeScrolled(object? sender, ScrolledEventArgs e)
     {
+        double pad = ModeStack.Padding.Left;
         double center = e.ScrollX + ModeCarousel.Width / 2;
-        int index = (int)Math.Round((center - ModeItemWidth / 2) / ModeItemWidth);
+        int index = (int)Math.Round((center - pad - ModeItemWidth / 2) / ModeItemWidth);
         index = Math.Clamp(index, 0, ModeStack.Children.Count - 1);
         if (index != _centerIndex)
         {
             _centerIndex = index;
         }
+
+        if (!_snapping)
+            ScheduleSnap();
+
         UpdateModeHighlight();
+    }
+
+    private void ScheduleSnap()
+    {
+        _scrollEndCts?.Cancel();
+        var cts = new CancellationTokenSource();
+        _scrollEndCts = cts;
+        Task.Delay(120).ContinueWith(t =>
+        {
+            if (!cts.IsCancellationRequested)
+            {
+                MainThread.BeginInvokeOnMainThread(() => ScrollToMode(_centerIndex));
+            }
+        });
     }
 
     private async void ScrollToMode(int index)
     {
         index = Math.Clamp(index, 0, ModeStack.Children.Count - 1);
+        _snapping = true;
         await ModeCarousel.ScrollToAsync(index * ModeItemWidth, 0, true);
+        _snapping = false;
     }
 
     private void UpdateModeHighlight()
     {
+        double pad = ModeStack.Padding.Left;
         double center = ModeCarousel.ScrollX + ModeCarousel.Width / 2;
         for (int i = 0; i < ModeStack.Children.Count; i++)
         {
             if (ModeStack.Children[i] is Label label)
             {
-                double itemCenter = i * ModeItemWidth + ModeItemWidth / 2;
+                double itemCenter = pad + i * ModeItemWidth + ModeItemWidth / 2;
                 bool isCenter = Math.Abs(itemCenter - center) < HighlightThreshold;
                 if (isCenter)
                 {
