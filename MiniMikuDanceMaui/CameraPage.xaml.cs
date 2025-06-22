@@ -21,6 +21,9 @@ public partial class CameraPage : ContentPage
     private int _centerIndex;
     private CancellationTokenSource? _scrollEndCts;
     private bool _snapping;
+    private bool _dragActive;
+    private int _dragStartIndex;
+    private double _dragStartOffset;
     private readonly string[] _modeTitles =
     {
         "IMPORT",
@@ -64,6 +67,10 @@ public partial class CameraPage : ContentPage
         ModeCarousel.GestureRecognizers.Add(swipeLeft);
         ModeCarousel.GestureRecognizers.Add(swipeRight);
 
+        var carouselPan = new PanGestureRecognizer();
+        carouselPan.PanUpdated += OnCarouselPan;
+        ModeCarousel.GestureRecognizers.Add(carouselPan);
+
         var pan = new PanGestureRecognizer();
         pan.PanUpdated += OnRootPan;
         Root.GestureRecognizers.Add(pan);
@@ -84,7 +91,7 @@ public partial class CameraPage : ContentPage
             _centerIndex = index;
         }
 
-        if (!_snapping)
+        if (!_snapping && !_dragActive)
             ScheduleSnap();
 
         UpdateModeHighlight();
@@ -95,7 +102,7 @@ public partial class CameraPage : ContentPage
         _scrollEndCts?.Cancel();
         var cts = new CancellationTokenSource();
         _scrollEndCts = cts;
-        Task.Delay(120).ContinueWith(t =>
+        Task.Delay(80).ContinueWith(t =>
         {
             if (!cts.IsCancellationRequested)
             {
@@ -110,6 +117,30 @@ public partial class CameraPage : ContentPage
         _snapping = true;
         await ModeCarousel.ScrollToAsync(index * ModeItemWidth, 0, true);
         _snapping = false;
+    }
+
+    private void OnCarouselPan(object? sender, PanUpdatedEventArgs e)
+    {
+        switch (e.StatusType)
+        {
+            case GestureStatus.Started:
+                _dragActive = true;
+                _dragStartIndex = _centerIndex;
+                _dragStartOffset = ModeCarousel.ScrollX;
+                _scrollEndCts?.Cancel();
+                break;
+            case GestureStatus.Canceled:
+            case GestureStatus.Completed:
+                _dragActive = false;
+                double delta = ModeCarousel.ScrollX - _dragStartOffset;
+                int target = _dragStartIndex;
+                if (delta > ModeItemWidth / 4)
+                    target = _dragStartIndex + 1;
+                else if (delta < -ModeItemWidth / 4)
+                    target = _dragStartIndex - 1;
+                ScrollToMode(target);
+                break;
+        }
     }
 
     private void UpdateModeHighlight()
