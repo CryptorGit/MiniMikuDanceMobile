@@ -10,6 +10,8 @@ public partial class CameraPage : ContentPage
 {
     private bool _isFullscreen;
     private bool _sidebarOpen;
+    private const double ModeItemWidth = 88;
+    private int _centerIndex;
 
     public CameraPage()
     {
@@ -17,6 +19,8 @@ public partial class CameraPage : ContentPage
         this.SizeChanged += OnSizeChanged;
         FsToggleBtn.Clicked += OnFsToggle;
         ShutterBtn.Text = "";
+        FsToggleBtn.Pressed += (s, e) => FsToggleBtn.FadeTo(0.8, 100);
+        FsToggleBtn.Released += (s, e) => FsToggleBtn.FadeTo(1, 100);
         // sample modes
         foreach (var title in new[] { "Pose", "AR", "Video" })
         {
@@ -31,9 +35,42 @@ public partial class CameraPage : ContentPage
             };
             ModeStack.Children.Add(label);
         }
+        ModeCarousel.Scrolled += OnModeScrolled;
+        UpdateModeHighlight();
     }
 
     private void OnSizeChanged(object? sender, EventArgs e) => UpdateLayout();
+
+    private void OnModeScrolled(object? sender, ScrolledEventArgs e)
+    {
+        int index = (int)Math.Round(e.ScrollX / ModeItemWidth);
+        index = Math.Clamp(index, 0, ModeStack.Children.Count - 1);
+        if (index != _centerIndex)
+        {
+            _centerIndex = index;
+            UpdateModeHighlight();
+        }
+    }
+
+    private void UpdateModeHighlight()
+    {
+        for (int i = 0; i < ModeStack.Children.Count; i++)
+        {
+            if (ModeStack.Children[i] is Label label)
+            {
+                if (i == _centerIndex)
+                {
+                    label.TextColor = Color.FromArgb("#FFD500");
+                    label.FontSize = 20;
+                }
+                else
+                {
+                    label.TextColor = Colors.Gray;
+                    label.FontSize = 16;
+                }
+            }
+        }
+    }
 
     private void UpdateLayout()
     {
@@ -51,12 +88,14 @@ public partial class CameraPage : ContentPage
         AbsoluteLayout.SetLayoutBounds(ModeCarousel, new Rect(0, viewerH, W, 64));
         AbsoluteLayout.SetLayoutFlags(ModeCarousel, AbsoluteLayoutFlags.None);
         ModeCarousel.Opacity = _isFullscreen ? 0 : 1;
+        AbsoluteLayout.SetLayoutBounds(ModeSeparator, new Rect(0, viewerH + 64, W, 1));
+        AbsoluteLayout.SetLayoutFlags(ModeSeparator, AbsoluteLayoutFlags.None);
 
         double lowerY = viewerH + 64;
         AbsoluteLayout.SetLayoutBounds(LowerPaneBody, new Rect(0, lowerY, W, H - lowerY));
         AbsoluteLayout.SetLayoutFlags(LowerPaneBody, AbsoluteLayoutFlags.None);
 
-        AbsoluteLayout.SetLayoutBounds(ShutterBtn, new Rect((W - 96) / 2, H - safe.Bottom - 96 - 80, 96, 96));
+        AbsoluteLayout.SetLayoutBounds(ShutterBtn, new Rect((W - 96) / 2, H - safe.Bottom - 96 - 92, 96, 96));
         AbsoluteLayout.SetLayoutFlags(ShutterBtn, AbsoluteLayoutFlags.None);
 
         double sidebarX = _sidebarOpen ? 0 : -340;
