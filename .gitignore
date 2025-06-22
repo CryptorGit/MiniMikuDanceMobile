@@ -3,8 +3,6 @@ PureViewer/Viewer/bin/
 PureViewer/Viewer/obj/
 AppCore/bin/
 AppCore/obj/
-MiniMikuDanceApp/bin/
-MiniMikuDanceApp/obj/
 Tests/**/bin/
 Tests/**/obj/
 

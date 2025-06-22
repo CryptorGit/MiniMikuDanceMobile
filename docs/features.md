@@ -6,7 +6,7 @@
 
 ```
 PureViewer/
-  Viewer/        - OpenTK ベースのビューワー
+  Viewer/        - OpenTK ベースのビューワーライブラリ
   Assets/        - サンプルモデル
 docs/            - ドキュメント一式
 ```

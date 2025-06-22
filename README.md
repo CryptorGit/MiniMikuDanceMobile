@@ -38,7 +38,7 @@ FBX や PMX モデルを実行時に利用するための変換手順は [docs/m
 
    ```bash
    dotnet build
-   dotnet run --project MiniMikuDanceApp/MiniMikuDanceApp.csproj
+   dotnet run --project MiniMikuDanceMaui/MiniMikuDanceMaui.csproj
    ```
 
 3. UI 設定のサンプルとして `Configs/UIConfig.json` を同梱しています。必要に応じて
@@ -47,13 +47,13 @@ FBX や PMX モデルを実行時に利用するための変換手順は [docs/m
 4. ウィンドウが表示され、モデル読込や姿勢推定の進捗がコンソールに表示されれば成功です。録画メタデータは `Recordings/` フォルダに保存されます。
 
 ## デモの実行
-依存関係を導入後、`MiniMikuDanceApp` を実行することでモデル表示や姿勢推定の一連の
+依存関係を導入後、`MiniMikuDanceMaui` を実行することでモデル表示や姿勢推定の一連の
 流れを確認できます。
 
 ```bash
-dotnet run --project MiniMikuDanceApp/MiniMikuDanceApp.csproj
+dotnet run --project MiniMikuDanceMaui/MiniMikuDanceMaui.csproj
 ```
-詳しい使い方は [MiniMikuDanceApp/README.md](MiniMikuDanceApp/README.md) を参照してください。
+詳しい使い方は [MiniMikuDanceMaui/README.md](MiniMikuDanceMaui/README.md) を参照してください。
 
 ## AppCore ライブラリ
 Viewer とは別に、姿勢推定やモーション生成、録画管理などの基盤クラスをまとめた `AppCore` ライブラリを追加しました。現状はスタブ実装ですが、今後モバイル向けアプリの中核として拡張予定です。
