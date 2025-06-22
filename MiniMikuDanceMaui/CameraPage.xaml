@@ -9,9 +9,21 @@
         <ScrollView x:Name="ModeCarousel" Orientation="Horizontal">
             <HorizontalStackLayout x:Name="ModeStack" Spacing="0" />
         </ScrollView>
-        <ContentView x:Name="LowerPaneBody" BackgroundColor="#222" />
+        <!-- モードバーと下ペインの境界ライン -->
+        <BoxView x:Name="ModeSeparator" HeightRequest="1" BackgroundColor="#0000004D" />
+        <Grid x:Name="LowerPaneBody" BackgroundColor="#222">
+            <BoxView HeightRequest="8" VerticalOptions="Start" IsHitTestVisible="False">
+                <BoxView.Background>
+                    <LinearGradientBrush StartPoint="0,0" EndPoint="0,1">
+                        <GradientStop Color="#00000000" Offset="0" />
+                        <GradientStop Color="#00000066" Offset="1" />
+                    </LinearGradientBrush>
+                </BoxView.Background>
+            </BoxView>
+        </Grid>
         <Button x:Name="ShutterBtn" WidthRequest="96" HeightRequest="96"
-                BackgroundColor="White" CornerRadius="48" />
+                BackgroundColor="White" CornerRadius="48"
+                Stroke="#FFFFFF33" StrokeThickness="1" />
         <ContentView x:Name="Sidebar" BackgroundColor="#1E1E1EEB" />
     </AbsoluteLayout>
 </ContentPage>
