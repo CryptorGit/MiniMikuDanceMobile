@@ -178,7 +178,7 @@ public partial class CameraPage : ContentPage
         switch (e.StatusType)
         {
             case GestureStatus.Started:
-                _panTracking = e.StartPosition.X <= SidebarEdgeWidth;
+                _panTracking = true;
                 break;
             case GestureStatus.Running:
                 if (_panTracking)
