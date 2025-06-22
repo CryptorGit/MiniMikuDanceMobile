@@ -5,7 +5,6 @@
     <ScrollView>
         <VerticalStackLayout x:Name="RootLayout" Margin="20" Spacing="10">
             <Label Text="MiniMikuDance MAUI" FontSize="24" HorizontalOptions="Center" />
-            <Button x:Name="StartButton" Text="Start" Clicked="OnStartClicked" />
             <VerticalStackLayout x:Name="ButtonContainer" Spacing="10" />
             <VerticalStackLayout x:Name="ToggleContainer" Spacing="10" />
             <ProgressBar x:Name="ProgressBar" IsVisible="False" />

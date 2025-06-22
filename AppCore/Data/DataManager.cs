@@ -14,13 +14,14 @@ public class DataManager : Util.Singleton<DataManager>
         Util.JSONUtil.Save($"Configs/{key}.json", data);
     }
 
+    private readonly string _tempDir = Path.Combine(Path.GetTempPath(), "MiniMikuDance_Temp");
+
     public void CleanupTemp()
     {
-        const string tempDir = "Temp";
-        if (Directory.Exists(tempDir))
+        if (Directory.Exists(_tempDir))
         {
-            Directory.Delete(tempDir, true);
+            Directory.Delete(_tempDir, true);
         }
-        Directory.CreateDirectory(tempDir);
+        Directory.CreateDirectory(_tempDir);
     }
 }
