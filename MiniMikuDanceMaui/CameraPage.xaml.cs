@@ -1,6 +1,8 @@
 using System;
+using Microsoft.Maui;
 using Microsoft.Maui.Controls;
 using Microsoft.Maui.Graphics;
+using System.Threading.Tasks;
 
 namespace MiniMikuDanceMaui;
 
@@ -8,27 +10,41 @@ public partial class CameraPage : ContentPage
 {
     private bool _isFullscreen;
     private bool _sidebarOpen;
-    private const double ModeItemWidth = 88;
+    private const double ModeItemWidth = 110;
+    private const double HighlightThreshold = 55;
+    private const double SidebarWidth = 340;
+    private const double SidebarEdgeWidth = 12;
+    private bool _panTracking;
     private int _centerIndex;
-    private readonly string[] _modeTitles = { "Pose", "AR", "Video" };
+    private readonly string[] _modeTitles =
+    {
+        "IMPORT",
+        "POSE",
+        "MOTION",
+        "AR",
+        "RECORD"
+    };
 
     public CameraPage()
     {
         InitializeComponent();
         this.SizeChanged += OnSizeChanged;
         FsToggleBtn.Clicked += OnFsToggle;
-        ShutterBtn.Text = "";
         FsToggleBtn.Pressed += (s, e) => FsToggleBtn.FadeTo(0.8, 100);
         FsToggleBtn.Released += (s, e) => FsToggleBtn.FadeTo(1, 100);
-        // sample modes
+        var shutterTap = new TapGestureRecognizer { Command = new Command(async () => await FlashShutter()) };
+        ShutterBtn.GestureRecognizers.Add(shutterTap);
+        // mode labels
         foreach (var title in _modeTitles)
         {
             var label = new Label
             {
-                Text = title,
-                WidthRequest = 88,
+                Text = title.ToUpper(),
+                WidthRequest = ModeItemWidth,
                 FontSize = 16,
-                TextColor = Colors.Gray,
+                FontFamily = "NotoSans",
+                CharacterSpacing = 0.2,
+                TextColor = Color.FromArgb("#8E8E93"),
                 HorizontalTextAlignment = TextAlignment.Center,
                 VerticalTextAlignment = TextAlignment.Center
             };
@@ -43,6 +59,10 @@ public partial class CameraPage : ContentPage
         ModeCarousel.GestureRecognizers.Add(swipeLeft);
         ModeCarousel.GestureRecognizers.Add(swipeRight);
 
+        var pan = new PanGestureRecognizer();
+        pan.PanUpdated += OnRootPan;
+        Root.GestureRecognizers.Add(pan);
+
         UpdateModeHighlight();
     }
 
@@ -50,13 +70,14 @@ public partial class CameraPage : ContentPage
 
     private void OnModeScrolled(object? sender, ScrolledEventArgs e)
     {
-        int index = (int)Math.Round((e.ScrollX + ModeCarousel.Width / 2 - ModeItemWidth / 2) / ModeItemWidth);
+        double center = e.ScrollX + ModeCarousel.Width / 2;
+        int index = (int)Math.Round((center - ModeItemWidth / 2) / ModeItemWidth);
         index = Math.Clamp(index, 0, ModeStack.Children.Count - 1);
         if (index != _centerIndex)
         {
             _centerIndex = index;
-            UpdateModeHighlight();
         }
+        UpdateModeHighlight();
     }
 
     private async void ScrollToMode(int index)
@@ -67,19 +88,31 @@ public partial class CameraPage : ContentPage
 
     private void UpdateModeHighlight()
     {
+        double center = ModeCarousel.ScrollX + ModeCarousel.Width / 2;
         for (int i = 0; i < ModeStack.Children.Count; i++)
         {
             if (ModeStack.Children[i] is Label label)
             {
-                if (i == _centerIndex)
+                double itemCenter = i * ModeItemWidth + ModeItemWidth / 2;
+                bool isCenter = Math.Abs(itemCenter - center) < HighlightThreshold;
+                if (isCenter)
                 {
                     label.TextColor = Color.FromArgb("#FFD500");
                     label.FontSize = 20;
+                    label.FontAttributes = FontAttributes.Bold;
+                    label.Shadow = new Shadow
+                    {
+                        Offset = new Point(0, 1),
+                        Radius = 2,
+                        Brush = new SolidColorBrush(Color.FromArgb("#66000000"))
+                    };
                 }
                 else
                 {
-                    label.TextColor = Colors.Gray;
+                    label.TextColor = Color.FromArgb("#8E8E93");
                     label.FontSize = 16;
+                    label.FontAttributes = FontAttributes.None;
+                    label.Shadow = null;
                 }
             }
         }
@@ -107,12 +140,13 @@ public partial class CameraPage : ContentPage
         double lowerY = viewerH + 64;
         AbsoluteLayout.SetLayoutBounds(LowerPaneBody, new Rect(0, lowerY, W, H - lowerY));
         AbsoluteLayout.SetLayoutFlags(LowerPaneBody, AbsoluteLayoutFlags.None);
+        LowerPaneBody.Opacity = _isFullscreen ? 0 : 1;
 
-        AbsoluteLayout.SetLayoutBounds(ShutterBtn, new Rect((W - 96) / 2, H - safe.Bottom - 96 - 92, 96, 96));
+        AbsoluteLayout.SetLayoutBounds(ShutterBtn, new Rect((W - 88) / 2, H - safe.Bottom - 88 - 92, 88, 88));
         AbsoluteLayout.SetLayoutFlags(ShutterBtn, AbsoluteLayoutFlags.None);
 
-        double sidebarX = _sidebarOpen ? 0 : -340;
-        AbsoluteLayout.SetLayoutBounds(Sidebar, new Rect(sidebarX, 0, 340, H));
+        double sidebarX = _sidebarOpen ? 0 : -SidebarWidth;
+        AbsoluteLayout.SetLayoutBounds(Sidebar, new Rect(sidebarX, 0, SidebarWidth, H));
         AbsoluteLayout.SetLayoutFlags(Sidebar, AbsoluteLayoutFlags.None);
     }
 
@@ -121,7 +155,54 @@ public partial class CameraPage : ContentPage
         _isFullscreen = !_isFullscreen;
         double targetH = _isFullscreen ? this.Height : this.Height * 0.618;
         await Viewer.LayoutTo(new Rect(0, 0, this.Width, targetH), 250, Easing.SinOut);
-        await ModeCarousel.FadeTo(_isFullscreen ? 0 : 1, 150);
+        await Task.WhenAll(
+            ModeCarousel.FadeTo(_isFullscreen ? 0 : 1, 150),
+            LowerPaneBody.FadeTo(_isFullscreen ? 0 : 1, 150)
+        );
+        UpdateLayout();
+    }
+
+    private async Task FlashShutter()
+    {
+        if (ShutterInner == null)
+            return;
+        ShutterInner.Color = Color.FromArgb("#DDDDDD");
+        await Task.Delay(60);
+        ShutterInner.Color = Colors.White;
+    }
+
+    private async void OnRootPan(object? sender, PanUpdatedEventArgs e)
+    {
+        switch (e.StatusType)
+        {
+            case GestureStatus.Started:
+                _panTracking = e.StartPosition.X <= SidebarEdgeWidth;
+                break;
+            case GestureStatus.Running:
+                if (_panTracking)
+                {
+                    double x = Math.Clamp(-SidebarWidth + e.TotalX, -SidebarWidth, 0);
+                    AbsoluteLayout.SetLayoutBounds(Sidebar, new Rect(x, 0, SidebarWidth, Height));
+                }
+                break;
+            case GestureStatus.Canceled:
+            case GestureStatus.Completed:
+                if (_panTracking)
+                {
+                    bool open = e.TotalX > SidebarWidth / 2;
+                    await AnimateSidebar(open);
+                }
+                _panTracking = false;
+                break;
+        }
+    }
+
+    private async Task AnimateSidebar(bool open)
+    {
+        double dest = open ? 0 : -SidebarWidth;
+        await Sidebar.LayoutTo(new Rect(dest, 0, SidebarWidth, Height), 280, Easing.SinOut);
+        Viewer.InputTransparent = open;
+        _sidebarOpen = open;
         UpdateLayout();
     }
 }
