@@ -16,7 +16,11 @@ public static class JSONUtil
         try
         {
             var json = File.ReadAllText(path);
-            return JsonSerializer.Deserialize<T>(json) ?? new T();
+            var opts = new JsonSerializerOptions
+            {
+                PropertyNameCaseInsensitive = true
+            };
+            return JsonSerializer.Deserialize<T>(json, opts) ?? new T();
         }
         catch
         {

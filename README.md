@@ -14,7 +14,7 @@
    sudo apt-get install -y dotnet-sdk-8.0 libassimp-dev
    ```
 
-2. `dotnet --version` を実行し、8.x 系であることを確認します。
+2. `dotnet --version` を実行し、`8.0.411` であることを確認します。
 
 3. MAUI 用のワークロードを導入します。
 
