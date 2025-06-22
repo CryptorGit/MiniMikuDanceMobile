@@ -11,6 +11,6 @@
 
   <ItemGroup>
     <!-- .NET 8 以降は暗黙参照されないので明示的に MAUI パッケージを追加 -->
-    <PackageReference Include="Microsoft.Maui.Controls" Version="8.0.100" />
+    <PackageReference Include="Microsoft.Maui" Version="8.0.100" />
   </ItemGroup>
 </Project>
