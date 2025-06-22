@@ -39,11 +39,6 @@
                     StrokeShape="RoundRectangle 44" />
             <BoxView x:Name="ShutterInner" WidthRequest="70" HeightRequest="70"
                      CornerRadius="35" Color="White" ZIndex="1" />
-            <!-- quarter ring buttons -->
-            <Path x:Name="ArcBtn0" Stroke="#444" StrokeThickness="0" Fill="#444" InputTransparent="True" />
-            <Path x:Name="ArcBtn1" Stroke="#444" StrokeThickness="0" Fill="#444" InputTransparent="True" />
-            <Path x:Name="ArcBtn2" Stroke="#444" StrokeThickness="0" Fill="#444" InputTransparent="True" />
-            <Path x:Name="ArcBtn3" Stroke="#444" StrokeThickness="0" Fill="#444" InputTransparent="True" />
         </AbsoluteLayout>
         <ContentView x:Name="Sidebar" BackgroundColor="#1E1E1EEB" />
     </AbsoluteLayout>
