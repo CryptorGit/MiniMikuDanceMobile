@@ -3,6 +3,7 @@ using System.IO;
 using System.Threading.Tasks;
 using Microsoft.Maui.Controls;
 using Microsoft.Maui.Storage;
+using Microsoft.Maui.ApplicationModel.DataTransfer;
 using MiniMikuDance.App;
 using MiniMikuDance.UI;
 using MiniMikuDance.Util;
@@ -138,18 +139,63 @@ public partial class MainPage : ContentPage
         ThumbnailImage.IsVisible = UIManager.Instance.Config.ShowThumbnail;
     }
 
-    private Task OnUIButtonPressed(string message)
+    private async Task OnUIButtonPressed(string message)
     {
-        UIManager.Instance.SetMessage($"Pressed: {message}");
-        MessageLabel.Text = UIManager.Instance.Message;
-
-        if (message == "toggle_record")
+        switch (message)
         {
-            UIManager.Instance.IsRecording = !UIManager.Instance.IsRecording;
-            RecordingLabel.IsVisible = UIManager.Instance.IsRecording;
+            case "load_model":
+                var modelFile = await FilePicker.Default.PickAsync();
+                if (modelFile != null)
+                {
+                    _initializer.LoadModel(modelFile.FullPath);
+                    UIManager.Instance.SetMessage("Model loaded");
+                }
+                break;
+            case "analyze_video":
+                var videoFile = await FilePicker.Default.PickAsync();
+                if (videoFile != null)
+                {
+                    ProgressBar.Progress = 0;
+                    ProgressBar.IsVisible = true;
+                    await _initializer.AnalyzeVideoAsync(videoFile.FullPath);
+                    ProgressBar.IsVisible = false;
+                }
+                break;
+            case "generate_motion":
+                _initializer.GenerateMotion();
+                UIManager.Instance.SetMessage("Motion generated");
+                break;
+            case "play_motion":
+                _initializer.PlayMotion();
+                break;
+            case "toggle_record":
+                _initializer.ToggleRecord();
+                RecordingLabel.IsVisible = UIManager.Instance.IsRecording;
+                if (!string.IsNullOrEmpty(_initializer.Recorder?.ThumbnailPath))
+                {
+                    ThumbnailImage.Source = ImageSource.FromFile(_initializer.Recorder.ThumbnailPath);
+                    ThumbnailImage.IsVisible = true;
+                }
+                break;
+            case "export_bvh":
+                var bvhPath = Path.Combine(FileSystem.CacheDirectory, "motion.bvh");
+                _initializer.ExportBvh(bvhPath);
+                UIManager.Instance.SetMessage($"BVH exported: {bvhPath}");
+                break;
+            case "share_recording":
+                var recPath = _initializer.Recorder?.GetSavedPath();
+                if (!string.IsNullOrEmpty(recPath))
+                {
+                    await Share.Default.RequestAsync(new ShareFileRequest
+                    {
+                        Title = "Share Recording",
+                        File = new ShareFile(recPath)
+                    });
+                }
+                break;
         }
 
-        return DisplayAlert("Button", message, "OK");
+        MessageLabel.Text = UIManager.Instance.Message;
     }
 
     private void OnToggleChanged(string id, bool value)
