@@ -270,7 +270,7 @@ public partial class CameraPage : ContentPage
             if (StickPad.FindByName<ShapePath>($"ArcBtn{i}") is ShapePath path)
             {
                 // Geometry.Parse Ç≈ï∂éöóÒ Å® Geometry Ç÷ïœä∑
-                var geoConv = new GeometryTypeConverter();
+                var geoConv = new PathGeometryConverter();
                 path.Data = (Geometry)geoConv.ConvertFromInvariantString(BuildArc(angles[i].start, angles[i].end));
 
                 AbsoluteLayout.SetLayoutBounds(path, new Rect(0, 0, 120, 120));
