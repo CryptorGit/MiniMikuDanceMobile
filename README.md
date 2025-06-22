@@ -41,7 +41,7 @@
    dotnet build MiniMikuDanceMaui/MiniMikuDanceMaui.csproj -t:Run -f net8.0-android34.0
    ```
 
-3. UI 設定のサンプルとして `Configs/UIConfig.json` を同梱しています。必要に応じてボタンやトグルを編集してください。
+3. UI 設定のサンプルとして `MiniMikuDanceMaui/Resources/Raw/UIConfig.json` を同梱しています。必要に応じてボタンやトグルを編集してください。
 
 4. アプリが起動し、モデル読込や姿勢推定の進捗が表示されれば成功です。録画メタデータは `Recordings/` フォルダに保存されます。
 

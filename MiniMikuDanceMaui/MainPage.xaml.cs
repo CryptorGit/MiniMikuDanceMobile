@@ -49,14 +49,22 @@ public partial class MainPage : ContentPage
         }
     }
 
-    private async Task<string> LoadUIConfig()
+    private async Task<string?> LoadUIConfig()
     {
-        using var stream = await FileSystem.OpenAppPackageFileAsync("UIConfig.json");
-        var temp = Path.Combine(FileSystem.CacheDirectory, "UIConfig.json");
-        using var fs = File.Create(temp);
-        await stream.CopyToAsync(fs);
-        UIManager.Instance.LoadConfig(temp);
-        return temp;
+        try
+        {
+            using var stream = await FileSystem.OpenAppPackageFileAsync("UIConfig.json");
+            var temp = Path.Combine(FileSystem.CacheDirectory, "UIConfig.json");
+            using var fs = File.Create(temp);
+            await stream.CopyToAsync(fs);
+            UIManager.Instance.LoadConfig(temp);
+            return temp;
+        }
+        catch (Exception ex)
+        {
+            await DisplayAlert("Error", $"UIConfig.json not found: {ex.Message}", "OK");
+            return null;
+        }
     }
 
     private void GenerateDynamicUI()
