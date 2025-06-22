@@ -1,5 +1,7 @@
 # Ignore build artifacts
 AppCore/bin/
+ViewerApp/bin/
+ViewerApp/obj/
 AppCore/obj/
 Tests/**/bin/
 Tests/**/obj/
