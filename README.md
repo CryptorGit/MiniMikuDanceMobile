@@ -16,7 +16,13 @@
 
 2. `dotnet --version` を実行し、8.x 系であることを確認します。
 
-3. 一部の環境では `libdl.so` が見つからず実行に失敗することがあります。その場合は次のコマンドでシンボリックリンクを作成します。
+3. MAUI 用のワークロードを導入します。
+
+   ```bash
+   dotnet workload install maui
+   ```
+
+4. 一部の環境では `libdl.so` が見つからず実行に失敗することがあります。その場合は次のコマンドでシンボリックリンクを作成します。
 
    ```bash
    sudo ln -s /usr/lib/x86_64-linux-gnu/libdl.so.2 /usr/lib/x86_64-linux-gnu/libdl.so
@@ -28,7 +34,7 @@
 - <https://github.com/onnx/models/tree/main/vision/body_analysis/mediapipe_pose>
 
 ## クイックスタート
-1. 上記手順で必要なパッケージをインストールします。
+1. 上記手順で必要なパッケージと MAUI ワークロードをインストールします。
 2. リポジトリをクローンしたディレクトリで以下を実行します。
 
    ```bash
