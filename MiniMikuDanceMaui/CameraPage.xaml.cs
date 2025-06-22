@@ -25,6 +25,7 @@ public partial class CameraPage : ContentPage
     private int _centerIndex;
     private CancellationTokenSource? _scrollEndCts;
     private bool _snapping;
+    private bool _fullScreen;
     private readonly string[] _modeTitles =
     {
         "IMPORT",
@@ -70,6 +71,22 @@ public partial class CameraPage : ContentPage
         var tapRight = new TapGestureRecognizer();
         tapRight.Tapped += (s, e) => ScrollToMode(_centerIndex + 1);
         RightTapArea.GestureRecognizers.Add(tapRight);
+
+        var stickLeftTap = new TapGestureRecognizer();
+        stickLeftTap.Tapped += (s, e) => ScrollToMode(_centerIndex - 1);
+        StickLeftArea.GestureRecognizers.Add(stickLeftTap);
+
+        var stickRightTap = new TapGestureRecognizer();
+        stickRightTap.Tapped += (s, e) => ScrollToMode(_centerIndex + 1);
+        StickRightArea.GestureRecognizers.Add(stickRightTap);
+
+        var stickTopTap = new TapGestureRecognizer();
+        stickTopTap.Tapped += async (s, e) => await ExitFullScreen();
+        StickTopArea.GestureRecognizers.Add(stickTopTap);
+
+        var stickBottomTap = new TapGestureRecognizer();
+        stickBottomTap.Tapped += async (s, e) => await EnterFullScreen();
+        StickBottomArea.GestureRecognizers.Add(stickBottomTap);
 
         var pan = new PanGestureRecognizer();
         pan.PanUpdated += OnRootPan;
@@ -181,10 +198,12 @@ public partial class CameraPage : ContentPage
         AbsoluteLayout.SetLayoutBounds(ModeSeparator, new Rect(0, viewerH + 48, W, 1));
         AbsoluteLayout.SetLayoutFlags(ModeSeparator, AbsoluteLayoutFlags.None);
         double lowerY = viewerH + 48;
-        AbsoluteLayout.SetLayoutBounds(LowerPaneBody, new Rect(0, lowerY, W, H - lowerY));
+        double bottomH = H - lowerY;
+        AbsoluteLayout.SetLayoutBounds(LowerPaneBody, new Rect(0, lowerY, W, bottomH));
         AbsoluteLayout.SetLayoutFlags(LowerPaneBody, AbsoluteLayoutFlags.None);
         LowerPaneBody.Opacity = 1;
-        AbsoluteLayout.SetLayoutBounds(StickPad, new Rect((W - 120) / 2, H * 0.75 - 60, 120, 120));
+        double stickY = lowerY + (bottomH - 120) / 2;
+        AbsoluteLayout.SetLayoutBounds(StickPad, new Rect((W - 120) / 2, stickY, 120, 120));
         AbsoluteLayout.SetLayoutFlags(StickPad, AbsoluteLayoutFlags.None);
         double sidebarX = _sidebarOpen ? 0 : -SidebarWidth;
 
@@ -280,5 +299,38 @@ public partial class CameraPage : ContentPage
         Viewer.InputTransparent = open;
         _sidebarOpen = open;
         UpdateLayout();
+    }
+
+    private async Task EnterFullScreen()
+    {
+        if (_fullScreen)
+            return;
+        _fullScreen = true;
+        double height = LowerPaneBody.Height;
+        var tasks = new Task[]
+        {
+            ModeCarousel.TranslateTo(0, height, 200, Easing.SinOut),
+            ModeTapOverlay.TranslateTo(0, height, 200, Easing.SinOut),
+            ModeSeparator.TranslateTo(0, height, 200, Easing.SinOut),
+            LowerPaneBody.TranslateTo(0, height, 200, Easing.SinOut),
+            StickPad.TranslateTo(0, height, 200, Easing.SinOut)
+        };
+        await Task.WhenAll(tasks);
+    }
+
+    private async Task ExitFullScreen()
+    {
+        if (!_fullScreen)
+            return;
+        _fullScreen = false;
+        var tasks = new Task[]
+        {
+            ModeCarousel.TranslateTo(0, 0, 200, Easing.SinOut),
+            ModeTapOverlay.TranslateTo(0, 0, 200, Easing.SinOut),
+            ModeSeparator.TranslateTo(0, 0, 200, Easing.SinOut),
+            LowerPaneBody.TranslateTo(0, 0, 200, Easing.SinOut),
+            StickPad.TranslateTo(0, 0, 200, Easing.SinOut)
+        };
+        await Task.WhenAll(tasks);
     }
 }
