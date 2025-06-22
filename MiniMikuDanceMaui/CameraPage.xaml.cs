@@ -10,8 +10,11 @@ using Microsoft.Maui.Layouts;
 using System;
 using System.Threading.Tasks;
 
-using PathShape = Microsoft.Maui.Controls.Shapes.Path;
-
+using Microsoft.Maui.Graphics;
+using Microsoft.Maui.Controls.Shapes;
+using ShapePath = Microsoft.Maui.Controls.Shapes.Path;
+using System.Threading.Tasks;
+using Microsoft.Maui.ApplicationModel;
 
 namespace MiniMikuDanceMaui;
 
@@ -264,7 +267,7 @@ public partial class CameraPage : ContentPage
 
         for (int i = 0; i < 4; i++)
         {
-            if (StickPad.FindByName<PathShape>($"ArcBtn{i}") is PathShape path)
+            if (StickPad.FindByName<ShapePath>($"ArcBtn{i}") is ShapePath path)
             {
                 // Geometry.Parse Ç≈ï∂éöóÒ Å® Geometry Ç÷ïœä∑
                 var geoConv = new GeometryTypeConverter();
