@@ -11,28 +11,39 @@ namespace MiniMikuDanceMaui;
 public partial class MainPage : ContentPage
 {
     private readonly AppInitializer _initializer = new();
+    private GyroService? _gyroService;
 
     public MainPage()
     {
         InitializeComponent();
     }
 
-    private void OnStartClicked(object sender, EventArgs e)
+    private async void OnStartClicked(object sender, EventArgs e)
     {
-        LoadUIConfig();
+        var configPath = await LoadUIConfig();
         GenerateDynamicUI();
+        UIManager.Instance.OnToggleChanged += OnToggleChanged;
         StartButton.IsEnabled = false;
+
+        // pose model path should be prepared beforehand
+        var posePath = Path.Combine(FileSystem.CacheDirectory, "pose_model.onnx");
+        _initializer.Initialize(configPath, null, posePath);
+        if (_initializer.Camera != null)
+        {
+            _gyroService = new GyroService(_initializer.Camera);
+            if (UIManager.Instance.GetToggle("gyro_cam"))
+                _gyroService.Start();
+        }
     }
 
-    private async void LoadUIConfig()
+    private async Task<string> LoadUIConfig()
     {
         using var stream = await FileSystem.OpenAppPackageFileAsync("UIConfig.json");
         var temp = Path.Combine(FileSystem.CacheDirectory, "UIConfig.json");
-        using (var fs = File.Create(temp))
-        {
-            await stream.CopyToAsync(fs);
-        }
+        using var fs = File.Create(temp);
+        await stream.CopyToAsync(fs);
         UIManager.Instance.LoadConfig(temp);
+        return temp;
     }
 
     private void GenerateDynamicUI()
@@ -80,5 +91,14 @@ public partial class MainPage : ContentPage
         }
 
         return DisplayAlert("Button", message, "OK");
+    }
+
+    private void OnToggleChanged(string id, bool value)
+    {
+        if (id == "gyro_cam" && _gyroService != null)
+        {
+            if (value) _gyroService.Start();
+            else _gyroService.Stop();
+        }
     }
 }

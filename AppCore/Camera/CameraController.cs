@@ -8,23 +8,28 @@ public class CameraController
     private readonly ARPoseManager _arPoseManager = new();
     private System.Numerics.Vector3 _position;
     private System.Numerics.Quaternion _rotation = System.Numerics.Quaternion.Identity;
+    private System.Numerics.Quaternion _gyroRotation = System.Numerics.Quaternion.Identity;
 
     public System.Numerics.Vector3 Position => _position;
     public System.Numerics.Quaternion Rotation => _rotation;
 
     public void EnableGyro(bool on) => _gyroEnabled = on;
 
+    public void SetGyroRotation(System.Numerics.Quaternion rotation)
+    {
+        _gyroRotation = rotation;
+    }
+
     public void SyncGyro()
     {
         if (!_gyroEnabled) return;
-        var delta = System.Numerics.Quaternion.CreateFromAxisAngle(System.Numerics.Vector3.UnitY, 0.01f);
-        _rotation = System.Numerics.Quaternion.Normalize(System.Numerics.Quaternion.Concatenate(_rotation, delta));
+        _rotation = _gyroRotation;
     }
 
     public void Update()
     {
-        SyncGyro();
         SyncARPose();
+        SyncGyro();
     }
 
     public void SyncARPose()
