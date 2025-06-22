@@ -11,7 +11,6 @@ namespace MiniMikuDanceMaui;
 
 public partial class CameraPage : ContentPage
 {
-    private bool _isFullscreen;
     private bool _sidebarOpen;
     private const double ModeItemWidth = 160;
     private const double HighlightThreshold = 80;
@@ -21,9 +20,6 @@ public partial class CameraPage : ContentPage
     private int _centerIndex;
     private CancellationTokenSource? _scrollEndCts;
     private bool _snapping;
-    private bool _dragActive;
-    private int _dragStartIndex;
-    private double _dragStartOffset;
     private readonly string[] _modeTitles =
     {
         "IMPORT",
@@ -37,11 +33,11 @@ public partial class CameraPage : ContentPage
     {
         InitializeComponent();
         this.SizeChanged += OnSizeChanged;
-        FsToggleBtn.Clicked += OnFsToggle;
-        FsToggleBtn.Pressed += (s, e) => FsToggleBtn.FadeTo(0.8, 100);
-        FsToggleBtn.Released += (s, e) => FsToggleBtn.FadeTo(1, 100);
         var shutterTap = new TapGestureRecognizer { Command = new Command(async () => await FlashShutter()) };
         ShutterBtn.GestureRecognizers.Add(shutterTap);
+        var stickPan = new PanGestureRecognizer();
+        stickPan.PanUpdated += OnStickPan;
+        ShutterBtn.GestureRecognizers.Add(stickPan);
         // mode labels
         foreach (var title in _modeTitles)
         {
@@ -60,16 +56,13 @@ public partial class CameraPage : ContentPage
         }
         ModeCarousel.Scrolled += OnModeScrolled;
 
-        var swipeLeft = new SwipeGestureRecognizer { Direction = SwipeDirection.Left };
-        swipeLeft.Swiped += (s, e) => ScrollToMode(_centerIndex + 1);
-        var swipeRight = new SwipeGestureRecognizer { Direction = SwipeDirection.Right };
-        swipeRight.Swiped += (s, e) => ScrollToMode(_centerIndex - 1);
-        ModeCarousel.GestureRecognizers.Add(swipeLeft);
-        ModeCarousel.GestureRecognizers.Add(swipeRight);
+        var tapLeft = new TapGestureRecognizer();
+        tapLeft.Tapped += (s, e) => ScrollToMode(_centerIndex - 1);
+        LeftTapArea.GestureRecognizers.Add(tapLeft);
 
-        var carouselPan = new PanGestureRecognizer();
-        carouselPan.PanUpdated += OnCarouselPan;
-        ModeCarousel.GestureRecognizers.Add(carouselPan);
+        var tapRight = new TapGestureRecognizer();
+        tapRight.Tapped += (s, e) => ScrollToMode(_centerIndex + 1);
+        RightTapArea.GestureRecognizers.Add(tapRight);
 
         var pan = new PanGestureRecognizer();
         pan.PanUpdated += OnRootPan;
@@ -91,7 +84,7 @@ public partial class CameraPage : ContentPage
             _centerIndex = index;
         }
 
-        if (!_snapping && !_dragActive)
+        if (!_snapping)
             ScheduleSnap();
 
         UpdateModeHighlight();
@@ -119,29 +112,6 @@ public partial class CameraPage : ContentPage
         _snapping = false;
     }
 
-    private void OnCarouselPan(object? sender, PanUpdatedEventArgs e)
-    {
-        switch (e.StatusType)
-        {
-            case GestureStatus.Started:
-                _dragActive = true;
-                _dragStartIndex = _centerIndex;
-                _dragStartOffset = ModeCarousel.ScrollX;
-                _scrollEndCts?.Cancel();
-                break;
-            case GestureStatus.Canceled:
-            case GestureStatus.Completed:
-                _dragActive = false;
-                double delta = ModeCarousel.ScrollX - _dragStartOffset;
-                int target = _dragStartIndex;
-                if (delta > ModeItemWidth / 4)
-                    target = _dragStartIndex + 1;
-                else if (delta < -ModeItemWidth / 4)
-                    target = _dragStartIndex - 1;
-                ScrollToMode(target);
-                break;
-        }
-    }
 
     private void UpdateModeHighlight()
     {
@@ -182,45 +152,45 @@ public partial class CameraPage : ContentPage
         double H = this.Height;
         Thickness safe = this.Padding;
 
-        double viewerH = _isFullscreen ? H : H * 0.618;
+        double viewerH = H * 0.618;
         AbsoluteLayout.SetLayoutBounds(Viewer, new Rect(0, 0, W, viewerH));
         AbsoluteLayout.SetLayoutFlags(Viewer, AbsoluteLayoutFlags.None);
 
-        AbsoluteLayout.SetLayoutBounds(FsToggleBtn, new Rect(W - 72, viewerH - 72, 56, 56));
-        AbsoluteLayout.SetLayoutFlags(FsToggleBtn, AbsoluteLayoutFlags.None);
-
-        AbsoluteLayout.SetLayoutBounds(ModeCarousel, new Rect(0, viewerH, W, 64));
+        AbsoluteLayout.SetLayoutBounds(ModeCarousel, new Rect(0, viewerH, W, 48));
         AbsoluteLayout.SetLayoutFlags(ModeCarousel, AbsoluteLayoutFlags.None);
-        ModeCarousel.Opacity = _isFullscreen ? 0 : 1;
+        ModeCarousel.Opacity = 1;
+        AbsoluteLayout.SetLayoutBounds(ModeTapOverlay, new Rect(0, viewerH, W, 48));
+        AbsoluteLayout.SetLayoutFlags(ModeTapOverlay, AbsoluteLayoutFlags.None);
+        ModeTapOverlay.Opacity = 1;
         double sidePad = Math.Max(0, (W - ModeItemWidth) / 2);
         ModeStack.Padding = new Thickness(sidePad, 0);
-        AbsoluteLayout.SetLayoutBounds(ModeSeparator, new Rect(0, viewerH + 64, W, 1));
+        AbsoluteLayout.SetLayoutBounds(ModeSeparator, new Rect(0, viewerH + 48, W, 1));
         AbsoluteLayout.SetLayoutFlags(ModeSeparator, AbsoluteLayoutFlags.None);
-
-        double lowerY = viewerH + 64;
+        double lowerY = viewerH + 48;
         AbsoluteLayout.SetLayoutBounds(LowerPaneBody, new Rect(0, lowerY, W, H - lowerY));
         AbsoluteLayout.SetLayoutFlags(LowerPaneBody, AbsoluteLayoutFlags.None);
-        LowerPaneBody.Opacity = _isFullscreen ? 0 : 1;
+        LowerPaneBody.Opacity = 1;
+        AbsoluteLayout.SetLayoutBounds(StickPad, new Rect((W - 120) / 2, H - safe.Bottom - 120 - 92, 120, 120));
+        AbsoluteLayout.SetLayoutFlags(StickPad, AbsoluteLayoutFlags.None);
 
-        AbsoluteLayout.SetLayoutBounds(ShutterBtn, new Rect((W - 88) / 2, H - safe.Bottom - 88 - 92, 88, 88));
-        AbsoluteLayout.SetLayoutFlags(ShutterBtn, AbsoluteLayoutFlags.None);
+        for (int i = 0; i < 8; i++)
+        {
+            if (StickPad.FindByName<BoxView>($"StickDir{i}") is BoxView box)
+            {
+                double ang = Math.PI / 180 * i * 45;
+                double r = 50;
+                double x = 60 + r * Math.Cos(ang) - 10;
+                double y = 60 + r * Math.Sin(ang) - 10;
+                AbsoluteLayout.SetLayoutBounds(box, new Rect(x, y, 20, 20));
+                AbsoluteLayout.SetLayoutFlags(box, AbsoluteLayoutFlags.None);
+            }
+        }
 
         double sidebarX = _sidebarOpen ? 0 : -SidebarWidth;
         AbsoluteLayout.SetLayoutBounds(Sidebar, new Rect(sidebarX, 0, SidebarWidth, H));
         AbsoluteLayout.SetLayoutFlags(Sidebar, AbsoluteLayoutFlags.None);
     }
 
-    private async void OnFsToggle(object? sender, EventArgs e)
-    {
-        _isFullscreen = !_isFullscreen;
-        double targetH = _isFullscreen ? this.Height : this.Height * 0.618;
-        await Viewer.LayoutTo(new Rect(0, 0, this.Width, targetH), 250, Easing.SinOut);
-        await Task.WhenAll(
-            ModeCarousel.FadeTo(_isFullscreen ? 0 : 1, 150),
-            LowerPaneBody.FadeTo(_isFullscreen ? 0 : 1, 150)
-        );
-        UpdateLayout();
-    }
 
     private async Task FlashShutter()
     {
@@ -229,6 +199,31 @@ public partial class CameraPage : ContentPage
         ShutterInner.Color = Color.FromArgb("#DDDDDD");
         await Task.Delay(60);
         ShutterInner.Color = Colors.White;
+    }
+
+    private const double StickRadius = 30;
+    private void OnStickPan(object? sender, PanUpdatedEventArgs e)
+    {
+        switch (e.StatusType)
+        {
+            case GestureStatus.Running:
+                double dx = e.TotalX;
+                double dy = e.TotalY;
+                double r = Math.Sqrt(dx * dx + dy * dy);
+                if (r > StickRadius)
+                {
+                    double scale = StickRadius / r;
+                    dx *= scale;
+                    dy *= scale;
+                }
+                ShutterInner.TranslationX = dx;
+                ShutterInner.TranslationY = dy;
+                break;
+            case GestureStatus.Canceled:
+            case GestureStatus.Completed:
+                ShutterInner.TranslateTo(0, 0, 80, Easing.SinOut);
+                break;
+        }
     }
 
     private async void OnRootPan(object? sender, PanUpdatedEventArgs e)
