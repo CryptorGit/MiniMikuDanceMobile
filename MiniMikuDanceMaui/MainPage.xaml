@@ -2,8 +2,16 @@
 <ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
              x:Class="MiniMikuDanceMaui.MainPage">
-    <StackLayout Margin="20">
-        <Label Text="MiniMikuDance MAUI" FontSize="24" HorizontalOptions="Center" />
-        <Button Text="Start" Clicked="OnStartClicked" />
-    </StackLayout>
+    <ScrollView>
+        <VerticalStackLayout x:Name="RootLayout" Margin="20" Spacing="10">
+            <Label Text="MiniMikuDance MAUI" FontSize="24" HorizontalOptions="Center" />
+            <Button x:Name="StartButton" Text="Start" Clicked="OnStartClicked" />
+            <VerticalStackLayout x:Name="ButtonContainer" Spacing="10" />
+            <VerticalStackLayout x:Name="ToggleContainer" Spacing="10" />
+            <ProgressBar x:Name="ProgressBar" IsVisible="False" />
+            <Label x:Name="MessageLabel" />
+            <Label x:Name="RecordingLabel" Text="● REC" TextColor="Red" IsVisible="False" />
+            <Image x:Name="ThumbnailImage" IsVisible="False" />
+        </VerticalStackLayout>
+    </ScrollView>
 </ContentPage>
