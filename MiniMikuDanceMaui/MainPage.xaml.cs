@@ -3,6 +3,9 @@ using System.IO;
 using System.Threading.Tasks;
 using Microsoft.Maui.Controls;
 using Microsoft.Maui.Storage;
+using Microsoft.Maui.Controls.PlatformConfiguration;
+using Microsoft.Maui.Controls.PlatformConfiguration.iOSSpecific;
+using Microsoft.Maui.Graphics;
 using Microsoft.Maui.ApplicationModel.DataTransfer;
 using MiniMikuDance.App;
 using MiniMikuDance.UI;
@@ -20,12 +23,76 @@ public partial class MainPage : ContentPage
     public MainPage()
     {
         InitializeComponent();
+        this.On<iOS>().SetUseSafeArea(true);
+        this.SizeChanged += OnSizeChanged;
+    }
+
+    private void OnSizeChanged(object? sender, EventArgs e)
+    {
+        UpdateLayout();
+    }
+
+    private void UpdateLayout()
+    {
+        double W = this.Width;
+        double H = this.Height;
+
+        Thickness safe = this.SafeAreaInsets();
+
+        double statusHeight = 24;
+        AbsoluteLayout.SetLayoutBounds(StatusRibbon, new Rect(safe.Left, safe.Top, W - safe.Left - safe.Right, statusHeight));
+        AbsoluteLayout.SetLayoutFlags(StatusRibbon, AbsoluteLayoutFlags.None);
+
+        AbsoluteLayout.SetLayoutBounds(ProgressBar, new Rect(safe.Left, safe.Top + statusHeight, W - safe.Left - safe.Right, 4));
+        AbsoluteLayout.SetLayoutFlags(ProgressBar, AbsoluteLayoutFlags.None);
+
+        AbsoluteLayout.SetLayoutBounds(MessageLabel, new Rect(safe.Left + 8, safe.Top + statusHeight + 4, W - safe.Left - safe.Right - 16, 20));
+        AbsoluteLayout.SetLayoutFlags(MessageLabel, AbsoluteLayoutFlags.None);
+
+        AbsoluteLayout.SetLayoutBounds(RecordingLabel, new Rect(safe.Left + 8, H - 72 - safe.Bottom - 20, 80, 20));
+        AbsoluteLayout.SetLayoutFlags(RecordingLabel, AbsoluteLayoutFlags.None);
+
+        AbsoluteLayout.SetLayoutBounds(ThumbnailImage, new Rect(safe.Left + 88, H - 72 - safe.Bottom - 44, 40, 40));
+        AbsoluteLayout.SetLayoutFlags(ThumbnailImage, AbsoluteLayoutFlags.None);
+
+        double dockWidth = ContextDock.WidthRequest;
+
+        double centerTop = safe.Top + statusHeight + 4 + 20; // plus progress/message
+        double centerHeight = H - centerTop - 72 - safe.Bottom;
+        double centerWidth = W - dockWidth - safe.Left - safe.Right;
+        AbsoluteLayout.SetLayoutBounds(CenterStage, new Rect(safe.Left, centerTop, centerWidth, centerHeight));
+        AbsoluteLayout.SetLayoutFlags(CenterStage, AbsoluteLayoutFlags.None);
+
+        AbsoluteLayout.SetLayoutBounds(CommandRail, new Rect(safe.Left, H - 72 - safe.Bottom, W - safe.Left - safe.Right, 72));
+        AbsoluteLayout.SetLayoutFlags(CommandRail, AbsoluteLayoutFlags.None);
+
+        AbsoluteLayout.SetLayoutBounds(ContextDock, new Rect(W - dockWidth - safe.Right, centerTop, dockWidth, centerHeight));
+        AbsoluteLayout.SetLayoutFlags(ContextDock, AbsoluteLayoutFlags.None);
+
+        AbsoluteLayout.SetLayoutBounds(QuickStack, new Rect(safe.Left + 16, H / 2 - 64, 72, 128));
+        AbsoluteLayout.SetLayoutFlags(QuickStack, AbsoluteLayoutFlags.None);
+
+        if (W <= 799)
+        {
+            AbsoluteLayout.SetLayoutBounds(ContextDock, new Rect(safe.Left, H * 0.2, W - safe.Left - safe.Right, H * 0.8 - safe.Bottom));
+        }
+        else if (W >= 1280)
+        {
+            ContextDock.WidthRequest = 320;
+            AbsoluteLayout.SetLayoutBounds(CommandRail, new Rect(safe.Left, H - 88 - safe.Bottom, W - safe.Left - safe.Right, 88));
+        }
+    }
+
+    private Thickness SafeAreaInsets()
+    {
+        return this.Padding;
     }
 
     protected override async void OnAppearing()
     {
         base.OnAppearing();
         await InitializeApp();
+        UpdateLayout();
     }
 
     private async Task InitializeApp()
