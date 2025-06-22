@@ -1,5 +1,6 @@
 using System;
 using System.IO;
+using SystemPath = System.IO.Path;
 using System.Threading.Tasks;
 using Microsoft.Maui.Controls;
 using Microsoft.Maui.Layouts;
@@ -109,7 +110,7 @@ public partial class MainPage : ContentPage
         if (_configPath == null)
             return;
 
-        var posePath = Path.Combine(FileSystem.CacheDirectory, "pose_model.onnx");
+        var posePath = SystemPath.Combine(FileSystem.CacheDirectory, "pose_model.onnx");
         _initializer.Initialize(_configPath, null, posePath);
         if (_initializer.Camera != null)
         {
@@ -121,7 +122,7 @@ public partial class MainPage : ContentPage
 
     private async Task<string?> LoadUIConfig()
     {
-        var temp = Path.Combine(FileSystem.CacheDirectory, "UIConfig.json");
+        var temp = SystemPath.Combine(FileSystem.CacheDirectory, "UIConfig.json");
         try
         {
             using var stream = await FileSystem.OpenAppPackageFileAsync("UIConfig.json");
@@ -246,7 +247,7 @@ public partial class MainPage : ContentPage
                 }
                 break;
             case "export_bvh":
-                var bvhPath = Path.Combine(FileSystem.CacheDirectory, "motion.bvh");
+                var bvhPath = SystemPath.Combine(FileSystem.CacheDirectory, "motion.bvh");
                 _initializer.ExportBvh(bvhPath);
                 UIManager.Instance.SetMessage($"BVH exported: {bvhPath}");
                 break;
