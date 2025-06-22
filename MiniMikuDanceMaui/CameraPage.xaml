@@ -10,7 +10,7 @@
                 Visual="Material" />
         <ScrollView x:Name="ModeCarousel"
                     Orientation="Horizontal"
-                    BackgroundColor="Transparent"
+                    BackgroundColor="#1A1A1A"
                     HorizontalScrollBarVisibility="Never">
             <HorizontalStackLayout x:Name="ModeStack" Spacing="0" />
         </ScrollView>
