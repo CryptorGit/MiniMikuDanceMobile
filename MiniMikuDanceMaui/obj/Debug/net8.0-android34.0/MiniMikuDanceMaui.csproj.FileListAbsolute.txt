@@ -1043,3 +1043,5 @@ C:\Users\crypt\source\repos\CryptorGit\MiniMikuDance\MiniMikuDanceMaui\obj\Debug
 C:\Users\crypt\source\repos\CryptorGit\MiniMikuDance\MiniMikuDanceMaui\obj\Debug\net8.0-android34.0\stamp\_ConvertCustomView.stamp
 C:\Users\crypt\source\repos\CryptorGit\MiniMikuDance\MiniMikuDanceMaui\obj\Debug\net8.0-android34.0\stamp\_GenerateJavaStubs.stamp
 C:\Users\crypt\source\repos\CryptorGit\MiniMikuDance\MiniMikuDanceMaui\obj\Debug\net8.0-android34.0\stamp\_GeneratePackageManagerJava.stamp
+C:\Users\crypt\source\repos\CryptorGit\MiniMikuDance\MiniMikuDanceMaui\obj\Debug\net8.0-android34.0\android\src\crc642b763ce9c7e2f543\MainActivity.java
+C:\Users\crypt\source\repos\CryptorGit\MiniMikuDance\MiniMikuDanceMaui\obj\Debug\net8.0-android34.0\android\src\crc642b763ce9c7e2f543\MainApplication.java

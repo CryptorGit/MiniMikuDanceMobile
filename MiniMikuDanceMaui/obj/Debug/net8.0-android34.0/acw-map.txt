@@ -1,3 +1,9 @@
+MiniMikuDanceMaui.MainActivity, MiniMikuDanceMaui;crc642b763ce9c7e2f543.MainActivity
+MiniMikuDanceMaui.MainActivity;crc642b763ce9c7e2f543.MainActivity
+minimikudancemaui.MainActivity;crc642b763ce9c7e2f543.MainActivity
+MiniMikuDanceMaui.MainApplication, MiniMikuDanceMaui;crc642b763ce9c7e2f543.MainApplication
+MiniMikuDanceMaui.MainApplication;crc642b763ce9c7e2f543.MainApplication
+minimikudancemaui.MainApplication;crc642b763ce9c7e2f543.MainApplication
 GoogleGson.IExclusionStrategy, GoogleGson;com.google.gson.ExclusionStrategy
 GoogleGson.IExclusionStrategy;com.google.gson.ExclusionStrategy
 com.google.gson.ExclusionStrategy;com.google.gson.ExclusionStrategy
