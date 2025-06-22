@@ -44,6 +44,7 @@ public partial class CameraPage : ContentPage
         var stickPan = new PanGestureRecognizer();
         stickPan.PanUpdated += OnStickPan;
         ShutterBtn.GestureRecognizers.Add(stickPan);
+        ShutterInner.GestureRecognizers.Add(stickPan);
         // mode labels
         foreach (var title in _modeTitles)
         {
