@@ -10,6 +10,7 @@ public partial class CameraPage : ContentPage
     private bool _sidebarOpen;
     private const double ModeItemWidth = 88;
     private int _centerIndex;
+    private readonly string[] _modeTitles = { "Pose", "AR", "Video" };
 
     public CameraPage()
     {
@@ -20,7 +21,7 @@ public partial class CameraPage : ContentPage
         FsToggleBtn.Pressed += (s, e) => FsToggleBtn.FadeTo(0.8, 100);
         FsToggleBtn.Released += (s, e) => FsToggleBtn.FadeTo(1, 100);
         // sample modes
-        foreach (var title in new[] { "Pose", "AR", "Video" })
+        foreach (var title in _modeTitles)
         {
             var label = new Label
             {
@@ -34,6 +35,14 @@ public partial class CameraPage : ContentPage
             ModeStack.Children.Add(label);
         }
         ModeCarousel.Scrolled += OnModeScrolled;
+
+        var swipeLeft = new SwipeGestureRecognizer { Direction = SwipeDirection.Left };
+        swipeLeft.Swiped += (s, e) => ScrollToMode(_centerIndex + 1);
+        var swipeRight = new SwipeGestureRecognizer { Direction = SwipeDirection.Right };
+        swipeRight.Swiped += (s, e) => ScrollToMode(_centerIndex - 1);
+        ModeCarousel.GestureRecognizers.Add(swipeLeft);
+        ModeCarousel.GestureRecognizers.Add(swipeRight);
+
         UpdateModeHighlight();
     }
 
@@ -41,13 +50,19 @@ public partial class CameraPage : ContentPage
 
     private void OnModeScrolled(object? sender, ScrolledEventArgs e)
     {
-        int index = (int)Math.Round(e.ScrollX / ModeItemWidth);
+        int index = (int)Math.Round((e.ScrollX + ModeCarousel.Width / 2 - ModeItemWidth / 2) / ModeItemWidth);
         index = Math.Clamp(index, 0, ModeStack.Children.Count - 1);
         if (index != _centerIndex)
         {
             _centerIndex = index;
             UpdateModeHighlight();
         }
+    }
+
+    private async void ScrollToMode(int index)
+    {
+        index = Math.Clamp(index, 0, ModeStack.Children.Count - 1);
+        await ModeCarousel.ScrollToAsync(index * ModeItemWidth, 0, true);
     }
 
     private void UpdateModeHighlight()
