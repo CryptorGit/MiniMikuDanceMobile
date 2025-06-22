@@ -6,6 +6,5 @@
   </PropertyGroup>
   <ItemGroup>
     <ProjectReference Include="..\AppCore\AppCore.csproj" />
-    <ProjectReference Include="..\PureViewer\Viewer\Viewer.csproj" />
   </ItemGroup>
 </Project>

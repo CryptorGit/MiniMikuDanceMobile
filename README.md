@@ -32,7 +32,7 @@
 2. リポジトリをクローンしたディレクトリで以下を実行します。
 
    ```bash
-   dotnet build
+   dotnet build MiniMikuDance.sln
    dotnet run --project MiniMikuDanceMaui/MiniMikuDanceMaui.csproj
    ```
 
