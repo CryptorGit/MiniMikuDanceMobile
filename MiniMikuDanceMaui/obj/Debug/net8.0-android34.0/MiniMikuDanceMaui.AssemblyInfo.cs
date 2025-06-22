@@ -14,7 +14,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("MiniMikuDanceMaui")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+be4db85af50a412705bdfe30b69b8f41b72bb783")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+43cc4a559404e0460dde09ca536cac2754c12ddb")]
 [assembly: System.Reflection.AssemblyProductAttribute("MiniMikuDanceMaui")]
 [assembly: System.Reflection.AssemblyTitleAttribute("MiniMikuDanceMaui")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]
