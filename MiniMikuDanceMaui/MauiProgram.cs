@@ -1,3 +1,6 @@
+using Microsoft.Maui;
+using Microsoft.Maui.Hosting;
+
 namespace MiniMikuDanceMaui;
 
 public static class MauiProgram

@@ -2,9 +2,16 @@
   <PropertyGroup>
     <TargetFrameworks>net8.0-android;net8.0-ios</TargetFrameworks>
     <UseMaui>true</UseMaui>
+    <SkipValidateMauiImplicitPackageReferences>true</SkipValidateMauiImplicitPackageReferences>
     <Nullable>enable</Nullable>
   </PropertyGroup>
   <ItemGroup>
     <ProjectReference Include="..\AppCore\AppCore.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <!-- .NET 8 以降は暗黙参照されないので明示的に MAUI パッケージを追加 -->
+    <PackageReference Include="Microsoft.Maui" Version="8.0.100" />
+    <PackageReference Include="Microsoft.Maui.Controls" Version="8.0.100" />
   </ItemGroup>
 </Project>
