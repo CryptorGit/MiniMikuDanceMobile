@@ -1,7 +1,7 @@
 {
   "version": 2,
-  "dgSpecHash": "E3862HLszkw=",
-  "success": false,
+  "dgSpecHash": "I2IHWM5Yupg=",
+  "success": true,
   "projectFilePath": "C:\\Users\\crypt\\source\\repos\\CryptorGit\\MiniMikuDance\\MiniMikuDanceMaui\\MiniMikuDanceMaui.csproj",
   "expectedPackageFiles": [
     "C:\\Users\\crypt\\.nuget\\packages\\assimpnet\\4.1.0\\assimpnet.4.1.0.nupkg.sha512",
@@ -207,16 +207,5 @@
     "C:\\Users\\crypt\\.nuget\\packages\\xamarin.kotlinx.coroutines.android\\1.7.2.1\\xamarin.kotlinx.coroutines.android.1.7.2.1.nupkg.sha512",
     "C:\\Users\\crypt\\.nuget\\packages\\xamarin.kotlinx.coroutines.core.jvm\\1.7.2.1\\xamarin.kotlinx.coroutines.core.jvm.1.7.2.1.nupkg.sha512"
   ],
-  "logs": [
-    {
-      "code": "NU1102",
-      "level": "Error",
-      "message": "バージョン (>= 8.0.100) のパッケージ Microsoft.Maui が見つかりません\r\n  - 3 バージョンが nuget.org に見つかりました。 [ 最も近いバージョン: 6.0.100-preview.5.794 ]\r\n  - 0 バージョンが Microsoft Visual Studio Offline Packages に見つかりました\r\n  - 0 バージョンが C:\\Program Files\\dotnet\\library-packs に見つかりました",
-      "libraryId": "Microsoft.Maui",
-      "targetGraphs": [
-        "net8.0-android34.0",
-        "net8.0-ios18.0"
-      ]
-    }
-  ]
+  "logs": []
 }

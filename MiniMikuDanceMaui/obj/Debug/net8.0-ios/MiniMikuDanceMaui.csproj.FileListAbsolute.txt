@@ -1,3 +1,9 @@
+C:\Users\crypt\source\repos\CryptorGit\MiniMikuDance\MiniMikuDanceMaui\bin\Debug\net8.0-ios\MiniMikuDanceMaui.dll
+C:\Users\crypt\source\repos\CryptorGit\MiniMikuDance\MiniMikuDanceMaui\bin\Debug\net8.0-ios\MiniMikuDanceMaui.pdb
+C:\Users\crypt\source\repos\CryptorGit\MiniMikuDance\MiniMikuDanceMaui\bin\Debug\net8.0-ios\AppCore.dll
+C:\Users\crypt\source\repos\CryptorGit\MiniMikuDance\MiniMikuDanceMaui\bin\Debug\net8.0-ios\ViewerApp.dll
+C:\Users\crypt\source\repos\CryptorGit\MiniMikuDance\MiniMikuDanceMaui\bin\Debug\net8.0-ios\AppCore.pdb
+C:\Users\crypt\source\repos\CryptorGit\MiniMikuDance\MiniMikuDanceMaui\bin\Debug\net8.0-ios\ViewerApp.pdb
 C:\Users\crypt\source\repos\CryptorGit\MiniMikuDance\MiniMikuDanceMaui\obj\Debug\net8.0-ios\actool\_PartialAppManifest.items
 C:\Users\crypt\source\repos\CryptorGit\MiniMikuDance\MiniMikuDanceMaui\obj\Debug\net8.0-ios\actool\_BundleResourceWithLogicalName.items
 C:\Users\crypt\source\repos\CryptorGit\MiniMikuDance\MiniMikuDanceMaui\obj\Debug\net8.0-ios\actool\_ProcessedImageAssetsPath.items
@@ -12,3 +18,9 @@ C:\Users\crypt\source\repos\CryptorGit\MiniMikuDance\MiniMikuDanceMaui\obj\Debug
 C:\Users\crypt\source\repos\CryptorGit\MiniMikuDance\MiniMikuDanceMaui\obj\Debug\net8.0-ios\MiniMikuDanceMaui.AssemblyInfo.cs
 C:\Users\crypt\source\repos\CryptorGit\MiniMikuDance\MiniMikuDanceMaui\obj\Debug\net8.0-ios\MiniMikuDanceMaui.csproj.CoreCompileInputs.cache
 C:\Users\crypt\source\repos\CryptorGit\MiniMikuDance\MiniMikuDanceMaui\obj\Debug\net8.0-ios\MiniMikuDanceMaui.sourcelink.json
+C:\Users\crypt\source\repos\CryptorGit\MiniMikuDance\MiniMikuDanceMaui\obj\Debug\net8.0-ios\XamlC.stamp
+C:\Users\crypt\source\repos\CryptorGit\MiniMikuDance\MiniMikuDanceMaui\obj\Debug\net8.0-ios\MiniMiku.E8FD35C7.Up2Date
+C:\Users\crypt\source\repos\CryptorGit\MiniMikuDance\MiniMikuDanceMaui\obj\Debug\net8.0-ios\MiniMikuDanceMaui.dll
+C:\Users\crypt\source\repos\CryptorGit\MiniMikuDance\MiniMikuDanceMaui\obj\Debug\net8.0-ios\refint\MiniMikuDanceMaui.dll
+C:\Users\crypt\source\repos\CryptorGit\MiniMikuDance\MiniMikuDanceMaui\obj\Debug\net8.0-ios\MiniMikuDanceMaui.pdb
+C:\Users\crypt\source\repos\CryptorGit\MiniMikuDance\MiniMikuDanceMaui\obj\Debug\net8.0-ios\ref\MiniMikuDanceMaui.dll

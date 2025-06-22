@@ -12853,13 +12853,11 @@
   "projectFileDependencyGroups": {
     "net8.0-android34.0": [
       "AppCore >= 1.0.0",
-      "Microsoft.Maui >= 8.0.100",
       "Microsoft.Maui.Controls >= 8.0.100",
       "Microsoft.Maui.Controls.Compatibility >= 8.0.100"
     ],
     "net8.0-ios18.0": [
       "AppCore >= 1.0.0",
-      "Microsoft.Maui >= 8.0.100",
       "Microsoft.Maui.Controls >= 8.0.100",
       "Microsoft.Maui.Controls.Compatibility >= 8.0.100",
       "Microsoft.NET.ILLink.Tasks >= 8.0.17"
@@ -12929,12 +12927,7 @@
       "net8.0-android34.0": {
         "targetAlias": "net8.0-android",
         "dependencies": {
-          "Microsoft.Maui": {
-            "target": "Package",
-            "version": "[8.0.100, )"
-          },
           "Microsoft.Maui.Controls": {
-            "suppressParent": "All",
             "target": "Package",
             "version": "[8.0.100, )"
           },
@@ -12968,12 +12961,7 @@
       "net8.0-ios18.0": {
         "targetAlias": "net8.0-ios",
         "dependencies": {
-          "Microsoft.Maui": {
-            "target": "Package",
-            "version": "[8.0.100, )"
-          },
           "Microsoft.Maui.Controls": {
-            "suppressParent": "All",
             "target": "Package",
             "version": "[8.0.100, )"
           },
@@ -13011,17 +12999,5 @@
         "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\8.0.411/PortableRuntimeIdentifierGraph.json"
       }
     }
-  },
-  "logs": [
-    {
-      "code": "NU1102",
-      "level": "Error",
-      "message": "バージョン (>= 8.0.100) のパッケージ Microsoft.Maui が見つかりません\r\n  - 3 バージョンが nuget.org に見つかりました。 [ 最も近いバージョン: 6.0.100-preview.5.794 ]\r\n  - 0 バージョンが Microsoft Visual Studio Offline Packages に見つかりました\r\n  - 0 バージョンが C:\\Program Files\\dotnet\\library-packs に見つかりました",
-      "libraryId": "Microsoft.Maui",
-      "targetGraphs": [
-        "net8.0-android34.0",
-        "net8.0-ios18.0"
-      ]
-    }
-  ]
+  }
 }
