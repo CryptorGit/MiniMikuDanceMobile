@@ -23,6 +23,7 @@ public partial class CameraPage : ContentPage
     private const double SidebarWidthRatio = 0.35; // 画面幅に対する割合
     private bool _fullScreen;
     private readonly SimpleCubeRenderer _renderer = new();
+    private bool _glInitialized;
 
     public CameraPage()
     {
@@ -59,13 +60,14 @@ public partial class CameraPage : ContentPage
     protected override void OnAppearing()
     {
         base.OnAppearing();
-        _renderer.Initialize();
+        _glInitialized = false;
     }
 
     protected override void OnDisappearing()
     {
         base.OnDisappearing();
         _renderer.Dispose();
+        _glInitialized = false;
     }
 
     private void OnSizeChanged(object? sender, EventArgs e) => UpdateLayout();
@@ -194,6 +196,11 @@ public partial class CameraPage : ContentPage
 
     private void OnPaintSurface(object? sender, SKPaintGLSurfaceEventArgs e)
     {
+        if (!_glInitialized)
+        {
+            _renderer.Initialize();
+            _glInitialized = true;
+        }
         _renderer.Resize(e.BackendRenderTarget.Width, e.BackendRenderTarget.Height);
         _renderer.Render();
         GL.Flush();
