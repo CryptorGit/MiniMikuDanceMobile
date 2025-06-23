@@ -17,29 +17,12 @@ namespace MiniMikuDanceMaui;
 public partial class CameraPage : ContentPage
 {
     private bool _sidebarOpen;
-    private const double ModeItemWidth = 88;
-    private const double HighlightThreshold = 44;
-    private const double SidebarWidth = 340;
-    private const double SidebarEdgeWidth = 12;
-    private bool _panTracking;
-    private int _centerIndex;
-    private CancellationTokenSource? _scrollEndCts;
-    private bool _snapping;
+    private const double SidebarWidthRatio = 0.35; // 画面幅に対する割合
     private bool _fullScreen;
-    private readonly BoxView[] _tapAreas;
-    private readonly string[] _modeTitles =
-    {
-        "IMPORT",
-        "POSE",
-        "MOTION",
-        "AR",
-        "RECORD"
-    };
 
     public CameraPage()
     {
         InitializeComponent();
-        _tapAreas = new BoxView[_modeTitles.Length];
         this.SizeChanged += OnSizeChanged;
         var shutterTap = new TapGestureRecognizer { Command = new Command(async () => await FlashShutter()) };
         ShutterBtn.GestureRecognizers.Add(shutterTap);
@@ -47,46 +30,8 @@ public partial class CameraPage : ContentPage
         stickPan.PanUpdated += OnStickPan;
         ShutterBtn.GestureRecognizers.Add(stickPan);
         ShutterInner.GestureRecognizers.Add(stickPan);
-        // mode buttons
-        for (int i = 0; i < _modeTitles.Length; i++)
-        {
-            var title = _modeTitles[i];
-            int idx = i;
-            var button = new Button
-            {
-                Text = title.ToUpper(),
-                WidthRequest = ModeItemWidth,
-                HeightRequest = 36,
-                FontSize = 14,
-                FontFamily = "NotoSans",
-                BackgroundColor = Colors.Transparent,
-                TextColor = Color.FromArgb("#8E8E93"),
-                CornerRadius = 12,
-                Padding = new Thickness(0),
-                BorderColor = Color.FromArgb("#8E8E93"),
-                BorderWidth = 1
-            };
-            button.Clicked += (s, e) => OnModeButtonClicked(idx);
-            ModeStack.Children.Add(button);
-
-            // overlay for disabling manual scroll
-            var tapArea = new BoxView { BackgroundColor = Colors.Transparent };
-            var tapGesture = new TapGestureRecognizer();
-            tapGesture.Tapped += (s, e) => OnModeButtonClicked(idx);
-            tapArea.GestureRecognizers.Add(tapGesture);
-            ModeTapOverlay.Children.Add(tapArea);
-            _tapAreas[idx] = tapArea;
-        }
-        ModeCarousel.Scrolled += OnModeScrolled;
 
 
-        var stickLeftTap = new TapGestureRecognizer();
-        stickLeftTap.Tapped += (s, e) => ScrollToMode(_centerIndex - 1);
-        StickLeftArea.GestureRecognizers.Add(stickLeftTap);
-
-        var stickRightTap = new TapGestureRecognizer();
-        stickRightTap.Tapped += (s, e) => ScrollToMode(_centerIndex + 1);
-        StickRightArea.GestureRecognizers.Add(stickRightTap);
 
         var stickTopTap = new TapGestureRecognizer();
         stickTopTap.Tapped += async (s, e) => await ExitFullScreen();
@@ -96,113 +41,18 @@ public partial class CameraPage : ContentPage
         stickBottomTap.Tapped += async (s, e) => await EnterFullScreen();
         StickBottomArea.GestureRecognizers.Add(stickBottomTap);
 
-        var pan = new PanGestureRecognizer();
-        pan.PanUpdated += OnRootPan;
-        Root.GestureRecognizers.Add(pan);
-
-        UpdateModeHighlight();
+        MenuButton.Clicked += async (s, e) => await AnimateSidebar(!_sidebarOpen);
+        var overlayTap = new TapGestureRecognizer();
+        overlayTap.Tapped += async (s, e) => await AnimateSidebar(false);
+        MenuOverlay.GestureRecognizers.Add(overlayTap);
     }
 
     protected override void OnAppearing()
     {
         base.OnAppearing();
-        ScrollToMode(_centerIndex);
-        UpdateModeHighlight();
     }
 
     private void OnSizeChanged(object? sender, EventArgs e) => UpdateLayout();
-
-    private void OnModeScrolled(object? sender, ScrolledEventArgs e)
-    {
-        if (!_snapping)
-        {
-            ScrollToMode(_centerIndex);
-            return;
-        }
-        double pad = ModeStack.Padding.Left;
-        double center = e.ScrollX + ModeCarousel.Width / 2;
-        int index = (int)Math.Round((center - pad - ModeItemWidth / 2) / ModeItemWidth);
-        index = Math.Clamp(index, 0, ModeStack.Children.Count - 1);
-        if (index != _centerIndex)
-        {
-            _centerIndex = index;
-        }
-
-        if (!_snapping)
-            ScheduleSnap();
-
-        UpdateModeHighlight();
-    }
-
-    private void ScheduleSnap()
-    {
-        _scrollEndCts?.Cancel();
-        var cts = new CancellationTokenSource();
-        _scrollEndCts = cts;
-        Task.Delay(80).ContinueWith(t =>
-        {
-            if (!cts.IsCancellationRequested)
-            {
-                MainThread.BeginInvokeOnMainThread(() => ScrollToMode(_centerIndex));
-            }
-        });
-    }
-
-    private async void ScrollToMode(int index)
-    {
-        index = Math.Clamp(index, 0, ModeStack.Children.Count - 1);
-        _snapping = true;
-        await ModeCarousel.ScrollToAsync(index * ModeItemWidth, 0, true);
-        _snapping = false;
-    }
-
-    private void OnModeButtonClicked(int index)
-    {
-        if (_centerIndex == index)
-        {
-            ConfirmMode(index);
-        }
-        else
-        {
-            ScrollToMode(index);
-        }
-    }
-
-    private void ConfirmMode(int index)
-    {
-        Debug.WriteLine($"Mode confirmed: {_modeTitles[index]}");
-    }
-
-
-    private void UpdateModeHighlight()
-    {
-        double pad = ModeStack.Padding.Left;
-        double center = ModeCarousel.ScrollX + ModeCarousel.Width / 2;
-        for (int i = 0; i < ModeStack.Children.Count; i++)
-        {
-            if (ModeStack.Children[i] is Button btn)
-            {
-                double itemCenter = pad + i * ModeItemWidth + ModeItemWidth / 2;
-                bool isCenter = Math.Abs(itemCenter - center) < HighlightThreshold;
-                if (isCenter)
-                {
-                    btn.TextColor = Color.FromArgb("#FFD500");
-                    btn.FontSize = 18;
-                    btn.FontAttributes = FontAttributes.Bold;
-                    btn.BackgroundColor = Color.FromArgb("#333333");
-                    btn.BorderColor = Color.FromArgb("#FFD500");
-                }
-                else
-                {
-                    btn.TextColor = Color.FromArgb("#8E8E93");
-                    btn.FontSize = 14;
-                    btn.FontAttributes = FontAttributes.None;
-                    btn.BackgroundColor = Colors.Transparent;
-                    btn.BorderColor = Color.FromArgb("#8E8E93");
-                }
-            }
-        }
-    }
 
     private void UpdateLayout()
     {
@@ -214,20 +64,7 @@ public partial class CameraPage : ContentPage
         AbsoluteLayout.SetLayoutBounds(Viewer, new Rect(0, 0, W, viewerH));
         AbsoluteLayout.SetLayoutFlags(Viewer, AbsoluteLayoutFlags.None);
 
-        AbsoluteLayout.SetLayoutBounds(ModeCarousel, new Rect(0, viewerH, W, 48));
-        AbsoluteLayout.SetLayoutFlags(ModeCarousel, AbsoluteLayoutFlags.None);
-        ModeCarousel.Opacity = 1;
-        double sidePad = Math.Max(0, (W - ModeItemWidth) / 2);
-        ModeStack.Padding = new Thickness(sidePad, 0);
-        for (int i = 0; i < _tapAreas.Length; i++)
-        {
-            double x = sidePad + i * ModeItemWidth;
-            AbsoluteLayout.SetLayoutBounds(_tapAreas[i], new Rect(x, 0, ModeItemWidth, 48));
-            AbsoluteLayout.SetLayoutFlags(_tapAreas[i], AbsoluteLayoutFlags.None);
-        }
-        AbsoluteLayout.SetLayoutBounds(ModeSeparator, new Rect(0, viewerH + 48, W, 1));
-        AbsoluteLayout.SetLayoutFlags(ModeSeparator, AbsoluteLayoutFlags.None);
-        double lowerY = viewerH + 48;
+        double lowerY = viewerH;
         double bottomH = H - lowerY;
         AbsoluteLayout.SetLayoutBounds(LowerPaneBody, new Rect(0, lowerY, W, bottomH));
         AbsoluteLayout.SetLayoutFlags(LowerPaneBody, AbsoluteLayoutFlags.None);
@@ -235,12 +72,17 @@ public partial class CameraPage : ContentPage
         double stickY = lowerY + (bottomH - 120) / 2;
         AbsoluteLayout.SetLayoutBounds(StickPad, new Rect((W - 120) / 2, stickY, 120, 120));
         AbsoluteLayout.SetLayoutFlags(StickPad, AbsoluteLayoutFlags.None);
-        double sidebarX = _sidebarOpen ? 0 : -SidebarWidth;
-
-        AbsoluteLayout.SetLayoutBounds(Sidebar, new Rect(sidebarX, 0, SidebarWidth, H));
+        double menuWidth = W * SidebarWidthRatio;
+        double sidebarX = _sidebarOpen ? W - menuWidth : W;
+        AbsoluteLayout.SetLayoutBounds(Sidebar, new Rect(sidebarX, 0, menuWidth, H));
         AbsoluteLayout.SetLayoutFlags(Sidebar, AbsoluteLayoutFlags.None);
 
-        UpdateModeHighlight();
+        AbsoluteLayout.SetLayoutBounds(MenuButton, new Rect(W - 72, H - 72, 56, 56));
+        AbsoluteLayout.SetLayoutFlags(MenuButton, AbsoluteLayoutFlags.None);
+
+        AbsoluteLayout.SetLayoutBounds(MenuOverlay, new Rect(0, 0, W, H));
+        AbsoluteLayout.SetLayoutFlags(MenuOverlay, AbsoluteLayoutFlags.None);
+        MenuOverlay.IsVisible = _sidebarOpen;
     }
 
 
@@ -296,36 +138,12 @@ public partial class CameraPage : ContentPage
     }
 
 
-    private async void OnRootPan(object? sender, PanUpdatedEventArgs e)
-    {
-        switch (e.StatusType)
-        {
-            case GestureStatus.Started:
-                _panTracking = true;
-                break;
-            case GestureStatus.Running:
-                if (_panTracking)
-                {
-                    double x = Math.Clamp(-SidebarWidth + e.TotalX, -SidebarWidth, 0);
-                    AbsoluteLayout.SetLayoutBounds(Sidebar, new Rect(x, 0, SidebarWidth, Height));
-                }
-                break;
-            case GestureStatus.Canceled:
-            case GestureStatus.Completed:
-                if (_panTracking)
-                {
-                    bool open = e.TotalX > SidebarWidth / 2;
-                    await AnimateSidebar(open);
-                }
-                _panTracking = false;
-                break;
-        }
-    }
-
     private async Task AnimateSidebar(bool open)
     {
-        double dest = open ? 0 : -SidebarWidth;
-        await Sidebar.LayoutTo(new Rect(dest, 0, SidebarWidth, Height), 280, Easing.SinOut);
+        double menuWidth = Width * SidebarWidthRatio;
+        double dest = open ? Width - menuWidth : Width;
+        MenuOverlay.IsVisible = open;
+        await Sidebar.LayoutTo(new Rect(dest, 0, menuWidth, Height), 280, Easing.SinOut);
         Viewer.InputTransparent = open;
         _sidebarOpen = open;
         UpdateLayout();
@@ -339,8 +157,6 @@ public partial class CameraPage : ContentPage
         double height = LowerPaneBody.Height;
         var tasks = new Task[]
         {
-            ModeCarousel.TranslateTo(0, height, 200, Easing.SinOut),
-            ModeSeparator.TranslateTo(0, height, 200, Easing.SinOut),
             LowerPaneBody.TranslateTo(0, height, 200, Easing.SinOut),
             StickPad.TranslateTo(0, height, 200, Easing.SinOut)
         };
@@ -354,8 +170,6 @@ public partial class CameraPage : ContentPage
         _fullScreen = false;
         var tasks = new Task[]
         {
-            ModeCarousel.TranslateTo(0, 0, 200, Easing.SinOut),
-            ModeSeparator.TranslateTo(0, 0, 200, Easing.SinOut),
             LowerPaneBody.TranslateTo(0, 0, 200, Easing.SinOut),
             StickPad.TranslateTo(0, 0, 200, Easing.SinOut)
         };
