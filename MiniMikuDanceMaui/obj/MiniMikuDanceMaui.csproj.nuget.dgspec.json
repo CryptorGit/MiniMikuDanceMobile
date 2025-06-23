@@ -167,6 +167,10 @@
         "net8.0-android34.0": {
           "targetAlias": "net8.0-android34.0",
           "dependencies": {
+            "AathifMahir.Maui.MauiIcons.Material.Outlined": {
+              "target": "Package",
+              "version": "[4.0.0, )"
+            },
             "Microsoft.Maui.Controls": {
               "target": "Package",
               "version": "[8.0.100, )"
@@ -183,7 +187,7 @@
             },
             "SkiaSharp.Views.Maui.Controls": {
               "target": "Package",
-              "version": "[2.88.3, )"
+              "version": "[3.119.0, )"
             }
           },
           "imports": [
@@ -210,6 +214,10 @@
         "net8.0-ios17.0": {
           "targetAlias": "net8.0-ios17.0",
           "dependencies": {
+            "AathifMahir.Maui.MauiIcons.Material.Outlined": {
+              "target": "Package",
+              "version": "[4.0.0, )"
+            },
             "Microsoft.Maui.Controls": {
               "target": "Package",
               "version": "[8.0.100, )"
@@ -226,7 +234,7 @@
             },
             "SkiaSharp.Views.Maui.Controls": {
               "target": "Package",
-              "version": "[2.88.3, )"
+              "version": "[3.119.0, )"
             }
           },
           "imports": [

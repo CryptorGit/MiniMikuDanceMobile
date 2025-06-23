@@ -164,3 +164,6 @@ Microsoft.Maui.aar
 Microsoft.Maui.Essentials.aar
 Xamarin.Google.Crypto.Tink.Android.aar
 Xamarin.Google.ErrorProne.Annotations.aar
+SkiaSharp.Views.Android.aar
+MauiIcons.Core.dll
+MauiIcons.Material.Outlined.dll

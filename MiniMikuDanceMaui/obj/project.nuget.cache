@@ -1,9 +1,11 @@
 {
   "version": 2,
-  "dgSpecHash": "uLlE6dAhn2Q=",
+  "dgSpecHash": "+hYV/ajp2A0=",
   "success": true,
   "projectFilePath": "C:\\Users\\crypt\\source\\repos\\CryptorGit\\MiniMikuDance\\MiniMikuDanceMaui\\MiniMikuDanceMaui.csproj",
   "expectedPackageFiles": [
+    "C:\\Users\\crypt\\.nuget\\packages\\aathifmahir.maui.mauiicons.core\\4.0.0\\aathifmahir.maui.mauiicons.core.4.0.0.nupkg.sha512",
+    "C:\\Users\\crypt\\.nuget\\packages\\aathifmahir.maui.mauiicons.material.outlined\\4.0.0\\aathifmahir.maui.mauiicons.material.outlined.4.0.0.nupkg.sha512",
     "C:\\Users\\crypt\\.nuget\\packages\\assimpnet\\4.1.0\\assimpnet.4.1.0.nupkg.sha512",
     "C:\\Users\\crypt\\.nuget\\packages\\googlegson\\2.10.1.4\\googlegson.2.10.1.4.nupkg.sha512",
     "C:\\Users\\crypt\\.nuget\\packages\\imgui.net\\1.90.5.1\\imgui.net.1.90.5.1.nupkg.sha512",
@@ -88,12 +90,12 @@
     "C:\\Users\\crypt\\.nuget\\packages\\runtime.unix.system.runtime.extensions\\4.3.0\\runtime.unix.system.runtime.extensions.4.3.0.nupkg.sha512",
     "C:\\Users\\crypt\\.nuget\\packages\\sharpgltf.core\\1.0.0-alpha0015\\sharpgltf.core.1.0.0-alpha0015.nupkg.sha512",
     "C:\\Users\\crypt\\.nuget\\packages\\sixlabors.imagesharp\\3.1.10\\sixlabors.imagesharp.3.1.10.nupkg.sha512",
-    "C:\\Users\\crypt\\.nuget\\packages\\skiasharp\\2.88.3\\skiasharp.2.88.3.nupkg.sha512",
-    "C:\\Users\\crypt\\.nuget\\packages\\skiasharp.nativeassets.android\\2.88.3\\skiasharp.nativeassets.android.2.88.3.nupkg.sha512",
-    "C:\\Users\\crypt\\.nuget\\packages\\skiasharp.nativeassets.ios\\2.88.3\\skiasharp.nativeassets.ios.2.88.3.nupkg.sha512",
-    "C:\\Users\\crypt\\.nuget\\packages\\skiasharp.views\\2.88.3\\skiasharp.views.2.88.3.nupkg.sha512",
-    "C:\\Users\\crypt\\.nuget\\packages\\skiasharp.views.maui.controls\\2.88.3\\skiasharp.views.maui.controls.2.88.3.nupkg.sha512",
-    "C:\\Users\\crypt\\.nuget\\packages\\skiasharp.views.maui.core\\2.88.3\\skiasharp.views.maui.core.2.88.3.nupkg.sha512",
+    "C:\\Users\\crypt\\.nuget\\packages\\skiasharp\\3.119.0\\skiasharp.3.119.0.nupkg.sha512",
+    "C:\\Users\\crypt\\.nuget\\packages\\skiasharp.nativeassets.android\\3.119.0\\skiasharp.nativeassets.android.3.119.0.nupkg.sha512",
+    "C:\\Users\\crypt\\.nuget\\packages\\skiasharp.nativeassets.ios\\3.119.0\\skiasharp.nativeassets.ios.3.119.0.nupkg.sha512",
+    "C:\\Users\\crypt\\.nuget\\packages\\skiasharp.views\\3.119.0\\skiasharp.views.3.119.0.nupkg.sha512",
+    "C:\\Users\\crypt\\.nuget\\packages\\skiasharp.views.maui.controls\\3.119.0\\skiasharp.views.maui.controls.3.119.0.nupkg.sha512",
+    "C:\\Users\\crypt\\.nuget\\packages\\skiasharp.views.maui.core\\3.119.0\\skiasharp.views.maui.core.3.119.0.nupkg.sha512",
     "C:\\Users\\crypt\\.nuget\\packages\\system.appcontext\\4.3.0\\system.appcontext.4.3.0.nupkg.sha512",
     "C:\\Users\\crypt\\.nuget\\packages\\system.buffers\\4.4.0\\system.buffers.4.4.0.nupkg.sha512",
     "C:\\Users\\crypt\\.nuget\\packages\\system.buffers\\4.5.1\\system.buffers.4.5.1.nupkg.sha512",
@@ -243,8 +245,8 @@
     "C:\\Users\\crypt\\.nuget\\packages\\xamarin.kotlin.stdlib.jdk8\\1.9.0.1\\xamarin.kotlin.stdlib.jdk8.1.9.0.1.nupkg.sha512",
     "C:\\Users\\crypt\\.nuget\\packages\\xamarin.kotlinx.coroutines.android\\1.7.2.1\\xamarin.kotlinx.coroutines.android.1.7.2.1.nupkg.sha512",
     "C:\\Users\\crypt\\.nuget\\packages\\xamarin.kotlinx.coroutines.core.jvm\\1.7.2.1\\xamarin.kotlinx.coroutines.core.jvm.1.7.2.1.nupkg.sha512",
-    "C:\\Users\\crypt\\.nuget\\packages\\microsoft.ios.runtime.iossimulator-x64.net8.0_17.0\\17.0.8523\\microsoft.ios.runtime.iossimulator-x64.net8.0_17.0.17.0.8523.nupkg.sha512",
-    "C:\\Users\\crypt\\.nuget\\packages\\microsoft.ios.ref.net8.0_17.0\\17.0.8523\\microsoft.ios.ref.net8.0_17.0.17.0.8523.nupkg.sha512"
+    "C:\\Users\\crypt\\.nuget\\packages\\microsoft.ios.ref.net8.0_17.0\\17.0.8523\\microsoft.ios.ref.net8.0_17.0.17.0.8523.nupkg.sha512",
+    "C:\\Users\\crypt\\.nuget\\packages\\microsoft.ios.runtime.iossimulator-x64.net8.0_17.0\\17.0.8523\\microsoft.ios.runtime.iossimulator-x64.net8.0_17.0.17.0.8523.nupkg.sha512"
   ],
   "logs": []
 }
