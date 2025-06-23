@@ -9,9 +9,12 @@ public class SimpleCubeRenderer : IDisposable
     private int _program;
     private int _vbo;
     private int _vao;
+    private int _gridVao;
+    private int _gridVbo;
     private int _modelLoc;
     private int _viewLoc;
     private int _projLoc;
+    private int _colorLoc;
     private float _angle;
     private int _width;
     private int _height;
@@ -28,9 +31,10 @@ void main(){
 }";
         const string frag = @"#version 300 es
 precision mediump float;
+uniform vec4 uColor;
 out vec4 FragColor;
 void main(){
-    FragColor = vec4(0.3,0.7,1.0,1.0);
+    FragColor = uColor;
 }";
         int vs = GL.CreateShader(ShaderType.VertexShader);
         GL.ShaderSource(vs, vert);
@@ -47,6 +51,7 @@ void main(){
         _modelLoc = GL.GetUniformLocation(_program, "uModel");
         _viewLoc = GL.GetUniformLocation(_program, "uView");
         _projLoc = GL.GetUniformLocation(_program, "uProj");
+        _colorLoc = GL.GetUniformLocation(_program, "uColor");
 
         float[] verts = {
             -0.5f,-0.5f,-0.5f,  0.5f,-0.5f,-0.5f,  0.5f, 0.5f,-0.5f,
@@ -68,6 +73,27 @@ void main(){
         GL.BindVertexArray(_vao);
         GL.BindBuffer(BufferTarget.ArrayBuffer, _vbo);
         GL.BufferData(BufferTarget.ArrayBuffer, verts.Length * sizeof(float), verts, BufferUsageHint.StaticDraw);
+        GL.VertexAttribPointer(0, 3, VertexAttribPointerType.Float, false, 3 * sizeof(float), 0);
+        GL.EnableVertexAttribArray(0);
+        GL.BindBuffer(BufferTarget.ArrayBuffer, 0);
+        GL.BindVertexArray(0);
+
+        // grid vertices (XZ plane)
+        int gridLines = (10 - (-10) + 1) * 2; // 21 lines along each axis
+        float[] grid = new float[gridLines * 2 * 3];
+        int idx = 0;
+        for (int i = -10; i <= 10; i++)
+        {
+            grid[idx++] = i; grid[idx++] = 0; grid[idx++] = -10;
+            grid[idx++] = i; grid[idx++] = 0; grid[idx++] = 10;
+            grid[idx++] = -10; grid[idx++] = 0; grid[idx++] = i;
+            grid[idx++] = 10;  grid[idx++] = 0; grid[idx++] = i;
+        }
+        _gridVao = GL.GenVertexArray();
+        _gridVbo = GL.GenBuffer();
+        GL.BindVertexArray(_gridVao);
+        GL.BindBuffer(BufferTarget.ArrayBuffer, _gridVbo);
+        GL.BufferData(BufferTarget.ArrayBuffer, grid.Length * sizeof(float), grid, BufferUsageHint.StaticDraw);
         GL.VertexAttribPointer(0, 3, VertexAttribPointerType.Float, false, 3 * sizeof(float), 0);
         GL.EnableVertexAttribArray(0);
         GL.BindBuffer(BufferTarget.ArrayBuffer, 0);
@@ -94,18 +120,31 @@ void main(){
         Matrix4 proj = Matrix4.CreatePerspectiveFieldOfView(MathHelper.PiOver4, aspect, 0.1f, 100f);
 
         GL.UseProgram(_program);
-        GL.UniformMatrix4(_modelLoc, false, ref model);
         GL.UniformMatrix4(_viewLoc, false, ref view);
         GL.UniformMatrix4(_projLoc, false, ref proj);
+
+        // draw cube
+        GL.UniformMatrix4(_modelLoc, false, ref model);
+        GL.Uniform4(_colorLoc, new Vector4(0.3f, 0.7f, 1.0f, 1.0f));
         GL.BindVertexArray(_vao);
         GL.DrawArrays(PrimitiveType.Triangles, 0, 36);
+        GL.BindVertexArray(0);
+
+        // draw grid
+        Matrix4 gridModel = Matrix4.Identity;
+        GL.UniformMatrix4(_modelLoc, false, ref gridModel);
+        GL.Uniform4(_colorLoc, new Vector4(0.5f, 0.5f, 0.5f, 1.0f));
+        GL.BindVertexArray(_gridVao);
+        GL.DrawArrays(PrimitiveType.Lines, 0, ((10 - (-10) + 1) * 2) * 2);
         GL.BindVertexArray(0);
     }
 
     public void Dispose()
     {
         GL.DeleteBuffer(_vbo);
+        GL.DeleteBuffer(_gridVbo);
         GL.DeleteVertexArray(_vao);
+        GL.DeleteVertexArray(_gridVao);
         GL.DeleteProgram(_program);
     }
 }
