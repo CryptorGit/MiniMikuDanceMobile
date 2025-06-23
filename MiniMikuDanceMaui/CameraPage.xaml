@@ -5,16 +5,7 @@
              BackgroundColor="Transparent">
     <AbsoluteLayout x:Name="Root">
         <ContentView x:Name="Viewer" BackgroundColor="Black" />
-        <ScrollView x:Name="ModeCarousel"
-                    Orientation="Horizontal"
-                    BackgroundColor="#1A1A1A"
-                    HorizontalScrollBarVisibility="Never"
-                    HeightRequest="48">
-            <HorizontalStackLayout x:Name="ModeStack" Spacing="0" />
-        </ScrollView>
-        <AbsoluteLayout x:Name="ModeTapOverlay" BackgroundColor="Transparent" HeightRequest="48" />
-        <!-- モードバーと下ペインの境界ライン -->
-        <BoxView x:Name="ModeSeparator" HeightRequest="1" BackgroundColor="#00000066" />
+        <BoxView x:Name="MenuOverlay" BackgroundColor="#00000033" IsVisible="False" />
         <Grid x:Name="LowerPaneBody" BackgroundColor="#222">
             <!-- small grab/gradient bar -->
             <BoxView HeightRequest="8"
@@ -53,6 +44,13 @@
                      AbsoluteLayout.LayoutBounds="0,60,120,60"
                      AbsoluteLayout.LayoutFlags="None" />
         </AbsoluteLayout>
-        <ContentView x:Name="Sidebar" BackgroundColor="#1E1E1EEB" />
+        <Button x:Name="MenuButton" Text="&#x2630;" WidthRequest="56" HeightRequest="56" />
+        <ContentView x:Name="Sidebar" BackgroundColor="#1E1E1EEB">
+            <VerticalStackLayout Padding="20" Spacing="16">
+                <Button x:Name="ImportBtn" Text="IMPORT" />
+                <Button x:Name="RecordBtn" Text="RECORD" />
+                <Button x:Name="SettingBtn" Text="SETTING" />
+            </VerticalStackLayout>
+        </ContentView>
     </AbsoluteLayout>
 </ContentPage>
