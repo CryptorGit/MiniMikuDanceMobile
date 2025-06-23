@@ -180,6 +180,10 @@
               "target": "Package",
               "version": "[8.0.17, )",
               "autoReferenced": true
+            },
+            "SkiaSharp.Views.Maui.Controls": {
+              "target": "Package",
+              "version": "[2.88.3, )"
             }
           },
           "imports": [
@@ -219,6 +223,10 @@
               "target": "Package",
               "version": "[8.0.17, )",
               "autoReferenced": true
+            },
+            "SkiaSharp.Views.Maui.Controls": {
+              "target": "Package",
+              "version": "[2.88.3, )"
             }
           },
           "imports": [

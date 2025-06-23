@@ -1,6 +1,6 @@
 {
   "version": 2,
-  "dgSpecHash": "QPfgtWRXQig=",
+  "dgSpecHash": "uLlE6dAhn2Q=",
   "success": true,
   "projectFilePath": "C:\\Users\\crypt\\source\\repos\\CryptorGit\\MiniMikuDance\\MiniMikuDanceMaui\\MiniMikuDanceMaui.csproj",
   "expectedPackageFiles": [
@@ -88,6 +88,12 @@
     "C:\\Users\\crypt\\.nuget\\packages\\runtime.unix.system.runtime.extensions\\4.3.0\\runtime.unix.system.runtime.extensions.4.3.0.nupkg.sha512",
     "C:\\Users\\crypt\\.nuget\\packages\\sharpgltf.core\\1.0.0-alpha0015\\sharpgltf.core.1.0.0-alpha0015.nupkg.sha512",
     "C:\\Users\\crypt\\.nuget\\packages\\sixlabors.imagesharp\\3.1.10\\sixlabors.imagesharp.3.1.10.nupkg.sha512",
+    "C:\\Users\\crypt\\.nuget\\packages\\skiasharp\\2.88.3\\skiasharp.2.88.3.nupkg.sha512",
+    "C:\\Users\\crypt\\.nuget\\packages\\skiasharp.nativeassets.android\\2.88.3\\skiasharp.nativeassets.android.2.88.3.nupkg.sha512",
+    "C:\\Users\\crypt\\.nuget\\packages\\skiasharp.nativeassets.ios\\2.88.3\\skiasharp.nativeassets.ios.2.88.3.nupkg.sha512",
+    "C:\\Users\\crypt\\.nuget\\packages\\skiasharp.views\\2.88.3\\skiasharp.views.2.88.3.nupkg.sha512",
+    "C:\\Users\\crypt\\.nuget\\packages\\skiasharp.views.maui.controls\\2.88.3\\skiasharp.views.maui.controls.2.88.3.nupkg.sha512",
+    "C:\\Users\\crypt\\.nuget\\packages\\skiasharp.views.maui.core\\2.88.3\\skiasharp.views.maui.core.2.88.3.nupkg.sha512",
     "C:\\Users\\crypt\\.nuget\\packages\\system.appcontext\\4.3.0\\system.appcontext.4.3.0.nupkg.sha512",
     "C:\\Users\\crypt\\.nuget\\packages\\system.buffers\\4.4.0\\system.buffers.4.4.0.nupkg.sha512",
     "C:\\Users\\crypt\\.nuget\\packages\\system.buffers\\4.5.1\\system.buffers.4.5.1.nupkg.sha512",
