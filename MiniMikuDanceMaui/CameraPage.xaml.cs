@@ -26,6 +26,7 @@ public partial class CameraPage : ContentPage
     private CancellationTokenSource? _scrollEndCts;
     private bool _snapping;
     private bool _fullScreen;
+    private readonly BoxView[] _tapAreas;
     private readonly string[] _modeTitles =
     {
         "IMPORT",
@@ -38,6 +39,7 @@ public partial class CameraPage : ContentPage
     public CameraPage()
     {
         InitializeComponent();
+        _tapAreas = new BoxView[_modeTitles.Length];
         this.SizeChanged += OnSizeChanged;
         var shutterTap = new TapGestureRecognizer { Command = new Command(async () => await FlashShutter()) };
         ShutterBtn.GestureRecognizers.Add(shutterTap);
@@ -64,18 +66,19 @@ public partial class CameraPage : ContentPage
                 BorderColor = Color.FromArgb("#8E8E93"),
                 BorderWidth = 1
             };
-            button.Clicked += (s, e) => ScrollToMode(idx);
+            button.Clicked += (s, e) => OnModeButtonClicked(idx);
             ModeStack.Children.Add(button);
+
+            // overlay for disabling manual scroll
+            var tapArea = new BoxView { BackgroundColor = Colors.Transparent };
+            var tapGesture = new TapGestureRecognizer();
+            tapGesture.Tapped += (s, e) => OnModeButtonClicked(idx);
+            tapArea.GestureRecognizers.Add(tapGesture);
+            ModeTapOverlay.Children.Add(tapArea);
+            _tapAreas[idx] = tapArea;
         }
         ModeCarousel.Scrolled += OnModeScrolled;
 
-        var tapLeft = new TapGestureRecognizer();
-        tapLeft.Tapped += (s, e) => ScrollToMode(_centerIndex - 1);
-        LeftTapArea.GestureRecognizers.Add(tapLeft);
-
-        var tapRight = new TapGestureRecognizer();
-        tapRight.Tapped += (s, e) => ScrollToMode(_centerIndex + 1);
-        RightTapArea.GestureRecognizers.Add(tapRight);
 
         var stickLeftTap = new TapGestureRecognizer();
         stickLeftTap.Tapped += (s, e) => ScrollToMode(_centerIndex - 1);
@@ -111,6 +114,11 @@ public partial class CameraPage : ContentPage
 
     private void OnModeScrolled(object? sender, ScrolledEventArgs e)
     {
+        if (!_snapping)
+        {
+            ScrollToMode(_centerIndex);
+            return;
+        }
         double pad = ModeStack.Padding.Left;
         double center = e.ScrollX + ModeCarousel.Width / 2;
         int index = (int)Math.Round((center - pad - ModeItemWidth / 2) / ModeItemWidth);
@@ -146,6 +154,23 @@ public partial class CameraPage : ContentPage
         _snapping = true;
         await ModeCarousel.ScrollToAsync(index * ModeItemWidth, 0, true);
         _snapping = false;
+    }
+
+    private void OnModeButtonClicked(int index)
+    {
+        if (_centerIndex == index)
+        {
+            ConfirmMode(index);
+        }
+        else
+        {
+            ScrollToMode(index);
+        }
+    }
+
+    private void ConfirmMode(int index)
+    {
+        Debug.WriteLine($"Mode confirmed: {_modeTitles[index]}");
     }
 
 
@@ -185,7 +210,7 @@ public partial class CameraPage : ContentPage
         double H = this.Height;
         Thickness safe = this.Padding;
 
-        double viewerH = H * 0.7;
+        double viewerH = H * 0.75;
         AbsoluteLayout.SetLayoutBounds(Viewer, new Rect(0, 0, W, viewerH));
         AbsoluteLayout.SetLayoutFlags(Viewer, AbsoluteLayoutFlags.None);
 
@@ -197,6 +222,12 @@ public partial class CameraPage : ContentPage
         ModeTapOverlay.Opacity = 1;
         double sidePad = Math.Max(0, (W - ModeItemWidth) / 2);
         ModeStack.Padding = new Thickness(sidePad, 0);
+        for (int i = 0; i < _tapAreas.Length; i++)
+        {
+            double x = sidePad + i * ModeItemWidth;
+            AbsoluteLayout.SetLayoutBounds(_tapAreas[i], new Rect(x, 0, ModeItemWidth, 48));
+            AbsoluteLayout.SetLayoutFlags(_tapAreas[i], AbsoluteLayoutFlags.None);
+        }
         AbsoluteLayout.SetLayoutBounds(ModeSeparator, new Rect(0, viewerH + 48, W, 1));
         AbsoluteLayout.SetLayoutFlags(ModeSeparator, AbsoluteLayoutFlags.None);
         double lowerY = viewerH + 48;
