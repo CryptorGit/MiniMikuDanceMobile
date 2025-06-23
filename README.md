@@ -67,6 +67,7 @@ Viewer とは別に、姿勢推定やモーション生成、録画管理など�
 `AppCore` を再利用し、Android と iOS 上で動作します。
 
 純粋な C# で実装した OpenGL ビューワーです。Unity には一切依存していません。
+GLFW に頼らず、`eglGetProcAddress` と `dlsym` で関数を取得する OpenGL ES 3.0 ベースのレンダラーへ移行しました。
 
 ## ライセンス
 このリポジトリは MIT ライセンスの下で公開されています。詳細は [LICENSE](LICENSE) を参照してください。
