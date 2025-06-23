@@ -17,6 +17,7 @@ AGENTS.md で挙げたカテゴリをより細分化し、優先度や検討事�
 - [x] GL.LoadBindings を SKGLView 初期化時に呼び出し
 - [x] OpenTK 用 SKGLViewBindingsContext 実装
 - [x] SKGLViewBindingsContext コンストラクタ修正と参照追加
+- [x] モバイル向け OpenGL ES 対応（GLFW 排除）
 
 ## モデル読み込み
 - [ ] VRM パーサーの導入と検証

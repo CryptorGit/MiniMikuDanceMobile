@@ -13,7 +13,7 @@ using System.Threading.Tasks;
 using ShapePath = Microsoft.Maui.Controls.Shapes.Path;
 using SkiaSharp.Views.Maui;
 using SkiaSharp.Views.Maui.Controls;
-using OpenTK.Graphics.OpenGL4;
+using OpenTK.Graphics.OpenGLES30;
 
 namespace MiniMikuDanceMaui;
 
