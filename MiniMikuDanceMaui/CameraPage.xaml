@@ -9,11 +9,10 @@
                     Orientation="Horizontal"
                     BackgroundColor="#1A1A1A"
                     HorizontalScrollBarVisibility="Never"
-                    InputTransparent="True"
                     HeightRequest="48">
             <HorizontalStackLayout x:Name="ModeStack" Spacing="0" />
         </ScrollView>
-        <Grid x:Name="ModeTapOverlay" ColumnDefinitions="*,*" BackgroundColor="Transparent" HeightRequest="48">
+        <Grid x:Name="ModeTapOverlay" ColumnDefinitions="*,*" BackgroundColor="Transparent" HeightRequest="48" InputTransparent="True">
             <BoxView x:Name="LeftTapArea" BackgroundColor="Transparent" />
             <BoxView x:Name="RightTapArea" Grid.Column="1" BackgroundColor="Transparent" />
         </Grid>

@@ -45,23 +45,27 @@ public partial class CameraPage : ContentPage
         stickPan.PanUpdated += OnStickPan;
         ShutterBtn.GestureRecognizers.Add(stickPan);
         ShutterInner.GestureRecognizers.Add(stickPan);
-        // mode labels
-        foreach (var title in _modeTitles)
+        // mode buttons
+        for (int i = 0; i < _modeTitles.Length; i++)
         {
-            var label = new Label
+            var title = _modeTitles[i];
+            int idx = i;
+            var button = new Button
             {
                 Text = title.ToUpper(),
                 WidthRequest = ModeItemWidth,
-                HeightRequest = 48,
-                FontSize = 16,
+                HeightRequest = 36,
+                FontSize = 14,
                 FontFamily = "NotoSans",
-                CharacterSpacing = 0.2,
+                BackgroundColor = Colors.Transparent,
                 TextColor = Color.FromArgb("#8E8E93"),
-                HorizontalTextAlignment = TextAlignment.Center,
-                VerticalTextAlignment = TextAlignment.Center,
-                LineHeight = 1
+                CornerRadius = 12,
+                Padding = new Thickness(0),
+                BorderColor = Color.FromArgb("#8E8E93"),
+                BorderWidth = 1
             };
-            ModeStack.Children.Add(label);
+            button.Clicked += (s, e) => ScrollToMode(idx);
+            ModeStack.Children.Add(button);
         }
         ModeCarousel.Scrolled += OnModeScrolled;
 
@@ -151,28 +155,25 @@ public partial class CameraPage : ContentPage
         double center = ModeCarousel.ScrollX + ModeCarousel.Width / 2;
         for (int i = 0; i < ModeStack.Children.Count; i++)
         {
-            if (ModeStack.Children[i] is Label label)
+            if (ModeStack.Children[i] is Button btn)
             {
                 double itemCenter = pad + i * ModeItemWidth + ModeItemWidth / 2;
                 bool isCenter = Math.Abs(itemCenter - center) < HighlightThreshold;
                 if (isCenter)
                 {
-                    label.TextColor = Color.FromArgb("#FFD500");
-                    label.FontSize = 20;
-                    label.FontAttributes = FontAttributes.Bold;
-                    label.Shadow = new Shadow
-                    {
-                        Offset = new Point(0, 1),
-                        Radius = 2,
-                        Brush = new SolidColorBrush(Color.FromArgb("#66000000"))
-                    };
+                    btn.TextColor = Color.FromArgb("#FFD500");
+                    btn.FontSize = 18;
+                    btn.FontAttributes = FontAttributes.Bold;
+                    btn.BackgroundColor = Color.FromArgb("#333333");
+                    btn.BorderColor = Color.FromArgb("#FFD500");
                 }
                 else
                 {
-                    label.TextColor = Color.FromArgb("#8E8E93");
-                    label.FontSize = 16;
-                    label.FontAttributes = FontAttributes.None;
-                    label.Shadow = null;
+                    btn.TextColor = Color.FromArgb("#8E8E93");
+                    btn.FontSize = 14;
+                    btn.FontAttributes = FontAttributes.None;
+                    btn.BackgroundColor = Colors.Transparent;
+                    btn.BorderColor = Color.FromArgb("#8E8E93");
                 }
             }
         }
@@ -184,7 +185,7 @@ public partial class CameraPage : ContentPage
         double H = this.Height;
         Thickness safe = this.Padding;
 
-        double viewerH = H * 0.618;
+        double viewerH = H * 0.7;
         AbsoluteLayout.SetLayoutBounds(Viewer, new Rect(0, 0, W, viewerH));
         AbsoluteLayout.SetLayoutFlags(Viewer, AbsoluteLayoutFlags.None);
 
