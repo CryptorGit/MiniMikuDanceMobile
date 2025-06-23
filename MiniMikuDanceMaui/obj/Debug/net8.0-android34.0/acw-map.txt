@@ -1075,6 +1075,9 @@ skiasharp.views.android.SKGLTextureViewRenderer;crc648e35430423bd4943.SKGLTextur
 SkiaSharp.Views.Android.SKSurfaceView, SkiaSharp.Views.Android;crc648e35430423bd4943.SKSurfaceView
 SkiaSharp.Views.Android.SKSurfaceView;crc648e35430423bd4943.SKSurfaceView
 skiasharp.views.android.SKSurfaceView;crc648e35430423bd4943.SKSurfaceView
+SkiaSharp.Views.Maui.Handlers.SKGLViewHandler+MauiSKGLTextureView, SkiaSharp.Views.Maui.Core;crc64eaf685e082aef0e5.SKGLViewHandler_MauiSKGLTextureView
+SkiaSharp.Views.Maui.Handlers.SKGLViewHandler.MauiSKGLTextureView;crc64eaf685e082aef0e5.SKGLViewHandler_MauiSKGLTextureView
+skiasharp.views.maui.handlers.SKGLViewHandler_MauiSKGLTextureView;crc64eaf685e082aef0e5.SKGLViewHandler_MauiSKGLTextureView
 Bumptech.Glide.Glide+IRequestOptionsFactory, Xamarin.Android.Glide;com.bumptech.glide.Glide$RequestOptionsFactory
 Bumptech.Glide.Glide.IRequestOptionsFactory;com.bumptech.glide.Glide$RequestOptionsFactory
 com.bumptech.glide.Glide$RequestOptionsFactory;com.bumptech.glide.Glide$RequestOptionsFactory

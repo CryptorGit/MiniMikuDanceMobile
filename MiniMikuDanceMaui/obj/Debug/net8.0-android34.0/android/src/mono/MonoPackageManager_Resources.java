@@ -3,6 +3,8 @@ public class MonoPackageManager_Resources {
 	public static String[] Assemblies = new String[]{
 		/* We need to ensure that "MiniMikuDanceMaui.dll" comes first in this list. */
 		"MiniMikuDanceMaui.dll",
+		"MauiIcons.Core.dll",
+		"MauiIcons.Material.Outlined.dll",
 		"AssimpNet.dll",
 		"GoogleGson.dll",
 		"ImGui.NET.dll",

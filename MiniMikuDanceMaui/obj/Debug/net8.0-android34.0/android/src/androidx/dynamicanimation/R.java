@@ -19,7 +19,7 @@ public final class R {
 		public static final int fontStyle = 0x7f03020d;
 		public static final int fontVariationSettings = 0x7f03020e;
 		public static final int fontWeight = 0x7f03020f;
-		public static final int ttcIndex = 0x7f0304d6;
+		public static final int ttcIndex = 0x7f0304d7;
 	}
 	public static final class color {
 		public static final int notification_action_color_filter = 0x7f0502d7;
@@ -119,7 +119,7 @@ public final class R {
 		public static final int Widget_Compat_NotificationActionText = 0x7f0f032d;
 	}
 	public static final class styleable {
-		public static final int[] ColorStateListItem = new int[] { 0x010101a5, 0x0101031f, 0x01010647, 0x7f030030, 0x7f03026c };
+		public static final int[] ColorStateListItem = new int[] { 0x010101a5, 0x0101031f, 0x01010647, 0x7f030030, 0x7f03026d };
 		public static final int ColorStateListItem_alpha = 3;
 		public static final int ColorStateListItem_android_alpha = 1;
 		public static final int ColorStateListItem_android_color = 0;
@@ -130,7 +130,7 @@ public final class R {
 		public static final int FontFamily_fontProviderFetchTimeout = 3;
 		public static final int FontFamily_fontProviderPackage = 4;
 		public static final int FontFamily_fontProviderQuery = 5;
-		public static final int[] FontFamilyFont = new int[] { 0x01010532, 0x01010533, 0x0101053f, 0x0101056f, 0x01010570, 0x7f030204, 0x7f03020d, 0x7f03020e, 0x7f03020f, 0x7f0304d6 };
+		public static final int[] FontFamilyFont = new int[] { 0x01010532, 0x01010533, 0x0101053f, 0x0101056f, 0x01010570, 0x7f030204, 0x7f03020d, 0x7f03020e, 0x7f03020f, 0x7f0304d7 };
 		public static final int FontFamilyFont_android_font = 0;
 		public static final int FontFamilyFont_android_fontStyle = 2;
 		public static final int FontFamilyFont_android_fontVariationSettings = 4;
