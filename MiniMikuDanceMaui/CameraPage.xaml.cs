@@ -8,11 +8,13 @@ using Microsoft.Maui.Controls.Shapes;
 using Microsoft.Maui.Graphics;
 using Microsoft.Maui.Layouts;
 using System;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.Threading.Tasks;
 using ShapePath = Microsoft.Maui.Controls.Shapes.Path;
 using SkiaSharp.Views.Maui;
 using SkiaSharp.Views.Maui.Controls;
+using SkiaSharp;
 using OpenTK.Graphics.ES30;
 
 namespace MiniMikuDanceMaui;
@@ -24,6 +26,7 @@ public partial class CameraPage : ContentPage
     private bool _fullScreen;
     private readonly SimpleCubeRenderer _renderer = new();
     private bool _glInitialized;
+    private readonly Dictionary<long, SKPoint> _touchPoints = new();
 
     public CameraPage()
     {
@@ -51,9 +54,16 @@ public partial class CameraPage : ContentPage
         overlayTap.Tapped += async (s, e) => await AnimateSidebar(false);
         MenuOverlay.GestureRecognizers.Add(overlayTap);
 
+        ResetCamBtn.Clicked += (s, e) =>
+        {
+            _renderer.ResetCamera();
+            Viewer?.InvalidateSurface();
+        };
+
         if (Viewer is SKGLView glView)
         {
             glView.PaintSurface += OnPaintSurface;
+            glView.Touch += OnViewTouch;
         }
     }
 
@@ -209,5 +219,46 @@ public partial class CameraPage : ContentPage
         _renderer.Resize(e.BackendRenderTarget.Width, e.BackendRenderTarget.Height);
         _renderer.Render();
         GL.Flush();
+    }
+
+    private void OnViewTouch(object? sender, SKTouchEventArgs e)
+    {
+        if (e.ActionType == SKTouchAction.Pressed)
+        {
+            _touchPoints[e.Id] = e.Location;
+        }
+        else if (e.ActionType == SKTouchAction.Moved)
+        {
+            var prevPoints = new Dictionary<long, SKPoint>(_touchPoints);
+            _touchPoints[e.Id] = e.Location;
+
+            if (_touchPoints.Count == 1 && prevPoints.ContainsKey(e.Id))
+            {
+                var prev = prevPoints[e.Id];
+                var dx = e.Location.X - prev.X;
+                var dy = e.Location.Y - prev.Y;
+                _renderer.Orbit(dx, dy);
+            }
+            else if (_touchPoints.Count == 2 && prevPoints.Count == 2)
+            {
+                var ids = new List<long>(_touchPoints.Keys);
+                var p0Old = prevPoints[ids[0]];
+                var p1Old = prevPoints[ids[1]];
+                var p0New = _touchPoints[ids[0]];
+                var p1New = _touchPoints[ids[1]];
+                var oldMid = new SKPoint((p0Old.X + p1Old.X) / 2, (p0Old.Y + p1Old.Y) / 2);
+                var newMid = new SKPoint((p0New.X + p1New.X) / 2, (p0New.Y + p1New.Y) / 2);
+                _renderer.Pan(newMid.X - oldMid.X, newMid.Y - oldMid.Y);
+                float oldDist = (p0Old - p1Old).Length;
+                float newDist = (p0New - p1New).Length;
+                _renderer.Dolly(oldDist - newDist);
+            }
+        }
+        else if (e.ActionType == SKTouchAction.Released || e.ActionType == SKTouchAction.Cancelled)
+        {
+            _touchPoints.Remove(e.Id);
+        }
+        e.Handled = true;
+        Viewer?.InvalidateSurface();
     }
 }

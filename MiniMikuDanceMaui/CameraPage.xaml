@@ -53,6 +53,7 @@
                 <Button x:Name="MotionBtn" Text="MOTION" />
                 <Button x:Name="ArBtn" Text="AR" />
                 <Button x:Name="RecordBtn" Text="RECORD" />
+                <Button x:Name="ResetCamBtn" Text="RESET CAMERA" />
                 <Button x:Name="SettingBtn" Text="SETTING" />
             </VerticalStackLayout>
         </ContentView>
