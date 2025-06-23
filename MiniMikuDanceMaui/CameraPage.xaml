@@ -44,10 +44,13 @@
                      AbsoluteLayout.LayoutBounds="0,60,120,60"
                      AbsoluteLayout.LayoutFlags="None" />
         </AbsoluteLayout>
-        <Button x:Name="MenuButton" Text="&#x2630;" WidthRequest="56" HeightRequest="56" />
+        <Button x:Name="MenuButton" Text="&#x2630;" WidthRequest="56" HeightRequest="56" BackgroundColor="Transparent" />
         <ContentView x:Name="Sidebar" BackgroundColor="#1E1E1EEB">
             <VerticalStackLayout Padding="20" Spacing="16">
                 <Button x:Name="ImportBtn" Text="IMPORT" />
+                <Button x:Name="PoseBtn" Text="POSE" />
+                <Button x:Name="MotionBtn" Text="MOTION" />
+                <Button x:Name="ArBtn" Text="AR" />
                 <Button x:Name="RecordBtn" Text="RECORD" />
                 <Button x:Name="SettingBtn" Text="SETTING" />
             </VerticalStackLayout>
