@@ -1,6 +1,6 @@
 using System;
 using OpenTK.Mathematics;
-using OpenTK.Graphics.OpenGL4;
+using OpenTK.Graphics.OpenGLES30;
 
 namespace MiniMikuDanceMaui;
 
@@ -18,7 +18,7 @@ public class SimpleCubeRenderer : IDisposable
 
     public void Initialize()
     {
-        const string vert = @"#version 330 core
+        const string vert = @"#version 300 es
 layout(location = 0) in vec3 aPosition;
 uniform mat4 uModel;
 uniform mat4 uView;
@@ -26,7 +26,8 @@ uniform mat4 uProj;
 void main(){
     gl_Position = uProj * uView * uModel * vec4(aPosition,1.0);
 }";
-        const string frag = @"#version 330 core
+        const string frag = @"#version 300 es
+precision mediump float;
 out vec4 FragColor;
 void main(){
     FragColor = vec4(0.3,0.7,1.0,1.0);

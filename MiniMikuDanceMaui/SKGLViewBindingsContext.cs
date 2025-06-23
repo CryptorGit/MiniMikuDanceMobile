@@ -1,8 +1,5 @@
 using OpenTK;
-using OpenTK.Graphics;
-using OpenTK.Graphics.OpenGL4;
-using OpenTK.Windowing.Common;
-using OpenTK.Windowing.GraphicsLibraryFramework;
+using OpenTK.Graphics.OpenGLES30;
 using System;
 
 namespace MiniMikuDanceMaui;
@@ -11,6 +8,23 @@ internal class SKGLViewBindingsContext : IBindingsContext
 {
     public nint GetProcAddress(string procName)
     {
-        return GLFW.GetProcAddress(procName);
+#if ANDROID
+        return EglGetProcAddress(procName);
+#elif IOS
+        return Dlsym(RTLD_DEFAULT, procName);
+#else
+        throw new PlatformNotSupportedException();
+#endif
     }
+
+#if ANDROID
+    [System.Runtime.InteropServices.DllImport("libEGL.so", EntryPoint = "eglGetProcAddress")]
+    private static extern nint EglGetProcAddress(string procName);
+#endif
+
+#if IOS
+    private static readonly nint RTLD_DEFAULT = 0;
+    [System.Runtime.InteropServices.DllImport("/usr/lib/libSystem.B.dylib", EntryPoint = "dlsym")]
+    private static extern nint Dlsym(nint handle, string symbol);
+#endif
 }
