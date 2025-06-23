@@ -14,6 +14,7 @@ AGENTS.md で挙げたカテゴリをより細分化し、優先度や検討事�
 - [x] Path 競合と PathParser 不足に起因するビルドエラー修正
 - [x] SkiaSharp.Views.Maui.Controls パッケージ更新で Android リソースエラー解消
 - [x] SKGLView ハンドラー登録 (UseSkiaSharp)
+- [x] GL.LoadBindings を SKGLView 初期化時に呼び出し
 
 ## モデル読み込み
 - [ ] VRM パーサーの導入と検証
