@@ -185,6 +185,10 @@
               "version": "[8.0.17, )",
               "autoReferenced": true
             },
+            "OpenTK.redist.glfw": {
+              "target": "Package",
+              "version": "[3.4.0.44, )"
+            },
             "SkiaSharp.Views.Maui.Controls": {
               "target": "Package",
               "version": "[3.119.0, )"
@@ -231,6 +235,10 @@
               "target": "Package",
               "version": "[8.0.17, )",
               "autoReferenced": true
+            },
+            "OpenTK.redist.glfw": {
+              "target": "Package",
+              "version": "[3.4.0.44, )"
             },
             "SkiaSharp.Views.Maui.Controls": {
               "target": "Package",
