@@ -12,6 +12,7 @@
                     HeightRequest="48">
             <HorizontalStackLayout x:Name="ModeStack" Spacing="0" />
         </ScrollView>
+        <AbsoluteLayout x:Name="ModeTapOverlay" BackgroundColor="Transparent" HeightRequest="48" />
         <!-- モードバーと下ペインの境界ライン -->
         <BoxView x:Name="ModeSeparator" HeightRequest="1" BackgroundColor="#00000066" />
         <Grid x:Name="LowerPaneBody" BackgroundColor="#222">
