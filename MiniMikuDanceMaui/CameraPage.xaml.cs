@@ -26,6 +26,7 @@ public partial class CameraPage : ContentPage
     private CancellationTokenSource? _scrollEndCts;
     private bool _snapping;
     private bool _fullScreen;
+    private readonly BoxView[] _tapAreas;
     private readonly string[] _modeTitles =
     {
         "IMPORT",
@@ -38,6 +39,7 @@ public partial class CameraPage : ContentPage
     public CameraPage()
     {
         InitializeComponent();
+        _tapAreas = new BoxView[_modeTitles.Length];
         this.SizeChanged += OnSizeChanged;
         var shutterTap = new TapGestureRecognizer { Command = new Command(async () => await FlashShutter()) };
         ShutterBtn.GestureRecognizers.Add(shutterTap);
@@ -66,6 +68,14 @@ public partial class CameraPage : ContentPage
             };
             button.Clicked += (s, e) => OnModeButtonClicked(idx);
             ModeStack.Children.Add(button);
+
+            // overlay for disabling manual scroll
+            var tapArea = new BoxView { BackgroundColor = Colors.Transparent };
+            var tapGesture = new TapGestureRecognizer();
+            tapGesture.Tapped += (s, e) => OnModeButtonClicked(idx);
+            tapArea.GestureRecognizers.Add(tapGesture);
+            ModeTapOverlay.Children.Add(tapArea);
+            _tapAreas[idx] = tapArea;
         }
         ModeCarousel.Scrolled += OnModeScrolled;
 
@@ -209,6 +219,12 @@ public partial class CameraPage : ContentPage
         ModeCarousel.Opacity = 1;
         double sidePad = Math.Max(0, (W - ModeItemWidth) / 2);
         ModeStack.Padding = new Thickness(sidePad, 0);
+        for (int i = 0; i < _tapAreas.Length; i++)
+        {
+            double x = sidePad + i * ModeItemWidth;
+            AbsoluteLayout.SetLayoutBounds(_tapAreas[i], new Rect(x, 0, ModeItemWidth, 48));
+            AbsoluteLayout.SetLayoutFlags(_tapAreas[i], AbsoluteLayoutFlags.None);
+        }
         AbsoluteLayout.SetLayoutBounds(ModeSeparator, new Rect(0, viewerH + 48, W, 1));
         AbsoluteLayout.SetLayoutFlags(ModeSeparator, AbsoluteLayoutFlags.None);
         double lowerY = viewerH + 48;
