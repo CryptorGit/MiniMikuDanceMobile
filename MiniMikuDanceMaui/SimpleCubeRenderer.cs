@@ -1,6 +1,6 @@
 using System;
 using OpenTK.Mathematics;
-using OpenTK.Graphics.OpenGLES30;
+using OpenTK.Graphics.ES30;
 
 namespace MiniMikuDanceMaui;
 
