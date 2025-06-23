@@ -12,6 +12,7 @@ AGENTS.md で挙げたカテゴリをより細分化し、優先度や検討事�
 - [ ] 初期モデル読み込みテスト
 - [ ] シンプルな UI 表示（FPS, 読み込み進捗）
 - [x] Path 競合と PathParser 不足に起因するビルドエラー修正
+- [x] SkiaSharp.Views.Maui.Controls パッケージ更新で Android リソースエラー解消
 
 ## モデル読み込み
 - [ ] VRM パーサーの導入と検証
