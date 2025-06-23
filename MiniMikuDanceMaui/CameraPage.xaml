@@ -12,10 +12,6 @@
                     HeightRequest="48">
             <HorizontalStackLayout x:Name="ModeStack" Spacing="0" />
         </ScrollView>
-        <Grid x:Name="ModeTapOverlay" ColumnDefinitions="*,*" BackgroundColor="Transparent" HeightRequest="48" InputTransparent="True">
-            <BoxView x:Name="LeftTapArea" BackgroundColor="Transparent" />
-            <BoxView x:Name="RightTapArea" Grid.Column="1" BackgroundColor="Transparent" />
-        </Grid>
         <!-- モードバーと下ペインの境界ライン -->
         <BoxView x:Name="ModeSeparator" HeightRequest="1" BackgroundColor="#00000066" />
         <Grid x:Name="LowerPaneBody" BackgroundColor="#222">
