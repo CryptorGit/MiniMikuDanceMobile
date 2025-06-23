@@ -78,7 +78,8 @@ public partial class CameraPage : ContentPage
         double H = this.Height;
         Thickness safe = this.Padding;
 
-        double viewerH = H * 0.5;
+        // use 3:1 ratio for upper viewer and lower control pane
+        double viewerH = H * 0.75;
         AbsoluteLayout.SetLayoutBounds(Viewer, new Rect(0, 0, W, viewerH));
         AbsoluteLayout.SetLayoutFlags(Viewer, AbsoluteLayoutFlags.None);
 
@@ -153,6 +154,7 @@ public partial class CameraPage : ContentPage
     private void OnStickAction(int dir)
     {
         System.Diagnostics.Debug.WriteLine($"Stick dir {dir}");
+        Viewer?.InvalidateSurface();
     }
 
 
@@ -165,6 +167,7 @@ public partial class CameraPage : ContentPage
         Viewer.InputTransparent = open;
         _sidebarOpen = open;
         UpdateLayout();
+        Viewer?.InvalidateSurface();
     }
 
     private async Task EnterFullScreen()
