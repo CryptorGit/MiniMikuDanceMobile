@@ -16,6 +16,12 @@ public class SimpleCubeRenderer : IDisposable
     private int _projLoc;
     private int _colorLoc;
     private float _angle;
+    private float _orbitX;
+    private float _orbitY = MathHelper.PiOver4;
+    private float _distance = 4f;
+    private Vector3 _target = Vector3.Zero;
+    private int _groundVao;
+    private int _groundVbo;
     private int _width;
     private int _height;
 
@@ -98,6 +104,25 @@ void main(){
         GL.EnableVertexAttribArray(0);
         GL.BindBuffer(BufferTarget.ArrayBuffer, 0);
         GL.BindVertexArray(0);
+
+        // ground plane
+        float[] plane = {
+            -10f, 0f, -10f,
+             10f, 0f, -10f,
+            -10f, 0f,  10f,
+             10f, 0f, -10f,
+             10f, 0f,  10f,
+            -10f, 0f,  10f
+        };
+        _groundVao = GL.GenVertexArray();
+        _groundVbo = GL.GenBuffer();
+        GL.BindVertexArray(_groundVao);
+        GL.BindBuffer(BufferTarget.ArrayBuffer, _groundVbo);
+        GL.BufferData(BufferTarget.ArrayBuffer, plane.Length * sizeof(float), plane, BufferUsageHint.StaticDraw);
+        GL.VertexAttribPointer(0, 3, VertexAttribPointerType.Float, false, 3 * sizeof(float), 0);
+        GL.EnableVertexAttribArray(0);
+        GL.BindBuffer(BufferTarget.ArrayBuffer, 0);
+        GL.BindVertexArray(0);
     }
 
     public void Resize(int width, int height)
@@ -107,21 +132,57 @@ void main(){
         GL.Viewport(0, 0, width, height);
     }
 
+    public void Orbit(float dx, float dy)
+    {
+        _orbitY += dx * 0.01f;
+        _orbitX += dy * 0.01f;
+    }
+
+    public void Pan(float dx, float dy)
+    {
+        Vector3 right = Vector3.UnitX;
+        Vector3 up = Vector3.UnitY;
+        _target += (-right * dx + up * dy) * 0.01f;
+    }
+
+    public void Dolly(float delta)
+    {
+        _distance *= 1f - delta * 0.01f;
+        if (_distance < 1f) _distance = 1f;
+        if (_distance > 20f) _distance = 20f;
+    }
+
+    public void ResetCamera()
+    {
+        _orbitX = 0f;
+        _orbitY = MathHelper.PiOver4;
+        _distance = 4f;
+        _target = Vector3.Zero;
+    }
+
     public void Render()
     {
         GL.Enable(EnableCap.DepthTest);
-        GL.ClearColor(0f, 0f, 0f, 1f);
+        GL.ClearColor(1f, 1f, 1f, 1f);
         GL.Clear(ClearBufferMask.ColorBufferBit | ClearBufferMask.DepthBufferBit);
 
-        _angle += 0.02f;
-        Matrix4 model = Matrix4.CreateRotationY(_angle) * Matrix4.CreateRotationX(_angle * 0.5f);
-        Matrix4 view = Matrix4.LookAt(new Vector3(2, 2, 2), Vector3.Zero, Vector3.UnitY);
+        Matrix4 model = Matrix4.Identity;
+        Matrix4 rot = Matrix4.CreateRotationX(_orbitX) * Matrix4.CreateRotationY(_orbitY);
+        Vector3 cam = Vector3.TransformPosition(new Vector3(0, 0, _distance), rot) + _target;
+        Matrix4 view = Matrix4.LookAt(cam, _target, Vector3.UnitY);
         float aspect = _width == 0 || _height == 0 ? 1f : _width / (float)_height;
         Matrix4 proj = Matrix4.CreatePerspectiveFieldOfView(MathHelper.PiOver4, aspect, 0.1f, 100f);
 
         GL.UseProgram(_program);
         GL.UniformMatrix4(_viewLoc, false, ref view);
         GL.UniformMatrix4(_projLoc, false, ref proj);
+        // draw ground
+        Matrix4 gridModel = Matrix4.Identity;
+        GL.UniformMatrix4(_modelLoc, false, ref gridModel);
+        GL.Uniform4(_colorLoc, new Vector4(1f, 1f, 1f, 1f));
+        GL.BindVertexArray(_groundVao);
+        GL.DrawArrays(PrimitiveType.Triangles, 0, 6);
+        GL.BindVertexArray(0);
 
         // draw cube
         GL.UniformMatrix4(_modelLoc, false, ref model);
@@ -131,9 +192,8 @@ void main(){
         GL.BindVertexArray(0);
 
         // draw grid
-        Matrix4 gridModel = Matrix4.Identity;
         GL.UniformMatrix4(_modelLoc, false, ref gridModel);
-        GL.Uniform4(_colorLoc, new Vector4(0.5f, 0.5f, 0.5f, 1.0f));
+        GL.Uniform4(_colorLoc, new Vector4(0.8f, 0.8f, 0.8f, 1.0f));
         GL.BindVertexArray(_gridVao);
         GL.DrawArrays(PrimitiveType.Lines, 0, ((10 - (-10) + 1) * 2) * 2);
         GL.BindVertexArray(0);
@@ -143,8 +203,10 @@ void main(){
     {
         GL.DeleteBuffer(_vbo);
         GL.DeleteBuffer(_gridVbo);
+        GL.DeleteBuffer(_groundVbo);
         GL.DeleteVertexArray(_vao);
         GL.DeleteVertexArray(_gridVao);
+        GL.DeleteVertexArray(_groundVao);
         GL.DeleteProgram(_program);
     }
 }
