@@ -164,7 +164,8 @@ public partial class CameraPage : ContentPage
         double dest = open ? Width - menuWidth : Width;
         MenuOverlay.IsVisible = open;
         await Sidebar.LayoutTo(new Rect(dest, 0, menuWidth, Height), 280, Easing.SinOut);
-        Viewer.InputTransparent = open;
+        if (Viewer is SKGLView glView)
+            glView.EnableTouchEvents = !open;
         _sidebarOpen = open;
         UpdateLayout();
         Viewer?.InvalidateSurface();
