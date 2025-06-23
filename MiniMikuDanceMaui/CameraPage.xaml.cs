@@ -198,7 +198,7 @@ public partial class CameraPage : ContentPage
     {
         if (!_glInitialized)
         {
-            GL.LoadBindings(new SKGLViewBindingsContext(e.Surface));
+            GL.LoadBindings(new SKGLViewBindingsContext());
             _renderer.Initialize();
             _glInitialized = true;
         }
