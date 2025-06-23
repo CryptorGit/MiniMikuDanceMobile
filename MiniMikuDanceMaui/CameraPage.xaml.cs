@@ -78,8 +78,8 @@ public partial class CameraPage : ContentPage
         double H = this.Height;
         Thickness safe = this.Padding;
 
-        // use 3:1 ratio for upper viewer and lower control pane
-        double viewerH = H * 0.75;
+        // use 4:1 ratio for upper viewer and lower control pane
+        double viewerH = H * 0.8;
         AbsoluteLayout.SetLayoutBounds(Viewer, new Rect(0, 0, W, viewerH));
         AbsoluteLayout.SetLayoutFlags(Viewer, AbsoluteLayoutFlags.None);
 
