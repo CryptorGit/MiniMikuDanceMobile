@@ -1,6 +1,7 @@
 using Microsoft.Maui;
 using Microsoft.Maui.Hosting;
 using Microsoft.Maui.Controls.Hosting;
+using SkiaSharp.Views.Maui.Controls.Hosting;
 
 namespace MiniMikuDanceMaui;
 
@@ -11,8 +12,9 @@ public static class MauiProgram
         var builder = MauiApp.CreateBuilder();
 
         builder
-            // © Œ^ƒpƒ‰ƒ[ƒ^‚Å©•ª‚Ì App ƒNƒ‰ƒX‚ğ“n‚·
+            // â† å‹ãƒ‘ãƒ©ãƒ¡ãƒ¼ã‚¿ã§è‡ªåˆ†ã® App ã‚¯ãƒ©ã‚¹ã‚’æ¸¡ã™
             .UseMauiApp<App>()
+            .UseSkiaSharp()
             .ConfigureFonts(fonts =>
             {
                 fonts.AddFont("OpenSans-Regular.ttf", "OpenSansRegular");
