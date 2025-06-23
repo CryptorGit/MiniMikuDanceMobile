@@ -11,6 +11,9 @@ using System;
 using System.Diagnostics;
 using System.Threading.Tasks;
 using ShapePath = Microsoft.Maui.Controls.Shapes.Path;
+using SkiaSharp.Views.Maui;
+using SkiaSharp.Views.Maui.Controls;
+using OpenTK.Graphics.OpenGL4;
 
 namespace MiniMikuDanceMaui;
 
@@ -19,6 +22,7 @@ public partial class CameraPage : ContentPage
     private bool _sidebarOpen;
     private const double SidebarWidthRatio = 0.35; // 画面幅に対する割合
     private bool _fullScreen;
+    private readonly SimpleCubeRenderer _renderer = new();
 
     public CameraPage()
     {
@@ -45,11 +49,23 @@ public partial class CameraPage : ContentPage
         var overlayTap = new TapGestureRecognizer();
         overlayTap.Tapped += async (s, e) => await AnimateSidebar(false);
         MenuOverlay.GestureRecognizers.Add(overlayTap);
+
+        if (Viewer is SKGLView glView)
+        {
+            glView.PaintSurface += OnPaintSurface;
+        }
     }
 
     protected override void OnAppearing()
     {
         base.OnAppearing();
+        _renderer.Initialize();
+    }
+
+    protected override void OnDisappearing()
+    {
+        base.OnDisappearing();
+        _renderer.Dispose();
     }
 
     private void OnSizeChanged(object? sender, EventArgs e) => UpdateLayout();
@@ -60,7 +76,7 @@ public partial class CameraPage : ContentPage
         double H = this.Height;
         Thickness safe = this.Padding;
 
-        double viewerH = H * 0.75;
+        double viewerH = H * 0.5;
         AbsoluteLayout.SetLayoutBounds(Viewer, new Rect(0, 0, W, viewerH));
         AbsoluteLayout.SetLayoutFlags(Viewer, AbsoluteLayoutFlags.None);
 
@@ -174,5 +190,12 @@ public partial class CameraPage : ContentPage
             StickPad.TranslateTo(0, 0, 200, Easing.SinOut)
         };
         await Task.WhenAll(tasks);
+    }
+
+    private void OnPaintSurface(object? sender, SKPaintGLSurfaceEventArgs e)
+    {
+        _renderer.Resize(e.BackendRenderTarget.Width, e.BackendRenderTarget.Height);
+        _renderer.Render();
+        GL.Flush();
     }
 }

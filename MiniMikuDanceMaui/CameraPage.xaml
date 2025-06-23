@@ -1,10 +1,11 @@
 <?xml version="1.0" encoding="utf-8" ?>
 <ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:skia="clr-namespace:SkiaSharp.Views.Maui.Controls;assembly=SkiaSharp.Views.Maui.Controls"
              x:Class="MiniMikuDanceMaui.CameraPage"
              BackgroundColor="Transparent">
     <AbsoluteLayout x:Name="Root">
-        <ContentView x:Name="Viewer" BackgroundColor="Black" />
+        <skia:SKGLView x:Name="Viewer" HasRenderLoop="True" EnableTouchEvents="True" />
         <BoxView x:Name="MenuOverlay" BackgroundColor="#00000033" IsVisible="False" />
         <Grid x:Name="LowerPaneBody" BackgroundColor="#222">
             <!-- small grab/gradient bar -->
