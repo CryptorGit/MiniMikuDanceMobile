@@ -217,9 +217,6 @@ public partial class CameraPage : ContentPage
         AbsoluteLayout.SetLayoutBounds(ModeCarousel, new Rect(0, viewerH, W, 48));
         AbsoluteLayout.SetLayoutFlags(ModeCarousel, AbsoluteLayoutFlags.None);
         ModeCarousel.Opacity = 1;
-        AbsoluteLayout.SetLayoutBounds(ModeTapOverlay, new Rect(0, viewerH, W, 48));
-        AbsoluteLayout.SetLayoutFlags(ModeTapOverlay, AbsoluteLayoutFlags.None);
-        ModeTapOverlay.Opacity = 1;
         double sidePad = Math.Max(0, (W - ModeItemWidth) / 2);
         ModeStack.Padding = new Thickness(sidePad, 0);
         for (int i = 0; i < _tapAreas.Length; i++)
@@ -343,7 +340,6 @@ public partial class CameraPage : ContentPage
         var tasks = new Task[]
         {
             ModeCarousel.TranslateTo(0, height, 200, Easing.SinOut),
-            ModeTapOverlay.TranslateTo(0, height, 200, Easing.SinOut),
             ModeSeparator.TranslateTo(0, height, 200, Easing.SinOut),
             LowerPaneBody.TranslateTo(0, height, 200, Easing.SinOut),
             StickPad.TranslateTo(0, height, 200, Easing.SinOut)
@@ -359,7 +355,6 @@ public partial class CameraPage : ContentPage
         var tasks = new Task[]
         {
             ModeCarousel.TranslateTo(0, 0, 200, Easing.SinOut),
-            ModeTapOverlay.TranslateTo(0, 0, 200, Easing.SinOut),
             ModeSeparator.TranslateTo(0, 0, 200, Easing.SinOut),
             LowerPaneBody.TranslateTo(0, 0, 200, Easing.SinOut),
             StickPad.TranslateTo(0, 0, 200, Easing.SinOut)
