@@ -65,10 +65,6 @@ C:\Users\crypt\source\repos\CryptorGit\MiniMikuDance\MiniMikuDanceMaui\bin\Debug
 C:\Users\crypt\source\repos\CryptorGit\MiniMikuDance\MiniMikuDanceMaui\bin\Debug\net8.0-android34.0\com.example.minimikudancemaui-Signed.aab
 C:\Users\crypt\source\repos\CryptorGit\MiniMikuDance\MiniMikuDanceMaui\bin\Debug\net8.0-android34.0\com.example.minimikudancemaui-Signed.apk
 C:\Users\crypt\source\repos\CryptorGit\MiniMikuDance\MiniMikuDanceMaui\bin\Debug\net8.0-android34.0\com.example.minimikudancemaui-Signed.apk.idsig
-C:\Users\crypt\source\repos\CryptorGit\MiniMikuDance\MiniMikuDanceMaui\bin\Debug\net8.0-android34.0\Microsoft.Maui.Controls.HotReload.Forms.dll
-C:\Users\crypt\source\repos\CryptorGit\MiniMikuDance\MiniMikuDanceMaui\bin\Debug\net8.0-android34.0\Microsoft.VisualStudio.DesignTools.MobileTapContracts.dll
-C:\Users\crypt\source\repos\CryptorGit\MiniMikuDance\MiniMikuDanceMaui\bin\Debug\net8.0-android34.0\Microsoft.VisualStudio.DesignTools.TapContract.dll
-C:\Users\crypt\source\repos\CryptorGit\MiniMikuDance\MiniMikuDanceMaui\bin\Debug\net8.0-android34.0\Microsoft.VisualStudio.DesignTools.XamlTapContract.dll
 C:\Users\crypt\source\repos\CryptorGit\MiniMikuDance\MiniMikuDanceMaui\obj\Debug\net8.0-android34.0\mauiimage.inputs
 C:\Users\crypt\source\repos\CryptorGit\MiniMikuDance\MiniMikuDanceMaui\obj\Debug\net8.0-android34.0\mauifont.inputs
 C:\Users\crypt\source\repos\CryptorGit\MiniMikuDance\MiniMikuDanceMaui\obj\Debug\net8.0-android34.0\mauisplash.inputs
@@ -1067,3 +1063,7 @@ C:\Users\crypt\source\repos\CryptorGit\MiniMikuDance\MiniMikuDanceMaui\obj\Debug
 C:\Users\crypt\source\repos\CryptorGit\MiniMikuDance\MiniMikuDanceMaui\obj\Debug\net8.0-android34.0\android\assets\SkiaSharp.pdb
 C:\Users\crypt\source\repos\CryptorGit\MiniMikuDance\MiniMikuDanceMaui\obj\Debug\net8.0-android34.0\android\assets\SkiaSharp.Views.Android.pdb
 C:\Users\crypt\source\repos\CryptorGit\MiniMikuDance\MiniMikuDanceMaui\obj\Debug\net8.0-android34.0\android\src\crc64eaf685e082aef0e5\SKGLViewHandler_MauiSKGLTextureView.java
+C:\Users\crypt\source\repos\CryptorGit\MiniMikuDance\MiniMikuDanceMaui\bin\Debug\net8.0-android34.0\Microsoft.Maui.Controls.HotReload.Forms.dll
+C:\Users\crypt\source\repos\CryptorGit\MiniMikuDance\MiniMikuDanceMaui\bin\Debug\net8.0-android34.0\Microsoft.VisualStudio.DesignTools.MobileTapContracts.dll
+C:\Users\crypt\source\repos\CryptorGit\MiniMikuDance\MiniMikuDanceMaui\bin\Debug\net8.0-android34.0\Microsoft.VisualStudio.DesignTools.TapContract.dll
+C:\Users\crypt\source\repos\CryptorGit\MiniMikuDance\MiniMikuDanceMaui\bin\Debug\net8.0-android34.0\Microsoft.VisualStudio.DesignTools.XamlTapContract.dll

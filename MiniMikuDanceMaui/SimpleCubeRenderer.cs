@@ -15,7 +15,6 @@ public class SimpleCubeRenderer : IDisposable
     private int _viewLoc;
     private int _projLoc;
     private int _colorLoc;
-    private float _angle;
     private float _orbitX;
     private float _orbitY = MathHelper.PiOver4;
     private float _distance = 4f;
