@@ -1,13 +1,13 @@
 using System.IO;
-using System.Numerics;                   // Matrix4x4 —p
+using System.Numerics;                   // Matrix4x4 ç”¨
 using MMDTools;                          // PMXParser, PMXObject, Vertex
 using SharpGLTF.Geometry;
 using SharpGLTF.Geometry.VertexTypes;
 using SharpGLTF.Materials;
-using SharpGLTF.Scenes;                  // ToGltf2() ‚Ì–¼‘O‹óŠÔ
-using SharpGLTF.Schema2;                 // ModelRoot —p
+using SharpGLTF.Scenes;                  // ToGltf2() ã®åå‰ç©ºé–“
+using SharpGLTF.Schema2;                 // ModelRoot ç”¨
 
-// ‚ ‚¢‚Ü‚¢‚³‰ñ”ğƒGƒCƒŠƒAƒX
+// ã‚ã„ã¾ã„ã•å›é¿ã‚¨ã‚¤ãƒªã‚¢ã‚¹
 using SysVector3 = System.Numerics.Vector3;
 using MmdVector3 = MMDTools.Vector3;
 
@@ -16,18 +16,18 @@ namespace MiniMikuDance.Import
     public static class PmxToGltfService
     {
         /// <summary>
-        /// PMX ƒXƒgƒŠ[ƒ€ ¨ GLB (byte[]) •ÏŠ·
+        /// PMX ã‚¹ãƒˆãƒªãƒ¼ãƒ  â†’ GLB (byte[]) å¤‰æ›
         /// </summary>
         public static byte[] Convert(Stream pmxStream)
         {
-            // 1) PMX “Ç‚İ‚İ
+            // 1) PMX èª­ã¿è¾¼ã¿
             PMXObject pmx = PMXParser.Parse(pmxStream);
 
-            // 2) ReadOnlyMemory¨Span ‚ÅƒCƒ“ƒfƒNƒT‚ªg‚¦‚é‚æ‚¤‚É
+            // 2) ReadOnlyMemoryâ†’Span ã§ã‚¤ãƒ³ãƒ‡ã‚¯ã‚µãŒä½¿ãˆã‚‹ã‚ˆã†ã«
             var verts = pmx.VertexList.Span;   // MMDTools.Vertex[]
             var faces = pmx.SurfaceList.Span;  // (V1,V2,V3)
 
-            // 3) MeshBuilder ‚É’¸“_“Š“ü
+            // 3) MeshBuilder ã«é ‚ç‚¹æŠ•å…¥
             var mesh = new MeshBuilder<VertexPositionNormal, VertexEmpty, VertexEmpty>("pmx");
             var prim = mesh.UsePrimitive(new MaterialBuilder());
 
@@ -39,16 +39,16 @@ namespace MiniMikuDance.Import
                     ToVPN(verts[f.V3]));
             }
 
-            // 4) SceneBuilder¨glTF
+            // 4) SceneBuilderâ†’glTF
             var scene = new SceneBuilder();
             scene.AddRigidMesh(mesh, Matrix4x4.Identity);
 
-            // Šg’£ƒƒ\ƒbƒh‚ğŒÄ‚Ño‚µ
-            ModelRoot model = scene.ToGltf2();
+            // 5) glTF2 ãƒ¢ãƒ‡ãƒ«åŒ–
+            ModelRoot model = scene.ToSchema2();
             return model.WriteGLB().ToArray();
         }
 
-        // MMDTools.Vertex ¨ SharpGLTF —p’¸“_Œ^
+        // MMDTools.Vertex â†’ SharpGLTF ç”¨é ‚ç‚¹å‹
         static VertexPositionNormal ToVPN(MMDTools.Vertex v) => new(
             new SysVector3((float)v.Position.X, (float)v.Position.Y, (float)v.Position.Z),
             new SysVector3((float)v.Normal.X, (float)v.Normal.Y, (float)v.Normal.Z)

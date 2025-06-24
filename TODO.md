@@ -29,7 +29,7 @@ AGENTS.md で挙げたカテゴリをより細分化し、優先度や検討事�
 - [ ] FBX / PMX から VRM への変換手順をドキュメント化
 - [x] PMX → glTF 変換サービス実装
 - [x] PMX → glTF 変換時のビルドエラー修正
-- [x] PmxToGltfService コンパイルエラー解消
+- [x] PmxToGltfService コンパイルエラー解消（SceneBuilder.ToSchema2 へ更新）
 - [x] PMX2glTF ボタン追加で変換実行
 - [x] サイドバー CONVERT ボタン追加
 - [ ] glTF 読み込みとスキニング描画
