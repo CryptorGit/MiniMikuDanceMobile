@@ -127,17 +127,6 @@
           }
         }
       },
-      "Microsoft.Bcl.AsyncInterfaces/1.1.0": {
-        "type": "package",
-        "compile": {
-          "ref/netstandard2.1/Microsoft.Bcl.AsyncInterfaces.dll": {}
-        },
-        "runtime": {
-          "lib/netstandard2.1/Microsoft.Bcl.AsyncInterfaces.dll": {
-            "related": ".xml"
-          }
-        }
-      },
       "Microsoft.Extensions.Configuration/8.0.0": {
         "type": "package",
         "dependencies": {
@@ -1037,35 +1026,47 @@
           }
         }
       },
-      "SharpGLTF.Core/1.0.0-alpha0015": {
+      "SharpGLTF.Core/1.0.4": {
         "type": "package",
-        "dependencies": {
-          "System.Memory": "4.5.3",
-          "System.Text.Json": "4.7.0"
-        },
         "compile": {
-          "lib/netstandard2.0/SharpGLTF.Core.dll": {
+          "lib/net8.0/SharpGLTF.Core.dll": {
             "related": ".xml"
           }
         },
         "runtime": {
-          "lib/netstandard2.0/SharpGLTF.Core.dll": {
+          "lib/net8.0/SharpGLTF.Core.dll": {
             "related": ".xml"
           }
         }
       },
-      "SharpGLTF.Toolkit/1.0.0-alpha0015": {
+      "SharpGLTF.Runtime/1.0.4": {
         "type": "package",
         "dependencies": {
-          "SharpGLTF.Core": "1.0.0-alpha0015"
+          "SharpGLTF.Core": "1.0.4"
         },
         "compile": {
-          "lib/netstandard2.0/SharpGLTF.Toolkit.dll": {
+          "lib/net8.0/SharpGLTF.Runtime.dll": {
             "related": ".xml"
           }
         },
         "runtime": {
-          "lib/netstandard2.0/SharpGLTF.Toolkit.dll": {
+          "lib/net8.0/SharpGLTF.Runtime.dll": {
+            "related": ".xml"
+          }
+        }
+      },
+      "SharpGLTF.Toolkit/1.0.4": {
+        "type": "package",
+        "dependencies": {
+          "SharpGLTF.Runtime": "1.0.4"
+        },
+        "compile": {
+          "lib/net8.0/SharpGLTF.Toolkit.dll": {
+            "related": ".xml"
+          }
+        },
+        "runtime": {
+          "lib/net8.0/SharpGLTF.Toolkit.dll": {
             "related": ".xml"
           }
         }
@@ -1616,38 +1617,6 @@
         },
         "runtime": {
           "lib/MonoAndroid10/_._": {}
-        }
-      },
-      "System.Text.Encodings.Web/4.7.0": {
-        "type": "package",
-        "compile": {
-          "lib/netstandard2.1/System.Text.Encodings.Web.dll": {
-            "related": ".xml"
-          }
-        },
-        "runtime": {
-          "lib/netstandard2.1/System.Text.Encodings.Web.dll": {
-            "related": ".xml"
-          }
-        }
-      },
-      "System.Text.Json/4.7.0": {
-        "type": "package",
-        "dependencies": {
-          "Microsoft.Bcl.AsyncInterfaces": "1.1.0",
-          "System.Buffers": "4.5.0",
-          "System.Runtime.CompilerServices.Unsafe": "4.7.0",
-          "System.Text.Encodings.Web": "4.7.0"
-        },
-        "compile": {
-          "lib/netcoreapp3.0/System.Text.Json.dll": {
-            "related": ".xml"
-          }
-        },
-        "runtime": {
-          "lib/netcoreapp3.0/System.Text.Json.dll": {
-            "related": ".xml"
-          }
         }
       },
       "System.Text.RegularExpressions/4.3.0": {
@@ -3589,17 +3558,6 @@
           }
         }
       },
-      "Microsoft.Bcl.AsyncInterfaces/1.1.0": {
-        "type": "package",
-        "compile": {
-          "ref/netstandard2.1/Microsoft.Bcl.AsyncInterfaces.dll": {}
-        },
-        "runtime": {
-          "lib/netstandard2.1/Microsoft.Bcl.AsyncInterfaces.dll": {
-            "related": ".xml"
-          }
-        }
-      },
       "Microsoft.Extensions.Configuration/8.0.0": {
         "type": "package",
         "dependencies": {
@@ -4308,35 +4266,47 @@
           }
         }
       },
-      "SharpGLTF.Core/1.0.0-alpha0015": {
+      "SharpGLTF.Core/1.0.4": {
         "type": "package",
-        "dependencies": {
-          "System.Memory": "4.5.3",
-          "System.Text.Json": "4.7.0"
-        },
         "compile": {
-          "lib/netstandard2.0/SharpGLTF.Core.dll": {
+          "lib/net8.0/SharpGLTF.Core.dll": {
             "related": ".xml"
           }
         },
         "runtime": {
-          "lib/netstandard2.0/SharpGLTF.Core.dll": {
+          "lib/net8.0/SharpGLTF.Core.dll": {
             "related": ".xml"
           }
         }
       },
-      "SharpGLTF.Toolkit/1.0.0-alpha0015": {
+      "SharpGLTF.Runtime/1.0.4": {
         "type": "package",
         "dependencies": {
-          "SharpGLTF.Core": "1.0.0-alpha0015"
+          "SharpGLTF.Core": "1.0.4"
         },
         "compile": {
-          "lib/netstandard2.0/SharpGLTF.Toolkit.dll": {
+          "lib/net8.0/SharpGLTF.Runtime.dll": {
             "related": ".xml"
           }
         },
         "runtime": {
-          "lib/netstandard2.0/SharpGLTF.Toolkit.dll": {
+          "lib/net8.0/SharpGLTF.Runtime.dll": {
+            "related": ".xml"
+          }
+        }
+      },
+      "SharpGLTF.Toolkit/1.0.4": {
+        "type": "package",
+        "dependencies": {
+          "SharpGLTF.Runtime": "1.0.4"
+        },
+        "compile": {
+          "lib/net8.0/SharpGLTF.Toolkit.dll": {
+            "related": ".xml"
+          }
+        },
+        "runtime": {
+          "lib/net8.0/SharpGLTF.Toolkit.dll": {
             "related": ".xml"
           }
         }
@@ -4808,38 +4778,6 @@
         },
         "runtime": {
           "lib/MonoAndroid10/_._": {}
-        }
-      },
-      "System.Text.Encodings.Web/4.7.0": {
-        "type": "package",
-        "compile": {
-          "lib/netstandard2.1/System.Text.Encodings.Web.dll": {
-            "related": ".xml"
-          }
-        },
-        "runtime": {
-          "lib/netstandard2.1/System.Text.Encodings.Web.dll": {
-            "related": ".xml"
-          }
-        }
-      },
-      "System.Text.Json/4.7.0": {
-        "type": "package",
-        "dependencies": {
-          "Microsoft.Bcl.AsyncInterfaces": "1.1.0",
-          "System.Buffers": "4.5.0",
-          "System.Runtime.CompilerServices.Unsafe": "4.7.0",
-          "System.Text.Encodings.Web": "4.7.0"
-        },
-        "compile": {
-          "lib/netcoreapp3.0/System.Text.Json.dll": {
-            "related": ".xml"
-          }
-        },
-        "runtime": {
-          "lib/netcoreapp3.0/System.Text.Json.dll": {
-            "related": ".xml"
-          }
         }
       },
       "System.Text.RegularExpressions/4.3.0": {
@@ -6781,17 +6719,6 @@
           }
         }
       },
-      "Microsoft.Bcl.AsyncInterfaces/1.1.0": {
-        "type": "package",
-        "compile": {
-          "ref/netstandard2.1/Microsoft.Bcl.AsyncInterfaces.dll": {}
-        },
-        "runtime": {
-          "lib/netstandard2.1/Microsoft.Bcl.AsyncInterfaces.dll": {
-            "related": ".xml"
-          }
-        }
-      },
       "Microsoft.Extensions.Configuration/8.0.0": {
         "type": "package",
         "dependencies": {
@@ -7500,35 +7427,47 @@
           }
         }
       },
-      "SharpGLTF.Core/1.0.0-alpha0015": {
+      "SharpGLTF.Core/1.0.4": {
         "type": "package",
-        "dependencies": {
-          "System.Memory": "4.5.3",
-          "System.Text.Json": "4.7.0"
-        },
         "compile": {
-          "lib/netstandard2.0/SharpGLTF.Core.dll": {
+          "lib/net8.0/SharpGLTF.Core.dll": {
             "related": ".xml"
           }
         },
         "runtime": {
-          "lib/netstandard2.0/SharpGLTF.Core.dll": {
+          "lib/net8.0/SharpGLTF.Core.dll": {
             "related": ".xml"
           }
         }
       },
-      "SharpGLTF.Toolkit/1.0.0-alpha0015": {
+      "SharpGLTF.Runtime/1.0.4": {
         "type": "package",
         "dependencies": {
-          "SharpGLTF.Core": "1.0.0-alpha0015"
+          "SharpGLTF.Core": "1.0.4"
         },
         "compile": {
-          "lib/netstandard2.0/SharpGLTF.Toolkit.dll": {
+          "lib/net8.0/SharpGLTF.Runtime.dll": {
             "related": ".xml"
           }
         },
         "runtime": {
-          "lib/netstandard2.0/SharpGLTF.Toolkit.dll": {
+          "lib/net8.0/SharpGLTF.Runtime.dll": {
+            "related": ".xml"
+          }
+        }
+      },
+      "SharpGLTF.Toolkit/1.0.4": {
+        "type": "package",
+        "dependencies": {
+          "SharpGLTF.Runtime": "1.0.4"
+        },
+        "compile": {
+          "lib/net8.0/SharpGLTF.Toolkit.dll": {
+            "related": ".xml"
+          }
+        },
+        "runtime": {
+          "lib/net8.0/SharpGLTF.Toolkit.dll": {
             "related": ".xml"
           }
         }
@@ -8000,38 +7939,6 @@
         },
         "runtime": {
           "lib/MonoAndroid10/_._": {}
-        }
-      },
-      "System.Text.Encodings.Web/4.7.0": {
-        "type": "package",
-        "compile": {
-          "lib/netstandard2.1/System.Text.Encodings.Web.dll": {
-            "related": ".xml"
-          }
-        },
-        "runtime": {
-          "lib/netstandard2.1/System.Text.Encodings.Web.dll": {
-            "related": ".xml"
-          }
-        }
-      },
-      "System.Text.Json/4.7.0": {
-        "type": "package",
-        "dependencies": {
-          "Microsoft.Bcl.AsyncInterfaces": "1.1.0",
-          "System.Buffers": "4.5.0",
-          "System.Runtime.CompilerServices.Unsafe": "4.7.0",
-          "System.Text.Encodings.Web": "4.7.0"
-        },
-        "compile": {
-          "lib/netcoreapp3.0/System.Text.Json.dll": {
-            "related": ".xml"
-          }
-        },
-        "runtime": {
-          "lib/netcoreapp3.0/System.Text.Json.dll": {
-            "related": ".xml"
-          }
         }
       },
       "System.Text.RegularExpressions/4.3.0": {
@@ -9979,17 +9886,6 @@
           "runtimes/linux-x64/native/libcimgui.so": {}
         }
       },
-      "Microsoft.Bcl.AsyncInterfaces/1.1.0": {
-        "type": "package",
-        "compile": {
-          "ref/netstandard2.1/Microsoft.Bcl.AsyncInterfaces.dll": {}
-        },
-        "runtime": {
-          "lib/netstandard2.1/Microsoft.Bcl.AsyncInterfaces.dll": {
-            "related": ".xml"
-          }
-        }
-      },
       "Microsoft.Extensions.Configuration/8.0.0": {
         "type": "package",
         "dependencies": {
@@ -10701,35 +10597,47 @@
           }
         }
       },
-      "SharpGLTF.Core/1.0.0-alpha0015": {
+      "SharpGLTF.Core/1.0.4": {
         "type": "package",
-        "dependencies": {
-          "System.Memory": "4.5.3",
-          "System.Text.Json": "4.7.0"
-        },
         "compile": {
-          "lib/netstandard2.0/SharpGLTF.Core.dll": {
+          "lib/net8.0/SharpGLTF.Core.dll": {
             "related": ".xml"
           }
         },
         "runtime": {
-          "lib/netstandard2.0/SharpGLTF.Core.dll": {
+          "lib/net8.0/SharpGLTF.Core.dll": {
             "related": ".xml"
           }
         }
       },
-      "SharpGLTF.Toolkit/1.0.0-alpha0015": {
+      "SharpGLTF.Runtime/1.0.4": {
         "type": "package",
         "dependencies": {
-          "SharpGLTF.Core": "1.0.0-alpha0015"
+          "SharpGLTF.Core": "1.0.4"
         },
         "compile": {
-          "lib/netstandard2.0/SharpGLTF.Toolkit.dll": {
+          "lib/net8.0/SharpGLTF.Runtime.dll": {
             "related": ".xml"
           }
         },
         "runtime": {
-          "lib/netstandard2.0/SharpGLTF.Toolkit.dll": {
+          "lib/net8.0/SharpGLTF.Runtime.dll": {
+            "related": ".xml"
+          }
+        }
+      },
+      "SharpGLTF.Toolkit/1.0.4": {
+        "type": "package",
+        "dependencies": {
+          "SharpGLTF.Runtime": "1.0.4"
+        },
+        "compile": {
+          "lib/net8.0/SharpGLTF.Toolkit.dll": {
+            "related": ".xml"
+          }
+        },
+        "runtime": {
+          "lib/net8.0/SharpGLTF.Toolkit.dll": {
             "related": ".xml"
           }
         }
@@ -11201,38 +11109,6 @@
         },
         "runtime": {
           "lib/MonoAndroid10/_._": {}
-        }
-      },
-      "System.Text.Encodings.Web/4.7.0": {
-        "type": "package",
-        "compile": {
-          "lib/netstandard2.1/System.Text.Encodings.Web.dll": {
-            "related": ".xml"
-          }
-        },
-        "runtime": {
-          "lib/netstandard2.1/System.Text.Encodings.Web.dll": {
-            "related": ".xml"
-          }
-        }
-      },
-      "System.Text.Json/4.7.0": {
-        "type": "package",
-        "dependencies": {
-          "Microsoft.Bcl.AsyncInterfaces": "1.1.0",
-          "System.Buffers": "4.5.0",
-          "System.Runtime.CompilerServices.Unsafe": "4.7.0",
-          "System.Text.Encodings.Web": "4.7.0"
-        },
-        "compile": {
-          "lib/netcoreapp3.0/System.Text.Json.dll": {
-            "related": ".xml"
-          }
-        },
-        "runtime": {
-          "lib/netcoreapp3.0/System.Text.Json.dll": {
-            "related": ".xml"
-          }
         }
       },
       "System.Text.RegularExpressions/4.3.0": {
@@ -13174,17 +13050,6 @@
           }
         }
       },
-      "Microsoft.Bcl.AsyncInterfaces/1.1.0": {
-        "type": "package",
-        "compile": {
-          "ref/netstandard2.1/Microsoft.Bcl.AsyncInterfaces.dll": {}
-        },
-        "runtime": {
-          "lib/netstandard2.1/Microsoft.Bcl.AsyncInterfaces.dll": {
-            "related": ".xml"
-          }
-        }
-      },
       "Microsoft.Extensions.Configuration/8.0.0": {
         "type": "package",
         "dependencies": {
@@ -13893,35 +13758,47 @@
           }
         }
       },
-      "SharpGLTF.Core/1.0.0-alpha0015": {
+      "SharpGLTF.Core/1.0.4": {
         "type": "package",
-        "dependencies": {
-          "System.Memory": "4.5.3",
-          "System.Text.Json": "4.7.0"
-        },
         "compile": {
-          "lib/netstandard2.0/SharpGLTF.Core.dll": {
+          "lib/net8.0/SharpGLTF.Core.dll": {
             "related": ".xml"
           }
         },
         "runtime": {
-          "lib/netstandard2.0/SharpGLTF.Core.dll": {
+          "lib/net8.0/SharpGLTF.Core.dll": {
             "related": ".xml"
           }
         }
       },
-      "SharpGLTF.Toolkit/1.0.0-alpha0015": {
+      "SharpGLTF.Runtime/1.0.4": {
         "type": "package",
         "dependencies": {
-          "SharpGLTF.Core": "1.0.0-alpha0015"
+          "SharpGLTF.Core": "1.0.4"
         },
         "compile": {
-          "lib/netstandard2.0/SharpGLTF.Toolkit.dll": {
+          "lib/net8.0/SharpGLTF.Runtime.dll": {
             "related": ".xml"
           }
         },
         "runtime": {
-          "lib/netstandard2.0/SharpGLTF.Toolkit.dll": {
+          "lib/net8.0/SharpGLTF.Runtime.dll": {
+            "related": ".xml"
+          }
+        }
+      },
+      "SharpGLTF.Toolkit/1.0.4": {
+        "type": "package",
+        "dependencies": {
+          "SharpGLTF.Runtime": "1.0.4"
+        },
+        "compile": {
+          "lib/net8.0/SharpGLTF.Toolkit.dll": {
+            "related": ".xml"
+          }
+        },
+        "runtime": {
+          "lib/net8.0/SharpGLTF.Toolkit.dll": {
             "related": ".xml"
           }
         }
@@ -14393,38 +14270,6 @@
         },
         "runtime": {
           "lib/MonoAndroid10/_._": {}
-        }
-      },
-      "System.Text.Encodings.Web/4.7.0": {
-        "type": "package",
-        "compile": {
-          "lib/netstandard2.1/System.Text.Encodings.Web.dll": {
-            "related": ".xml"
-          }
-        },
-        "runtime": {
-          "lib/netstandard2.1/System.Text.Encodings.Web.dll": {
-            "related": ".xml"
-          }
-        }
-      },
-      "System.Text.Json/4.7.0": {
-        "type": "package",
-        "dependencies": {
-          "Microsoft.Bcl.AsyncInterfaces": "1.1.0",
-          "System.Buffers": "4.5.0",
-          "System.Runtime.CompilerServices.Unsafe": "4.7.0",
-          "System.Text.Encodings.Web": "4.7.0"
-        },
-        "compile": {
-          "lib/netcoreapp3.0/System.Text.Json.dll": {
-            "related": ".xml"
-          }
-        },
-        "runtime": {
-          "lib/netcoreapp3.0/System.Text.Json.dll": {
-            "related": ".xml"
-          }
         }
       },
       "System.Text.RegularExpressions/4.3.0": {
@@ -16366,17 +16211,6 @@
           }
         }
       },
-      "Microsoft.Bcl.AsyncInterfaces/1.1.0": {
-        "type": "package",
-        "compile": {
-          "ref/netstandard2.1/Microsoft.Bcl.AsyncInterfaces.dll": {}
-        },
-        "runtime": {
-          "lib/netstandard2.1/Microsoft.Bcl.AsyncInterfaces.dll": {
-            "related": ".xml"
-          }
-        }
-      },
       "Microsoft.Extensions.Configuration/8.0.0": {
         "type": "package",
         "dependencies": {
@@ -17105,35 +16939,47 @@
           }
         }
       },
-      "SharpGLTF.Core/1.0.0-alpha0015": {
+      "SharpGLTF.Core/1.0.4": {
         "type": "package",
-        "dependencies": {
-          "System.Memory": "4.5.3",
-          "System.Text.Json": "4.7.0"
-        },
         "compile": {
-          "lib/netstandard2.0/SharpGLTF.Core.dll": {
+          "lib/net8.0/SharpGLTF.Core.dll": {
             "related": ".xml"
           }
         },
         "runtime": {
-          "lib/netstandard2.0/SharpGLTF.Core.dll": {
+          "lib/net8.0/SharpGLTF.Core.dll": {
             "related": ".xml"
           }
         }
       },
-      "SharpGLTF.Toolkit/1.0.0-alpha0015": {
+      "SharpGLTF.Runtime/1.0.4": {
         "type": "package",
         "dependencies": {
-          "SharpGLTF.Core": "1.0.0-alpha0015"
+          "SharpGLTF.Core": "1.0.4"
         },
         "compile": {
-          "lib/netstandard2.0/SharpGLTF.Toolkit.dll": {
+          "lib/net8.0/SharpGLTF.Runtime.dll": {
             "related": ".xml"
           }
         },
         "runtime": {
-          "lib/netstandard2.0/SharpGLTF.Toolkit.dll": {
+          "lib/net8.0/SharpGLTF.Runtime.dll": {
+            "related": ".xml"
+          }
+        }
+      },
+      "SharpGLTF.Toolkit/1.0.4": {
+        "type": "package",
+        "dependencies": {
+          "SharpGLTF.Runtime": "1.0.4"
+        },
+        "compile": {
+          "lib/net8.0/SharpGLTF.Toolkit.dll": {
+            "related": ".xml"
+          }
+        },
+        "runtime": {
+          "lib/net8.0/SharpGLTF.Toolkit.dll": {
             "related": ".xml"
           }
         }
@@ -17602,38 +17448,6 @@
         },
         "runtime": {
           "lib/MonoAndroid10/_._": {}
-        }
-      },
-      "System.Text.Encodings.Web/4.7.0": {
-        "type": "package",
-        "compile": {
-          "lib/netstandard2.1/System.Text.Encodings.Web.dll": {
-            "related": ".xml"
-          }
-        },
-        "runtime": {
-          "lib/netstandard2.1/System.Text.Encodings.Web.dll": {
-            "related": ".xml"
-          }
-        }
-      },
-      "System.Text.Json/4.7.0": {
-        "type": "package",
-        "dependencies": {
-          "Microsoft.Bcl.AsyncInterfaces": "1.1.0",
-          "System.Buffers": "4.5.0",
-          "System.Runtime.CompilerServices.Unsafe": "4.7.0",
-          "System.Text.Encodings.Web": "4.7.0"
-        },
-        "compile": {
-          "lib/netcoreapp3.0/System.Text.Json.dll": {
-            "related": ".xml"
-          }
-        },
-        "runtime": {
-          "lib/netcoreapp3.0/System.Text.Json.dll": {
-            "related": ".xml"
-          }
         }
       },
       "System.Text.RegularExpressions/4.3.0": {
@@ -20667,35 +20481,47 @@
           }
         }
       },
-      "SharpGLTF.Core/1.0.0-alpha0015": {
+      "SharpGLTF.Core/1.0.4": {
         "type": "package",
-        "dependencies": {
-          "System.Memory": "4.5.3",
-          "System.Text.Json": "4.7.0"
-        },
         "compile": {
-          "lib/netstandard2.0/SharpGLTF.Core.dll": {
+          "lib/net8.0/SharpGLTF.Core.dll": {
             "related": ".xml"
           }
         },
         "runtime": {
-          "lib/netstandard2.0/SharpGLTF.Core.dll": {
+          "lib/net8.0/SharpGLTF.Core.dll": {
             "related": ".xml"
           }
         }
       },
-      "SharpGLTF.Toolkit/1.0.0-alpha0015": {
+      "SharpGLTF.Runtime/1.0.4": {
         "type": "package",
         "dependencies": {
-          "SharpGLTF.Core": "1.0.0-alpha0015"
+          "SharpGLTF.Core": "1.0.4"
         },
         "compile": {
-          "lib/netstandard2.0/SharpGLTF.Toolkit.dll": {
+          "lib/net8.0/SharpGLTF.Runtime.dll": {
             "related": ".xml"
           }
         },
         "runtime": {
-          "lib/netstandard2.0/SharpGLTF.Toolkit.dll": {
+          "lib/net8.0/SharpGLTF.Runtime.dll": {
+            "related": ".xml"
+          }
+        }
+      },
+      "SharpGLTF.Toolkit/1.0.4": {
+        "type": "package",
+        "dependencies": {
+          "SharpGLTF.Runtime": "1.0.4"
+        },
+        "compile": {
+          "lib/net8.0/SharpGLTF.Toolkit.dll": {
+            "related": ".xml"
+          }
+        },
+        "runtime": {
+          "lib/net8.0/SharpGLTF.Toolkit.dll": {
             "related": ".xml"
           }
         }
@@ -21742,19 +21568,6 @@
         },
         "compile": {
           "ref/netstandard1.3/System.Text.Encoding.Extensions.dll": {
-            "related": ".xml"
-          }
-        }
-      },
-      "System.Text.Json/4.7.0": {
-        "type": "package",
-        "compile": {
-          "lib/netcoreapp3.0/System.Text.Json.dll": {
-            "related": ".xml"
-          }
-        },
-        "runtime": {
-          "lib/netcoreapp3.0/System.Text.Json.dll": {
             "related": ".xml"
           }
         }
@@ -23113,35 +22926,47 @@
           "runtimes/unix/lib/netstandard1.5/System.Runtime.Extensions.dll": {}
         }
       },
-      "SharpGLTF.Core/1.0.0-alpha0015": {
+      "SharpGLTF.Core/1.0.4": {
         "type": "package",
-        "dependencies": {
-          "System.Memory": "4.5.3",
-          "System.Text.Json": "4.7.0"
-        },
         "compile": {
-          "lib/netstandard2.0/SharpGLTF.Core.dll": {
+          "lib/net8.0/SharpGLTF.Core.dll": {
             "related": ".xml"
           }
         },
         "runtime": {
-          "lib/netstandard2.0/SharpGLTF.Core.dll": {
+          "lib/net8.0/SharpGLTF.Core.dll": {
             "related": ".xml"
           }
         }
       },
-      "SharpGLTF.Toolkit/1.0.0-alpha0015": {
+      "SharpGLTF.Runtime/1.0.4": {
         "type": "package",
         "dependencies": {
-          "SharpGLTF.Core": "1.0.0-alpha0015"
+          "SharpGLTF.Core": "1.0.4"
         },
         "compile": {
-          "lib/netstandard2.0/SharpGLTF.Toolkit.dll": {
+          "lib/net8.0/SharpGLTF.Runtime.dll": {
             "related": ".xml"
           }
         },
         "runtime": {
-          "lib/netstandard2.0/SharpGLTF.Toolkit.dll": {
+          "lib/net8.0/SharpGLTF.Runtime.dll": {
+            "related": ".xml"
+          }
+        }
+      },
+      "SharpGLTF.Toolkit/1.0.4": {
+        "type": "package",
+        "dependencies": {
+          "SharpGLTF.Runtime": "1.0.4"
+        },
+        "compile": {
+          "lib/net8.0/SharpGLTF.Toolkit.dll": {
+            "related": ".xml"
+          }
+        },
+        "runtime": {
+          "lib/net8.0/SharpGLTF.Toolkit.dll": {
             "related": ".xml"
           }
         }
@@ -24206,19 +24031,6 @@
         },
         "compile": {
           "ref/netstandard1.3/System.Text.Encoding.Extensions.dll": {
-            "related": ".xml"
-          }
-        }
-      },
-      "System.Text.Json/4.7.0": {
-        "type": "package",
-        "compile": {
-          "lib/netcoreapp3.0/System.Text.Json.dll": {
-            "related": ".xml"
-          }
-        },
-        "runtime": {
-          "lib/netcoreapp3.0/System.Text.Json.dll": {
             "related": ".xml"
           }
         }
@@ -25594,35 +25406,47 @@
           "runtimes/unix/lib/netstandard1.5/System.Runtime.Extensions.dll": {}
         }
       },
-      "SharpGLTF.Core/1.0.0-alpha0015": {
+      "SharpGLTF.Core/1.0.4": {
         "type": "package",
-        "dependencies": {
-          "System.Memory": "4.5.3",
-          "System.Text.Json": "4.7.0"
-        },
         "compile": {
-          "lib/netstandard2.0/SharpGLTF.Core.dll": {
+          "lib/net8.0/SharpGLTF.Core.dll": {
             "related": ".xml"
           }
         },
         "runtime": {
-          "lib/netstandard2.0/SharpGLTF.Core.dll": {
+          "lib/net8.0/SharpGLTF.Core.dll": {
             "related": ".xml"
           }
         }
       },
-      "SharpGLTF.Toolkit/1.0.0-alpha0015": {
+      "SharpGLTF.Runtime/1.0.4": {
         "type": "package",
         "dependencies": {
-          "SharpGLTF.Core": "1.0.0-alpha0015"
+          "SharpGLTF.Core": "1.0.4"
         },
         "compile": {
-          "lib/netstandard2.0/SharpGLTF.Toolkit.dll": {
+          "lib/net8.0/SharpGLTF.Runtime.dll": {
             "related": ".xml"
           }
         },
         "runtime": {
-          "lib/netstandard2.0/SharpGLTF.Toolkit.dll": {
+          "lib/net8.0/SharpGLTF.Runtime.dll": {
+            "related": ".xml"
+          }
+        }
+      },
+      "SharpGLTF.Toolkit/1.0.4": {
+        "type": "package",
+        "dependencies": {
+          "SharpGLTF.Runtime": "1.0.4"
+        },
+        "compile": {
+          "lib/net8.0/SharpGLTF.Toolkit.dll": {
+            "related": ".xml"
+          }
+        },
+        "runtime": {
+          "lib/net8.0/SharpGLTF.Toolkit.dll": {
             "related": ".xml"
           }
         }
@@ -26687,19 +26511,6 @@
         },
         "compile": {
           "ref/netstandard1.3/System.Text.Encoding.Extensions.dll": {
-            "related": ".xml"
-          }
-        }
-      },
-      "System.Text.Json/4.7.0": {
-        "type": "package",
-        "compile": {
-          "lib/netcoreapp3.0/System.Text.Json.dll": {
-            "related": ".xml"
-          }
-        },
-        "runtime": {
-          "lib/netcoreapp3.0/System.Text.Json.dll": {
             "related": ".xml"
           }
         }
@@ -28084,35 +27895,47 @@
           "runtimes/unix/lib/netstandard1.5/System.Runtime.Extensions.dll": {}
         }
       },
-      "SharpGLTF.Core/1.0.0-alpha0015": {
+      "SharpGLTF.Core/1.0.4": {
         "type": "package",
-        "dependencies": {
-          "System.Memory": "4.5.3",
-          "System.Text.Json": "4.7.0"
-        },
         "compile": {
-          "lib/netstandard2.0/SharpGLTF.Core.dll": {
+          "lib/net8.0/SharpGLTF.Core.dll": {
             "related": ".xml"
           }
         },
         "runtime": {
-          "lib/netstandard2.0/SharpGLTF.Core.dll": {
+          "lib/net8.0/SharpGLTF.Core.dll": {
             "related": ".xml"
           }
         }
       },
-      "SharpGLTF.Toolkit/1.0.0-alpha0015": {
+      "SharpGLTF.Runtime/1.0.4": {
         "type": "package",
         "dependencies": {
-          "SharpGLTF.Core": "1.0.0-alpha0015"
+          "SharpGLTF.Core": "1.0.4"
         },
         "compile": {
-          "lib/netstandard2.0/SharpGLTF.Toolkit.dll": {
+          "lib/net8.0/SharpGLTF.Runtime.dll": {
             "related": ".xml"
           }
         },
         "runtime": {
-          "lib/netstandard2.0/SharpGLTF.Toolkit.dll": {
+          "lib/net8.0/SharpGLTF.Runtime.dll": {
+            "related": ".xml"
+          }
+        }
+      },
+      "SharpGLTF.Toolkit/1.0.4": {
+        "type": "package",
+        "dependencies": {
+          "SharpGLTF.Runtime": "1.0.4"
+        },
+        "compile": {
+          "lib/net8.0/SharpGLTF.Toolkit.dll": {
+            "related": ".xml"
+          }
+        },
+        "runtime": {
+          "lib/net8.0/SharpGLTF.Toolkit.dll": {
             "related": ".xml"
           }
         }
@@ -29177,19 +29000,6 @@
         },
         "compile": {
           "ref/netstandard1.3/System.Text.Encoding.Extensions.dll": {
-            "related": ".xml"
-          }
-        }
-      },
-      "System.Text.Json/4.7.0": {
-        "type": "package",
-        "compile": {
-          "lib/netcoreapp3.0/System.Text.Json.dll": {
-            "related": ".xml"
-          }
-        },
-        "runtime": {
-          "lib/netcoreapp3.0/System.Text.Json.dll": {
             "related": ".xml"
           }
         }
@@ -30565,35 +30375,47 @@
           "runtimes/unix/lib/netstandard1.5/System.Runtime.Extensions.dll": {}
         }
       },
-      "SharpGLTF.Core/1.0.0-alpha0015": {
+      "SharpGLTF.Core/1.0.4": {
         "type": "package",
-        "dependencies": {
-          "System.Memory": "4.5.3",
-          "System.Text.Json": "4.7.0"
-        },
         "compile": {
-          "lib/netstandard2.0/SharpGLTF.Core.dll": {
+          "lib/net8.0/SharpGLTF.Core.dll": {
             "related": ".xml"
           }
         },
         "runtime": {
-          "lib/netstandard2.0/SharpGLTF.Core.dll": {
+          "lib/net8.0/SharpGLTF.Core.dll": {
             "related": ".xml"
           }
         }
       },
-      "SharpGLTF.Toolkit/1.0.0-alpha0015": {
+      "SharpGLTF.Runtime/1.0.4": {
         "type": "package",
         "dependencies": {
-          "SharpGLTF.Core": "1.0.0-alpha0015"
+          "SharpGLTF.Core": "1.0.4"
         },
         "compile": {
-          "lib/netstandard2.0/SharpGLTF.Toolkit.dll": {
+          "lib/net8.0/SharpGLTF.Runtime.dll": {
             "related": ".xml"
           }
         },
         "runtime": {
-          "lib/netstandard2.0/SharpGLTF.Toolkit.dll": {
+          "lib/net8.0/SharpGLTF.Runtime.dll": {
+            "related": ".xml"
+          }
+        }
+      },
+      "SharpGLTF.Toolkit/1.0.4": {
+        "type": "package",
+        "dependencies": {
+          "SharpGLTF.Runtime": "1.0.4"
+        },
+        "compile": {
+          "lib/net8.0/SharpGLTF.Toolkit.dll": {
+            "related": ".xml"
+          }
+        },
+        "runtime": {
+          "lib/net8.0/SharpGLTF.Toolkit.dll": {
             "related": ".xml"
           }
         }
@@ -31658,19 +31480,6 @@
         },
         "compile": {
           "ref/netstandard1.3/System.Text.Encoding.Extensions.dll": {
-            "related": ".xml"
-          }
-        }
-      },
-      "System.Text.Json/4.7.0": {
-        "type": "package",
-        "compile": {
-          "lib/netcoreapp3.0/System.Text.Json.dll": {
-            "related": ".xml"
-          }
-        },
-        "runtime": {
-          "lib/netcoreapp3.0/System.Text.Json.dll": {
             "related": ".xml"
           }
         }
@@ -33066,35 +32875,47 @@
           "runtimes/unix/lib/netstandard1.5/System.Runtime.Extensions.dll": {}
         }
       },
-      "SharpGLTF.Core/1.0.0-alpha0015": {
+      "SharpGLTF.Core/1.0.4": {
         "type": "package",
-        "dependencies": {
-          "System.Memory": "4.5.3",
-          "System.Text.Json": "4.7.0"
-        },
         "compile": {
-          "lib/netstandard2.0/SharpGLTF.Core.dll": {
+          "lib/net8.0/SharpGLTF.Core.dll": {
             "related": ".xml"
           }
         },
         "runtime": {
-          "lib/netstandard2.0/SharpGLTF.Core.dll": {
+          "lib/net8.0/SharpGLTF.Core.dll": {
             "related": ".xml"
           }
         }
       },
-      "SharpGLTF.Toolkit/1.0.0-alpha0015": {
+      "SharpGLTF.Runtime/1.0.4": {
         "type": "package",
         "dependencies": {
-          "SharpGLTF.Core": "1.0.0-alpha0015"
+          "SharpGLTF.Core": "1.0.4"
         },
         "compile": {
-          "lib/netstandard2.0/SharpGLTF.Toolkit.dll": {
+          "lib/net8.0/SharpGLTF.Runtime.dll": {
             "related": ".xml"
           }
         },
         "runtime": {
-          "lib/netstandard2.0/SharpGLTF.Toolkit.dll": {
+          "lib/net8.0/SharpGLTF.Runtime.dll": {
+            "related": ".xml"
+          }
+        }
+      },
+      "SharpGLTF.Toolkit/1.0.4": {
+        "type": "package",
+        "dependencies": {
+          "SharpGLTF.Runtime": "1.0.4"
+        },
+        "compile": {
+          "lib/net8.0/SharpGLTF.Toolkit.dll": {
+            "related": ".xml"
+          }
+        },
+        "runtime": {
+          "lib/net8.0/SharpGLTF.Toolkit.dll": {
             "related": ".xml"
           }
         }
@@ -34168,19 +33989,6 @@
           }
         }
       },
-      "System.Text.Json/4.7.0": {
-        "type": "package",
-        "compile": {
-          "lib/netcoreapp3.0/System.Text.Json.dll": {
-            "related": ".xml"
-          }
-        },
-        "runtime": {
-          "lib/netcoreapp3.0/System.Text.Json.dll": {
-            "related": ".xml"
-          }
-        }
-      },
       "System.Text.RegularExpressions/4.3.0": {
         "type": "package",
         "dependencies": {
@@ -34462,30 +34270,6 @@
         "runtimes/win-arm64/native/cimgui.dll",
         "runtimes/win-x64/native/cimgui.dll",
         "runtimes/win-x86/native/cimgui.dll"
-      ]
-    },
-    "Microsoft.Bcl.AsyncInterfaces/1.1.0": {
-      "sha512": "1Am6l4Vpn3/K32daEqZI+FFr96OlZkgwK2LcT3pZ2zWubR5zTPW3/FkO1Rat9kb7oQOa4rxgl9LJHc5tspCWfg==",
-      "type": "package",
-      "path": "microsoft.bcl.asyncinterfaces/1.1.0",
-      "files": [
-        ".nupkg.metadata",
-        ".signature.p7s",
-        "LICENSE.TXT",
-        "THIRD-PARTY-NOTICES.TXT",
-        "lib/net461/Microsoft.Bcl.AsyncInterfaces.dll",
-        "lib/net461/Microsoft.Bcl.AsyncInterfaces.xml",
-        "lib/netstandard2.0/Microsoft.Bcl.AsyncInterfaces.dll",
-        "lib/netstandard2.0/Microsoft.Bcl.AsyncInterfaces.xml",
-        "lib/netstandard2.1/Microsoft.Bcl.AsyncInterfaces.dll",
-        "lib/netstandard2.1/Microsoft.Bcl.AsyncInterfaces.xml",
-        "microsoft.bcl.asyncinterfaces.1.1.0.nupkg.sha512",
-        "microsoft.bcl.asyncinterfaces.nuspec",
-        "ref/net461/Microsoft.Bcl.AsyncInterfaces.dll",
-        "ref/netstandard2.0/Microsoft.Bcl.AsyncInterfaces.dll",
-        "ref/netstandard2.1/Microsoft.Bcl.AsyncInterfaces.dll",
-        "useSharedDesignerContext.txt",
-        "version.txt"
       ]
     },
     "Microsoft.Extensions.Configuration/8.0.0": {
@@ -36987,31 +36771,63 @@
         "runtimes/unix/lib/netstandard1.5/System.Runtime.Extensions.dll"
       ]
     },
-    "SharpGLTF.Core/1.0.0-alpha0015": {
-      "sha512": "Em42mNgM7Q8KGIQoexf9UwXM8IYCQR/J4k2ob1cugtAJHyL7nuB3u3kwPMLyFfLrVnrIK7FbesvNBXdgz0HZQg==",
+    "SharpGLTF.Core/1.0.4": {
+      "sha512": "P1hpTM+/2Vt4YvLilh7L+AqMBx7RuSOx8d1VtkFPp73xxlbYQRubc4j/H9vcGRO1apaRdH520QB7SJa7xb8Agw==",
       "type": "package",
-      "path": "sharpgltf.core/1.0.0-alpha0015",
+      "path": "sharpgltf.core/1.0.4",
       "files": [
         ".nupkg.metadata",
         ".signature.p7s",
         "glTF2Sharp.png",
+        "lib/net6.0/SharpGLTF.Core.dll",
+        "lib/net6.0/SharpGLTF.Core.xml",
+        "lib/net8.0/SharpGLTF.Core.dll",
+        "lib/net8.0/SharpGLTF.Core.xml",
         "lib/netstandard2.0/SharpGLTF.Core.dll",
         "lib/netstandard2.0/SharpGLTF.Core.xml",
-        "sharpgltf.core.1.0.0-alpha0015.nupkg.sha512",
+        "lib/netstandard2.1/SharpGLTF.Core.dll",
+        "lib/netstandard2.1/SharpGLTF.Core.xml",
+        "sharpgltf.core.1.0.4.nupkg.sha512",
         "sharpgltf.core.nuspec"
       ]
     },
-    "SharpGLTF.Toolkit/1.0.0-alpha0015": {
-      "sha512": "Es3F2SKzzGTOBxlq6751f7X9hOk82r0unEBkgeeopOZYAMUVuPHkgxkC+M9pmxdUEeBmg7H3SCJcQzyPUKzZkQ==",
+    "SharpGLTF.Runtime/1.0.4": {
+      "sha512": "xkkZTRoZnWHZt9dGkFByaTL/z3AZI4L+sh+50gqcC/I7Y06Fqz4hbjqFD2593NCgIF/yzaTg0XjCwDOe/igzMg==",
       "type": "package",
-      "path": "sharpgltf.toolkit/1.0.0-alpha0015",
+      "path": "sharpgltf.runtime/1.0.4",
       "files": [
         ".nupkg.metadata",
         ".signature.p7s",
         "glTF2Sharp.png",
+        "lib/net6.0/SharpGLTF.Runtime.dll",
+        "lib/net6.0/SharpGLTF.Runtime.xml",
+        "lib/net8.0/SharpGLTF.Runtime.dll",
+        "lib/net8.0/SharpGLTF.Runtime.xml",
+        "lib/netstandard2.0/SharpGLTF.Runtime.dll",
+        "lib/netstandard2.0/SharpGLTF.Runtime.xml",
+        "lib/netstandard2.1/SharpGLTF.Runtime.dll",
+        "lib/netstandard2.1/SharpGLTF.Runtime.xml",
+        "sharpgltf.runtime.1.0.4.nupkg.sha512",
+        "sharpgltf.runtime.nuspec"
+      ]
+    },
+    "SharpGLTF.Toolkit/1.0.4": {
+      "sha512": "I8Q0i/jdqmvEV9XTAOKrzROY7Bp10fbmg9KbPMGXGYaITSAN/m+X3xsQpvuwgonmKlw6btrTZikraQPyGQMsXg==",
+      "type": "package",
+      "path": "sharpgltf.toolkit/1.0.4",
+      "files": [
+        ".nupkg.metadata",
+        ".signature.p7s",
+        "glTF2Sharp.png",
+        "lib/net6.0/SharpGLTF.Toolkit.dll",
+        "lib/net6.0/SharpGLTF.Toolkit.xml",
+        "lib/net8.0/SharpGLTF.Toolkit.dll",
+        "lib/net8.0/SharpGLTF.Toolkit.xml",
         "lib/netstandard2.0/SharpGLTF.Toolkit.dll",
         "lib/netstandard2.0/SharpGLTF.Toolkit.xml",
-        "sharpgltf.toolkit.1.0.0-alpha0015.nupkg.sha512",
+        "lib/netstandard2.1/SharpGLTF.Toolkit.dll",
+        "lib/netstandard2.1/SharpGLTF.Toolkit.xml",
+        "sharpgltf.toolkit.1.0.4.nupkg.sha512",
         "sharpgltf.toolkit.nuspec"
       ]
     },
@@ -40074,48 +39890,6 @@
         "system.text.encoding.extensions.nuspec"
       ]
     },
-    "System.Text.Encodings.Web/4.7.0": {
-      "sha512": "IJanJWPQvya2sbGStt3Fkdy4IaomUBSadAfYWeJDQw0zclMk9ixSvMeei6cSmTTQ6ZkGIIAbhHZVCoLR7GgX7Q==",
-      "type": "package",
-      "path": "system.text.encodings.web/4.7.0",
-      "files": [
-        ".nupkg.metadata",
-        ".signature.p7s",
-        "LICENSE.TXT",
-        "THIRD-PARTY-NOTICES.TXT",
-        "lib/netstandard1.0/System.Text.Encodings.Web.dll",
-        "lib/netstandard1.0/System.Text.Encodings.Web.xml",
-        "lib/netstandard2.0/System.Text.Encodings.Web.dll",
-        "lib/netstandard2.0/System.Text.Encodings.Web.xml",
-        "lib/netstandard2.1/System.Text.Encodings.Web.dll",
-        "lib/netstandard2.1/System.Text.Encodings.Web.xml",
-        "system.text.encodings.web.4.7.0.nupkg.sha512",
-        "system.text.encodings.web.nuspec",
-        "useSharedDesignerContext.txt",
-        "version.txt"
-      ]
-    },
-    "System.Text.Json/4.7.0": {
-      "sha512": "IPq/x/d5nAcnD3vIyM3AbPOaTgcqrh0AqPSx7U53UFu3M6k1TH1u/eXc9/h4jm/3mpP1WRUpevlPY4PACd7AWw==",
-      "type": "package",
-      "path": "system.text.json/4.7.0",
-      "files": [
-        ".nupkg.metadata",
-        ".signature.p7s",
-        "LICENSE.TXT",
-        "THIRD-PARTY-NOTICES.TXT",
-        "lib/net461/System.Text.Json.dll",
-        "lib/net461/System.Text.Json.xml",
-        "lib/netcoreapp3.0/System.Text.Json.dll",
-        "lib/netcoreapp3.0/System.Text.Json.xml",
-        "lib/netstandard2.0/System.Text.Json.dll",
-        "lib/netstandard2.0/System.Text.Json.xml",
-        "system.text.json.4.7.0.nupkg.sha512",
-        "system.text.json.nuspec",
-        "useSharedDesignerContext.txt",
-        "version.txt"
-      ]
-    },
     "System.Text.RegularExpressions/4.3.0": {
       "sha512": "RpT2DA+L660cBt1FssIE9CAGpLFdFPuheB7pLpKpn6ZXNby7jDERe8Ua/Ne2xGiwLVG2JOqziiaVCGDon5sKFA==",
       "type": "package",
@@ -42650,6 +42424,7 @@
       "Microsoft.NET.ILLink.Tasks >= 8.0.17",
       "OpenTK.redist.glfw >= 3.4.0.44",
       "PMXParser >= 1.1.1",
+      "SharpGLTF.Toolkit >= 1.0.4",
       "SkiaSharp.Views.Maui.Controls >= 3.119.0"
     ],
     "net8.0-ios17.0": [
@@ -42660,6 +42435,7 @@
       "Microsoft.NET.ILLink.Tasks >= 8.0.17",
       "OpenTK.redist.glfw >= 3.4.0.44",
       "PMXParser >= 1.1.1",
+      "SharpGLTF.Toolkit >= 1.0.4",
       "SkiaSharp.Views.Maui.Controls >= 3.119.0"
     ]
   },
@@ -42753,6 +42529,10 @@
             "target": "Package",
             "version": "[1.1.1, )"
           },
+          "SharpGLTF.Toolkit": {
+            "target": "Package",
+            "version": "[1.0.4, )"
+          },
           "SkiaSharp.Views.Maui.Controls": {
             "target": "Package",
             "version": "[3.119.0, )"
@@ -42807,6 +42587,10 @@
           "PMXParser": {
             "target": "Package",
             "version": "[1.1.1, )"
+          },
+          "SharpGLTF.Toolkit": {
+            "target": "Package",
+            "version": "[1.0.4, )"
           },
           "SkiaSharp.Views.Maui.Controls": {
             "target": "Package",

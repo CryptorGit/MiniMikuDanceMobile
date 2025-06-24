@@ -201,6 +201,10 @@
               "target": "Package",
               "version": "[1.1.1, )"
             },
+            "SharpGLTF.Toolkit": {
+              "target": "Package",
+              "version": "[1.0.4, )"
+            },
             "SkiaSharp.Views.Maui.Controls": {
               "target": "Package",
               "version": "[3.119.0, )"
@@ -255,6 +259,10 @@
             "PMXParser": {
               "target": "Package",
               "version": "[1.1.1, )"
+            },
+            "SharpGLTF.Toolkit": {
+              "target": "Package",
+              "version": "[1.0.4, )"
             },
             "SkiaSharp.Views.Maui.Controls": {
               "target": "Package",

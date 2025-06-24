@@ -25,6 +25,7 @@
     <PackageReference Include="Microsoft.Maui.Controls" Version="8.0.100" />
     <PackageReference Include="OpenTK.redist.glfw" Version="3.4.0.44" />
     <PackageReference Include="PMXParser" Version="1.1.1" />
+    <PackageReference Include="SharpGLTF.Toolkit" Version="1.0.4" />
     <PackageReference Include="SkiaSharp.Views.Maui.Controls" Version="3.119.0" />
   </ItemGroup>
   <ItemGroup>

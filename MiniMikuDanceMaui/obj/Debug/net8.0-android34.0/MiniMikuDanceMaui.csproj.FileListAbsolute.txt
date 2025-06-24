@@ -107,7 +107,6 @@ C:\Users\crypt\source\repos\CryptorGit\MiniMikuDance\MiniMikuDanceMaui\obj\Debug
 C:\Users\crypt\source\repos\CryptorGit\MiniMikuDance\MiniMikuDanceMaui\obj\Debug\net8.0-android34.0\android\assets\ja\Microsoft.Maui.Controls.resources.dll
 C:\Users\crypt\source\repos\CryptorGit\MiniMikuDance\MiniMikuDanceMaui\obj\Debug\net8.0-android34.0\android\assets\Jsr305Binding.dll
 C:\Users\crypt\source\repos\CryptorGit\MiniMikuDance\MiniMikuDanceMaui\obj\Debug\net8.0-android34.0\android\assets\ko\Microsoft.Maui.Controls.resources.dll
-C:\Users\crypt\source\repos\CryptorGit\MiniMikuDance\MiniMikuDanceMaui\obj\Debug\net8.0-android34.0\android\assets\Microsoft.Bcl.AsyncInterfaces.dll
 C:\Users\crypt\source\repos\CryptorGit\MiniMikuDance\MiniMikuDanceMaui\obj\Debug\net8.0-android34.0\android\assets\Microsoft.CSharp.dll
 C:\Users\crypt\source\repos\CryptorGit\MiniMikuDance\MiniMikuDanceMaui\obj\Debug\net8.0-android34.0\android\assets\Microsoft.Extensions.Configuration.Abstractions.dll
 C:\Users\crypt\source\repos\CryptorGit\MiniMikuDance\MiniMikuDanceMaui\obj\Debug\net8.0-android34.0\android\assets\Microsoft.Extensions.Configuration.dll
@@ -1069,3 +1068,4 @@ C:\Users\crypt\source\repos\CryptorGit\MiniMikuDance\MiniMikuDanceMaui\obj\Debug
 C:\Users\crypt\source\repos\CryptorGit\MiniMikuDance\MiniMikuDanceMaui\obj\Debug\net8.0-android34.0\android\src\crc64eaf685e082aef0e5\SKGLViewHandler_MauiSKGLTextureView.java
 C:\Users\crypt\source\repos\CryptorGit\MiniMikuDance\MiniMikuDanceMaui\obj\Debug\net8.0-android34.0\android\assets\PMXParser.dll
 C:\Users\crypt\source\repos\CryptorGit\MiniMikuDance\MiniMikuDanceMaui\obj\Debug\net8.0-android34.0\android\assets\SharpGLTF.Toolkit.dll
+C:\Users\crypt\source\repos\CryptorGit\MiniMikuDance\MiniMikuDanceMaui\obj\Debug\net8.0-android34.0\android\assets\SharpGLTF.Runtime.dll
