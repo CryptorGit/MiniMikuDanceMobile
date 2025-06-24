@@ -1,6 +1,6 @@
 {
   "version": 2,
-  "dgSpecHash": "BxYH0nJh+bw=",
+  "dgSpecHash": "/+kpKvCvlEs=",
   "success": true,
   "projectFilePath": "C:\\Users\\crypt\\source\\repos\\CryptorGit\\MiniMikuDance\\MiniMikuDanceMaui\\MiniMikuDanceMaui.csproj",
   "expectedPackageFiles": [
@@ -47,6 +47,7 @@
     "C:\\Users\\crypt\\.nuget\\packages\\opentk.windowing.common\\4.7.6\\opentk.windowing.common.4.7.6.nupkg.sha512",
     "C:\\Users\\crypt\\.nuget\\packages\\opentk.windowing.desktop\\4.7.6\\opentk.windowing.desktop.4.7.6.nupkg.sha512",
     "C:\\Users\\crypt\\.nuget\\packages\\opentk.windowing.graphicslibraryframework\\4.7.6\\opentk.windowing.graphicslibraryframework.4.7.6.nupkg.sha512",
+    "C:\\Users\\crypt\\.nuget\\packages\\pmxparser\\1.1.1\\pmxparser.1.1.1.nupkg.sha512",
     "C:\\Users\\crypt\\.nuget\\packages\\runtime.any.system.collections\\4.3.0\\runtime.any.system.collections.4.3.0.nupkg.sha512",
     "C:\\Users\\crypt\\.nuget\\packages\\runtime.any.system.diagnostics.tools\\4.3.0\\runtime.any.system.diagnostics.tools.4.3.0.nupkg.sha512",
     "C:\\Users\\crypt\\.nuget\\packages\\runtime.any.system.diagnostics.tracing\\4.3.0\\runtime.any.system.diagnostics.tracing.4.3.0.nupkg.sha512",
@@ -89,6 +90,7 @@
     "C:\\Users\\crypt\\.nuget\\packages\\runtime.unix.system.private.uri\\4.3.0\\runtime.unix.system.private.uri.4.3.0.nupkg.sha512",
     "C:\\Users\\crypt\\.nuget\\packages\\runtime.unix.system.runtime.extensions\\4.3.0\\runtime.unix.system.runtime.extensions.4.3.0.nupkg.sha512",
     "C:\\Users\\crypt\\.nuget\\packages\\sharpgltf.core\\1.0.0-alpha0015\\sharpgltf.core.1.0.0-alpha0015.nupkg.sha512",
+    "C:\\Users\\crypt\\.nuget\\packages\\sharpgltf.toolkit\\1.0.0-alpha0015\\sharpgltf.toolkit.1.0.0-alpha0015.nupkg.sha512",
     "C:\\Users\\crypt\\.nuget\\packages\\sixlabors.imagesharp\\3.1.10\\sixlabors.imagesharp.3.1.10.nupkg.sha512",
     "C:\\Users\\crypt\\.nuget\\packages\\skiasharp\\3.119.0\\skiasharp.3.119.0.nupkg.sha512",
     "C:\\Users\\crypt\\.nuget\\packages\\skiasharp.nativeassets.android\\3.119.0\\skiasharp.nativeassets.android.3.119.0.nupkg.sha512",
@@ -245,8 +247,8 @@
     "C:\\Users\\crypt\\.nuget\\packages\\xamarin.kotlin.stdlib.jdk8\\1.9.0.1\\xamarin.kotlin.stdlib.jdk8.1.9.0.1.nupkg.sha512",
     "C:\\Users\\crypt\\.nuget\\packages\\xamarin.kotlinx.coroutines.android\\1.7.2.1\\xamarin.kotlinx.coroutines.android.1.7.2.1.nupkg.sha512",
     "C:\\Users\\crypt\\.nuget\\packages\\xamarin.kotlinx.coroutines.core.jvm\\1.7.2.1\\xamarin.kotlinx.coroutines.core.jvm.1.7.2.1.nupkg.sha512",
-    "C:\\Users\\crypt\\.nuget\\packages\\microsoft.ios.ref.net8.0_17.0\\17.0.8523\\microsoft.ios.ref.net8.0_17.0.17.0.8523.nupkg.sha512",
-    "C:\\Users\\crypt\\.nuget\\packages\\microsoft.ios.runtime.iossimulator-x64.net8.0_17.0\\17.0.8523\\microsoft.ios.runtime.iossimulator-x64.net8.0_17.0.17.0.8523.nupkg.sha512"
+    "C:\\Users\\crypt\\.nuget\\packages\\microsoft.ios.runtime.iossimulator-x64.net8.0_17.0\\17.0.8523\\microsoft.ios.runtime.iossimulator-x64.net8.0_17.0.17.0.8523.nupkg.sha512",
+    "C:\\Users\\crypt\\.nuget\\packages\\microsoft.ios.ref.net8.0_17.0\\17.0.8523\\microsoft.ios.ref.net8.0_17.0.17.0.8523.nupkg.sha512"
   ],
   "logs": []
 }

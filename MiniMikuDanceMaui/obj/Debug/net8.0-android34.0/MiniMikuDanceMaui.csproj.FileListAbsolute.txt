@@ -1067,3 +1067,5 @@ C:\Users\crypt\source\repos\CryptorGit\MiniMikuDance\MiniMikuDanceMaui\obj\Debug
 C:\Users\crypt\source\repos\CryptorGit\MiniMikuDance\MiniMikuDanceMaui\obj\Debug\net8.0-android34.0\android\assets\SkiaSharp.pdb
 C:\Users\crypt\source\repos\CryptorGit\MiniMikuDance\MiniMikuDanceMaui\obj\Debug\net8.0-android34.0\android\assets\SkiaSharp.Views.Android.pdb
 C:\Users\crypt\source\repos\CryptorGit\MiniMikuDance\MiniMikuDanceMaui\obj\Debug\net8.0-android34.0\android\src\crc64eaf685e082aef0e5\SKGLViewHandler_MauiSKGLTextureView.java
+C:\Users\crypt\source\repos\CryptorGit\MiniMikuDance\MiniMikuDanceMaui\obj\Debug\net8.0-android34.0\android\assets\PMXParser.dll
+C:\Users\crypt\source\repos\CryptorGit\MiniMikuDance\MiniMikuDanceMaui\obj\Debug\net8.0-android34.0\android\assets\SharpGLTF.Toolkit.dll

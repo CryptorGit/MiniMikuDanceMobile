@@ -1024,6 +1024,19 @@
           }
         }
       },
+      "PMXParser/1.1.1": {
+        "type": "package",
+        "compile": {
+          "lib/net5.0/PMXParser.dll": {
+            "related": ".xml"
+          }
+        },
+        "runtime": {
+          "lib/net5.0/PMXParser.dll": {
+            "related": ".xml"
+          }
+        }
+      },
       "SharpGLTF.Core/1.0.0-alpha0015": {
         "type": "package",
         "dependencies": {
@@ -1037,6 +1050,22 @@
         },
         "runtime": {
           "lib/netstandard2.0/SharpGLTF.Core.dll": {
+            "related": ".xml"
+          }
+        }
+      },
+      "SharpGLTF.Toolkit/1.0.0-alpha0015": {
+        "type": "package",
+        "dependencies": {
+          "SharpGLTF.Core": "1.0.0-alpha0015"
+        },
+        "compile": {
+          "lib/netstandard2.0/SharpGLTF.Toolkit.dll": {
+            "related": ".xml"
+          }
+        },
+        "runtime": {
+          "lib/netstandard2.0/SharpGLTF.Toolkit.dll": {
             "related": ".xml"
           }
         }
@@ -3447,7 +3476,9 @@
           "OpenCvSharp4": "4.9.0.20240103",
           "OpenCvSharp4.runtime.win": "4.9.0.20240103",
           "OpenTK": "4.7.6",
+          "PMXParser": "1.1.1",
           "SharpGLTF.Core": "1.0.0-alpha0015",
+          "SharpGLTF.Toolkit": "1.0.0-alpha0015",
           "SixLabors.ImageSharp": "3.1.10",
           "ViewerApp": "1.0.0"
         },
@@ -4264,6 +4295,19 @@
           }
         }
       },
+      "PMXParser/1.1.1": {
+        "type": "package",
+        "compile": {
+          "lib/net5.0/PMXParser.dll": {
+            "related": ".xml"
+          }
+        },
+        "runtime": {
+          "lib/net5.0/PMXParser.dll": {
+            "related": ".xml"
+          }
+        }
+      },
       "SharpGLTF.Core/1.0.0-alpha0015": {
         "type": "package",
         "dependencies": {
@@ -4277,6 +4321,22 @@
         },
         "runtime": {
           "lib/netstandard2.0/SharpGLTF.Core.dll": {
+            "related": ".xml"
+          }
+        }
+      },
+      "SharpGLTF.Toolkit/1.0.0-alpha0015": {
+        "type": "package",
+        "dependencies": {
+          "SharpGLTF.Core": "1.0.0-alpha0015"
+        },
+        "compile": {
+          "lib/netstandard2.0/SharpGLTF.Toolkit.dll": {
+            "related": ".xml"
+          }
+        },
+        "runtime": {
+          "lib/netstandard2.0/SharpGLTF.Toolkit.dll": {
             "related": ".xml"
           }
         }
@@ -6608,7 +6668,9 @@
           "OpenCvSharp4": "4.9.0.20240103",
           "OpenCvSharp4.runtime.win": "4.9.0.20240103",
           "OpenTK": "4.7.6",
+          "PMXParser": "1.1.1",
           "SharpGLTF.Core": "1.0.0-alpha0015",
+          "SharpGLTF.Toolkit": "1.0.0-alpha0015",
           "SixLabors.ImageSharp": "3.1.10",
           "ViewerApp": "1.0.0"
         },
@@ -7425,6 +7487,19 @@
           }
         }
       },
+      "PMXParser/1.1.1": {
+        "type": "package",
+        "compile": {
+          "lib/net5.0/PMXParser.dll": {
+            "related": ".xml"
+          }
+        },
+        "runtime": {
+          "lib/net5.0/PMXParser.dll": {
+            "related": ".xml"
+          }
+        }
+      },
       "SharpGLTF.Core/1.0.0-alpha0015": {
         "type": "package",
         "dependencies": {
@@ -7438,6 +7513,22 @@
         },
         "runtime": {
           "lib/netstandard2.0/SharpGLTF.Core.dll": {
+            "related": ".xml"
+          }
+        }
+      },
+      "SharpGLTF.Toolkit/1.0.0-alpha0015": {
+        "type": "package",
+        "dependencies": {
+          "SharpGLTF.Core": "1.0.0-alpha0015"
+        },
+        "compile": {
+          "lib/netstandard2.0/SharpGLTF.Toolkit.dll": {
+            "related": ".xml"
+          }
+        },
+        "runtime": {
+          "lib/netstandard2.0/SharpGLTF.Toolkit.dll": {
             "related": ".xml"
           }
         }
@@ -9769,7 +9860,9 @@
           "OpenCvSharp4": "4.9.0.20240103",
           "OpenCvSharp4.runtime.win": "4.9.0.20240103",
           "OpenTK": "4.7.6",
+          "PMXParser": "1.1.1",
           "SharpGLTF.Core": "1.0.0-alpha0015",
+          "SharpGLTF.Toolkit": "1.0.0-alpha0015",
           "SixLabors.ImageSharp": "3.1.10",
           "ViewerApp": "1.0.0"
         },
@@ -10595,6 +10688,19 @@
           }
         }
       },
+      "PMXParser/1.1.1": {
+        "type": "package",
+        "compile": {
+          "lib/net5.0/PMXParser.dll": {
+            "related": ".xml"
+          }
+        },
+        "runtime": {
+          "lib/net5.0/PMXParser.dll": {
+            "related": ".xml"
+          }
+        }
+      },
       "SharpGLTF.Core/1.0.0-alpha0015": {
         "type": "package",
         "dependencies": {
@@ -10608,6 +10714,22 @@
         },
         "runtime": {
           "lib/netstandard2.0/SharpGLTF.Core.dll": {
+            "related": ".xml"
+          }
+        }
+      },
+      "SharpGLTF.Toolkit/1.0.0-alpha0015": {
+        "type": "package",
+        "dependencies": {
+          "SharpGLTF.Core": "1.0.0-alpha0015"
+        },
+        "compile": {
+          "lib/netstandard2.0/SharpGLTF.Toolkit.dll": {
+            "related": ".xml"
+          }
+        },
+        "runtime": {
+          "lib/netstandard2.0/SharpGLTF.Toolkit.dll": {
             "related": ".xml"
           }
         }
@@ -12939,7 +13061,9 @@
           "OpenCvSharp4": "4.9.0.20240103",
           "OpenCvSharp4.runtime.win": "4.9.0.20240103",
           "OpenTK": "4.7.6",
+          "PMXParser": "1.1.1",
           "SharpGLTF.Core": "1.0.0-alpha0015",
+          "SharpGLTF.Toolkit": "1.0.0-alpha0015",
           "SixLabors.ImageSharp": "3.1.10",
           "ViewerApp": "1.0.0"
         },
@@ -13756,6 +13880,19 @@
           }
         }
       },
+      "PMXParser/1.1.1": {
+        "type": "package",
+        "compile": {
+          "lib/net5.0/PMXParser.dll": {
+            "related": ".xml"
+          }
+        },
+        "runtime": {
+          "lib/net5.0/PMXParser.dll": {
+            "related": ".xml"
+          }
+        }
+      },
       "SharpGLTF.Core/1.0.0-alpha0015": {
         "type": "package",
         "dependencies": {
@@ -13769,6 +13906,22 @@
         },
         "runtime": {
           "lib/netstandard2.0/SharpGLTF.Core.dll": {
+            "related": ".xml"
+          }
+        }
+      },
+      "SharpGLTF.Toolkit/1.0.0-alpha0015": {
+        "type": "package",
+        "dependencies": {
+          "SharpGLTF.Core": "1.0.0-alpha0015"
+        },
+        "compile": {
+          "lib/netstandard2.0/SharpGLTF.Toolkit.dll": {
+            "related": ".xml"
+          }
+        },
+        "runtime": {
+          "lib/netstandard2.0/SharpGLTF.Toolkit.dll": {
             "related": ".xml"
           }
         }
@@ -16100,7 +16253,9 @@
           "OpenCvSharp4": "4.9.0.20240103",
           "OpenCvSharp4.runtime.win": "4.9.0.20240103",
           "OpenTK": "4.7.6",
+          "PMXParser": "1.1.1",
           "SharpGLTF.Core": "1.0.0-alpha0015",
+          "SharpGLTF.Toolkit": "1.0.0-alpha0015",
           "SixLabors.ImageSharp": "3.1.10",
           "ViewerApp": "1.0.0"
         },
@@ -16937,6 +17092,19 @@
           }
         }
       },
+      "PMXParser/1.1.1": {
+        "type": "package",
+        "compile": {
+          "lib/net5.0/PMXParser.dll": {
+            "related": ".xml"
+          }
+        },
+        "runtime": {
+          "lib/net5.0/PMXParser.dll": {
+            "related": ".xml"
+          }
+        }
+      },
       "SharpGLTF.Core/1.0.0-alpha0015": {
         "type": "package",
         "dependencies": {
@@ -16950,6 +17118,22 @@
         },
         "runtime": {
           "lib/netstandard2.0/SharpGLTF.Core.dll": {
+            "related": ".xml"
+          }
+        }
+      },
+      "SharpGLTF.Toolkit/1.0.0-alpha0015": {
+        "type": "package",
+        "dependencies": {
+          "SharpGLTF.Core": "1.0.0-alpha0015"
+        },
+        "compile": {
+          "lib/netstandard2.0/SharpGLTF.Toolkit.dll": {
+            "related": ".xml"
+          }
+        },
+        "runtime": {
+          "lib/netstandard2.0/SharpGLTF.Toolkit.dll": {
             "related": ".xml"
           }
         }
@@ -19278,7 +19462,9 @@
           "OpenCvSharp4": "4.9.0.20240103",
           "OpenCvSharp4.runtime.win": "4.9.0.20240103",
           "OpenTK": "4.7.6",
+          "PMXParser": "1.1.1",
           "SharpGLTF.Core": "1.0.0-alpha0015",
+          "SharpGLTF.Toolkit": "1.0.0-alpha0015",
           "SixLabors.ImageSharp": "3.1.10",
           "ViewerApp": "1.0.0"
         },
@@ -20297,6 +20483,19 @@
           }
         }
       },
+      "PMXParser/1.1.1": {
+        "type": "package",
+        "compile": {
+          "lib/net5.0/PMXParser.dll": {
+            "related": ".xml"
+          }
+        },
+        "runtime": {
+          "lib/net5.0/PMXParser.dll": {
+            "related": ".xml"
+          }
+        }
+      },
       "runtime.debian.8-x64.runtime.native.System.Security.Cryptography.OpenSsl/4.3.0": {
         "type": "package",
         "runtimeTargets": {
@@ -20481,6 +20680,22 @@
         },
         "runtime": {
           "lib/netstandard2.0/SharpGLTF.Core.dll": {
+            "related": ".xml"
+          }
+        }
+      },
+      "SharpGLTF.Toolkit/1.0.0-alpha0015": {
+        "type": "package",
+        "dependencies": {
+          "SharpGLTF.Core": "1.0.0-alpha0015"
+        },
+        "compile": {
+          "lib/netstandard2.0/SharpGLTF.Toolkit.dll": {
+            "related": ".xml"
+          }
+        },
+        "runtime": {
+          "lib/netstandard2.0/SharpGLTF.Toolkit.dll": {
             "related": ".xml"
           }
         }
@@ -21678,7 +21893,9 @@
           "OpenCvSharp4": "4.9.0.20240103",
           "OpenCvSharp4.runtime.win": "4.9.0.20240103",
           "OpenTK": "4.7.6",
+          "PMXParser": "1.1.1",
           "SharpGLTF.Core": "1.0.0-alpha0015",
+          "SharpGLTF.Toolkit": "1.0.0-alpha0015",
           "SixLabors.ImageSharp": "3.1.10",
           "ViewerApp": "1.0.0"
         },
@@ -22467,6 +22684,19 @@
           }
         }
       },
+      "PMXParser/1.1.1": {
+        "type": "package",
+        "compile": {
+          "lib/net5.0/PMXParser.dll": {
+            "related": ".xml"
+          }
+        },
+        "runtime": {
+          "lib/net5.0/PMXParser.dll": {
+            "related": ".xml"
+          }
+        }
+      },
       "runtime.any.System.Collections/4.3.0": {
         "type": "package",
         "dependencies": {
@@ -22896,6 +23126,22 @@
         },
         "runtime": {
           "lib/netstandard2.0/SharpGLTF.Core.dll": {
+            "related": ".xml"
+          }
+        }
+      },
+      "SharpGLTF.Toolkit/1.0.0-alpha0015": {
+        "type": "package",
+        "dependencies": {
+          "SharpGLTF.Core": "1.0.0-alpha0015"
+        },
+        "compile": {
+          "lib/netstandard2.0/SharpGLTF.Toolkit.dll": {
+            "related": ".xml"
+          }
+        },
+        "runtime": {
+          "lib/netstandard2.0/SharpGLTF.Toolkit.dll": {
             "related": ".xml"
           }
         }
@@ -24128,7 +24374,9 @@
           "OpenCvSharp4": "4.9.0.20240103",
           "OpenCvSharp4.runtime.win": "4.9.0.20240103",
           "OpenTK": "4.7.6",
+          "PMXParser": "1.1.1",
           "SharpGLTF.Core": "1.0.0-alpha0015",
+          "SharpGLTF.Toolkit": "1.0.0-alpha0015",
           "SixLabors.ImageSharp": "3.1.10",
           "ViewerApp": "1.0.0"
         },
@@ -24917,6 +25165,19 @@
           }
         }
       },
+      "PMXParser/1.1.1": {
+        "type": "package",
+        "compile": {
+          "lib/net5.0/PMXParser.dll": {
+            "related": ".xml"
+          }
+        },
+        "runtime": {
+          "lib/net5.0/PMXParser.dll": {
+            "related": ".xml"
+          }
+        }
+      },
       "runtime.any.System.Collections/4.3.0": {
         "type": "package",
         "dependencies": {
@@ -25346,6 +25607,22 @@
         },
         "runtime": {
           "lib/netstandard2.0/SharpGLTF.Core.dll": {
+            "related": ".xml"
+          }
+        }
+      },
+      "SharpGLTF.Toolkit/1.0.0-alpha0015": {
+        "type": "package",
+        "dependencies": {
+          "SharpGLTF.Core": "1.0.0-alpha0015"
+        },
+        "compile": {
+          "lib/netstandard2.0/SharpGLTF.Toolkit.dll": {
+            "related": ".xml"
+          }
+        },
+        "runtime": {
+          "lib/netstandard2.0/SharpGLTF.Toolkit.dll": {
             "related": ".xml"
           }
         }
@@ -26578,7 +26855,9 @@
           "OpenCvSharp4": "4.9.0.20240103",
           "OpenCvSharp4.runtime.win": "4.9.0.20240103",
           "OpenTK": "4.7.6",
+          "PMXParser": "1.1.1",
           "SharpGLTF.Core": "1.0.0-alpha0015",
+          "SharpGLTF.Toolkit": "1.0.0-alpha0015",
           "SixLabors.ImageSharp": "3.1.10",
           "ViewerApp": "1.0.0"
         },
@@ -27376,6 +27655,19 @@
           }
         }
       },
+      "PMXParser/1.1.1": {
+        "type": "package",
+        "compile": {
+          "lib/net5.0/PMXParser.dll": {
+            "related": ".xml"
+          }
+        },
+        "runtime": {
+          "lib/net5.0/PMXParser.dll": {
+            "related": ".xml"
+          }
+        }
+      },
       "runtime.any.System.Collections/4.3.0": {
         "type": "package",
         "dependencies": {
@@ -27805,6 +28097,22 @@
         },
         "runtime": {
           "lib/netstandard2.0/SharpGLTF.Core.dll": {
+            "related": ".xml"
+          }
+        }
+      },
+      "SharpGLTF.Toolkit/1.0.0-alpha0015": {
+        "type": "package",
+        "dependencies": {
+          "SharpGLTF.Core": "1.0.0-alpha0015"
+        },
+        "compile": {
+          "lib/netstandard2.0/SharpGLTF.Toolkit.dll": {
+            "related": ".xml"
+          }
+        },
+        "runtime": {
+          "lib/netstandard2.0/SharpGLTF.Toolkit.dll": {
             "related": ".xml"
           }
         }
@@ -29037,7 +29345,9 @@
           "OpenCvSharp4": "4.9.0.20240103",
           "OpenCvSharp4.runtime.win": "4.9.0.20240103",
           "OpenTK": "4.7.6",
+          "PMXParser": "1.1.1",
           "SharpGLTF.Core": "1.0.0-alpha0015",
+          "SharpGLTF.Toolkit": "1.0.0-alpha0015",
           "SixLabors.ImageSharp": "3.1.10",
           "ViewerApp": "1.0.0"
         },
@@ -29826,6 +30136,19 @@
           }
         }
       },
+      "PMXParser/1.1.1": {
+        "type": "package",
+        "compile": {
+          "lib/net5.0/PMXParser.dll": {
+            "related": ".xml"
+          }
+        },
+        "runtime": {
+          "lib/net5.0/PMXParser.dll": {
+            "related": ".xml"
+          }
+        }
+      },
       "runtime.any.System.Collections/4.3.0": {
         "type": "package",
         "dependencies": {
@@ -30255,6 +30578,22 @@
         },
         "runtime": {
           "lib/netstandard2.0/SharpGLTF.Core.dll": {
+            "related": ".xml"
+          }
+        }
+      },
+      "SharpGLTF.Toolkit/1.0.0-alpha0015": {
+        "type": "package",
+        "dependencies": {
+          "SharpGLTF.Core": "1.0.0-alpha0015"
+        },
+        "compile": {
+          "lib/netstandard2.0/SharpGLTF.Toolkit.dll": {
+            "related": ".xml"
+          }
+        },
+        "runtime": {
+          "lib/netstandard2.0/SharpGLTF.Toolkit.dll": {
             "related": ".xml"
           }
         }
@@ -31487,7 +31826,9 @@
           "OpenCvSharp4": "4.9.0.20240103",
           "OpenCvSharp4.runtime.win": "4.9.0.20240103",
           "OpenTK": "4.7.6",
+          "PMXParser": "1.1.1",
           "SharpGLTF.Core": "1.0.0-alpha0015",
+          "SharpGLTF.Toolkit": "1.0.0-alpha0015",
           "SixLabors.ImageSharp": "3.1.10",
           "ViewerApp": "1.0.0"
         },
@@ -32296,6 +32637,19 @@
           }
         }
       },
+      "PMXParser/1.1.1": {
+        "type": "package",
+        "compile": {
+          "lib/net5.0/PMXParser.dll": {
+            "related": ".xml"
+          }
+        },
+        "runtime": {
+          "lib/net5.0/PMXParser.dll": {
+            "related": ".xml"
+          }
+        }
+      },
       "runtime.any.System.Collections/4.3.0": {
         "type": "package",
         "dependencies": {
@@ -32725,6 +33079,22 @@
         },
         "runtime": {
           "lib/netstandard2.0/SharpGLTF.Core.dll": {
+            "related": ".xml"
+          }
+        }
+      },
+      "SharpGLTF.Toolkit/1.0.0-alpha0015": {
+        "type": "package",
+        "dependencies": {
+          "SharpGLTF.Core": "1.0.0-alpha0015"
+        },
+        "compile": {
+          "lib/netstandard2.0/SharpGLTF.Toolkit.dll": {
+            "related": ".xml"
+          }
+        },
+        "runtime": {
+          "lib/netstandard2.0/SharpGLTF.Toolkit.dll": {
             "related": ".xml"
           }
         }
@@ -33962,7 +34332,9 @@
           "OpenCvSharp4": "4.9.0.20240103",
           "OpenCvSharp4.runtime.win": "4.9.0.20240103",
           "OpenTK": "4.7.6",
+          "PMXParser": "1.1.1",
           "SharpGLTF.Core": "1.0.0-alpha0015",
+          "SharpGLTF.Toolkit": "1.0.0-alpha0015",
           "SixLabors.ImageSharp": "3.1.10",
           "ViewerApp": "1.0.0"
         },
@@ -35800,6 +36172,28 @@
         "opentk.windowing.graphicslibraryframework.nuspec"
       ]
     },
+    "PMXParser/1.1.1": {
+      "sha512": "73nyzaj79hTjudtE7IvwC0KMx+oxuTqEGEKCNGEk/1qMNjMVAY8qUkVR6mCtxKZ6gRax5b+KuWwWLC7igZvspQ==",
+      "type": "package",
+      "path": "pmxparser/1.1.1",
+      "files": [
+        ".nupkg.metadata",
+        ".signature.p7s",
+        "LICENSE",
+        "lib/net48/PMXParser.dll",
+        "lib/net48/PMXParser.xml",
+        "lib/net5.0/PMXParser.dll",
+        "lib/net5.0/PMXParser.xml",
+        "lib/netcoreapp3.1/PMXParser.dll",
+        "lib/netcoreapp3.1/PMXParser.xml",
+        "lib/netstandard2.0/PMXParser.dll",
+        "lib/netstandard2.0/PMXParser.xml",
+        "lib/netstandard2.1/PMXParser.dll",
+        "lib/netstandard2.1/PMXParser.xml",
+        "pmxparser.1.1.1.nupkg.sha512",
+        "pmxparser.nuspec"
+      ]
+    },
     "runtime.any.System.Collections/4.3.0": {
       "sha512": "23g6rqftKmovn2cLeGsuHUYm0FD7pdutb0uQMJpZ3qTvq+zHkgmt6J65VtRry4WDGYlmkMa4xDACtaQ94alNag==",
       "type": "package",
@@ -36605,6 +36999,20 @@
         "lib/netstandard2.0/SharpGLTF.Core.xml",
         "sharpgltf.core.1.0.0-alpha0015.nupkg.sha512",
         "sharpgltf.core.nuspec"
+      ]
+    },
+    "SharpGLTF.Toolkit/1.0.0-alpha0015": {
+      "sha512": "Es3F2SKzzGTOBxlq6751f7X9hOk82r0unEBkgeeopOZYAMUVuPHkgxkC+M9pmxdUEeBmg7H3SCJcQzyPUKzZkQ==",
+      "type": "package",
+      "path": "sharpgltf.toolkit/1.0.0-alpha0015",
+      "files": [
+        ".nupkg.metadata",
+        ".signature.p7s",
+        "glTF2Sharp.png",
+        "lib/netstandard2.0/SharpGLTF.Toolkit.dll",
+        "lib/netstandard2.0/SharpGLTF.Toolkit.xml",
+        "sharpgltf.toolkit.1.0.0-alpha0015.nupkg.sha512",
+        "sharpgltf.toolkit.nuspec"
       ]
     },
     "SixLabors.ImageSharp/3.1.10": {

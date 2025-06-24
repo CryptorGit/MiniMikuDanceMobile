@@ -78,7 +78,15 @@
               "target": "Package",
               "version": "[4.7.6, )"
             },
+            "PMXParser": {
+              "target": "Package",
+              "version": "[1.1.1, )"
+            },
             "SharpGLTF.Core": {
+              "target": "Package",
+              "version": "[1.0.0-alpha0015, )"
+            },
+            "SharpGLTF.Toolkit": {
               "target": "Package",
               "version": "[1.0.0-alpha0015, )"
             },
