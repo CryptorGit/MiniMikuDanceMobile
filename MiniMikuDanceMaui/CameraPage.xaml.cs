@@ -29,6 +29,7 @@ public partial class CameraPage : ContentPage
     private bool _glInitialized;
     private readonly Dictionary<long, SKPoint> _touchPoints = new();
     private string? _modelPath;
+    private bool _loadingModel;
 
     public CameraPage()
     {
@@ -74,6 +75,10 @@ public partial class CameraPage : ContentPage
     public void SetModelPath(string path)
     {
         _modelPath = path;
+        if (_glInitialized && !_loadingModel)
+        {
+            _ = LoadModelAsync(path);
+        }
     }
 
     private async Task OnImportClicked()
@@ -86,13 +91,26 @@ public partial class CameraPage : ContentPage
             return;
 
         _modelPath = result.FullPath;
-        if (_glInitialized)
+        if (_glInitialized && !_loadingModel)
+        {
+            await LoadModelAsync(_modelPath);
+        }
+    }
+
+    private async Task LoadModelAsync(string path)
+    {
+        _loadingModel = true;
+        var data = await Task.Run(() =>
         {
             var importer = new ModelImporter();
-            var data = importer.ImportModel(_modelPath);
+            return importer.ImportModel(path);
+        });
+        MainThread.BeginInvokeOnMainThread(() =>
+        {
             _renderer.LoadModel(data);
             Viewer?.InvalidateSurface();
-        }
+            _loadingModel = false;
+        });
     }
 
     protected override void OnAppearing()
@@ -242,11 +260,9 @@ public partial class CameraPage : ContentPage
         {
             GL.LoadBindings(new SKGLViewBindingsContext());
             _renderer.Initialize();
-            if (!string.IsNullOrEmpty(_modelPath) && File.Exists(_modelPath))
+            if (!string.IsNullOrEmpty(_modelPath) && !_loadingModel)
             {
-                var importer = new ModelImporter();
-                var data = importer.ImportModel(_modelPath);
-                _renderer.LoadModel(data);
+                _ = LoadModelAsync(_modelPath);
             }
             _glInitialized = true;
         }
