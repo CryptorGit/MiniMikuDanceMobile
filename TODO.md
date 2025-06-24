@@ -103,6 +103,7 @@ AGENTS.md で挙げたカテゴリをより細分化し、優先度や検討事�
   - [x] NuGet 追加 (PMXParser, SharpGLTF.Scenes)
   - [x] `PmxToGltfService` 実装
   - [x] ファイルピッカーで .pmx 受け取り変換
+  - [x] SharpGLTF.Toolkit 1.0.4 へ更新し ToGltf2 エラーを修正
 - [ ] **第2章 glTF 読み込みとスキニング描画**
   - [ ] AssetLoader で glb 読み込み
   - [ ] 頂点属性を詰め替え
