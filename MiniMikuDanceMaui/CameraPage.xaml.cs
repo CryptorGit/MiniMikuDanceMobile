@@ -1,5 +1,4 @@
 #if ANDROID
-using Android.Graphics.Drawables.Shapes;
 using Android.Opengl;
 #endif
 using Microsoft.Maui;
@@ -73,7 +72,9 @@ public partial class CameraPage : ContentPage
         {
             glView.PaintSurface += OnPaintSurface;
             glView.Touch += OnViewTouch;
+#if ANDROID
             glView.HandlerChanged += OnViewerHandlerChanged;
+#endif
         }
     }
 
@@ -362,13 +363,13 @@ public partial class CameraPage : ContentPage
         Viewer?.InvalidateSurface();
     }
 
-#if ANDROID
     private void OnViewerHandlerChanged(object? sender, EventArgs e)
     {
+#if ANDROID
         if (Viewer?.Handler?.PlatformView is GLSurfaceView native)
         {
             native.PreserveEGLContextOnPause = true;
         }
-    }
 #endif
+    }
 }

@@ -18,6 +18,7 @@ AGENTS.md で挙げたカテゴリをより細分化し、優先度や検討事�
 - [x] GL コンテキスト破棄タイミングを改善 (OnDisappearing で遅延処理)
 - [x] GL コンテキスト有無チェックを追加し描画前に検証
 - [x] リソース準備フラグを導入し初期化前の描画を回避
+- [x] Android で GLSurfaceView の PreserveEGLContextOnPause を設定
 - [ ] シンプルな UI 表示（FPS, 読み込み進捗）
 - [x] Path 競合と PathParser 不足に起因するビルドエラー修正
 - [x] SkiaSharp.Views.Maui.Controls パッケージ更新で Android リソースエラー解消
