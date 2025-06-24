@@ -10,6 +10,7 @@ using Microsoft.Maui.Layouts;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.IO;
 using System.Threading.Tasks;
 using Microsoft.Maui.Storage;
 using ShapePath = Microsoft.Maui.Controls.Shapes.Path;
@@ -63,6 +64,7 @@ public partial class CameraPage : ContentPage
         };
 
         ImportBtn.Clicked += async (s, e) => await OnImportModel();
+        ConvertBtn.Clicked += async (s, e) => await OnConvertModel();
 
         if (Viewer is SKGLView glView)
         {
@@ -240,6 +242,36 @@ public partial class CameraPage : ContentPage
         catch (Exception ex)
         {
             Debug.WriteLine($"Import failed: {ex.Message}");
+        }
+    }
+
+    private async Task OnConvertModel()
+    {
+        var file = await FilePicker.Default.PickAsync(new PickOptions
+        {
+            PickerTitle = "Select PMX Model",
+            FileTypes = FilePickerFileType.All
+        });
+        if (file == null)
+            return;
+
+        try
+        {
+            await Task.Run(async () =>
+            {
+                using var stream = await file.OpenReadAsync();
+                var bytes = PmxToGltfService.Convert(stream);
+                var glbPath = Path.Combine(FileSystem.AppDataDirectory,
+                    Path.GetFileNameWithoutExtension(file.FileName) + ".glb");
+                await File.WriteAllBytesAsync(glbPath, bytes);
+            });
+            await DisplayAlert("Converted",
+                $"Saved glb to {Path.Combine(FileSystem.AppDataDirectory, Path.GetFileNameWithoutExtension(file.FileName) + ".glb")}",
+                "OK");
+        }
+        catch (Exception ex)
+        {
+            Debug.WriteLine($"Convert failed: {ex.Message}");
         }
     }
 

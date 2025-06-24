@@ -49,6 +49,7 @@
         <ContentView x:Name="Sidebar" BackgroundColor="#1E1E1EEB">
             <VerticalStackLayout Padding="20" Spacing="16">
                 <Button x:Name="ImportBtn" Text="IMPORT" />
+                <Button x:Name="ConvertBtn" Text="CONVERT" />
                 <Button x:Name="PoseBtn" Text="POSE" />
                 <Button x:Name="MotionBtn" Text="MOTION" />
                 <Button x:Name="ArBtn" Text="AR" />
