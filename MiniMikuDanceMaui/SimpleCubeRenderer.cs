@@ -156,14 +156,14 @@ void main(){
         {
             if (v.Y < minY) minY = v.Y;
         }
-        _modelOffset = new Vector3(0f, -minY, 0f);
+        _modelOffset = minY < 0f ? new Vector3(0f, -minY, 0f) : Vector3.Zero;
 
         float[] vbuf = new float[verts.Count * 3];
         for (int i = 0; i < verts.Count; i++)
         {
-            vbuf[i * 3 + 0] = verts[i].X + _modelOffset.X;
-            vbuf[i * 3 + 1] = verts[i].Y + _modelOffset.Y;
-            vbuf[i * 3 + 2] = verts[i].Z + _modelOffset.Z;
+            vbuf[i * 3 + 0] = verts[i].X;
+            vbuf[i * 3 + 1] = verts[i].Y;
+            vbuf[i * 3 + 2] = verts[i].Z;
         }
 
         _modelVao = GL.GenVertexArray();

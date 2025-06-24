@@ -214,7 +214,18 @@ public partial class CameraPage : ContentPage
 
     private async Task OnImportModel()
     {
-        var file = await FilePicker.Default.PickAsync();
+        var fileTypes = new FilePickerFileType(new Dictionary<DevicePlatform, IEnumerable<string>>
+        {
+            { DevicePlatform.Android, new[] { "*/*" } },
+            { DevicePlatform.iOS, new[] { "public.3d-content" } },
+            { DevicePlatform.WinUI, new[] { ".obj", ".fbx", ".gltf", ".glb", ".vrm" } }
+        });
+
+        var file = await FilePicker.Default.PickAsync(new PickOptions
+        {
+            PickerTitle = "Select 3D Model",
+            FileTypes = fileTypes
+        });
         if (file == null)
             return;
 
