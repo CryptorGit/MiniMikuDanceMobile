@@ -262,9 +262,17 @@ public partial class CameraPage : ContentPage
     {
         if (_pendingDispose)
         {
-            _renderer.Dispose();
+            if (GLContextHelper.HasCurrentContext())
+            {
+                _renderer.Dispose();
+            }
             _glInitialized = false;
             _pendingDispose = false;
+            return;
+        }
+
+        if (!GLContextHelper.HasCurrentContext())
+        {
             return;
         }
 

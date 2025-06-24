@@ -16,6 +16,7 @@ AGENTS.md で挙げたカテゴリをより細分化し、優先度や検討事�
   - SimpleCubeRenderer で VRM/GLTF モデル読込に対応
 - [x] VRM 読み込み処理をバックグラウンド化
 - [x] GL コンテキスト破棄タイミングを改善 (OnDisappearing で遅延処理)
+- [x] GL コンテキスト有無チェックを追加し描画前に検証
 - [ ] シンプルな UI 表示（FPS, 読み込み進捗）
 - [x] Path 競合と PathParser 不足に起因するビルドエラー修正
 - [x] SkiaSharp.Views.Maui.Controls パッケージ更新で Android リソースエラー解消
