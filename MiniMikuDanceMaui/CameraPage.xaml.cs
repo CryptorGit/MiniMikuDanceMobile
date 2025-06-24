@@ -10,12 +10,14 @@ using Microsoft.Maui.Layouts;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.IO;
 using System.Threading.Tasks;
 using ShapePath = Microsoft.Maui.Controls.Shapes.Path;
 using SkiaSharp.Views.Maui;
 using SkiaSharp.Views.Maui.Controls;
 using SkiaSharp;
 using OpenTK.Graphics.ES30;
+using MiniMikuDance.Import;
 
 namespace MiniMikuDanceMaui;
 
@@ -27,6 +29,7 @@ public partial class CameraPage : ContentPage
     private readonly SimpleCubeRenderer _renderer = new();
     private bool _glInitialized;
     private readonly Dictionary<long, SKPoint> _touchPoints = new();
+    private string? _modelPath;
 
     public CameraPage()
     {
@@ -65,6 +68,11 @@ public partial class CameraPage : ContentPage
             glView.PaintSurface += OnPaintSurface;
             glView.Touch += OnViewTouch;
         }
+    }
+
+    public void SetModelPath(string path)
+    {
+        _modelPath = path;
     }
 
     protected override void OnAppearing()
@@ -214,6 +222,12 @@ public partial class CameraPage : ContentPage
         {
             GL.LoadBindings(new SKGLViewBindingsContext());
             _renderer.Initialize();
+            if (!string.IsNullOrEmpty(_modelPath) && File.Exists(_modelPath))
+            {
+                var importer = new ModelImporter();
+                var data = importer.ImportModel(_modelPath);
+                _renderer.LoadModel(data);
+            }
             _glInitialized = true;
         }
         _renderer.Resize(e.BackendRenderTarget.Width, e.BackendRenderTarget.Height);
