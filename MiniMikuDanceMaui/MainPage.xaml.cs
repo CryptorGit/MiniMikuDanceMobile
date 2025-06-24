@@ -12,6 +12,7 @@ using Microsoft.Maui.ApplicationModel.DataTransfer;
 using MiniMikuDance.App;
 using MiniMikuDance.UI;
 using MiniMikuDance.Util;
+using MiniMikuDance.Import;
 
 namespace MiniMikuDanceMaui;
 
@@ -161,6 +162,7 @@ public partial class MainPage : ContentPage
                 new UIButton { Label = "Play Motion", Message = "play_motion" },
                 new UIButton { Label = "Record", Message = "toggle_record" },
                 new UIButton { Label = "Export BVH", Message = "export_bvh" },
+                new UIButton { Label = "PMX2glTF", Message = "pmx2gltf" },
                 new UIButton { Label = "Share", Message = "share_recording" },
             },
             Toggles = new()
@@ -250,6 +252,24 @@ public partial class MainPage : ContentPage
                 var bvhPath = SystemPath.Combine(FileSystem.CacheDirectory, "motion.bvh");
                 _initializer.ExportBvh(bvhPath);
                 UIManager.Instance.SetMessage($"BVH exported: {bvhPath}");
+                break;
+            case "pmx2gltf":
+                var pmxFile = await FilePicker.Default.PickAsync();
+                if (pmxFile != null)
+                {
+                    ProgressBar.Progress = 0;
+                    ProgressBar.IsVisible = true;
+                    await Task.Run(async () =>
+                    {
+                        using var stream = await pmxFile.OpenReadAsync();
+                        var bytes = PmxToGltfService.Convert(stream);
+                        var glbPath = SystemPath.Combine(FileSystem.AppDataDirectory,
+                            SystemPath.GetFileNameWithoutExtension(pmxFile.FileName) + ".glb");
+                        await File.WriteAllBytesAsync(glbPath, bytes);
+                    });
+                    ProgressBar.IsVisible = false;
+                    UIManager.Instance.SetMessage("PMX converted to glTF");
+                }
                 break;
             case "share_recording":
                 var recPath = _initializer.Recorder?.GetSavedPath();
