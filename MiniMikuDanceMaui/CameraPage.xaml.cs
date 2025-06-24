@@ -18,6 +18,7 @@ using SkiaSharp.Views.Maui.Controls;
 using SkiaSharp;
 using OpenTK.Graphics.ES30;
 using MiniMikuDance.Import;
+using Microsoft.Maui.Storage;
 
 namespace MiniMikuDanceMaui;
 
@@ -63,6 +64,8 @@ public partial class CameraPage : ContentPage
             Viewer?.InvalidateSurface();
         };
 
+        ImportBtn.Clicked += async (s, e) => await OnImportClicked();
+
         if (Viewer is SKGLView glView)
         {
             glView.PaintSurface += OnPaintSurface;
@@ -73,6 +76,25 @@ public partial class CameraPage : ContentPage
     public void SetModelPath(string path)
     {
         _modelPath = path;
+    }
+
+    private async Task OnImportClicked()
+    {
+        var result = await FilePicker.Default.PickAsync();
+        if (result == null)
+            return;
+
+        if (Path.GetExtension(result.FileName).ToLowerInvariant() != ".vrm")
+            return;
+
+        _modelPath = result.FullPath;
+        if (_glInitialized)
+        {
+            var importer = new ModelImporter();
+            var data = importer.ImportModel(_modelPath);
+            _renderer.LoadModel(data);
+            Viewer?.InvalidateSurface();
+        }
     }
 
     protected override void OnAppearing()
