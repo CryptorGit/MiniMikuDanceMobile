@@ -1,5 +1,6 @@
 #if ANDROID
 using Android.Graphics.Drawables.Shapes;
+using Android.Opengl;
 #endif
 using Microsoft.Maui;
 using Microsoft.Maui.ApplicationModel;
@@ -27,10 +28,12 @@ public partial class CameraPage : ContentPage
     private bool _fullScreen;
     private readonly SimpleCubeRenderer _renderer = new();
     private bool _glInitialized;
+    private bool _resourcesReady;
     private readonly Dictionary<long, SKPoint> _touchPoints = new();
     private string? _modelPath;
     private bool _loadingModel;
     private bool _pendingDispose;
+    
 
     public CameraPage()
     {
@@ -70,12 +73,14 @@ public partial class CameraPage : ContentPage
         {
             glView.PaintSurface += OnPaintSurface;
             glView.Touch += OnViewTouch;
+            glView.HandlerChanged += OnViewerHandlerChanged;
         }
     }
 
     public void SetModelPath(string path)
     {
         _modelPath = path;
+        _resourcesReady = false;
         if (_glInitialized && !_loadingModel)
         {
             _ = LoadModelAsync(path);
@@ -92,6 +97,7 @@ public partial class CameraPage : ContentPage
             return;
 
         _modelPath = result.FullPath;
+        _resourcesReady = false;
         if (_glInitialized && !_loadingModel)
         {
             await LoadModelAsync(_modelPath);
@@ -101,6 +107,12 @@ public partial class CameraPage : ContentPage
     private async Task LoadModelAsync(string path)
     {
         _loadingModel = true;
+        _resourcesReady = false;
+        MainThread.BeginInvokeOnMainThread(() =>
+        {
+            LoadingIndicator.IsVisible = true;
+            LoadingIndicator.IsRunning = true;
+        });
         var data = await Task.Run(() =>
         {
             var importer = new ModelImporter();
@@ -109,6 +121,9 @@ public partial class CameraPage : ContentPage
         MainThread.BeginInvokeOnMainThread(() =>
         {
             _renderer.LoadModel(data);
+            _resourcesReady = true;
+            LoadingIndicator.IsRunning = false;
+            LoadingIndicator.IsVisible = false;
             Viewer?.InvalidateSurface();
             _loadingModel = false;
         });
@@ -118,6 +133,9 @@ public partial class CameraPage : ContentPage
     {
         base.OnAppearing();
         _glInitialized = false;
+        _resourcesReady = false;
+        LoadingIndicator.IsVisible = false;
+        LoadingIndicator.IsRunning = false;
     }
 
     protected override void OnDisappearing()
@@ -127,6 +145,9 @@ public partial class CameraPage : ContentPage
         {
             _pendingDispose = true;
             Viewer?.InvalidateSurface();
+            _resourcesReady = false;
+            LoadingIndicator.IsVisible = false;
+            LoadingIndicator.IsRunning = false;
         }
     }
 
@@ -267,6 +288,7 @@ public partial class CameraPage : ContentPage
                 _renderer.Dispose();
             }
             _glInitialized = false;
+            _resourcesReady = false;
             _pendingDispose = false;
             return;
         }
@@ -280,12 +302,20 @@ public partial class CameraPage : ContentPage
         {
             GL.LoadBindings(new SKGLViewBindingsContext());
             _renderer.Initialize();
+            _resourcesReady = string.IsNullOrEmpty(_modelPath);
             if (!string.IsNullOrEmpty(_modelPath) && !_loadingModel)
             {
                 _ = LoadModelAsync(_modelPath);
             }
             _glInitialized = true;
+            return;
         }
+
+        if (_loadingModel || !_resourcesReady)
+        {
+            return;
+        }
+
         _renderer.Resize(e.BackendRenderTarget.Width, e.BackendRenderTarget.Height);
         _renderer.Render();
         GL.Flush();
@@ -331,4 +361,14 @@ public partial class CameraPage : ContentPage
         e.Handled = true;
         Viewer?.InvalidateSurface();
     }
+
+#if ANDROID
+    private void OnViewerHandlerChanged(object? sender, EventArgs e)
+    {
+        if (Viewer?.Handler?.PlatformView is GLSurfaceView native)
+        {
+            native.PreserveEGLContextOnPause = true;
+        }
+    }
+#endif
 }

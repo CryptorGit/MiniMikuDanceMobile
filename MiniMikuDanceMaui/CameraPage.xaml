@@ -7,6 +7,13 @@
     <AbsoluteLayout x:Name="Root">
         <skia:SKGLView x:Name="Viewer" HasRenderLoop="True" EnableTouchEvents="True" />
         <BoxView x:Name="MenuOverlay" BackgroundColor="#00000033" IsVisible="False" />
+        <ActivityIndicator x:Name="LoadingIndicator"
+                           IsVisible="False"
+                           IsRunning="False"
+                           Color="White"
+                           WidthRequest="40" HeightRequest="40"
+                           AbsoluteLayout.LayoutBounds="0.5,0.5,40,40"
+                           AbsoluteLayout.LayoutFlags="PositionProportional" />
         <Grid x:Name="LowerPaneBody" BackgroundColor="#222">
             <!-- small grab/gradient bar -->
             <BoxView HeightRequest="8"
