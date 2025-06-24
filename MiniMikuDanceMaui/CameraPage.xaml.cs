@@ -11,11 +11,13 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Threading.Tasks;
+using Microsoft.Maui.Storage;
 using ShapePath = Microsoft.Maui.Controls.Shapes.Path;
 using SkiaSharp.Views.Maui;
 using SkiaSharp.Views.Maui.Controls;
 using SkiaSharp;
 using OpenTK.Graphics.ES30;
+using MiniMikuDance.Import;
 
 namespace MiniMikuDanceMaui;
 
@@ -59,6 +61,8 @@ public partial class CameraPage : ContentPage
             _renderer.ResetCamera();
             Viewer?.InvalidateSurface();
         };
+
+        ImportBtn.Clicked += async (s, e) => await OnImportModel();
 
         if (Viewer is SKGLView glView)
         {
@@ -206,6 +210,26 @@ public partial class CameraPage : ContentPage
             StickPad.TranslateTo(0, 0, 200, Easing.SinOut)
         };
         await Task.WhenAll(tasks);
+    }
+
+    private async Task OnImportModel()
+    {
+        var file = await FilePicker.Default.PickAsync();
+        if (file == null)
+            return;
+
+        try
+        {
+            var importer = new ModelImporter();
+            var model = importer.ImportModel(file.FullPath);
+            _renderer.LoadModel(model);
+            _renderer.ResetCamera();
+            Viewer?.InvalidateSurface();
+        }
+        catch (Exception ex)
+        {
+            Debug.WriteLine($"Import failed: {ex.Message}");
+        }
     }
 
     private void OnPaintSurface(object? sender, SKPaintGLSurfaceEventArgs e)

@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using OpenTK.Mathematics;
 using OpenTK.Graphics.ES30;
 
@@ -9,6 +10,11 @@ public class SimpleCubeRenderer : IDisposable
     private int _program;
     private int _vbo;
     private int _vao;
+    private int _modelVao;
+    private int _modelVbo;
+    private int _modelEbo;
+    private int _modelIndexCount;
+    private Vector3 _modelOffset = Vector3.Zero;
     private int _gridVao;
     private int _gridVbo;
     private int _modelLoc;
@@ -17,7 +23,7 @@ public class SimpleCubeRenderer : IDisposable
     private int _colorLoc;
     private float _angle;
     private float _orbitX;
-    private float _orbitY = MathHelper.PiOver4;
+    private float _orbitY;
     private float _distance = 4f;
     private Vector3 _target = Vector3.Zero;
     private int _groundVao;
@@ -125,6 +131,54 @@ void main(){
         GL.BindVertexArray(0);
     }
 
+    public void LoadModel(ModelData data)
+    {
+        if (_modelVao != 0)
+        {
+            GL.DeleteVertexArray(_modelVao);
+            GL.DeleteBuffer(_modelVbo);
+            GL.DeleteBuffer(_modelEbo);
+            _modelVao = _modelVbo = _modelEbo = 0;
+        }
+
+        var verts = data.Mesh.Vertices;
+        var indices = new List<uint>();
+        foreach (var f in data.Mesh.Faces)
+        {
+            indices.Add((uint)f.Indices[0]);
+            indices.Add((uint)f.Indices[1]);
+            indices.Add((uint)f.Indices[2]);
+        }
+        _modelIndexCount = indices.Count;
+
+        float minY = float.MaxValue;
+        foreach (var v in verts)
+        {
+            if (v.Y < minY) minY = v.Y;
+        }
+        _modelOffset = new Vector3(0f, -minY, 0f);
+
+        float[] vbuf = new float[verts.Count * 3];
+        for (int i = 0; i < verts.Count; i++)
+        {
+            vbuf[i * 3 + 0] = verts[i].X + _modelOffset.X;
+            vbuf[i * 3 + 1] = verts[i].Y + _modelOffset.Y;
+            vbuf[i * 3 + 2] = verts[i].Z + _modelOffset.Z;
+        }
+
+        _modelVao = GL.GenVertexArray();
+        _modelVbo = GL.GenBuffer();
+        _modelEbo = GL.GenBuffer();
+        GL.BindVertexArray(_modelVao);
+        GL.BindBuffer(BufferTarget.ArrayBuffer, _modelVbo);
+        GL.BufferData(BufferTarget.ArrayBuffer, vbuf.Length * sizeof(float), vbuf, BufferUsageHint.StaticDraw);
+        GL.VertexAttribPointer(0, 3, VertexAttribPointerType.Float, false, 3 * sizeof(float), 0);
+        GL.EnableVertexAttribArray(0);
+        GL.BindBuffer(BufferTarget.ElementArrayBuffer, _modelEbo);
+        GL.BufferData(BufferTarget.ElementArrayBuffer, indices.Count * sizeof(uint), indices.ToArray(), BufferUsageHint.StaticDraw);
+        GL.BindVertexArray(0);
+    }
+
     public void Resize(int width, int height)
     {
         _width = width;
@@ -155,7 +209,7 @@ void main(){
     public void ResetCamera()
     {
         _orbitX = 0f;
-        _orbitY = MathHelper.PiOver4;
+        _orbitY = 0f; // 正面向き
         _distance = 4f;
         _target = Vector3.Zero;
     }
@@ -166,7 +220,7 @@ void main(){
         GL.ClearColor(1f, 1f, 1f, 1f);
         GL.Clear(ClearBufferMask.ColorBufferBit | ClearBufferMask.DepthBufferBit);
 
-        Matrix4 model = Matrix4.Identity;
+        Matrix4 model = Matrix4.CreateTranslation(_modelOffset);
         Matrix4 rot = Matrix4.CreateRotationX(_orbitX) * Matrix4.CreateRotationY(_orbitY);
         Vector3 cam = Vector3.TransformPosition(new Vector3(0, 0, _distance), rot) + _target;
         Matrix4 view = Matrix4.LookAt(cam, _target, Vector3.UnitY);
@@ -184,11 +238,19 @@ void main(){
         GL.DrawArrays(PrimitiveType.Triangles, 0, 6);
         GL.BindVertexArray(0);
 
-        // draw cube
+        // draw cube or loaded model
         GL.UniformMatrix4(_modelLoc, false, ref model);
         GL.Uniform4(_colorLoc, new Vector4(0.3f, 0.7f, 1.0f, 1.0f));
-        GL.BindVertexArray(_vao);
-        GL.DrawArrays(PrimitiveType.Triangles, 0, 36);
+        if (_modelVao != 0)
+        {
+            GL.BindVertexArray(_modelVao);
+            GL.DrawElements(PrimitiveType.Triangles, _modelIndexCount, DrawElementsType.UnsignedInt, 0);
+        }
+        else
+        {
+            GL.BindVertexArray(_vao);
+            GL.DrawArrays(PrimitiveType.Triangles, 0, 36);
+        }
         GL.BindVertexArray(0);
 
         // draw grid
@@ -202,9 +264,12 @@ void main(){
     public void Dispose()
     {
         GL.DeleteBuffer(_vbo);
+        if (_modelVbo != 0) GL.DeleteBuffer(_modelVbo);
+        if (_modelEbo != 0) GL.DeleteBuffer(_modelEbo);
         GL.DeleteBuffer(_gridVbo);
         GL.DeleteBuffer(_groundVbo);
         GL.DeleteVertexArray(_vao);
+        if (_modelVao != 0) GL.DeleteVertexArray(_modelVao);
         GL.DeleteVertexArray(_gridVao);
         GL.DeleteVertexArray(_groundVao);
         GL.DeleteProgram(_program);
