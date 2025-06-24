@@ -9,8 +9,6 @@ namespace MiniMikuDanceMaui;
 public class SimpleCubeRenderer : IDisposable
 {
     private int _program;
-    private int _vbo;
-    private int _vao;
     private int _modelVao;
     private int _modelVbo;
     private int _modelEbo;
@@ -65,8 +63,6 @@ void main(){
         _projLoc = GL.GetUniformLocation(_program, "uProj");
         _colorLoc = GL.GetUniformLocation(_program, "uColor");
 
-        _vao = 0;
-        _vbo = 0;
 
         // grid vertices (XZ plane)
         int gridLines = (10 - (-10) + 1) * 2; // 21 lines along each axis
@@ -236,12 +232,10 @@ void main(){
 
     public void Dispose()
     {
-        if (_vbo != 0) GL.DeleteBuffer(_vbo);
         if (_modelVbo != 0) GL.DeleteBuffer(_modelVbo);
         if (_modelEbo != 0) GL.DeleteBuffer(_modelEbo);
         GL.DeleteBuffer(_gridVbo);
         GL.DeleteBuffer(_groundVbo);
-        if (_vao != 0) GL.DeleteVertexArray(_vao);
         if (_modelVao != 0) GL.DeleteVertexArray(_modelVao);
         GL.DeleteVertexArray(_gridVao);
         GL.DeleteVertexArray(_groundVao);
