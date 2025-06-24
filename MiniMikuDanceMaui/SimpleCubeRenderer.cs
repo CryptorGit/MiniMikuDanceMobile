@@ -22,7 +22,6 @@ public class SimpleCubeRenderer : IDisposable
     private int _viewLoc;
     private int _projLoc;
     private int _colorLoc;
-    private float _angle;
     private float _orbitX;
     private float _orbitY;
     private float _distance = 4f;
@@ -66,30 +65,8 @@ void main(){
         _projLoc = GL.GetUniformLocation(_program, "uProj");
         _colorLoc = GL.GetUniformLocation(_program, "uColor");
 
-        float[] verts = {
-            -0.5f,-0.5f,-0.5f,  0.5f,-0.5f,-0.5f,  0.5f, 0.5f,-0.5f,
-            -0.5f,-0.5f,-0.5f,  0.5f, 0.5f,-0.5f, -0.5f, 0.5f,-0.5f,
-            -0.5f,-0.5f, 0.5f,  0.5f,-0.5f, 0.5f,  0.5f, 0.5f, 0.5f,
-            -0.5f,-0.5f, 0.5f,  0.5f, 0.5f, 0.5f, -0.5f, 0.5f, 0.5f,
-            -0.5f,-0.5f,-0.5f, -0.5f, 0.5f,-0.5f, -0.5f, 0.5f, 0.5f,
-            -0.5f,-0.5f,-0.5f, -0.5f, 0.5f, 0.5f, -0.5f,-0.5f, 0.5f,
-             0.5f,-0.5f,-0.5f,  0.5f, 0.5f,-0.5f,  0.5f, 0.5f, 0.5f,
-             0.5f,-0.5f,-0.5f,  0.5f, 0.5f, 0.5f,  0.5f,-0.5f, 0.5f,
-            -0.5f,-0.5f,-0.5f, -0.5f,-0.5f, 0.5f,  0.5f,-0.5f, 0.5f,
-            -0.5f,-0.5f,-0.5f,  0.5f,-0.5f, 0.5f,  0.5f,-0.5f,-0.5f,
-            -0.5f, 0.5f,-0.5f, -0.5f, 0.5f, 0.5f,  0.5f, 0.5f, 0.5f,
-            -0.5f, 0.5f,-0.5f,  0.5f, 0.5f, 0.5f,  0.5f, 0.5f,-0.5f
-        };
-
-        _vao = GL.GenVertexArray();
-        _vbo = GL.GenBuffer();
-        GL.BindVertexArray(_vao);
-        GL.BindBuffer(BufferTarget.ArrayBuffer, _vbo);
-        GL.BufferData(BufferTarget.ArrayBuffer, verts.Length * sizeof(float), verts, BufferUsageHint.StaticDraw);
-        GL.VertexAttribPointer(0, 3, VertexAttribPointerType.Float, false, 3 * sizeof(float), 0);
-        GL.EnableVertexAttribArray(0);
-        GL.BindBuffer(BufferTarget.ArrayBuffer, 0);
-        GL.BindVertexArray(0);
+        _vao = 0;
+        _vbo = 0;
 
         // grid vertices (XZ plane)
         int gridLines = (10 - (-10) + 1) * 2; // 21 lines along each axis
@@ -239,20 +216,15 @@ void main(){
         GL.DrawArrays(PrimitiveType.Triangles, 0, 6);
         GL.BindVertexArray(0);
 
-        // draw cube or loaded model
-        GL.UniformMatrix4(_modelLoc, false, ref model);
-        GL.Uniform4(_colorLoc, new Vector4(0.3f, 0.7f, 1.0f, 1.0f));
+        // draw imported model if available
         if (_modelVao != 0)
         {
+            GL.UniformMatrix4(_modelLoc, false, ref model);
+            GL.Uniform4(_colorLoc, new Vector4(0.3f, 0.7f, 1.0f, 1.0f));
             GL.BindVertexArray(_modelVao);
             GL.DrawElements(PrimitiveType.Triangles, _modelIndexCount, DrawElementsType.UnsignedInt, 0);
+            GL.BindVertexArray(0);
         }
-        else
-        {
-            GL.BindVertexArray(_vao);
-            GL.DrawArrays(PrimitiveType.Triangles, 0, 36);
-        }
-        GL.BindVertexArray(0);
 
         // draw grid
         GL.UniformMatrix4(_modelLoc, false, ref gridModel);
@@ -264,12 +236,12 @@ void main(){
 
     public void Dispose()
     {
-        GL.DeleteBuffer(_vbo);
+        if (_vbo != 0) GL.DeleteBuffer(_vbo);
         if (_modelVbo != 0) GL.DeleteBuffer(_modelVbo);
         if (_modelEbo != 0) GL.DeleteBuffer(_modelEbo);
         GL.DeleteBuffer(_gridVbo);
         GL.DeleteBuffer(_groundVbo);
-        GL.DeleteVertexArray(_vao);
+        if (_vao != 0) GL.DeleteVertexArray(_vao);
         if (_modelVao != 0) GL.DeleteVertexArray(_modelVao);
         GL.DeleteVertexArray(_gridVao);
         GL.DeleteVertexArray(_groundVao);
