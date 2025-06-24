@@ -4,7 +4,6 @@ using Android.Graphics.Drawables.Shapes;
 using Microsoft.Maui;
 using Microsoft.Maui.ApplicationModel;
 using Microsoft.Maui.Controls;
-using Microsoft.Maui.Controls.Shapes;
 using Microsoft.Maui.Graphics;
 using Microsoft.Maui.Layouts;
 using System;
@@ -13,7 +12,7 @@ using System.Diagnostics;
 using System.IO;
 using System.Threading.Tasks;
 using Microsoft.Maui.Storage;
-using ShapePath = Microsoft.Maui.Controls.Shapes.Path;
+using SystemPath = System.IO.Path;
 using SkiaSharp.Views.Maui;
 using SkiaSharp.Views.Maui.Controls;
 using SkiaSharp;
@@ -247,10 +246,16 @@ public partial class CameraPage : ContentPage
 
     private async Task OnConvertModel()
     {
+        var fileTypes = new FilePickerFileType(new Dictionary<DevicePlatform, IEnumerable<string>>
+        {
+            { DevicePlatform.Android, new[] { "*/*" } },
+            { DevicePlatform.iOS, new[] { "public.3d-content" } },
+            { DevicePlatform.WinUI, new[] { ".pmx" } }
+        });
         var file = await FilePicker.Default.PickAsync(new PickOptions
         {
             PickerTitle = "Select PMX Model",
-            FileTypes = FilePickerFileType.All
+            FileTypes = fileTypes
         });
         if (file == null)
             return;
@@ -261,12 +266,12 @@ public partial class CameraPage : ContentPage
             {
                 using var stream = await file.OpenReadAsync();
                 var bytes = PmxToGltfService.Convert(stream);
-                var glbPath = Path.Combine(FileSystem.AppDataDirectory,
-                    Path.GetFileNameWithoutExtension(file.FileName) + ".glb");
+                var glbPath = SystemPath.Combine(FileSystem.AppDataDirectory,
+                    SystemPath.GetFileNameWithoutExtension(file.FileName) + ".glb");
                 await File.WriteAllBytesAsync(glbPath, bytes);
             });
             await DisplayAlert("Converted",
-                $"Saved glb to {Path.Combine(FileSystem.AppDataDirectory, Path.GetFileNameWithoutExtension(file.FileName) + ".glb")}",
+                $"Saved glb to {SystemPath.Combine(FileSystem.AppDataDirectory, SystemPath.GetFileNameWithoutExtension(file.FileName) + ".glb")}",
                 "OK");
         }
         catch (Exception ex)
