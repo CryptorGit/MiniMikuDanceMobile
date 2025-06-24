@@ -42649,6 +42649,7 @@
       "Microsoft.Maui.Controls.Compatibility >= 8.0.100",
       "Microsoft.NET.ILLink.Tasks >= 8.0.17",
       "OpenTK.redist.glfw >= 3.4.0.44",
+      "PMXParser >= 1.1.1",
       "SkiaSharp.Views.Maui.Controls >= 3.119.0"
     ],
     "net8.0-ios17.0": [
@@ -42658,6 +42659,7 @@
       "Microsoft.Maui.Controls.Compatibility >= 8.0.100",
       "Microsoft.NET.ILLink.Tasks >= 8.0.17",
       "OpenTK.redist.glfw >= 3.4.0.44",
+      "PMXParser >= 1.1.1",
       "SkiaSharp.Views.Maui.Controls >= 3.119.0"
     ]
   },
@@ -42747,6 +42749,10 @@
             "target": "Package",
             "version": "[3.4.0.44, )"
           },
+          "PMXParser": {
+            "target": "Package",
+            "version": "[1.1.1, )"
+          },
           "SkiaSharp.Views.Maui.Controls": {
             "target": "Package",
             "version": "[3.119.0, )"
@@ -42797,6 +42803,10 @@
           "OpenTK.redist.glfw": {
             "target": "Package",
             "version": "[3.4.0.44, )"
+          },
+          "PMXParser": {
+            "target": "Package",
+            "version": "[1.1.1, )"
           },
           "SkiaSharp.Views.Maui.Controls": {
             "target": "Package",

@@ -6,6 +6,7 @@
     { "label": "Play Motion", "message": "play_motion" },
     { "label": "Record", "message": "toggle_record" },
     { "label": "Export BVH", "message": "export_bvh" },
+    { "label": "PMX2glTF", "message": "pmx2gltf" },
     { "label": "Share", "message": "share_recording" }
   ],
   "toggles": [

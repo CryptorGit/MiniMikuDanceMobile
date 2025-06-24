@@ -197,6 +197,10 @@
               "target": "Package",
               "version": "[3.4.0.44, )"
             },
+            "PMXParser": {
+              "target": "Package",
+              "version": "[1.1.1, )"
+            },
             "SkiaSharp.Views.Maui.Controls": {
               "target": "Package",
               "version": "[3.119.0, )"
@@ -247,6 +251,10 @@
             "OpenTK.redist.glfw": {
               "target": "Package",
               "version": "[3.4.0.44, )"
+            },
+            "PMXParser": {
+              "target": "Package",
+              "version": "[1.1.1, )"
             },
             "SkiaSharp.Views.Maui.Controls": {
               "target": "Package",
