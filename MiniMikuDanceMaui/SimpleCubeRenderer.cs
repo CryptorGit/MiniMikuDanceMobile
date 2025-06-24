@@ -7,8 +7,6 @@ namespace MiniMikuDanceMaui;
 public class SimpleCubeRenderer : IDisposable
 {
     private int _program;
-    private int _vbo;
-    private int _vao;
     private int _gridVao;
     private int _gridVbo;
     private int _modelLoc;
@@ -17,7 +15,7 @@ public class SimpleCubeRenderer : IDisposable
     private int _colorLoc;
     private float _angle;
     private float _orbitX;
-    private float _orbitY = MathHelper.PiOver4;
+    private float _orbitY;
     private float _distance = 4f;
     private Vector3 _target = Vector3.Zero;
     private int _groundVao;
@@ -59,30 +57,7 @@ void main(){
         _projLoc = GL.GetUniformLocation(_program, "uProj");
         _colorLoc = GL.GetUniformLocation(_program, "uColor");
 
-        float[] verts = {
-            -0.5f,-0.5f,-0.5f,  0.5f,-0.5f,-0.5f,  0.5f, 0.5f,-0.5f,
-            -0.5f,-0.5f,-0.5f,  0.5f, 0.5f,-0.5f, -0.5f, 0.5f,-0.5f,
-            -0.5f,-0.5f, 0.5f,  0.5f,-0.5f, 0.5f,  0.5f, 0.5f, 0.5f,
-            -0.5f,-0.5f, 0.5f,  0.5f, 0.5f, 0.5f, -0.5f, 0.5f, 0.5f,
-            -0.5f,-0.5f,-0.5f, -0.5f, 0.5f,-0.5f, -0.5f, 0.5f, 0.5f,
-            -0.5f,-0.5f,-0.5f, -0.5f, 0.5f, 0.5f, -0.5f,-0.5f, 0.5f,
-             0.5f,-0.5f,-0.5f,  0.5f, 0.5f,-0.5f,  0.5f, 0.5f, 0.5f,
-             0.5f,-0.5f,-0.5f,  0.5f, 0.5f, 0.5f,  0.5f,-0.5f, 0.5f,
-            -0.5f,-0.5f,-0.5f, -0.5f,-0.5f, 0.5f,  0.5f,-0.5f, 0.5f,
-            -0.5f,-0.5f,-0.5f,  0.5f,-0.5f, 0.5f,  0.5f,-0.5f,-0.5f,
-            -0.5f, 0.5f,-0.5f, -0.5f, 0.5f, 0.5f,  0.5f, 0.5f, 0.5f,
-            -0.5f, 0.5f,-0.5f,  0.5f, 0.5f, 0.5f,  0.5f, 0.5f,-0.5f
-        };
-
-        _vao = GL.GenVertexArray();
-        _vbo = GL.GenBuffer();
-        GL.BindVertexArray(_vao);
-        GL.BindBuffer(BufferTarget.ArrayBuffer, _vbo);
-        GL.BufferData(BufferTarget.ArrayBuffer, verts.Length * sizeof(float), verts, BufferUsageHint.StaticDraw);
-        GL.VertexAttribPointer(0, 3, VertexAttribPointerType.Float, false, 3 * sizeof(float), 0);
-        GL.EnableVertexAttribArray(0);
-        GL.BindBuffer(BufferTarget.ArrayBuffer, 0);
-        GL.BindVertexArray(0);
+        // (sample cube removed)
 
         // grid vertices (XZ plane)
         int gridLines = (10 - (-10) + 1) * 2; // 21 lines along each axis
@@ -155,7 +130,7 @@ void main(){
     public void ResetCamera()
     {
         _orbitX = 0f;
-        _orbitY = MathHelper.PiOver4;
+        _orbitY = 0f;
         _distance = 4f;
         _target = Vector3.Zero;
     }
@@ -184,13 +159,6 @@ void main(){
         GL.DrawArrays(PrimitiveType.Triangles, 0, 6);
         GL.BindVertexArray(0);
 
-        // draw cube
-        GL.UniformMatrix4(_modelLoc, false, ref model);
-        GL.Uniform4(_colorLoc, new Vector4(0.3f, 0.7f, 1.0f, 1.0f));
-        GL.BindVertexArray(_vao);
-        GL.DrawArrays(PrimitiveType.Triangles, 0, 36);
-        GL.BindVertexArray(0);
-
         // draw grid
         GL.UniformMatrix4(_modelLoc, false, ref gridModel);
         GL.Uniform4(_colorLoc, new Vector4(0.8f, 0.8f, 0.8f, 1.0f));
@@ -201,10 +169,8 @@ void main(){
 
     public void Dispose()
     {
-        GL.DeleteBuffer(_vbo);
         GL.DeleteBuffer(_gridVbo);
         GL.DeleteBuffer(_groundVbo);
-        GL.DeleteVertexArray(_vao);
         GL.DeleteVertexArray(_gridVao);
         GL.DeleteVertexArray(_groundVao);
         GL.DeleteProgram(_program);
