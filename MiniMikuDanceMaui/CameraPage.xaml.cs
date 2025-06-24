@@ -296,6 +296,8 @@ public partial class CameraPage : ContentPage
 
         if (!GLContextHelper.HasCurrentContext())
         {
+            _glInitialized = false;
+            _resourcesReady = false;
             return;
         }
 
