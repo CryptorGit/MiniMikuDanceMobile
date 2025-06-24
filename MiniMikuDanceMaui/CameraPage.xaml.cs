@@ -30,6 +30,7 @@ public partial class CameraPage : ContentPage
     private readonly Dictionary<long, SKPoint> _touchPoints = new();
     private string? _modelPath;
     private bool _loadingModel;
+    private bool _pendingDispose;
 
     public CameraPage()
     {
@@ -122,8 +123,11 @@ public partial class CameraPage : ContentPage
     protected override void OnDisappearing()
     {
         base.OnDisappearing();
-        _renderer.Dispose();
-        _glInitialized = false;
+        if (_glInitialized)
+        {
+            _pendingDispose = true;
+            Viewer?.InvalidateSurface();
+        }
     }
 
     private void OnSizeChanged(object? sender, EventArgs e) => UpdateLayout();
@@ -256,6 +260,14 @@ public partial class CameraPage : ContentPage
 
     private void OnPaintSurface(object? sender, SKPaintGLSurfaceEventArgs e)
     {
+        if (_pendingDispose)
+        {
+            _renderer.Dispose();
+            _glInitialized = false;
+            _pendingDispose = false;
+            return;
+        }
+
         if (!_glInitialized)
         {
             GL.LoadBindings(new SKGLViewBindingsContext());
