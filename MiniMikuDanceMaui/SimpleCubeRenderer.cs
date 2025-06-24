@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using MiniMikuDance.Import;
 using OpenTK.Mathematics;
 using OpenTK.Graphics.ES30;
 
