@@ -219,7 +219,7 @@ public partial class CameraPage : ContentPage
         {
             { DevicePlatform.Android, new[] { "*/*" } },
             { DevicePlatform.iOS, new[] { "public.3d-content" } },
-            { DevicePlatform.WinUI, new[] { ".obj", ".fbx", ".gltf", ".glb", ".vrm" } }
+            { DevicePlatform.WinUI, new[] { ".obj", ".fbx", ".gltf", ".glb", ".vrm", ".pmx" } }
         });
 
         var file = await FilePicker.Default.PickAsync(new PickOptions

@@ -3,6 +3,7 @@ using SharpGLTF.Schema2;
 using GLTFImage = SharpGLTF.Schema2.Image;
 using SixLabors.ImageSharp;
 using SixLabors.ImageSharp.PixelFormats;
+using MMDTools; // PMXParser
 using System.IO;
 using Vector3D = Assimp.Vector3D;
 
@@ -30,6 +31,11 @@ public class ModelImporter
         if (ext == ".vrm" || ext == ".gltf" || ext == ".glb")
         {
             return ImportVrm(path);
+        }
+        if (ext == ".pmx")
+        {
+            using var fs = File.OpenRead(path);
+            return ImportPmx(fs);
         }
 
         var scene = _context.ImportFile(path, PostProcessSteps.Triangulate | PostProcessSteps.GenerateNormals);
@@ -87,5 +93,31 @@ public class ModelImporter
             TextureWidth = texW,
             TextureHeight = texH
         };
+    }
+
+    private ModelData ImportPmx(Stream pmxStream)
+    {
+        PMXObject pmx = PMXParser.Parse(pmxStream);
+        var verts = pmx.VertexList.Span;
+        var faces = pmx.SurfaceList.Span;
+
+        var mesh = new Assimp.Mesh("pmx", Assimp.PrimitiveType.Triangle);
+        foreach (var v in verts)
+        {
+            mesh.Vertices.Add(new Vector3D((float)v.Position.X, (float)v.Position.Y, (float)v.Position.Z));
+            mesh.Normals.Add(new Vector3D((float)v.Normal.X, (float)v.Normal.Y, (float)v.Normal.Z));
+            mesh.TextureCoordinateChannels[0].Add(new Vector3D((float)v.UV.X, (float)v.UV.Y, 0f));
+        }
+
+        foreach (var f in faces)
+        {
+            var face = new Face();
+            face.Indices.Add((int)f.V1);
+            face.Indices.Add((int)f.V2);
+            face.Indices.Add((int)f.V3);
+            mesh.Faces.Add(face);
+        }
+
+        return new ModelData { Mesh = mesh };
     }
 }
