@@ -2,6 +2,9 @@ using MMDTools;
 using SharpGLTF.Scenes;
 using SharpGLTF.Geometry;
 using SharpGLTF.Geometry.VertexTypes;
+using SharpGLTF.Materials;
+using SharpGLTF.Schema2;
+using System.Numerics;
 using System.IO;
 
 using SysVector3 = System.Numerics.Vector3;
@@ -17,8 +20,10 @@ public static class PmxToGltfService
         var mesh = new MeshBuilder<VertexPositionNormal, VertexEmpty, VertexEmpty>("pmx");
         var prim = mesh.UsePrimitive(new MaterialBuilder());
 
-        foreach (var face in pmx.SurfaceList)
+        var faces = pmx.SurfaceList.Span;
+        for (int i = 0; i < faces.Length; i++)
         {
+            var face = faces[i];
             var v0 = pmx.VertexList[face.V1];
             var v1 = pmx.VertexList[face.V2];
             var v2 = pmx.VertexList[face.V3];
