@@ -1,18 +1,22 @@
-# Ignore build artifacts
-AppCore/bin/
-ViewerApp/bin/
-ViewerApp/obj/
-AppCore/obj/
-Tests/**/bin/
-Tests/**/obj/
+# --- .NET / VisualStudio / MAUI ビルド成果物 ---
+# 各プロジェクトの bin/obj フォルダ
+**/bin/
+**/obj/
 
-# Generated directories
-Recordings/
-Temp/
-
-# IDE-specific files
-.vscode/
-.idea/
+# VisualStudio の一時フォルダ・設定ファイル
 .vs/
 *.user
 *.suo
+*.cache
+*.userprefs
+
+# Android 関連
+*.apk
+*.aab
+*.apks
+
+# iOS／macCatalyst 関連
+*.app
+
+# その他自動生成ファイル (必要に応じて)
+*.xaml.g.cs
