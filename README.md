@@ -4,29 +4,18 @@
 
 
 ## 環境セットアップ
-本プロジェクトを動かすには .NET 8 SDK と Assimp のネイティブライブラリが必要です。
-以下の手順で導入してください。
+本プロジェクトを Windows 上でビルドするには Visual Studio 2022 と .NET 8 対応の MAUI ワークロードが必要です。
+以下の手順で準備してください。
 
-1. Microsoft のパッケージリポジトリを追加し .NET 8 SDK をインストールします。
+1. [Visual Studio 2022](https://visualstudio.microsoft.com/vs/) をインストールし、インストール時に **モバイル開発 (.NET MAUI)** ワークロードを選択します。
 
-   ```bash
-   sudo apt-get update
-   sudo apt-get install -y dotnet-sdk-8.0 libassimp-dev
-   ```
+2. インストール完了後、コマンド プロンプトで `dotnet --version` を実行し `8.0.411` であることを確認します。
 
-2. `dotnet --version` を実行し、`8.0.411` であることを確認します。
+3. このリポジトリをクローンし、`MiniMikuDance.sln` を Visual Studio で開きます。
 
-3. MAUI 用のワークロードを導入します。
+4. `MiniMikuDanceMaui` プロジェクトをスタートアップに設定し、F5 キーでビルド・実行します。
 
-   ```bash
-   dotnet workload install maui
-   ```
-
-4. 一部の環境では `libdl.so` が見つからず実行に失敗することがあります。その場合は次のコマンドでシンボリックリンクを作成します。
-
-   ```bash
-   sudo ln -s /usr/lib/x86_64-linux-gnu/libdl.so.2 /usr/lib/x86_64-linux-gnu/libdl.so
-   ```
+Assimp のネイティブライブラリは NuGet 経由で自動的に取得されるため、追加のインストール作業は不要です。
 
 ## ONNX モデルの準備
 姿勢推定には MediaPipe Pose を ONNX 形式に変換したモデルが必要です。ライセンス上の理由とファイルサイズの都合により、このリポジトリにはモデルファイルを含めていません。以下のリンクから `pose_landmark_full.onnx` をダウンロードし、リポジトリ直下に `StreamingAssets` フォルダを作成して `pose_model.onnx`（`StreamingAssets/pose_model.onnx`）という名前で配置してください。
@@ -34,8 +23,8 @@
 - <https://github.com/onnx/models/tree/main/vision/body_analysis/mediapipe_pose>
 
 ## クイックスタート
-1. 上記手順で必要なパッケージと MAUI ワークロードをインストールします。
-2. Android もしくは iOS のエミュレータ／実機を用意し、次のコマンドでビルドと実行を行います。
+1. 上記手順で Visual Studio と MAUI ワークロードをインストールします。
+2. Android もしくは iOS のエミュレータ／実機を用意し、Visual Studio から `MiniMikuDanceMaui` を実行します。コマンドラインで操作する場合は次のコマンドを使用します。
 
    ```bash
    dotnet build MiniMikuDanceMaui/MiniMikuDanceMaui.csproj -t:Run -f net8.0-android34.0
