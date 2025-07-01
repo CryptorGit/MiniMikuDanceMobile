@@ -133,8 +133,8 @@ void main(){
 
     public void Orbit(float dx, float dy)
     {
-        _orbitY += dx * 0.01f;
-        _orbitX += dy * 0.01f;
+        _orbitY -= dx * 0.01f;
+        _orbitX -= dy * 0.01f;
     }
 
     public void Pan(float dx, float dy)
@@ -146,7 +146,7 @@ void main(){
 
     public void Dolly(float delta)
     {
-        _distance *= 1f - delta * 0.01f;
+        _distance *= 1f + delta * 0.01f;
         if (_distance < 1f) _distance = 1f;
         if (_distance > 20f) _distance = 20f;
     }
