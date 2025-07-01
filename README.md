@@ -9,7 +9,7 @@
 
 1. [Visual Studio 2022](https://visualstudio.microsoft.com/vs/) をインストールし、インストール時に **モバイル開発 (.NET MAUI)** ワークロードを選択します。
 
-2. インストール完了後、コマンド プロンプトで `dotnet --version` を実行し `9.0.301` であることを確認します。
+2. インストール完了後、コマンド プロンプトで `dotnet --version` を実行し `8.0.411` であることを確認します。
 
 3. このリポジトリをクローンし、`MiniMikuDance.sln` を Visual Studio で開きます。
 
