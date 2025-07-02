@@ -14,6 +14,7 @@ public partial class SettingPage : ContentPage
     public SettingPage()
     {
         InitializeComponent();
+        NavigationPage.SetHasNavigationBar(this, false);
         this.SizeChanged += OnSizeChanged;
 
         MenuButton.Clicked += async (s, e) => await AnimateSidebar(!_sidebarOpen);
@@ -27,7 +28,6 @@ public partial class SettingPage : ContentPage
             await AnimateSidebar(false);
         };
         SettingBtn.Clicked += async (s, e) => await AnimateSidebar(false);
-        PickFolderBtn.Clicked += async (s, e) => await PickFolder();
     }
 
     private void OnSizeChanged(object? sender, EventArgs e) => UpdateLayout();
@@ -59,17 +59,5 @@ public partial class SettingPage : ContentPage
         UpdateLayout();
     }
 
-    private async Task PickFolder()
-    {
-        try
-        {
-            var folder = await FolderSelector.PickFolderAsync();
-            if (!string.IsNullOrEmpty(folder))
-                FolderLabel.Text = folder;
-        }
-        catch (Exception ex)
-        {
-            await DisplayAlert("Error", ex.Message, "OK");
-        }
-    }
+
 }

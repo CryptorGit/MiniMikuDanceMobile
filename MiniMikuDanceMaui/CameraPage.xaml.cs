@@ -29,6 +29,7 @@ public partial class CameraPage : ContentPage
     public CameraPage()
     {
         InitializeComponent();
+        NavigationPage.SetHasNavigationBar(this, false);
         this.SizeChanged += OnSizeChanged;
 
         MenuButton.Clicked += async (s, e) => await AnimateSidebar(!_sidebarOpen);
@@ -76,12 +77,12 @@ public partial class CameraPage : ContentPage
             Debug.WriteLine($"Failed to create model folder: {ex.Message}");
         }
         _glInitialized = false;
+        Viewer?.InvalidateSurface();
     }
 
     protected override void OnDisappearing()
     {
         base.OnDisappearing();
-        _renderer.Dispose();
         _glInitialized = false;
     }
 
@@ -181,49 +182,30 @@ public partial class CameraPage : ContentPage
 
     private async Task ShowModelSelector()
     {
-        string folder;
         try
         {
-            folder = MmdFileSystem.Ensure("Models");
-        }
-        catch (Exception ex)
-        {
-            await DisplayAlert("Error", $"Failed to access model folder: {ex.Message}", "OK");
-            return;
-        }
-
-        string[] files;
-        try
-        {
-            files = System.IO.Directory.GetFiles(folder, "*.vrm");
-        }
-        catch (Exception ex)
-        {
-            await DisplayAlert("Error", $"Failed to list models: {ex.Message}", "OK");
-            return;
-        }
-
-        if (files.Length == 0)
-        {
-            await DisplayAlert("No Models", $"Place VRM files in {folder}", "OK");
-            return;
-        }
-        var names = System.Linq.Enumerable.Select(files, f => System.IO.Path.GetFileName(f));
-        string? choice = await DisplayActionSheet("Select Model", "Cancel", null, names.ToArray());
-        if (choice != null && choice != "Cancel")
-        {
-            var path = System.IO.Path.Combine(folder, choice);
-            try
+            var result = await FilePicker.Default.PickAsync(new PickOptions
             {
+                PickerTitle = "Select VRM file"
+            });
+
+            if (result != null)
+            {
+                if (Path.GetExtension(result.FileName).ToLowerInvariant() != ".vrm")
+                {
+                    await DisplayAlert("Invalid File", "Please select a .vrm file.", "OK");
+                    return;
+                }
+
                 var importer = new MiniMikuDance.Import.ModelImporter();
-                var data = importer.ImportModel(path);
+                var data = importer.ImportModel(result.FullPath);
                 _renderer.LoadModel(data);
                 Viewer?.InvalidateSurface();
             }
-            catch (Exception ex)
-            {
-                await DisplayAlert("Error", ex.Message, "OK");
-            }
+        }
+        catch (Exception ex)
+        {
+            await DisplayAlert("Error", ex.Message, "OK");
         }
     }
 }
