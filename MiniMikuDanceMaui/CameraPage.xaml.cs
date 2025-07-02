@@ -271,8 +271,7 @@ public partial class CameraPage : ContentPage
 
     private async Task ShowModelSelector()
     {
-        string folder = System.IO.Path.Combine(FileSystem.AppDataDirectory, "Models");
-        System.IO.Directory.CreateDirectory(folder);
+        string folder = MmdFileSystem.Ensure("Models");
         var files = System.IO.Directory.GetFiles(folder, "*.vrm");
         if (files.Length == 0)
         {
