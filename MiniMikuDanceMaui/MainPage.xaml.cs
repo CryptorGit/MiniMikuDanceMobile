@@ -111,7 +111,7 @@ public partial class MainPage : ContentPage
             return;
 
         var posePath = SystemPath.Combine(FileSystem.CacheDirectory, "pose_model.onnx");
-        _initializer.Initialize(_configPath, null, posePath);
+        _initializer.Initialize(_configPath, null, posePath, MmdFileSystem.BaseDir);
         if (_initializer.Camera != null)
         {
             _gyroService = new GyroService(_initializer.Camera);
@@ -247,7 +247,8 @@ public partial class MainPage : ContentPage
                 }
                 break;
             case "export_bvh":
-                var bvhPath = SystemPath.Combine(FileSystem.CacheDirectory, "motion.bvh");
+                var exportDir = MmdFileSystem.Ensure("Exported");
+                var bvhPath = SystemPath.Combine(exportDir, "motion.bvh");
                 _initializer.ExportBvh(bvhPath);
                 UIManager.Instance.SetMessage($"BVH exported: {bvhPath}");
                 break;

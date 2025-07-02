@@ -13,11 +13,17 @@ public class RecorderController
     private int _frameIndex;
     private VideoWriter? _writer;
     private string _thumbnailPath = string.Empty;
+    private readonly string _baseDir;
+
+    public RecorderController(string baseDir = "Recordings")
+    {
+        _baseDir = baseDir;
+    }
 
     public string StartRecording(int width, int height, int fps)
     {
-        Directory.CreateDirectory("Recordings");
-        string folder = Path.Combine("Recordings", $"record_{DateTime.Now:yyyyMMdd_HHmmss}");
+        Directory.CreateDirectory(_baseDir);
+        string folder = Path.Combine(_baseDir, $"record_{DateTime.Now:yyyyMMdd_HHmmss}");
         Directory.CreateDirectory(folder);
         _savedPath = Path.Combine(folder, "output.mp4");
         _infoPath = Path.Combine(folder, "info.txt");
