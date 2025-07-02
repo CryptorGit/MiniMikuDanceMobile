@@ -6,10 +6,18 @@ namespace MiniMikuDanceMaui;
 
 public static class MmdFileSystem
 {
-    public static readonly string BaseDir = SystemPath.Combine(FileSystem.AppDataDirectory, "MiniMikuDance");
+    public static readonly string BaseDir;
 
     static MmdFileSystem()
     {
+#if ANDROID
+        var root = Android.OS.Environment.ExternalStorageDirectory?.AbsolutePath;
+        if (string.IsNullOrEmpty(root))
+            root = FileSystem.AppDataDirectory;
+#else
+        var root = FileSystem.AppDataDirectory;
+#endif
+        BaseDir = SystemPath.Combine(root, "MiniMikuDance", "data");
         Directory.CreateDirectory(BaseDir);
     }
 
