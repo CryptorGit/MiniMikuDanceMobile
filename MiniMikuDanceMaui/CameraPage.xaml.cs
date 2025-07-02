@@ -11,11 +11,15 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Threading.Tasks;
+using System.IO;
+using System.Linq;
 using ShapePath = Microsoft.Maui.Controls.Shapes.Path;
 using SkiaSharp.Views.Maui;
 using SkiaSharp.Views.Maui.Controls;
 using SkiaSharp;
 using OpenTK.Graphics.ES30;
+using MiniMikuDance.Import;
+using Microsoft.Maui.Storage;
 
 namespace MiniMikuDanceMaui;
 
@@ -27,6 +31,9 @@ public partial class CameraPage : ContentPage
     private readonly SimpleCubeRenderer _renderer = new();
     private bool _glInitialized;
     private readonly Dictionary<long, SKPoint> _touchPoints = new();
+    private readonly ModelImporter _importer = new();
+    private readonly List<string> _modelFiles = new();
+    private readonly string _modelDir = Path.Combine(FileSystem.AppDataDirectory, "VrmModels");
 
     public CameraPage()
     {
@@ -54,6 +61,8 @@ public partial class CameraPage : ContentPage
         overlayTap.Tapped += async (s, e) => await AnimateSidebar(false);
         MenuOverlay.GestureRecognizers.Add(overlayTap);
 
+        ImportBtn.Clicked += async (s, e) => await ShowModelSelector();
+
         ResetCamBtn.Clicked += (s, e) =>
         {
             _renderer.ResetCamera();
@@ -71,6 +80,8 @@ public partial class CameraPage : ContentPage
     {
         base.OnAppearing();
         _glInitialized = false;
+        Directory.CreateDirectory(_modelDir);
+        RefreshModelList();
     }
 
     protected override void OnDisappearing()
@@ -259,6 +270,41 @@ public partial class CameraPage : ContentPage
             _touchPoints.Remove(e.Id);
         }
         e.Handled = true;
+        Viewer?.InvalidateSurface();
+    }
+
+    private void RefreshModelList()
+    {
+        _modelFiles.Clear();
+        if (Directory.Exists(_modelDir))
+        {
+            _modelFiles.AddRange(Directory.GetFiles(_modelDir, "*.vrm"));
+        }
+    }
+
+    private async Task ShowModelSelector()
+    {
+        if (_modelFiles.Count == 0)
+        {
+            await DisplayAlert("Error", "No VRM files found", "OK");
+            return;
+        }
+
+        string? choice = await DisplayActionSheet("Select VRM", "Cancel", null, _modelFiles.Select(Path.GetFileName).ToArray());
+        if (string.IsNullOrEmpty(choice) || choice == "Cancel")
+            return;
+
+        string path = Path.Combine(_modelDir, choice);
+        try
+        {
+            var data = _importer.ImportModel(path);
+            _renderer.LoadModel(data);
+        }
+        catch (Exception ex)
+        {
+            await DisplayAlert("Error", ex.Message, "OK");
+        }
+
         Viewer?.InvalidateSurface();
     }
 }

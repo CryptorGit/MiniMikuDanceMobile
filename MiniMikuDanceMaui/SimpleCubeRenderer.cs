@@ -1,6 +1,9 @@
 using System;
+using System.Collections.Generic;
 using OpenTK.Mathematics;
 using OpenTK.Graphics.ES30;
+using MiniMikuDance.Import;
+using MiniMikuDance.Util;
 
 namespace MiniMikuDanceMaui;
 
@@ -21,6 +24,11 @@ public class SimpleCubeRenderer : IDisposable
     private Vector3 _target = Vector3.Zero;
     private int _groundVao;
     private int _groundVbo;
+    private int _modelVao;
+    private int _modelVbo;
+    private int _modelIbo;
+    private int _modelIndexCount;
+    private System.Numerics.Matrix4x4 _modelTransform = System.Numerics.Matrix4x4.Identity;
     private int _width;
     private int _height;
 
@@ -58,30 +66,8 @@ void main(){
         _projLoc = GL.GetUniformLocation(_program, "uProj");
         _colorLoc = GL.GetUniformLocation(_program, "uColor");
 
-        float[] verts = {
-            -0.5f,-0.5f,-0.5f,  0.5f,-0.5f,-0.5f,  0.5f, 0.5f,-0.5f,
-            -0.5f,-0.5f,-0.5f,  0.5f, 0.5f,-0.5f, -0.5f, 0.5f,-0.5f,
-            -0.5f,-0.5f, 0.5f,  0.5f,-0.5f, 0.5f,  0.5f, 0.5f, 0.5f,
-            -0.5f,-0.5f, 0.5f,  0.5f, 0.5f, 0.5f, -0.5f, 0.5f, 0.5f,
-            -0.5f,-0.5f,-0.5f, -0.5f, 0.5f,-0.5f, -0.5f, 0.5f, 0.5f,
-            -0.5f,-0.5f,-0.5f, -0.5f, 0.5f, 0.5f, -0.5f,-0.5f, 0.5f,
-             0.5f,-0.5f,-0.5f,  0.5f, 0.5f,-0.5f,  0.5f, 0.5f, 0.5f,
-             0.5f,-0.5f,-0.5f,  0.5f, 0.5f, 0.5f,  0.5f,-0.5f, 0.5f,
-            -0.5f,-0.5f,-0.5f, -0.5f,-0.5f, 0.5f,  0.5f,-0.5f, 0.5f,
-            -0.5f,-0.5f,-0.5f,  0.5f,-0.5f, 0.5f,  0.5f,-0.5f,-0.5f,
-            -0.5f, 0.5f,-0.5f, -0.5f, 0.5f, 0.5f,  0.5f, 0.5f, 0.5f,
-            -0.5f, 0.5f,-0.5f,  0.5f, 0.5f, 0.5f,  0.5f, 0.5f,-0.5f
-        };
-
-        _vao = GL.GenVertexArray();
-        _vbo = GL.GenBuffer();
-        GL.BindVertexArray(_vao);
-        GL.BindBuffer(BufferTarget.ArrayBuffer, _vbo);
-        GL.BufferData(BufferTarget.ArrayBuffer, verts.Length * sizeof(float), verts, BufferUsageHint.StaticDraw);
-        GL.VertexAttribPointer(0, 3, VertexAttribPointerType.Float, false, 3 * sizeof(float), 0);
-        GL.EnableVertexAttribArray(0);
-        GL.BindBuffer(BufferTarget.ArrayBuffer, 0);
-        GL.BindVertexArray(0);
+        _vao = 0;
+        _vbo = 0;
 
         // grid vertices (XZ plane)
         int gridLines = (10 - (-10) + 1) * 2; // 21 lines along each axis
@@ -122,6 +108,56 @@ void main(){
         GL.EnableVertexAttribArray(0);
         GL.BindBuffer(BufferTarget.ArrayBuffer, 0);
         GL.BindVertexArray(0);
+    }
+
+    public void LoadModel(ModelData model)
+    {
+        if (_modelVao != 0)
+        {
+            GL.DeleteBuffer(_modelVbo);
+            GL.DeleteBuffer(_modelIbo);
+            GL.DeleteVertexArray(_modelVao);
+        }
+
+        float[] verts = new float[model.Mesh.VertexCount * 3];
+        for (int i = 0; i < model.Mesh.VertexCount; i++)
+        {
+            var v = model.Mesh.Vertices[i];
+            verts[i * 3] = v.X;
+            verts[i * 3 + 1] = v.Y;
+            verts[i * 3 + 2] = v.Z;
+        }
+
+        var indices = new List<uint>();
+        foreach (var f in model.Mesh.Faces)
+        {
+            if (f.IndexCount == 3)
+            {
+                indices.Add((uint)f.Indices[0]);
+                indices.Add((uint)f.Indices[1]);
+                indices.Add((uint)f.Indices[2]);
+            }
+        }
+
+        _modelIndexCount = indices.Count;
+
+        _modelVao = GL.GenVertexArray();
+        _modelVbo = GL.GenBuffer();
+        _modelIbo = GL.GenBuffer();
+
+        GL.BindVertexArray(_modelVao);
+
+        GL.BindBuffer(BufferTarget.ArrayBuffer, _modelVbo);
+        GL.BufferData(BufferTarget.ArrayBuffer, verts.Length * sizeof(float), verts, BufferUsageHint.StaticDraw);
+        GL.VertexAttribPointer(0, 3, VertexAttribPointerType.Float, false, 3 * sizeof(float), 0);
+        GL.EnableVertexAttribArray(0);
+
+        GL.BindBuffer(BufferTarget.ElementArrayBuffer, _modelIbo);
+        GL.BufferData(BufferTarget.ElementArrayBuffer, indices.Count * sizeof(uint), indices.ToArray(), BufferUsageHint.StaticDraw);
+
+        GL.BindVertexArray(0);
+
+        _modelTransform = model.Transform;
     }
 
     public void Resize(int width, int height)
@@ -183,12 +219,15 @@ void main(){
         GL.DrawArrays(PrimitiveType.Triangles, 0, 6);
         GL.BindVertexArray(0);
 
-        // draw cube
-        GL.UniformMatrix4(_modelLoc, false, ref model);
-        GL.Uniform4(_colorLoc, new Vector4(0.3f, 0.7f, 1.0f, 1.0f));
-        GL.BindVertexArray(_vao);
-        GL.DrawArrays(PrimitiveType.Triangles, 0, 36);
-        GL.BindVertexArray(0);
+        if (_modelVao != 0)
+        {
+            var m = _modelTransform.ToMatrix4();
+            GL.UniformMatrix4(_modelLoc, false, ref m);
+            GL.Uniform4(_colorLoc, new Vector4(0.7f, 0.7f, 0.7f, 1.0f));
+            GL.BindVertexArray(_modelVao);
+            GL.DrawElements(PrimitiveType.Triangles, _modelIndexCount, DrawElementsType.UnsignedInt, IntPtr.Zero);
+            GL.BindVertexArray(0);
+        }
 
         // draw grid
         GL.UniformMatrix4(_modelLoc, false, ref gridModel);
@@ -200,12 +239,15 @@ void main(){
 
     public void Dispose()
     {
-        GL.DeleteBuffer(_vbo);
-        GL.DeleteBuffer(_gridVbo);
-        GL.DeleteBuffer(_groundVbo);
-        GL.DeleteVertexArray(_vao);
-        GL.DeleteVertexArray(_gridVao);
-        GL.DeleteVertexArray(_groundVao);
+        if (_vbo != 0) GL.DeleteBuffer(_vbo);
+        if (_modelVbo != 0) GL.DeleteBuffer(_modelVbo);
+        if (_modelIbo != 0) GL.DeleteBuffer(_modelIbo);
+        if (_gridVbo != 0) GL.DeleteBuffer(_gridVbo);
+        if (_groundVbo != 0) GL.DeleteBuffer(_groundVbo);
+        if (_vao != 0) GL.DeleteVertexArray(_vao);
+        if (_modelVao != 0) GL.DeleteVertexArray(_modelVao);
+        if (_gridVao != 0) GL.DeleteVertexArray(_gridVao);
+        if (_groundVao != 0) GL.DeleteVertexArray(_groundVao);
         GL.DeleteProgram(_program);
     }
 }
