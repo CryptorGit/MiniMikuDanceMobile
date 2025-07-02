@@ -138,7 +138,7 @@ void main(){
         _target = Vector3.Zero;
     }
 
-    public void LoadModel(AppCore.Import.ModelData data)
+    public void LoadModel(MiniMikuDance.Import.ModelData data)
     {
         if (_modelVao != 0)
         {
