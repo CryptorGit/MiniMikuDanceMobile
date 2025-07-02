@@ -29,7 +29,7 @@
   <ItemGroup>
     <!-- UI 設定ファイルをパッケージへ含める -->
     <MauiAsset Include="Resources/Raw/UIConfig.json" LogicalName="UIConfig.json" />
-    <!-- サンプルモデルはダミーのテキストファイルとして提供 -->
-    <MauiAsset Include="Resources/Raw/SampleModel.vrm.txt" LogicalName="SampleModel.vrm" />
+	<!-- サンプルモデルをアプリへ同梱 -->
+	<MauiAsset Include="Resources/Raw/SampleModel.vrm" LogicalName="SampleModel.vrm" />
   </ItemGroup>
 </Project>
