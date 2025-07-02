@@ -48,7 +48,7 @@
         <Button x:Name="MenuButton" Text="&#x2630;" WidthRequest="56" HeightRequest="56" BackgroundColor="Transparent" />
         <ContentView x:Name="Sidebar" BackgroundColor="#1E1E1EEB">
             <VerticalStackLayout Padding="20" Spacing="16">
-                <Button x:Name="ImportBtn" Text="IMPORT" />
+                <Button x:Name="ImportBtn" Text="SELECT" />
                 <Button x:Name="PoseBtn" Text="POSE" />
                 <Button x:Name="MotionBtn" Text="MOTION" />
                 <Button x:Name="ArBtn" Text="AR" />
