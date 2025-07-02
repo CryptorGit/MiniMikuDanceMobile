@@ -70,13 +70,11 @@ public partial class CameraPage : ContentPage
         base.OnAppearing();
         try
         {
-            await EnsureSampleModel();
-            var modelDir = MmdFileSystem.Ensure("Models");
-            var vrm = Directory.EnumerateFiles(modelDir, "*.vrm").FirstOrDefault();
-            if (vrm != null)
+            var modelPath = await EnsureSampleModel();
+            if (!string.IsNullOrEmpty(modelPath))
             {
                 var importer = new ModelImporter();
-                var data = importer.ImportModel(vrm);
+                var data = importer.ImportModel(modelPath);
                 _renderer.LoadModel(data);
             }
         }
@@ -88,22 +86,25 @@ public partial class CameraPage : ContentPage
         Viewer?.InvalidateSurface();
     }
 
-    private async Task EnsureSampleModel()
+    private async Task<string?> EnsureSampleModel()
     {
         var modelDir = MmdFileSystem.Ensure("Models");
-        if (!Directory.EnumerateFiles(modelDir, "*.vrm").Any())
+        var vrm = Directory.EnumerateFiles(modelDir, "*.vrm").FirstOrDefault();
+        if (!string.IsNullOrEmpty(vrm))
+            return vrm;
+
+        try
         {
-            try
-            {
-                using var stream = await FileSystem.OpenAppPackageFileAsync("SampleModel.vrm");
-                var path = Path.Combine(modelDir, "SampleModel.vrm");
-                using var fs = File.Create(path);
-                await stream.CopyToAsync(fs);
-            }
-            catch (Exception ex)
-            {
-                Debug.WriteLine($"Failed to copy sample VRM: {ex.Message}");
-            }
+            using var stream = await FileSystem.OpenAppPackageFileAsync("SampleModel.vrm");
+            var path = Path.Combine(modelDir, "SampleModel.vrm");
+            using var fs = File.Create(path);
+            await stream.CopyToAsync(fs);
+            return path;
+        }
+        catch (Exception ex)
+        {
+            Debug.WriteLine($"Failed to copy sample VRM: {ex.Message}");
+            return null;
         }
     }
 
