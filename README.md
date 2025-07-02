@@ -30,9 +30,12 @@ Assimp のネイティブライブラリは NuGet 経由で自動的に取得さ
    dotnet build MiniMikuDanceMaui/MiniMikuDanceMaui.csproj -t:Run -f net8.0-android34.0
    ```
 
+
 3. UI 設定のサンプルとして `MiniMikuDanceMaui/Resources/Raw/UIConfig.json` を同梱しています。必要に応じてボタンやトグルを編集してください。
 
-4. アプリが起動し、モデル読込や姿勢推定の進捗が表示されれば成功です。録画メタデータは `MiniMikuDance/data/Recordings/` フォルダに保存されます。
+4. `MiniMikuDanceMaui/Resources/Raw` には `SampleModel.vrm.txt` を同梱しています。実際の VRM ファイルをこの場所に配置し、`SampleModel.vrm` にリネームしてからビルドしてください。初回起動時に `MiniMikuDance/data/Models/` へコピーされます。
+
+5. アプリが起動し、モデル読込や姿勢推定の進捗が表示されれば成功です。録画メタデータは `MiniMikuDance/data/Recordings/` フォルダに保存されます。
 
 ## デザイントークン
 `Configs` フォルダに `style_tokens_dark.json` と `style_tokens_light.json` を追加しました。UI の配色や角丸、余白量を一元管理する設定ファイルです。ImGui スタイルを適用する際はこれらの JSON を読み込んでください。
