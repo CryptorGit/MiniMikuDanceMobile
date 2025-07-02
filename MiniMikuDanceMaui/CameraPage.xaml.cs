@@ -16,6 +16,10 @@ using SkiaSharp.Views.Maui;
 using SkiaSharp.Views.Maui.Controls;
 using SkiaSharp;
 using OpenTK.Graphics.ES30;
+using Microsoft.Maui.Storage;
+using System.IO;
+using System.Linq;
+using MiniMikuDance.Import;
 
 namespace MiniMikuDanceMaui;
 
@@ -53,6 +57,9 @@ public partial class CameraPage : ContentPage
         var overlayTap = new TapGestureRecognizer();
         overlayTap.Tapped += async (s, e) => await AnimateSidebar(false);
         MenuOverlay.GestureRecognizers.Add(overlayTap);
+
+        ImportBtn.Text = "SELECT";
+        ImportBtn.Clicked += async (s, e) => await ShowModelSelector();
 
         ResetCamBtn.Clicked += (s, e) =>
         {
@@ -260,5 +267,27 @@ public partial class CameraPage : ContentPage
         }
         e.Handled = true;
         Viewer?.InvalidateSurface();
+    }
+
+    private async Task ShowModelSelector()
+    {
+        string folder = System.IO.Path.Combine(FileSystem.AppDataDirectory, "Models");
+        System.IO.Directory.CreateDirectory(folder);
+        var files = System.IO.Directory.GetFiles(folder, "*.vrm");
+        if (files.Length == 0)
+        {
+            await DisplayAlert("No Models", $"Place VRM files in {folder}", "OK");
+            return;
+        }
+        var names = System.Linq.Enumerable.Select(files, f => System.IO.Path.GetFileName(f));
+        string? choice = await DisplayActionSheet("Select Model", "Cancel", null, names.ToArray());
+        if (choice != null && choice != "Cancel")
+        {
+            var path = System.IO.Path.Combine(folder, choice);
+            var importer = new MiniMikuDance.Import.ModelImporter();
+            var data = importer.ImportModel(path);
+            _renderer.LoadModel(data);
+            Viewer?.InvalidateSurface();
+        }
     }
 }
