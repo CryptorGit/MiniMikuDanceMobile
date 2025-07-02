@@ -27,7 +27,7 @@ public class AppInitializer
     public MotionData? Motion { get; private set; }
     private string _poseModelPath = string.Empty;
 
-    public void Initialize(string uiConfigPath, string? modelPath, string poseModelPath)
+    public void Initialize(string uiConfigPath, string? modelPath, string poseModelPath, string baseDir)
     {
         UIManager.Instance.LoadConfig(uiConfigPath);
         _poseModelPath = poseModelPath;
@@ -37,7 +37,7 @@ public class AppInitializer
         MotionPlayer = new MotionPlayer();
         Camera = new CameraController();
         Camera.EnableGyro(UIManager.Instance.GetToggle("gyro_cam"));
-        Recorder = new RecorderController();
+        Recorder = new RecorderController(Path.Combine(baseDir, "Recordings"));
 
         if (!string.IsNullOrEmpty(modelPath) && File.Exists(modelPath))
         {
