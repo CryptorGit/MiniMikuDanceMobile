@@ -65,11 +65,12 @@ public partial class CameraPage : ContentPage
         }
     }
 
-    protected override void OnAppearing()
+    protected override async void OnAppearing()
     {
         base.OnAppearing();
         try
         {
+            await EnsureSampleModel();
             var modelDir = MmdFileSystem.Ensure("Models");
             var vrm = Directory.EnumerateFiles(modelDir, "*.vrm").FirstOrDefault();
             if (vrm != null)
@@ -81,10 +82,29 @@ public partial class CameraPage : ContentPage
         }
         catch (Exception ex)
         {
-            Debug.WriteLine($"Failed to create model folder: {ex.Message}");
+            Debug.WriteLine($"Failed to initialize model: {ex.Message}");
         }
         _glInitialized = false;
         Viewer?.InvalidateSurface();
+    }
+
+    private async Task EnsureSampleModel()
+    {
+        var modelDir = MmdFileSystem.Ensure("Models");
+        if (!Directory.EnumerateFiles(modelDir, "*.vrm").Any())
+        {
+            try
+            {
+                using var stream = await FileSystem.OpenAppPackageFileAsync("SampleModel.vrm");
+                var path = Path.Combine(modelDir, "SampleModel.vrm");
+                using var fs = File.Create(path);
+                await stream.CopyToAsync(fs);
+            }
+            catch (Exception ex)
+            {
+                Debug.WriteLine($"Failed to copy sample VRM: {ex.Message}");
+            }
+        }
     }
 
     protected override void OnDisappearing()
