@@ -77,6 +77,14 @@ public partial class CameraPage : ContentPage
     protected override void OnAppearing()
     {
         base.OnAppearing();
+        try
+        {
+            MmdFileSystem.Ensure("Models");
+        }
+        catch (Exception ex)
+        {
+            Debug.WriteLine($"Failed to create model folder: {ex.Message}");
+        }
         _glInitialized = false;
     }
 
@@ -271,8 +279,28 @@ public partial class CameraPage : ContentPage
 
     private async Task ShowModelSelector()
     {
-        string folder = MmdFileSystem.Ensure("Models");
-        var files = System.IO.Directory.GetFiles(folder, "*.vrm");
+        string folder;
+        try
+        {
+            folder = MmdFileSystem.Ensure("Models");
+        }
+        catch (Exception ex)
+        {
+            await DisplayAlert("Error", $"Failed to access model folder: {ex.Message}", "OK");
+            return;
+        }
+
+        string[] files;
+        try
+        {
+            files = System.IO.Directory.GetFiles(folder, "*.vrm");
+        }
+        catch (Exception ex)
+        {
+            await DisplayAlert("Error", $"Failed to list models: {ex.Message}", "OK");
+            return;
+        }
+
         if (files.Length == 0)
         {
             await DisplayAlert("No Models", $"Place VRM files in {folder}", "OK");
@@ -283,10 +311,17 @@ public partial class CameraPage : ContentPage
         if (choice != null && choice != "Cancel")
         {
             var path = System.IO.Path.Combine(folder, choice);
-            var importer = new MiniMikuDance.Import.ModelImporter();
-            var data = importer.ImportModel(path);
-            _renderer.LoadModel(data);
-            Viewer?.InvalidateSurface();
+            try
+            {
+                var importer = new MiniMikuDance.Import.ModelImporter();
+                var data = importer.ImportModel(path);
+                _renderer.LoadModel(data);
+                Viewer?.InvalidateSurface();
+            }
+            catch (Exception ex)
+            {
+                await DisplayAlert("Error", ex.Message, "OK");
+            }
         }
     }
 }
