@@ -22,6 +22,12 @@ Assimp のネイティブライブラリは NuGet 経由で自動的に取得さ
 
 - <https://github.com/onnx/models/tree/main/vision/body_analysis/mediapipe_pose>
 
+## VRM モデルの配置
+モバイル端末の内部ストレージに `MiniMikuDance/VrmModels` フォルダを作成し、そこへ
+VRM ファイルをコピーしてください。アプリは起動時にこのフォルダをスキャンして利用
+可能なモデルを自動的に一覧表示します。ファイルピッカーから毎回選択する手間を省き、
+作業用モデルを整理しておける点がメリットです。
+
 ## クイックスタート
 1. 上記手順で Visual Studio と MAUI ワークロードをインストールします。
 2. Android もしくは iOS のエミュレータ／実機を用意し、Visual Studio から `MiniMikuDanceMaui` を実行します。コマンドラインで操作する場合は次のコマンドを使用します。
