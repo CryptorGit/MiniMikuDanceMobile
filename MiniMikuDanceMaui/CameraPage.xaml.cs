@@ -70,7 +70,14 @@ public partial class CameraPage : ContentPage
         base.OnAppearing();
         try
         {
-            MmdFileSystem.Ensure("Models");
+            var modelDir = MmdFileSystem.Ensure("Models");
+            var vrm = Directory.EnumerateFiles(modelDir, "*.vrm").FirstOrDefault();
+            if (vrm != null)
+            {
+                var importer = new ModelImporter();
+                var data = importer.ImportModel(vrm);
+                _renderer.LoadModel(data);
+            }
         }
         catch (Exception ex)
         {
