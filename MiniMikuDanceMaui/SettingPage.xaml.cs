@@ -12,6 +12,7 @@ public partial class SettingPage : ContentPage
     private bool _viewMenuOpen;
     private bool _settingMenuOpen;
     private double _bottomHeightRatio = 0.5;
+    private double _cameraSensitivity = 1.0;
 
     public SettingPage()
     {
@@ -47,9 +48,14 @@ public partial class SettingPage : ContentPage
         if (_settingMenuOpen && SettingContent is SettingView sv)
         {
             sv.HeightRatio = _bottomHeightRatio;
+            sv.Sensitivity = _cameraSensitivity;
             sv.HeightRatioChanged += ratio =>
             {
                 _bottomHeightRatio = ratio;
+            };
+            sv.SensitivityChanged += v =>
+            {
+                _cameraSensitivity = v;
             };
         }
         HideViewMenu();

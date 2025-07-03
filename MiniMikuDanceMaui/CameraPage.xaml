@@ -11,6 +11,9 @@
         <MenuBarItem Text="Edit" />
         <MenuBarItem Text="Selection" />
         <MenuBarItem Text="View" />
+        <MenuBarItem Text="Setting">
+            <MenuFlyoutItem Text="Open" Clicked="OnSettingClicked" />
+        </MenuBarItem>
         <MenuBarItem Text="Help" />
     </ContentPage.MenuBarItems>
     <AbsoluteLayout x:Name="Root">
