@@ -1,4 +1,5 @@
 using System;
+using System.Diagnostics;
 using OpenTK.Mathematics;
 
 namespace ViewerApp;
@@ -12,6 +13,7 @@ public class Viewer
     public Viewer(string modelPath)
     {
         // モデル読み込み処理は未実装
+        System.Diagnostics.Debug.WriteLine("[Viewer] Stub viewer initialized");
     }
 
     public void SetViewMatrix(Matrix4 view)

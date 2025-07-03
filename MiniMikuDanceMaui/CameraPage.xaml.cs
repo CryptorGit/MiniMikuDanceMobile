@@ -73,6 +73,7 @@ public partial class CameraPage : ContentPage
             var modelPath = await EnsureSampleModel();
             if (!string.IsNullOrEmpty(modelPath))
             {
+                Debug.WriteLine($"[CameraPage] Using model: {modelPath}");
                 var importer = new ModelImporter();
                 var data = importer.ImportModel(modelPath);
                 _renderer.LoadModel(data);
@@ -91,7 +92,10 @@ public partial class CameraPage : ContentPage
         var modelDir = MmdFileSystem.Ensure("Models");
         var vrm = Directory.EnumerateFiles(modelDir, "*.vrm").FirstOrDefault();
         if (!string.IsNullOrEmpty(vrm))
+        {
+            Debug.WriteLine($"[CameraPage] Found existing model at {vrm}");
             return vrm;
+        }
 
         try
         {
@@ -99,6 +103,7 @@ public partial class CameraPage : ContentPage
             var path = Path.Combine(modelDir, "SampleModel.vrm");
             using var fs = File.Create(path);
             await stream.CopyToAsync(fs);
+            Debug.WriteLine($"[CameraPage] Copied sample model to {path}");
             return path;
         }
         catch (Exception ex)
