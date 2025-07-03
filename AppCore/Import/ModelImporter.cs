@@ -25,7 +25,7 @@ public class ModelImporter
     public ModelData ImportModel(Stream stream)
     {
         Debug.WriteLine("[ModelImporter] Loading model from stream");
-        var model = SharpGLTF.Schema2.ModelRoot.Read(stream);
+        var model = SharpGLTF.Schema2.ModelRoot.ReadGLB(stream);
         return ImportVrm(model);
     }
 
