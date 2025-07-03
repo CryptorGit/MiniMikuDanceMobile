@@ -18,11 +18,11 @@ namespace MiniMikuDanceMaui;
 
 public partial class CameraPage : ContentPage
 {
-    private const double BottomHeightRatio = 0.5;
+    private double _bottomHeightRatio = 0.5;
     private const double TopMenuHeight = 36;
     private bool _viewMenuOpen;
     private readonly Dictionary<string, View> _bottomViews = new();
-    private readonly Dictionary<string, Button> _bottomTabs = new();
+    private readonly Dictionary<string, Border> _bottomTabs = new();
     private string? _currentFeature;
 
     private readonly SimpleCubeRenderer _renderer = new();
@@ -55,10 +55,10 @@ public partial class CameraPage : ContentPage
         await Navigation.PopToRootAsync();
     }
 
-    private async void OnSettingClicked(object? sender, EventArgs e)
+    private void OnSettingClicked(object? sender, EventArgs e)
     {
         HideViewMenu();
-        await Navigation.PushAsync(new SettingPage());
+        ShowBottomFeature("SETTING");
     }
 
     private async void OnSelectClicked(object? sender, EventArgs e)
@@ -206,7 +206,7 @@ public partial class CameraPage : ContentPage
         AbsoluteLayout.SetLayoutBounds(Viewer, new Rect(0, 0, W, H));
         AbsoluteLayout.SetLayoutFlags(Viewer, AbsoluteLayoutFlags.None);
 
-        double bottomHeight = BottomRegion.IsVisible ? H * BottomHeightRatio : 0;
+        double bottomHeight = BottomRegion.IsVisible ? H * _bottomHeightRatio : 0;
         AbsoluteLayout.SetLayoutBounds(BottomRegion, new Rect(0, H - bottomHeight, W, bottomHeight));
         AbsoluteLayout.SetLayoutFlags(BottomRegion, AbsoluteLayoutFlags.None);
     }
@@ -312,16 +312,48 @@ public partial class CameraPage : ContentPage
                 var entries = Directory.EnumerateFileSystemEntries(MmdFileSystem.BaseDir);
                 view = new ListView { ItemsSource = entries };
             }
+            else if (name == "SETTING")
+            {
+                var sv = new SettingView { HeightRatio = _bottomHeightRatio };
+                sv.HeightRatioChanged += ratio =>
+                {
+                    _bottomHeightRatio = ratio;
+                    UpdateLayout();
+                };
+                view = sv;
+            }
             else
             {
                 view = new Label { Text = $"{name} view", TextColor = Colors.White, HorizontalTextAlignment = TextAlignment.Center, VerticalTextAlignment = TextAlignment.Center };
             }
             _bottomViews[name] = view;
-            var tab = new Button { Text = name, FontSize = 12 };
+
+            var border = new Border
+            {
+                BackgroundColor = Color.FromArgb("#1A1A1A"),
+                Stroke = Colors.Gray,
+                StrokeThickness = 1,
+                Padding = new Thickness(8, 2)
+            };
+            var label = new Label
+            {
+                Text = name,
+                TextColor = Colors.White,
+                FontSize = 12,
+                HorizontalTextAlignment = TextAlignment.Center,
+                VerticalTextAlignment = TextAlignment.Center
+            };
+            border.Content = label;
             string captured = name;
-            tab.Clicked += (s, e) => SwitchBottomFeature(captured);
-            BottomTabBar.Add(tab);
-            _bottomTabs[name] = tab;
+            var tap = new TapGestureRecognizer();
+            tap.Tapped += (s, e) => SwitchBottomFeature(captured);
+            border.GestureRecognizers.Add(tap);
+            BottomTabBar.Add(border);
+            _bottomTabs[name] = border;
+        }
+        else if (name == "SETTING" && _bottomViews[name] is SettingView sv)
+        {
+            sv.HeightRatio = _bottomHeightRatio;
         }
         SwitchBottomFeature(name);
         BottomRegion.IsVisible = true;
@@ -334,6 +366,17 @@ public partial class CameraPage : ContentPage
         {
             BottomContent.Content = view;
             _currentFeature = name;
+            UpdateTabColors();
+        }
+    }
+
+    private void UpdateTabColors()
+    {
+        foreach (var kv in _bottomTabs)
+        {
+            kv.Value.BackgroundColor = kv.Key == _currentFeature
+                ? Color.FromArgb("#2A2A2A")
+                : Color.FromArgb("#111111");
         }
     }
 }
