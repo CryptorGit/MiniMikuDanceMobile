@@ -1,5 +1,4 @@
 using Assimp;
-using SharpGLTF.Schema2;
 using GLTFImage = SharpGLTF.Schema2.Image;
 using SixLabors.ImageSharp;
 using SixLabors.ImageSharp.PixelFormats;
@@ -39,7 +38,7 @@ public class ModelImporter
 
     private ModelData ImportVrm(string path)
     {
-        var model = ModelRoot.Load(path);
+        var model = SharpGLTF.Schema2.ModelRoot.Load(path);
         var mesh = new Assimp.Mesh("mesh", Assimp.PrimitiveType.Triangle);
 
         var prim = model.LogicalMeshes.First().Primitives.First();

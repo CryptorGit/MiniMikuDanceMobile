@@ -4,7 +4,7 @@
              x:Class="MiniMikuDanceMaui.SettingPage"
              BackgroundColor="Transparent">
     <AbsoluteLayout x:Name="Root">
-        <StackLayout x:Name="Content" VerticalOptions="Center" HorizontalOptions="Center" Spacing="20">
+        <StackLayout x:Name="ContentLayout" VerticalOptions="Center" HorizontalOptions="Center" Spacing="20">
         </StackLayout>
         <BoxView x:Name="MenuOverlay" BackgroundColor="#00000033" IsVisible="False" />
         <Button x:Name="MenuButton" Text="&#x2630;" WidthRequest="56" HeightRequest="56" BackgroundColor="Transparent" />
