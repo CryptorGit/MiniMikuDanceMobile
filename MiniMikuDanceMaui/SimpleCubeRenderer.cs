@@ -25,6 +25,7 @@ public class SimpleCubeRenderer : IDisposable
     private int _groundVbo;
     private int _width;
     private int _height;
+    public float CameraSensitivity { get; set; } = 1f;
 
     public void Initialize()
     {
@@ -112,20 +113,20 @@ void main(){
 
     public void Orbit(float dx, float dy)
     {
-        _orbitY -= dx * 0.01f;
-        _orbitX -= dy * 0.01f;
+        _orbitY -= dx * 0.01f * CameraSensitivity;
+        _orbitX -= dy * 0.01f * CameraSensitivity;
     }
 
     public void Pan(float dx, float dy)
     {
         Vector3 right = Vector3.UnitX;
         Vector3 up = Vector3.UnitY;
-        _target += (-right * dx + up * dy) * 0.01f;
+        _target += (-right * dx + up * dy) * 0.01f * CameraSensitivity;
     }
 
     public void Dolly(float delta)
     {
-        _distance *= 1f + delta * 0.01f;
+        _distance *= 1f + delta * 0.01f * CameraSensitivity;
         if (_distance < 1f) _distance = 1f;
         if (_distance > 20f) _distance = 20f;
     }
