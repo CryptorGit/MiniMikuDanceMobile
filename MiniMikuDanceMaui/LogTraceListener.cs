@@ -1,3 +1,4 @@
+using System;
 using System.Diagnostics;
 
 namespace MiniMikuDanceMaui;
@@ -8,6 +9,6 @@ public class LogTraceListener : TraceListener
     public override void WriteLine(string? message)
     {
         if (!string.IsNullOrEmpty(message))
-            LogService.WriteLine(message);
+            System.Diagnostics.Debug.WriteLine($"[{DateTime.Now:HH:mm:ss}] {message}");
     }
 }
