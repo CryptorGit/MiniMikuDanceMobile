@@ -32,14 +32,46 @@
         </HorizontalStackLayout>
         <Frame x:Name="ViewMenu" IsVisible="False" BackgroundColor="#1E1E1E" Padding="0" ZIndex="2">
             <VerticalStackLayout Spacing="4" Padding="8">
-                <Button Text="HOME" Clicked="OnHomeClicked" />
-                <Button Text="SELECT" Clicked="OnSelectClicked" />
-                <Button Text="POSE" Clicked="OnPoseClicked" />
-                <Button Text="MOTION" Clicked="OnMotionClicked" />
-                <Button Text="AR" Clicked="OnArClicked" />
-                <Button Text="RECORD" Clicked="OnRecordClicked" />
-                <Button Text="RESET CAMERA" Clicked="OnResetCamClicked" />
-                <Button Text="EXPLORER" Clicked="OnExplorerClicked" />
+                <Label Text="HOME" TextColor="White">
+                    <Label.GestureRecognizers>
+                        <TapGestureRecognizer Tapped="OnHomeClicked" />
+                    </Label.GestureRecognizers>
+                </Label>
+                <Label Text="SELECT" TextColor="White">
+                    <Label.GestureRecognizers>
+                        <TapGestureRecognizer Tapped="OnSelectClicked" />
+                    </Label.GestureRecognizers>
+                </Label>
+                <Label Text="POSE" TextColor="White">
+                    <Label.GestureRecognizers>
+                        <TapGestureRecognizer Tapped="OnPoseClicked" />
+                    </Label.GestureRecognizers>
+                </Label>
+                <Label Text="MOTION" TextColor="White">
+                    <Label.GestureRecognizers>
+                        <TapGestureRecognizer Tapped="OnMotionClicked" />
+                    </Label.GestureRecognizers>
+                </Label>
+                <Label Text="AR" TextColor="White">
+                    <Label.GestureRecognizers>
+                        <TapGestureRecognizer Tapped="OnArClicked" />
+                    </Label.GestureRecognizers>
+                </Label>
+                <Label Text="RECORD" TextColor="White">
+                    <Label.GestureRecognizers>
+                        <TapGestureRecognizer Tapped="OnRecordClicked" />
+                    </Label.GestureRecognizers>
+                </Label>
+                <Label Text="RESET CAMERA" TextColor="White">
+                    <Label.GestureRecognizers>
+                        <TapGestureRecognizer Tapped="OnResetCamClicked" />
+                    </Label.GestureRecognizers>
+                </Label>
+                <Label Text="EXPLORER" TextColor="White">
+                    <Label.GestureRecognizers>
+                        <TapGestureRecognizer Tapped="OnExplorerClicked" />
+                    </Label.GestureRecognizers>
+                </Label>
             </VerticalStackLayout>
         </Frame>
         <Frame x:Name="SettingMenu" IsVisible="False" BackgroundColor="#1E1E1E" Padding="8" ZIndex="2">
@@ -50,12 +82,23 @@
         <skia:SKGLView x:Name="Viewer" HasRenderLoop="True" EnableTouchEvents="True" />
         <Grid x:Name="BottomRegion" BackgroundColor="#1E1E1E" IsVisible="False">
             <Grid.RowDefinitions>
-                <RowDefinition Height="30" />
+                <RowDefinition Height="40" />
                 <RowDefinition Height="*" />
             </Grid.RowDefinitions>
-            <ScrollView Orientation="Horizontal">
-                <HorizontalStackLayout x:Name="BottomTabBar" Spacing="8" Padding="8" BackgroundColor="#2A2A2A" />
-            </ScrollView>
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="40" />
+                </Grid.ColumnDefinitions>
+                <ScrollView Orientation="Horizontal">
+                    <HorizontalStackLayout x:Name="BottomTabBar" Spacing="8" Padding="8" BackgroundColor="#2A2A2A" />
+                </ScrollView>
+                <Label Text="×" Grid.Column="1" TextColor="White" HorizontalTextAlignment="Center" VerticalTextAlignment="Center">
+                    <Label.GestureRecognizers>
+                        <TapGestureRecognizer Tapped="OnCloseBottomTapped" />
+                    </Label.GestureRecognizers>
+                </Label>
+            </Grid>
             <ContentView x:Name="BottomContent" Grid.Row="1" />
         </Grid>
     </AbsoluteLayout>

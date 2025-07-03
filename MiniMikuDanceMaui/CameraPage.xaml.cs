@@ -114,6 +114,12 @@ public partial class CameraPage : ContentPage
         HideViewMenu();
     }
 
+    private void OnCloseBottomTapped(object? sender, TappedEventArgs e)
+    {
+        HideBottomRegion();
+        UpdateLayout();
+    }
+
     private void OnResetCamClicked(object? sender, EventArgs e)
     {
         _renderer.ResetCamera();
@@ -133,6 +139,13 @@ public partial class CameraPage : ContentPage
         _viewMenuOpen = false;
         ViewMenu.IsVisible = false;
         HideSettingMenu();
+    }
+
+    private void HideBottomRegion()
+    {
+        BottomRegion.IsVisible = false;
+        _currentFeature = null;
+        UpdateTabColors();
     }
 
     private void HideSettingMenu()
@@ -230,7 +243,7 @@ public partial class CameraPage : ContentPage
         double menuHeight = H - TopMenuHeight - bottomHeight;
         AbsoluteLayout.SetLayoutBounds(ViewMenu, new Rect(0, TopMenuHeight, 200, ViewMenu.IsVisible ? menuHeight : 0));
         AbsoluteLayout.SetLayoutFlags(ViewMenu, AbsoluteLayoutFlags.None);
-        AbsoluteLayout.SetLayoutBounds(SettingMenu, new Rect(0, TopMenuHeight, 200, SettingMenu.IsVisible ? menuHeight : 0));
+        AbsoluteLayout.SetLayoutBounds(SettingMenu, new Rect(0, TopMenuHeight, 250, SettingMenu.IsVisible ? menuHeight : 0));
         AbsoluteLayout.SetLayoutFlags(SettingMenu, AbsoluteLayoutFlags.None);
 
         AbsoluteLayout.SetLayoutBounds(Viewer, new Rect(0, 0, W, H));
@@ -361,13 +374,14 @@ public partial class CameraPage : ContentPage
                 BackgroundColor = Color.FromArgb("#1A1A1A"),
                 Stroke = Colors.Gray,
                 StrokeThickness = 1,
-                Padding = new Thickness(8, 2)
+                Padding = new Thickness(8, 2),
+                MinimumWidthRequest = 60
             };
             var label = new Label
             {
                 Text = name,
                 TextColor = Colors.White,
-                FontSize = 12,
+                FontSize = 14,
                 HorizontalTextAlignment = TextAlignment.Center,
                 VerticalTextAlignment = TextAlignment.Center
             };

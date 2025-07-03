@@ -10,6 +10,8 @@ public partial class SettingPage : ContentPage
 {
     private const double TopMenuHeight = 36;
     private bool _viewMenuOpen;
+    private bool _settingMenuOpen;
+    private double _bottomHeightRatio = 0.5;
 
     public SettingPage()
     {
@@ -22,6 +24,8 @@ public partial class SettingPage : ContentPage
     {
         _viewMenuOpen = !_viewMenuOpen;
         ViewMenu.IsVisible = _viewMenuOpen;
+        if (_viewMenuOpen)
+            HideSettingMenu();
         UpdateLayout();
     }
 
@@ -38,14 +42,31 @@ public partial class SettingPage : ContentPage
 
     private void OnSettingClicked(object? sender, EventArgs e)
     {
-        // already on setting page
+        _settingMenuOpen = !_settingMenuOpen;
+        SettingMenu.IsVisible = _settingMenuOpen;
+        if (_settingMenuOpen && SettingContent is SettingView sv)
+        {
+            sv.HeightRatio = _bottomHeightRatio;
+            sv.HeightRatioChanged += ratio =>
+            {
+                _bottomHeightRatio = ratio;
+            };
+        }
         HideViewMenu();
+        UpdateLayout();
     }
 
     private void HideViewMenu()
     {
         _viewMenuOpen = false;
         ViewMenu.IsVisible = false;
+        HideSettingMenu();
+    }
+
+    private void HideSettingMenu()
+    {
+        _settingMenuOpen = false;
+        SettingMenu.IsVisible = false;
     }
 
     private void UpdateLayout()
@@ -56,7 +77,10 @@ public partial class SettingPage : ContentPage
         AbsoluteLayout.SetLayoutBounds(TopMenu, new Rect(0, 0, W, TopMenuHeight));
         AbsoluteLayout.SetLayoutFlags(TopMenu, AbsoluteLayoutFlags.None);
 
-        AbsoluteLayout.SetLayoutBounds(ViewMenu, new Rect(0, TopMenuHeight, 200, ViewMenu.IsVisible ? 100 : 0));
+        double menuHeight = H - TopMenuHeight;
+        AbsoluteLayout.SetLayoutBounds(ViewMenu, new Rect(0, TopMenuHeight, 200, ViewMenu.IsVisible ? menuHeight : 0));
         AbsoluteLayout.SetLayoutFlags(ViewMenu, AbsoluteLayoutFlags.None);
+        AbsoluteLayout.SetLayoutBounds(SettingMenu, new Rect(0, TopMenuHeight, 250, SettingMenu.IsVisible ? menuHeight : 0));
+        AbsoluteLayout.SetLayoutFlags(SettingMenu, AbsoluteLayoutFlags.None);
     }
 }
