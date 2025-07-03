@@ -5,7 +5,7 @@ namespace MiniMikuDanceMaui;
 
 public partial class SettingView : ContentView
 {
-public event Action<double>? WidthRatioChanged;
+public event Action<double>? HeightRatioChanged;
     public event Action<double>? SensitivityChanged;
 
     public SettingView()
@@ -13,9 +13,9 @@ public event Action<double>? WidthRatioChanged;
         InitializeComponent();
     }
 
-    private void OnWidthChanged(object? sender, ValueChangedEventArgs e)
+    private void OnHeightChanged(object? sender, ValueChangedEventArgs e)
     {
-        WidthRatioChanged?.Invoke(e.NewValue);
+        HeightRatioChanged?.Invoke(e.NewValue);
     }
 
     private void OnCameraChanged(object? sender, ValueChangedEventArgs e)
@@ -23,10 +23,10 @@ public event Action<double>? WidthRatioChanged;
         SensitivityChanged?.Invoke(e.NewValue);
     }
 
-    public double WidthRatio
+    public double HeightRatio
     {
-        get => WidthSlider.Value;
-        set => WidthSlider.Value = value;
+        get => HeightSlider.Value;
+        set => HeightSlider.Value = value;
     }
 
     public double Sensitivity

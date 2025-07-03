@@ -4,9 +4,9 @@
              x:Class="MiniMikuDanceMaui.SettingView"
              BackgroundColor="#1E1E1E">
     <VerticalStackLayout Spacing="10" Padding="10">
-        <Label Text="Bottom Region Width" TextColor="White"/>
-        <Slider x:Name="WidthSlider" Minimum="0.5" Maximum="1"
-                ValueChanged="OnWidthChanged"/>
+        <Label Text="Bottom Region Height" TextColor="White"/>
+        <Slider x:Name="HeightSlider" Minimum="0.3" Maximum="0.8"
+                ValueChanged="OnHeightChanged"/>
         <Label Text="Camera Sensitivity" TextColor="White"/>
         <Slider x:Name="CameraSlider" Minimum="0.5" Maximum="3"
                 ValueChanged="OnCameraChanged"/>
