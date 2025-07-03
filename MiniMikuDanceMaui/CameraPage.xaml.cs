@@ -1,11 +1,9 @@
-using Microsoft.Maui;
 using Microsoft.Maui.ApplicationModel;
 using Microsoft.Maui.Controls;
 using Microsoft.Maui.Graphics;
 using Microsoft.Maui.Layouts;
 using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.Threading.Tasks;
 using SkiaSharp.Views.Maui;
 using SkiaSharp.Views.Maui.Controls;
@@ -25,7 +23,6 @@ public partial class CameraPage : ContentPage
     private readonly SimpleCubeRenderer _renderer = new();
     private bool _glInitialized;
     private readonly Dictionary<long, SKPoint> _touchPoints = new();
-    private bool _logVisible;
 
     public CameraPage()
     {
@@ -69,21 +66,6 @@ public partial class CameraPage : ContentPage
             _renderer.ResetCamera();
             Viewer?.InvalidateSurface();
             LogService.WriteLine("Camera reset");
-        };
-
-        DebugBtn.Clicked += (s, e) =>
-        {
-            _logVisible = !_logVisible;
-            LogArea.IsVisible = _logVisible;
-            UpdateLayout();
-        };
-
-        LogService.LogAdded += line =>
-        {
-            MainThread.BeginInvokeOnMainThread(() =>
-            {
-                LogLabel.Text += line + "\n";
-            });
         };
 
         if (Viewer is SKGLView glView)
@@ -160,19 +142,15 @@ public partial class CameraPage : ContentPage
         double H = this.Height;
         Thickness safe = this.Padding;
 
-        double logH = _logVisible ? H / 5 : 0;
-
-        AbsoluteLayout.SetLayoutBounds(Viewer, new Rect(0, 0, W, H - logH));
+        AbsoluteLayout.SetLayoutBounds(Viewer, new Rect(0, 0, W, H));
         AbsoluteLayout.SetLayoutFlags(Viewer, AbsoluteLayoutFlags.None);
-        AbsoluteLayout.SetLayoutBounds(LogArea, new Rect(0, H - logH, W, logH));
-        AbsoluteLayout.SetLayoutFlags(LogArea, AbsoluteLayoutFlags.None);
 
         double menuWidth = W * SidebarWidthRatio;
         double sidebarX = _sidebarOpen ? W - menuWidth : W;
         AbsoluteLayout.SetLayoutBounds(Sidebar, new Rect(sidebarX, 0, menuWidth, H));
         AbsoluteLayout.SetLayoutFlags(Sidebar, AbsoluteLayoutFlags.None);
 
-        AbsoluteLayout.SetLayoutBounds(MenuButton, new Rect(W - 72, H - logH - 72, 56, 56));
+        AbsoluteLayout.SetLayoutBounds(MenuButton, new Rect(W - 72, H - 72, 56, 56));
         AbsoluteLayout.SetLayoutFlags(MenuButton, AbsoluteLayoutFlags.None);
 
         AbsoluteLayout.SetLayoutBounds(MenuOverlay, new Rect(0, 0, W, H));
