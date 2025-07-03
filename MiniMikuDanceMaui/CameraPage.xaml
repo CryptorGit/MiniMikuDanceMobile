@@ -82,6 +82,11 @@
                 <mmd:SettingView x:Name="SettingContent" />
             </VerticalStackLayout>
         </Frame>
+        <BoxView x:Name="MenuOverlay" BackgroundColor="Transparent" IsVisible="False" ZIndex="1">
+            <BoxView.GestureRecognizers>
+                <TapGestureRecognizer Tapped="OnOverlayTapped" />
+            </BoxView.GestureRecognizers>
+        </BoxView>
         <skia:SKGLView x:Name="Viewer" HasRenderLoop="True" EnableTouchEvents="True" />
         <Grid x:Name="BottomRegion" BackgroundColor="#1E1E1E" IsVisible="False">
             <Grid.RowDefinitions>

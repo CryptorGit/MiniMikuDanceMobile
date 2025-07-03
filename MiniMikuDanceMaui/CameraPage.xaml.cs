@@ -24,6 +24,8 @@ public partial class CameraPage : ContentPage
     private const double TopMenuHeight = 36;
     private bool _viewMenuOpen;
     private bool _settingMenuOpen;
+    
+    private void UpdateOverlay() => MenuOverlay.IsVisible = _viewMenuOpen || _settingMenuOpen;
     private readonly Dictionary<string, View> _bottomViews = new();
     private readonly Dictionary<string, Border> _bottomTabs = new();
     private string? _currentFeature;
@@ -47,9 +49,9 @@ public partial class CameraPage : ContentPage
 
         if (SettingContent is SettingView setting)
         {
-            setting.WidthRatioChanged += ratio =>
+            setting.HeightRatioChanged += ratio =>
             {
-                _bottomWidthRatio = ratio;
+                _bottomHeightRatio = ratio;
                 UpdateLayout();
             };
             setting.SensitivityChanged += v =>
@@ -66,6 +68,7 @@ public partial class CameraPage : ContentPage
         ViewMenu.IsVisible = _viewMenuOpen;
         if (_viewMenuOpen)
             HideSettingMenu();
+        UpdateOverlay();
         UpdateLayout();
     }
 
@@ -88,9 +91,10 @@ public partial class CameraPage : ContentPage
         SettingMenu.IsVisible = nextState;
         if (_settingMenuOpen && SettingContent is SettingView sv)
         {
-            sv.WidthRatio = _bottomWidthRatio;
+            sv.HeightRatio = _bottomHeightRatio;
             sv.Sensitivity = _cameraSensitivity;
         }
+        UpdateOverlay();
         UpdateLayout();
     }
 
@@ -139,6 +143,13 @@ public partial class CameraPage : ContentPage
         UpdateLayout();
     }
 
+    private void OnOverlayTapped(object? sender, TappedEventArgs e)
+    {
+        HideViewMenu();
+        HideSettingMenu();
+        UpdateLayout();
+    }
+
     private void OnResetCamClicked(object? sender, EventArgs e)
     {
         _renderer.ResetCamera();
@@ -159,6 +170,7 @@ public partial class CameraPage : ContentPage
     {
         _viewMenuOpen = false;
         ViewMenu.IsVisible = false;
+        UpdateOverlay();
     }
 
     private void HideBottomRegion()
@@ -172,6 +184,7 @@ public partial class CameraPage : ContentPage
     {
         _settingMenuOpen = false;
         SettingMenu.IsVisible = false;
+        UpdateOverlay();
     }
 
     protected override async void OnAppearing()
@@ -381,10 +394,10 @@ public partial class CameraPage : ContentPage
             }
             else if (name == "SETTING")
             {
-                var sv = new SettingView { WidthRatio = _bottomWidthRatio, Sensitivity = _cameraSensitivity };
-                sv.WidthRatioChanged += ratio =>
+                var sv = new SettingView { HeightRatio = _bottomHeightRatio, Sensitivity = _cameraSensitivity };
+                sv.HeightRatioChanged += ratio =>
                 {
-                    _bottomWidthRatio = ratio;
+                    _bottomHeightRatio = ratio;
                     UpdateLayout();
                 };
                 sv.SensitivityChanged += v =>
@@ -424,7 +437,7 @@ public partial class CameraPage : ContentPage
         }
         else if (name == "SETTING" && _bottomViews[name] is SettingView sv)
         {
-            sv.WidthRatio = _bottomWidthRatio;
+            sv.HeightRatio = _bottomHeightRatio;
             sv.Sensitivity = _cameraSensitivity;
         }
         SwitchBottomFeature(name);
