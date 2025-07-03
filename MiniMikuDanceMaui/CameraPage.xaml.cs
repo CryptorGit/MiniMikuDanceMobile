@@ -131,6 +131,7 @@ public partial class CameraPage : ContentPage
     private Task<string?> EnsureSampleModel()
     {
         var modelDir = MmdFileSystem.Ensure("Models");
+        MmdFileSystem.AppendAccessLog(modelDir);
         LogService.WriteLine($"[CameraPage] Searching models in {modelDir}");
         var vrm = Directory.EnumerateFiles(modelDir, "*.vrm").FirstOrDefault();
         if (!string.IsNullOrEmpty(vrm))
