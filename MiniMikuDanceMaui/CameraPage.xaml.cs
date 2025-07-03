@@ -361,8 +361,7 @@ public partial class CameraPage : ContentPage
     {
         if (BottomRegion.IsVisible && _currentFeature == name)
         {
-            HideBottomRegion();
-            UpdateLayout();
+            RemoveBottomFeature(name);
             return;
         }
         if (!_bottomViews.ContainsKey(name))
@@ -443,6 +442,34 @@ public partial class CameraPage : ContentPage
             kv.Value.BackgroundColor = kv.Key == _currentFeature
                 ? Color.FromArgb("#333333")
                 : Color.FromArgb("#666666");
+        }
+    }
+
+    private void RemoveBottomFeature(string name)
+    {
+        if (_bottomViews.Remove(name))
+        {
+            if (_bottomTabs.TryGetValue(name, out var tab))
+            {
+                BottomTabBar.Remove(tab);
+                _bottomTabs.Remove(name);
+            }
+
+            if (_currentFeature == name)
+            {
+                _currentFeature = null;
+                if (_bottomViews.Count > 0)
+                {
+                    var next = _bottomViews.Keys.First();
+                    SwitchBottomFeature(next);
+                }
+                else
+                {
+                    BottomRegion.IsVisible = false;
+                }
+            }
+
+            UpdateLayout();
         }
     }
 }
