@@ -19,6 +19,8 @@ namespace MiniMikuDanceMaui;
 public partial class CameraPage : ContentPage
 {
     private const double BottomHeightRatio = 0.5;
+    private const double TopMenuHeight = 36;
+    private bool _viewMenuOpen;
     private readonly Dictionary<string, View> _bottomViews = new();
     private readonly Dictionary<string, Button> _bottomTabs = new();
     private string? _currentFeature;
@@ -40,18 +42,28 @@ public partial class CameraPage : ContentPage
         }
     }
 
+    private void OnViewMenuTapped(object? sender, TappedEventArgs e)
+    {
+        _viewMenuOpen = !_viewMenuOpen;
+        ViewMenu.IsVisible = _viewMenuOpen;
+        UpdateLayout();
+    }
+
     private async void OnHomeClicked(object? sender, EventArgs e)
     {
+        HideViewMenu();
         await Navigation.PopToRootAsync();
     }
 
     private async void OnSettingClicked(object? sender, EventArgs e)
     {
+        HideViewMenu();
         await Navigation.PushAsync(new SettingPage());
     }
 
     private async void OnSelectClicked(object? sender, EventArgs e)
     {
+        HideViewMenu();
         await ShowModelSelector();
     }
 
@@ -59,24 +71,28 @@ public partial class CameraPage : ContentPage
     {
         LogService.WriteLine("POSE button clicked");
         ShowBottomFeature("POSE");
+        HideViewMenu();
     }
 
     private void OnMotionClicked(object? sender, EventArgs e)
     {
         LogService.WriteLine("MOTION button clicked");
         ShowBottomFeature("MOTION");
+        HideViewMenu();
     }
-
+    
     private void OnArClicked(object? sender, EventArgs e)
     {
         LogService.WriteLine("AR button clicked");
         ShowBottomFeature("AR");
+        HideViewMenu();
     }
 
     private void OnRecordClicked(object? sender, EventArgs e)
     {
         LogService.WriteLine("RECORD button clicked");
         ShowBottomFeature("RECORD");
+        HideViewMenu();
     }
 
     private void OnResetCamClicked(object? sender, EventArgs e)
@@ -84,11 +100,19 @@ public partial class CameraPage : ContentPage
         _renderer.ResetCamera();
         Viewer?.InvalidateSurface();
         LogService.WriteLine("Camera reset");
+        HideViewMenu();
     }
 
     private void OnExplorerClicked(object? sender, EventArgs e)
     {
         ShowBottomFeature("Explorer");
+        HideViewMenu();
+    }
+
+    private void HideViewMenu()
+    {
+        _viewMenuOpen = false;
+        ViewMenu.IsVisible = false;
     }
 
     protected override async void OnAppearing()
@@ -173,6 +197,11 @@ public partial class CameraPage : ContentPage
         double W = this.Width;
         double H = this.Height;
         Thickness safe = this.Padding;
+        AbsoluteLayout.SetLayoutBounds(TopMenu, new Rect(0, 0, W, TopMenuHeight));
+        AbsoluteLayout.SetLayoutFlags(TopMenu, AbsoluteLayoutFlags.None);
+
+        AbsoluteLayout.SetLayoutBounds(ViewMenu, new Rect(0, TopMenuHeight, 200, ViewMenu.IsVisible ? 360 : 0));
+        AbsoluteLayout.SetLayoutFlags(ViewMenu, AbsoluteLayoutFlags.None);
 
         AbsoluteLayout.SetLayoutBounds(Viewer, new Rect(0, 0, W, H));
         AbsoluteLayout.SetLayoutFlags(Viewer, AbsoluteLayoutFlags.None);

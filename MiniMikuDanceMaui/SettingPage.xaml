@@ -8,13 +8,27 @@
         <MenuBarItem Text="File" />
         <MenuBarItem Text="Edit" />
         <MenuBarItem Text="Selection" />
-        <MenuBarItem Text="View">
-            <MenuFlyoutItem Text="HOME" Clicked="OnHomeClicked" />
-            <MenuFlyoutItem Text="SETTING" Clicked="OnSettingClicked" />
-        </MenuBarItem>
+        <MenuBarItem Text="View" />
         <MenuBarItem Text="Help" />
     </ContentPage.MenuBarItems>
     <AbsoluteLayout x:Name="Root">
+        <HorizontalStackLayout x:Name="TopMenu" BackgroundColor="#2A2A2A" Spacing="20" Padding="10,0" HeightRequest="36">
+            <Label Text="File" TextColor="White"/>
+            <Label Text="Edit" TextColor="White"/>
+            <Label Text="Selection" TextColor="White"/>
+            <Label Text="View" TextColor="White">
+                <Label.GestureRecognizers>
+                    <TapGestureRecognizer Tapped="OnViewMenuTapped" />
+                </Label.GestureRecognizers>
+            </Label>
+            <Label Text="Help" TextColor="White"/>
+        </HorizontalStackLayout>
+        <Frame x:Name="ViewMenu" IsVisible="False" BackgroundColor="#1E1E1E" Padding="0">
+            <VerticalStackLayout Spacing="4" Padding="8">
+                <Button Text="HOME" Clicked="OnHomeClicked" />
+                <Button Text="SETTING" Clicked="OnSettingClicked" />
+            </VerticalStackLayout>
+        </Frame>
         <StackLayout x:Name="ContentLayout" VerticalOptions="Center" HorizontalOptions="Center" Spacing="20">
         </StackLayout>
     </AbsoluteLayout>

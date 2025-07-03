@@ -9,20 +9,34 @@
         <MenuBarItem Text="File" />
         <MenuBarItem Text="Edit" />
         <MenuBarItem Text="Selection" />
-        <MenuBarItem Text="View">
-            <MenuFlyoutItem Text="HOME" Clicked="OnHomeClicked" />
-            <MenuFlyoutItem Text="SELECT" Clicked="OnSelectClicked" />
-            <MenuFlyoutItem Text="POSE" Clicked="OnPoseClicked" />
-            <MenuFlyoutItem Text="MOTION" Clicked="OnMotionClicked" />
-            <MenuFlyoutItem Text="AR" Clicked="OnArClicked" />
-            <MenuFlyoutItem Text="RECORD" Clicked="OnRecordClicked" />
-            <MenuFlyoutItem Text="RESET CAMERA" Clicked="OnResetCamClicked" />
-            <MenuFlyoutItem Text="SETTING" Clicked="OnSettingClicked" />
-            <MenuFlyoutItem Text="EXPLORER" Clicked="OnExplorerClicked" />
-        </MenuBarItem>
+        <MenuBarItem Text="View" />
         <MenuBarItem Text="Help" />
     </ContentPage.MenuBarItems>
     <AbsoluteLayout x:Name="Root">
+        <HorizontalStackLayout x:Name="TopMenu" BackgroundColor="#2A2A2A" Spacing="20" Padding="10,0" HeightRequest="36">
+            <Label Text="File" TextColor="White"/>
+            <Label Text="Edit" TextColor="White"/>
+            <Label Text="Selection" TextColor="White"/>
+            <Label Text="View" TextColor="White">
+                <Label.GestureRecognizers>
+                    <TapGestureRecognizer Tapped="OnViewMenuTapped" />
+                </Label.GestureRecognizers>
+            </Label>
+            <Label Text="Help" TextColor="White"/>
+        </HorizontalStackLayout>
+        <Frame x:Name="ViewMenu" IsVisible="False" BackgroundColor="#1E1E1E" Padding="0">
+            <VerticalStackLayout Spacing="4" Padding="8">
+                <Button Text="HOME" Clicked="OnHomeClicked" />
+                <Button Text="SELECT" Clicked="OnSelectClicked" />
+                <Button Text="POSE" Clicked="OnPoseClicked" />
+                <Button Text="MOTION" Clicked="OnMotionClicked" />
+                <Button Text="AR" Clicked="OnArClicked" />
+                <Button Text="RECORD" Clicked="OnRecordClicked" />
+                <Button Text="RESET CAMERA" Clicked="OnResetCamClicked" />
+                <Button Text="SETTING" Clicked="OnSettingClicked" />
+                <Button Text="EXPLORER" Clicked="OnExplorerClicked" />
+            </VerticalStackLayout>
+        </Frame>
         <skia:SKGLView x:Name="Viewer" HasRenderLoop="True" EnableTouchEvents="True" />
         <Grid x:Name="BottomRegion" BackgroundColor="#1E1E1E" IsVisible="False">
             <Grid.RowDefinitions>
