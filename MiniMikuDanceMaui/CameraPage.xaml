@@ -18,7 +18,13 @@
                 <Button x:Name="RecordBtn" Text="RECORD" TextColor="White" />
                 <Button x:Name="ResetCamBtn" Text="RESET CAMERA" TextColor="White" />
                 <Button x:Name="SettingBtn" Text="SETTING" TextColor="White" />
+                <Button x:Name="DebugBtn" Text="DEBUG" TextColor="White" />
             </VerticalStackLayout>
+        </ContentView>
+        <ContentView x:Name="LogArea" BackgroundColor="#55000000" IsVisible="False">
+            <ScrollView>
+                <Label x:Name="LogLabel" TextColor="White" FontSize="12" />
+            </ScrollView>
         </ContentView>
     </AbsoluteLayout>
 </ContentPage>
