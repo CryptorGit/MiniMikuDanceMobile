@@ -80,7 +80,7 @@ public partial class CameraPage : ContentPage
         ShowBottomFeature("MOTION");
         HideViewMenu();
     }
-
+    
     private void OnArClicked(object? sender, EventArgs e)
     {
         LogService.WriteLine("AR button clicked");
