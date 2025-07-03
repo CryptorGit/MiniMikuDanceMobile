@@ -28,6 +28,8 @@ public partial class CameraPage : ContentPage
     private readonly Dictionary<string, Border> _bottomTabs = new();
     private string? _currentFeature;
 
+    private ListView? _explorerList;
+
     private readonly SimpleCubeRenderer _renderer = new();
     private bool _glInitialized;
     private readonly Dictionary<long, SKPoint> _touchPoints = new();
@@ -264,6 +266,10 @@ public partial class CameraPage : ContentPage
         double bottomWidth = W * _bottomWidthRatio;
         AbsoluteLayout.SetLayoutBounds(BottomRegion, new Rect((W - bottomWidth) / 2, H - bottomHeight, bottomWidth, bottomHeight));
         AbsoluteLayout.SetLayoutFlags(BottomRegion, AbsoluteLayoutFlags.None);
+        AbsoluteLayout.SetLayoutBounds(OpenMessage, new Rect((W - 300) / 2, TopMenuHeight + 20, 300, 40));
+        AbsoluteLayout.SetLayoutFlags(OpenMessage, AbsoluteLayoutFlags.None);
+        AbsoluteLayout.SetLayoutBounds(LoadingIndicator, new Rect((W - 40) / 2, TopMenuHeight + 70, 40, 40));
+        AbsoluteLayout.SetLayoutFlags(LoadingIndicator, AbsoluteLayoutFlags.None);
     }
 
 
@@ -370,8 +376,12 @@ public partial class CameraPage : ContentPage
             View view;
             if (name == "Explorer")
             {
-                var entries = Directory.EnumerateFileSystemEntries(MmdFileSystem.BaseDir);
-                view = new ListView { ItemsSource = entries };
+                var dir = MmdFileSystem.Ensure("Models");
+                var entries = Directory.GetFiles(dir, "*.vrm").Select(Path.GetFileName);
+                var lv = new ListView { ItemsSource = entries };
+                lv.ItemTapped += OnLibraryItemTapped;
+                _explorerList = lv;
+                view = lv;
             }
             else if (name == "SETTING")
             {
@@ -416,6 +426,14 @@ public partial class CameraPage : ContentPage
             BottomTabBar.Add(border);
             _bottomTabs[name] = border;
         }
+        else if (name == "Explorer" && _bottomViews[name] is ListView lv)
+        {
+            var dir = MmdFileSystem.Ensure("Models");
+            lv.ItemsSource = Directory.GetFiles(dir, "*.vrm").Select(Path.GetFileName);
+            lv.ItemTapped -= OnLibraryItemTapped;
+            lv.ItemTapped += OnLibraryItemTapped;
+            _explorerList = lv;
+        }
         else if (name == "SETTING" && _bottomViews[name] is SettingView sv)
         {
             sv.WidthRatio = _bottomWidthRatio;
@@ -443,6 +461,77 @@ public partial class CameraPage : ContentPage
             kv.Value.BackgroundColor = kv.Key == _currentFeature
                 ? Color.FromArgb("#333333")
                 : Color.FromArgb("#666666");
+        }
+    }
+
+    private async void OnAddToLibraryClicked(object? sender, EventArgs e)
+    {
+        try
+        {
+            var result = await FilePicker.Default.PickAsync(new PickOptions
+            {
+                PickerTitle = "Select VRM file",
+                FileTypes = new FilePickerFileType(new Dictionary<DevicePlatform, IEnumerable<string>>
+                {
+                    [DevicePlatform.Android] = new[] { ".vrm" }
+                })
+            });
+
+            if (result == null)
+                return;
+
+            var modelDir = MmdFileSystem.Ensure("Models");
+            var dstPath = Path.Combine(modelDir, Path.GetFileName(result.FullPath));
+            await using var src = await result.OpenReadAsync();
+            await using var dst = File.Create(dstPath);
+            await src.CopyToAsync(dst);
+            await DisplayAlert("Added", $"{Path.GetFileName(dstPath)} added to library", "OK");
+            if (_explorerList != null)
+            {
+                _explorerList.ItemsSource = Directory.GetFiles(modelDir, "*.vrm").Select(Path.GetFileName);
+            }
+        }
+        catch (Exception ex)
+        {
+            await DisplayAlert("Error", ex.Message, "OK");
+        }
+    }
+
+    private void OnOpenInViewerClicked(object? sender, EventArgs e)
+    {
+        ShowBottomFeature("Explorer");
+        OpenMessage.IsVisible = true;
+        HideViewMenu();
+    }
+
+    private async void OnLibraryItemTapped(object? sender, ItemTappedEventArgs e)
+    {
+        if (e.Item == null)
+            return;
+
+        string path = Path.Combine(MmdFileSystem.Ensure("Models"), e.Item.ToString()!);
+        OpenMessage.IsVisible = false;
+        HideBottomRegion();
+        LoadingIndicator.IsVisible = true;
+        LoadingIndicator.IsRunning = true;
+        Viewer.HasRenderLoop = false;
+        try
+        {
+            var importer = new ModelImporter();
+            var data = importer.ImportModel(path);
+            _renderer.LoadModel(data);
+        }
+        catch (Exception ex)
+        {
+            await DisplayAlert("Error", ex.Message, "OK");
+        }
+        finally
+        {
+            LoadingIndicator.IsRunning = false;
+            LoadingIndicator.IsVisible = false;
+            Viewer.HasRenderLoop = true;
+            _glInitialized = false;
+            Viewer?.InvalidateSurface();
         }
     }
 }
