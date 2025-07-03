@@ -61,5 +61,10 @@ Viewer とは別に、姿勢推定やモーション生成、録画管理など�
 純粋な C# で実装した OpenGL ビューワーです。Unity には一切依存していません。
 GLFW に頼らず、`eglGetProcAddress` と `dlsym` で関数を取得する OpenGL ES 3.0 ベースのレンダラーへ移行しました。
 
+## VRM 解析ライブラリ
+VRM モデルの読み込みには [SharpGLTF](https://github.com/vpenades/SharpGLTF) を使用します。
+`AppCore/Import/ModelImporter.cs` で SharpGLTF から取得したデータを Assimp 形式へ変換し、
+将来的な VRM 0.x/1.0 への対応を進めていく予定です。
+
 ## ライセンス
 このリポジトリは MIT ライセンスの下で公開されています。詳細は [LICENSE](LICENSE) を参照してください。
