@@ -1,7 +1,7 @@
 using System.Linq;
 using OpenTK.Mathematics;
 using SharpGLTF.Schema2;
-using SixLabors.ImageSharp;
+using ImageSharpImage = SixLabors.ImageSharp.Image;
 using SixLabors.ImageSharp.PixelFormats;
 
 namespace ViewerApp;
@@ -48,7 +48,7 @@ internal static class VrmLoader
         if (image != null)
         {
             using var stream = image.OpenImageFile();
-            using var img = Image.Load<Rgba32>(stream);
+            using var img = ImageSharpImage.Load<Rgba32>(stream);
             texW = img.Width;
             texH = img.Height;
             texBytes = new byte[texW * texH * 4];

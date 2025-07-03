@@ -4,12 +4,13 @@ using OpenTK.Graphics.OpenGL4;
 using OpenTK.Mathematics;
 using OpenTK.Windowing.Common;
 using OpenTK.Windowing.Desktop;
+using OpenTK.Windowing.GraphicsLibraryFramework;
 
 namespace ViewerApp;
 
 public class Viewer : IDisposable
 {
-    private readonly NativeWindow _window;
+    private readonly GameWindow _window;
     private readonly int _vao;
     private readonly int _vbo;
     private readonly int _ebo;
@@ -34,9 +35,9 @@ public class Viewer : IDisposable
             StartFocused = false,
             Flags = ContextFlags.ForwardCompatible
         };
-        _window = new NativeWindow(GameWindowSettings.Default, nativeSettings);
+        _window = new GameWindow(GameWindowSettings.Default, nativeSettings);
         _window.MakeCurrent();
-        GL.LoadBindings(new OpenTK.Platform.NativeWindowBindingsContext(_window.WindowInfo));
+        GL.LoadBindings(new GLFWBindingsContext());
 
         var model = VrmLoader.Load(modelPath);
         _indexCount = model.Indices.Length;
@@ -94,7 +95,7 @@ public class Viewer : IDisposable
 
     private void Render()
     {
-        _window.ProcessEvents();
+        NativeWindow.ProcessWindowEvents(false);
         GL.Viewport(0, 0, Size.X, Size.Y);
         GL.ClearColor(1f, 1f, 1f, 1f);
         GL.Clear(ClearBufferMask.ColorBufferBit | ClearBufferMask.DepthBufferBit);
