@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentView xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             x:Class="MiniMikuDanceMaui.SettingView"
+             BackgroundColor="#1E1E1E">
+    <VerticalStackLayout Spacing="10" Padding="10">
+        <Label Text="Bottom Region Height" TextColor="White"/>
+        <Slider x:Name="HeightSlider" Minimum="0.2" Maximum="0.8"
+                ValueChanged="OnSliderChanged"/>
+    </VerticalStackLayout>
+</ContentView>

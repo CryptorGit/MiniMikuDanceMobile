@@ -1,0 +1,25 @@
+using Microsoft.Maui.Controls;
+using System;
+
+namespace MiniMikuDanceMaui;
+
+public partial class SettingView : ContentView
+{
+    public event Action<double>? HeightRatioChanged;
+
+    public SettingView()
+    {
+        InitializeComponent();
+    }
+
+    private void OnSliderChanged(object? sender, ValueChangedEventArgs e)
+    {
+        HeightRatioChanged?.Invoke(e.NewValue);
+    }
+
+    public double HeightRatio
+    {
+        get => HeightSlider.Value;
+        set => HeightSlider.Value = value;
+    }
+}
