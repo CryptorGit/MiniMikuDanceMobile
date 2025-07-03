@@ -19,6 +19,7 @@ namespace MiniMikuDanceMaui;
 public partial class CameraPage : ContentPage
 {
     private double _bottomHeightRatio = 0.5;
+    private double _bottomWidthRatio = 1.0;
     private double _cameraSensitivity = 1.0;
     private const double TopMenuHeight = 36;
     private bool _viewMenuOpen;
@@ -42,6 +43,20 @@ public partial class CameraPage : ContentPage
         {
             glView.PaintSurface += OnPaintSurface;
             glView.Touch += OnViewTouch;
+        }
+
+        if (SettingContent is SettingView setting)
+        {
+            setting.WidthRatioChanged += ratio =>
+            {
+                _bottomWidthRatio = ratio;
+                UpdateLayout();
+            };
+            setting.SensitivityChanged += v =>
+            {
+                _cameraSensitivity = v;
+                _renderer.CameraSensitivity = (float)_cameraSensitivity;
+            };
         }
     }
 
@@ -72,18 +87,8 @@ public partial class CameraPage : ContentPage
         HideViewMenu();
         if (_settingMenuOpen && SettingContent is SettingView sv)
         {
-            sv.HeightRatio = _bottomHeightRatio;
+            sv.WidthRatio = _bottomWidthRatio;
             sv.Sensitivity = _cameraSensitivity;
-            sv.HeightRatioChanged += ratio =>
-            {
-                _bottomHeightRatio = ratio;
-                UpdateLayout();
-            };
-            sv.SensitivityChanged += v =>
-            {
-                _cameraSensitivity = v;
-                _renderer.CameraSensitivity = (float)_cameraSensitivity;
-            };
         }
         UpdateLayout();
     }
@@ -256,7 +261,8 @@ public partial class CameraPage : ContentPage
 
         AbsoluteLayout.SetLayoutBounds(Viewer, new Rect(0, 0, W, H));
         AbsoluteLayout.SetLayoutFlags(Viewer, AbsoluteLayoutFlags.None);
-        AbsoluteLayout.SetLayoutBounds(BottomRegion, new Rect(0, H - bottomHeight, W, bottomHeight));
+        double bottomWidth = W * _bottomWidthRatio;
+        AbsoluteLayout.SetLayoutBounds(BottomRegion, new Rect((W - bottomWidth) / 2, H - bottomHeight, bottomWidth, bottomHeight));
         AbsoluteLayout.SetLayoutFlags(BottomRegion, AbsoluteLayoutFlags.None);
     }
 
@@ -353,6 +359,12 @@ public partial class CameraPage : ContentPage
 
     private void ShowBottomFeature(string name)
     {
+        if (BottomRegion.IsVisible && _currentFeature == name)
+        {
+            HideBottomRegion();
+            UpdateLayout();
+            return;
+        }
         if (!_bottomViews.ContainsKey(name))
         {
             View view;
@@ -363,10 +375,10 @@ public partial class CameraPage : ContentPage
             }
             else if (name == "SETTING")
             {
-                var sv = new SettingView { HeightRatio = _bottomHeightRatio, Sensitivity = _cameraSensitivity };
-                sv.HeightRatioChanged += ratio =>
+                var sv = new SettingView { WidthRatio = _bottomWidthRatio, Sensitivity = _cameraSensitivity };
+                sv.WidthRatioChanged += ratio =>
                 {
-                    _bottomHeightRatio = ratio;
+                    _bottomWidthRatio = ratio;
                     UpdateLayout();
                 };
                 sv.SensitivityChanged += v =>
@@ -406,7 +418,7 @@ public partial class CameraPage : ContentPage
         }
         else if (name == "SETTING" && _bottomViews[name] is SettingView sv)
         {
-            sv.HeightRatio = _bottomHeightRatio;
+            sv.WidthRatio = _bottomWidthRatio;
             sv.Sensitivity = _cameraSensitivity;
         }
         SwitchBottomFeature(name);
