@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="utf-8" ?>
 <ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:mmd="clr-namespace:MiniMikuDanceMaui"
              x:Class="MiniMikuDanceMaui.SettingPage"
              BackgroundColor="Transparent">
 
@@ -30,8 +31,16 @@
         </HorizontalStackLayout>
         <Frame x:Name="ViewMenu" IsVisible="False" BackgroundColor="#1E1E1E" Padding="0" ZIndex="2">
             <VerticalStackLayout Spacing="4" Padding="8">
-                <Button Text="HOME" Clicked="OnHomeClicked" />
-                <Button Text="SETTING" Clicked="OnSettingClicked" />
+                <Label Text="HOME" TextColor="White">
+                    <Label.GestureRecognizers>
+                        <TapGestureRecognizer Tapped="OnHomeClicked" />
+                    </Label.GestureRecognizers>
+                </Label>
+            </VerticalStackLayout>
+        </Frame>
+        <Frame x:Name="SettingMenu" IsVisible="False" BackgroundColor="#1E1E1E" Padding="8" ZIndex="2">
+            <VerticalStackLayout Spacing="10">
+                <mmd:SettingView x:Name="SettingContent" />
             </VerticalStackLayout>
         </Frame>
         <StackLayout x:Name="ContentLayout" VerticalOptions="Center" HorizontalOptions="Center" Spacing="20">
