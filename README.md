@@ -50,7 +50,7 @@ dotnet run --project MiniMikuDanceMaui/MiniMikuDanceMaui.csproj
 ```
 詳しい使い方は [MiniMikuDanceMaui/README.md](MiniMikuDanceMaui/README.md) を参照してください。
 
-**注意**: `ViewerApp/Viewer.cs` はまだスタブ状態で、VRM モデルを描画する処理は実装されていません。そのため、サンプルモデルを配置しても画面には表示されません。今後のアップデートで対応予定です。
+`ViewerApp/Viewer.cs` では VRM モデルを読み込んで簡易表示できるビューアを実装しました。
 
 ## AppCore ライブラリ
 Viewer とは別に、姿勢推定やモーション生成、録画管理などの基盤クラスをまとめた `AppCore` ライブラリを追加しました。現状はスタブ実装ですが、今後モバイル向けアプリの中核として拡張予定です。
