@@ -37,6 +37,16 @@ public class UIManager : Singleton<UIManager>
         }
     }
 
+    public void LoadConfig(UIConfig config)
+    {
+        Config = config;
+        _toggleStates.Clear();
+        foreach (var t in Config.Toggles)
+        {
+            _toggleStates[t.Id] = t.DefaultValue;
+        }
+    }
+
     public void RegisterTextureLoader(TextureLoaderDelegate loader)
     {
         _textureLoader = loader;

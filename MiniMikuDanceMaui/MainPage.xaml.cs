@@ -20,7 +20,7 @@ public partial class MainPage : ContentPage
     private readonly AppInitializer _initializer = new();
     private GyroService? _gyroService;
     private bool _uiLoaded;
-    private string? _configPath;
+    private UIConfig? _uiConfig;
 
     public MainPage()
     {
@@ -101,17 +101,17 @@ public partial class MainPage : ContentPage
     {
         if (!_uiLoaded)
         {
-            _configPath = await LoadUIConfig();
+            _uiConfig = await LoadUIConfig();
             GenerateDynamicUI();
             UIManager.Instance.OnToggleChanged += OnToggleChanged;
             _uiLoaded = true;
         }
 
-        if (_configPath == null)
+        if (_uiConfig == null)
             return;
 
         var posePath = SystemPath.Combine(FileSystem.CacheDirectory, "pose_model.onnx");
-        _initializer.Initialize(_configPath, null, posePath, MmdFileSystem.BaseDir);
+        _initializer.Initialize(_uiConfig, null, posePath, MmdFileSystem.BaseDir);
         if (_initializer.Camera != null)
         {
             _gyroService = new GyroService(_initializer.Camera);
@@ -120,33 +120,35 @@ public partial class MainPage : ContentPage
         }
     }
 
-    private async Task<string?> LoadUIConfig()
+    private async Task<UIConfig> LoadUIConfig(bool saveToCache = false)
     {
-        var temp = SystemPath.Combine(FileSystem.CacheDirectory, "UIConfig.json");
+        UIConfig cfg;
         try
         {
             using var stream = await FileSystem.OpenAppPackageFileAsync("UIConfig.json");
-            using var fs = File.Create(temp);
-            await stream.CopyToAsync(fs);
-            UIManager.Instance.LoadConfig(temp);
+            cfg = JSONUtil.LoadFromStream<UIConfig>(stream);
         }
         catch (Exception ex)
         {
             await DisplayAlert("Error", $"UIConfig.json not found: {ex.Message}\nUsing default UI.", "OK");
-            var cfg = CreateDefaultConfig();
-            JSONUtil.Save(temp, cfg);
-            UIManager.Instance.LoadConfig(temp);
+            cfg = CreateDefaultConfig();
         }
 
-        if (UIManager.Instance.Config.Buttons.Count == 0 && UIManager.Instance.Config.Toggles.Count == 0)
+        if (cfg.Buttons.Count == 0 && cfg.Toggles.Count == 0)
         {
             await DisplayAlert("Error", "UI configuration is empty. Using default UI.", "OK");
-            var cfg = CreateDefaultConfig();
-            JSONUtil.Save(temp, cfg);
-            UIManager.Instance.LoadConfig(temp);
+            cfg = CreateDefaultConfig();
         }
 
-        return temp;
+        UIManager.Instance.LoadConfig(cfg);
+
+        if (saveToCache)
+        {
+            var temp = SystemPath.Combine(FileSystem.CacheDirectory, "UIConfig.json");
+            JSONUtil.Save(temp, cfg);
+        }
+
+        return cfg;
     }
 
     private static UIConfig CreateDefaultConfig()
