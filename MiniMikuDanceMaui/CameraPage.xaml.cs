@@ -19,6 +19,7 @@ namespace MiniMikuDanceMaui;
 public partial class CameraPage : ContentPage
 {
     private double _bottomHeightRatio = 0.5;
+    private double _cameraSensitivity = 1.0;
     private const double TopMenuHeight = 36;
     private bool _viewMenuOpen;
     private bool _settingMenuOpen;
@@ -35,6 +36,7 @@ public partial class CameraPage : ContentPage
         InitializeComponent();
         NavigationPage.SetHasNavigationBar(this, false);
         this.SizeChanged += OnSizeChanged;
+        _renderer.CameraSensitivity = (float)_cameraSensitivity;
 
         if (Viewer is SKGLView glView)
         {
@@ -71,10 +73,16 @@ public partial class CameraPage : ContentPage
         if (_settingMenuOpen && SettingContent is SettingView sv)
         {
             sv.HeightRatio = _bottomHeightRatio;
+            sv.Sensitivity = _cameraSensitivity;
             sv.HeightRatioChanged += ratio =>
             {
                 _bottomHeightRatio = ratio;
                 UpdateLayout();
+            };
+            sv.SensitivityChanged += v =>
+            {
+                _cameraSensitivity = v;
+                _renderer.CameraSensitivity = (float)_cameraSensitivity;
             };
         }
         UpdateLayout();
@@ -355,11 +363,16 @@ public partial class CameraPage : ContentPage
             }
             else if (name == "SETTING")
             {
-                var sv = new SettingView { HeightRatio = _bottomHeightRatio };
+                var sv = new SettingView { HeightRatio = _bottomHeightRatio, Sensitivity = _cameraSensitivity };
                 sv.HeightRatioChanged += ratio =>
                 {
                     _bottomHeightRatio = ratio;
                     UpdateLayout();
+                };
+                sv.SensitivityChanged += v =>
+                {
+                    _cameraSensitivity = v;
+                    _renderer.CameraSensitivity = (float)_cameraSensitivity;
                 };
                 view = sv;
             }
@@ -371,9 +384,7 @@ public partial class CameraPage : ContentPage
 
             var border = new Border
             {
-                BackgroundColor = Color.FromArgb("#1A1A1A"),
-                Stroke = Colors.Gray,
-                StrokeThickness = 1,
+                BackgroundColor = Color.FromArgb("#444444"),
                 Padding = new Thickness(8, 2),
                 MinimumWidthRequest = 60
             };
@@ -396,6 +407,7 @@ public partial class CameraPage : ContentPage
         else if (name == "SETTING" && _bottomViews[name] is SettingView sv)
         {
             sv.HeightRatio = _bottomHeightRatio;
+            sv.Sensitivity = _cameraSensitivity;
         }
         SwitchBottomFeature(name);
         BottomRegion.IsVisible = true;
@@ -417,8 +429,8 @@ public partial class CameraPage : ContentPage
         foreach (var kv in _bottomTabs)
         {
             kv.Value.BackgroundColor = kv.Key == _currentFeature
-                ? Color.FromArgb("#2A2A2A")
-                : Color.FromArgb("#111111");
+                ? Color.FromArgb("#333333")
+                : Color.FromArgb("#666666");
         }
     }
 }

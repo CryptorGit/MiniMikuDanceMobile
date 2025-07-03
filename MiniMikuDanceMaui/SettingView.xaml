@@ -7,5 +7,8 @@
         <Label Text="Bottom Region Height" TextColor="White"/>
         <Slider x:Name="HeightSlider" Minimum="0.2" Maximum="0.8"
                 ValueChanged="OnSliderChanged"/>
+        <Label Text="Camera Sensitivity" TextColor="White"/>
+        <Slider x:Name="CameraSlider" Minimum="0.5" Maximum="3"
+                ValueChanged="OnCameraChanged"/>
     </VerticalStackLayout>
 </ContentView>
