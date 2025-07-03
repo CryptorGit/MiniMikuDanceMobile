@@ -4,21 +4,47 @@
              xmlns:skia="clr-namespace:SkiaSharp.Views.Maui.Controls;assembly=SkiaSharp.Views.Maui.Controls"
              x:Class="MiniMikuDanceMaui.CameraPage"
              BackgroundColor="Transparent">
+
+    <ContentPage.MenuBarItems>
+        <MenuBarItem Text="File" />
+        <MenuBarItem Text="Edit" />
+        <MenuBarItem Text="Selection" />
+        <MenuBarItem Text="View" />
+        <MenuBarItem Text="Help" />
+    </ContentPage.MenuBarItems>
     <AbsoluteLayout x:Name="Root">
-        <skia:SKGLView x:Name="Viewer" HasRenderLoop="True" EnableTouchEvents="True" />
-        <BoxView x:Name="MenuOverlay" BackgroundColor="#00000033" IsVisible="False" />
-        <Button x:Name="MenuButton" Text="&#x2630;" WidthRequest="56" HeightRequest="56" BackgroundColor="Transparent" />
-        <ContentView x:Name="Sidebar" BackgroundColor="#1E1E1EEB">
-            <VerticalStackLayout Padding="20" Spacing="16">
-                <Button x:Name="HomeBtn" Text="HOME" TextColor="White" />
-                <Button x:Name="ImportBtn" Text="SELECT" TextColor="White" />
-                <Button x:Name="PoseBtn" Text="POSE" TextColor="White" />
-                <Button x:Name="MotionBtn" Text="MOTION" TextColor="White" />
-                <Button x:Name="ArBtn" Text="AR" TextColor="White" />
-                <Button x:Name="RecordBtn" Text="RECORD" TextColor="White" />
-                <Button x:Name="ResetCamBtn" Text="RESET CAMERA" TextColor="White" />
-                <Button x:Name="SettingBtn" Text="SETTING" TextColor="White" />
+        <HorizontalStackLayout x:Name="TopMenu" BackgroundColor="#2A2A2A" Spacing="20" Padding="10,0" HeightRequest="36">
+            <Label Text="File" TextColor="White"/>
+            <Label Text="Edit" TextColor="White"/>
+            <Label Text="Selection" TextColor="White"/>
+            <Label Text="View" TextColor="White">
+                <Label.GestureRecognizers>
+                    <TapGestureRecognizer Tapped="OnViewMenuTapped" />
+                </Label.GestureRecognizers>
+            </Label>
+            <Label Text="Help" TextColor="White"/>
+        </HorizontalStackLayout>
+        <Frame x:Name="ViewMenu" IsVisible="False" BackgroundColor="#1E1E1E" Padding="0">
+            <VerticalStackLayout Spacing="4" Padding="8">
+                <Button Text="HOME" Clicked="OnHomeClicked" />
+                <Button Text="SELECT" Clicked="OnSelectClicked" />
+                <Button Text="POSE" Clicked="OnPoseClicked" />
+                <Button Text="MOTION" Clicked="OnMotionClicked" />
+                <Button Text="AR" Clicked="OnArClicked" />
+                <Button Text="RECORD" Clicked="OnRecordClicked" />
+                <Button Text="RESET CAMERA" Clicked="OnResetCamClicked" />
+                <Button Text="SETTING" Clicked="OnSettingClicked" />
+                <Button Text="EXPLORER" Clicked="OnExplorerClicked" />
             </VerticalStackLayout>
-        </ContentView>
+        </Frame>
+        <skia:SKGLView x:Name="Viewer" HasRenderLoop="True" EnableTouchEvents="True" />
+        <Grid x:Name="BottomRegion" BackgroundColor="#1E1E1E" IsVisible="False">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="30" />
+                <RowDefinition Height="*" />
+            </Grid.RowDefinitions>
+            <HorizontalStackLayout x:Name="BottomTabBar" Spacing="8" Padding="8" BackgroundColor="#2A2A2A" />
+            <ContentView x:Name="BottomContent" Grid.Row="1" />
+        </Grid>
     </AbsoluteLayout>
 </ContentPage>

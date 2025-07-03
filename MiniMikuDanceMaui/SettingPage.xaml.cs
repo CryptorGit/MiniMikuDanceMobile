@@ -8,56 +8,55 @@ namespace MiniMikuDanceMaui;
 
 public partial class SettingPage : ContentPage
 {
-    private bool _sidebarOpen;
-    private const double SidebarWidthRatio = 0.35;
+    private const double TopMenuHeight = 36;
+    private bool _viewMenuOpen;
 
     public SettingPage()
     {
         InitializeComponent();
         NavigationPage.SetHasNavigationBar(this, false);
         this.SizeChanged += OnSizeChanged;
-
-        MenuButton.Clicked += async (s, e) => await AnimateSidebar(!_sidebarOpen);
-        var overlayTap = new TapGestureRecognizer();
-        overlayTap.Tapped += async (s, e) => await AnimateSidebar(false);
-        MenuOverlay.GestureRecognizers.Add(overlayTap);
-
-        HomeBtn.Clicked += async (s, e) =>
-        {
-            await Navigation.PopToRootAsync();
-            await AnimateSidebar(false);
-        };
-        SettingBtn.Clicked += async (s, e) => await AnimateSidebar(false);
     }
 
-    private void OnSizeChanged(object? sender, EventArgs e) => UpdateLayout();
+    private void OnViewMenuTapped(object? sender, TappedEventArgs e)
+    {
+        _viewMenuOpen = !_viewMenuOpen;
+        ViewMenu.IsVisible = _viewMenuOpen;
+        UpdateLayout();
+    }
+
+    private void OnSizeChanged(object? sender, EventArgs e)
+    {
+        UpdateLayout();
+    }
+
+    private async void OnHomeClicked(object? sender, EventArgs e)
+    {
+        HideViewMenu();
+        await Navigation.PopToRootAsync();
+    }
+
+    private void OnSettingClicked(object? sender, EventArgs e)
+    {
+        // already on setting page
+        HideViewMenu();
+    }
+
+    private void HideViewMenu()
+    {
+        _viewMenuOpen = false;
+        ViewMenu.IsVisible = false;
+    }
 
     private void UpdateLayout()
     {
         double W = this.Width;
         double H = this.Height;
-        AbsoluteLayout.SetLayoutBounds(MenuOverlay, new Rect(0, 0, W, H));
-        AbsoluteLayout.SetLayoutFlags(MenuOverlay, AbsoluteLayoutFlags.None);
-        MenuOverlay.IsVisible = _sidebarOpen;
 
-        AbsoluteLayout.SetLayoutBounds(MenuButton, new Rect(W - 72, H - 72, 56, 56));
-        AbsoluteLayout.SetLayoutFlags(MenuButton, AbsoluteLayoutFlags.None);
+        AbsoluteLayout.SetLayoutBounds(TopMenu, new Rect(0, 0, W, TopMenuHeight));
+        AbsoluteLayout.SetLayoutFlags(TopMenu, AbsoluteLayoutFlags.None);
 
-        double menuWidth = W * SidebarWidthRatio;
-        double sidebarX = _sidebarOpen ? W - menuWidth : W;
-        AbsoluteLayout.SetLayoutBounds(Sidebar, new Rect(sidebarX, 0, menuWidth, H));
-        AbsoluteLayout.SetLayoutFlags(Sidebar, AbsoluteLayoutFlags.None);
+        AbsoluteLayout.SetLayoutBounds(ViewMenu, new Rect(0, TopMenuHeight, 200, ViewMenu.IsVisible ? 100 : 0));
+        AbsoluteLayout.SetLayoutFlags(ViewMenu, AbsoluteLayoutFlags.None);
     }
-
-    private async Task AnimateSidebar(bool open)
-    {
-        double menuWidth = Width * SidebarWidthRatio;
-        double dest = open ? Width - menuWidth : Width;
-        MenuOverlay.IsVisible = open;
-        await Sidebar.LayoutTo(new Rect(dest, 0, menuWidth, Height), 280, Easing.SinOut);
-        _sidebarOpen = open;
-        UpdateLayout();
-    }
-
-
 }

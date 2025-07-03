@@ -18,8 +18,13 @@ namespace MiniMikuDanceMaui;
 
 public partial class CameraPage : ContentPage
 {
-    private bool _sidebarOpen;
-    private const double SidebarWidthRatio = 0.35; // 画面幅に対する割合
+    private const double BottomHeightRatio = 0.5;
+    private const double TopMenuHeight = 36;
+    private bool _viewMenuOpen;
+    private readonly Dictionary<string, View> _bottomViews = new();
+    private readonly Dictionary<string, Button> _bottomTabs = new();
+    private string? _currentFeature;
+
     private readonly SimpleCubeRenderer _renderer = new();
     private bool _glInitialized;
     private readonly Dictionary<long, SKPoint> _touchPoints = new();
@@ -30,49 +35,84 @@ public partial class CameraPage : ContentPage
         NavigationPage.SetHasNavigationBar(this, false);
         this.SizeChanged += OnSizeChanged;
 
-        MenuButton.Clicked += async (s, e) => await AnimateSidebar(!_sidebarOpen);
-        var overlayTap = new TapGestureRecognizer();
-        overlayTap.Tapped += async (s, e) => await AnimateSidebar(false);
-        MenuOverlay.GestureRecognizers.Add(overlayTap);
-
-        HomeBtn.Clicked += async (s, e) =>
-        {
-            LogService.WriteLine("HOME button clicked");
-            await Navigation.PopToRootAsync();
-            await AnimateSidebar(false);
-        };
-
-        SettingBtn.Clicked += async (s, e) =>
-        {
-            LogService.WriteLine("SETTING button clicked");
-            await Navigation.PushAsync(new SettingPage());
-            await AnimateSidebar(false);
-        };
-
-        ImportBtn.Text = "SELECT";
-        ImportBtn.Clicked += async (s, e) =>
-        {
-            LogService.WriteLine("SELECT button clicked");
-            await ShowModelSelector();
-        };
-
-        PoseBtn.Clicked += (s, e) => LogService.WriteLine("POSE button clicked");
-        MotionBtn.Clicked += (s, e) => LogService.WriteLine("MOTION button clicked");
-        ArBtn.Clicked += (s, e) => LogService.WriteLine("AR button clicked");
-        RecordBtn.Clicked += (s, e) => LogService.WriteLine("RECORD button clicked");
-
-        ResetCamBtn.Clicked += (s, e) =>
-        {
-            _renderer.ResetCamera();
-            Viewer?.InvalidateSurface();
-            LogService.WriteLine("Camera reset");
-        };
-
         if (Viewer is SKGLView glView)
         {
             glView.PaintSurface += OnPaintSurface;
             glView.Touch += OnViewTouch;
         }
+    }
+
+    private void OnViewMenuTapped(object? sender, TappedEventArgs e)
+    {
+        _viewMenuOpen = !_viewMenuOpen;
+        ViewMenu.IsVisible = _viewMenuOpen;
+        UpdateLayout();
+    }
+
+    private async void OnHomeClicked(object? sender, EventArgs e)
+    {
+        HideViewMenu();
+        await Navigation.PopToRootAsync();
+    }
+
+    private async void OnSettingClicked(object? sender, EventArgs e)
+    {
+        HideViewMenu();
+        await Navigation.PushAsync(new SettingPage());
+    }
+
+    private async void OnSelectClicked(object? sender, EventArgs e)
+    {
+        HideViewMenu();
+        await ShowModelSelector();
+    }
+
+    private void OnPoseClicked(object? sender, EventArgs e)
+    {
+        LogService.WriteLine("POSE button clicked");
+        ShowBottomFeature("POSE");
+        HideViewMenu();
+    }
+
+    private void OnMotionClicked(object? sender, EventArgs e)
+    {
+        LogService.WriteLine("MOTION button clicked");
+        ShowBottomFeature("MOTION");
+        HideViewMenu();
+    }
+
+    private void OnArClicked(object? sender, EventArgs e)
+    {
+        LogService.WriteLine("AR button clicked");
+        ShowBottomFeature("AR");
+        HideViewMenu();
+    }
+
+    private void OnRecordClicked(object? sender, EventArgs e)
+    {
+        LogService.WriteLine("RECORD button clicked");
+        ShowBottomFeature("RECORD");
+        HideViewMenu();
+    }
+
+    private void OnResetCamClicked(object? sender, EventArgs e)
+    {
+        _renderer.ResetCamera();
+        Viewer?.InvalidateSurface();
+        LogService.WriteLine("Camera reset");
+        HideViewMenu();
+    }
+
+    private void OnExplorerClicked(object? sender, EventArgs e)
+    {
+        ShowBottomFeature("Explorer");
+        HideViewMenu();
+    }
+
+    private void HideViewMenu()
+    {
+        _viewMenuOpen = false;
+        ViewMenu.IsVisible = false;
     }
 
     protected override async void OnAppearing()
@@ -157,38 +197,23 @@ public partial class CameraPage : ContentPage
         double W = this.Width;
         double H = this.Height;
         Thickness safe = this.Padding;
+        AbsoluteLayout.SetLayoutBounds(TopMenu, new Rect(0, 0, W, TopMenuHeight));
+        AbsoluteLayout.SetLayoutFlags(TopMenu, AbsoluteLayoutFlags.None);
+
+        AbsoluteLayout.SetLayoutBounds(ViewMenu, new Rect(0, TopMenuHeight, 200, ViewMenu.IsVisible ? 360 : 0));
+        AbsoluteLayout.SetLayoutFlags(ViewMenu, AbsoluteLayoutFlags.None);
 
         AbsoluteLayout.SetLayoutBounds(Viewer, new Rect(0, 0, W, H));
         AbsoluteLayout.SetLayoutFlags(Viewer, AbsoluteLayoutFlags.None);
 
-        double menuWidth = W * SidebarWidthRatio;
-        double sidebarX = _sidebarOpen ? W - menuWidth : W;
-        AbsoluteLayout.SetLayoutBounds(Sidebar, new Rect(sidebarX, 0, menuWidth, H));
-        AbsoluteLayout.SetLayoutFlags(Sidebar, AbsoluteLayoutFlags.None);
-
-        AbsoluteLayout.SetLayoutBounds(MenuButton, new Rect(W - 72, H - 72, 56, 56));
-        AbsoluteLayout.SetLayoutFlags(MenuButton, AbsoluteLayoutFlags.None);
-
-        AbsoluteLayout.SetLayoutBounds(MenuOverlay, new Rect(0, 0, W, H));
-        AbsoluteLayout.SetLayoutFlags(MenuOverlay, AbsoluteLayoutFlags.None);
-        MenuOverlay.IsVisible = _sidebarOpen;
+        double bottomHeight = BottomRegion.IsVisible ? H * BottomHeightRatio : 0;
+        AbsoluteLayout.SetLayoutBounds(BottomRegion, new Rect(0, H - bottomHeight, W, bottomHeight));
+        AbsoluteLayout.SetLayoutFlags(BottomRegion, AbsoluteLayoutFlags.None);
     }
 
 
 
 
-    private async Task AnimateSidebar(bool open)
-    {
-        double menuWidth = Width * SidebarWidthRatio;
-        double dest = open ? Width - menuWidth : Width;
-        MenuOverlay.IsVisible = open;
-        await Sidebar.LayoutTo(new Rect(dest, 0, menuWidth, Height), 280, Easing.SinOut);
-        if (Viewer is SKGLView glView)
-            glView.EnableTouchEvents = !open;
-        _sidebarOpen = open;
-        UpdateLayout();
-        Viewer?.InvalidateSurface();
-    }
 
 
     private void OnPaintSurface(object? sender, SKPaintGLSurfaceEventArgs e)
@@ -274,6 +299,41 @@ public partial class CameraPage : ContentPage
         {
             await DisplayAlert("Error", ex.Message, "OK");
             LogService.WriteLine($"Error selecting model: {ex.Message}");
+        }
+    }
+
+    private void ShowBottomFeature(string name)
+    {
+        if (!_bottomViews.ContainsKey(name))
+        {
+            View view;
+            if (name == "Explorer")
+            {
+                var entries = Directory.EnumerateFileSystemEntries(MmdFileSystem.BaseDir);
+                view = new ListView { ItemsSource = entries };
+            }
+            else
+            {
+                view = new Label { Text = $"{name} view", TextColor = Colors.White, HorizontalTextAlignment = TextAlignment.Center, VerticalTextAlignment = TextAlignment.Center };
+            }
+            _bottomViews[name] = view;
+            var tab = new Button { Text = name, FontSize = 12 };
+            string captured = name;
+            tab.Clicked += (s, e) => SwitchBottomFeature(captured);
+            BottomTabBar.Add(tab);
+            _bottomTabs[name] = tab;
+        }
+        SwitchBottomFeature(name);
+        BottomRegion.IsVisible = true;
+        UpdateLayout();
+    }
+
+    private void SwitchBottomFeature(string name)
+    {
+        if (_bottomViews.TryGetValue(name, out var view))
+        {
+            BottomContent.Content = view;
+            _currentFeature = name;
         }
     }
 }

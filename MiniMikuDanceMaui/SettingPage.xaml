@@ -3,16 +3,33 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
              x:Class="MiniMikuDanceMaui.SettingPage"
              BackgroundColor="Transparent">
+
+    <ContentPage.MenuBarItems>
+        <MenuBarItem Text="File" />
+        <MenuBarItem Text="Edit" />
+        <MenuBarItem Text="Selection" />
+        <MenuBarItem Text="View" />
+        <MenuBarItem Text="Help" />
+    </ContentPage.MenuBarItems>
     <AbsoluteLayout x:Name="Root">
+        <HorizontalStackLayout x:Name="TopMenu" BackgroundColor="#2A2A2A" Spacing="20" Padding="10,0" HeightRequest="36">
+            <Label Text="File" TextColor="White"/>
+            <Label Text="Edit" TextColor="White"/>
+            <Label Text="Selection" TextColor="White"/>
+            <Label Text="View" TextColor="White">
+                <Label.GestureRecognizers>
+                    <TapGestureRecognizer Tapped="OnViewMenuTapped" />
+                </Label.GestureRecognizers>
+            </Label>
+            <Label Text="Help" TextColor="White"/>
+        </HorizontalStackLayout>
+        <Frame x:Name="ViewMenu" IsVisible="False" BackgroundColor="#1E1E1E" Padding="0">
+            <VerticalStackLayout Spacing="4" Padding="8">
+                <Button Text="HOME" Clicked="OnHomeClicked" />
+                <Button Text="SETTING" Clicked="OnSettingClicked" />
+            </VerticalStackLayout>
+        </Frame>
         <StackLayout x:Name="ContentLayout" VerticalOptions="Center" HorizontalOptions="Center" Spacing="20">
         </StackLayout>
-        <BoxView x:Name="MenuOverlay" BackgroundColor="#00000033" IsVisible="False" />
-        <Button x:Name="MenuButton" Text="&#x2630;" WidthRequest="56" HeightRequest="56" BackgroundColor="Transparent" />
-        <ContentView x:Name="Sidebar" BackgroundColor="#1E1E1EEB">
-            <VerticalStackLayout Padding="20" Spacing="16">
-                <Button x:Name="HomeBtn" Text="HOME" TextColor="White" />
-                <Button x:Name="SettingBtn" Text="SETTING" TextColor="White" />
-            </VerticalStackLayout>
-        </ContentView>
     </AbsoluteLayout>
 </ContentPage>
