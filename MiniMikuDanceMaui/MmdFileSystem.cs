@@ -42,4 +42,18 @@ public static class MmdFileSystem
         Directory.CreateDirectory(path);
         return path;
     }
+
+    public static void AppendAccessLog(string directory)
+    {
+        try
+        {
+            var logPath = SystemPath.Combine(directory, "log.txt");
+            File.AppendAllText(logPath,
+                $"Connected: {DateTime.UtcNow:yyyy-MM-dd HH:mm:ss} UTC{Environment.NewLine}");
+        }
+        catch
+        {
+            // ignore logging failures
+        }
+    }
 }
