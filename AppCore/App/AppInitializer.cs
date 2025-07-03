@@ -28,10 +28,10 @@ public class AppInitializer
     public MotionData? Motion { get; private set; }
     private string _poseModelPath = string.Empty;
 
-    public void Initialize(string uiConfigPath, string? modelPath, string poseModelPath, string baseDir)
+    public void Initialize(UIConfig uiConfig, string? modelPath, string poseModelPath, string baseDir)
     {
         Debug.WriteLine($"[AppInitializer] Initialize app with model={modelPath}");
-        UIManager.Instance.LoadConfig(uiConfigPath);
+        UIManager.Instance.LoadConfig(uiConfig);
         _poseModelPath = poseModelPath;
         PoseEstimator = new PoseEstimator(poseModelPath);
         MotionGenerator = new MotionGenerator();
