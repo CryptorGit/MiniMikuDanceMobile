@@ -115,8 +115,8 @@ public partial class CameraPage : ContentPage
             }
             else
             {
-                using var stream = await FileSystem.OpenAppPackageFileAsync("SampleModel.vrm");
-                LogService.WriteLine("[CameraPage] Loading bundled sample model");
+                using var stream = await FileSystem.OpenAppPackageFileAsync("AliciaSolid.vrm");
+                LogService.WriteLine("[CameraPage] Loading bundled model: AliciaSolid.vrm");
                 data = importer.ImportModel(stream);
             }
 
