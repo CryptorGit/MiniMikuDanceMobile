@@ -86,7 +86,7 @@ public class ModelImporter
             ?? model.LogicalImages.FirstOrDefault();
         if (image != null)
         {
-            using var stream = image.Content.Open();
+            using var stream = image.OpenImageFile();
             using var img = Image.Load<Rgba32>(stream);
             texW = img.Width;
             texH = img.Height;
