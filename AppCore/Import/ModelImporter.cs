@@ -22,6 +22,13 @@ public class ModelImporter
 {
     private readonly AssimpContext _context = new();
 
+    public ModelData ImportModel(Stream stream)
+    {
+        Debug.WriteLine("[ModelImporter] Loading model from stream");
+        var model = SharpGLTF.Schema2.ModelRoot.Read(stream);
+        return ImportVrm(model);
+    }
+
     public ModelData ImportModel(string path)
     {
         Debug.WriteLine($"[ModelImporter] Loading model: {path}");
@@ -47,6 +54,11 @@ public class ModelImporter
     {
         Debug.WriteLine($"[ModelImporter] Importing VRM: {path}");
         var model = SharpGLTF.Schema2.ModelRoot.Load(path);
+        return ImportVrm(model);
+    }
+
+    private ModelData ImportVrm(SharpGLTF.Schema2.ModelRoot model)
+    {
         var mesh = new Assimp.Mesh("mesh", Assimp.PrimitiveType.Triangle);
 
         var prim = model.LogicalMeshes.First().Primitives.First();

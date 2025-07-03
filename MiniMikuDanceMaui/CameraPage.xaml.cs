@@ -106,11 +106,22 @@ public partial class CameraPage : ContentPage
         try
         {
             var modelPath = await EnsureSampleModel();
+            var importer = new ModelImporter();
+            ModelData? data = null;
             if (!string.IsNullOrEmpty(modelPath))
             {
                 LogService.WriteLine($"[CameraPage] Using model: {modelPath}");
-                var importer = new ModelImporter();
-                var data = importer.ImportModel(modelPath);
+                data = importer.ImportModel(modelPath);
+            }
+            else
+            {
+                using var stream = await FileSystem.OpenAppPackageFileAsync("SampleModel.vrm");
+                LogService.WriteLine("[CameraPage] Loading bundled sample model");
+                data = importer.ImportModel(stream);
+            }
+
+            if (data != null)
+            {
                 _renderer.LoadModel(data);
             }
         }
@@ -122,30 +133,17 @@ public partial class CameraPage : ContentPage
         Viewer?.InvalidateSurface();
     }
 
-    private async Task<string?> EnsureSampleModel()
+    private Task<string?> EnsureSampleModel()
     {
         var modelDir = MmdFileSystem.Ensure("Models");
         var vrm = Directory.EnumerateFiles(modelDir, "*.vrm").FirstOrDefault();
         if (!string.IsNullOrEmpty(vrm))
         {
             LogService.WriteLine($"[CameraPage] Found existing model at {vrm}");
-            return vrm;
+            return Task.FromResult<string?>(vrm);
         }
 
-        try
-        {
-            using var stream = await FileSystem.OpenAppPackageFileAsync("SampleModel.vrm");
-            var path = Path.Combine(modelDir, "SampleModel.vrm");
-            using var fs = File.Create(path);
-            await stream.CopyToAsync(fs);
-            LogService.WriteLine($"[CameraPage] Copied sample model to {path}");
-            return path;
-        }
-        catch (Exception ex)
-        {
-            LogService.WriteLine($"Failed to copy sample VRM: {ex.Message}");
-            return null;
-        }
+        return Task.FromResult<string?>(null);
     }
 
     protected override void OnDisappearing()
