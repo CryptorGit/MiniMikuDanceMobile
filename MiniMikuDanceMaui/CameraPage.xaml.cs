@@ -96,6 +96,13 @@ public partial class CameraPage : ContentPage
     protected override async void OnAppearing()
     {
         base.OnAppearing();
+#if ANDROID
+        var status = await Permissions.RequestAsync<Permissions.StorageWrite>();
+        if (status != PermissionStatus.Granted)
+        {
+            LogService.WriteLine("[CameraPage] Storage permission denied");
+        }
+#endif
         try
         {
             var modelPath = await EnsureSampleModel();

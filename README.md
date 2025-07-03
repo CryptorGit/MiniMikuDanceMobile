@@ -33,7 +33,7 @@ Assimp のネイティブライブラリは NuGet 経由で自動的に取得さ
 
 3. UI 設定のサンプルとして `MiniMikuDanceMaui/Resources/Raw/UIConfig.json` を同梱しています。必要に応じてボタンやトグルを編集してください。
 
-4. `MiniMikuDanceMaui/Resources/Raw` には `SampleModel.vrm.txt` を同梱しています。実際の VRM ファイルをこの場所に配置し、`SampleModel.vrm` にリネームしてからビルドしてください。初回起動時に `MiniMikuDance/data/Models/` へコピーされます。
+4. `MiniMikuDanceMaui/Resources/Raw` には `SampleModel.vrm.txt` を同梱しています。実際の VRM ファイルをこの場所に配置し、`SampleModel.vrm` にリネームしてからビルドしてください。初回起動時に `MiniMikuDance/data/Models/` へコピーされます。Android ではコピー時にストレージ書き込み権限を要求するダイアログが表示されます。
 
 5. アプリが起動し、モデル読込や姿勢推定の進捗が表示されれば成功です。録画メタデータは `MiniMikuDance/data/Recordings/` フォルダに保存されます。
 
