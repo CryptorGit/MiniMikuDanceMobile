@@ -82,9 +82,10 @@ public partial class CameraPage : ContentPage
 
     private void OnSettingMenuTapped(object? sender, TappedEventArgs e)
     {
-        _settingMenuOpen = !_settingMenuOpen;
-        SettingMenu.IsVisible = _settingMenuOpen;
+        bool nextState = !_settingMenuOpen;
         HideViewMenu();
+        _settingMenuOpen = nextState;
+        SettingMenu.IsVisible = nextState;
         if (_settingMenuOpen && SettingContent is SettingView sv)
         {
             sv.WidthRatio = _bottomWidthRatio;
@@ -96,6 +97,7 @@ public partial class CameraPage : ContentPage
     private async void OnSelectClicked(object? sender, EventArgs e)
     {
         HideViewMenu();
+        HideSettingMenu();
         await ShowModelSelector();
     }
 
@@ -104,6 +106,7 @@ public partial class CameraPage : ContentPage
         LogService.WriteLine("POSE button clicked");
         ShowBottomFeature("POSE");
         HideViewMenu();
+        HideSettingMenu();
     }
 
     private void OnMotionClicked(object? sender, EventArgs e)
@@ -111,6 +114,7 @@ public partial class CameraPage : ContentPage
         LogService.WriteLine("MOTION button clicked");
         ShowBottomFeature("MOTION");
         HideViewMenu();
+        HideSettingMenu();
     }
     
     private void OnArClicked(object? sender, EventArgs e)
@@ -118,6 +122,7 @@ public partial class CameraPage : ContentPage
         LogService.WriteLine("AR button clicked");
         ShowBottomFeature("AR");
         HideViewMenu();
+        HideSettingMenu();
     }
 
     private void OnRecordClicked(object? sender, EventArgs e)
@@ -125,6 +130,7 @@ public partial class CameraPage : ContentPage
         LogService.WriteLine("RECORD button clicked");
         ShowBottomFeature("RECORD");
         HideViewMenu();
+        HideSettingMenu();
     }
 
     private void OnCloseBottomTapped(object? sender, TappedEventArgs e)
@@ -139,19 +145,20 @@ public partial class CameraPage : ContentPage
         Viewer?.InvalidateSurface();
         LogService.WriteLine("Camera reset");
         HideViewMenu();
+        HideSettingMenu();
     }
 
     private void OnExplorerClicked(object? sender, EventArgs e)
     {
         ShowBottomFeature("Explorer");
         HideViewMenu();
+        HideSettingMenu();
     }
 
     private void HideViewMenu()
     {
         _viewMenuOpen = false;
         ViewMenu.IsVisible = false;
-        HideSettingMenu();
     }
 
     private void HideBottomRegion()
