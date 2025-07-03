@@ -9,6 +9,7 @@
 *.suo
 *.cache
 *.userprefs
+.idea/
 
 # Android 関連
 *.apk
