@@ -2,6 +2,7 @@
 <ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
              xmlns:skia="clr-namespace:SkiaSharp.Views.Maui.Controls;assembly=SkiaSharp.Views.Maui.Controls"
+             xmlns:mmd="clr-namespace:MiniMikuDanceMaui"
              x:Class="MiniMikuDanceMaui.CameraPage"
              BackgroundColor="Transparent">
 
@@ -22,6 +23,11 @@
                     <TapGestureRecognizer Tapped="OnViewMenuTapped" />
                 </Label.GestureRecognizers>
             </Label>
+            <Label Text="Setting" TextColor="White">
+                <Label.GestureRecognizers>
+                    <TapGestureRecognizer Tapped="OnSettingMenuTapped" />
+                </Label.GestureRecognizers>
+            </Label>
             <Label Text="Help" TextColor="White"/>
         </HorizontalStackLayout>
         <Frame x:Name="ViewMenu" IsVisible="False" BackgroundColor="#1E1E1E" Padding="0" ZIndex="2">
@@ -33,8 +39,12 @@
                 <Button Text="AR" Clicked="OnArClicked" />
                 <Button Text="RECORD" Clicked="OnRecordClicked" />
                 <Button Text="RESET CAMERA" Clicked="OnResetCamClicked" />
-                <Button Text="SETTING" Clicked="OnSettingClicked" />
                 <Button Text="EXPLORER" Clicked="OnExplorerClicked" />
+            </VerticalStackLayout>
+        </Frame>
+        <Frame x:Name="SettingMenu" IsVisible="False" BackgroundColor="#1E1E1E" Padding="8" ZIndex="2">
+            <VerticalStackLayout Spacing="10">
+                <mmd:SettingView x:Name="SettingContent" />
             </VerticalStackLayout>
         </Frame>
         <skia:SKGLView x:Name="Viewer" HasRenderLoop="True" EnableTouchEvents="True" />
@@ -43,7 +53,9 @@
                 <RowDefinition Height="30" />
                 <RowDefinition Height="*" />
             </Grid.RowDefinitions>
-            <HorizontalStackLayout x:Name="BottomTabBar" Spacing="8" Padding="8" BackgroundColor="#2A2A2A" />
+            <ScrollView Orientation="Horizontal">
+                <HorizontalStackLayout x:Name="BottomTabBar" Spacing="8" Padding="8" BackgroundColor="#2A2A2A" />
+            </ScrollView>
             <ContentView x:Name="BottomContent" Grid.Row="1" />
         </Grid>
     </AbsoluteLayout>
