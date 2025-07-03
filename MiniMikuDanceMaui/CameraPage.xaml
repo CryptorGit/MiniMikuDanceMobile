@@ -13,7 +13,7 @@
         <MenuBarItem Text="Help" />
     </ContentPage.MenuBarItems>
     <AbsoluteLayout x:Name="Root">
-        <HorizontalStackLayout x:Name="TopMenu" BackgroundColor="#2A2A2A" Spacing="20" Padding="10,0" HeightRequest="36">
+        <HorizontalStackLayout x:Name="TopMenu" BackgroundColor="#2A2A2A" Spacing="20" Padding="10,0" HeightRequest="36" ZIndex="1">
             <Label Text="File" TextColor="White"/>
             <Label Text="Edit" TextColor="White"/>
             <Label Text="Selection" TextColor="White"/>
@@ -24,7 +24,7 @@
             </Label>
             <Label Text="Help" TextColor="White"/>
         </HorizontalStackLayout>
-        <Frame x:Name="ViewMenu" IsVisible="False" BackgroundColor="#1E1E1E" Padding="0">
+        <Frame x:Name="ViewMenu" IsVisible="False" BackgroundColor="#1E1E1E" Padding="0" ZIndex="2">
             <VerticalStackLayout Spacing="4" Padding="8">
                 <Button Text="HOME" Clicked="OnHomeClicked" />
                 <Button Text="SELECT" Clicked="OnSelectClicked" />
