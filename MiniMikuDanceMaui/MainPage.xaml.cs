@@ -126,7 +126,7 @@ public partial class MainPage : ContentPage
         try
         {
             using var stream = await FileSystem.OpenAppPackageFileAsync("UIConfig.json");
-            cfg = JSONUtil.LoadFromStream<UIConfig>(stream);
+            cfg = MiniMikuDance.Util.JSONUtil.LoadFromStream<UIConfig>(stream);
         }
         catch (Exception ex)
         {
