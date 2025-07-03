@@ -6,7 +6,7 @@ public partial class App : Application
     public App()
     {
         InitializeComponent();
-        System.Diagnostics.Debug.Listeners.Add(new LogTraceListener());
+        System.Diagnostics.Trace.Listeners.Add(new LogTraceListener());
         MainPage = new NavigationPage(new CameraPage());
     }
 }

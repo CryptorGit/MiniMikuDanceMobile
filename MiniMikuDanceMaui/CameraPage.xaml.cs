@@ -101,7 +101,7 @@ public partial class CameraPage : ContentPage
             var modelPath = await EnsureSampleModel();
             if (!string.IsNullOrEmpty(modelPath))
             {
-                Debug.WriteLine($"[CameraPage] Using model: {modelPath}");
+                LogService.WriteLine($"[CameraPage] Using model: {modelPath}");
                 var importer = new ModelImporter();
                 var data = importer.ImportModel(modelPath);
                 _renderer.LoadModel(data);
@@ -109,7 +109,7 @@ public partial class CameraPage : ContentPage
         }
         catch (Exception ex)
         {
-            Debug.WriteLine($"Failed to initialize model: {ex.Message}");
+            LogService.WriteLine($"Failed to initialize model: {ex.Message}");
         }
         _glInitialized = false;
         Viewer?.InvalidateSurface();
@@ -121,7 +121,7 @@ public partial class CameraPage : ContentPage
         var vrm = Directory.EnumerateFiles(modelDir, "*.vrm").FirstOrDefault();
         if (!string.IsNullOrEmpty(vrm))
         {
-            Debug.WriteLine($"[CameraPage] Found existing model at {vrm}");
+            LogService.WriteLine($"[CameraPage] Found existing model at {vrm}");
             return vrm;
         }
 
@@ -131,12 +131,12 @@ public partial class CameraPage : ContentPage
             var path = Path.Combine(modelDir, "SampleModel.vrm");
             using var fs = File.Create(path);
             await stream.CopyToAsync(fs);
-            Debug.WriteLine($"[CameraPage] Copied sample model to {path}");
+            LogService.WriteLine($"[CameraPage] Copied sample model to {path}");
             return path;
         }
         catch (Exception ex)
         {
-            Debug.WriteLine($"Failed to copy sample VRM: {ex.Message}");
+            LogService.WriteLine($"Failed to copy sample VRM: {ex.Message}");
             return null;
         }
     }
