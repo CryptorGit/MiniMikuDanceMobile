@@ -8,7 +8,9 @@ namespace ViewerApp;
 
 internal class VrmModel
 {
-    public float[] Vertices = Array.Empty<float>();
+    public float[] Positions = Array.Empty<float>();
+    public float[] Normals = Array.Empty<float>();
+    public float[] TexCoords = Array.Empty<float>();
     public uint[] Indices = Array.Empty<uint>();
     public byte[]? Texture;
     public int TextureWidth;
@@ -23,15 +25,40 @@ internal static class VrmLoader
         var model = ModelRoot.Load(path);
         var prim = model.LogicalMeshes.First().Primitives.First();
         var positions = prim.GetVertexAccessor("POSITION").AsVector3Array();
+        var normals = prim.GetVertexAccessor("NORMAL")?.AsVector3Array();
+        var uvs = prim.GetVertexAccessor("TEXCOORD_0")?.AsVector2Array();
         var indices = prim.IndexAccessor.AsIndicesArray();
 
         float[] verts = new float[positions.Count * 3];
+        float[] norms = new float[normals?.Count * 3 ?? 0];
+        float[] tex = new float[uvs?.Count * 2 ?? 0];
         for (int i = 0; i < positions.Count; i++)
         {
             var v = positions[i];
             verts[i * 3 + 0] = v.X;
             verts[i * 3 + 1] = v.Y;
             verts[i * 3 + 2] = v.Z;
+        }
+
+        if (normals != null)
+        {
+            for (int i = 0; i < normals.Count; i++)
+            {
+                var n = normals[i];
+                norms[i * 3 + 0] = n.X;
+                norms[i * 3 + 1] = n.Y;
+                norms[i * 3 + 2] = n.Z;
+            }
+        }
+
+        if (uvs != null)
+        {
+            for (int i = 0; i < uvs.Count; i++)
+            {
+                var uv = uvs[i];
+                tex[i * 2 + 0] = uv.X;
+                tex[i * 2 + 1] = uv.Y;
+            }
         }
 
         uint[] idx = new uint[indices.Count];
@@ -69,7 +96,9 @@ internal static class VrmLoader
 
         return new VrmModel
         {
-            Vertices = verts,
+            Positions = verts,
+            Normals = norms,
+            TexCoords = tex,
             Indices = idx,
             Texture = texBytes,
             TextureWidth = texW,
