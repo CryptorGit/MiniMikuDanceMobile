@@ -64,6 +64,7 @@ GLFW に頼らず、`eglGetProcAddress` と `dlsym` で関数を取得する Ope
 ## VRM 解析ライブラリ
 VRM モデルの読み込みには [SharpGLTF](https://github.com/vpenades/SharpGLTF) を使用します。
 `AppCore/Import/ModelImporter.cs` で SharpGLTF から取得したデータを Assimp 形式へ変換し、
+ImageSharp を用いてテクスチャも読み込む簡易 VRM インポーターを実装しました。
 将来的な VRM 0.x/1.0 への対応を進めていく予定です。
 
 ## ライセンス
