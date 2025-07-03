@@ -49,7 +49,7 @@ public static class MmdFileSystem
         {
             var logPath = SystemPath.Combine(directory, "log.txt");
             File.AppendAllText(logPath,
-                $"Connected: {DateTime.UtcNow:yyyy-MM-dd HH:mm:ss} UTC{Environment.NewLine}");
+                $"Connected: {DateTime.Now:yyyy-MM-dd HH:mm:ss}{Environment.NewLine}");
         }
         catch
         {
