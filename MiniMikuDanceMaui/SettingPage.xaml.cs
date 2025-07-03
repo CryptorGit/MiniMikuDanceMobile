@@ -11,7 +11,7 @@ public partial class SettingPage : ContentPage
     private const double TopMenuHeight = 36;
     private bool _viewMenuOpen;
     private bool _settingMenuOpen;
-    private double _bottomHeightRatio = 0.5;
+    private double _bottomWidthRatio = 1.0;
     private double _cameraSensitivity = 1.0;
 
     public SettingPage()
@@ -47,11 +47,11 @@ public partial class SettingPage : ContentPage
         SettingMenu.IsVisible = _settingMenuOpen;
         if (_settingMenuOpen && SettingContent is SettingView sv)
         {
-            sv.HeightRatio = _bottomHeightRatio;
+            sv.WidthRatio = _bottomWidthRatio;
             sv.Sensitivity = _cameraSensitivity;
-            sv.HeightRatioChanged += ratio =>
+            sv.WidthRatioChanged += ratio =>
             {
-                _bottomHeightRatio = ratio;
+                _bottomWidthRatio = ratio;
             };
             sv.SensitivityChanged += v =>
             {
