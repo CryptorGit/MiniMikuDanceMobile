@@ -44,6 +44,20 @@ public partial class CameraPage : ContentPage
             glView.PaintSurface += OnPaintSurface;
             glView.Touch += OnViewTouch;
         }
+
+        if (SettingContent is SettingView setting)
+        {
+            setting.WidthRatioChanged += ratio =>
+            {
+                _bottomWidthRatio = ratio;
+                UpdateLayout();
+            };
+            setting.SensitivityChanged += v =>
+            {
+                _cameraSensitivity = v;
+                _renderer.CameraSensitivity = (float)_cameraSensitivity;
+            };
+        }
     }
 
     private void OnViewMenuTapped(object? sender, TappedEventArgs e)
@@ -75,16 +89,6 @@ public partial class CameraPage : ContentPage
         {
             sv.WidthRatio = _bottomWidthRatio;
             sv.Sensitivity = _cameraSensitivity;
-            sv.WidthRatioChanged += ratio =>
-            {
-                _bottomWidthRatio = ratio;
-                UpdateLayout();
-            };
-            sv.SensitivityChanged += v =>
-            {
-                _cameraSensitivity = v;
-                _renderer.CameraSensitivity = (float)_cameraSensitivity;
-            };
         }
         UpdateLayout();
     }
