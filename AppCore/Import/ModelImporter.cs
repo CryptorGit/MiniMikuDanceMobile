@@ -4,6 +4,7 @@ using SixLabors.ImageSharp;
 using SixLabors.ImageSharp.PixelFormats;
 using System.IO;
 using System.Linq;
+using System.Diagnostics;
 using Vector3D = Assimp.Vector3D;
 
 namespace MiniMikuDance.Import;
@@ -23,8 +24,13 @@ public class ModelImporter
 
     public ModelData ImportModel(string path)
     {
+        Debug.WriteLine($"[ModelImporter] Loading model: {path}");
+
         if (!File.Exists(path))
+        {
+            Debug.WriteLine($"[ModelImporter] File not found: {path}");
             throw new FileNotFoundException("Model file not found", path);
+        }
 
         string ext = Path.GetExtension(path).ToLowerInvariant();
         if (ext == ".vrm" || ext == ".gltf" || ext == ".glb")
@@ -33,11 +39,13 @@ public class ModelImporter
         }
 
         var scene = _context.ImportFile(path, PostProcessSteps.Triangulate | PostProcessSteps.GenerateNormals);
+        Debug.WriteLine($"[ModelImporter] Imported generic model: {scene.Meshes[0].VertexCount} vertices");
         return new ModelData { Mesh = scene.Meshes[0] };
     }
 
     private ModelData ImportVrm(string path)
     {
+        Debug.WriteLine($"[ModelImporter] Importing VRM: {path}");
         var model = SharpGLTF.Schema2.ModelRoot.Load(path);
         var mesh = new Assimp.Mesh("mesh", Assimp.PrimitiveType.Triangle);
 
@@ -101,6 +109,8 @@ public class ModelImporter
             var m = node.WorldMatrix;
             transform = m;
         }
+
+        Debug.WriteLine($"[ModelImporter] VRM loaded: {mesh.VertexCount} vertices");
 
         return new ModelData
         {
