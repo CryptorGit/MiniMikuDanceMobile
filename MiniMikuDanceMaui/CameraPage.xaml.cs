@@ -21,6 +21,7 @@ public partial class CameraPage : ContentPage
     private double _bottomHeightRatio = 0.5;
     private const double TopMenuHeight = 36;
     private bool _viewMenuOpen;
+    private bool _settingMenuOpen;
     private readonly Dictionary<string, View> _bottomViews = new();
     private readonly Dictionary<string, Border> _bottomTabs = new();
     private string? _currentFeature;
@@ -46,6 +47,8 @@ public partial class CameraPage : ContentPage
     {
         _viewMenuOpen = !_viewMenuOpen;
         ViewMenu.IsVisible = _viewMenuOpen;
+        if (_viewMenuOpen)
+            HideSettingMenu();
         UpdateLayout();
     }
 
@@ -57,8 +60,24 @@ public partial class CameraPage : ContentPage
 
     private void OnSettingClicked(object? sender, EventArgs e)
     {
+        OnSettingMenuTapped(sender, new TappedEventArgs(null));
+    }
+
+    private void OnSettingMenuTapped(object? sender, TappedEventArgs e)
+    {
+        _settingMenuOpen = !_settingMenuOpen;
+        SettingMenu.IsVisible = _settingMenuOpen;
         HideViewMenu();
-        ShowBottomFeature("SETTING");
+        if (_settingMenuOpen && SettingContent is SettingView sv)
+        {
+            sv.HeightRatio = _bottomHeightRatio;
+            sv.HeightRatioChanged += ratio =>
+            {
+                _bottomHeightRatio = ratio;
+                UpdateLayout();
+            };
+        }
+        UpdateLayout();
     }
 
     private async void OnSelectClicked(object? sender, EventArgs e)
@@ -113,6 +132,13 @@ public partial class CameraPage : ContentPage
     {
         _viewMenuOpen = false;
         ViewMenu.IsVisible = false;
+        HideSettingMenu();
+    }
+
+    private void HideSettingMenu()
+    {
+        _settingMenuOpen = false;
+        SettingMenu.IsVisible = false;
     }
 
     protected override async void OnAppearing()
@@ -200,13 +226,15 @@ public partial class CameraPage : ContentPage
         AbsoluteLayout.SetLayoutBounds(TopMenu, new Rect(0, 0, W, TopMenuHeight));
         AbsoluteLayout.SetLayoutFlags(TopMenu, AbsoluteLayoutFlags.None);
 
-        AbsoluteLayout.SetLayoutBounds(ViewMenu, new Rect(0, TopMenuHeight, 200, ViewMenu.IsVisible ? 360 : 0));
+        double bottomHeight = BottomRegion.IsVisible ? H * _bottomHeightRatio : 0;
+        double menuHeight = H - TopMenuHeight - bottomHeight;
+        AbsoluteLayout.SetLayoutBounds(ViewMenu, new Rect(0, TopMenuHeight, 200, ViewMenu.IsVisible ? menuHeight : 0));
         AbsoluteLayout.SetLayoutFlags(ViewMenu, AbsoluteLayoutFlags.None);
+        AbsoluteLayout.SetLayoutBounds(SettingMenu, new Rect(0, TopMenuHeight, 200, SettingMenu.IsVisible ? menuHeight : 0));
+        AbsoluteLayout.SetLayoutFlags(SettingMenu, AbsoluteLayoutFlags.None);
 
         AbsoluteLayout.SetLayoutBounds(Viewer, new Rect(0, 0, W, H));
         AbsoluteLayout.SetLayoutFlags(Viewer, AbsoluteLayoutFlags.None);
-
-        double bottomHeight = BottomRegion.IsVisible ? H * _bottomHeightRatio : 0;
         AbsoluteLayout.SetLayoutBounds(BottomRegion, new Rect(0, H - bottomHeight, W, bottomHeight));
         AbsoluteLayout.SetLayoutFlags(BottomRegion, AbsoluteLayoutFlags.None);
     }

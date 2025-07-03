@@ -21,6 +21,11 @@
                     <TapGestureRecognizer Tapped="OnViewMenuTapped" />
                 </Label.GestureRecognizers>
             </Label>
+            <Label Text="Setting" TextColor="White">
+                <Label.GestureRecognizers>
+                    <TapGestureRecognizer Tapped="OnSettingClicked" />
+                </Label.GestureRecognizers>
+            </Label>
             <Label Text="Help" TextColor="White"/>
         </HorizontalStackLayout>
         <Frame x:Name="ViewMenu" IsVisible="False" BackgroundColor="#1E1E1E" Padding="0" ZIndex="2">
