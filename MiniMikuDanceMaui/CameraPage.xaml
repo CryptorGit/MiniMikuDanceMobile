@@ -4,21 +4,33 @@
              xmlns:skia="clr-namespace:SkiaSharp.Views.Maui.Controls;assembly=SkiaSharp.Views.Maui.Controls"
              x:Class="MiniMikuDanceMaui.CameraPage"
              BackgroundColor="Transparent">
+
+    <ContentPage.MenuBarItems>
+        <MenuBarItem Text="File" />
+        <MenuBarItem Text="Edit" />
+        <MenuBarItem Text="Selection" />
+        <MenuBarItem Text="View">
+            <MenuFlyoutItem Text="HOME" Clicked="OnHomeClicked" />
+            <MenuFlyoutItem Text="SELECT" Clicked="OnSelectClicked" />
+            <MenuFlyoutItem Text="POSE" Clicked="OnPoseClicked" />
+            <MenuFlyoutItem Text="MOTION" Clicked="OnMotionClicked" />
+            <MenuFlyoutItem Text="AR" Clicked="OnArClicked" />
+            <MenuFlyoutItem Text="RECORD" Clicked="OnRecordClicked" />
+            <MenuFlyoutItem Text="RESET CAMERA" Clicked="OnResetCamClicked" />
+            <MenuFlyoutItem Text="SETTING" Clicked="OnSettingClicked" />
+            <MenuFlyoutItem Text="EXPLORER" Clicked="OnExplorerClicked" />
+        </MenuBarItem>
+        <MenuBarItem Text="Help" />
+    </ContentPage.MenuBarItems>
     <AbsoluteLayout x:Name="Root">
         <skia:SKGLView x:Name="Viewer" HasRenderLoop="True" EnableTouchEvents="True" />
-        <BoxView x:Name="MenuOverlay" BackgroundColor="#00000033" IsVisible="False" />
-        <Button x:Name="MenuButton" Text="&#x2630;" WidthRequest="56" HeightRequest="56" BackgroundColor="Transparent" />
-        <ContentView x:Name="Sidebar" BackgroundColor="#1E1E1EEB">
-            <VerticalStackLayout Padding="20" Spacing="16">
-                <Button x:Name="HomeBtn" Text="HOME" TextColor="White" />
-                <Button x:Name="ImportBtn" Text="SELECT" TextColor="White" />
-                <Button x:Name="PoseBtn" Text="POSE" TextColor="White" />
-                <Button x:Name="MotionBtn" Text="MOTION" TextColor="White" />
-                <Button x:Name="ArBtn" Text="AR" TextColor="White" />
-                <Button x:Name="RecordBtn" Text="RECORD" TextColor="White" />
-                <Button x:Name="ResetCamBtn" Text="RESET CAMERA" TextColor="White" />
-                <Button x:Name="SettingBtn" Text="SETTING" TextColor="White" />
-            </VerticalStackLayout>
-        </ContentView>
+        <Grid x:Name="BottomRegion" BackgroundColor="#1E1E1E" IsVisible="False">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="30" />
+                <RowDefinition Height="*" />
+            </Grid.RowDefinitions>
+            <HorizontalStackLayout x:Name="BottomTabBar" Spacing="8" Padding="8" BackgroundColor="#2A2A2A" />
+            <ContentView x:Name="BottomContent" Grid.Row="1" />
+        </Grid>
     </AbsoluteLayout>
 </ContentPage>

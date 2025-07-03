@@ -8,56 +8,26 @@ namespace MiniMikuDanceMaui;
 
 public partial class SettingPage : ContentPage
 {
-    private bool _sidebarOpen;
-    private const double SidebarWidthRatio = 0.35;
 
     public SettingPage()
     {
         InitializeComponent();
         NavigationPage.SetHasNavigationBar(this, false);
         this.SizeChanged += OnSizeChanged;
-
-        MenuButton.Clicked += async (s, e) => await AnimateSidebar(!_sidebarOpen);
-        var overlayTap = new TapGestureRecognizer();
-        overlayTap.Tapped += async (s, e) => await AnimateSidebar(false);
-        MenuOverlay.GestureRecognizers.Add(overlayTap);
-
-        HomeBtn.Clicked += async (s, e) =>
-        {
-            await Navigation.PopToRootAsync();
-            await AnimateSidebar(false);
-        };
-        SettingBtn.Clicked += async (s, e) => await AnimateSidebar(false);
     }
 
-    private void OnSizeChanged(object? sender, EventArgs e) => UpdateLayout();
-
-    private void UpdateLayout()
+    private void OnSizeChanged(object? sender, EventArgs e)
     {
-        double W = this.Width;
-        double H = this.Height;
-        AbsoluteLayout.SetLayoutBounds(MenuOverlay, new Rect(0, 0, W, H));
-        AbsoluteLayout.SetLayoutFlags(MenuOverlay, AbsoluteLayoutFlags.None);
-        MenuOverlay.IsVisible = _sidebarOpen;
-
-        AbsoluteLayout.SetLayoutBounds(MenuButton, new Rect(W - 72, H - 72, 56, 56));
-        AbsoluteLayout.SetLayoutFlags(MenuButton, AbsoluteLayoutFlags.None);
-
-        double menuWidth = W * SidebarWidthRatio;
-        double sidebarX = _sidebarOpen ? W - menuWidth : W;
-        AbsoluteLayout.SetLayoutBounds(Sidebar, new Rect(sidebarX, 0, menuWidth, H));
-        AbsoluteLayout.SetLayoutFlags(Sidebar, AbsoluteLayoutFlags.None);
+        // no dynamic layout required
     }
 
-    private async Task AnimateSidebar(bool open)
+    private async void OnHomeClicked(object? sender, EventArgs e)
     {
-        double menuWidth = Width * SidebarWidthRatio;
-        double dest = open ? Width - menuWidth : Width;
-        MenuOverlay.IsVisible = open;
-        await Sidebar.LayoutTo(new Rect(dest, 0, menuWidth, Height), 280, Easing.SinOut);
-        _sidebarOpen = open;
-        UpdateLayout();
+        await Navigation.PopToRootAsync();
     }
 
-
+    private void OnSettingClicked(object? sender, EventArgs e)
+    {
+        // already on setting page
+    }
 }
