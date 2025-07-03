@@ -97,19 +97,32 @@ public partial class CameraPage : ContentPage
             }
             else
             {
-                using var stream = await FileSystem.OpenAppPackageFileAsync("AliciaSolid.vrm");
-                LogService.WriteLine("[CameraPage] Loading bundled model: AliciaSolid.vrm");
-                data = importer.ImportModel(stream);
+                try
+                {
+                    using var stream = await FileSystem.OpenAppPackageFileAsync("AliciaSolid.vrm");
+                    LogService.WriteLine("[CameraPage] Loading bundled model: AliciaSolid.vrm");
+                    data = importer.ImportModel(stream);
+                }
+                catch (FileNotFoundException fnf)
+                {
+                    LogService.WriteLine($"[CameraPage] Bundled model not found: {fnf.FileName}");
+                }
             }
 
             if (data != null)
             {
                 _renderer.LoadModel(data);
+                LogService.WriteLine("[CameraPage] Model initialized successfully");
+            }
+            else
+            {
+                LogService.WriteLine("[CameraPage] Model data was null. Initialization aborted");
             }
         }
         catch (Exception ex)
         {
             LogService.WriteLine($"Failed to initialize model: {ex.Message}");
+            LogService.WriteLine(ex.ToString());
         }
         _glInitialized = false;
         Viewer?.InvalidateSurface();
@@ -118,6 +131,7 @@ public partial class CameraPage : ContentPage
     private Task<string?> EnsureSampleModel()
     {
         var modelDir = MmdFileSystem.Ensure("Models");
+        LogService.WriteLine($"[CameraPage] Searching models in {modelDir}");
         var vrm = Directory.EnumerateFiles(modelDir, "*.vrm").FirstOrDefault();
         if (!string.IsNullOrEmpty(vrm))
         {
@@ -125,6 +139,7 @@ public partial class CameraPage : ContentPage
             return Task.FromResult<string?>(vrm);
         }
 
+        LogService.WriteLine("[CameraPage] No models found in storage");
         return Task.FromResult<string?>(null);
     }
 
