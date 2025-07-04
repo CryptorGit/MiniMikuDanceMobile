@@ -123,7 +123,9 @@ public class Viewer : IDisposable
         GL.BindTexture(TextureTarget.Texture2D, _tex);
         if (model.Texture != null)
         {
+            // All 列挙型を介さず型付けされたオーバーロードを使用
             var handle = GCHandle.Alloc(model.Texture, GCHandleType.Pinned);
+            // All 列挙型を使用しないことで安全にロード
             try
             {
                 GL.TexImage2D(TextureTarget.Texture2D, 0,
@@ -142,6 +144,7 @@ public class Viewer : IDisposable
             // 代替テクスチャとして 1x1 の白色ピクセルを設定
             byte[] white = { 255, 255, 255, 255 };
             var handle = GCHandle.Alloc(white, GCHandleType.Pinned);
+            // All 列挙型を使用しないことで安全にロード
             try
             {
                 GL.TexImage2D(TextureTarget.Texture2D, 0,
