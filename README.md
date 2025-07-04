@@ -30,13 +30,14 @@ Assimp のネイティブライブラリは NuGet 経由で自動的に取得さ
    dotnet build MiniMikuDanceMaui/MiniMikuDanceMaui.csproj -t:Run -f net8.0-android34.0
    ```
 
+3. Android 版では初回起動時にストレージの読み書き権限を要求します。許可しない場合、`MiniMikuDance/data` フォルダへアクセスできずモデルを読み込めません。端末の設定から手動で権限を付与することもできます。
 
-3. UI 設定の例は `Configs/UIConfig.json` として用意しています。編集したファイルをパッケージへ含めることでカスタム UI を適用できます。特に配置しない場合はアプリ内で定義されたデフォルト設定が使用されます。
+4. UI 設定の例は `Configs/UIConfig.json` として用意しています。編集したファイルをパッケージへ含めることでカスタム UI を適用できます。特に配置しない場合はアプリ内で定義されたデフォルト設定が使用されます。
 
-4. 初回起動時に `MiniMikuDance/data/Models` フォルダ内の `.vrm` ファイルを自動で読み込みます。任意のモデルを事前に配置しておくか、アプリの **SELECT** ボタンからファイルを選択してください。コピー処理は行われません。サンプルモデル `AliciaSolid.vrm` はリポジトリに含まれていないため、必要に応じて自身で用意しこのフォルダへ配置してください。
+5. 初回起動時に `MiniMikuDance/data/Models` フォルダ内の `.vrm` ファイルを自動で読み込みます。任意のモデルを事前に配置しておくか、アプリの **SELECT** ボタンからファイルを選択してください。コピー処理は行われません。サンプルモデル `AliciaSolid.vrm` はリポジトリに含まれていないため、必要に応じて自身で用意しこのフォルダへ配置してください。
 
-5. アプリが起動し、モデル読込や姿勢推定の進捗が表示されれば成功です。録画メタデータは `MiniMikuDance/data/Recordings/` フォルダに保存されます。
-6. `MiniMikuDance/data/Models` フォルダに `log.txt` が作成され、フォルダへアクセスした日時が追記されます。端末を PC に接続し `PC\\Pixel 8a\\内部共有ストレージ\\MiniMikuDance\\data\\Models` を開くことで確認できます。
+6. アプリが起動し、モデル読込や姿勢推定の進捗が表示されれば成功です。録画メタデータは `MiniMikuDance/data/Recordings/` フォルダに保存されます。
+7. `MiniMikuDance/data/Models` フォルダに `log.txt` が作成され、フォルダへアクセスした日時が追記されます。端末を PC に接続し `PC\\Pixel 8a\\内部共有ストレージ\\MiniMikuDance\\data\\Models` を開くことで確認できます。
 
 ## デザイントークン
 `Configs` フォルダに `style_tokens_dark.json` と `style_tokens_light.json` を追加しました。UI の配色や角丸、余白量を一元管理する設定ファイルです。ImGui スタイルを適用する際はこれらの JSON を読み込んでください。
