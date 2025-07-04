@@ -8,6 +8,8 @@ namespace MiniMikuDanceMaui;
 
 public partial class ExplorerView : ContentView
 {
+    private string _currentPath = string.Empty;
+
     public ExplorerView()
     {
         InitializeComponent();
@@ -15,10 +17,43 @@ public partial class ExplorerView : ContentView
 
     public void LoadDirectory(string path)
     {
+        _currentPath = path;
         var items = Directory.EnumerateFileSystemEntries(path)
             .Select(p => new FileItem(p))
+            .OrderByDescending(f => f.IsDirectory)
+            .ThenBy(f => f.Name)
             .ToList();
         FileList.ItemsSource = items;
+    }
+
+    private void OnUpClicked(object? sender, EventArgs e)
+    {
+        if (string.IsNullOrEmpty(_currentPath)) return;
+        var parent = Directory.GetParent(_currentPath)?.FullName;
+        if (!string.IsNullOrEmpty(parent))
+        {
+            LoadDirectory(parent);
+        }
+    }
+
+    private void OnReloadClicked(object? sender, EventArgs e)
+    {
+        if (!string.IsNullOrEmpty(_currentPath))
+        {
+            LoadDirectory(_currentPath);
+        }
+    }
+
+    private void OnItemSelected(object? sender, SelectionChangedEventArgs e)
+    {
+        if (e.CurrentSelection.FirstOrDefault() is FileItem item)
+        {
+            if (item.IsDirectory)
+            {
+                LoadDirectory(item.Path);
+            }
+            FileList.SelectedItem = null;
+        }
     }
 
     private class FileItem
