@@ -276,7 +276,6 @@ void main(){
         if (data.TextureData != null)
         {
             // GL.TexImage2D の強く型付けされたオーバーロードを利用するため
-            // ガベージコレクションでデータが移動しないよう固定しポインタを渡す
             var handle = GCHandle.Alloc(data.TextureData, GCHandleType.Pinned);
             try
             {

@@ -123,7 +123,6 @@ public class Viewer : IDisposable
         GL.BindTexture(TextureTarget.Texture2D, _tex);
         if (model.Texture != null)
         {
-            // ガベージコレクションで配列が移動しないよう一時的に固定してポインタを取得
             var handle = GCHandle.Alloc(model.Texture, GCHandleType.Pinned);
             try
             {
