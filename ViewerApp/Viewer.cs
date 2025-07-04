@@ -130,8 +130,8 @@ public class Viewer : IDisposable
             // All 列挙型を使用しないことで安全にロード
             try
             {
-                GL.TexImage2D(TextureTarget.Texture2D, 0,
-                    PixelInternalFormat.Rgba,
+                GL.TexImage2D(TextureTarget2d.Texture2D, 0,
+                    TextureComponentCount.Rgba,
                     model.TextureWidth, model.TextureHeight, 0,
                     PixelFormat.Rgba, PixelType.UnsignedByte,
                     handle.AddrOfPinnedObject());
@@ -149,8 +149,8 @@ public class Viewer : IDisposable
             // All 列挙型を使用しないことで安全にロード
             try
             {
-                GL.TexImage2D(TextureTarget.Texture2D, 0,
-                    PixelInternalFormat.Rgba,
+                GL.TexImage2D(TextureTarget2d.Texture2D, 0,
+                    TextureComponentCount.Rgba,
                     1, 1, 0,
                     PixelFormat.Rgba, PixelType.UnsignedByte,
                     handle.AddrOfPinnedObject());
