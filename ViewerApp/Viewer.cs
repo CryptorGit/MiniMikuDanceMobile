@@ -123,6 +123,7 @@ public class Viewer : IDisposable
         GL.BindTexture(TextureTarget.Texture2D, _tex);
         if (model.Texture != null)
         {
+            // 安全にポインタを渡すため一時的に配列を固定する
             var handle = GCHandle.Alloc(model.Texture, GCHandleType.Pinned);
             try
             {
@@ -137,6 +138,7 @@ public class Viewer : IDisposable
         }
         else
         {
+            // 代替テクスチャとして 1x1 の白色ピクセルを設定
             byte[] white = { 255, 255, 255, 255 };
             var handle = GCHandle.Alloc(white, GCHandleType.Pinned);
             try

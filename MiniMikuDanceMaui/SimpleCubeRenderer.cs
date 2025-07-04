@@ -275,6 +275,8 @@ void main(){
         GL.BindTexture(TextureTarget.Texture2D, _tex);
         if (data.TextureData != null)
         {
+            // GL.TexImage2D の強く型付けされたオーバーロードを利用するため
+            // テクスチャデータを固定してポインタを取得する
             var handle = GCHandle.Alloc(data.TextureData, GCHandleType.Pinned);
             try
             {
@@ -289,6 +291,7 @@ void main(){
         }
         else
         {
+            // モデルにテクスチャが無い場合は 1x1 の白テクスチャを生成
             byte[] white = { 255, 255, 255, 255 };
             var handle = GCHandle.Alloc(white, GCHandleType.Pinned);
             try
