@@ -1,6 +1,7 @@
 using System;
 using OpenTK.Mathematics;
 using OpenTK.Graphics.ES30;
+using System.Runtime.InteropServices;
 using MiniMikuDance.Util;
 
 namespace MiniMikuDanceMaui;
@@ -274,13 +275,31 @@ void main(){
         GL.BindTexture(TextureTarget.Texture2D, _tex);
         if (data.TextureData != null)
         {
-            GL.TexImage2D(TextureTarget.Texture2D, 0, PixelInternalFormat.Rgba, data.TextureWidth, data.TextureHeight, 0,
-                PixelFormat.Rgba, PixelType.UnsignedByte, data.TextureData);
+            var handle = GCHandle.Alloc(data.TextureData, GCHandleType.Pinned);
+            try
+            {
+                GL.TexImage2D(TextureTarget.Texture2D, 0, PixelInternalFormat.Rgba,
+                    data.TextureWidth, data.TextureHeight, 0,
+                    PixelFormat.Rgba, PixelType.UnsignedByte, handle.AddrOfPinnedObject());
+            }
+            finally
+            {
+                handle.Free();
+            }
         }
         else
         {
             byte[] white = { 255, 255, 255, 255 };
-            GL.TexImage2D(TextureTarget.Texture2D, 0, PixelInternalFormat.Rgba, 1, 1, 0, PixelFormat.Rgba, PixelType.UnsignedByte, white);
+            var handle = GCHandle.Alloc(white, GCHandleType.Pinned);
+            try
+            {
+                GL.TexImage2D(TextureTarget.Texture2D, 0, PixelInternalFormat.Rgba,
+                    1, 1, 0, PixelFormat.Rgba, PixelType.UnsignedByte, handle.AddrOfPinnedObject());
+            }
+            finally
+            {
+                handle.Free();
+            }
         }
         GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureMinFilter, (int)TextureMinFilter.Linear);
         GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureMagFilter, (int)TextureMagFilter.Linear);
