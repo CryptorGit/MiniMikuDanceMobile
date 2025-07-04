@@ -444,7 +444,7 @@ public partial class CameraPage : ContentPage
             View view;
             if (name == "Explorer")
             {
-                var ev = new ExplorerView();
+                var ev = new ExplorerView(MmdFileSystem.BaseDir);
                 ev.LoadDirectory(MmdFileSystem.BaseDir);
                 view = ev;
             }
