@@ -686,7 +686,6 @@ public partial class CameraPage : ContentPage
     private async void OnImportClicked(object? sender, EventArgs e)
     {
         if (string.IsNullOrEmpty(_selectedPath))
-            return;
 
         RemoveBottomFeature("Open");
         FileSelectMessage.IsVisible = false;
