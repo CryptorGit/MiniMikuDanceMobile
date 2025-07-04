@@ -1,8 +1,8 @@
 using System;
 using System.Diagnostics;
 using System.Runtime.InteropServices;
-using OpenTK.Graphics.OpenGL4;
-using GL = OpenTK.Graphics.OpenGL4.GL;
+using OpenTK.Graphics.ES30;
+using GL = OpenTK.Graphics.ES30.GL;
 using OpenTK.Mathematics;
 using OpenTK.Windowing.Common;
 using OpenTK.Windowing.Desktop;
