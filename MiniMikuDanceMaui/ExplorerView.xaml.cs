@@ -10,12 +10,15 @@ public partial class ExplorerView : ContentView
 {
     private string _currentPath = string.Empty;
     private readonly string _rootPath;
+    private readonly HashSet<string>? _allowedExtensions;
 
     public event EventHandler<string>? FileSelected;
 
-    public ExplorerView(string rootPath)
+    public ExplorerView(string rootPath, IEnumerable<string>? extensions = null)
     {
         _rootPath = rootPath;
+        if (extensions != null)
+            _allowedExtensions = extensions.Select(e => e.ToLowerInvariant()).ToHashSet();
         InitializeComponent();
     }
 
@@ -25,7 +28,14 @@ public partial class ExplorerView : ContentView
         _currentPath = path;
         UpdatePathDisplay();
         
-        var items = Directory.EnumerateFileSystemEntries(path)
+        IEnumerable<string> entries = Directory.EnumerateFileSystemEntries(path);
+        if (_allowedExtensions != null)
+        {
+            entries = entries.Where(p => Directory.Exists(p) ||
+                _allowedExtensions.Contains(Path.GetExtension(p).ToLowerInvariant()));
+        }
+
+        var items = entries
             .Select(p => new FileItem(p))
             .OrderByDescending(f => f.IsDirectory)
             .ThenBy(f => f.Name)
