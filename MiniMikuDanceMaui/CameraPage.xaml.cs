@@ -59,6 +59,10 @@ public partial class CameraPage : ContentPage
                 _cameraSensitivity = v;
                 _renderer.CameraSensitivity = (float)_cameraSensitivity;
             };
+            setting.CameraLockChanged += locked =>
+            {
+                _renderer.CameraLocked = locked;
+            };
         }
     }
 
@@ -93,6 +97,7 @@ public partial class CameraPage : ContentPage
         {
             sv.HeightRatio = _bottomHeightRatio;
             sv.Sensitivity = _cameraSensitivity;
+            sv.CameraLocked = _renderer.CameraLocked;
         }
         UpdateOverlay();
         UpdateLayout();
@@ -306,6 +311,13 @@ public partial class CameraPage : ContentPage
 
     private void OnViewTouch(object? sender, SKTouchEventArgs e)
     {
+        if (_viewMenuOpen || _settingMenuOpen)
+        {
+            HideViewMenu();
+            HideSettingMenu();
+            UpdateLayout();
+        }
+
         if (e.ActionType == SKTouchAction.Pressed)
         {
             _touchPoints[e.Id] = e.Location;
@@ -394,7 +406,7 @@ public partial class CameraPage : ContentPage
             }
             else if (name == "SETTING")
             {
-                var sv = new SettingView { HeightRatio = _bottomHeightRatio, Sensitivity = _cameraSensitivity };
+                var sv = new SettingView { HeightRatio = _bottomHeightRatio, Sensitivity = _cameraSensitivity, CameraLocked = _renderer.CameraLocked };
                 sv.HeightRatioChanged += ratio =>
                 {
                     _bottomHeightRatio = ratio;
@@ -404,6 +416,10 @@ public partial class CameraPage : ContentPage
                 {
                     _cameraSensitivity = v;
                     _renderer.CameraSensitivity = (float)_cameraSensitivity;
+                };
+                sv.CameraLockChanged += locked =>
+                {
+                    _renderer.CameraLocked = locked;
                 };
                 view = sv;
             }
@@ -439,6 +455,7 @@ public partial class CameraPage : ContentPage
         {
             sv.HeightRatio = _bottomHeightRatio;
             sv.Sensitivity = _cameraSensitivity;
+            sv.CameraLocked = _renderer.CameraLocked;
         }
         SwitchBottomFeature(name);
         BottomRegion.IsVisible = true;

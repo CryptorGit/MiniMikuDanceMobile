@@ -5,10 +5,15 @@
              BackgroundColor="#1E1E1E">
     <VerticalStackLayout Spacing="10" Padding="10">
         <Label Text="Bottom Region Height" TextColor="White"/>
-        <Slider x:Name="HeightSlider" Minimum="0.3" Maximum="0.8"
+        <Slider x:Name="HeightSlider" Minimum="0.1" Maximum="0.9"
                 ValueChanged="OnHeightChanged"/>
         <Label Text="Camera Sensitivity" TextColor="White"/>
-        <Slider x:Name="CameraSlider" Minimum="0.5" Maximum="3"
+        <Slider x:Name="CameraSlider" Minimum="0.1" Maximum="5"
                 ValueChanged="OnCameraChanged"/>
+        <HorizontalStackLayout Spacing="6" VerticalOptions="Center">
+            <CheckBox x:Name="CameraLockCheck" Color="White"
+                      CheckedChanged="OnCameraLockChanged"/>
+            <Label Text="Lock Camera" TextColor="White" VerticalOptions="Center"/>
+        </HorizontalStackLayout>
     </VerticalStackLayout>
 </ContentView>
