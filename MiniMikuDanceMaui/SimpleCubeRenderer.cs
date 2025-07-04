@@ -275,7 +275,8 @@ void main(){
         GL.BindTexture(TextureTarget.Texture2D, _tex);
         if (data.TextureData != null)
         {
-            // GL.TexImage2D の強く型付けされたオーバーロードを利用するため
+        // GL.TexImage2D の All 列挙型オーバーロードを避け、
+        // 型安全な引数を渡すことでビルド時の変換エラーを防ぐ
             var handle = GCHandle.Alloc(data.TextureData, GCHandleType.Pinned);
             try
             {
@@ -295,6 +296,7 @@ void main(){
             // モデルにテクスチャが無い場合は 1x1 の白テクスチャを生成
             byte[] white = { 255, 255, 255, 255 };
             var handle = GCHandle.Alloc(white, GCHandleType.Pinned);
+            // All 列挙型を使用せず安全に生成
             try
             {
                 GL.TexImage2D(TextureTarget.Texture2D, 0,
