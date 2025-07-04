@@ -88,14 +88,6 @@ public partial class ExplorerView : ContentView
         }
     }
 
-    private void OnReloadClicked(object? sender, EventArgs e)
-    {
-        if (!string.IsNullOrEmpty(_currentPath))
-        {
-            LoadDirectory(_currentPath);
-        }
-    }
-
     private void OnItemSelected(object? sender, SelectionChangedEventArgs e)
     {
         if (e.CurrentSelection.FirstOrDefault() is FileItem item)
