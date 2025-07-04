@@ -1,7 +1,7 @@
 using System;
 using System.Diagnostics;
+using System.Runtime.InteropServices;
 using OpenTK.Graphics.OpenGL4;
-using All = OpenTK.Graphics.OpenGL4.All;
 using OpenTK.Mathematics;
 using OpenTK.Windowing.Common;
 using OpenTK.Windowing.Desktop;
@@ -123,15 +123,33 @@ public class Viewer : IDisposable
         GL.BindTexture(TextureTarget.Texture2D, _tex);
         if (model.Texture != null)
         {
-            GL.TexImage2D((All)TextureTarget.Texture2D, 0, (All)PixelInternalFormat.Rgba,
-                model.TextureWidth, model.TextureHeight, 0,
-                (All)PixelFormat.Rgba, (All)PixelType.UnsignedByte, model.Texture);
+            // ガベージコレクションで配列が移動しないよう一時的に固定してポインタを取得
+            var handle = GCHandle.Alloc(model.Texture, GCHandleType.Pinned);
+            try
+            {
+                GL.TexImage2D(TextureTarget.Texture2D, 0, PixelInternalFormat.Rgba,
+                    model.TextureWidth, model.TextureHeight, 0,
+                    PixelFormat.Rgba, PixelType.UnsignedByte, handle.AddrOfPinnedObject());
+            }
+            finally
+            {
+                handle.Free();
+            }
         }
         else
         {
+            // 代替テクスチャとして 1x1 の白色ピクセルを設定
             byte[] white = { 255, 255, 255, 255 };
-            GL.TexImage2D((All)TextureTarget.Texture2D, 0, (All)PixelInternalFormat.Rgba,
-                1, 1, 0, (All)PixelFormat.Rgba, (All)PixelType.UnsignedByte, white);
+            var handle = GCHandle.Alloc(white, GCHandleType.Pinned);
+            try
+            {
+                GL.TexImage2D(TextureTarget.Texture2D, 0, PixelInternalFormat.Rgba,
+                    1, 1, 0, PixelFormat.Rgba, PixelType.UnsignedByte, handle.AddrOfPinnedObject());
+            }
+            finally
+            {
+                handle.Free();
+            }
         }
         GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureMinFilter, (int)TextureMinFilter.Linear);
         GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureMagFilter, (int)TextureMagFilter.Linear);

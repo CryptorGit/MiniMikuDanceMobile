@@ -1,7 +1,6 @@
 using System;
 using OpenTK.Mathematics;
 using OpenTK.Graphics.ES30;
-using All = OpenTK.Graphics.ES30.All;
 using System.Runtime.InteropServices;
 using MiniMikuDance.Util;
 
@@ -276,12 +275,14 @@ void main(){
         GL.BindTexture(TextureTarget.Texture2D, _tex);
         if (data.TextureData != null)
         {
+            // GL.TexImage2D の強く型付けされたオーバーロードを利用するため
+            // ガベージコレクションでデータが移動しないよう固定しポインタを渡す
             var handle = GCHandle.Alloc(data.TextureData, GCHandleType.Pinned);
             try
             {
-                GL.TexImage2D((All)TextureTarget.Texture2D, 0, (All)PixelInternalFormat.Rgba,
+                GL.TexImage2D(TextureTarget.Texture2D, 0, PixelInternalFormat.Rgba,
                     data.TextureWidth, data.TextureHeight, 0,
-                    (All)PixelFormat.Rgba, (All)PixelType.UnsignedByte, handle.AddrOfPinnedObject());
+                    PixelFormat.Rgba, PixelType.UnsignedByte, handle.AddrOfPinnedObject());
             }
             finally
             {
@@ -290,12 +291,13 @@ void main(){
         }
         else
         {
+            // モデルにテクスチャが無い場合は 1x1 の白テクスチャを生成
             byte[] white = { 255, 255, 255, 255 };
             var handle = GCHandle.Alloc(white, GCHandleType.Pinned);
             try
             {
-                GL.TexImage2D((All)TextureTarget.Texture2D, 0, (All)PixelInternalFormat.Rgba,
-                    1, 1, 0, (All)PixelFormat.Rgba, (All)PixelType.UnsignedByte, handle.AddrOfPinnedObject());
+                GL.TexImage2D(TextureTarget.Texture2D, 0, PixelInternalFormat.Rgba,
+                    1, 1, 0, PixelFormat.Rgba, PixelType.UnsignedByte, handle.AddrOfPinnedObject());
             }
             finally
             {
