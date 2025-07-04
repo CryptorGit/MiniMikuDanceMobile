@@ -276,7 +276,6 @@ void main(){
         if (data.TextureData != null)
         {
             // GL.TexImage2D の強く型付けされたオーバーロードを利用するため
-            // テクスチャデータを固定してポインタを取得する
             var handle = GCHandle.Alloc(data.TextureData, GCHandleType.Pinned);
             try
             {

@@ -123,7 +123,6 @@ public class Viewer : IDisposable
         GL.BindTexture(TextureTarget.Texture2D, _tex);
         if (model.Texture != null)
         {
-            // 安全にポインタを渡すため一時的に配列を固定する
             var handle = GCHandle.Alloc(model.Texture, GCHandleType.Pinned);
             try
             {
