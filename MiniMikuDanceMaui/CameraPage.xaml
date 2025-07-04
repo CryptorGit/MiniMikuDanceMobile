@@ -17,7 +17,8 @@
         <MenuBarItem Text="Help" />
     </ContentPage.MenuBarItems>
     <AbsoluteLayout x:Name="Root">
-        <HorizontalStackLayout x:Name="TopMenu" BackgroundColor="#2A2A2A" Spacing="20" Padding="10,0" HeightRequest="36" ZIndex="1">
+        <!-- TopMenu を Overlay より前面に表示するため ZIndex を上げる -->
+        <HorizontalStackLayout x:Name="TopMenu" BackgroundColor="#2A2A2A" Spacing="20" Padding="10,0" HeightRequest="36" ZIndex="10">
             <Label Text="File" TextColor="White"/>
             <Label Text="Edit" TextColor="White"/>
             <Label Text="Selection" TextColor="White"/>
@@ -82,6 +83,7 @@
                 <mmd:SettingView x:Name="SettingContent" />
             </VerticalStackLayout>
         </Frame>
+        <!-- Overlay は BottomRegion より背面に配置しつつ Viewer より前面に表示する -->
         <BoxView x:Name="MenuOverlay" BackgroundColor="Transparent" IsVisible="False" ZIndex="1">
             <BoxView.GestureRecognizers>
                 <TapGestureRecognizer Tapped="OnOverlayTapped" />

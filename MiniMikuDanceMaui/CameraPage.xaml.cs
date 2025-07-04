@@ -73,6 +73,14 @@ public partial class CameraPage : ContentPage
         }
     }
 
+    private void ShowViewMenu()
+    {
+        HideSettingMenu();
+        _viewMenuOpen = true;
+        ViewMenu.IsVisible = true;
+        UpdateOverlay();
+    }
+
     private void OnViewMenuTapped(object? sender, TappedEventArgs e)
     {
         if (_viewMenuOpen)
@@ -81,11 +89,8 @@ public partial class CameraPage : ContentPage
         }
         else
         {
-            HideSettingMenu();
-            _viewMenuOpen = true;
-            ViewMenu.IsVisible = true;
+            ShowViewMenu();
         }
-        UpdateOverlay();
         UpdateLayout();
     }
 
@@ -100,6 +105,21 @@ public partial class CameraPage : ContentPage
         OnSettingMenuTapped(sender, new TappedEventArgs(null));
     }
 
+    private void ShowSettingMenu()
+    {
+        HideViewMenu();
+        _settingMenuOpen = true;
+        SettingMenu.IsVisible = true;
+        if (SettingContent is SettingView sv)
+        {
+            sv.HeightRatio = _bottomHeightRatio;
+            sv.RotateSensitivity = _rotateSensitivity;
+            sv.PanSensitivity = _panSensitivity;
+            sv.CameraLocked = _renderer.CameraLocked;
+        }
+        UpdateOverlay();
+    }
+
     private void OnSettingMenuTapped(object? sender, TappedEventArgs e)
     {
         if (_settingMenuOpen)
@@ -108,18 +128,8 @@ public partial class CameraPage : ContentPage
         }
         else
         {
-            HideViewMenu();
-            _settingMenuOpen = true;
-            SettingMenu.IsVisible = true;
+            ShowSettingMenu();
         }
-        if (_settingMenuOpen && SettingContent is SettingView sv)
-        {
-            sv.HeightRatio = _bottomHeightRatio;
-            sv.RotateSensitivity = _rotateSensitivity;
-            sv.PanSensitivity = _panSensitivity;
-            sv.CameraLocked = _renderer.CameraLocked;
-        }
-        UpdateOverlay();
         UpdateLayout();
     }
 
