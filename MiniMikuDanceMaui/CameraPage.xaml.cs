@@ -75,10 +75,16 @@ public partial class CameraPage : ContentPage
 
     private void OnViewMenuTapped(object? sender, TappedEventArgs e)
     {
-        bool nextState = !_viewMenuOpen || _settingMenuOpen;
-        HideSettingMenu();
-        _viewMenuOpen = nextState;
-        ViewMenu.IsVisible = nextState;
+        if (_viewMenuOpen)
+        {
+            HideViewMenu();
+        }
+        else
+        {
+            HideSettingMenu();
+            _viewMenuOpen = true;
+            ViewMenu.IsVisible = true;
+        }
         UpdateOverlay();
         UpdateLayout();
     }
@@ -96,10 +102,16 @@ public partial class CameraPage : ContentPage
 
     private void OnSettingMenuTapped(object? sender, TappedEventArgs e)
     {
-        bool nextState = !_settingMenuOpen || _viewMenuOpen;
-        HideViewMenu();
-        _settingMenuOpen = nextState;
-        SettingMenu.IsVisible = nextState;
+        if (_settingMenuOpen)
+        {
+            HideSettingMenu();
+        }
+        else
+        {
+            HideViewMenu();
+            _settingMenuOpen = true;
+            SettingMenu.IsVisible = true;
+        }
         if (_settingMenuOpen && SettingContent is SettingView sv)
         {
             sv.HeightRatio = _bottomHeightRatio;
@@ -157,6 +169,13 @@ public partial class CameraPage : ContentPage
     }
 
     private void OnOverlayTapped(object? sender, TappedEventArgs e)
+    {
+        HideViewMenu();
+        HideSettingMenu();
+        UpdateLayout();
+    }
+
+    private void OnBottomRegionTapped(object? sender, TappedEventArgs e)
     {
         HideViewMenu();
         HideSettingMenu();
@@ -286,10 +305,11 @@ public partial class CameraPage : ContentPage
         AbsoluteLayout.SetLayoutFlags(TopMenu, AbsoluteLayoutFlags.None);
 
         double bottomHeight = BottomRegion.IsVisible ? H * _bottomHeightRatio : 0;
-        double menuHeight = H - TopMenuHeight - bottomHeight;
-        AbsoluteLayout.SetLayoutBounds(ViewMenu, new Rect(0, TopMenuHeight, 200, ViewMenu.IsVisible ? menuHeight : 0));
+        AbsoluteLayout.SetLayoutBounds(ViewMenu, new Rect(0, TopMenuHeight, 200,
+            ViewMenu.IsVisible ? AbsoluteLayout.AutoSize : 0));
         AbsoluteLayout.SetLayoutFlags(ViewMenu, AbsoluteLayoutFlags.None);
-        AbsoluteLayout.SetLayoutBounds(SettingMenu, new Rect(0, TopMenuHeight, 250, SettingMenu.IsVisible ? menuHeight : 0));
+        AbsoluteLayout.SetLayoutBounds(SettingMenu, new Rect(0, TopMenuHeight, 250,
+            SettingMenu.IsVisible ? AbsoluteLayout.AutoSize : 0));
         AbsoluteLayout.SetLayoutFlags(SettingMenu, AbsoluteLayoutFlags.None);
 
         AbsoluteLayout.SetLayoutBounds(MenuOverlay, new Rect(0, 0, W, H));
@@ -406,6 +426,15 @@ public partial class CameraPage : ContentPage
         {
             RemoveBottomFeature(name);
             return;
+        }
+
+        // 他のタブが開いている場合は閉じる
+        foreach (var feature in _bottomViews.Keys.ToList())
+        {
+            if (feature != name)
+            {
+                RemoveBottomFeature(feature);
+            }
         }
         if (!_bottomViews.ContainsKey(name))
         {
