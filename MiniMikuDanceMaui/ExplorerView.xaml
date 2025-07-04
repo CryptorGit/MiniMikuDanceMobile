@@ -3,8 +3,8 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
              x:Class="MiniMikuDanceMaui.ExplorerView"
              BackgroundColor="#1E1E1E">
-    <Grid RowDefinitions="40,*">
-        <Grid Grid.Row="0" ColumnDefinitions="Auto,Auto,*" Padding="8" x:Name="TopBar">
+    <VerticalStackLayout>
+        <Grid ColumnDefinitions="Auto,Auto,*" Padding="8" x:Name="TopBar" HeightRequest="40">
             <Label Text="↑" TextColor="White" Margin="0,0,16,0" VerticalTextAlignment="Center">
                 <Label.GestureRecognizers>
                     <TapGestureRecognizer Tapped="OnUpClicked" />
@@ -17,7 +17,7 @@
             </Label>
             <Label Grid.Column="2" x:Name="PathLabel" TextColor="White" VerticalTextAlignment="Center" LineBreakMode="TailTruncation" />
         </Grid>
-        <CollectionView Grid.Row="1" x:Name="FileList" SelectionMode="Single" SelectionChanged="OnItemSelected">
+        <CollectionView x:Name="FileList" SelectionMode="Single" SelectionChanged="OnItemSelected" VerticalOptions="FillAndExpand">
             <CollectionView.ItemTemplate>
                 <DataTemplate>
                     <Grid ColumnDefinitions="* , Auto , Auto" Padding="2">
@@ -28,5 +28,5 @@
                 </DataTemplate>
             </CollectionView.ItemTemplate>
         </CollectionView>
-    </Grid>
+    </VerticalStackLayout>
 </ContentView>

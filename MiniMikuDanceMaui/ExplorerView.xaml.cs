@@ -22,7 +22,7 @@ public partial class ExplorerView : ContentView
         if (!Directory.Exists(path)) return;
         _currentPath = path;
         UpdatePathDisplay();
-
+        
         var items = Directory.EnumerateFileSystemEntries(path)
             .Select(p => new FileItem(p))
             .OrderByDescending(f => f.IsDirectory)
@@ -65,6 +65,7 @@ public partial class ExplorerView : ContentView
         if (Path.GetFullPath(_currentPath).TrimEnd(Path.DirectorySeparatorChar)
             .Equals(Path.GetFullPath(_rootPath).TrimEnd(Path.DirectorySeparatorChar), StringComparison.OrdinalIgnoreCase))
         {
+            LoadDirectory(_rootPath);
             return;
         }
 
