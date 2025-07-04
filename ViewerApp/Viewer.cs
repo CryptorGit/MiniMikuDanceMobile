@@ -1,6 +1,7 @@
 using System;
 using System.Diagnostics;
 using OpenTK.Graphics.OpenGL4;
+using All = OpenTK.Graphics.OpenGL4.All;
 using OpenTK.Mathematics;
 using OpenTK.Windowing.Common;
 using OpenTK.Windowing.Desktop;
@@ -122,12 +123,15 @@ public class Viewer : IDisposable
         GL.BindTexture(TextureTarget.Texture2D, _tex);
         if (model.Texture != null)
         {
-            GL.TexImage2D(TextureTarget.Texture2D, 0, PixelInternalFormat.Rgba, model.TextureWidth, model.TextureHeight, 0, PixelFormat.Rgba, PixelType.UnsignedByte, model.Texture);
+            GL.TexImage2D((All)TextureTarget.Texture2D, 0, (All)PixelInternalFormat.Rgba,
+                model.TextureWidth, model.TextureHeight, 0,
+                (All)PixelFormat.Rgba, (All)PixelType.UnsignedByte, model.Texture);
         }
         else
         {
             byte[] white = { 255, 255, 255, 255 };
-            GL.TexImage2D(TextureTarget.Texture2D, 0, PixelInternalFormat.Rgba, 1, 1, 0, PixelFormat.Rgba, PixelType.UnsignedByte, white);
+            GL.TexImage2D((All)TextureTarget.Texture2D, 0, (All)PixelInternalFormat.Rgba,
+                1, 1, 0, (All)PixelFormat.Rgba, (All)PixelType.UnsignedByte, white);
         }
         GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureMinFilter, (int)TextureMinFilter.Linear);
         GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureMagFilter, (int)TextureMagFilter.Linear);
