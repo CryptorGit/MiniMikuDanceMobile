@@ -432,20 +432,6 @@ public partial class CameraPage : ContentPage
 
     private void ShowBottomFeature(string name)
     {
-        if (BottomRegion.IsVisible && _currentFeature == name)
-        {
-            RemoveBottomFeature(name);
-            return;
-        }
-
-        // 他のタブが開いている場合は閉じる
-        foreach (var feature in _bottomViews.Keys.ToList())
-        {
-            if (feature != name)
-            {
-                RemoveBottomFeature(feature);
-            }
-        }
         if (!_bottomViews.ContainsKey(name))
         {
             View view;
@@ -501,7 +487,13 @@ public partial class CameraPage : ContentPage
             border.Content = label;
             string captured = name;
             var tap = new TapGestureRecognizer();
-            tap.Tapped += (s, e) => SwitchBottomFeature(captured);
+            tap.Tapped += (s, e) =>
+            {
+                SwitchBottomFeature(captured);
+                HideViewMenu();
+                HideSettingMenu();
+                UpdateLayout();
+            };
             border.GestureRecognizers.Add(tap);
             BottomTabBar.Add(border);
             _bottomTabs[name] = border;

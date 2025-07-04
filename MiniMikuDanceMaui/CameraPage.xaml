@@ -112,7 +112,11 @@
                     </Label.GestureRecognizers>
                 </Label>
             </Grid>
-            <ContentView x:Name="BottomContent" Grid.Row="1" />
+            <ContentView x:Name="BottomContent" Grid.Row="1">
+                <ContentView.GestureRecognizers>
+                    <TapGestureRecognizer Tapped="OnBottomRegionTapped" />
+                </ContentView.GestureRecognizers>
+            </ContentView>
         </Grid>
     </AbsoluteLayout>
 </ContentPage>
