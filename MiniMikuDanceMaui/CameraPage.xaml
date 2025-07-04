@@ -88,7 +88,7 @@
             </BoxView.GestureRecognizers>
         </BoxView>
         <skia:SKGLView x:Name="Viewer" HasRenderLoop="True" EnableTouchEvents="True" />
-        <Grid x:Name="BottomRegion" BackgroundColor="#1E1E1E" IsVisible="False">
+        <Grid x:Name="BottomRegion" BackgroundColor="#1E1E1E" IsVisible="False" ZIndex="2">
             <Grid.RowDefinitions>
                 <RowDefinition Height="40" />
                 <RowDefinition Height="*" />

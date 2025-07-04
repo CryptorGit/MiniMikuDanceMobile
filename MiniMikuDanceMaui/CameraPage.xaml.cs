@@ -75,10 +75,10 @@ public partial class CameraPage : ContentPage
 
     private void OnViewMenuTapped(object? sender, TappedEventArgs e)
     {
-        _viewMenuOpen = !_viewMenuOpen;
-        ViewMenu.IsVisible = _viewMenuOpen;
-        if (_viewMenuOpen)
-            HideSettingMenu();
+        bool nextState = !_viewMenuOpen || _settingMenuOpen;
+        HideSettingMenu();
+        _viewMenuOpen = nextState;
+        ViewMenu.IsVisible = nextState;
         UpdateOverlay();
         UpdateLayout();
     }
@@ -96,7 +96,7 @@ public partial class CameraPage : ContentPage
 
     private void OnSettingMenuTapped(object? sender, TappedEventArgs e)
     {
-        bool nextState = !_settingMenuOpen;
+        bool nextState = !_settingMenuOpen || _viewMenuOpen;
         HideViewMenu();
         _settingMenuOpen = nextState;
         SettingMenu.IsVisible = nextState;
