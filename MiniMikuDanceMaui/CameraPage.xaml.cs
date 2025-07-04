@@ -10,6 +10,7 @@ using SkiaSharp.Views.Maui.Controls;
 using SkiaSharp;
 using OpenTK.Graphics.ES30;
 using Microsoft.Maui.Storage;
+using Microsoft.Maui.Devices;
 using System.IO;
 using System.Linq;
 using MiniMikuDance.Import;
@@ -25,8 +26,9 @@ public partial class CameraPage : ContentPage
     private const double TopMenuHeight = 36;
     private bool _viewMenuOpen;
     private bool _settingMenuOpen;
+    private bool _fileMenuOpen;
     
-    private void UpdateOverlay() => MenuOverlay.IsVisible = _viewMenuOpen || _settingMenuOpen;
+    private void UpdateOverlay() => MenuOverlay.IsVisible = _viewMenuOpen || _settingMenuOpen || _fileMenuOpen;
     private readonly Dictionary<string, View> _bottomViews = new();
     private readonly Dictionary<string, Border> _bottomTabs = new();
     private string? _currentFeature;
@@ -76,6 +78,7 @@ public partial class CameraPage : ContentPage
     private void ShowViewMenu()
     {
         HideSettingMenu();
+        HideFileMenu();
         _viewMenuOpen = true;
         ViewMenu.IsVisible = true;
         UpdateOverlay();
@@ -108,6 +111,7 @@ public partial class CameraPage : ContentPage
     private void ShowSettingMenu()
     {
         HideViewMenu();
+        HideFileMenu();
         _settingMenuOpen = true;
         SettingMenu.IsVisible = true;
         if (SettingContent is SettingView sv)
@@ -129,6 +133,35 @@ public partial class CameraPage : ContentPage
         else
         {
             ShowSettingMenu();
+        }
+        UpdateLayout();
+    }
+
+    private void ShowFileMenu()
+    {
+        HideViewMenu();
+        HideSettingMenu();
+        _fileMenuOpen = true;
+        FileMenu.IsVisible = true;
+        UpdateOverlay();
+    }
+
+    private void HideFileMenu()
+    {
+        _fileMenuOpen = false;
+        FileMenu.IsVisible = false;
+        UpdateOverlay();
+    }
+
+    private void OnFileMenuTapped(object? sender, TappedEventArgs e)
+    {
+        if (_fileMenuOpen)
+        {
+            HideFileMenu();
+        }
+        else
+        {
+            ShowFileMenu();
         }
         UpdateLayout();
     }
@@ -189,6 +222,7 @@ public partial class CameraPage : ContentPage
     {
         HideViewMenu();
         HideSettingMenu();
+        HideFileMenu();
         UpdateLayout();
     }
 
@@ -196,6 +230,7 @@ public partial class CameraPage : ContentPage
     {
         HideViewMenu();
         HideSettingMenu();
+        HideFileMenu();
         UpdateLayout();
     }
 
@@ -325,12 +360,23 @@ public partial class CameraPage : ContentPage
         AbsoluteLayout.SetLayoutBounds(ViewMenu, new Rect(0, TopMenuHeight, 200,
             ViewMenu.IsVisible ? AbsoluteLayout.AutoSize : 0));
         AbsoluteLayout.SetLayoutFlags(ViewMenu, AbsoluteLayoutFlags.None);
+        AbsoluteLayout.SetLayoutBounds(FileMenu, new Rect(0, TopMenuHeight, 200,
+            FileMenu.IsVisible ? AbsoluteLayout.AutoSize : 0));
+        AbsoluteLayout.SetLayoutFlags(FileMenu, AbsoluteLayoutFlags.None);
         AbsoluteLayout.SetLayoutBounds(SettingMenu, new Rect(0, TopMenuHeight, 250,
             SettingMenu.IsVisible ? AbsoluteLayout.AutoSize : 0));
         AbsoluteLayout.SetLayoutFlags(SettingMenu, AbsoluteLayoutFlags.None);
 
         AbsoluteLayout.SetLayoutBounds(MenuOverlay, new Rect(0, 0, W, H));
         AbsoluteLayout.SetLayoutFlags(MenuOverlay, AbsoluteLayoutFlags.None);
+
+        AbsoluteLayout.SetLayoutBounds(FileSelectMessage, new Rect(0.5, TopMenuHeight + 20, 0.8,
+            FileSelectMessage.IsVisible ? AbsoluteLayout.AutoSize : 0));
+        AbsoluteLayout.SetLayoutFlags(FileSelectMessage,
+            AbsoluteLayoutFlags.XProportional | AbsoluteLayoutFlags.WidthProportional);
+
+        AbsoluteLayout.SetLayoutBounds(LoadingIndicator, new Rect(0.5, 0.5, 40, 40));
+        AbsoluteLayout.SetLayoutFlags(LoadingIndicator, AbsoluteLayoutFlags.PositionProportional);
 
         AbsoluteLayout.SetLayoutBounds(Viewer, new Rect(0, 0, W, H));
         AbsoluteLayout.SetLayoutFlags(Viewer, AbsoluteLayoutFlags.None);
@@ -445,6 +491,13 @@ public partial class CameraPage : ContentPage
             if (name == "Explorer")
             {
                 var ev = new ExplorerView(MmdFileSystem.BaseDir);
+                ev.LoadDirectory(MmdFileSystem.BaseDir);
+                view = ev;
+            }
+            else if (name == "Open")
+            {
+                var ev = new ExplorerView(MmdFileSystem.BaseDir);
+                ev.FileSelected += OnOpenExplorerFileSelected;
                 ev.LoadDirectory(MmdFileSystem.BaseDir);
                 view = ev;
             }
@@ -563,6 +616,88 @@ public partial class CameraPage : ContentPage
             }
 
             UpdateLayout();
+        }
+    }
+
+    private async void OnAddToLibraryClicked(object? sender, EventArgs e)
+    {
+        HideFileMenu();
+        await AddToLibraryAsync();
+    }
+
+    private async Task AddToLibraryAsync()
+    {
+        try
+        {
+            var result = await FilePicker.Default.PickAsync(new PickOptions
+            {
+                PickerTitle = "Select VRM file",
+                FileTypes = new FilePickerFileType(new Dictionary<DevicePlatform, IEnumerable<string>>
+                {
+                    [DevicePlatform.Android] = new[] { ".vrm" }
+                })
+            });
+
+            if (result == null) return;
+
+            string dstDir = MmdFileSystem.Ensure("Models");
+            string dstPath = Path.Combine(dstDir, Path.GetFileName(result.FullPath));
+            await using Stream src = await result.OpenReadAsync();
+            await using FileStream dst = File.Create(dstPath);
+            await src.CopyToAsync(dst);
+
+            await DisplayAlert("Copied", $"{Path.GetFileName(dstPath)} をライブラリに追加しました", "OK");
+        }
+        catch (Exception ex)
+        {
+            await DisplayAlert("Error", ex.Message, "OK");
+        }
+    }
+
+    private void OnOpenInViewerClicked(object? sender, EventArgs e)
+    {
+        HideFileMenu();
+        HideViewMenu();
+        HideSettingMenu();
+        ShowOpenExplorer();
+    }
+
+    private void ShowOpenExplorer()
+    {
+        ShowBottomFeature("Open");
+        FileSelectMessage.IsVisible = true;
+        UpdateLayout();
+    }
+
+    private async void OnOpenExplorerFileSelected(object? sender, string path)
+    {
+        if (Path.GetExtension(path).ToLowerInvariant() != ".vrm")
+        {
+            return;
+        }
+
+        RemoveBottomFeature("Open");
+        FileSelectMessage.IsVisible = false;
+        LoadingIndicator.IsVisible = true;
+        Viewer.HasRenderLoop = false;
+        UpdateLayout();
+
+        try
+        {
+            var importer = new ModelImporter();
+            var data = await Task.Run(() => importer.ImportModel(path));
+            _renderer.LoadModel(data);
+        }
+        catch (Exception ex)
+        {
+            await DisplayAlert("Error", ex.Message, "OK");
+        }
+        finally
+        {
+            Viewer.HasRenderLoop = true;
+            LoadingIndicator.IsVisible = false;
+            UpdateLayout();
+            Viewer.InvalidateSurface();
         }
     }
 }
