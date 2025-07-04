@@ -9,6 +9,7 @@ using MiniMikuDance.PoseEstimation;
 using System.IO;
 using System.Numerics;
 using System.Threading.Tasks;
+using System.Diagnostics;
 using ViewerApp;
 using OpenTK.Mathematics;
 
@@ -27,9 +28,10 @@ public class AppInitializer
     public MotionData? Motion { get; private set; }
     private string _poseModelPath = string.Empty;
 
-    public void Initialize(string uiConfigPath, string? modelPath, string poseModelPath)
+    public void Initialize(UIConfig uiConfig, string? modelPath, string poseModelPath, string baseDir)
     {
-        UIManager.Instance.LoadConfig(uiConfigPath);
+        Debug.WriteLine($"[AppInitializer] Initialize app with model={modelPath}");
+        UIManager.Instance.LoadConfig(uiConfig);
         _poseModelPath = poseModelPath;
         PoseEstimator = new PoseEstimator(poseModelPath);
         MotionGenerator = new MotionGenerator();
@@ -37,7 +39,7 @@ public class AppInitializer
         MotionPlayer = new MotionPlayer();
         Camera = new CameraController();
         Camera.EnableGyro(UIManager.Instance.GetToggle("gyro_cam"));
-        Recorder = new RecorderController();
+        Recorder = new RecorderController(Path.Combine(baseDir, "Recordings"));
 
         if (!string.IsNullOrEmpty(modelPath) && File.Exists(modelPath))
         {
@@ -51,7 +53,12 @@ public class AppInitializer
     public void LoadModel(string modelPath)
     {
         if (string.IsNullOrEmpty(modelPath) || !File.Exists(modelPath))
+        {
+            Debug.WriteLine($"[AppInitializer] Model not found: {modelPath}");
             return;
+        }
+
+        Debug.WriteLine($"[AppInitializer] Loading model: {modelPath}");
 
         var importer = new ModelImporter();
         var model = importer.ImportModel(modelPath);
@@ -60,6 +67,7 @@ public class AppInitializer
         MotionPlayer ??= new MotionPlayer();
         MotionPlayer.OnFramePlayed += Applier.Apply;
         Viewer = new Viewer(modelPath);
+        Debug.WriteLine("[AppInitializer] Viewer created");
         Viewer.FrameUpdated += dt =>
         {
             MotionPlayer.Update(dt);

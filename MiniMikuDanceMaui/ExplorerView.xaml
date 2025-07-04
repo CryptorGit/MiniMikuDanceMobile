@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentView xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             x:Class="MiniMikuDanceMaui.ExplorerView"
+             BackgroundColor="#1E1E1E">
+    <VerticalStackLayout>
+        <Grid ColumnDefinitions="Auto,Auto,*" Padding="8" x:Name="TopBar" HeightRequest="40">
+            <Label Text="↑" TextColor="White" Margin="0,0,16,0" VerticalTextAlignment="Center">
+                <Label.GestureRecognizers>
+                    <TapGestureRecognizer Tapped="OnUpClicked" />
+                </Label.GestureRecognizers>
+            </Label>
+            <Label Text="⟳" Grid.Column="1" TextColor="White" Margin="0,0,16,0" VerticalTextAlignment="Center">
+                <Label.GestureRecognizers>
+                    <TapGestureRecognizer Tapped="OnReloadClicked" />
+                </Label.GestureRecognizers>
+            </Label>
+            <Label Grid.Column="2" x:Name="PathLabel" TextColor="White" VerticalTextAlignment="Center" LineBreakMode="TailTruncation" />
+        </Grid>
+        <CollectionView x:Name="FileList" SelectionMode="Single" SelectionChanged="OnItemSelected" VerticalOptions="FillAndExpand">
+            <CollectionView.ItemTemplate>
+                <DataTemplate>
+                    <Grid ColumnDefinitions="* , Auto , Auto" Padding="2">
+                        <Label Text="{Binding Name}" TextColor="White" />
+                        <Label Grid.Column="1" Text="{Binding Modified, StringFormat='{0:yyyy/MM/dd HH:mm}'}" TextColor="White" Margin="10,0" />
+                        <Label Grid.Column="2" Text="{Binding SizeText}" TextColor="White" HorizontalTextAlignment="End" WidthRequest="80" />
+                    </Grid>
+                </DataTemplate>
+            </CollectionView.ItemTemplate>
+        </CollectionView>
+    </VerticalStackLayout>
+</ContentView>

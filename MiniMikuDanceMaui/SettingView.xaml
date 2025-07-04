@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentView xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             x:Class="MiniMikuDanceMaui.SettingView"
+             BackgroundColor="#1E1E1E">
+    <VerticalStackLayout Spacing="10" Padding="10">
+        <Label Text="Bottom Region Height" TextColor="White"/>
+        <Slider x:Name="HeightSlider" Minimum="0.1" Maximum="0.9"
+                ValueChanged="OnHeightChanged"/>
+        <Label Text="Rotation Sensitivity" TextColor="White"/>
+        <Slider x:Name="RotateSlider" Minimum="0.1" Maximum="5"
+                ValueChanged="OnRotateChanged"/>
+        <Label Text="Pan Sensitivity" TextColor="White"/>
+        <Slider x:Name="PanSlider" Minimum="0.1" Maximum="5"
+                ValueChanged="OnPanChanged"/>
+        <HorizontalStackLayout Spacing="6" VerticalOptions="Center">
+            <CheckBox x:Name="CameraLockCheck" Color="White"
+                      CheckedChanged="OnCameraLockChanged"/>
+            <Label Text="Lock Camera" TextColor="White" VerticalOptions="Center"/>
+        </HorizontalStackLayout>
+    </VerticalStackLayout>
+</ContentView>

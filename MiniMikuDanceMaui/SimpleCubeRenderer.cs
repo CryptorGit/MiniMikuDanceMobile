@@ -7,8 +7,10 @@ namespace MiniMikuDanceMaui;
 public class SimpleCubeRenderer : IDisposable
 {
     private int _program;
-    private int _vbo;
-    private int _vao;
+    private int _modelVbo;
+    private int _modelVao;
+    private int _modelEbo;
+    private int _modelIndexCount;
     private int _gridVao;
     private int _gridVbo;
     private int _modelLoc;
@@ -23,6 +25,9 @@ public class SimpleCubeRenderer : IDisposable
     private int _groundVbo;
     private int _width;
     private int _height;
+    public float RotateSensitivity { get; set; } = 1f;
+    public float PanSensitivity { get; set; } = 1f;
+    public bool CameraLocked { get; set; }
 
     public void Initialize()
     {
@@ -58,30 +63,7 @@ void main(){
         _projLoc = GL.GetUniformLocation(_program, "uProj");
         _colorLoc = GL.GetUniformLocation(_program, "uColor");
 
-        float[] verts = {
-            -0.5f,-0.5f,-0.5f,  0.5f,-0.5f,-0.5f,  0.5f, 0.5f,-0.5f,
-            -0.5f,-0.5f,-0.5f,  0.5f, 0.5f,-0.5f, -0.5f, 0.5f,-0.5f,
-            -0.5f,-0.5f, 0.5f,  0.5f,-0.5f, 0.5f,  0.5f, 0.5f, 0.5f,
-            -0.5f,-0.5f, 0.5f,  0.5f, 0.5f, 0.5f, -0.5f, 0.5f, 0.5f,
-            -0.5f,-0.5f,-0.5f, -0.5f, 0.5f,-0.5f, -0.5f, 0.5f, 0.5f,
-            -0.5f,-0.5f,-0.5f, -0.5f, 0.5f, 0.5f, -0.5f,-0.5f, 0.5f,
-             0.5f,-0.5f,-0.5f,  0.5f, 0.5f,-0.5f,  0.5f, 0.5f, 0.5f,
-             0.5f,-0.5f,-0.5f,  0.5f, 0.5f, 0.5f,  0.5f,-0.5f, 0.5f,
-            -0.5f,-0.5f,-0.5f, -0.5f,-0.5f, 0.5f,  0.5f,-0.5f, 0.5f,
-            -0.5f,-0.5f,-0.5f,  0.5f,-0.5f, 0.5f,  0.5f,-0.5f,-0.5f,
-            -0.5f, 0.5f,-0.5f, -0.5f, 0.5f, 0.5f,  0.5f, 0.5f, 0.5f,
-            -0.5f, 0.5f,-0.5f,  0.5f, 0.5f, 0.5f,  0.5f, 0.5f,-0.5f
-        };
 
-        _vao = GL.GenVertexArray();
-        _vbo = GL.GenBuffer();
-        GL.BindVertexArray(_vao);
-        GL.BindBuffer(BufferTarget.ArrayBuffer, _vbo);
-        GL.BufferData(BufferTarget.ArrayBuffer, verts.Length * sizeof(float), verts, BufferUsageHint.StaticDraw);
-        GL.VertexAttribPointer(0, 3, VertexAttribPointerType.Float, false, 3 * sizeof(float), 0);
-        GL.EnableVertexAttribArray(0);
-        GL.BindBuffer(BufferTarget.ArrayBuffer, 0);
-        GL.BindVertexArray(0);
 
         // grid vertices (XZ plane)
         int gridLines = (10 - (-10) + 1) * 2; // 21 lines along each axis
@@ -133,20 +115,24 @@ void main(){
 
     public void Orbit(float dx, float dy)
     {
-        _orbitY -= dx * 0.01f;
-        _orbitX -= dy * 0.01f;
+        if (CameraLocked) return;
+        _orbitY -= dx * 0.01f * RotateSensitivity;
+        _orbitX -= dy * 0.01f * RotateSensitivity;
     }
 
     public void Pan(float dx, float dy)
     {
-        Vector3 right = Vector3.UnitX;
-        Vector3 up = Vector3.UnitY;
-        _target += (-right * dx + up * dy) * 0.01f;
+        if (CameraLocked) return;
+        Matrix4 rot = Matrix4.CreateRotationX(_orbitX) * Matrix4.CreateRotationY(_orbitY);
+        Vector3 right = Vector3.TransformNormal(Vector3.UnitX, rot);
+        Vector3 up = Vector3.TransformNormal(Vector3.UnitY, rot);
+        _target += (-right * dx + up * dy) * 0.01f * PanSensitivity;
     }
 
     public void Dolly(float delta)
     {
-        _distance *= 1f + delta * 0.01f;
+        if (CameraLocked) return;
+        _distance *= 1f + delta * 0.01f * PanSensitivity;
         if (_distance < 1f) _distance = 1f;
         if (_distance > 20f) _distance = 20f;
     }
@@ -157,6 +143,44 @@ void main(){
         _orbitY = MathHelper.PiOver4;
         _distance = 4f;
         _target = Vector3.Zero;
+    }
+
+    public void LoadModel(MiniMikuDance.Import.ModelData data)
+    {
+        if (_modelVao != 0)
+        {
+            GL.DeleteVertexArray(_modelVao);
+            GL.DeleteBuffer(_modelVbo);
+            GL.DeleteBuffer(_modelEbo);
+        }
+
+        float[] verts = new float[data.Mesh.VertexCount * 3];
+        for (int i = 0; i < data.Mesh.VertexCount; i++)
+        {
+            var v = data.Mesh.Vertices[i];
+            verts[i * 3 + 0] = v.X;
+            verts[i * 3 + 1] = v.Y;
+            verts[i * 3 + 2] = v.Z;
+        }
+        var indices = new System.Collections.Generic.List<uint>();
+        foreach (var f in data.Mesh.Faces)
+        {
+            foreach (var idx in f.Indices)
+                indices.Add((uint)idx);
+        }
+        _modelIndexCount = indices.Count;
+
+        _modelVao = GL.GenVertexArray();
+        _modelVbo = GL.GenBuffer();
+        _modelEbo = GL.GenBuffer();
+        GL.BindVertexArray(_modelVao);
+        GL.BindBuffer(BufferTarget.ArrayBuffer, _modelVbo);
+        GL.BufferData(BufferTarget.ArrayBuffer, verts.Length * sizeof(float), verts, BufferUsageHint.StaticDraw);
+        GL.VertexAttribPointer(0, 3, VertexAttribPointerType.Float, false, 3 * sizeof(float), 0);
+        GL.EnableVertexAttribArray(0);
+        GL.BindBuffer(BufferTarget.ElementArrayBuffer, _modelEbo);
+        GL.BufferData(BufferTarget.ElementArrayBuffer, indices.Count * sizeof(uint), indices.ToArray(), BufferUsageHint.StaticDraw);
+        GL.BindVertexArray(0);
     }
 
     public void Render()
@@ -183,12 +207,14 @@ void main(){
         GL.DrawArrays(PrimitiveType.Triangles, 0, 6);
         GL.BindVertexArray(0);
 
-        // draw cube
-        GL.UniformMatrix4(_modelLoc, false, ref model);
-        GL.Uniform4(_colorLoc, new Vector4(0.3f, 0.7f, 1.0f, 1.0f));
-        GL.BindVertexArray(_vao);
-        GL.DrawArrays(PrimitiveType.Triangles, 0, 36);
-        GL.BindVertexArray(0);
+        if (_modelIndexCount > 0)
+        {
+            GL.UniformMatrix4(_modelLoc, false, ref model);
+            GL.Uniform4(_colorLoc, new Vector4(0.8f, 0.8f, 0.8f, 1.0f));
+            GL.BindVertexArray(_modelVao);
+            GL.DrawElements(PrimitiveType.Triangles, _modelIndexCount, DrawElementsType.UnsignedInt, IntPtr.Zero);
+            GL.BindVertexArray(0);
+        }
 
         // draw grid
         GL.UniformMatrix4(_modelLoc, false, ref gridModel);
@@ -200,12 +226,13 @@ void main(){
 
     public void Dispose()
     {
-        GL.DeleteBuffer(_vbo);
+        if (_modelVbo != 0) GL.DeleteBuffer(_modelVbo);
+        if (_modelEbo != 0) GL.DeleteBuffer(_modelEbo);
         GL.DeleteBuffer(_gridVbo);
         GL.DeleteBuffer(_groundVbo);
-        GL.DeleteVertexArray(_vao);
+        if (_modelVao != 0) GL.DeleteVertexArray(_modelVao);
         GL.DeleteVertexArray(_gridVao);
         GL.DeleteVertexArray(_groundVao);
         GL.DeleteProgram(_program);
-    }
+   }
 }

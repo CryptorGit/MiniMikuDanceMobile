@@ -27,7 +27,6 @@
     <PackageReference Include="SkiaSharp.Views.Maui.Controls" Version="3.119.0" />
   </ItemGroup>
   <ItemGroup>
-    <!-- UI 設定ファイルをパッケージへ含める -->
-    <MauiAsset Include="Resources/Raw/UIConfig.json" LogicalName="UIConfig.json" />
+    <!-- 追加のアセットが必要な場合はここに記述します -->
   </ItemGroup>
 </Project>

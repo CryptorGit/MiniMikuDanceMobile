@@ -4,6 +4,24 @@ namespace MiniMikuDance.Util;
 
 public static class JSONUtil
 {
+    public static T LoadFromStream<T>(Stream stream) where T : new()
+    {
+        try
+        {
+            using var reader = new StreamReader(stream, leaveOpen: true);
+            var json = reader.ReadToEnd();
+            var opts = new JsonSerializerOptions
+            {
+                PropertyNameCaseInsensitive = true
+            };
+            return JsonSerializer.Deserialize<T>(json, opts) ?? new T();
+        }
+        catch
+        {
+            return new T();
+        }
+    }
+
     public static T Load<T>(string path) where T : new()
     {
         if (!File.Exists(path))
