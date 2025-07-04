@@ -281,8 +281,8 @@ void main(){
             var handle = GCHandle.Alloc(data.TextureData, GCHandleType.Pinned);
             try
             {
-                GL.TexImage2D(TextureTarget.Texture2D, 0,
-                    PixelInternalFormat.Rgba,
+                GL.TexImage2D(TextureTarget2d.Texture2D, 0,
+                    TextureComponentCount.Rgba,
                     data.TextureWidth, data.TextureHeight, 0,
                     PixelFormat.Rgba, PixelType.UnsignedByte,
                     handle.AddrOfPinnedObject());
@@ -300,8 +300,8 @@ void main(){
             // All 列挙型を使用せず安全に生成
             try
             {
-                GL.TexImage2D(TextureTarget.Texture2D, 0,
-                    PixelInternalFormat.Rgba,
+                GL.TexImage2D(TextureTarget2d.Texture2D, 0,
+                    TextureComponentCount.Rgba,
                     1, 1, 0,
                     PixelFormat.Rgba, PixelType.UnsignedByte,
                     handle.AddrOfPinnedObject());
