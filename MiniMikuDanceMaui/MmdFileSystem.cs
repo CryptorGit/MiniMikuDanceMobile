@@ -7,6 +7,7 @@ namespace MiniMikuDanceMaui;
 public static class MmdFileSystem
 {
     public static readonly string BaseDir;
+    public static bool UsingInternalStorage { get; private set; }
 
     static MmdFileSystem()
     {
@@ -19,6 +20,8 @@ public static class MmdFileSystem
         {
             Directory.CreateDirectory(path);
             BaseDir = path;
+            UsingInternalStorage = false;
+            Console.WriteLine($"[MmdFileSystem] Using external storage: {BaseDir}");
         }
         catch
         {
@@ -28,11 +31,15 @@ public static class MmdFileSystem
             path = SystemPath.Combine(root, "MiniMikuDance", "data");
             Directory.CreateDirectory(path);
             BaseDir = path;
+            UsingInternalStorage = true;
+            Console.WriteLine($"[MmdFileSystem] Fallback to internal storage: {BaseDir}");
         }
 #else
         var root = FileSystem.AppDataDirectory;
         BaseDir = SystemPath.Combine(root, "MiniMikuDance", "data");
         Directory.CreateDirectory(BaseDir);
+        UsingInternalStorage = true;
+        Console.WriteLine($"[MmdFileSystem] Using internal storage: {BaseDir}");
 #endif
     }
 

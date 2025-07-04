@@ -282,6 +282,22 @@ public partial class CameraPage : ContentPage
         {
             LogService.WriteLine("[CameraPage] Storage permission denied");
         }
+        if (!Android.OS.Environment.IsExternalStorageManager)
+        {
+            LogService.WriteLine("[CameraPage] MANAGE_EXTERNAL_STORAGE not granted");
+            try
+            {
+                var context = Android.App.Application.Context;
+                var uri = Android.Net.Uri.Parse($"package:{context.PackageName}");
+                var intent = new Android.Content.Intent(Android.Provider.Settings.ActionManageAppAllFilesAccessPermission, uri);
+                intent.AddFlags(Android.Content.ActivityFlags.NewTask);
+                context.StartActivity(intent);
+            }
+            catch (Exception ex)
+            {
+                LogService.WriteLine($"[CameraPage] Failed to launch settings: {ex.Message}");
+            }
+        }
 #endif
         try
         {
