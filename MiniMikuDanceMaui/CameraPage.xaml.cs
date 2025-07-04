@@ -407,6 +407,15 @@ public partial class CameraPage : ContentPage
             RemoveBottomFeature(name);
             return;
         }
+
+        // 他のタブが開いている場合は閉じる
+        foreach (var feature in _bottomViews.Keys.ToList())
+        {
+            if (feature != name)
+            {
+                RemoveBottomFeature(feature);
+            }
+        }
         if (!_bottomViews.ContainsKey(name))
         {
             View view;
