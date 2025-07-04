@@ -1,6 +1,7 @@
 using System;
 using OpenTK.Mathematics;
 using OpenTK.Graphics.ES30;
+using GL = OpenTK.Graphics.ES30.GL;
 using System.Runtime.InteropServices;
 using MiniMikuDance.Util;
 
