@@ -699,7 +699,7 @@ public partial class CameraPage : ContentPage
         UpdateLayout();
     }
 
-    private async void OnOpenExplorerFileSelected(object? sender, string path)
+    private void OnOpenExplorerFileSelected(object? sender, string path)
     {
         if (Path.GetExtension(path).ToLowerInvariant() != ".vrm")
         {
