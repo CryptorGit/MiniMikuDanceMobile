@@ -444,8 +444,9 @@ public partial class CameraPage : ContentPage
             View view;
             if (name == "Explorer")
             {
-                var entries = Directory.EnumerateFileSystemEntries(MmdFileSystem.BaseDir);
-                view = new ListView { ItemsSource = entries };
+                var ev = new ExplorerView();
+                ev.LoadDirectory(MmdFileSystem.BaseDir);
+                view = ev;
             }
             else if (name == "SETTING")
             {
