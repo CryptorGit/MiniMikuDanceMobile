@@ -1,6 +1,7 @@
 using System;
 using OpenTK.Mathematics;
 using OpenTK.Graphics.ES30;
+using All = OpenTK.Graphics.ES30.All;
 using System.Runtime.InteropServices;
 using MiniMikuDance.Util;
 
@@ -278,9 +279,9 @@ void main(){
             var handle = GCHandle.Alloc(data.TextureData, GCHandleType.Pinned);
             try
             {
-                GL.TexImage2D(TextureTarget.Texture2D, 0, PixelInternalFormat.Rgba,
+                GL.TexImage2D((All)TextureTarget.Texture2D, 0, (All)PixelInternalFormat.Rgba,
                     data.TextureWidth, data.TextureHeight, 0,
-                    PixelFormat.Rgba, PixelType.UnsignedByte, handle.AddrOfPinnedObject());
+                    (All)PixelFormat.Rgba, (All)PixelType.UnsignedByte, handle.AddrOfPinnedObject());
             }
             finally
             {
@@ -293,8 +294,8 @@ void main(){
             var handle = GCHandle.Alloc(white, GCHandleType.Pinned);
             try
             {
-                GL.TexImage2D(TextureTarget.Texture2D, 0, PixelInternalFormat.Rgba,
-                    1, 1, 0, PixelFormat.Rgba, PixelType.UnsignedByte, handle.AddrOfPinnedObject());
+                GL.TexImage2D((All)TextureTarget.Texture2D, 0, (All)PixelInternalFormat.Rgba,
+                    1, 1, 0, (All)PixelFormat.Rgba, (All)PixelType.UnsignedByte, handle.AddrOfPinnedObject());
             }
             finally
             {
