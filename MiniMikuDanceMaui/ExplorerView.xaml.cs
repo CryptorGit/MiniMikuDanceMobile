@@ -11,6 +11,8 @@ public partial class ExplorerView : ContentView
     private string _currentPath = string.Empty;
     private readonly string _rootPath;
 
+    public event EventHandler<string>? FileSelected;
+
     public ExplorerView(string rootPath)
     {
         _rootPath = rootPath;
@@ -91,6 +93,10 @@ public partial class ExplorerView : ContentView
             if (item.IsDirectory)
             {
                 LoadDirectory(item.Path);
+            }
+            else
+            {
+                FileSelected?.Invoke(this, item.Path);
             }
             FileList.SelectedItem = null;
         }
