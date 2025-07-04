@@ -7,9 +7,12 @@
         <Label Text="Bottom Region Height" TextColor="White"/>
         <Slider x:Name="HeightSlider" Minimum="0.1" Maximum="0.9"
                 ValueChanged="OnHeightChanged"/>
-        <Label Text="Camera Sensitivity" TextColor="White"/>
-        <Slider x:Name="CameraSlider" Minimum="0.1" Maximum="5"
-                ValueChanged="OnCameraChanged"/>
+        <Label Text="Rotation Sensitivity" TextColor="White"/>
+        <Slider x:Name="RotateSlider" Minimum="0.1" Maximum="5"
+                ValueChanged="OnRotateChanged"/>
+        <Label Text="Pan Sensitivity" TextColor="White"/>
+        <Slider x:Name="PanSlider" Minimum="0.1" Maximum="5"
+                ValueChanged="OnPanChanged"/>
         <HorizontalStackLayout Spacing="6" VerticalOptions="Center">
             <CheckBox x:Name="CameraLockCheck" Color="White"
                       CheckedChanged="OnCameraLockChanged"/>

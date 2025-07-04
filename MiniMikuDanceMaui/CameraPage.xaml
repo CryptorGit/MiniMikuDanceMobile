@@ -33,7 +33,7 @@
             </Label>
             <Label Text="Help" TextColor="White"/>
         </HorizontalStackLayout>
-        <Frame x:Name="ViewMenu" IsVisible="False" BackgroundColor="#1E1E1E" Padding="0" ZIndex="2">
+        <Frame x:Name="ViewMenu" IsVisible="False" BackgroundColor="#1E1E1E" Padding="0" ZIndex="10">
             <VerticalStackLayout Spacing="4" Padding="8">
                 <Label Text="HOME" TextColor="White">
                     <Label.GestureRecognizers>
@@ -77,7 +77,7 @@
                 </Label>
             </VerticalStackLayout>
         </Frame>
-        <Frame x:Name="SettingMenu" IsVisible="False" BackgroundColor="#1E1E1E" Padding="8" ZIndex="2">
+        <Frame x:Name="SettingMenu" IsVisible="False" BackgroundColor="#1E1E1E" Padding="8" ZIndex="10">
             <VerticalStackLayout Spacing="10">
                 <mmd:SettingView x:Name="SettingContent" />
             </VerticalStackLayout>
