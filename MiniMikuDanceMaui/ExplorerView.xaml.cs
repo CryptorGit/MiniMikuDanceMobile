@@ -22,6 +22,7 @@ public partial class ExplorerView : ContentView
         if (!Directory.Exists(path)) return;
         _currentPath = path;
         UpdatePathDisplay();
+        
         var items = Directory.EnumerateFileSystemEntries(path)
             .Select(p => new FileItem(p))
             .OrderByDescending(f => f.IsDirectory)
