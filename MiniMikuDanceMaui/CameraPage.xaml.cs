@@ -174,7 +174,14 @@ public partial class CameraPage : ContentPage
 
     private void OnCloseBottomTapped(object? sender, TappedEventArgs e)
     {
-        HideBottomRegion();
+        if (_currentFeature != null)
+        {
+            RemoveBottomFeature(_currentFeature);
+        }
+        else
+        {
+            HideBottomRegion();
+        }
         UpdateLayout();
     }
 
