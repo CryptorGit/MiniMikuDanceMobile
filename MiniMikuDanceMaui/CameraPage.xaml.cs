@@ -276,8 +276,9 @@ public partial class CameraPage : ContentPage
     {
         base.OnAppearing();
 #if ANDROID
-        var status = await Permissions.RequestAsync<Permissions.StorageWrite>();
-        if (status != PermissionStatus.Granted)
+        var readStatus = await Permissions.RequestAsync<Permissions.StorageRead>();
+        var writeStatus = await Permissions.RequestAsync<Permissions.StorageWrite>();
+        if (readStatus != PermissionStatus.Granted || writeStatus != PermissionStatus.Granted)
         {
             LogService.WriteLine("[CameraPage] Storage permission denied");
         }
