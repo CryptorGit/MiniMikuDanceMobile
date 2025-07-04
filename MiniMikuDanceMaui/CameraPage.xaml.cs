@@ -276,10 +276,27 @@ public partial class CameraPage : ContentPage
     {
         base.OnAppearing();
 #if ANDROID
-        var status = await Permissions.RequestAsync<Permissions.StorageWrite>();
-        if (status != PermissionStatus.Granted)
+        var readStatus = await Permissions.RequestAsync<Permissions.StorageRead>();
+        var writeStatus = await Permissions.RequestAsync<Permissions.StorageWrite>();
+        if (readStatus != PermissionStatus.Granted || writeStatus != PermissionStatus.Granted)
         {
             LogService.WriteLine("[CameraPage] Storage permission denied");
+        }
+        if (!Android.OS.Environment.IsExternalStorageManager)
+        {
+            LogService.WriteLine("[CameraPage] MANAGE_EXTERNAL_STORAGE not granted");
+            try
+            {
+                var context = Android.App.Application.Context;
+                var uri = Android.Net.Uri.Parse($"package:{context.PackageName}");
+                var intent = new Android.Content.Intent(Android.Provider.Settings.ActionManageAppAllFilesAccessPermission, uri);
+                intent.AddFlags(Android.Content.ActivityFlags.NewTask);
+                context.StartActivity(intent);
+            }
+            catch (Exception ex)
+            {
+                LogService.WriteLine($"[CameraPage] Failed to launch settings: {ex.Message}");
+            }
         }
 #endif
         try
@@ -458,7 +475,13 @@ public partial class CameraPage : ContentPage
         {
             var result = await FilePicker.Default.PickAsync(new PickOptions
             {
-                PickerTitle = "Select VRM file"
+                PickerTitle = "Select VRM file",
+                FileTypes = new FilePickerFileType(new Dictionary<DevicePlatform, IEnumerable<string>>
+                {
+                    [DevicePlatform.Android] = new[] { "application/octet-stream", ".vrm" },
+                    [DevicePlatform.WinUI] = new[] { ".vrm" },
+                    [DevicePlatform.iOS] = new[] { ".vrm" }
+                })
             });
 
             if (result != null)
@@ -471,8 +494,9 @@ public partial class CameraPage : ContentPage
 
                 LogService.WriteLine($"Model selected: {result.FileName}");
 
+                await using var stream = await result.OpenReadAsync();
                 var importer = new MiniMikuDance.Import.ModelImporter();
-                var data = importer.ImportModel(result.FullPath);
+                var data = importer.ImportModel(stream);
                 _renderer.LoadModel(data);
                 Viewer?.InvalidateSurface();
             }
@@ -498,7 +522,7 @@ public partial class CameraPage : ContentPage
             else if (name == "Open")
             {
                 var modelsPath = MmdFileSystem.Ensure("Models");
-                var ev = new ExplorerView(modelsPath);
+                var ev = new ExplorerView(modelsPath, new[] { ".vrm" });
                 ev.FileSelected += OnOpenExplorerFileSelected;
                 ev.LoadDirectory(modelsPath);
                 view = ev;
@@ -636,7 +660,9 @@ public partial class CameraPage : ContentPage
                 PickerTitle = "Select VRM file",
                 FileTypes = new FilePickerFileType(new Dictionary<DevicePlatform, IEnumerable<string>>
                 {
-                    [DevicePlatform.Android] = new[] { ".vrm" }
+                    [DevicePlatform.Android] = new[] { "application/octet-stream", ".vrm" },
+                    [DevicePlatform.WinUI] = new[] { ".vrm" },
+                    [DevicePlatform.iOS] = new[] { ".vrm" }
                 })
             });
 
