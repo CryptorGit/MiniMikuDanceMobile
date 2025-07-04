@@ -34,6 +34,8 @@ public partial class CameraPage : ContentPage
     private readonly SimpleCubeRenderer _renderer = new();
     private bool _glInitialized;
     private readonly Dictionary<long, SKPoint> _touchPoints = new();
+    private ListView? _explorerListView;
+    private bool _waitingForExplorerSelection;
 
     public CameraPage()
     {
@@ -215,6 +217,102 @@ public partial class CameraPage : ContentPage
         HideSettingMenu();
     }
 
+    private async void OnAddToLibraryClicked(object? sender, EventArgs e)
+    {
+        try
+        {
+            var result = await FilePicker.Default.PickAsync(new PickOptions
+            {
+                PickerTitle = "VRMファイルを追加",
+                FileTypes = new FilePickerFileType(new Dictionary<DevicePlatform, IEnumerable<string>>
+                {
+                    [DevicePlatform.Android] = new[] { ".vrm" }
+                })
+            });
+
+            if (result == null) return;
+
+            var modelDir = MmdFileSystem.Ensure("Models");
+            var dst = Path.Combine(modelDir, Path.GetFileName(result.FullPath));
+
+            await using (var src = await result.OpenReadAsync())
+            await using (var fs = File.Create(dst))
+            {
+                await src.CopyToAsync(fs);
+            }
+
+            RefreshExplorerList();
+            await DisplayAlert("完了", $"{result.FileName} を追加しました。", "OK");
+        }
+        catch (Exception ex)
+        {
+            await DisplayAlert("Error", ex.Message, "OK");
+        }
+    }
+
+    private void OnOpenInViewerClicked(object? sender, EventArgs e)
+    {
+        ShowBottomFeature("Explorer");
+        HideViewMenu();
+        HideSettingMenu();
+        SelectPrompt.IsVisible = true;
+        _waitingForExplorerSelection = true;
+    }
+
+    private async void OnExplorerItemTapped(object? sender, ItemTappedEventArgs e)
+    {
+        if (!_waitingForExplorerSelection) return;
+        if (e.Item is not string path || Path.GetExtension(path).ToLowerInvariant() != ".vrm")
+        {
+            await DisplayAlert("Invalid", "VRMファイルを選択してください。", "OK");
+            return;
+        }
+
+        SelectPrompt.IsVisible = false;
+        _waitingForExplorerSelection = false;
+        await LoadModelAsync(path);
+        HideBottomRegion();
+    }
+
+    private async Task LoadModelAsync(string path)
+    {
+        try
+        {
+            Viewer.HasRenderLoop = false;
+            LoadingIndicator.IsVisible = true;
+            ModelData? data = null;
+            await Task.Run(() =>
+            {
+                var importer = new ModelImporter();
+                data = importer.ImportModel(path);
+            });
+            if (data != null)
+            {
+                _renderer.LoadModel(data);
+                Viewer?.InvalidateSurface();
+            }
+        }
+        catch (Exception ex)
+        {
+            await DisplayAlert("Error", ex.Message, "OK");
+        }
+        finally
+        {
+            LoadingIndicator.IsVisible = false;
+            Viewer.HasRenderLoop = true;
+        }
+    }
+
+    private void RefreshExplorerList()
+    {
+        if (_explorerListView != null)
+        {
+            var modelDir = MmdFileSystem.Ensure("Models");
+            var entries = Directory.EnumerateFileSystemEntries(modelDir, "*.vrm").ToList();
+            _explorerListView.ItemsSource = entries;
+        }
+    }
+
     private void HideViewMenu()
     {
         _viewMenuOpen = false;
@@ -226,6 +324,8 @@ public partial class CameraPage : ContentPage
     {
         BottomRegion.IsVisible = false;
         _currentFeature = null;
+        _waitingForExplorerSelection = false;
+        SelectPrompt.IsVisible = false;
         UpdateTabColors();
     }
 
@@ -334,6 +434,10 @@ public partial class CameraPage : ContentPage
 
         AbsoluteLayout.SetLayoutBounds(Viewer, new Rect(0, 0, W, H));
         AbsoluteLayout.SetLayoutFlags(Viewer, AbsoluteLayoutFlags.None);
+        AbsoluteLayout.SetLayoutBounds(SelectPrompt, new Rect((W - 300) / 2, TopMenuHeight + 20, 300, 40));
+        AbsoluteLayout.SetLayoutFlags(SelectPrompt, AbsoluteLayoutFlags.None);
+        AbsoluteLayout.SetLayoutBounds(LoadingIndicator, new Rect(W / 2 - 20, TopMenuHeight + 20, 40, 40));
+        AbsoluteLayout.SetLayoutFlags(LoadingIndicator, AbsoluteLayoutFlags.None);
         double bottomWidth = W * _bottomWidthRatio;
         AbsoluteLayout.SetLayoutBounds(BottomRegion, new Rect((W - bottomWidth) / 2, H - bottomHeight, bottomWidth, bottomHeight));
         AbsoluteLayout.SetLayoutFlags(BottomRegion, AbsoluteLayoutFlags.None);
@@ -444,8 +548,12 @@ public partial class CameraPage : ContentPage
             View view;
             if (name == "Explorer")
             {
-                var entries = Directory.EnumerateFileSystemEntries(MmdFileSystem.BaseDir);
-                view = new ListView { ItemsSource = entries };
+                var modelDir = MmdFileSystem.Ensure("Models");
+                var entries = Directory.EnumerateFileSystemEntries(modelDir, "*.vrm");
+                var list = new ListView { ItemsSource = entries };
+                list.ItemTapped += OnExplorerItemTapped;
+                _explorerListView = list;
+                view = list;
             }
             else if (name == "SETTING")
             {
@@ -511,6 +619,10 @@ public partial class CameraPage : ContentPage
             sv.RotateSensitivity = _rotateSensitivity;
             sv.PanSensitivity = _panSensitivity;
             sv.CameraLocked = _renderer.CameraLocked;
+        }
+        if (name == "Explorer")
+        {
+            RefreshExplorerList();
         }
         SwitchBottomFeature(name);
         BottomRegion.IsVisible = true;

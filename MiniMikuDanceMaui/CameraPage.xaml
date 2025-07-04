@@ -7,7 +7,10 @@
              BackgroundColor="Transparent">
 
     <ContentPage.MenuBarItems>
-        <MenuBarItem Text="File" />
+        <MenuBarItem Text="File">
+            <MenuFlyoutItem Text="Add to Library" Clicked="OnAddToLibraryClicked" />
+            <MenuFlyoutItem Text="Open in Viewer" Clicked="OnOpenInViewerClicked" />
+        </MenuBarItem>
         <MenuBarItem Text="Edit" />
         <MenuBarItem Text="Selection" />
         <MenuBarItem Text="View" />
@@ -118,5 +121,9 @@
                 </ContentView.GestureRecognizers>
             </ContentView>
         </Grid>
+        <Frame x:Name="SelectPrompt" IsVisible="False" Padding="12" BackgroundColor="#80000000" ZIndex="30">
+            <Label Text="VRMファイルを以下から選択してください" TextColor="White" />
+        </Frame>
+        <ActivityIndicator x:Name="LoadingIndicator" IsVisible="False" Color="White" ZIndex="30" />
     </AbsoluteLayout>
 </ContentPage>
