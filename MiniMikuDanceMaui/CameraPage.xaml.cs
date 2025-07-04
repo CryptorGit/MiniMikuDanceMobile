@@ -32,6 +32,7 @@ public partial class CameraPage : ContentPage
     private readonly Dictionary<string, View> _bottomViews = new();
     private readonly Dictionary<string, Border> _bottomTabs = new();
     private string? _currentFeature;
+    private string? _selectedPath;
 
     private readonly SimpleCubeRenderer _renderer = new();
     private bool _glInitialized;
@@ -496,9 +497,10 @@ public partial class CameraPage : ContentPage
             }
             else if (name == "Open")
             {
-                var ev = new ExplorerView(MmdFileSystem.BaseDir);
+                var modelsPath = MmdFileSystem.Ensure("Models");
+                var ev = new ExplorerView(modelsPath);
                 ev.FileSelected += OnOpenExplorerFileSelected;
-                ev.LoadDirectory(MmdFileSystem.BaseDir);
+                ev.LoadDirectory(modelsPath);
                 view = ev;
             }
             else if (name == "SETTING")
@@ -666,6 +668,8 @@ public partial class CameraPage : ContentPage
     {
         ShowBottomFeature("Open");
         FileSelectMessage.IsVisible = true;
+        SelectedFilePath.Text = string.Empty;
+        _selectedPath = null;
         UpdateLayout();
     }
 
@@ -675,6 +679,13 @@ public partial class CameraPage : ContentPage
         {
             return;
         }
+        _selectedPath = path;
+        SelectedFilePath.Text = path;
+    }
+
+    private async void OnImportClicked(object? sender, EventArgs e)
+    {
+        if (string.IsNullOrEmpty(_selectedPath))
 
         RemoveBottomFeature("Open");
         FileSelectMessage.IsVisible = false;
@@ -685,7 +696,7 @@ public partial class CameraPage : ContentPage
         try
         {
             var importer = new ModelImporter();
-            var data = await Task.Run(() => importer.ImportModel(path));
+            var data = await Task.Run(() => importer.ImportModel(_selectedPath));
             _renderer.LoadModel(data);
         }
         catch (Exception ex)
@@ -698,6 +709,15 @@ public partial class CameraPage : ContentPage
             LoadingIndicator.IsVisible = false;
             UpdateLayout();
             Viewer.InvalidateSurface();
+            _selectedPath = null;
         }
+    }
+
+    private void OnCancelImportClicked(object? sender, EventArgs e)
+    {
+        _selectedPath = null;
+        FileSelectMessage.IsVisible = false;
+        SelectedFilePath.Text = string.Empty;
+        UpdateLayout();
     }
 }

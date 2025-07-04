@@ -108,7 +108,14 @@
             </BoxView.GestureRecognizers>
         </BoxView>
         <Frame x:Name="FileSelectMessage" IsVisible="False" BackgroundColor="#1E1E1E" Padding="8" ZIndex="30">
-            <Label Text="VRMファイルを以下から選択してください" TextColor="White" />
+            <VerticalStackLayout Spacing="6">
+                <Label Text="VRMファイルを以下から選択してください" TextColor="White" />
+                <Label x:Name="SelectedFilePath" TextColor="White" FontSize="12" />
+                <HorizontalStackLayout HorizontalOptions="Center" Spacing="20">
+                    <Button Text="インポート" Clicked="OnImportClicked" />
+                    <Button Text="キャンセル" Clicked="OnCancelImportClicked" />
+                </HorizontalStackLayout>
+            </VerticalStackLayout>
         </Frame>
         <ActivityIndicator x:Name="LoadingIndicator" IsRunning="True" IsVisible="False" Color="White" ZIndex="30" />
         <skia:SKGLView x:Name="Viewer" HasRenderLoop="True" EnableTouchEvents="True" />
