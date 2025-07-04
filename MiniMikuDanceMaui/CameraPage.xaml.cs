@@ -9,6 +9,7 @@ using SkiaSharp.Views.Maui;
 using SkiaSharp.Views.Maui.Controls;
 using SkiaSharp;
 using OpenTK.Graphics.ES30;
+using GL = OpenTK.Graphics.ES30.GL;
 using Microsoft.Maui.Storage;
 using Microsoft.Maui.Devices;
 using System.IO;

@@ -2,6 +2,7 @@ using System;
 using System.Diagnostics;
 using System.Runtime.InteropServices;
 using OpenTK.Graphics.OpenGL4;
+using GL = OpenTK.Graphics.OpenGL4.GL;
 using OpenTK.Mathematics;
 using OpenTK.Windowing.Common;
 using OpenTK.Windowing.Desktop;
@@ -192,7 +193,7 @@ public class Viewer : IDisposable
         GL.BindTexture(TextureTarget.Texture2D, _tex);
         GL.Uniform1(_texLoc, 0);
         GL.BindVertexArray(_vao);
-        GL.DrawElements(PrimitiveType.Triangles, _indexCount, DrawElementsType.UnsignedInt, 0);
+        GL.DrawElements(PrimitiveType.Triangles, _indexCount, DrawElementsType.UnsignedInt, IntPtr.Zero);
         GL.BindVertexArray(0);
         _window.SwapBuffers();
     }
