@@ -6,7 +6,8 @@ namespace MiniMikuDanceMaui;
 public partial class SettingView : ContentView
 {
     public event Action<double>? HeightRatioChanged;
-    public event Action<double>? SensitivityChanged;
+    public event Action<double>? RotateSensitivityChanged;
+    public event Action<double>? PanSensitivityChanged;
     public event Action<bool>? CameraLockChanged;
 
     public SettingView()
@@ -19,9 +20,14 @@ public partial class SettingView : ContentView
         HeightRatioChanged?.Invoke(e.NewValue);
     }
 
-    private void OnCameraChanged(object? sender, ValueChangedEventArgs e)
+    private void OnRotateChanged(object? sender, ValueChangedEventArgs e)
     {
-        SensitivityChanged?.Invoke(e.NewValue);
+        RotateSensitivityChanged?.Invoke(e.NewValue);
+    }
+
+    private void OnPanChanged(object? sender, ValueChangedEventArgs e)
+    {
+        PanSensitivityChanged?.Invoke(e.NewValue);
     }
 
     private void OnCameraLockChanged(object? sender, CheckedChangedEventArgs e)
@@ -35,10 +41,16 @@ public partial class SettingView : ContentView
         set => HeightSlider.Value = value;
     }
 
-    public double Sensitivity
+    public double RotateSensitivity
     {
-        get => CameraSlider.Value;
-        set => CameraSlider.Value = value;
+        get => RotateSlider.Value;
+        set => RotateSlider.Value = value;
+    }
+
+    public double PanSensitivity
+    {
+        get => PanSlider.Value;
+        set => PanSlider.Value = value;
     }
 
     public bool CameraLocked

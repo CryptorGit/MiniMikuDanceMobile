@@ -20,7 +20,8 @@ public partial class CameraPage : ContentPage
 {
     private double _bottomHeightRatio = 0.5;
     private double _bottomWidthRatio = 1.0;
-    private double _cameraSensitivity = 1.0;
+    private double _rotateSensitivity = 1.0;
+    private double _panSensitivity = 1.0;
     private const double TopMenuHeight = 36;
     private bool _viewMenuOpen;
     private bool _settingMenuOpen;
@@ -39,7 +40,8 @@ public partial class CameraPage : ContentPage
         InitializeComponent();
         NavigationPage.SetHasNavigationBar(this, false);
         this.SizeChanged += OnSizeChanged;
-        _renderer.CameraSensitivity = (float)_cameraSensitivity;
+        _renderer.RotateSensitivity = (float)_rotateSensitivity;
+        _renderer.PanSensitivity = (float)_panSensitivity;
 
         if (Viewer is SKGLView glView)
         {
@@ -54,10 +56,15 @@ public partial class CameraPage : ContentPage
                 _bottomHeightRatio = ratio;
                 UpdateLayout();
             };
-            setting.SensitivityChanged += v =>
+            setting.RotateSensitivityChanged += v =>
             {
-                _cameraSensitivity = v;
-                _renderer.CameraSensitivity = (float)_cameraSensitivity;
+                _rotateSensitivity = v;
+                _renderer.RotateSensitivity = (float)_rotateSensitivity;
+            };
+            setting.PanSensitivityChanged += v =>
+            {
+                _panSensitivity = v;
+                _renderer.PanSensitivity = (float)_panSensitivity;
             };
             setting.CameraLockChanged += locked =>
             {
@@ -96,7 +103,8 @@ public partial class CameraPage : ContentPage
         if (_settingMenuOpen && SettingContent is SettingView sv)
         {
             sv.HeightRatio = _bottomHeightRatio;
-            sv.Sensitivity = _cameraSensitivity;
+            sv.RotateSensitivity = _rotateSensitivity;
+            sv.PanSensitivity = _panSensitivity;
             sv.CameraLocked = _renderer.CameraLocked;
         }
         UpdateOverlay();
@@ -284,6 +292,9 @@ public partial class CameraPage : ContentPage
         AbsoluteLayout.SetLayoutBounds(SettingMenu, new Rect(0, TopMenuHeight, 250, SettingMenu.IsVisible ? menuHeight : 0));
         AbsoluteLayout.SetLayoutFlags(SettingMenu, AbsoluteLayoutFlags.None);
 
+        AbsoluteLayout.SetLayoutBounds(MenuOverlay, new Rect(0, 0, W, H));
+        AbsoluteLayout.SetLayoutFlags(MenuOverlay, AbsoluteLayoutFlags.None);
+
         AbsoluteLayout.SetLayoutBounds(Viewer, new Rect(0, 0, W, H));
         AbsoluteLayout.SetLayoutFlags(Viewer, AbsoluteLayoutFlags.None);
         double bottomWidth = W * _bottomWidthRatio;
@@ -406,16 +417,21 @@ public partial class CameraPage : ContentPage
             }
             else if (name == "SETTING")
             {
-                var sv = new SettingView { HeightRatio = _bottomHeightRatio, Sensitivity = _cameraSensitivity, CameraLocked = _renderer.CameraLocked };
+                var sv = new SettingView { HeightRatio = _bottomHeightRatio, RotateSensitivity = _rotateSensitivity, PanSensitivity = _panSensitivity, CameraLocked = _renderer.CameraLocked };
                 sv.HeightRatioChanged += ratio =>
                 {
                     _bottomHeightRatio = ratio;
                     UpdateLayout();
                 };
-                sv.SensitivityChanged += v =>
+                sv.RotateSensitivityChanged += v =>
                 {
-                    _cameraSensitivity = v;
-                    _renderer.CameraSensitivity = (float)_cameraSensitivity;
+                    _rotateSensitivity = v;
+                    _renderer.RotateSensitivity = (float)_rotateSensitivity;
+                };
+                sv.PanSensitivityChanged += v =>
+                {
+                    _panSensitivity = v;
+                    _renderer.PanSensitivity = (float)_panSensitivity;
                 };
                 sv.CameraLockChanged += locked =>
                 {
@@ -454,7 +470,8 @@ public partial class CameraPage : ContentPage
         else if (name == "SETTING" && _bottomViews[name] is SettingView sv)
         {
             sv.HeightRatio = _bottomHeightRatio;
-            sv.Sensitivity = _cameraSensitivity;
+            sv.RotateSensitivity = _rotateSensitivity;
+            sv.PanSensitivity = _panSensitivity;
             sv.CameraLocked = _renderer.CameraLocked;
         }
         SwitchBottomFeature(name);
