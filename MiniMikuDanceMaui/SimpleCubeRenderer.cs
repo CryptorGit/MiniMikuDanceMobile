@@ -283,7 +283,7 @@ void main(){
             rm.Vao = GL.GenVertexArray();
             rm.Vbo = GL.GenBuffer();
             rm.Ebo = GL.GenBuffer();
-            rm.Color = sm.ColorFactor;
+            rm.Color = sm.ColorFactor.ToVector4();
 
             GL.BindVertexArray(rm.Vao);
             GL.BindBuffer(BufferTarget.ArrayBuffer, rm.Vbo);
