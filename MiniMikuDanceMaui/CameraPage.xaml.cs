@@ -516,6 +516,7 @@ public partial class CameraPage : ContentPage
                 var bv = new BoneView();
                 if (_currentModel != null)
                     bv.SetBones(_currentModel.Bones);
+                bv.BoneRotated += OnBoneRotated;
                 view = bv;
             }
             else if (name == "MTOON")
@@ -617,6 +618,7 @@ public partial class CameraPage : ContentPage
         else if (name == "BONE" && _bottomViews[name] is BoneView bv && _currentModel != null)
         {
             bv.SetBones(_currentModel.Bones);
+            bv.BoneRotated += OnBoneRotated;
         }
         SwitchBottomFeature(name);
         BottomRegion.IsVisible = true;
@@ -777,5 +779,14 @@ public partial class CameraPage : ContentPage
         FileSelectMessage.IsVisible = false;
         SelectedFilePath.Text = string.Empty;
         UpdateLayout();
+    }
+
+    private void OnBoneRotated(int index, System.Numerics.Quaternion rot)
+    {
+        if (_currentModel == null) return;
+        if (index < 0 || index >= _currentModel.Bones.Count) return;
+        _currentModel.Bones[index].Rotation = rot;
+        _renderer.SetBoneRotation(index, rot);
+        Viewer.InvalidateSurface();
     }
 }

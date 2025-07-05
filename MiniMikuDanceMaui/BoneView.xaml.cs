@@ -8,6 +8,7 @@ namespace MiniMikuDanceMaui;
 public partial class BoneView : ContentView
 {
     private readonly List<BoneItem> _bones = new();
+    public event Action<int, Quaternion>? BoneRotated;
 
     public BoneView()
     {
@@ -17,10 +18,12 @@ public partial class BoneView : ContentView
     public void SetBones(IEnumerable<BoneData> bones)
     {
         _bones.Clear();
+        int idx = 0;
         foreach (var b in bones)
         {
             var e = ToEuler(b.Rotation);
-            _bones.Add(new BoneItem { Name = b.Name, RotX = e.X, RotY = e.Y, RotZ = e.Z });
+            _bones.Add(new BoneItem { Index = idx, Name = b.Name, RotX = e.X, RotY = e.Y, RotZ = e.Z });
+            idx++;
         }
         BuildGrid();
     }
@@ -58,7 +61,12 @@ public partial class BoneView : ContentView
     private Slider CreateSlider(BoneItem item, string prop)
     {
         var s = new Slider { Minimum = -180, Maximum = 180, Value = GetValue(item, prop) };
-        s.ValueChanged += (s, e) => SetValue(item, prop, e.NewValue);
+        s.ValueChanged += (s, e) =>
+        {
+            SetValue(item, prop, e.NewValue);
+            var q = FromEuler(item.RotX, item.RotY, item.RotZ);
+            BoneRotated?.Invoke(item.Index, q);
+        };
         return s;
     }
 
@@ -101,8 +109,20 @@ public partial class BoneView : ContentView
         return new Vector3((float)(roll * 180 / Math.PI), (float)(pitch * 180 / Math.PI), (float)(yaw * 180 / Math.PI));
     }
 
+    private static Quaternion FromEuler(double x, double y, double z)
+    {
+        double rx = x * Math.PI / 180;
+        double ry = y * Math.PI / 180;
+        double rz = z * Math.PI / 180;
+        var qx = Quaternion.CreateFromAxisAngle(Vector3.UnitX, (float)rx);
+        var qy = Quaternion.CreateFromAxisAngle(Vector3.UnitY, (float)ry);
+        var qz = Quaternion.CreateFromAxisAngle(Vector3.UnitZ, (float)rz);
+        return Quaternion.Normalize(qz * qy * qx);
+    }
+
     private class BoneItem
     {
+        public int Index { get; set; }
         public string Name { get; set; } = string.Empty;
         public double RotX { get; set; }
         public double RotY { get; set; }

@@ -292,9 +292,7 @@ public class ModelImporter
     private static List<BoneData> ReadBones(SharpGLTF.Schema2.ModelRoot model)
     {
         var bones = new List<BoneData>();
-
-        // SharpGLTF の Node.IsSkinJoint フラグは VRM 0.x/1.0 では正しく設定され
-        // ないケースがあるため、Skin の Joint から取得する方式に変更
+        var nodes = new List<SNode>();
         var visited = new HashSet<SNode>();
 
         foreach (var skin in model.LogicalSkins)
@@ -302,10 +300,20 @@ public class ModelImporter
             foreach (var joint in EnumerateJoints(skin))
             {
                 if (!visited.Add(joint)) continue;
-                var r = joint.LocalTransform.Rotation;
-                var q = new System.Numerics.Quaternion(r.X, r.Y, r.Z, r.W);
-                bones.Add(new BoneData { Name = joint.Name ?? string.Empty, Rotation = q });
+                nodes.Add(joint);
             }
+        }
+
+        foreach (var joint in nodes)
+        {
+            int parent = -1;
+            if (joint.VisualParent != null)
+            {
+                parent = nodes.IndexOf(joint.VisualParent);
+            }
+            var r = joint.LocalTransform.Rotation;
+            var q = new System.Numerics.Quaternion(r.X, r.Y, r.Z, r.W);
+            bones.Add(new BoneData { Name = joint.Name ?? string.Empty, Parent = parent, Rotation = q });
         }
 
         return bones;
