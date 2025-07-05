@@ -38,8 +38,9 @@ internal static class VrmLoader
             {
                 var positions = prim.GetVertexAccessor("POSITION").AsVector3Array();
                 var normals = prim.GetVertexAccessor("NORMAL")?.AsVector3Array();
-                var texInfo = prim.Material?.FindChannel("BaseColor")?.Texture;
-                int texCoordIndex = texInfo?.Transform?.TextureCoordinateOverride ?? texInfo?.TextureCoordinate ?? 0;
+                var channel = prim.Material?.FindChannel("BaseColor");
+                var texInfo = channel?.Texture;
+                int texCoordIndex = channel?.TextureTransform?.TextureCoordinateOverride ?? channel?.TextureCoordinate ?? 0;
                 var uvs = prim.GetVertexAccessor($"TEXCOORD_{texCoordIndex}")?.AsVector2Array();
                 var indices = prim.IndexAccessor.AsIndicesArray();
 
@@ -69,10 +70,17 @@ internal static class VrmLoader
 
                 if (uvs != null)
                 {
-                    var mat = texInfo?.Transform?.Matrix ?? Matrix3x2.Identity;
+                    var tt = channel?.TextureTransform;
+                    var mat = System.Numerics.Matrix3x2.Identity;
+                    if (tt != null)
+                    {
+                        mat = System.Numerics.Matrix3x2.CreateScale(tt.Scale)
+                            * System.Numerics.Matrix3x2.CreateRotation(tt.Rotation)
+                            * System.Numerics.Matrix3x2.CreateTranslation(tt.Offset);
+                    }
                     for (int i = 0; i < uvs.Count; i++)
                     {
-                        var uv = Vector2.Transform(uvs[i], mat);
+                        var uv = System.Numerics.Vector2.Transform(uvs[i], mat);
                         tex[i * 2 + 0] = uv.X;
                         // ImageSharp は上端原点なので V を反転
                         tex[i * 2 + 1] = 1.0f - uv.Y;
