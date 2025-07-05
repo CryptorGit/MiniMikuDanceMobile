@@ -52,6 +52,9 @@ public class SimpleCubeRenderer : IDisposable
     public float RotateSensitivity { get; set; } = 1f;
     public float PanSensitivity { get; set; } = 1f;
     public bool CameraLocked { get; set; }
+    public float ShadeShift { get; set; } = -0.1f;
+    public float ShadeToony { get; set; } = 0.9f;
+    public float RimIntensity { get; set; } = 0.5f;
 
     public void Initialize()
     {
@@ -363,9 +366,9 @@ void main(){
         GL.Uniform3(_modelLightDirLoc, ref light);
         Vector3 viewDir = Vector3.UnitZ;
         GL.Uniform3(_modelViewDirLoc, ref viewDir);
-        GL.Uniform1(_modelShadeShiftLoc, -0.1f);
-        GL.Uniform1(_modelShadeToonyLoc, 0.9f);
-        GL.Uniform1(_modelRimIntensityLoc, 0.5f);
+        GL.Uniform1(_modelShadeShiftLoc, ShadeShift);
+        GL.Uniform1(_modelShadeToonyLoc, ShadeToony);
+        GL.Uniform1(_modelRimIntensityLoc, RimIntensity);
         // テクスチャのアルファを利用するためブレンドを有効化
         GL.Enable(EnableCap.Blend);
         foreach (var rm in _meshes)

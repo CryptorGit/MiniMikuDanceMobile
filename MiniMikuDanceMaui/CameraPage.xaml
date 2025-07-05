@@ -60,6 +60,11 @@
                         <TapGestureRecognizer Tapped="OnBoneClicked" />
                     </Label.GestureRecognizers>
                 </Label>
+                <Label Text="MTOON" TextColor="White">
+                    <Label.GestureRecognizers>
+                        <TapGestureRecognizer Tapped="OnMToonClicked" />
+                    </Label.GestureRecognizers>
+                </Label>
                 <Label Text="MOTION" TextColor="White">
                     <Label.GestureRecognizers>
                         <TapGestureRecognizer Tapped="OnMotionClicked" />
