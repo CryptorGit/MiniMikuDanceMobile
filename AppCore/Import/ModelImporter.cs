@@ -15,6 +15,7 @@ public class ModelData
     public List<SubMeshData> SubMeshes { get; } = new();
     public Assimp.Mesh Mesh { get; set; } = null!;
     public System.Numerics.Matrix4x4 Transform { get; set; } = System.Numerics.Matrix4x4.Identity;
+    public List<BoneData> Bones { get; } = new();
 }
 
 public class ModelImporter
@@ -179,6 +180,7 @@ public class ModelImporter
 
         data.Mesh = combined;
         data.Transform = transform;
+        data.Bones.AddRange(ReadBones(model));
         return data;
     }
 
@@ -283,5 +285,23 @@ public class ModelImporter
         {
         }
         return map;
+    }
+
+    private static List<BoneData> ReadBones(SharpGLTF.Schema2.ModelRoot model)
+    {
+        var set = new HashSet<SharpGLTF.Schema2.Node>();
+        foreach (var skin in model.LogicalSkins)
+        {
+            foreach (var j in skin.Joints)
+                set.Add(j);
+        }
+        var bones = new List<BoneData>();
+        foreach (var node in set)
+        {
+            var r = node.LocalRotation;
+            var q = new Quaternion(r.X, r.Y, r.Z, r.W);
+            bones.Add(new BoneData { Name = node.Name ?? "", Rotation = q });
+        }
+        return bones;
     }
 }
