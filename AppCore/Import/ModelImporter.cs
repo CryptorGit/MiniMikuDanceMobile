@@ -5,12 +5,14 @@ using SixLabors.ImageSharp.PixelFormats;
 using System.IO;
 using System.Linq;
 using System.Diagnostics;
+using System.Collections.Generic;
 using Vector3D = Assimp.Vector3D;
 
 namespace MiniMikuDance.Import;
 
 public class ModelData
 {
+    public List<SubMeshData> SubMeshes { get; } = new();
     public Assimp.Mesh Mesh { get; set; } = null!;
     public System.Numerics.Matrix4x4 Transform { get; set; } = System.Numerics.Matrix4x4.Identity;
     public byte[]? TextureData { get; set; }
@@ -59,16 +61,15 @@ public class ModelImporter
 
     private ModelData ImportVrm(SharpGLTF.Schema2.ModelRoot model)
     {
-        var mesh = new Assimp.Mesh("mesh", Assimp.PrimitiveType.Triangle);
-        byte[]? texBytes = null;
-        int texW = 0;
-        int texH = 0;
-        int indexOffset = 0;
+        var combined = new Assimp.Mesh("mesh", Assimp.PrimitiveType.Triangle);
+        int combinedIndexOffset = 0;
+        var data = new ModelData();
 
         foreach (var logical in model.LogicalMeshes)
         {
             foreach (var prim in logical.Primitives)
             {
+                var sub = new Assimp.Mesh("mesh", Assimp.PrimitiveType.Triangle);
                 var positions = prim.GetVertexAccessor("POSITION").AsVector3Array();
                 var normals = prim.GetVertexAccessor("NORMAL")?.AsVector3Array();
                 var uvs = prim.GetVertexAccessor("TEXCOORD_0")?.AsVector2Array();
@@ -77,54 +78,83 @@ public class ModelImporter
                 {
                     var v = positions[i];
                     // Z 軸を反転
-                    mesh.Vertices.Add(new Vector3D(v.X, v.Y, -v.Z));
+                    var pos = new Vector3D(v.X, v.Y, -v.Z);
+                    sub.Vertices.Add(pos);
+                    combined.Vertices.Add(pos);
+
                     if (normals != null && i < normals.Count)
                     {
-                        var n = normals[i];
-                        mesh.Normals.Add(new Vector3D(n.X, n.Y, -n.Z));
+                        var n = new Vector3D(normals[i].X, normals[i].Y, -normals[i].Z);
+                        sub.Normals.Add(n);
+                        combined.Normals.Add(n);
                     }
                     else
                     {
-                        mesh.Normals.Add(new Vector3D(0, 0, 1));
+                        sub.Normals.Add(new Vector3D(0, 0, 1));
+                        combined.Normals.Add(new Vector3D(0, 0, 1));
                     }
                     if (uvs != null && i < uvs.Count)
                     {
                         var uv = uvs[i];
-                        mesh.TextureCoordinateChannels[0].Add(new Vector3D(uv.X, 1.0f - uv.Y, 0));
+                        var texCoord = new Vector3D(uv.X, 1.0f - uv.Y, 0);
+                        sub.TextureCoordinateChannels[0].Add(texCoord);
+                        combined.TextureCoordinateChannels[0].Add(texCoord);
                     }
                     else
                     {
-                        mesh.TextureCoordinateChannels[0].Add(new Vector3D(0, 0, 0));
+                        sub.TextureCoordinateChannels[0].Add(new Vector3D(0, 0, 0));
+                        combined.TextureCoordinateChannels[0].Add(new Vector3D(0, 0, 0));
                     }
                 }
 
                 var indices = prim.IndexAccessor.AsIndicesArray();
                 for (int i = 0; i < indices.Count; i += 3)
                 {
-                    var face = new Face();
                     // Z 軸反転に合わせてインデックス順序を逆転
-                    face.Indices.Add((int)indices[i] + indexOffset);
-                    face.Indices.Add((int)indices[i + 2] + indexOffset);
-                    face.Indices.Add((int)indices[i + 1] + indexOffset);
-                    mesh.Faces.Add(face);
+                    var face = new Face();
+                    face.Indices.Add((int)indices[i]);
+                    face.Indices.Add((int)indices[i + 2]);
+                    face.Indices.Add((int)indices[i + 1]);
+                    sub.Faces.Add(face);
+
+                    var cFace = new Face();
+                    cFace.Indices.Add((int)indices[i] + combinedIndexOffset);
+                    cFace.Indices.Add((int)indices[i + 2] + combinedIndexOffset);
+                    cFace.Indices.Add((int)indices[i + 1] + combinedIndexOffset);
+                    combined.Faces.Add(cFace);
                 }
 
-                indexOffset += positions.Count;
+                combinedIndexOffset += positions.Count;
 
-                if (texBytes == null)
+                byte[]? texBytes = null;
+                int texW = 0;
+                int texH = 0;
+                GLTFImage? image = prim.Material?.FindChannel("BaseColor")?.Texture?.PrimaryImage
+                    ?? model.LogicalImages.FirstOrDefault();
+                if (image != null)
                 {
-                    GLTFImage? image = prim.Material?.FindChannel("BaseColor")?.Texture?.PrimaryImage
-                        ?? model.LogicalImages.FirstOrDefault();
-                    if (image != null)
+                    using var stream = image.OpenImageFile();
+                    using var img = Image.Load<Rgba32>(stream);
+                    texW = img.Width;
+                    texH = img.Height;
+                    texBytes = new byte[texW * texH * 4];
+                    img.CopyPixelDataTo(texBytes);
+
+                    if (data.TextureData == null)
                     {
-                        using var stream = image.OpenImageFile();
-                        using var img = Image.Load<Rgba32>(stream);
-                        texW = img.Width;
-                        texH = img.Height;
-                        texBytes = new byte[texW * texH * 4];
-                        img.CopyPixelDataTo(texBytes);
+                        data.TextureData = texBytes;
+                        data.TextureWidth = texW;
+                        data.TextureHeight = texH;
                     }
                 }
+
+                data.SubMeshes.Add(new SubMeshData
+                {
+                    Mesh = sub,
+                    TextureData = texBytes,
+                    TextureWidth = texW,
+                    TextureHeight = texH
+                });
             }
         }
 
@@ -136,18 +166,13 @@ public class ModelImporter
             transform = System.Numerics.Matrix4x4.Multiply(transform, m);
         }
 
-        VerifyMeshWinding(mesh);
+        VerifyMeshWinding(combined);
 
-        Debug.WriteLine($"[ModelImporter] VRM loaded: {mesh.VertexCount} vertices");
+        Debug.WriteLine($"[ModelImporter] VRM loaded: {combined.VertexCount} vertices");
 
-        return new ModelData
-        {
-            Mesh = mesh,
-            TextureData = texBytes,
-            TextureWidth = texW,
-            TextureHeight = texH,
-            Transform = transform
-        };
+        data.Mesh = combined;
+        data.Transform = transform;
+        return data;
     }
 
     private static void VerifyMeshWinding(Assimp.Mesh mesh)
