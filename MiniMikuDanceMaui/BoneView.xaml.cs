@@ -2,12 +2,13 @@ using Microsoft.Maui.Controls;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using OpenTK.Mathematics;
 
 namespace MiniMikuDanceMaui;
 
 public partial class BoneView : ContentView
 {
-    public event Action<string>? BoneSelected;
+    public event Action<int>? BoneSelected;
     public event Action<float>? RotationXChanged;
     public event Action<float>? RotationYChanged;
     public event Action<float>? RotationZChanged;
@@ -24,10 +25,17 @@ public partial class BoneView : ContentView
             BonePicker.SelectedIndex = 0;
     }
 
+    public void SetRotation(OpenTK.Mathematics.Vector3 degrees)
+    {
+        RotationX = degrees.X;
+        RotationY = degrees.Y;
+        RotationZ = degrees.Z;
+    }
+
     private void OnBoneSelected(object? sender, EventArgs e)
     {
-        if (BonePicker.SelectedItem is string bone)
-            BoneSelected?.Invoke(bone);
+        if (BonePicker.SelectedIndex >= 0)
+            BoneSelected?.Invoke(BonePicker.SelectedIndex);
     }
 
     private void OnXChanged(object? sender, ValueChangedEventArgs e)

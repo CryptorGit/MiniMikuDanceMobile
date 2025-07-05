@@ -15,6 +15,8 @@ using Microsoft.Maui.Devices;
 using System.IO;
 using System.Linq;
 using MiniMikuDance.Import;
+using OpenTK.Mathematics;
+using MiniMikuDance.Util;
 
 namespace MiniMikuDanceMaui;
 
@@ -42,6 +44,7 @@ public partial class CameraPage : ContentPage
     private bool _glInitialized;
     private ModelData? _pendingModel;
     private ModelData? _currentModel;
+    private int _selectedBoneIndex = 0;
     private readonly Dictionary<long, SKPoint> _touchPoints = new();
 
     public CameraPage()
@@ -534,25 +537,26 @@ public partial class CameraPage : ContentPage
             {
                 var bv = new BoneView();
                 if (_currentModel != null)
-                    bv.SetBones(_currentModel.HumanoidBones.Keys);
-                bv.RotationXChanged += v =>
                 {
-                    var rot = _renderer.BoneRotation;
-                    rot.X = v;
-                    _renderer.BoneRotation = rot;
-                };
-                bv.RotationYChanged += v =>
+                    var list = new List<string>();
+                    for (int i = 0; i < _currentModel.Bones.Count; i++)
+                    {
+                        var name = _currentModel.Bones[i].Name;
+                        list.Add(string.IsNullOrEmpty(name) ? $"Bone{i}" : name);
+                    }
+                    bv.SetBones(list);
+                    if (_currentModel.Bones.Count > 0)
+                        bv.SetRotation(_currentModel.Bones[0].Rotation.ToEulerDegrees());
+                }
+                bv.BoneSelected += idx =>
                 {
-                    var rot = _renderer.BoneRotation;
-                    rot.Y = v;
-                    _renderer.BoneRotation = rot;
+                    _selectedBoneIndex = idx;
+                    if (_currentModel != null && idx >= 0 && idx < _currentModel.Bones.Count)
+                        bv.SetRotation(_currentModel.Bones[idx].Rotation.ToEulerDegrees());
                 };
-                bv.RotationZChanged += v =>
-                {
-                    var rot = _renderer.BoneRotation;
-                    rot.Z = v;
-                    _renderer.BoneRotation = rot;
-                };
+                bv.RotationXChanged += v => UpdateSelectedBoneRotation(bv);
+                bv.RotationYChanged += v => UpdateSelectedBoneRotation(bv);
+                bv.RotationZChanged += v => UpdateSelectedBoneRotation(bv);
                 view = bv;
             }
             else if (name == "MTOON")
@@ -648,7 +652,17 @@ public partial class CameraPage : ContentPage
         else if (name == "BONE" && _bottomViews[name] is BoneView bv)
         {
             if (_currentModel != null)
-                bv.SetBones(_currentModel.HumanoidBones.Keys);
+            {
+                var list = new List<string>();
+                for (int i = 0; i < _currentModel.Bones.Count; i++)
+                {
+                    var bname = _currentModel.Bones[i].Name;
+                    list.Add(string.IsNullOrEmpty(bname) ? $"Bone{i}" : bname);
+                }
+                bv.SetBones(list);
+                if (_selectedBoneIndex >= 0 && _selectedBoneIndex < _currentModel.Bones.Count)
+                    bv.SetRotation(_currentModel.Bones[_selectedBoneIndex].Rotation.ToEulerDegrees());
+            }
         }
         else if (name == "MTOON" && _bottomViews[name] is MToonView mv)
         {
@@ -817,4 +831,15 @@ public partial class CameraPage : ContentPage
         UpdateLayout();
     }
 
+    private void UpdateSelectedBoneRotation(BoneView bv)
+    {
+        if (_currentModel == null) return;
+        if (_selectedBoneIndex < 0 || _selectedBoneIndex >= _currentModel.Bones.Count)
+            return;
+
+        var euler = new OpenTK.Mathematics.Vector3(bv.RotationX, bv.RotationY, bv.RotationZ);
+        _currentModel.Bones[_selectedBoneIndex].Rotation = euler.FromEulerDegrees();
+        _renderer.BoneRotation = euler;
+        Viewer?.InvalidateSurface();
+    }
 }
