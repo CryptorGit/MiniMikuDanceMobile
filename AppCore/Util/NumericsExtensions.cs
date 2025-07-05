@@ -31,6 +31,16 @@ public static class NumericsExtensions
         return System.Numerics.Quaternion.CreateFromYawPitchRoll(rad.Y, rad.X, rad.Z);
     }
 
+    public static OpenTK.Mathematics.Vector3 ToOpenTK(this System.Numerics.Vector3 v)
+    {
+        return new OpenTK.Mathematics.Vector3(v.X, v.Y, v.Z);
+    }
+
+    public static System.Numerics.Vector3 ToNumerics(this OpenTK.Mathematics.Vector3 v)
+    {
+        return new System.Numerics.Vector3(v.X, v.Y, v.Z);
+    }
+
     public static System.Numerics.Vector3 ToEulerDegrees(this System.Numerics.Quaternion q)
     {
         var m = System.Numerics.Matrix4x4.CreateFromQuaternion(q);

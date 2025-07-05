@@ -541,18 +541,20 @@ public partial class CameraPage : ContentPage
                     var list = new List<string>();
                     for (int i = 0; i < _currentModel.Bones.Count; i++)
                     {
-                        var name = _currentModel.Bones[i].Name;
-                        list.Add(string.IsNullOrEmpty(name) ? $"Bone{i}" : name);
+                        var boneName = _currentModel.Bones[i].Name;
+                        list.Add(string.IsNullOrEmpty(boneName) ? $"Bone{i}" : boneName);
                     }
                     bv.SetBones(list);
                     if (_currentModel.Bones.Count > 0)
-                        bv.SetRotation(_currentModel.Bones[0].Rotation.ToEulerDegrees());
+                        var euler = _currentModel.Bones[0].Rotation.ToEulerDegrees();
+                        bv.SetRotation(euler.ToOpenTK());
                 }
                 bv.BoneSelected += idx =>
                 {
                     _selectedBoneIndex = idx;
                     if (_currentModel != null && idx >= 0 && idx < _currentModel.Bones.Count)
-                        bv.SetRotation(_currentModel.Bones[idx].Rotation.ToEulerDegrees());
+                        var euler = _currentModel.Bones[idx].Rotation.ToEulerDegrees();
+                        bv.SetRotation(euler.ToOpenTK());
                 };
                 bv.RotationXChanged += v => UpdateSelectedBoneRotation(bv);
                 bv.RotationYChanged += v => UpdateSelectedBoneRotation(bv);
@@ -661,7 +663,8 @@ public partial class CameraPage : ContentPage
                 }
                 bv.SetBones(list);
                 if (_selectedBoneIndex >= 0 && _selectedBoneIndex < _currentModel.Bones.Count)
-                    bv.SetRotation(_currentModel.Bones[_selectedBoneIndex].Rotation.ToEulerDegrees());
+                    var euler = _currentModel.Bones[_selectedBoneIndex].Rotation.ToEulerDegrees();
+                    bv.SetRotation(euler.ToOpenTK());
             }
         }
         else if (name == "MTOON" && _bottomViews[name] is MToonView mv)
@@ -837,9 +840,9 @@ public partial class CameraPage : ContentPage
         if (_selectedBoneIndex < 0 || _selectedBoneIndex >= _currentModel.Bones.Count)
             return;
 
-        var euler = new OpenTK.Mathematics.Vector3(bv.RotationX, bv.RotationY, bv.RotationZ);
-        _currentModel.Bones[_selectedBoneIndex].Rotation = euler.FromEulerDegrees();
-        _renderer.BoneRotation = euler;
+        var eulerTk = new OpenTK.Mathematics.Vector3(bv.RotationX, bv.RotationY, bv.RotationZ);
+        _currentModel.Bones[_selectedBoneIndex].Rotation = eulerTk.ToNumerics().FromEulerDegrees();
+        _renderer.BoneRotation = eulerTk;
         Viewer?.InvalidateSurface();
     }
 }
