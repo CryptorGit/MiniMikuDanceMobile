@@ -79,8 +79,7 @@ void main(){
         _projLoc = GL.GetUniformLocation(_program, "uProj");
         _colorLoc = GL.GetUniformLocation(_program, "uColor");
 
-        GL.Enable(EnableCap.Blend);
-        // OpenTK 4.x では BlendingFactorSrc/Dest を用いる
+        // 透過描画設定（デフォルトでは無効）
         GL.BlendFunc(BlendingFactorSrc.SrcAlpha, BlendingFactorDest.OneMinusSrcAlpha);
 
         const string modelVert = @"#version 300 es
@@ -108,8 +107,8 @@ void main(){
     vec3 lightDir = normalize(vec3(0.3,0.6,0.7));
     float diff = max(dot(normalize(vNormal), lightDir), 0.2);
     vec4 col = texture(uTex, vUV) * uColor;
-    // テクスチャのアルファも利用する
-    FragColor = vec4(col.rgb * diff, col.a);
+    // 不透明描画のためアルファは 1.0 固定
+    FragColor = vec4(col.rgb * diff, 1.0);
 }";
         int mvs = GL.CreateShader(ShaderType.VertexShader);
         GL.ShaderSource(mvs, modelVert);
@@ -283,7 +282,9 @@ void main(){
             rm.Vao = GL.GenVertexArray();
             rm.Vbo = GL.GenBuffer();
             rm.Ebo = GL.GenBuffer();
-            rm.Color = sm.ColorFactor.ToVector4();
+            var cf = sm.ColorFactor.ToVector4();
+            cf.W = 1.0f; // 不透明にする
+            rm.Color = cf;
 
             GL.BindVertexArray(rm.Vao);
             GL.BindBuffer(BufferTarget.ArrayBuffer, rm.Vbo);
@@ -364,8 +365,8 @@ void main(){
         GL.UseProgram(_modelProgram);
         GL.UniformMatrix4(_modelViewLoc, false, ref view);
         GL.UniformMatrix4(_modelProjLoc, false, ref proj);
-        // VRM モデル描画時も透過を利用する
-        GL.Enable(EnableCap.Blend);
+        // 不透明描画のためブレンドは無効化
+        GL.Disable(EnableCap.Blend);
         foreach (var rm in _meshes)
         {
             GL.UniformMatrix4(_modelModelLoc, false, ref model);
