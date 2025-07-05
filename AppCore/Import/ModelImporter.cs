@@ -73,8 +73,9 @@ public class ModelImporter
                 var sub = new Assimp.Mesh("mesh", Assimp.PrimitiveType.Triangle);
                 var positions = prim.GetVertexAccessor("POSITION").AsVector3Array();
                 var normals = prim.GetVertexAccessor("NORMAL")?.AsVector3Array();
-                var texInfo = prim.Material?.FindChannel("BaseColor")?.Texture;
-                int texCoordIndex = texInfo?.Transform?.TextureCoordinateOverride ?? texInfo?.TextureCoordinate ?? 0;
+                var channel = prim.Material?.FindChannel("BaseColor");
+                var texInfo = channel?.Texture;
+                int texCoordIndex = channel?.TextureTransform?.TextureCoordinateOverride ?? channel?.TextureCoordinate ?? 0;
                 var uvs = prim.GetVertexAccessor($"TEXCOORD_{texCoordIndex}")?.AsVector2Array();
 
                 for (int i = 0; i < positions.Count; i++)
@@ -98,8 +99,15 @@ public class ModelImporter
                     }
                     if (uvs != null && i < uvs.Count)
                     {
-                        var mat = texInfo?.Transform?.Matrix ?? Matrix3x2.Identity;
-                        var uv = Vector2.Transform(uvs[i], mat);
+                        var tt = channel?.TextureTransform;
+                        var mat = System.Numerics.Matrix3x2.Identity;
+                        if (tt != null)
+                        {
+                            mat = System.Numerics.Matrix3x2.CreateScale(tt.Scale)
+                                * System.Numerics.Matrix3x2.CreateRotation(tt.Rotation)
+                                * System.Numerics.Matrix3x2.CreateTranslation(tt.Offset);
+                        }
+                        var uv = System.Numerics.Vector2.Transform(uvs[i], mat);
                         var texCoord = new Vector3D(uv.X, 1.0f - uv.Y, 0);
                         sub.TextureCoordinateChannels[0].Add(texCoord);
                         combined.TextureCoordinateChannels[0].Add(texCoord);
