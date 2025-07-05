@@ -310,13 +310,13 @@ public class ModelImporter
         return bones;
     }
 
-    private static IEnumerable<Node> EnumerateJoints(Skin skin)
+    private static IEnumerable<SharpGLTF.Schema2.Node> EnumerateJoints(Skin skin)
     {
         var getJoint = skin.GetType().GetMethod("GetJoint", new[] { typeof(int) });
         if (getJoint == null) yield break;
         for (int i = 0; i < skin.JointsCount; i++)
         {
-            if (getJoint.Invoke(skin, new object[] { i }) is Node joint)
+            if (getJoint.Invoke(skin, new object[] { i }) is SharpGLTF.Schema2.Node joint)
             {
                 yield return joint;
             }
