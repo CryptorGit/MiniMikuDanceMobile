@@ -27,7 +27,8 @@ public class SimpleCubeRenderer : IDisposable
     private int _projLoc;
     private int _colorLoc;
     private float _orbitX;
-    private float _orbitY = MathHelper.PiOver4;
+    // 初期カメラ位置はモデル正面を向くようY軸回転を0に設定
+    private float _orbitY = 0f;
     private float _distance = 4f;
     private Vector3 _target = Vector3.Zero;
     private int _groundVao;
@@ -205,7 +206,8 @@ void main(){
     public void ResetCamera()
     {
         _orbitX = 0f;
-        _orbitY = MathHelper.PiOver4;
+        // モデル読み込み時は正面から表示する
+        _orbitY = 0f;
         _distance = 4f;
         _target = Vector3.Zero;
     }
