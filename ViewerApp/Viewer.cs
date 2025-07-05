@@ -141,14 +141,14 @@ public class Viewer : IDisposable
                 try
                 {
                     GL.TexImage2D(
-                        TextureTarget.Texture2D,
+                        (All)TextureTarget.Texture2D,
                         0,
-                        PixelInternalFormat.Rgba,
+                        (All)PixelInternalFormat.Rgba,
                         sm.TextureWidth,
                         sm.TextureHeight,
                         0,
-                        PixelFormat.Rgba,
-                        PixelType.UnsignedByte,
+                        (All)PixelFormat.Rgba,
+                        (All)PixelType.UnsignedByte,
                         handle.AddrOfPinnedObject());
                 }
                 finally
