@@ -37,7 +37,8 @@ internal static class VrmLoader
             var v = positions[i];
             verts[i * 3 + 0] = v.X;
             verts[i * 3 + 1] = v.Y;
-            verts[i * 3 + 2] = v.Z;
+            // glTF(+Z forward) を OpenGL(-Z forward) に合わせるため Z を反転
+            verts[i * 3 + 2] = -v.Z;
         }
 
         if (normals != null)
@@ -47,7 +48,8 @@ internal static class VrmLoader
                 var n = normals[i];
                 norms[i * 3 + 0] = n.X;
                 norms[i * 3 + 1] = n.Y;
-                norms[i * 3 + 2] = n.Z;
+                // Z を反転
+                norms[i * 3 + 2] = -n.Z;
             }
         }
 
@@ -57,14 +59,18 @@ internal static class VrmLoader
             {
                 var uv = uvs[i];
                 tex[i * 2 + 0] = uv.X;
-                tex[i * 2 + 1] = uv.Y;
+                // ImageSharp は上端原点なので V を反転
+                tex[i * 2 + 1] = 1.0f - uv.Y;
             }
         }
 
         uint[] idx = new uint[indices.Count];
-        for (int i = 0; i < indices.Count; i++)
+        // Z 軸を反転したため頂点順序も入れ替える
+        for (int i = 0; i < indices.Count; i += 3)
         {
             idx[i] = (uint)indices[i];
+            idx[i + 1] = (uint)indices[i + 2];
+            idx[i + 2] = (uint)indices[i + 1];
         }
 
         byte[]? texBytes = null;
@@ -82,12 +88,12 @@ internal static class VrmLoader
             img.CopyPixelDataTo(texBytes);
         }
 
-        Matrix4 transform = Matrix4.Identity;
+        Matrix4 transform = Matrix4.CreateScale(1f, 1f, -1f);
         var node = model.DefaultScene?.VisualChildren.FirstOrDefault();
         if (node != null)
         {
             var m = node.WorldMatrix;
-            transform = new Matrix4(
+            transform *= new Matrix4(
                 m.M11, m.M12, m.M13, m.M14,
                 m.M21, m.M22, m.M23, m.M24,
                 m.M31, m.M32, m.M33, m.M34,

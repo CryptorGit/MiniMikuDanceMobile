@@ -76,11 +76,12 @@ public class ModelImporter
                 for (int i = 0; i < positions.Count; i++)
                 {
                     var v = positions[i];
-                    mesh.Vertices.Add(new Vector3D(v.X, v.Y, v.Z));
+                    // Z 軸を反転
+                    mesh.Vertices.Add(new Vector3D(v.X, v.Y, -v.Z));
                     if (normals != null && i < normals.Count)
                     {
                         var n = normals[i];
-                        mesh.Normals.Add(new Vector3D(n.X, n.Y, n.Z));
+                        mesh.Normals.Add(new Vector3D(n.X, n.Y, -n.Z));
                     }
                     else
                     {
@@ -89,7 +90,7 @@ public class ModelImporter
                     if (uvs != null && i < uvs.Count)
                     {
                         var uv = uvs[i];
-                        mesh.TextureCoordinateChannels[0].Add(new Vector3D(uv.X, uv.Y, 0));
+                        mesh.TextureCoordinateChannels[0].Add(new Vector3D(uv.X, 1.0f - uv.Y, 0));
                     }
                     else
                     {
@@ -101,9 +102,10 @@ public class ModelImporter
                 for (int i = 0; i < indices.Count; i += 3)
                 {
                     var face = new Face();
+                    // Z 軸反転に合わせてインデックス順序を逆転
                     face.Indices.Add((int)indices[i] + indexOffset);
-                    face.Indices.Add((int)indices[i + 1] + indexOffset);
                     face.Indices.Add((int)indices[i + 2] + indexOffset);
+                    face.Indices.Add((int)indices[i + 1] + indexOffset);
                     mesh.Faces.Add(face);
                 }
 
@@ -126,12 +128,12 @@ public class ModelImporter
             }
         }
 
-        var transform = System.Numerics.Matrix4x4.Identity;
+        var transform = System.Numerics.Matrix4x4.CreateScale(1f, 1f, -1f);
         var node = model.DefaultScene?.VisualChildren.FirstOrDefault();
         if (node != null)
         {
             var m = node.WorldMatrix;
-            transform = m;
+            transform = System.Numerics.Matrix4x4.Multiply(transform, m);
         }
 
         Debug.WriteLine($"[ModelImporter] VRM loaded: {mesh.VertexCount} vertices");
