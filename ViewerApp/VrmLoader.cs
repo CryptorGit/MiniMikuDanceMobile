@@ -1,5 +1,6 @@
 using System.Linq;
 using System.Collections.Generic;
+using System.IO;
 using OpenTK.Mathematics;
 using System.Numerics;
 using SharpGLTF.Schema2;
@@ -31,7 +32,10 @@ internal static class VrmLoader
 {
     public static VrmModel Load(string path)
     {
-        var model = ModelRoot.Load(path);
+        var bytes = File.ReadAllBytes(path);
+        var texMap = VrmUtil.ReadMainTextureIndices(bytes);
+        using var ms = new MemoryStream(bytes);
+        var model = ModelRoot.ReadGLB(ms);
         var result = new VrmModel();
 
         foreach (var mesh in model.LogicalMeshes)
@@ -103,6 +107,15 @@ internal static class VrmLoader
                 var material = prim.Material;
                 // channel is already defined above; reuse it
                 var image = channel?.Texture?.PrimaryImage;
+                if (image == null && material != null)
+                {
+                    int mIdx = model.LogicalMaterials.IndexOf(material);
+                    if (texMap.TryGetValue(mIdx, out var texIdx))
+                    {
+                        var tex = model.LogicalTextures[texIdx];
+                        image = tex.PrimaryImage;
+                    }
+                }
                 var cf = channel?.Parameter ?? new System.Numerics.Vector4(1, 1, 1, 1);
                 var colorFactor = new OpenTK.Mathematics.Vector4(cf.X, cf.Y, cf.Z, cf.W);
                 if (image != null)

@@ -29,8 +29,13 @@ public class ModelImporter
     public ModelData ImportModel(Stream stream)
     {
         Debug.WriteLine("[ModelImporter] Loading model from stream");
-        var model = SharpGLTF.Schema2.ModelRoot.ReadGLB(stream);
-        return ImportVrm(model);
+        using var ms = new MemoryStream();
+        stream.CopyTo(ms);
+        var bytes = ms.ToArray();
+        var mainTexMap = ViewerApp.VrmUtil.ReadMainTextureIndices(bytes);
+        ms.Position = 0;
+        var model = SharpGLTF.Schema2.ModelRoot.ReadGLB(ms);
+        return ImportVrm(model, mainTexMap);
     }
 
     public ModelData ImportModel(string path)
@@ -57,11 +62,14 @@ public class ModelImporter
     private ModelData ImportVrm(string path)
     {
         Debug.WriteLine($"[ModelImporter] Importing VRM: {path}");
-        var model = SharpGLTF.Schema2.ModelRoot.Load(path);
-        return ImportVrm(model);
+        var bytes = File.ReadAllBytes(path);
+        var mainTexMap = ViewerApp.VrmUtil.ReadMainTextureIndices(bytes);
+        using var ms = new MemoryStream(bytes);
+        var model = SharpGLTF.Schema2.ModelRoot.ReadGLB(ms);
+        return ImportVrm(model, mainTexMap);
     }
 
-    private ModelData ImportVrm(SharpGLTF.Schema2.ModelRoot model)
+    private ModelData ImportVrm(SharpGLTF.Schema2.ModelRoot model, Dictionary<int,int>? mainTextures = null)
     {
         var combined = new Assimp.Mesh("mesh", Assimp.PrimitiveType.Triangle);
         int combinedIndexOffset = 0;
@@ -145,6 +153,15 @@ public class ModelImporter
                 var material = prim.Material;
                 // channel is already defined above; reuse it
                 GLTFImage? image = channel?.Texture?.PrimaryImage;
+                if (image == null && mainTextures != null && material != null)
+                {
+                    int idx = model.LogicalMaterials.IndexOf(material);
+                    if (idx >= 0 && mainTextures.TryGetValue(idx, out var texIdx))
+                    {
+                        var tex = model.LogicalTextures[texIdx];
+                        image = tex.PrimaryImage;
+                    }
+                }
                 var colorParam = channel?.Parameter ?? Vector4.One;
                 var colorFactor = colorParam;
                 if (image != null)
