@@ -117,7 +117,7 @@ public class ModelImporter
                                 * System.Numerics.Matrix3x2.CreateTranslation(tt.Offset);
                         }
                         var uv = System.Numerics.Vector2.Transform(uvs[i], mat);
-                        var texCoord = new Vector3D(uv.X, uv.Y, 0);
+                        var texCoord = new Vector3D(uv.X, 1.0f - uv.Y, 0);
                         sub.TextureCoordinateChannels[0].Add(texCoord);
                         combined.TextureCoordinateChannels[0].Add(texCoord);
                     }
@@ -170,7 +170,6 @@ public class ModelImporter
                 {
                     using var stream = image.OpenImageFile();
                     using var img = Image.Load<Rgba32>(stream);
-                    img.Mutate(x => x.Flip(FlipMode.Vertical));
                     texW = img.Width;
                     texH = img.Height;
                     texBytes = new byte[texW * texH * 4];
