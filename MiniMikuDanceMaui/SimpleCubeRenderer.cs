@@ -300,17 +300,17 @@ void main(){
             GL.BindVertexArray(0);
 
             rm.Texture = GL.GenTexture();
-            GL.BindTexture((All)TextureTarget.Texture2D, rm.Texture);
-            GL.PixelStore((All)PixelStoreParameter.UnpackAlignment, 1);
+            GL.BindTexture(TextureTarget.Texture2D, rm.Texture);
+            GL.PixelStore(PixelStoreParameter.UnpackAlignment, 1);
             if (sm.TextureData != null)
             {
                 var handle = GCHandle.Alloc(sm.TextureData, GCHandleType.Pinned);
                 try
                 {
-                    GL.TexImage2D((All)TextureTarget.Texture2D, 0,
-                        (All)PixelInternalFormat.Rgba,
+                    GL.TexImage2D(TextureTarget.Texture2D, 0,
+                        PixelInternalFormat.Rgba,
                         sm.TextureWidth, sm.TextureHeight, 0,
-                        (All)PixelFormat.Rgba, (All)PixelType.UnsignedByte,
+                        PixelFormat.Rgba, PixelType.UnsignedByte,
                         handle.AddrOfPinnedObject());
                 }
                 finally
@@ -324,10 +324,10 @@ void main(){
                 var handle = GCHandle.Alloc(white, GCHandleType.Pinned);
                 try
                 {
-                    GL.TexImage2D((All)TextureTarget.Texture2D, 0,
-                        (All)PixelInternalFormat.Rgba,
+                    GL.TexImage2D(TextureTarget.Texture2D, 0,
+                        PixelInternalFormat.Rgba,
                         1, 1, 0,
-                        (All)PixelFormat.Rgba, (All)PixelType.UnsignedByte,
+                        PixelFormat.Rgba, PixelType.UnsignedByte,
                         handle.AddrOfPinnedObject());
                 }
                 finally
@@ -335,12 +335,12 @@ void main(){
                     handle.Free();
                 }
             }
-            GL.PixelStore((All)PixelStoreParameter.UnpackAlignment, 4);
-            GL.TexParameter((All)TextureTarget.Texture2D, TextureParameterName.TextureMinFilter, (int)TextureMinFilter.Linear);
-            GL.TexParameter((All)TextureTarget.Texture2D, TextureParameterName.TextureMagFilter, (int)TextureMagFilter.Linear);
-            GL.TexParameter((All)TextureTarget.Texture2D, TextureParameterName.TextureWrapS, (int)TextureWrapMode.Repeat);
-            GL.TexParameter((All)TextureTarget.Texture2D, TextureParameterName.TextureWrapT, (int)TextureWrapMode.Repeat);
-            GL.BindTexture((All)TextureTarget.Texture2D, 0);
+            GL.PixelStore(PixelStoreParameter.UnpackAlignment, 4);
+            GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureMinFilter, (int)TextureMinFilter.Linear);
+            GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureMagFilter, (int)TextureMagFilter.Linear);
+            GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureWrapS, (int)TextureWrapMode.Repeat);
+            GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureWrapT, (int)TextureWrapMode.Repeat);
+            GL.BindTexture(TextureTarget.Texture2D, 0);
 
             _meshes.Add(rm);
         }
@@ -370,11 +370,11 @@ void main(){
         {
             GL.UniformMatrix4(_modelModelLoc, false, ref model);
             GL.ActiveTexture(TextureUnit.Texture0);
-            GL.BindTexture((All)TextureTarget.Texture2D, rm.Texture);
+            GL.BindTexture(TextureTarget.Texture2D, rm.Texture);
             GL.Uniform1(_texLoc, 0);
             GL.Uniform4(_modelColorLoc, rm.Color);
             GL.BindVertexArray(rm.Vao);
-            GL.DrawElements((All)PrimitiveType.Triangles, rm.IndexCount, (All)DrawElementsType.UnsignedInt, IntPtr.Zero);
+            GL.DrawElements(PrimitiveType.Triangles, rm.IndexCount, DrawElementsType.UnsignedInt, IntPtr.Zero);
             GL.BindVertexArray(0);
         }
         // グリッド描画では透過を利用するためブレンドを再度有効化
