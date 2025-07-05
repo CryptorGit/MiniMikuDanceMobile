@@ -10,10 +10,15 @@ namespace MiniMikuDanceMaui;
 public class SimpleCubeRenderer : IDisposable
 {
     private int _program;
-    private int _modelVbo;
-    private int _modelVao;
-    private int _modelEbo;
-    private int _modelIndexCount;
+    private class RenderMesh
+    {
+        public int Vao;
+        public int Vbo;
+        public int Ebo;
+        public int Texture;
+        public int IndexCount;
+    }
+    private readonly System.Collections.Generic.List<RenderMesh> _meshes = new();
     private int _gridVao;
     private int _gridVbo;
     private int _modelLoc;
@@ -31,7 +36,6 @@ public class SimpleCubeRenderer : IDisposable
     private int _modelViewLoc;
     private int _modelProjLoc;
     private int _texLoc;
-    private int _tex;
     private Matrix4 _modelTransform = Matrix4.Identity;
     private int _width;
     private int _height;
@@ -200,122 +204,134 @@ void main(){
 
     public void LoadModel(MiniMikuDance.Import.ModelData data)
     {
-        if (_modelVao != 0)
+        foreach (var rm in _meshes)
         {
-            GL.DeleteVertexArray(_modelVao);
-            GL.DeleteBuffer(_modelVbo);
-            GL.DeleteBuffer(_modelEbo);
-            if (_tex != 0)
-            {
-                GL.DeleteTexture(_tex);
-                _tex = 0;
-            }
+            if (rm.Vao != 0) GL.DeleteVertexArray(rm.Vao);
+            if (rm.Vbo != 0) GL.DeleteBuffer(rm.Vbo);
+            if (rm.Ebo != 0) GL.DeleteBuffer(rm.Ebo);
+            if (rm.Texture != 0) GL.DeleteTexture(rm.Texture);
         }
+        _meshes.Clear();
 
         _modelTransform = data.Transform.ToMatrix4();
 
-        int vcount = data.Mesh.VertexCount;
-        float[] verts = new float[vcount * 8];
-        for (int i = 0; i < vcount; i++)
+        if (data.SubMeshes.Count == 0)
         {
-            var v = data.Mesh.Vertices[i];
-            verts[i * 8 + 0] = v.X;
-            verts[i * 8 + 1] = v.Y;
-            verts[i * 8 + 2] = v.Z;
-            if (i < data.Mesh.Normals.Count)
+            data.SubMeshes.Add(new MiniMikuDance.Import.SubMeshData
             {
-                var n = data.Mesh.Normals[i];
-                verts[i * 8 + 3] = n.X;
-                verts[i * 8 + 4] = n.Y;
-                verts[i * 8 + 5] = n.Z;
+                Mesh = data.Mesh,
+                TextureData = data.TextureData,
+                TextureWidth = data.TextureWidth,
+                TextureHeight = data.TextureHeight
+            });
+        }
+
+        foreach (var sm in data.SubMeshes)
+        {
+            int vcount = sm.Mesh.VertexCount;
+            float[] verts = new float[vcount * 8];
+            for (int i = 0; i < vcount; i++)
+            {
+                var v = sm.Mesh.Vertices[i];
+                verts[i * 8 + 0] = v.X;
+                verts[i * 8 + 1] = v.Y;
+                verts[i * 8 + 2] = v.Z;
+                if (i < sm.Mesh.Normals.Count)
+                {
+                    var n = sm.Mesh.Normals[i];
+                    verts[i * 8 + 3] = n.X;
+                    verts[i * 8 + 4] = n.Y;
+                    verts[i * 8 + 5] = n.Z;
+                }
+                else
+                {
+                    verts[i * 8 + 3] = 0f;
+                    verts[i * 8 + 4] = 0f;
+                    verts[i * 8 + 5] = 1f;
+                }
+                if (sm.Mesh.TextureCoordinateChannelCount > 0 && i < sm.Mesh.TextureCoordinateChannels[0].Count)
+                {
+                    var uv = sm.Mesh.TextureCoordinateChannels[0][i];
+                    verts[i * 8 + 6] = uv.X;
+                    verts[i * 8 + 7] = uv.Y;
+                }
+                else
+                {
+                    verts[i * 8 + 6] = 0f;
+                    verts[i * 8 + 7] = 0f;
+                }
+            }
+
+            var indices = new System.Collections.Generic.List<uint>();
+            foreach (var f in sm.Mesh.Faces)
+            {
+                foreach (var idx in f.Indices)
+                    indices.Add((uint)idx);
+            }
+
+            var rm = new RenderMesh();
+            rm.IndexCount = indices.Count;
+            rm.Vao = GL.GenVertexArray();
+            rm.Vbo = GL.GenBuffer();
+            rm.Ebo = GL.GenBuffer();
+
+            GL.BindVertexArray(rm.Vao);
+            GL.BindBuffer(BufferTarget.ArrayBuffer, rm.Vbo);
+            GL.BufferData(BufferTarget.ArrayBuffer, verts.Length * sizeof(float), verts, BufferUsageHint.StaticDraw);
+            int stride = 8 * sizeof(float);
+            GL.VertexAttribPointer(0, 3, VertexAttribPointerType.Float, false, stride, 0);
+            GL.EnableVertexAttribArray(0);
+            GL.VertexAttribPointer(1, 3, VertexAttribPointerType.Float, false, stride, 3 * sizeof(float));
+            GL.EnableVertexAttribArray(1);
+            GL.VertexAttribPointer(2, 2, VertexAttribPointerType.Float, false, stride, 6 * sizeof(float));
+            GL.EnableVertexAttribArray(2);
+            GL.BindBuffer(BufferTarget.ElementArrayBuffer, rm.Ebo);
+            GL.BufferData(BufferTarget.ElementArrayBuffer, indices.Count * sizeof(uint), indices.ToArray(), BufferUsageHint.StaticDraw);
+            GL.BindVertexArray(0);
+
+            rm.Texture = GL.GenTexture();
+            GL.BindTexture(TextureTarget.Texture2D, rm.Texture);
+            if (sm.TextureData != null)
+            {
+                var handle = GCHandle.Alloc(sm.TextureData, GCHandleType.Pinned);
+                try
+                {
+                    GL.TexImage2D(TextureTarget2d.Texture2D, 0,
+                        TextureComponentCount.Rgba,
+                        sm.TextureWidth, sm.TextureHeight, 0,
+                        PixelFormat.Rgba, PixelType.UnsignedByte,
+                        handle.AddrOfPinnedObject());
+                }
+                finally
+                {
+                    handle.Free();
+                }
             }
             else
             {
-                verts[i * 8 + 3] = 0f;
-                verts[i * 8 + 4] = 0f;
-                verts[i * 8 + 5] = 1f;
+                byte[] white = { 255, 255, 255, 255 };
+                var handle = GCHandle.Alloc(white, GCHandleType.Pinned);
+                try
+                {
+                    GL.TexImage2D(TextureTarget2d.Texture2D, 0,
+                        TextureComponentCount.Rgba,
+                        1, 1, 0,
+                        PixelFormat.Rgba, PixelType.UnsignedByte,
+                        handle.AddrOfPinnedObject());
+                }
+                finally
+                {
+                    handle.Free();
+                }
             }
-            if (data.Mesh.TextureCoordinateChannelCount > 0 && i < data.Mesh.TextureCoordinateChannels[0].Count)
-            {
-                var uv = data.Mesh.TextureCoordinateChannels[0][i];
-                verts[i * 8 + 6] = uv.X;
-                verts[i * 8 + 7] = uv.Y;
-            }
-            else
-            {
-                verts[i * 8 + 6] = 0f;
-                verts[i * 8 + 7] = 0f;
-            }
-        }
-        var indices = new System.Collections.Generic.List<uint>();
-        foreach (var f in data.Mesh.Faces)
-        {
-            foreach (var idx in f.Indices)
-                indices.Add((uint)idx);
-        }
-        _modelIndexCount = indices.Count;
+            GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureMinFilter, (int)TextureMinFilter.Linear);
+            GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureMagFilter, (int)TextureMagFilter.Linear);
+            GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureWrapS, (int)TextureWrapMode.Repeat);
+            GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureWrapT, (int)TextureWrapMode.Repeat);
+            GL.BindTexture(TextureTarget.Texture2D, 0);
 
-        _modelVao = GL.GenVertexArray();
-        _modelVbo = GL.GenBuffer();
-        _modelEbo = GL.GenBuffer();
-        GL.BindVertexArray(_modelVao);
-        GL.BindBuffer(BufferTarget.ArrayBuffer, _modelVbo);
-        GL.BufferData(BufferTarget.ArrayBuffer, verts.Length * sizeof(float), verts, BufferUsageHint.StaticDraw);
-        int stride = 8 * sizeof(float);
-        GL.VertexAttribPointer(0, 3, VertexAttribPointerType.Float, false, stride, 0);
-        GL.EnableVertexAttribArray(0);
-        GL.VertexAttribPointer(1, 3, VertexAttribPointerType.Float, false, stride, 3 * sizeof(float));
-        GL.EnableVertexAttribArray(1);
-        GL.VertexAttribPointer(2, 2, VertexAttribPointerType.Float, false, stride, 6 * sizeof(float));
-        GL.EnableVertexAttribArray(2);
-        GL.BindBuffer(BufferTarget.ElementArrayBuffer, _modelEbo);
-        GL.BufferData(BufferTarget.ElementArrayBuffer, indices.Count * sizeof(uint), indices.ToArray(), BufferUsageHint.StaticDraw);
-        GL.BindVertexArray(0);
-
-        _tex = GL.GenTexture();
-        GL.BindTexture(TextureTarget.Texture2D, _tex);
-        if (data.TextureData != null)
-        {
-        // GL.TexImage2D の All 列挙型オーバーロードを避け、
-        // 型安全な引数を渡すことでビルド時の変換エラーを防ぐ
-            var handle = GCHandle.Alloc(data.TextureData, GCHandleType.Pinned);
-            try
-            {
-                GL.TexImage2D(TextureTarget2d.Texture2D, 0,
-                    TextureComponentCount.Rgba,
-                    data.TextureWidth, data.TextureHeight, 0,
-                    PixelFormat.Rgba, PixelType.UnsignedByte,
-                    handle.AddrOfPinnedObject());
-            }
-            finally
-            {
-                handle.Free();
-            }
+            _meshes.Add(rm);
         }
-        else
-        {
-            // モデルにテクスチャが無い場合は 1x1 の白テクスチャを生成
-            byte[] white = { 255, 255, 255, 255 };
-            var handle = GCHandle.Alloc(white, GCHandleType.Pinned);
-            // All 列挙型を使用せず安全に生成
-            try
-            {
-                GL.TexImage2D(TextureTarget2d.Texture2D, 0,
-                    TextureComponentCount.Rgba,
-                    1, 1, 0,
-                    PixelFormat.Rgba, PixelType.UnsignedByte,
-                    handle.AddrOfPinnedObject());
-            }
-            finally
-            {
-                handle.Free();
-            }
-        }
-        GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureMinFilter, (int)TextureMinFilter.Linear);
-        GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureMagFilter, (int)TextureMagFilter.Linear);
-        GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureWrapS, (int)TextureWrapMode.Repeat);
-        GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureWrapT, (int)TextureWrapMode.Repeat);
-        GL.BindTexture(TextureTarget.Texture2D, 0);
     }
 
     public void Render()
@@ -336,14 +352,14 @@ void main(){
         GL.UseProgram(_modelProgram);
         GL.UniformMatrix4(_modelViewLoc, false, ref view);
         GL.UniformMatrix4(_modelProjLoc, false, ref proj);
-        if (_modelIndexCount > 0)
+        foreach (var rm in _meshes)
         {
             GL.UniformMatrix4(_modelModelLoc, false, ref model);
             GL.ActiveTexture(TextureUnit.Texture0);
-            GL.BindTexture(TextureTarget.Texture2D, _tex);
+            GL.BindTexture(TextureTarget.Texture2D, rm.Texture);
             GL.Uniform1(_texLoc, 0);
-            GL.BindVertexArray(_modelVao);
-            GL.DrawElements(PrimitiveType.Triangles, _modelIndexCount, DrawElementsType.UnsignedInt, IntPtr.Zero);
+            GL.BindVertexArray(rm.Vao);
+            GL.DrawElements(PrimitiveType.Triangles, rm.IndexCount, DrawElementsType.UnsignedInt, IntPtr.Zero);
             GL.BindVertexArray(0);
         }
 
@@ -367,14 +383,18 @@ void main(){
 
     public void Dispose()
     {
-        if (_modelVbo != 0) GL.DeleteBuffer(_modelVbo);
-        if (_modelEbo != 0) GL.DeleteBuffer(_modelEbo);
+        foreach (var rm in _meshes)
+        {
+            if (rm.Vao != 0) GL.DeleteVertexArray(rm.Vao);
+            if (rm.Vbo != 0) GL.DeleteBuffer(rm.Vbo);
+            if (rm.Ebo != 0) GL.DeleteBuffer(rm.Ebo);
+            if (rm.Texture != 0) GL.DeleteTexture(rm.Texture);
+        }
+        _meshes.Clear();
         GL.DeleteBuffer(_gridVbo);
         GL.DeleteBuffer(_groundVbo);
-        if (_modelVao != 0) GL.DeleteVertexArray(_modelVao);
         GL.DeleteVertexArray(_gridVao);
         GL.DeleteVertexArray(_groundVao);
-        if (_tex != 0) GL.DeleteTexture(_tex);
         GL.DeleteProgram(_program);
         GL.DeleteProgram(_modelProgram);
    }
