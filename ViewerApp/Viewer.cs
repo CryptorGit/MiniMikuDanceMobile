@@ -21,6 +21,7 @@ public class Viewer : IDisposable
         public int Ebo;
         public int Texture;
         public int IndexCount;
+        public Vector4 Color = Vector4.One;
     }
 
     private readonly GameWindow _window;
@@ -30,6 +31,7 @@ public class Viewer : IDisposable
     private readonly int _viewLoc;
     private readonly int _projLoc;
     private readonly int _texLoc;
+    private readonly int _colorLoc;
     private readonly Matrix4 _modelTransform;
     private Matrix4 _view = Matrix4.Identity;
     private readonly Stopwatch _timer = new();
@@ -73,10 +75,11 @@ public class Viewer : IDisposable
                            "in vec2 vUV;\n" +
                            "out vec4 FragColor;\n" +
                            "uniform sampler2D uTex;\n" +
+                           "uniform vec4 uColor;\n" +
                            "void main(){\n" +
                            "vec3 lightDir = normalize(vec3(0.3,0.6,0.7));\n" +
                            "float diff = max(dot(normalize(vNormal), lightDir), 0.2);\n" +
-                           "vec4 col = texture(uTex, vUV);\n" +
+                           "vec4 col = texture(uTex, vUV) * uColor;\n" +
                            // テクスチャのアルファは画面合成に使わない
                            "FragColor = vec4(col.rgb * diff, 1.0);\n" +
                            "}";
@@ -96,6 +99,7 @@ public class Viewer : IDisposable
         _viewLoc = GL.GetUniformLocation(_program, "uView");
         _projLoc = GL.GetUniformLocation(_program, "uProj");
         _texLoc = GL.GetUniformLocation(_program, "uTex");
+        _colorLoc = GL.GetUniformLocation(_program, "uColor");
 
         foreach (var sm in model.SubMeshes)
         {
@@ -118,6 +122,7 @@ public class Viewer : IDisposable
             rm.Vao = GL.GenVertexArray();
             rm.Vbo = GL.GenBuffer();
             rm.Ebo = GL.GenBuffer();
+            rm.Color = sm.ColorFactor;
 
             GL.BindVertexArray(rm.Vao);
             GL.BindBuffer(BufferTarget.ArrayBuffer, rm.Vbo);
@@ -219,6 +224,7 @@ public class Viewer : IDisposable
             GL.ActiveTexture(TextureUnit.Texture0);
             GL.BindTexture(TextureTarget.Texture2D, rm.Texture);
             GL.Uniform1(_texLoc, 0);
+            GL.Uniform4(_colorLoc, rm.Color);
             GL.BindVertexArray(rm.Vao);
             GL.DrawElements(PrimitiveType.Triangles, rm.IndexCount, DrawElementsType.UnsignedInt, IntPtr.Zero);
             GL.BindVertexArray(0);

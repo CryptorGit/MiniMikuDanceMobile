@@ -17,6 +17,7 @@ public class SimpleCubeRenderer : IDisposable
         public int Ebo;
         public int Texture;
         public int IndexCount;
+        public Vector4 Color = Vector4.One;
     }
     private readonly System.Collections.Generic.List<RenderMesh> _meshes = new();
     private int _gridVao;
@@ -36,6 +37,7 @@ public class SimpleCubeRenderer : IDisposable
     private int _modelViewLoc;
     private int _modelProjLoc;
     private int _texLoc;
+    private int _modelColorLoc;
     private Matrix4 _modelTransform = Matrix4.Identity;
     private int _width;
     private int _height;
@@ -100,11 +102,12 @@ precision mediump float;
 in vec3 vNormal;
 in vec2 vUV;
 uniform sampler2D uTex;
+uniform vec4 uColor;
 out vec4 FragColor;
 void main(){
     vec3 lightDir = normalize(vec3(0.3,0.6,0.7));
     float diff = max(dot(normalize(vNormal), lightDir), 0.2);
-    vec4 col = texture(uTex, vUV);
+    vec4 col = texture(uTex, vUV) * uColor;
     // メッシュの透過を防ぐため、アルファは常に1
     FragColor = vec4(col.rgb * diff, 1.0);
 }";
@@ -124,6 +127,7 @@ void main(){
         _modelViewLoc = GL.GetUniformLocation(_modelProgram, "uView");
         _modelProjLoc = GL.GetUniformLocation(_modelProgram, "uProj");
         _texLoc = GL.GetUniformLocation(_modelProgram, "uTex");
+        _modelColorLoc = GL.GetUniformLocation(_modelProgram, "uColor");
 
 
 
@@ -279,6 +283,7 @@ void main(){
             rm.Vao = GL.GenVertexArray();
             rm.Vbo = GL.GenBuffer();
             rm.Ebo = GL.GenBuffer();
+            rm.Color = sm.ColorFactor;
 
             GL.BindVertexArray(rm.Vao);
             GL.BindBuffer(BufferTarget.ArrayBuffer, rm.Vbo);
@@ -367,6 +372,7 @@ void main(){
             GL.ActiveTexture(TextureUnit.Texture0);
             GL.BindTexture(TextureTarget.Texture2D, rm.Texture);
             GL.Uniform1(_texLoc, 0);
+            GL.Uniform4(_modelColorLoc, rm.Color);
             GL.BindVertexArray(rm.Vao);
             GL.DrawElements(PrimitiveType.Triangles, rm.IndexCount, DrawElementsType.UnsignedInt, IntPtr.Zero);
             GL.BindVertexArray(0);
