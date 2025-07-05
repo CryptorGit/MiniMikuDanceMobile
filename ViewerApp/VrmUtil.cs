@@ -6,7 +6,7 @@ using System.Text.Json;
 
 namespace ViewerApp;
 
-internal static class VrmUtil
+public static class VrmUtil
 {
     public static Dictionary<int, int> ReadMainTextureIndices(byte[] glb)
     {
