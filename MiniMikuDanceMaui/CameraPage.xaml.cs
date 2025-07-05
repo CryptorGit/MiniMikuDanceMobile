@@ -15,6 +15,8 @@ using Microsoft.Maui.Devices;
 using System.IO;
 using System.Linq;
 using MiniMikuDance.Import;
+using OpenTK.Mathematics;
+using MiniMikuDance.Util;
 
 namespace MiniMikuDanceMaui;
 
@@ -42,6 +44,7 @@ public partial class CameraPage : ContentPage
     private bool _glInitialized;
     private ModelData? _pendingModel;
     private ModelData? _currentModel;
+    private int _selectedBoneIndex = 0;
     private readonly Dictionary<long, SKPoint> _touchPoints = new();
 
     public CameraPage()
@@ -187,6 +190,14 @@ public partial class CameraPage : ContentPage
     {
         LogService.WriteLine("POSE button clicked");
         ShowBottomFeature("POSE");
+        HideViewMenu();
+        HideSettingMenu();
+    }
+
+    private void OnBoneClicked(object? sender, EventArgs e)
+    {
+        LogService.WriteLine("BONE button clicked");
+        ShowBottomFeature("BONE");
         HideViewMenu();
         HideSettingMenu();
     }
@@ -522,6 +533,32 @@ public partial class CameraPage : ContentPage
                 ev.LoadDirectory(modelsPath);
                 view = ev;
             }
+            else if (name == "BONE")
+            {
+                var bv = new BoneView();
+                if (_currentModel != null)
+                {
+                    var list = new List<string>();
+                    for (int i = 0; i < _currentModel.Bones.Count; i++)
+                    {
+                        var name = _currentModel.Bones[i].Name;
+                        list.Add(string.IsNullOrEmpty(name) ? $"Bone{i}" : name);
+                    }
+                    bv.SetBones(list);
+                    if (_currentModel.Bones.Count > 0)
+                        bv.SetRotation(_currentModel.Bones[0].Rotation.ToEulerDegrees());
+                }
+                bv.BoneSelected += idx =>
+                {
+                    _selectedBoneIndex = idx;
+                    if (_currentModel != null && idx >= 0 && idx < _currentModel.Bones.Count)
+                        bv.SetRotation(_currentModel.Bones[idx].Rotation.ToEulerDegrees());
+                };
+                bv.RotationXChanged += v => UpdateSelectedBoneRotation(bv);
+                bv.RotationYChanged += v => UpdateSelectedBoneRotation(bv);
+                bv.RotationZChanged += v => UpdateSelectedBoneRotation(bv);
+                view = bv;
+            }
             else if (name == "MTOON")
             {
                 var mv = new MToonView
@@ -611,6 +648,21 @@ public partial class CameraPage : ContentPage
             sv.RotateSensitivity = _rotateSensitivity;
             sv.PanSensitivity = _panSensitivity;
             sv.CameraLocked = _renderer.CameraLocked;
+        }
+        else if (name == "BONE" && _bottomViews[name] is BoneView bv)
+        {
+            if (_currentModel != null)
+            {
+                var list = new List<string>();
+                for (int i = 0; i < _currentModel.Bones.Count; i++)
+                {
+                    var bname = _currentModel.Bones[i].Name;
+                    list.Add(string.IsNullOrEmpty(bname) ? $"Bone{i}" : bname);
+                }
+                bv.SetBones(list);
+                if (_selectedBoneIndex >= 0 && _selectedBoneIndex < _currentModel.Bones.Count)
+                    bv.SetRotation(_currentModel.Bones[_selectedBoneIndex].Rotation.ToEulerDegrees());
+            }
         }
         else if (name == "MTOON" && _bottomViews[name] is MToonView mv)
         {
@@ -779,4 +831,15 @@ public partial class CameraPage : ContentPage
         UpdateLayout();
     }
 
+    private void UpdateSelectedBoneRotation(BoneView bv)
+    {
+        if (_currentModel == null) return;
+        if (_selectedBoneIndex < 0 || _selectedBoneIndex >= _currentModel.Bones.Count)
+            return;
+
+        var euler = new OpenTK.Mathematics.Vector3(bv.RotationX, bv.RotationY, bv.RotationZ);
+        _currentModel.Bones[_selectedBoneIndex].Rotation = euler.FromEulerDegrees();
+        _renderer.BoneRotation = euler;
+        Viewer?.InvalidateSurface();
+    }
 }
