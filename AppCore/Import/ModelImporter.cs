@@ -136,6 +136,8 @@ public class ModelImporter
             transform = System.Numerics.Matrix4x4.Multiply(transform, m);
         }
 
+        VerifyMeshWinding(mesh);
+
         Debug.WriteLine($"[ModelImporter] VRM loaded: {mesh.VertexCount} vertices");
 
         return new ModelData
@@ -147,4 +149,23 @@ public class ModelImporter
             Transform = transform
         };
     }
+
+    private static void VerifyMeshWinding(Assimp.Mesh mesh)
+    {
+        if (mesh.FaceCount == 0) return;
+        var face = mesh.Faces[0];
+        if (face.IndexCount < 3) return;
+        var a = ToVector3(mesh.Vertices[face.Indices[0]]);
+        var b = ToVector3(mesh.Vertices[face.Indices[1]]);
+        var c = ToVector3(mesh.Vertices[face.Indices[2]]);
+        var normal = face.Indices[0] < mesh.Normals.Count
+            ? ToVector3(mesh.Normals[face.Indices[0]])
+            : System.Numerics.Vector3.UnitZ;
+        var cross = System.Numerics.Vector3.Cross(b - a, c - a);
+        float dot = System.Numerics.Vector3.Dot(cross, normal);
+        Debug.WriteLine($"[ModelImporter] First face winding {(dot >= 0 ? "CCW" : "CW")}");
+    }
+
+    private static System.Numerics.Vector3 ToVector3(Vector3D v)
+        => new System.Numerics.Vector3(v.X, v.Y, v.Z);
 }
