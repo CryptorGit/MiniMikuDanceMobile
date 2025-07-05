@@ -60,58 +60,70 @@ public class ModelImporter
     private ModelData ImportVrm(SharpGLTF.Schema2.ModelRoot model)
     {
         var mesh = new Assimp.Mesh("mesh", Assimp.PrimitiveType.Triangle);
-
-        var prim = model.LogicalMeshes.First().Primitives.First();
-        var positions = prim.GetVertexAccessor("POSITION").AsVector3Array();
-        var normals = prim.GetVertexAccessor("NORMAL")?.AsVector3Array();
-        var uvs = prim.GetVertexAccessor("TEXCOORD_0")?.AsVector2Array();
-
-        foreach (var v in positions)
-        {
-            mesh.Vertices.Add(new Vector3D(v.X, v.Y, v.Z));
-        }
-
-        if (normals != null)
-        {
-            foreach (var n in normals)
-            {
-                mesh.Normals.Add(new Vector3D(n.X, n.Y, n.Z));
-            }
-        }
-
-        if (uvs != null)
-        {
-            for (int i = 0; i < uvs.Count; i++)
-            {
-                var uv = uvs[i];
-                mesh.TextureCoordinateChannels[0].Add(new Vector3D(uv.X, uv.Y, 0));
-            }
-        }
-
-        var indices = prim.IndexAccessor.AsIndicesArray();
-        for (int i = 0; i < indices.Count; i += 3)
-        {
-            var face = new Face();
-            face.Indices.Add((int)indices[i]);
-            face.Indices.Add((int)indices[i + 1]);
-            face.Indices.Add((int)indices[i + 2]);
-            mesh.Faces.Add(face);
-        }
-
         byte[]? texBytes = null;
         int texW = 0;
         int texH = 0;
+        int indexOffset = 0;
 
-        GLTFImage? image = prim.Material?.FindChannel("BaseColor")?.Texture?.PrimaryImage
-            ?? model.LogicalImages.FirstOrDefault();
-        if (image != null)
+        foreach (var logical in model.LogicalMeshes)
         {
-            using var stream = image.OpenImageFile();
-            using var img = Image.Load<Rgba32>(stream);
-            texW = img.Width;
-            texH = img.Height;
-            texBytes = new byte[texW * texH * 4];
-            img.CopyPixelDataTo(texBytes);
+            foreach (var prim in logical.Primitives)
+            {
+                var positions = prim.GetVertexAccessor("POSITION").AsVector3Array();
+                var normals = prim.GetVertexAccessor("NORMAL")?.AsVector3Array();
+                var uvs = prim.GetVertexAccessor("TEXCOORD_0")?.AsVector2Array();
+
+                for (int i = 0; i < positions.Count; i++)
+                {
+                    var v = positions[i];
+                    mesh.Vertices.Add(new Vector3D(v.X, v.Y, v.Z));
+                    if (normals != null && i < normals.Count)
+                    {
+                        var n = normals[i];
+                        mesh.Normals.Add(new Vector3D(n.X, n.Y, n.Z));
+                    }
+                    else
+                    {
+                        mesh.Normals.Add(new Vector3D(0, 0, 1));
+                    }
+                    if (uvs != null && i < uvs.Count)
+                    {
+                        var uv = uvs[i];
+                        mesh.TextureCoordinateChannels[0].Add(new Vector3D(uv.X, uv.Y, 0));
+                    }
+                    else
+                    {
+                        mesh.TextureCoordinateChannels[0].Add(new Vector3D(0, 0, 0));
+                    }
+                }
+
+                var indices = prim.IndexAccessor.AsIndicesArray();
+                for (int i = 0; i < indices.Count; i += 3)
+                {
+                    var face = new Face();
+                    face.Indices.Add((int)indices[i] + indexOffset);
+                    face.Indices.Add((int)indices[i + 1] + indexOffset);
+                    face.Indices.Add((int)indices[i + 2] + indexOffset);
+                    mesh.Faces.Add(face);
+                }
+
+                indexOffset += positions.Count;
+
+                if (texBytes == null)
+                {
+                    GLTFImage? image = prim.Material?.FindChannel("BaseColor")?.Texture?.PrimaryImage
+                        ?? model.LogicalImages.FirstOrDefault();
+                    if (image != null)
+                    {
+                        using var stream = image.OpenImageFile();
+                        using var img = Image.Load<Rgba32>(stream);
+                        texW = img.Width;
+                        texH = img.Height;
+                        texBytes = new byte[texW * texH * 4];
+                        img.CopyPixelDataTo(texBytes);
+                    }
+                }
+            }
         }
 
         var transform = System.Numerics.Matrix4x4.Identity;
