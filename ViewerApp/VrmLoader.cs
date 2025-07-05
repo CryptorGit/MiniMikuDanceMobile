@@ -5,6 +5,7 @@ using System.Numerics;
 using SharpGLTF.Schema2;
 using ImageSharpImage = SixLabors.ImageSharp.Image;
 using SixLabors.ImageSharp.PixelFormats;
+using SixLabors.ImageSharp.Processing;
 
 namespace ViewerApp;
 
@@ -82,8 +83,7 @@ internal static class VrmLoader
                     {
                         var uv = System.Numerics.Vector2.Transform(uvs[i], mat);
                         tex[i * 2 + 0] = uv.X;
-                        // ImageSharp は上端原点なので V を反転
-                        tex[i * 2 + 1] = 1.0f - uv.Y;
+                        tex[i * 2 + 1] = uv.Y;
                     }
                 }
 
@@ -104,6 +104,7 @@ internal static class VrmLoader
                 {
                     using var stream = image.OpenImageFile();
                     using var img = ImageSharpImage.Load<Rgba32>(stream);
+                    img.Mutate(x => x.Flip(FlipMode.Vertical));
                     texW = img.Width;
                     texH = img.Height;
                     texBytes = new byte[texW * texH * 4];
