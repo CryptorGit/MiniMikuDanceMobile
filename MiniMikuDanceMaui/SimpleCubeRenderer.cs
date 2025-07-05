@@ -107,8 +107,8 @@ void main(){
     vec3 lightDir = normalize(vec3(0.3,0.6,0.7));
     float diff = max(dot(normalize(vNormal), lightDir), 0.2);
     vec4 col = texture(uTex, vUV) * uColor;
-    // 不透明描画のためアルファは 1.0 固定
-    FragColor = vec4(col.rgb * diff, 1.0);
+    // テクスチャのアルファも利用する
+    FragColor = vec4(col.rgb * diff, col.a);
 }";
         int mvs = GL.CreateShader(ShaderType.VertexShader);
         GL.ShaderSource(mvs, modelVert);
@@ -365,8 +365,8 @@ void main(){
         GL.UseProgram(_modelProgram);
         GL.UniformMatrix4(_modelViewLoc, false, ref view);
         GL.UniformMatrix4(_modelProjLoc, false, ref proj);
-        // 不透明描画のためブレンドは無効化
-        GL.Disable(EnableCap.Blend);
+        // テクスチャのアルファを利用するためブレンドを有効化
+        GL.Enable(EnableCap.Blend);
         foreach (var rm in _meshes)
         {
             GL.UniformMatrix4(_modelModelLoc, false, ref model);
