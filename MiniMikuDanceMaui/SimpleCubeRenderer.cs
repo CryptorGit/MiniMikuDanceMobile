@@ -263,7 +263,7 @@ void main(){
                 {
                     var uv = sm.Mesh.TextureCoordinateChannels[0][i];
                     verts[i * 8 + 6] = uv.X;
-                    verts[i * 8 + 7] = 1f - uv.Y;
+                    verts[i * 8 + 7] = uv.Y;
                 }
                 else
                 {
