@@ -129,8 +129,7 @@ public class ModelImporter
                 byte[]? texBytes = null;
                 int texW = 0;
                 int texH = 0;
-                GLTFImage? image = prim.Material?.FindChannel("BaseColor")?.Texture?.PrimaryImage
-                    ?? model.LogicalImages.FirstOrDefault();
+                GLTFImage? image = prim.Material?.FindChannel("BaseColor")?.Texture?.PrimaryImage;
                 if (image != null)
                 {
                     using var stream = image.OpenImageFile();
@@ -158,12 +157,11 @@ public class ModelImporter
             }
         }
 
-        var transform = System.Numerics.Matrix4x4.CreateScale(1f, 1f, -1f);
+        var transform = System.Numerics.Matrix4x4.Identity;
         var node = model.DefaultScene?.VisualChildren.FirstOrDefault();
         if (node != null)
         {
-            var m = node.WorldMatrix;
-            transform = System.Numerics.Matrix4x4.Multiply(transform, m);
+            transform = node.WorldMatrix;
         }
 
         VerifyMeshWinding(combined);

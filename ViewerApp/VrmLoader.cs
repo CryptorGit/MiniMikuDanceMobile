@@ -76,8 +76,7 @@ internal static class VrmLoader
         byte[]? texBytes = null;
         int texW = 0;
         int texH = 0;
-        var image = prim.Material?.FindChannel("BaseColor")?.Texture?.PrimaryImage
-            ?? model.LogicalImages.FirstOrDefault();
+        var image = prim.Material?.FindChannel("BaseColor")?.Texture?.PrimaryImage;
         if (image != null)
         {
             using var stream = image.OpenImageFile();
@@ -88,12 +87,12 @@ internal static class VrmLoader
             img.CopyPixelDataTo(texBytes);
         }
 
-        Matrix4 transform = Matrix4.CreateScale(1f, 1f, -1f);
+        Matrix4 transform = Matrix4.Identity;
         var node = model.DefaultScene?.VisualChildren.FirstOrDefault();
         if (node != null)
         {
             var m = node.WorldMatrix;
-            transform *= new Matrix4(
+            transform = new Matrix4(
                 m.M11, m.M12, m.M13, m.M14,
                 m.M21, m.M22, m.M23, m.M24,
                 m.M31, m.M32, m.M33, m.M34,
