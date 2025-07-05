@@ -20,6 +20,8 @@ public class Viewer : IDisposable
         public int Ebo;
         public int IndexCount;
         public Vector4 Color = Vector4.One;
+        public int Texture;
+        public bool HasTexture;
     }
 
     private readonly GameWindow _window;
@@ -27,6 +29,8 @@ public class Viewer : IDisposable
     private readonly int _program;
     private readonly int _mvpLoc;
     private readonly int _colorLoc;
+    private readonly int _texLoc;
+    private readonly int _useTexLoc;
     private readonly Matrix4 _modelTransform;
     private Matrix4 _view = Matrix4.Identity;
     private readonly Stopwatch _timer = new();
@@ -55,15 +59,22 @@ public class Viewer : IDisposable
 
         const string vert = "#version 330 core\n" +
                            "layout(location=0) in vec3 aPos;\n" +
+                           "layout(location=1) in vec2 aTex;\n" +
                            "uniform mat4 uMVP;\n" +
+                           "out vec2 vTex;\n" +
                            "void main(){\n" +
+                           "vTex = aTex;\n" +
                            "gl_Position = uMVP * vec4(aPos,1.0);\n" +
                            "}";
         const string frag = "#version 330 core\n" +
                            "out vec4 FragColor;\n" +
+                           "in vec2 vTex;\n" +
                            "uniform vec4 uColor;\n" +
+                           "uniform sampler2D uTex;\n" +
+                           "uniform bool uUseTex;\n" +
                            "void main(){\n" +
-                           "FragColor = uColor;\n" +
+                           "vec4 base = uUseTex ? texture(uTex, vTex) : uColor;\n" +
+                           "FragColor = base;\n" +
                            "}";
         int vs = GL.CreateShader(ShaderType.VertexShader);
         GL.ShaderSource(vs, vert);
@@ -79,16 +90,28 @@ public class Viewer : IDisposable
         GL.DeleteShader(fs);
         _mvpLoc = GL.GetUniformLocation(_program, "uMVP");
         _colorLoc = GL.GetUniformLocation(_program, "uColor");
+        _texLoc = GL.GetUniformLocation(_program, "uTex");
+        _useTexLoc = GL.GetUniformLocation(_program, "uUseTex");
 
         foreach (var sm in model.SubMeshes)
         {
             int vcount = sm.Positions.Length / 3;
-            float[] verts = new float[vcount * 3];
+            float[] verts = new float[vcount * 5];
             for (int i = 0; i < vcount; i++)
             {
-                verts[i * 3 + 0] = sm.Positions[i * 3 + 0];
-                verts[i * 3 + 1] = sm.Positions[i * 3 + 1];
-                verts[i * 3 + 2] = sm.Positions[i * 3 + 2];
+                verts[i * 5 + 0] = sm.Positions[i * 3 + 0];
+                verts[i * 5 + 1] = sm.Positions[i * 3 + 1];
+                verts[i * 5 + 2] = sm.Positions[i * 3 + 2];
+                if (sm.TexCoords.Length >= (i + 1) * 2)
+                {
+                    verts[i * 5 + 3] = sm.TexCoords[i * 2 + 0];
+                    verts[i * 5 + 4] = sm.TexCoords[i * 2 + 1];
+                }
+                else
+                {
+                    verts[i * 5 + 3] = 0f;
+                    verts[i * 5 + 4] = 0f;
+                }
             }
 
             var rm = new RenderMesh();
@@ -101,14 +124,24 @@ public class Viewer : IDisposable
             GL.BindVertexArray(rm.Vao);
             GL.BindBuffer(BufferTarget.ArrayBuffer, rm.Vbo);
             GL.BufferData(BufferTarget.ArrayBuffer, verts.Length * sizeof(float), verts, BufferUsageHint.StaticDraw);
-        int stride = 3 * sizeof(float);
+        int stride = 5 * sizeof(float);
         GL.VertexAttribPointer(0, 3, VertexAttribPointerType.Float, false, stride, 0);
         GL.EnableVertexAttribArray(0);
+        GL.VertexAttribPointer(1, 2, VertexAttribPointerType.Float, false, stride, 3 * sizeof(float));
+        GL.EnableVertexAttribArray(1);
             GL.BindBuffer(BufferTarget.ElementArrayBuffer, rm.Ebo);
             GL.BufferData(BufferTarget.ElementArrayBuffer, sm.Indices.Length * sizeof(uint), sm.Indices, BufferUsageHint.StaticDraw);
             GL.BindVertexArray(0);
 
-            // テクスチャ読み込みを省略
+            if (sm.TextureBytes != null)
+            {
+                rm.Texture = GL.GenTexture();
+                GL.BindTexture(TextureTarget.Texture2D, rm.Texture);
+                GL.TexImage2D(TextureTarget.Texture2D, 0, PixelInternalFormat.Rgba, sm.TextureWidth, sm.TextureHeight, 0, PixelFormat.Rgba, PixelType.UnsignedByte, sm.TextureBytes);
+                GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureMinFilter, (int)TextureMinFilter.Linear);
+                GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureMagFilter, (int)TextureMagFilter.Linear);
+                rm.HasTexture = true;
+            }
 
             _meshes.Add(rm);
         }
@@ -150,9 +183,24 @@ public class Viewer : IDisposable
         foreach (var rm in _meshes)
         {
             GL.Uniform4(_colorLoc, rm.Color);
+            if (rm.HasTexture)
+            {
+                GL.ActiveTexture(TextureUnit.Texture0);
+                GL.BindTexture(TextureTarget.Texture2D, rm.Texture);
+                GL.Uniform1(_texLoc, 0);
+                GL.Uniform1(_useTexLoc, 1);
+            }
+            else
+            {
+                GL.Uniform1(_useTexLoc, 0);
+            }
             GL.BindVertexArray(rm.Vao);
             GL.DrawElements(PrimitiveType.Triangles, rm.IndexCount, DrawElementsType.UnsignedInt, IntPtr.Zero);
             GL.BindVertexArray(0);
+            if (rm.HasTexture)
+            {
+                GL.BindTexture(TextureTarget.Texture2D, 0);
+            }
         }
         _window.SwapBuffers();
     }
@@ -177,6 +225,7 @@ public class Viewer : IDisposable
             if (rm.Vao != 0) GL.DeleteVertexArray(rm.Vao);
             if (rm.Vbo != 0) GL.DeleteBuffer(rm.Vbo);
             if (rm.Ebo != 0) GL.DeleteBuffer(rm.Ebo);
+            if (rm.Texture != 0) GL.DeleteTexture(rm.Texture);
         }
         _meshes.Clear();
         GL.DeleteProgram(_program);
