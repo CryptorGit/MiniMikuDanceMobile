@@ -27,9 +27,7 @@ public class Viewer : IDisposable
     private readonly GameWindow _window;
     private readonly List<RenderMesh> _meshes = new();
     private readonly int _program;
-    private readonly int _modelLoc;
-    private readonly int _viewLoc;
-    private readonly int _projLoc;
+    private readonly int _mvpLoc;
     private readonly int _texLoc;
     private readonly int _colorLoc;
     private readonly Matrix4 _modelTransform;
@@ -60,30 +58,21 @@ public class Viewer : IDisposable
 
         const string vert = "#version 330 core\n" +
                            "layout(location=0) in vec3 aPos;\n" +
-                           "layout(location=1) in vec3 aNormal;\n" +
-                           "layout(location=2) in vec2 aUV;\n" +
-                           "out vec3 vNormal;\n" +
+                           "layout(location=1) in vec2 aUV;\n" +
                            "out vec2 vUV;\n" +
-                           "uniform mat4 uModel;\n" +
-                           "uniform mat4 uView;\n" +
-                           "uniform mat4 uProj;\n" +
+                           "uniform mat4 uMVP;\n" +
                            "void main(){\n" +
-                           "vNormal = mat3(uModel) * aNormal;\n" +
                            "vUV = aUV;\n" +
-                           "gl_Position = uProj * uView * uModel * vec4(aPos,1.0);\n" +
+                           "gl_Position = uMVP * vec4(aPos,1.0);\n" +
                            "}";
         const string frag = "#version 330 core\n" +
-                           "in vec3 vNormal;\n" +
                            "in vec2 vUV;\n" +
                            "out vec4 FragColor;\n" +
                            "uniform sampler2D uTex;\n" +
                            "uniform vec4 uColor;\n" +
                            "void main(){\n" +
-                           "vec3 lightDir = normalize(vec3(0.3,0.6,0.7));\n" +
-                           "float diff = max(dot(normalize(vNormal), lightDir), 0.2);\n" +
                            "vec4 col = texture(uTex, vUV) * uColor;\n" +
-                           // テクスチャのアルファも利用する
-                           "FragColor = vec4(col.rgb * diff, col.a);\n" +
+                           "FragColor = col;\n" +
                            "}";
         int vs = GL.CreateShader(ShaderType.VertexShader);
         GL.ShaderSource(vs, vert);
@@ -97,26 +86,21 @@ public class Viewer : IDisposable
         GL.LinkProgram(_program);
         GL.DeleteShader(vs);
         GL.DeleteShader(fs);
-        _modelLoc = GL.GetUniformLocation(_program, "uModel");
-        _viewLoc = GL.GetUniformLocation(_program, "uView");
-        _projLoc = GL.GetUniformLocation(_program, "uProj");
+        _mvpLoc = GL.GetUniformLocation(_program, "uMVP");
         _texLoc = GL.GetUniformLocation(_program, "uTex");
         _colorLoc = GL.GetUniformLocation(_program, "uColor");
 
         foreach (var sm in model.SubMeshes)
         {
             int vcount = sm.Positions.Length / 3;
-            float[] verts = new float[vcount * 8];
+            float[] verts = new float[vcount * 5];
             for (int i = 0; i < vcount; i++)
             {
-                verts[i * 8 + 0] = sm.Positions[i * 3 + 0];
-                verts[i * 8 + 1] = sm.Positions[i * 3 + 1];
-                verts[i * 8 + 2] = sm.Positions[i * 3 + 2];
-                verts[i * 8 + 3] = i * 3 < sm.Normals.Length ? sm.Normals[i * 3 + 0] : 0f;
-                verts[i * 8 + 4] = i * 3 < sm.Normals.Length ? sm.Normals[i * 3 + 1] : 0f;
-                verts[i * 8 + 5] = i * 3 < sm.Normals.Length ? sm.Normals[i * 3 + 2] : 1f;
-                verts[i * 8 + 6] = i * 2 < sm.TexCoords.Length ? sm.TexCoords[i * 2 + 0] : 0f;
-                verts[i * 8 + 7] = i * 2 < sm.TexCoords.Length ? sm.TexCoords[i * 2 + 1] : 0f;
+                verts[i * 5 + 0] = sm.Positions[i * 3 + 0];
+                verts[i * 5 + 1] = sm.Positions[i * 3 + 1];
+                verts[i * 5 + 2] = sm.Positions[i * 3 + 2];
+                verts[i * 5 + 3] = i * 2 < sm.TexCoords.Length ? sm.TexCoords[i * 2 + 0] : 0f;
+                verts[i * 5 + 4] = i * 2 < sm.TexCoords.Length ? sm.TexCoords[i * 2 + 1] : 0f;
             }
 
             var rm = new RenderMesh();
@@ -129,13 +113,11 @@ public class Viewer : IDisposable
             GL.BindVertexArray(rm.Vao);
             GL.BindBuffer(BufferTarget.ArrayBuffer, rm.Vbo);
             GL.BufferData(BufferTarget.ArrayBuffer, verts.Length * sizeof(float), verts, BufferUsageHint.StaticDraw);
-            int stride = 8 * sizeof(float);
+            int stride = 5 * sizeof(float);
             GL.VertexAttribPointer(0, 3, VertexAttribPointerType.Float, false, stride, 0);
             GL.EnableVertexAttribArray(0);
-            GL.VertexAttribPointer(1, 3, VertexAttribPointerType.Float, false, stride, 3 * sizeof(float));
+            GL.VertexAttribPointer(1, 2, VertexAttribPointerType.Float, false, stride, 3 * sizeof(float));
             GL.EnableVertexAttribArray(1);
-            GL.VertexAttribPointer(2, 2, VertexAttribPointerType.Float, false, stride, 6 * sizeof(float));
-            GL.EnableVertexAttribArray(2);
             GL.BindBuffer(BufferTarget.ElementArrayBuffer, rm.Ebo);
             GL.BufferData(BufferTarget.ElementArrayBuffer, sm.Indices.Length * sizeof(uint), sm.Indices, BufferUsageHint.StaticDraw);
             GL.BindVertexArray(0);
@@ -216,9 +198,8 @@ public class Viewer : IDisposable
         Matrix4 proj = Matrix4.CreatePerspectiveFieldOfView(MathHelper.PiOver4, Size.X / (float)Size.Y, 0.1f, 100f);
 
         GL.UseProgram(_program);
-        GL.UniformMatrix4(_modelLoc, false, ref model);
-        GL.UniformMatrix4(_viewLoc, false, ref _view);
-        GL.UniformMatrix4(_projLoc, false, ref proj);
+        Matrix4 mvp = proj * _view * model;
+        GL.UniformMatrix4(_mvpLoc, false, ref mvp);
         // メッシュ描画時も透過処理を行う
         GL.Enable(EnableCap.Blend);
         foreach (var rm in _meshes)
