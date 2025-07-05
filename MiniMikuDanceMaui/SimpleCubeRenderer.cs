@@ -321,6 +321,8 @@ void main(){
     public void Render()
     {
         GL.Enable(EnableCap.DepthTest);
+        GL.Enable(EnableCap.CullFace);
+        GL.FrontFace(FrontFaceDirection.Ccw);
         GL.ClearColor(1f, 1f, 1f, 1f);
         GL.Clear(ClearBufferMask.ColorBufferBit | ClearBufferMask.DepthBufferBit);
 

@@ -167,6 +167,8 @@ public class Viewer : IDisposable
         GL.BindTexture(TextureTarget.Texture2D, 0);
 
         GL.Enable(EnableCap.DepthTest);
+        GL.Enable(EnableCap.CullFace);
+        GL.FrontFace(FrontFaceDirection.Ccw);
         Debug.WriteLine("[Viewer] Initialized");
         _timer.Start();
     }
