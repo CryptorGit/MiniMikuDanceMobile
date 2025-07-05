@@ -308,10 +308,10 @@ void main(){
                 var handle = GCHandle.Alloc(sm.TextureData, GCHandleType.Pinned);
                 try
                 {
-                    GL.TexImage2D((All)TextureTarget.Texture2D, 0,
-                        (All)PixelInternalFormat.Rgba,
+                    GL.TexImage2D(TextureTarget.Texture2D, 0,
+                        PixelInternalFormat.Rgba,
                         sm.TextureWidth, sm.TextureHeight, 0,
-                        (All)PixelFormat.Rgba, (All)PixelType.UnsignedByte,
+                        PixelFormat.Rgba, PixelType.UnsignedByte,
                         handle.AddrOfPinnedObject());
                 }
                 finally
@@ -325,10 +325,10 @@ void main(){
                 var handle = GCHandle.Alloc(white, GCHandleType.Pinned);
                 try
                 {
-                    GL.TexImage2D((All)TextureTarget.Texture2D, 0,
-                        (All)PixelInternalFormat.Rgba,
+                    GL.TexImage2D(TextureTarget.Texture2D, 0,
+                        PixelInternalFormat.Rgba,
                         1, 1, 0,
-                        (All)PixelFormat.Rgba, (All)PixelType.UnsignedByte,
+                        PixelFormat.Rgba, PixelType.UnsignedByte,
                         handle.AddrOfPinnedObject());
                 }
                 finally
