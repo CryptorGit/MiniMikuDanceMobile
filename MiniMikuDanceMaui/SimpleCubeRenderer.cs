@@ -324,9 +324,9 @@ void main(){
                 var handle = System.Runtime.InteropServices.GCHandle.Alloc(sm.TextureBytes, System.Runtime.InteropServices.GCHandleType.Pinned);
                 try
                 {
-                    GL.TexImage2D(TextureTarget.Texture2D, 0, PixelInternalFormat.Rgba,
-                        sm.TextureWidth, sm.TextureHeight, 0, PixelFormat.Rgba,
-                        PixelType.UnsignedByte, handle.AddrOfPinnedObject());
+                    GL.TexImage2D((All)TextureTarget.Texture2D, 0, (All)PixelInternalFormat.Rgba,
+                        sm.TextureWidth, sm.TextureHeight, 0, (All)PixelFormat.Rgba,
+                        (All)PixelType.UnsignedByte, handle.AddrOfPinnedObject());
                 }
                 finally
                 {
