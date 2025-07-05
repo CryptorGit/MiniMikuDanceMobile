@@ -81,7 +81,8 @@ AGENTS.md で挙げたカテゴリをより細分化し、優先度や検討事�
 ## ドキュメント整備
 - [x] README の更新（Visual Studio / Windows セットアップ手順）
  - [x] global.json の SDK バージョンを 9.0.301 へ更新
- - [x] SDK バージョンを 9.0.301 に合わせ README と global.json を修正
+- [x] SDK バージョンを 9.0.301 に合わせ README と global.json を修正
+- [x] SDK バージョンは 9.0.301 で固定する旨を README に明記
 - [ ] モデル変換ガイドの追加
 - [ ] リリースノートの作成
 
