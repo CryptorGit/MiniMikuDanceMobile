@@ -1,8 +1,4 @@
 using Assimp;
-using GLTFImage = SharpGLTF.Schema2.Image;
-using SixLabors.ImageSharp;
-using SixLabors.ImageSharp.PixelFormats;
-using SixLabors.ImageSharp.Processing;
 using System.IO;
 using System.Linq;
 using System.Diagnostics;
@@ -17,9 +13,6 @@ public class ModelData
     public List<SubMeshData> SubMeshes { get; } = new();
     public Assimp.Mesh Mesh { get; set; } = null!;
     public System.Numerics.Matrix4x4 Transform { get; set; } = System.Numerics.Matrix4x4.Identity;
-    public byte[]? TextureData { get; set; }
-    public int TextureWidth { get; set; }
-    public int TextureHeight { get; set; }
 }
 
 public class ModelImporter
@@ -32,10 +25,9 @@ public class ModelImporter
         using var ms = new MemoryStream();
         stream.CopyTo(ms);
         var bytes = ms.ToArray();
-        var mainTexMap = ViewerApp.VrmUtil.ReadMainTextureIndices(bytes);
         ms.Position = 0;
         var model = SharpGLTF.Schema2.ModelRoot.ReadGLB(ms);
-        return ImportVrm(model, mainTexMap);
+        return ImportVrm(model);
     }
 
     public ModelData ImportModel(string path)
@@ -63,13 +55,12 @@ public class ModelImporter
     {
         Debug.WriteLine($"[ModelImporter] Importing VRM: {path}");
         var bytes = File.ReadAllBytes(path);
-        var mainTexMap = ViewerApp.VrmUtil.ReadMainTextureIndices(bytes);
         using var ms = new MemoryStream(bytes);
         var model = SharpGLTF.Schema2.ModelRoot.ReadGLB(ms);
-        return ImportVrm(model, mainTexMap);
+        return ImportVrm(model);
     }
 
-    private ModelData ImportVrm(SharpGLTF.Schema2.ModelRoot model, Dictionary<int,int>? mainTextures = null)
+    private ModelData ImportVrm(SharpGLTF.Schema2.ModelRoot model)
     {
         var combined = new Assimp.Mesh("mesh", Assimp.PrimitiveType.Triangle);
         int combinedIndexOffset = 0;
@@ -83,8 +74,7 @@ public class ModelImporter
                 var positions = prim.GetVertexAccessor("POSITION").AsVector3Array();
                 var normals = prim.GetVertexAccessor("NORMAL")?.AsVector3Array();
                 var channel = prim.Material?.FindChannel("BaseColor");
-                int texCoordIndex = channel?.TextureTransform?.TextureCoordinateOverride ?? channel?.TextureCoordinate ?? 0;
-                var uvs = prim.GetVertexAccessor($"TEXCOORD_{texCoordIndex}")?.AsVector2Array();
+                // テクスチャ座標は読み込まない
 
                 for (int i = 0; i < positions.Count; i++)
                 {
@@ -105,26 +95,9 @@ public class ModelImporter
                         sub.Normals.Add(new Vector3D(0, 0, 1));
                         combined.Normals.Add(new Vector3D(0, 0, 1));
                     }
-                    if (uvs != null && i < uvs.Count)
-                    {
-                        var tt = channel?.TextureTransform;
-                        var mat = System.Numerics.Matrix3x2.Identity;
-                        if (tt != null)
-                        {
-                            mat = System.Numerics.Matrix3x2.CreateScale(tt.Scale)
-                                * System.Numerics.Matrix3x2.CreateRotation(tt.Rotation)
-                                * System.Numerics.Matrix3x2.CreateTranslation(tt.Offset);
-                        }
-                        var uv = System.Numerics.Vector2.Transform(uvs[i], mat);
-                        var texCoord = new Vector3D(uv.X, 1.0f - uv.Y, 0);
-                        sub.TextureCoordinateChannels[0].Add(texCoord);
-                        combined.TextureCoordinateChannels[0].Add(texCoord);
-                    }
-                    else
-                    {
-                        sub.TextureCoordinateChannels[0].Add(new Vector3D(0, 0, 0));
-                        combined.TextureCoordinateChannels[0].Add(new Vector3D(0, 0, 0));
-                    }
+                    // UV は使用しないためゼロを設定
+                    sub.TextureCoordinateChannels[0].Add(new Vector3D(0, 0, 0));
+                    combined.TextureCoordinateChannels[0].Add(new Vector3D(0, 0, 0));
                 }
 
                 var indices = prim.IndexAccessor.AsIndicesArray();
@@ -146,51 +119,15 @@ public class ModelImporter
 
                 combinedIndexOffset += positions.Count;
 
-                byte[]? texBytes = null;
-                int texW = 0;
-                int texH = 0;
                 var material = prim.Material;
-                // channel is already defined above; reuse it
-                GLTFImage? image = channel?.Texture?.PrimaryImage;
-                if (image == null && mainTextures != null && material != null)
-                {
-                    int idx = model.LogicalMaterials.ToList().IndexOf(material);
-                    if (idx >= 0 && mainTextures.TryGetValue(idx, out var texIdx))
-                    {
-                        var texture = model.LogicalTextures[texIdx];
-                        image = texture.PrimaryImage;
-                    }
-                }
                 var colorParam = channel?.Parameter ?? Vector4.One;
                 // VRM の alpha 値は利用せず常に不透明で描画
                 colorParam.W = 1.0f;
                 var colorFactor = colorParam;
-                if (image != null)
-                {
-                    using var stream = image.OpenImageFile();
-                    using var img = Image.Load<Rgba32>(stream);
-                    texW = img.Width;
-                    texH = img.Height;
-                    texBytes = new byte[texW * texH * 4];
-                    img.CopyPixelDataTo(texBytes);
-
-                    if (data.TextureData == null)
-                    {
-                        data.TextureData = texBytes;
-                        data.TextureWidth = texW;
-                        data.TextureHeight = texH;
-                    }
-
-                    // テクスチャが存在する場合は色を乗算せずそのまま表示
-                    colorFactor = Vector4.One;
-                }
 
                 data.SubMeshes.Add(new SubMeshData
                 {
                     Mesh = sub,
-                    TextureData = texBytes,
-                    TextureWidth = texW,
-                    TextureHeight = texH,
                     ColorFactor = colorFactor
                 });
             }
