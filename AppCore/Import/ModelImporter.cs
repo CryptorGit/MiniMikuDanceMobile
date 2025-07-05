@@ -151,10 +151,10 @@ public class ModelImporter
                 if (matIndex >= 0 && texMap.TryGetValue(matIndex, out var texIdx))
                 {
                     var tex = model.LogicalTextures[texIdx];
-                    var img = tex.PrimaryImage?.Content;
-                    if (img != null)
+                    var imgSeg = tex.PrimaryImage?.GetImageContent();
+                    if (imgSeg.HasValue)
                     {
-                        using var image = Image.Load<Rgba32>(img.Content.ToArray());
+                        using var image = Image.Load<Rgba32>(imgSeg.Value.ToArray());
                         smd.TextureWidth = image.Width;
                         smd.TextureHeight = image.Height;
                         smd.TextureBytes = new byte[image.Width * image.Height * 4];

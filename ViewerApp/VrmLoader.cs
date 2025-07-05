@@ -109,10 +109,10 @@ internal static class VrmLoader
                 if (matIndex >= 0 && texMap.TryGetValue(matIndex, out var tIdx))
                 {
                     var texObj = model.LogicalTextures[tIdx];
-                    var img = texObj.PrimaryImage?.Content;
-                    if (img != null)
+                    var imgSeg = texObj.PrimaryImage?.GetImageContent();
+                    if (imgSeg.HasValue)
                     {
-                        using var image = SixLabors.ImageSharp.Image.Load<SixLabors.ImageSharp.PixelFormats.Rgba32>(img.Content.ToArray());
+                        using var image = SixLabors.ImageSharp.Image.Load<SixLabors.ImageSharp.PixelFormats.Rgba32>(imgSeg.Value.ToArray());
                         smd.TextureWidth = image.Width;
                         smd.TextureHeight = image.Height;
                         smd.TextureBytes = new byte[image.Width * image.Height * 4];

@@ -306,7 +306,15 @@ void main(){
             {
                 rm.Texture = GL.GenTexture();
                 GL.BindTexture(TextureTarget.Texture2D, rm.Texture);
-                GL.TexImage2D(TextureTarget.Texture2D, 0, PixelInternalFormat.Rgba, sm.TextureWidth, sm.TextureHeight, 0, PixelFormat.Rgba, PixelType.UnsignedByte, sm.TextureBytes);
+                var handle = System.Runtime.InteropServices.GCHandle.Alloc(sm.TextureBytes, System.Runtime.InteropServices.GCHandleType.Pinned);
+                try
+                {
+                    GL.TexImage2D(TextureTarget.Texture2D, 0, PixelInternalFormat.Rgba, sm.TextureWidth, sm.TextureHeight, 0, PixelFormat.Rgba, PixelType.UnsignedByte, handle.AddrOfPinnedObject());
+                }
+                finally
+                {
+                    handle.Free();
+                }
                 GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureMinFilter, (int)TextureMinFilter.Linear);
                 GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureMagFilter, (int)TextureMagFilter.Linear);
                 rm.HasTexture = true;
