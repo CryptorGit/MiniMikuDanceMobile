@@ -78,8 +78,8 @@ void main(){
         _colorLoc = GL.GetUniformLocation(_program, "uColor");
 
         GL.Enable(EnableCap.Blend);
-        // GLES30 の API では引数型が All となっているため明示的にキャストする
-        GL.BlendFunc(All.SrcAlpha, All.OneMinusSrcAlpha);
+        // OpenTK では厳密な列挙型を使用する
+        GL.BlendFunc(BlendingFactor.SrcAlpha, BlendingFactor.OneMinusSrcAlpha);
 
         const string modelVert = @"#version 300 es
 layout(location = 0) in vec3 aPosition;
@@ -296,7 +296,7 @@ void main(){
 
             rm.Texture = GL.GenTexture();
             GL.BindTexture(TextureTarget.Texture2D, rm.Texture);
-            GL.PixelStorei(PixelStoreParameter.UnpackAlignment, 1);
+            GL.PixelStore(PixelStoreParameter.UnpackAlignment, 1);
             if (sm.TextureData != null)
             {
                 var handle = GCHandle.Alloc(sm.TextureData, GCHandleType.Pinned);
@@ -330,7 +330,7 @@ void main(){
                     handle.Free();
                 }
             }
-            GL.PixelStorei(PixelStoreParameter.UnpackAlignment, 4);
+            GL.PixelStore(PixelStoreParameter.UnpackAlignment, 4);
             GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureMinFilter, (int)TextureMinFilter.Linear);
             GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureMagFilter, (int)TextureMagFilter.Linear);
             GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureWrapS, (int)TextureWrapMode.Repeat);
