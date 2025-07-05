@@ -301,64 +301,8 @@ public partial class CameraPage : ContentPage
             }
         }
 #endif
-        try
-        {
-            var modelPath = await EnsureSampleModel();
-            var importer = new ModelImporter();
-            ModelData? data = null;
-            if (!string.IsNullOrEmpty(modelPath))
-            {
-                LogService.WriteLine($"[CameraPage] Using model: {modelPath}");
-                data = importer.ImportModel(modelPath);
-            }
-            else
-            {
-                try
-                {
-                    using var stream = await FileSystem.OpenAppPackageFileAsync("AliciaSolid.vrm");
-                    LogService.WriteLine("[CameraPage] Loading bundled model: AliciaSolid.vrm");
-                    data = importer.ImportModel(stream);
-                }
-                catch (FileNotFoundException fnf)
-                {
-                    LogService.WriteLine($"[CameraPage] Bundled model not found: {fnf.FileName}");
-                }
-            }
-
-            if (data != null)
-            {
-                _pendingModel = data;
-                _renderer.ResetCamera();
-                LogService.WriteLine("[CameraPage] Model queued for loading");
-            }
-            else
-            {
-                LogService.WriteLine("[CameraPage] Model data was null. Initialization aborted");
-            }
-        }
-        catch (Exception ex)
-        {
-            LogService.WriteLine($"Failed to initialize model: {ex.Message}");
-            LogService.WriteLine(ex.ToString());
-        }
         _glInitialized = false;
         Viewer?.InvalidateSurface();
-    }
-
-    private Task<string?> EnsureSampleModel()
-    {
-        var modelDir = MmdFileSystem.Ensure("Models");
-        MmdFileSystem.AppendAccessLog(modelDir);
-        LogService.WriteLine($"[CameraPage] Searching models in {modelDir}");
-        var vrm = Directory.EnumerateFiles(modelDir, "*.vrm").FirstOrDefault();
-        if (!string.IsNullOrEmpty(vrm))
-        {
-            LogService.WriteLine($"[CameraPage] Found existing model at {vrm}");
-            return Task.FromResult<string?>(vrm);
-        }
-
-        LogService.WriteLine("[CameraPage] No models found in storage");
-        return Task.FromResult<string?>(null);
     }
 
     protected override void OnDisappearing()
