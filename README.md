@@ -76,6 +76,19 @@ VRM 独自のテクスチャ情報が無い場合も glTF の `baseColorTexture`
 MToon シェーダによるトゥーン調レンダリングを行います。
 将来的な VRM 0.x/1.0 への対応を進めていく予定です。
 
+### VrmAnalyzer ツール
+
+`Tools/VrmAnalyzer` プロジェクトでは、VRM ファイルから抽出した JSON を解析し、
+Humanoid ボーンとマテリアル一覧を表示する簡易ツールを用意しました。
+次のように実行します。
+
+```bash
+dotnet run --project Tools/VrmAnalyzer -- AliciaSolid_vrm.json
+```
+
+`extensions.VRM.humanoid.humanBones` の内容を読み取り、ボーン名とノード番号の対応表
+および `materialProperties` のシェーダ名を出力します。
+
 ## 参考: C# 向け VRM ローダーライブラリ（Unity 不要・オフライン対応）
 
 VRM は 3D アバター向けの glTF 拡張フォーマットで、メッシュやテクスチャ、骨格、
