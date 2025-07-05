@@ -38,6 +38,7 @@ public partial class CameraPage : ContentPage
     private readonly SimpleCubeRenderer _renderer = new();
     private bool _glInitialized;
     private ModelData? _pendingModel;
+    private ModelData? _currentModel;
     private readonly Dictionary<long, SKPoint> _touchPoints = new();
 
     public CameraPage()
@@ -180,6 +181,14 @@ public partial class CameraPage : ContentPage
     {
         LogService.WriteLine("POSE button clicked");
         ShowBottomFeature("POSE");
+        HideViewMenu();
+        HideSettingMenu();
+    }
+
+    private void OnBoneClicked(object? sender, EventArgs e)
+    {
+        LogService.WriteLine("BONE button clicked");
+        ShowBottomFeature("BONE");
         HideViewMenu();
         HideSettingMenu();
     }
@@ -364,6 +373,7 @@ public partial class CameraPage : ContentPage
             if (_pendingModel != null)
             {
                 _renderer.LoadModel(_pendingModel);
+                _currentModel = _pendingModel;
                 _pendingModel = null;
             }
             _glInitialized = true;
@@ -371,6 +381,7 @@ public partial class CameraPage : ContentPage
         else if (_pendingModel != null)
         {
             _renderer.LoadModel(_pendingModel);
+            _currentModel = _pendingModel;
             _pendingModel = null;
         }
 
@@ -456,6 +467,7 @@ public partial class CameraPage : ContentPage
                 var importer = new MiniMikuDance.Import.ModelImporter();
                 var data = importer.ImportModel(stream);
                 _renderer.LoadModel(data);
+                _currentModel = data;
                 Viewer?.InvalidateSurface();
             }
         }
@@ -484,6 +496,13 @@ public partial class CameraPage : ContentPage
                 ev.FileSelected += OnOpenExplorerFileSelected;
                 ev.LoadDirectory(modelsPath);
                 view = ev;
+            }
+            else if (name == "BONE")
+            {
+                var bv = new BoneView();
+                if (_currentModel != null)
+                    bv.SetBones(_currentModel.Bones);
+                view = bv;
             }
             else if (name == "SETTING")
             {
@@ -549,6 +568,10 @@ public partial class CameraPage : ContentPage
             sv.RotateSensitivity = _rotateSensitivity;
             sv.PanSensitivity = _panSensitivity;
             sv.CameraLocked = _renderer.CameraLocked;
+        }
+        else if (name == "BONE" && _bottomViews[name] is BoneView bv && _currentModel != null)
+        {
+            bv.SetBones(_currentModel.Bones);
         }
         SwitchBottomFeature(name);
         BottomRegion.IsVisible = true;
