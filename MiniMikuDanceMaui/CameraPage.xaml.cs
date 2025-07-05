@@ -546,15 +546,19 @@ public partial class CameraPage : ContentPage
                     }
                     bv.SetBones(list);
                     if (_currentModel.Bones.Count > 0)
+                    {
                         var euler = _currentModel.Bones[0].Rotation.ToEulerDegrees();
                         bv.SetRotation(euler.ToOpenTK());
+                    }
                 }
                 bv.BoneSelected += idx =>
                 {
                     _selectedBoneIndex = idx;
                     if (_currentModel != null && idx >= 0 && idx < _currentModel.Bones.Count)
+                    {
                         var euler = _currentModel.Bones[idx].Rotation.ToEulerDegrees();
                         bv.SetRotation(euler.ToOpenTK());
+                    }
                 };
                 bv.RotationXChanged += v => UpdateSelectedBoneRotation(bv);
                 bv.RotationYChanged += v => UpdateSelectedBoneRotation(bv);
@@ -663,8 +667,10 @@ public partial class CameraPage : ContentPage
                 }
                 bv.SetBones(list);
                 if (_selectedBoneIndex >= 0 && _selectedBoneIndex < _currentModel.Bones.Count)
+                {
                     var euler = _currentModel.Bones[_selectedBoneIndex].Rotation.ToEulerDegrees();
                     bv.SetRotation(euler.ToOpenTK());
+                }
             }
         }
         else if (name == "MTOON" && _bottomViews[name] is MToonView mv)
