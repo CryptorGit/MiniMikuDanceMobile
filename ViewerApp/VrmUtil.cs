@@ -71,6 +71,21 @@ public static class VrmUtil
                     }
                 }
             }
+            // Fallback: use baseColorTexture if no VRM extensions provided
+            if (root.TryGetProperty("materials", out var mats))
+            {
+                for (int i = 0; i < mats.GetArrayLength(); i++)
+                {
+                    if (map.ContainsKey(i)) continue;
+                    var mat = mats[i];
+                    if (mat.TryGetProperty("pbrMetallicRoughness", out var pbr) &&
+                        pbr.TryGetProperty("baseColorTexture", out var tex) &&
+                        tex.TryGetProperty("index", out var idxEl))
+                    {
+                        map[i] = idxEl.GetInt32();
+                    }
+                }
+            }
         }
         catch
         {

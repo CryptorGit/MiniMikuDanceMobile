@@ -180,6 +180,9 @@ public class ModelImporter
                         data.TextureWidth = texW;
                         data.TextureHeight = texH;
                     }
+
+                    // テクスチャが存在する場合は色を乗算せずそのまま表示
+                    colorFactor = Vector4.One;
                 }
 
                 data.SubMeshes.Add(new SubMeshData

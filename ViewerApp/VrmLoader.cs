@@ -127,6 +127,8 @@ internal static class VrmLoader
                     texH = img.Height;
                     texBytes = new byte[texW * texH * 4];
                     img.CopyPixelDataTo(texBytes);
+                    // When a texture is available, ignore baseColorFactor to avoid grey tint
+                    colorFactor = OpenTK.Mathematics.Vector4.One;
                 }
 
                 result.SubMeshes.Add(new VrmSubMesh
