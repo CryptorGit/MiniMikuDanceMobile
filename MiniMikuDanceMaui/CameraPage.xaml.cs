@@ -24,6 +24,9 @@ public partial class CameraPage : ContentPage
     private double _bottomWidthRatio = 1.0;
     private double _rotateSensitivity = 1.0;
     private double _panSensitivity = 1.0;
+    private double _shadeShift = -0.1;
+    private double _shadeToony = 0.9;
+    private double _rimIntensity = 0.5;
     private const double TopMenuHeight = 36;
     private bool _viewMenuOpen;
     private bool _settingMenuOpen;
@@ -48,6 +51,9 @@ public partial class CameraPage : ContentPage
         this.SizeChanged += OnSizeChanged;
         _renderer.RotateSensitivity = (float)_rotateSensitivity;
         _renderer.PanSensitivity = (float)_panSensitivity;
+        _renderer.ShadeShift = (float)_shadeShift;
+        _renderer.ShadeToony = (float)_shadeToony;
+        _renderer.RimIntensity = (float)_rimIntensity;
 
         if (Viewer is SKGLView glView)
         {
@@ -189,6 +195,14 @@ public partial class CameraPage : ContentPage
     {
         LogService.WriteLine("BONE button clicked");
         ShowBottomFeature("BONE");
+        HideViewMenu();
+        HideSettingMenu();
+    }
+
+    private void OnMToonClicked(object? sender, EventArgs e)
+    {
+        LogService.WriteLine("MTOON button clicked");
+        ShowBottomFeature("MTOON");
         HideViewMenu();
         HideSettingMenu();
     }
@@ -504,6 +518,31 @@ public partial class CameraPage : ContentPage
                     bv.SetBones(_currentModel.Bones);
                 view = bv;
             }
+            else if (name == "MTOON")
+            {
+                var mv = new MToonView
+                {
+                    ShadeShift = _shadeShift,
+                    ShadeToony = _shadeToony,
+                    RimIntensity = _rimIntensity
+                };
+                mv.ShadeShiftChanged += v =>
+                {
+                    _shadeShift = v;
+                    _renderer.ShadeShift = (float)_shadeShift;
+                };
+                mv.ShadeToonyChanged += v =>
+                {
+                    _shadeToony = v;
+                    _renderer.ShadeToony = (float)_shadeToony;
+                };
+                mv.RimIntensityChanged += v =>
+                {
+                    _rimIntensity = v;
+                    _renderer.RimIntensity = (float)_rimIntensity;
+                };
+                view = mv;
+            }
             else if (name == "SETTING")
             {
                 var sv = new SettingView { HeightRatio = _bottomHeightRatio, RotateSensitivity = _rotateSensitivity, PanSensitivity = _panSensitivity, CameraLocked = _renderer.CameraLocked };
@@ -568,6 +607,12 @@ public partial class CameraPage : ContentPage
             sv.RotateSensitivity = _rotateSensitivity;
             sv.PanSensitivity = _panSensitivity;
             sv.CameraLocked = _renderer.CameraLocked;
+        }
+        else if (name == "MTOON" && _bottomViews[name] is MToonView mv)
+        {
+            mv.ShadeShift = _shadeShift;
+            mv.ShadeToony = _shadeToony;
+            mv.RimIntensity = _rimIntensity;
         }
         else if (name == "BONE" && _bottomViews[name] is BoneView bv && _currentModel != null)
         {
