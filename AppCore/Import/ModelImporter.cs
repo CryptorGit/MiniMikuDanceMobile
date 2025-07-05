@@ -156,7 +156,7 @@ public class ModelImporter
                     var imgSeg = tex.PrimaryImage?.GetImageContent();
                     if (imgSeg.HasValue)
                     {
-                        using var image = Image.Load<Rgba32>(imgSeg.Value.ToArray());
+                        using var image = SixLabors.ImageSharp.Image.Load<Rgba32>(imgSeg.Value.ToArray());
                         smd.TextureWidth = image.Width;
                         smd.TextureHeight = image.Height;
                         smd.TextureBytes = new byte[image.Width * image.Height * 4];
