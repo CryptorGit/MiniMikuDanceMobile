@@ -4,7 +4,7 @@ using System.Text.Json;
 
 if (args.Length == 0)
 {
-    Console.WriteLine("Usage: VrmAnalyzer <vrm_json>");
+    Console.WriteLine("Usage: VrmAnalyzer <vrm_or_json>");
     return;
 }
 
@@ -15,8 +15,32 @@ if (!File.Exists(path))
     return;
 }
 
-using var stream = File.OpenRead(path);
-using var doc = JsonDocument.Parse(stream);
+JsonDocument doc;
+if (Path.GetExtension(path).Equals(".vrm", StringComparison.OrdinalIgnoreCase))
+{
+    using var fs = File.OpenRead(path);
+    using var br = new BinaryReader(fs);
+    if (br.ReadUInt32() != 0x46546C67)
+    {
+        Console.WriteLine("Invalid VRM file.");
+        return;
+    }
+    br.ReadUInt32();
+    br.ReadUInt32();
+    uint jsonLen = br.ReadUInt32();
+    if (br.ReadUInt32() != 0x4E4F534A)
+    {
+        Console.WriteLine("JSON chunk not found.");
+        return;
+    }
+    var jsonBytes = br.ReadBytes((int)jsonLen);
+    doc = JsonDocument.Parse(jsonBytes);
+}
+else
+{
+    using var stream = File.OpenRead(path);
+    doc = JsonDocument.Parse(stream);
+}
 var root = doc.RootElement;
 
 if (root.TryGetProperty("extensions", out var ext) &&

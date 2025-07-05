@@ -78,12 +78,12 @@ MToon シェーダによるトゥーン調レンダリングを行います。
 
 ### VrmAnalyzer ツール
 
-`Tools/VrmAnalyzer` プロジェクトでは、VRM ファイルから抽出した JSON を解析し、
+`Tools/VrmAnalyzer` プロジェクトでは、VRM ファイルを直接解析し、
 Humanoid ボーンとマテリアル一覧を表示する簡易ツールを用意しました。
 次のように実行します。
 
 ```bash
-dotnet run --project Tools/VrmAnalyzer -- AliciaSolid_vrm.json
+dotnet run --project Tools/VrmAnalyzer -- AliciaSolid.vrm
 ```
 
 `extensions.VRM.humanoid.humanBones` の内容を読み取り、ボーン名とノード番号の対応表
