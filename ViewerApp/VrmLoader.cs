@@ -117,6 +117,8 @@ internal static class VrmLoader
                     }
                 }
                 var cf = channel?.Parameter ?? new System.Numerics.Vector4(1, 1, 1, 1);
+                // マテリアル側のアルファ値は利用せず常に不透明で描画
+                cf.W = 1.0f;
                 var colorFactor = new OpenTK.Mathematics.Vector4(cf.X, cf.Y, cf.Z, cf.W);
                 if (image != null)
                 {
