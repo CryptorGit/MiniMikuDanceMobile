@@ -163,6 +163,8 @@ public class ModelImporter
                     }
                 }
                 var colorParam = channel?.Parameter ?? Vector4.One;
+                // VRM の alpha 値は利用せず常に不透明で描画
+                colorParam.W = 1.0f;
                 var colorFactor = colorParam;
                 if (image != null)
                 {
