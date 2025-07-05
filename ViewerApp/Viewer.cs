@@ -148,10 +148,10 @@ public class Viewer : IDisposable
                 var handle = GCHandle.Alloc(sm.Texture, GCHandleType.Pinned);
                 try
                 {
-                    GL.TexImage2D(TextureTarget.Texture2D, 0,
-                        PixelInternalFormat.Rgba,
+                    GL.TexImage2D((All)TextureTarget.Texture2D, 0,
+                        (All)PixelInternalFormat.Rgba,
                         sm.TextureWidth, sm.TextureHeight, 0,
-                        PixelFormat.Rgba, PixelType.UnsignedByte,
+                        (All)PixelFormat.Rgba, (All)PixelType.UnsignedByte,
                         handle.AddrOfPinnedObject());
                 }
                 finally
@@ -165,10 +165,10 @@ public class Viewer : IDisposable
                 var handle = GCHandle.Alloc(white, GCHandleType.Pinned);
                 try
                 {
-                    GL.TexImage2D(TextureTarget.Texture2D, 0,
-                        PixelInternalFormat.Rgba,
+                    GL.TexImage2D((All)TextureTarget.Texture2D, 0,
+                        (All)PixelInternalFormat.Rgba,
                         1, 1, 0,
-                        PixelFormat.Rgba, PixelType.UnsignedByte,
+                        (All)PixelFormat.Rgba, (All)PixelType.UnsignedByte,
                         handle.AddrOfPinnedObject());
                 }
                 finally
