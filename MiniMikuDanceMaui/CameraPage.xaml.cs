@@ -388,6 +388,12 @@ public partial class CameraPage : ContentPage
             {
                 _renderer.LoadModel(_pendingModel);
                 _currentModel = _pendingModel;
+                _shadeShift = _pendingModel.ShadeShift;
+                _shadeToony = _pendingModel.ShadeToony;
+                _rimIntensity = _pendingModel.RimIntensity;
+                _renderer.ShadeShift = _pendingModel.ShadeShift;
+                _renderer.ShadeToony = _pendingModel.ShadeToony;
+                _renderer.RimIntensity = _pendingModel.RimIntensity;
                 _pendingModel = null;
             }
             _glInitialized = true;
@@ -396,6 +402,12 @@ public partial class CameraPage : ContentPage
         {
             _renderer.LoadModel(_pendingModel);
             _currentModel = _pendingModel;
+            _shadeShift = _pendingModel.ShadeShift;
+            _shadeToony = _pendingModel.ShadeToony;
+            _rimIntensity = _pendingModel.RimIntensity;
+            _renderer.ShadeShift = _pendingModel.ShadeShift;
+            _renderer.ShadeToony = _pendingModel.ShadeToony;
+            _renderer.RimIntensity = _pendingModel.RimIntensity;
             _pendingModel = null;
         }
 
@@ -482,6 +494,12 @@ public partial class CameraPage : ContentPage
                 var data = importer.ImportModel(stream);
                 _renderer.LoadModel(data);
                 _currentModel = data;
+                _shadeShift = data.ShadeShift;
+                _shadeToony = data.ShadeToony;
+                _rimIntensity = data.RimIntensity;
+                _renderer.ShadeShift = data.ShadeShift;
+                _renderer.ShadeToony = data.ShadeToony;
+                _renderer.RimIntensity = data.RimIntensity;
                 Viewer?.InvalidateSurface();
             }
         }
