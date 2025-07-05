@@ -334,6 +334,7 @@ void main(){
                 var handle = System.Runtime.InteropServices.GCHandle.Alloc(sm.TextureBytes, System.Runtime.InteropServices.GCHandleType.Pinned);
                 try
                 {
+#pragma warning disable CS0618
                     GL.TexImage2D(
                         (All)TextureTarget.Texture2D,
                         0,
@@ -344,6 +345,7 @@ void main(){
                         (All)PixelFormat.Rgba,
                         (All)PixelType.UnsignedByte,
                         handle.AddrOfPinnedObject());
+#pragma warning restore CS0618
                 }
                 finally
                 {

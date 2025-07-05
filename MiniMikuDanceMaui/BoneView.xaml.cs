@@ -47,19 +47,19 @@ public partial class BoneView : ContentView
     private void OnZChanged(object? sender, ValueChangedEventArgs e)
         => RotationZChanged?.Invoke((float)e.NewValue);
 
-    public float RotationX
+    public new float RotationX
     {
         get => (float)SliderX.Value;
         set => SliderX.Value = value;
     }
 
-    public float RotationY
+    public new float RotationY
     {
         get => (float)SliderY.Value;
         set => SliderY.Value = value;
     }
 
-    public float RotationZ
+    public new float RotationZ
     {
         get => (float)SliderZ.Value;
         set => SliderZ.Value = value;

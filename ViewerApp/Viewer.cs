@@ -140,6 +140,7 @@ public class Viewer : IDisposable
                 var handle = System.Runtime.InteropServices.GCHandle.Alloc(sm.TextureBytes, System.Runtime.InteropServices.GCHandleType.Pinned);
                 try
                 {
+#pragma warning disable CS0618
                     GL.TexImage2D(
                         (All)TextureTarget.Texture2D,
                         0,
@@ -150,6 +151,7 @@ public class Viewer : IDisposable
                         (All)PixelFormat.Rgba,
                         (All)PixelType.UnsignedByte,
                         handle.AddrOfPinnedObject());
+#pragma warning restore CS0618
                 }
                 finally
                 {
