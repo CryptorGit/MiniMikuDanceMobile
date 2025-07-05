@@ -166,7 +166,12 @@ public class Viewer : IDisposable
         GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureWrapT, (int)TextureWrapMode.Repeat);
         GL.BindTexture(TextureTarget.Texture2D, 0);
 
+        // 深度バッファを正しく利用するための設定
+        GL.ClearDepth(1.0f);
+        GL.DepthFunc(DepthFunction.Lequal);
         GL.Enable(EnableCap.DepthTest);
+        GL.DepthMask(true);
+
         GL.Enable(EnableCap.CullFace);
         GL.FrontFace(FrontFaceDirection.Ccw);
         Debug.WriteLine("[Viewer] Initialized");
