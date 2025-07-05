@@ -55,7 +55,6 @@ public partial class BoneView : ContentView
         Grid.SetRow(view, row);
         BoneGrid.Children.Add(view);
     }
-
     private Slider CreateSlider(BoneItem item, string prop)
     {
         var s = new Slider { Minimum = -180, Maximum = 180, Value = GetValue(item, prop) };
