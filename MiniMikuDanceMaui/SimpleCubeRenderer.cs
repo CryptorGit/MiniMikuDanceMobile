@@ -296,6 +296,7 @@ void main(){
 
             rm.Texture = GL.GenTexture();
             GL.BindTexture(TextureTarget.Texture2D, rm.Texture);
+            GL.PixelStorei(PixelStoreParameter.UnpackAlignment, 1);
             if (sm.TextureData != null)
             {
                 var handle = GCHandle.Alloc(sm.TextureData, GCHandleType.Pinned);
@@ -329,6 +330,7 @@ void main(){
                     handle.Free();
                 }
             }
+            GL.PixelStorei(PixelStoreParameter.UnpackAlignment, 4);
             GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureMinFilter, (int)TextureMinFilter.Linear);
             GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureMagFilter, (int)TextureMagFilter.Linear);
             GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureWrapS, (int)TextureWrapMode.Repeat);
