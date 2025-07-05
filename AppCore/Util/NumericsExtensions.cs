@@ -14,8 +14,8 @@ public static class NumericsExtensions
             m.M41, m.M42, m.M43, m.M44);
     }
 
-    public static Vector4 ToVector4(this System.Numerics.Vector4 v)
+    public static OpenTK.Mathematics.Vector4 ToVector4(this System.Numerics.Vector4 v)
     {
-        return new Vector4(v.X, v.Y, v.Z, v.W);
+        return new OpenTK.Mathematics.Vector4(v.X, v.Y, v.Z, v.W);
     }
 }
