@@ -5,6 +5,7 @@ using SixLabors.ImageSharp.PixelFormats;
 using System.IO;
 using System.Linq;
 using System.Diagnostics;
+using System.Numerics;
 using System.Collections.Generic;
 using Vector3D = Assimp.Vector3D;
 
@@ -72,7 +73,9 @@ public class ModelImporter
                 var sub = new Assimp.Mesh("mesh", Assimp.PrimitiveType.Triangle);
                 var positions = prim.GetVertexAccessor("POSITION").AsVector3Array();
                 var normals = prim.GetVertexAccessor("NORMAL")?.AsVector3Array();
-                var uvs = prim.GetVertexAccessor("TEXCOORD_0")?.AsVector2Array();
+                var texInfo = prim.Material?.FindChannel("BaseColor")?.Texture;
+                int texCoordIndex = texInfo?.Transform?.TextureCoordinateOverride ?? texInfo?.TextureCoordinate ?? 0;
+                var uvs = prim.GetVertexAccessor($"TEXCOORD_{texCoordIndex}")?.AsVector2Array();
 
                 for (int i = 0; i < positions.Count; i++)
                 {
@@ -95,7 +98,8 @@ public class ModelImporter
                     }
                     if (uvs != null && i < uvs.Count)
                     {
-                        var uv = uvs[i];
+                        var mat = texInfo?.Transform?.Matrix ?? Matrix3x2.Identity;
+                        var uv = Vector2.Transform(uvs[i], mat);
                         var texCoord = new Vector3D(uv.X, 1.0f - uv.Y, 0);
                         sub.TextureCoordinateChannels[0].Add(texCoord);
                         combined.TextureCoordinateChannels[0].Add(texCoord);
