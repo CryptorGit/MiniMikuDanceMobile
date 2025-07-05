@@ -77,6 +77,9 @@ void main(){
         _projLoc = GL.GetUniformLocation(_program, "uProj");
         _colorLoc = GL.GetUniformLocation(_program, "uColor");
 
+        GL.Enable(EnableCap.Blend);
+        GL.BlendFunc(BlendingFactor.SrcAlpha, BlendingFactor.OneMinusSrcAlpha);
+
         const string modelVert = @"#version 300 es
 layout(location = 0) in vec3 aPosition;
 layout(location = 1) in vec3 aNormal;
@@ -369,17 +372,19 @@ void main(){
         GL.UniformMatrix4(_projLoc, false, ref proj);
 
         Matrix4 gridModel = Matrix4.Identity;
+        GL.DepthMask(false);
         GL.UniformMatrix4(_modelLoc, false, ref gridModel);
-        GL.Uniform4(_colorLoc, new Vector4(1f, 1f, 1f, 1f));
+        GL.Uniform4(_colorLoc, new Vector4(1f, 1f, 1f, 0.3f));
         GL.BindVertexArray(_groundVao);
         GL.DrawArrays(PrimitiveType.Triangles, 0, 6);
         GL.BindVertexArray(0);
 
         GL.UniformMatrix4(_modelLoc, false, ref gridModel);
-        GL.Uniform4(_colorLoc, new Vector4(0.8f, 0.8f, 0.8f, 1.0f));
+        GL.Uniform4(_colorLoc, new Vector4(0.8f, 0.8f, 0.8f, 0.5f));
         GL.BindVertexArray(_gridVao);
         GL.DrawArrays(PrimitiveType.Lines, 0, ((10 - (-10) + 1) * 2) * 2);
         GL.BindVertexArray(0);
+        GL.DepthMask(true);
     }
 
     public void Dispose()
