@@ -289,17 +289,12 @@ public class ModelImporter
 
     private static List<BoneData> ReadBones(SharpGLTF.Schema2.ModelRoot model)
     {
-        var set = new HashSet<SharpGLTF.Schema2.Node>();
-        foreach (var skin in model.LogicalSkins)
-        {
-            foreach (var j in skin.Joints)
-                set.Add(j);
-        }
         var bones = new List<BoneData>();
-        foreach (var node in set)
+        foreach (var node in model.LogicalNodes)
         {
-            var r = node.LocalRotation;
-            var q = new Quaternion(r.X, r.Y, r.Z, r.W);
+            if (!node.IsSkinJoint) continue;
+            var r = node.LocalTransform.Rotation;
+            var q = new System.Numerics.Quaternion(r.X, r.Y, r.Z, r.W);
             bones.Add(new BoneData { Name = node.Name ?? "", Rotation = q });
         }
         return bones;
