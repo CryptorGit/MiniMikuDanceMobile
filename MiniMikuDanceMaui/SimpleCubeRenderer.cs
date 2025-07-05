@@ -47,6 +47,7 @@ public class SimpleCubeRenderer : IDisposable
     private int _modelShadeToonyLoc;
     private int _modelRimIntensityLoc;
     private Matrix4 _modelTransform = Matrix4.Identity;
+    private readonly System.Collections.Generic.List<System.Numerics.Quaternion> _boneRots = new();
     private int _width;
     private int _height;
     public float RotateSensitivity { get; set; } = 1f;
@@ -233,6 +234,12 @@ void main(){
         _target = Vector3.Zero;
     }
 
+    public void SetBoneRotation(int index, System.Numerics.Quaternion rot)
+    {
+        if (index < 0 || index >= _boneRots.Count) return;
+        _boneRots[index] = rot;
+    }
+
     public void LoadModel(MiniMikuDance.Import.ModelData data)
     {
         foreach (var rm in _meshes)
@@ -245,6 +252,9 @@ void main(){
         _meshes.Clear();
 
         _modelTransform = data.Transform.ToMatrix4();
+        _boneRots.Clear();
+        foreach (var b in data.Bones)
+            _boneRots.Add(b.Rotation);
 
         if (data.SubMeshes.Count == 0)
         {
@@ -360,6 +370,12 @@ void main(){
         GL.Clear(ClearBufferMask.ColorBufferBit | ClearBufferMask.DepthBufferBit);
 
         Matrix4 model = _modelTransform;
+        if (_boneRots.Count > 0)
+        {
+            var q = _boneRots[0];
+            var m = q.ToMatrix4();
+            model = m * model;
+        }
         Matrix4 rot = Matrix4.CreateRotationX(_orbitX) * Matrix4.CreateRotationY(_orbitY);
         Vector3 cam = Vector3.TransformPosition(new Vector3(0, 0, _distance), rot) + _target;
         Matrix4 view = Matrix4.LookAt(cam, _target, Vector3.UnitY);

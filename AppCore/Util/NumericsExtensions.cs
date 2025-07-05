@@ -18,4 +18,10 @@ public static class NumericsExtensions
     {
         return new OpenTK.Mathematics.Vector4(v.X, v.Y, v.Z, v.W);
     }
+
+    public static Matrix4 ToMatrix4(this Quaternion q)
+    {
+        var oq = new OpenTK.Mathematics.Quaternion(q.X, q.Y, q.Z, q.W);
+        return Matrix4.CreateFromQuaternion(oq);
+    }
 }
