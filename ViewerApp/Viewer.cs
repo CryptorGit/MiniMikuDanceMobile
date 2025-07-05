@@ -77,7 +77,8 @@ public class Viewer : IDisposable
                            "vec3 lightDir = normalize(vec3(0.3,0.6,0.7));\n" +
                            "float diff = max(dot(normalize(vNormal), lightDir), 0.2);\n" +
                            "vec4 col = texture(uTex, vUV);\n" +
-                           "FragColor = vec4(col.rgb * diff, col.a);\n" +
+                           // テクスチャのアルファは画面合成に使わない
+                           "FragColor = vec4(col.rgb * diff, 1.0);\n" +
                            "}";
         int vs = GL.CreateShader(ShaderType.VertexShader);
         GL.ShaderSource(vs, vert);

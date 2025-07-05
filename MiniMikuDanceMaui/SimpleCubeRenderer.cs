@@ -101,7 +101,8 @@ void main(){
     vec3 lightDir = normalize(vec3(0.3,0.6,0.7));
     float diff = max(dot(normalize(vNormal), lightDir), 0.2);
     vec4 col = texture(uTex, vUV);
-    FragColor = vec4(col.rgb * diff, col.a);
+    // メッシュの透過を防ぐため、アルファは常に1
+    FragColor = vec4(col.rgb * diff, 1.0);
 }";
         int mvs = GL.CreateShader(ShaderType.VertexShader);
         GL.ShaderSource(mvs, modelVert);
