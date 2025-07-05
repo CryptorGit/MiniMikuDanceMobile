@@ -45,9 +45,9 @@
                         <TapGestureRecognizer Tapped="OnHomeClicked" />
                     </Label.GestureRecognizers>
                 </Label>
-                <Label Text="SELECT" TextColor="White">
+                <Label Text="EXPLORER" TextColor="White">
                     <Label.GestureRecognizers>
-                        <TapGestureRecognizer Tapped="OnSelectClicked" />
+                        <TapGestureRecognizer Tapped="OnExplorerClicked" />
                     </Label.GestureRecognizers>
                 </Label>
                 <Label Text="POSE" TextColor="White">
@@ -75,21 +75,11 @@
                         <TapGestureRecognizer Tapped="OnResetCamClicked" />
                     </Label.GestureRecognizers>
                 </Label>
-                <Label Text="EXPLORER" TextColor="White">
-                    <Label.GestureRecognizers>
-                        <TapGestureRecognizer Tapped="OnExplorerClicked" />
-                    </Label.GestureRecognizers>
-                </Label>
             </VerticalStackLayout>
         </Frame>
         <Frame x:Name="FileMenu" IsVisible="False" BackgroundColor="#1E1E1E" Padding="0" ZIndex="20">
             <VerticalStackLayout Spacing="4" Padding="8">
-                <Label Text="Add to Library" TextColor="White">
-                    <Label.GestureRecognizers>
-                        <TapGestureRecognizer Tapped="OnAddToLibraryClicked" />
-                    </Label.GestureRecognizers>
-                </Label>
-                <Label Text="Open in Viewer" TextColor="White">
+                <Label Text="Import VRM" TextColor="White">
                     <Label.GestureRecognizers>
                         <TapGestureRecognizer Tapped="OnOpenInViewerClicked" />
                     </Label.GestureRecognizers>
