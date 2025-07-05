@@ -17,6 +17,8 @@ public class SimpleCubeRenderer : IDisposable
         public int Ebo;
         public int IndexCount;
         public Vector4 Color = Vector4.One;
+        public int Texture;
+        public bool HasTexture;
     }
     private readonly System.Collections.Generic.List<RenderMesh> _meshes = new();
     private int _gridVao;
@@ -37,6 +39,8 @@ public class SimpleCubeRenderer : IDisposable
     private int _modelViewLoc;
     private int _modelProjLoc;
     private int _modelColorLoc;
+    private int _modelTexLoc;
+    private int _modelUseTexLoc;
     private Matrix4 _modelTransform = Matrix4.Identity;
     private int _width;
     private int _height;
@@ -84,23 +88,30 @@ void main(){
         const string modelVert = @"#version 300 es
 layout(location = 0) in vec3 aPosition;
 layout(location = 1) in vec3 aNormal;
+layout(location = 2) in vec2 aTex;
 uniform mat4 uModel;
 uniform mat4 uView;
 uniform mat4 uProj;
 out vec3 vNormal;
+out vec2 vTex;
 void main(){
     vNormal = mat3(uModel) * aNormal;
+    vTex = aTex;
     gl_Position = uProj * uView * uModel * vec4(aPosition,1.0);
 }";
         const string modelFrag = @"#version 300 es
 precision mediump float;
 in vec3 vNormal;
+in vec2 vTex;
 uniform vec4 uColor;
+uniform sampler2D uTex;
+uniform bool uUseTex;
 out vec4 FragColor;
 void main(){
     vec3 lightDir = normalize(vec3(0.3,0.6,0.7));
     float diff = max(dot(normalize(vNormal), lightDir), 0.2);
-    FragColor = vec4(uColor.rgb * diff, uColor.a);
+    vec4 base = uUseTex ? texture(uTex, vTex) : uColor;
+    FragColor = vec4(base.rgb * diff, base.a);
 }";
         int mvs = GL.CreateShader(ShaderType.VertexShader);
         GL.ShaderSource(mvs, modelVert);
@@ -118,6 +129,8 @@ void main(){
         _modelViewLoc = GL.GetUniformLocation(_modelProgram, "uView");
         _modelProjLoc = GL.GetUniformLocation(_modelProgram, "uProj");
         _modelColorLoc = GL.GetUniformLocation(_modelProgram, "uColor");
+        _modelTexLoc = GL.GetUniformLocation(_modelProgram, "uTex");
+        _modelUseTexLoc = GL.GetUniformLocation(_modelProgram, "uUseTex");
 
 
 
@@ -209,6 +222,7 @@ void main(){
             if (rm.Vao != 0) GL.DeleteVertexArray(rm.Vao);
             if (rm.Vbo != 0) GL.DeleteBuffer(rm.Vbo);
             if (rm.Ebo != 0) GL.DeleteBuffer(rm.Ebo);
+            if (rm.Texture != 0) GL.DeleteTexture(rm.Texture);
         }
         _meshes.Clear();
 
@@ -225,27 +239,37 @@ void main(){
         foreach (var sm in data.SubMeshes)
         {
             int vcount = sm.Mesh.VertexCount;
-            float[] verts = new float[vcount * 6];
+            float[] verts = new float[vcount * 8];
             for (int i = 0; i < vcount; i++)
             {
                 var v = sm.Mesh.Vertices[i];
-                verts[i * 6 + 0] = v.X;
-                verts[i * 6 + 1] = v.Y;
-                verts[i * 6 + 2] = v.Z;
+                verts[i * 8 + 0] = v.X;
+                verts[i * 8 + 1] = v.Y;
+                verts[i * 8 + 2] = v.Z;
                 if (i < sm.Mesh.Normals.Count)
                 {
                     var n = sm.Mesh.Normals[i];
-                    verts[i * 6 + 3] = n.X;
-                    verts[i * 6 + 4] = n.Y;
-                    verts[i * 6 + 5] = n.Z;
+                    verts[i * 8 + 3] = n.X;
+                    verts[i * 8 + 4] = n.Y;
+                    verts[i * 8 + 5] = n.Z;
                 }
                 else
                 {
-                    verts[i * 6 + 3] = 0f;
-                    verts[i * 6 + 4] = 0f;
-                    verts[i * 6 + 5] = 1f;
+                    verts[i * 8 + 3] = 0f;
+                    verts[i * 8 + 4] = 0f;
+                    verts[i * 8 + 5] = 1f;
                 }
-                // UV は未使用のため設定しない
+                if (i < sm.TexCoords.Count)
+                {
+                    var uv = sm.TexCoords[i];
+                    verts[i * 8 + 6] = uv.X;
+                    verts[i * 8 + 7] = uv.Y;
+                }
+                else
+                {
+                    verts[i * 8 + 6] = 0f;
+                    verts[i * 8 + 7] = 0f;
+                }
             }
 
             var indices = new System.Collections.Generic.List<uint>();
@@ -267,16 +291,34 @@ void main(){
             GL.BindVertexArray(rm.Vao);
             GL.BindBuffer(BufferTarget.ArrayBuffer, rm.Vbo);
             GL.BufferData(BufferTarget.ArrayBuffer, verts.Length * sizeof(float), verts, BufferUsageHint.StaticDraw);
-            int stride = 6 * sizeof(float);
+            int stride = 8 * sizeof(float);
             GL.VertexAttribPointer(0, 3, VertexAttribPointerType.Float, false, stride, 0);
             GL.EnableVertexAttribArray(0);
             GL.VertexAttribPointer(1, 3, VertexAttribPointerType.Float, false, stride, 3 * sizeof(float));
             GL.EnableVertexAttribArray(1);
+            GL.VertexAttribPointer(2, 2, VertexAttribPointerType.Float, false, stride, 6 * sizeof(float));
+            GL.EnableVertexAttribArray(2);
             GL.BindBuffer(BufferTarget.ElementArrayBuffer, rm.Ebo);
             GL.BufferData(BufferTarget.ElementArrayBuffer, indices.Count * sizeof(uint), indices.ToArray(), BufferUsageHint.StaticDraw);
             GL.BindVertexArray(0);
 
-            // テクスチャ読み込みを省略
+            if (sm.TextureBytes != null)
+            {
+                rm.Texture = GL.GenTexture();
+                GL.BindTexture(TextureTarget.Texture2D, rm.Texture);
+                var handle = System.Runtime.InteropServices.GCHandle.Alloc(sm.TextureBytes, System.Runtime.InteropServices.GCHandleType.Pinned);
+                try
+                {
+                    GL.TexImage2D(TextureTarget.Texture2D, 0, PixelInternalFormat.Rgba, sm.TextureWidth, sm.TextureHeight, 0, PixelFormat.Rgba, PixelType.UnsignedByte, handle.AddrOfPinnedObject());
+                }
+                finally
+                {
+                    handle.Free();
+                }
+                GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureMinFilter, (int)TextureMinFilter.Linear);
+                GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureMagFilter, (int)TextureMagFilter.Linear);
+                rm.HasTexture = true;
+            }
 
             _meshes.Add(rm);
         }
@@ -306,9 +348,24 @@ void main(){
         {
             GL.UniformMatrix4(_modelModelLoc, false, ref model);
             GL.Uniform4(_modelColorLoc, rm.Color);
+            if (rm.HasTexture)
+            {
+                GL.ActiveTexture(TextureUnit.Texture0);
+                GL.BindTexture(TextureTarget.Texture2D, rm.Texture);
+                GL.Uniform1(_modelTexLoc, 0);
+                GL.Uniform1(_modelUseTexLoc, 1);
+            }
+            else
+            {
+                GL.Uniform1(_modelUseTexLoc, 0);
+            }
             GL.BindVertexArray(rm.Vao);
             GL.DrawElements(PrimitiveType.Triangles, rm.IndexCount, DrawElementsType.UnsignedInt, IntPtr.Zero);
             GL.BindVertexArray(0);
+            if (rm.HasTexture)
+            {
+                GL.BindTexture(TextureTarget.Texture2D, 0);
+            }
         }
         // グリッド描画では透過を利用するためブレンドを再度有効化
         GL.Enable(EnableCap.Blend);

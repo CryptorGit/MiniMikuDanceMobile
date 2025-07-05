@@ -4,6 +4,8 @@ using System.IO;
 using OpenTK.Mathematics;
 using System.Numerics;
 using SharpGLTF.Schema2;
+using SixLabors.ImageSharp;
+using SixLabors.ImageSharp.PixelFormats;
 
 namespace ViewerApp;
 
@@ -11,8 +13,12 @@ internal class VrmSubMesh
 {
     public float[] Positions = Array.Empty<float>();
     public float[] Normals = Array.Empty<float>();
+    public float[] TexCoords = Array.Empty<float>();
     public uint[] Indices = Array.Empty<uint>();
     public OpenTK.Mathematics.Vector4 ColorFactor = OpenTK.Mathematics.Vector4.One;
+    public byte[]? TextureBytes;
+    public int TextureWidth;
+    public int TextureHeight;
 }
 
 internal class VrmModel
@@ -28,6 +34,7 @@ internal static class VrmLoader
         var bytes = File.ReadAllBytes(path);
         using var ms = new MemoryStream(bytes);
         var model = ModelRoot.ReadGLB(ms);
+        var texMap = VrmUtil.ReadMainTextureIndices(bytes);
         var result = new VrmModel();
 
         foreach (var mesh in model.LogicalMeshes)
@@ -36,11 +43,13 @@ internal static class VrmLoader
             {
                 var positions = prim.GetVertexAccessor("POSITION").AsVector3Array();
                 var normals = prim.GetVertexAccessor("NORMAL")?.AsVector3Array();
+                var tex = prim.GetVertexAccessor("TEXCOORD_0")?.AsVector2Array();
                 var channel = prim.Material?.FindChannel("BaseColor");
                 var indices = prim.IndexAccessor.AsIndicesArray();
 
                 float[] verts = new float[positions.Count * 3];
                 float[] norms = new float[normals?.Count * 3 ?? 0];
+                float[] uvs = new float[tex?.Count * 2 ?? 0];
                 for (int i = 0; i < positions.Count; i++)
                 {
                     var v = positions[i];
@@ -62,6 +71,16 @@ internal static class VrmLoader
                     }
                 }
 
+                if (tex != null)
+                {
+                    for (int i = 0; i < tex.Count; i++)
+                    {
+                        var uv = tex[i];
+                        uvs[i * 2 + 0] = uv.X;
+                        uvs[i * 2 + 1] = uv.Y;
+                    }
+                }
+
 
                 uint[] idx = new uint[indices.Count];
                 // Z 軸を反転したため頂点順序も入れ替える
@@ -77,13 +96,31 @@ internal static class VrmLoader
                 cf.W = 1.0f;
                 var colorFactor = new OpenTK.Mathematics.Vector4(cf.X, cf.Y, cf.Z, cf.W);
 
-                result.SubMeshes.Add(new VrmSubMesh
+                var smd = new VrmSubMesh
                 {
                     Positions = verts,
                     Normals = norms,
+                    TexCoords = uvs,
                     Indices = idx,
                     ColorFactor = colorFactor
-                });
+                };
+
+                int matIndex = prim.Material?.LogicalIndex ?? -1;
+                if (matIndex >= 0 && texMap.TryGetValue(matIndex, out var tIdx))
+                {
+                    var texObj = model.LogicalTextures[tIdx];
+                    var imgSeg = texObj.PrimaryImage?.GetImageContent();
+                    if (imgSeg.HasValue)
+                    {
+                        using var image = SixLabors.ImageSharp.Image.Load<SixLabors.ImageSharp.PixelFormats.Rgba32>(imgSeg.Value.ToArray());
+                        smd.TextureWidth = image.Width;
+                        smd.TextureHeight = image.Height;
+                        smd.TextureBytes = new byte[image.Width * image.Height * 4];
+                        image.CopyPixelDataTo(smd.TextureBytes);
+                    }
+                }
+
+                result.SubMeshes.Add(smd);
             }
         }
 
