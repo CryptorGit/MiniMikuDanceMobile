@@ -1,6 +1,7 @@
 using System;
 using System.Diagnostics;
 using System.Runtime.InteropServices;
+using System.Collections.Generic;
 // Use OpenGL ES 3.0 across projects to avoid enum mismatches
 using OpenTK.Graphics.ES30;
 using GL = OpenTK.Graphics.ES30.GL;
@@ -13,17 +14,22 @@ namespace ViewerApp;
 
 public class Viewer : IDisposable
 {
+    private class RenderMesh
+    {
+        public int Vao;
+        public int Vbo;
+        public int Ebo;
+        public int Texture;
+        public int IndexCount;
+    }
+
     private readonly GameWindow _window;
-    private readonly int _vao;
-    private readonly int _vbo;
-    private readonly int _ebo;
-    private readonly int _tex;
+    private readonly List<RenderMesh> _meshes = new();
     private readonly int _program;
     private readonly int _modelLoc;
     private readonly int _viewLoc;
     private readonly int _projLoc;
     private readonly int _texLoc;
-    private readonly int _indexCount;
     private readonly Matrix4 _modelTransform;
     private Matrix4 _view = Matrix4.Identity;
     private readonly Stopwatch _timer = new();
@@ -46,7 +52,6 @@ public class Viewer : IDisposable
         GL.LoadBindings(new GLFWBindingsContext());
 
         var model = VrmLoader.Load(modelPath);
-        _indexCount = model.Indices.Length;
         _modelTransform = model.Transform;
 
         const string vert = "#version 330 core\n" +
@@ -91,80 +96,85 @@ public class Viewer : IDisposable
         _projLoc = GL.GetUniformLocation(_program, "uProj");
         _texLoc = GL.GetUniformLocation(_program, "uTex");
 
-        _vao = GL.GenVertexArray();
-        _vbo = GL.GenBuffer();
-        _ebo = GL.GenBuffer();
-        GL.BindVertexArray(_vao);
-        GL.BindBuffer(BufferTarget.ArrayBuffer, _vbo);
-        int vcount = model.Positions.Length / 3;
-        float[] buffer = new float[vcount * 8];
-        for (int i = 0; i < vcount; i++)
+        foreach (var sm in model.SubMeshes)
         {
-            buffer[i * 8 + 0] = model.Positions[i * 3 + 0];
-            buffer[i * 8 + 1] = model.Positions[i * 3 + 1];
-            buffer[i * 8 + 2] = model.Positions[i * 3 + 2];
-            buffer[i * 8 + 3] = i * 3 < model.Normals.Length ? model.Normals[i * 3 + 0] : 0f;
-            buffer[i * 8 + 4] = i * 3 < model.Normals.Length ? model.Normals[i * 3 + 1] : 0f;
-            buffer[i * 8 + 5] = i * 3 < model.Normals.Length ? model.Normals[i * 3 + 2] : 1f;
-            buffer[i * 8 + 6] = i * 2 < model.TexCoords.Length ? model.TexCoords[i * 2 + 0] : 0f;
-            buffer[i * 8 + 7] = i * 2 < model.TexCoords.Length ? model.TexCoords[i * 2 + 1] : 0f;
-        }
-        GL.BufferData(BufferTarget.ArrayBuffer, buffer.Length * sizeof(float), buffer, BufferUsageHint.StaticDraw);
-        int stride = 8 * sizeof(float);
-        GL.VertexAttribPointer(0, 3, VertexAttribPointerType.Float, false, stride, 0);
-        GL.EnableVertexAttribArray(0);
-        GL.VertexAttribPointer(1, 3, VertexAttribPointerType.Float, false, stride, 3 * sizeof(float));
-        GL.EnableVertexAttribArray(1);
-        GL.VertexAttribPointer(2, 2, VertexAttribPointerType.Float, false, stride, 6 * sizeof(float));
-        GL.EnableVertexAttribArray(2);
-        GL.BindBuffer(BufferTarget.ElementArrayBuffer, _ebo);
-        GL.BufferData(BufferTarget.ElementArrayBuffer, model.Indices.Length * sizeof(uint), model.Indices, BufferUsageHint.StaticDraw);
-        GL.BindVertexArray(0);
+            int vcount = sm.Positions.Length / 3;
+            float[] verts = new float[vcount * 8];
+            for (int i = 0; i < vcount; i++)
+            {
+                verts[i * 8 + 0] = sm.Positions[i * 3 + 0];
+                verts[i * 8 + 1] = sm.Positions[i * 3 + 1];
+                verts[i * 8 + 2] = sm.Positions[i * 3 + 2];
+                verts[i * 8 + 3] = i * 3 < sm.Normals.Length ? sm.Normals[i * 3 + 0] : 0f;
+                verts[i * 8 + 4] = i * 3 < sm.Normals.Length ? sm.Normals[i * 3 + 1] : 0f;
+                verts[i * 8 + 5] = i * 3 < sm.Normals.Length ? sm.Normals[i * 3 + 2] : 1f;
+                verts[i * 8 + 6] = i * 2 < sm.TexCoords.Length ? sm.TexCoords[i * 2 + 0] : 0f;
+                verts[i * 8 + 7] = i * 2 < sm.TexCoords.Length ? sm.TexCoords[i * 2 + 1] : 0f;
+            }
 
-        _tex = GL.GenTexture();
-        GL.BindTexture(TextureTarget.Texture2D, _tex);
-        if (model.Texture != null)
-        {
-            // All 列挙型を介さず型付けされたオーバーロードを使用
-            var handle = GCHandle.Alloc(model.Texture, GCHandleType.Pinned);
-            // All 列挙型を使用しないことで安全にロード
-            try
+            var rm = new RenderMesh();
+            rm.IndexCount = sm.Indices.Length;
+            rm.Vao = GL.GenVertexArray();
+            rm.Vbo = GL.GenBuffer();
+            rm.Ebo = GL.GenBuffer();
+
+            GL.BindVertexArray(rm.Vao);
+            GL.BindBuffer(BufferTarget.ArrayBuffer, rm.Vbo);
+            GL.BufferData(BufferTarget.ArrayBuffer, verts.Length * sizeof(float), verts, BufferUsageHint.StaticDraw);
+            int stride = 8 * sizeof(float);
+            GL.VertexAttribPointer(0, 3, VertexAttribPointerType.Float, false, stride, 0);
+            GL.EnableVertexAttribArray(0);
+            GL.VertexAttribPointer(1, 3, VertexAttribPointerType.Float, false, stride, 3 * sizeof(float));
+            GL.EnableVertexAttribArray(1);
+            GL.VertexAttribPointer(2, 2, VertexAttribPointerType.Float, false, stride, 6 * sizeof(float));
+            GL.EnableVertexAttribArray(2);
+            GL.BindBuffer(BufferTarget.ElementArrayBuffer, rm.Ebo);
+            GL.BufferData(BufferTarget.ElementArrayBuffer, sm.Indices.Length * sizeof(uint), sm.Indices, BufferUsageHint.StaticDraw);
+            GL.BindVertexArray(0);
+
+            rm.Texture = GL.GenTexture();
+            GL.BindTexture(TextureTarget.Texture2D, rm.Texture);
+            if (sm.Texture != null)
             {
-                GL.TexImage2D(TextureTarget2d.Texture2D, 0,
-                    TextureComponentCount.Rgba,
-                    model.TextureWidth, model.TextureHeight, 0,
-                    PixelFormat.Rgba, PixelType.UnsignedByte,
-                    handle.AddrOfPinnedObject());
+                var handle = GCHandle.Alloc(sm.Texture, GCHandleType.Pinned);
+                try
+                {
+                    GL.TexImage2D(TextureTarget2d.Texture2D, 0,
+                        TextureComponentCount.Rgba,
+                        sm.TextureWidth, sm.TextureHeight, 0,
+                        PixelFormat.Rgba, PixelType.UnsignedByte,
+                        handle.AddrOfPinnedObject());
+                }
+                finally
+                {
+                    handle.Free();
+                }
             }
-            finally
+            else
             {
-                handle.Free();
+                byte[] white = { 255, 255, 255, 255 };
+                var handle = GCHandle.Alloc(white, GCHandleType.Pinned);
+                try
+                {
+                    GL.TexImage2D(TextureTarget2d.Texture2D, 0,
+                        TextureComponentCount.Rgba,
+                        1, 1, 0,
+                        PixelFormat.Rgba, PixelType.UnsignedByte,
+                        handle.AddrOfPinnedObject());
+                }
+                finally
+                {
+                    handle.Free();
+                }
             }
+            GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureMinFilter, (int)TextureMinFilter.Linear);
+            GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureMagFilter, (int)TextureMagFilter.Linear);
+            GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureWrapS, (int)TextureWrapMode.Repeat);
+            GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureWrapT, (int)TextureWrapMode.Repeat);
+            GL.BindTexture(TextureTarget.Texture2D, 0);
+
+            _meshes.Add(rm);
         }
-        else
-        {
-            // 代替テクスチャとして 1x1 の白色ピクセルを設定
-            byte[] white = { 255, 255, 255, 255 };
-            var handle = GCHandle.Alloc(white, GCHandleType.Pinned);
-            // All 列挙型を使用しないことで安全にロード
-            try
-            {
-                GL.TexImage2D(TextureTarget2d.Texture2D, 0,
-                    TextureComponentCount.Rgba,
-                    1, 1, 0,
-                    PixelFormat.Rgba, PixelType.UnsignedByte,
-                    handle.AddrOfPinnedObject());
-            }
-            finally
-            {
-                handle.Free();
-            }
-        }
-        GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureMinFilter, (int)TextureMinFilter.Linear);
-        GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureMagFilter, (int)TextureMagFilter.Linear);
-        GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureWrapS, (int)TextureWrapMode.Repeat);
-        GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureWrapT, (int)TextureWrapMode.Repeat);
-        GL.BindTexture(TextureTarget.Texture2D, 0);
 
         // 深度バッファを正しく利用するための設定
         GL.ClearDepth(1.0f);
@@ -186,6 +196,8 @@ public class Viewer : IDisposable
     private void Render()
     {
         NativeWindow.ProcessWindowEvents(false);
+        GL.Enable(EnableCap.DepthTest);
+        GL.DepthMask(true);
         GL.Viewport(0, 0, Size.X, Size.Y);
         GL.ClearColor(1f, 1f, 1f, 1f);
         GL.Clear(ClearBufferMask.ColorBufferBit | ClearBufferMask.DepthBufferBit);
@@ -197,12 +209,15 @@ public class Viewer : IDisposable
         GL.UniformMatrix4(_modelLoc, false, ref model);
         GL.UniformMatrix4(_viewLoc, false, ref _view);
         GL.UniformMatrix4(_projLoc, false, ref proj);
-        GL.ActiveTexture(TextureUnit.Texture0);
-        GL.BindTexture(TextureTarget.Texture2D, _tex);
-        GL.Uniform1(_texLoc, 0);
-        GL.BindVertexArray(_vao);
-        GL.DrawElements(PrimitiveType.Triangles, _indexCount, DrawElementsType.UnsignedInt, IntPtr.Zero);
-        GL.BindVertexArray(0);
+        foreach (var rm in _meshes)
+        {
+            GL.ActiveTexture(TextureUnit.Texture0);
+            GL.BindTexture(TextureTarget.Texture2D, rm.Texture);
+            GL.Uniform1(_texLoc, 0);
+            GL.BindVertexArray(rm.Vao);
+            GL.DrawElements(PrimitiveType.Triangles, rm.IndexCount, DrawElementsType.UnsignedInt, IntPtr.Zero);
+            GL.BindVertexArray(0);
+        }
         _window.SwapBuffers();
     }
 
@@ -221,10 +236,14 @@ public class Viewer : IDisposable
 
     public void Dispose()
     {
-        GL.DeleteBuffer(_vbo);
-        GL.DeleteBuffer(_ebo);
-        GL.DeleteVertexArray(_vao);
-        GL.DeleteTexture(_tex);
+        foreach (var rm in _meshes)
+        {
+            if (rm.Vao != 0) GL.DeleteVertexArray(rm.Vao);
+            if (rm.Vbo != 0) GL.DeleteBuffer(rm.Vbo);
+            if (rm.Ebo != 0) GL.DeleteBuffer(rm.Ebo);
+            if (rm.Texture != 0) GL.DeleteTexture(rm.Texture);
+        }
+        _meshes.Clear();
         GL.DeleteProgram(_program);
         _window.Close();
         _window.Dispose();
