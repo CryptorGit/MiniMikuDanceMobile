@@ -52,7 +52,7 @@ internal static class VrmLoader
 
                 float[] verts = new float[positions.Count * 3];
                 float[] norms = new float[normals?.Count * 3 ?? 0];
-                float[] tex = new float[uvs?.Count * 2 ?? 0];
+                float[] texCoords = new float[uvs?.Count * 2 ?? 0];
                 for (int i = 0; i < positions.Count; i++)
                 {
                     var v = positions[i];
@@ -87,8 +87,8 @@ internal static class VrmLoader
                     for (int i = 0; i < uvs.Count; i++)
                     {
                         var uv = System.Numerics.Vector2.Transform(uvs[i], mat);
-                        tex[i * 2 + 0] = uv.X;
-                        tex[i * 2 + 1] = uv.Y;
+                        texCoords[i * 2 + 0] = uv.X;
+                        texCoords[i * 2 + 1] = uv.Y;
                     }
                 }
 
@@ -109,11 +109,11 @@ internal static class VrmLoader
                 var image = channel?.Texture?.PrimaryImage;
                 if (image == null && material != null)
                 {
-                    int mIdx = model.LogicalMaterials.IndexOf(material);
+                    int mIdx = model.LogicalMaterials.ToList().IndexOf(material);
                     if (texMap.TryGetValue(mIdx, out var texIdx))
                     {
-                        var tex = model.LogicalTextures[texIdx];
-                        image = tex.PrimaryImage;
+                        var texture = model.LogicalTextures[texIdx];
+                        image = texture.PrimaryImage;
                     }
                 }
                 var cf = channel?.Parameter ?? new System.Numerics.Vector4(1, 1, 1, 1);
@@ -133,7 +133,7 @@ internal static class VrmLoader
                 {
                     Positions = verts,
                     Normals = norms,
-                    TexCoords = tex,
+                    TexCoords = texCoords,
                     Indices = idx,
                     Texture = texBytes,
                     TextureWidth = texW,

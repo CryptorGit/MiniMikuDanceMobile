@@ -155,11 +155,11 @@ public class ModelImporter
                 GLTFImage? image = channel?.Texture?.PrimaryImage;
                 if (image == null && mainTextures != null && material != null)
                 {
-                    int idx = model.LogicalMaterials.IndexOf(material);
+                    int idx = model.LogicalMaterials.ToList().IndexOf(material);
                     if (idx >= 0 && mainTextures.TryGetValue(idx, out var texIdx))
                     {
-                        var tex = model.LogicalTextures[texIdx];
-                        image = tex.PrimaryImage;
+                        var texture = model.LogicalTextures[texIdx];
+                        image = texture.PrimaryImage;
                     }
                 }
                 var colorParam = channel?.Parameter ?? Vector4.One;
