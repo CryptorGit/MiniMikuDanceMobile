@@ -713,6 +713,10 @@ public partial class CameraPage : ContentPage
     private async void OnImportClicked(object? sender, EventArgs e)
     {
         if (string.IsNullOrEmpty(_selectedPath))
+        {
+            await DisplayAlert("Error", "ファイルが選択されていません", "OK");
+            return;
+        }
 
         RemoveBottomFeature("Open");
         FileSelectMessage.IsVisible = false;
@@ -725,6 +729,8 @@ public partial class CameraPage : ContentPage
             var importer = new ModelImporter();
             var data = await Task.Run(() => importer.ImportModel(_selectedPath));
             _renderer.LoadModel(data);
+            _renderer.ResetCamera();
+            _glInitialized = false;
         }
         catch (Exception ex)
         {
