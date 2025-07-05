@@ -71,9 +71,9 @@ GLFW に頼らず、`eglGetProcAddress` と `dlsym` で関数を取得する Ope
 VRM モデルの読み込みには [SharpGLTF](https://github.com/vpenades/SharpGLTF) を使用します。
 `AppCore/Import/ModelImporter.cs` で SharpGLTF から取得したデータを Assimp 形式へ変換し、
 ImageSharp を用いてテクスチャも読み込む簡易 VRM インポーターを実装しました。
-`KHR_texture_transform` 拡張の `offset`/`scale`/`rotation` にも対応し、UV 座標のずれを防ぎます。
+`KHR_texture_transform` 拡張の `offset`/`scale`/`rotation` への対応は今後の課題です。
 VRM 独自のテクスチャ情報が無い場合も glTF の `baseColorTexture` を利用して読み込み、灰色表示になる問題を解消しました。
-簡易的なトゥーンシェーダを導入し、MToon 風の質感を再現します。
+MToon シェーダによるトゥーン調レンダリングを行います。
 将来的な VRM 0.x/1.0 への対応を進めていく予定です。
 
 ## 参考: C# 向け VRM ローダーライブラリ（Unity 不要・オフライン対応）

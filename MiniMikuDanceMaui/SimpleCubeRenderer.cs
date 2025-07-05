@@ -42,6 +42,10 @@ public class SimpleCubeRenderer : IDisposable
     private int _modelTexLoc;
     private int _modelUseTexLoc;
     private int _modelLightDirLoc;
+    private int _modelViewDirLoc;
+    private int _modelShadeShiftLoc;
+    private int _modelShadeToonyLoc;
+    private int _modelRimIntensityLoc;
     private Matrix4 _modelTransform = Matrix4.Identity;
     private int _width;
     private int _height;
@@ -108,12 +112,18 @@ uniform vec4 uColor;
 uniform sampler2D uTex;
 uniform bool uUseTex;
 uniform vec3 uLightDir;
+uniform vec3 uViewDir;
+uniform float uShadeShift;
+uniform float uShadeToony;
+uniform float uRimIntensity;
 out vec4 FragColor;
 void main(){
-    float diff = max(dot(normalize(vNormal), normalize(uLightDir)), 0.0);
-    diff = diff > 0.7 ? 1.0 : (diff > 0.4 ? 0.7 : 0.4);
     vec4 base = uUseTex ? texture(uTex, vTex) : uColor;
-    FragColor = vec4(base.rgb * diff, base.a);
+    float ndotl = max(dot(normalize(vNormal), normalize(uLightDir)), 0.0);
+    float light = clamp((ndotl + uShadeShift) * uShadeToony, 0.0, 1.0);
+    float rim = pow(1.0 - max(dot(normalize(vNormal), normalize(uViewDir)), 0.0), 3.0) * uRimIntensity;
+    vec3 color = base.rgb * light + base.rgb * rim;
+    FragColor = vec4(color, base.a);
 }";
         int mvs = GL.CreateShader(ShaderType.VertexShader);
         GL.ShaderSource(mvs, modelVert);
@@ -134,8 +144,10 @@ void main(){
         _modelTexLoc = GL.GetUniformLocation(_modelProgram, "uTex");
         _modelUseTexLoc = GL.GetUniformLocation(_modelProgram, "uUseTex");
         _modelLightDirLoc = GL.GetUniformLocation(_modelProgram, "uLightDir");
-
-
+        _modelViewDirLoc = GL.GetUniformLocation(_modelProgram, "uViewDir");
+        _modelShadeShiftLoc = GL.GetUniformLocation(_modelProgram, "uShadeShift");
+        _modelShadeToonyLoc = GL.GetUniformLocation(_modelProgram, "uShadeToony");
+        _modelRimIntensityLoc = GL.GetUniformLocation(_modelProgram, "uRimIntensity");
 
         // grid vertices (XZ plane)
         int gridLines = (10 - (-10) + 1) * 2; // 21 lines along each axis
@@ -349,6 +361,11 @@ void main(){
         GL.UniformMatrix4(_modelProjLoc, false, ref proj);
         Vector3 light = Vector3.Normalize(new Vector3(0.3f, 0.6f, 0.7f));
         GL.Uniform3(_modelLightDirLoc, ref light);
+        Vector3 viewDir = Vector3.UnitZ;
+        GL.Uniform3(_modelViewDirLoc, ref viewDir);
+        GL.Uniform1(_modelShadeShiftLoc, -0.1f);
+        GL.Uniform1(_modelShadeToonyLoc, 0.9f);
+        GL.Uniform1(_modelRimIntensityLoc, 0.5f);
         // テクスチャのアルファを利用するためブレンドを有効化
         GL.Enable(EnableCap.Blend);
         foreach (var rm in _meshes)
