@@ -7,6 +7,7 @@ using System.Collections.Generic;
 using SixLabors.ImageSharp;
 using SixLabors.ImageSharp.PixelFormats;
 using Vector3D = Assimp.Vector3D;
+using SharpGLTF.Schema2;
 
 namespace MiniMikuDance.Import;
 
@@ -297,7 +298,7 @@ public class ModelImporter
 
         foreach (var skin in model.LogicalSkins)
         {
-            foreach (var joint in skin.Joints)
+            foreach (var joint in EnumerateJoints(skin))
             {
                 if (!visited.Add(joint)) continue;
                 var r = joint.LocalTransform.Rotation;
@@ -307,5 +308,18 @@ public class ModelImporter
         }
 
         return bones;
+    }
+
+    private static IEnumerable<Node> EnumerateJoints(Skin skin)
+    {
+        var getJoint = skin.GetType().GetMethod("GetJoint", new[] { typeof(int) });
+        if (getJoint == null) yield break;
+        for (int i = 0; i < skin.JointsCount; i++)
+        {
+            if (getJoint.Invoke(skin, new object[] { i }) is Node joint)
+            {
+                yield return joint;
+            }
+        }
     }
 }
