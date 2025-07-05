@@ -210,6 +210,8 @@ public class Viewer : IDisposable
         GL.UniformMatrix4(_modelLoc, false, ref model);
         GL.UniformMatrix4(_viewLoc, false, ref _view);
         GL.UniformMatrix4(_projLoc, false, ref proj);
+        // メッシュ描画時は透過処理を行わない
+        GL.Disable(EnableCap.Blend);
         foreach (var rm in _meshes)
         {
             GL.ActiveTexture(TextureUnit.Texture0);

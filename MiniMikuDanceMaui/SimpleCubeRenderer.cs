@@ -357,6 +357,8 @@ void main(){
         GL.UseProgram(_modelProgram);
         GL.UniformMatrix4(_modelViewLoc, false, ref view);
         GL.UniformMatrix4(_modelProjLoc, false, ref proj);
+        // VRM モデルはアルファ値を利用しないため描画時はブレンドを無効化
+        GL.Disable(EnableCap.Blend);
         foreach (var rm in _meshes)
         {
             GL.UniformMatrix4(_modelModelLoc, false, ref model);
@@ -367,6 +369,8 @@ void main(){
             GL.DrawElements(PrimitiveType.Triangles, rm.IndexCount, DrawElementsType.UnsignedInt, IntPtr.Zero);
             GL.BindVertexArray(0);
         }
+        // グリッド描画では透過を利用するためブレンドを再度有効化
+        GL.Enable(EnableCap.Blend);
 
         GL.UseProgram(_program);
         GL.UniformMatrix4(_viewLoc, false, ref view);
