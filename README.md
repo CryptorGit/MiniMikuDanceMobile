@@ -73,6 +73,7 @@ VRM モデルの読み込みには [SharpGLTF](https://github.com/vpenades/Sharp
 ImageSharp を用いてテクスチャも読み込む簡易 VRM インポーターを実装しました。
 `KHR_texture_transform` 拡張の `offset`/`scale`/`rotation` にも対応し、UV 座標のずれを防ぎます。
 VRM 独自のテクスチャ情報が無い場合も glTF の `baseColorTexture` を利用して読み込み、灰色表示になる問題を解消しました。
+簡易的なトゥーンシェーダを導入し、MToon 風の質感を再現します。
 将来的な VRM 0.x/1.0 への対応を進めていく予定です。
 
 ## 参考: C# 向け VRM ローダーライブラリ（Unity 不要・オフライン対応）

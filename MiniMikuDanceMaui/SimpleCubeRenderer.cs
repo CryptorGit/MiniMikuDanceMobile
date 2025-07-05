@@ -41,6 +41,7 @@ public class SimpleCubeRenderer : IDisposable
     private int _modelColorLoc;
     private int _modelTexLoc;
     private int _modelUseTexLoc;
+    private int _modelLightDirLoc;
     private Matrix4 _modelTransform = Matrix4.Identity;
     private int _width;
     private int _height;
@@ -106,10 +107,11 @@ in vec2 vTex;
 uniform vec4 uColor;
 uniform sampler2D uTex;
 uniform bool uUseTex;
+uniform vec3 uLightDir;
 out vec4 FragColor;
 void main(){
-    vec3 lightDir = normalize(vec3(0.3,0.6,0.7));
-    float diff = max(dot(normalize(vNormal), lightDir), 0.2);
+    float diff = max(dot(normalize(vNormal), normalize(uLightDir)), 0.0);
+    diff = diff > 0.7 ? 1.0 : (diff > 0.4 ? 0.7 : 0.4);
     vec4 base = uUseTex ? texture(uTex, vTex) : uColor;
     FragColor = vec4(base.rgb * diff, base.a);
 }";
@@ -131,6 +133,7 @@ void main(){
         _modelColorLoc = GL.GetUniformLocation(_modelProgram, "uColor");
         _modelTexLoc = GL.GetUniformLocation(_modelProgram, "uTex");
         _modelUseTexLoc = GL.GetUniformLocation(_modelProgram, "uUseTex");
+        _modelLightDirLoc = GL.GetUniformLocation(_modelProgram, "uLightDir");
 
 
 
@@ -344,6 +347,8 @@ void main(){
         GL.UseProgram(_modelProgram);
         GL.UniformMatrix4(_modelViewLoc, false, ref view);
         GL.UniformMatrix4(_modelProjLoc, false, ref proj);
+        Vector3 light = Vector3.Normalize(new Vector3(0.3f, 0.6f, 0.7f));
+        GL.Uniform3(_modelLightDirLoc, ref light);
         // テクスチャのアルファを利用するためブレンドを有効化
         GL.Enable(EnableCap.Blend);
         foreach (var rm in _meshes)
