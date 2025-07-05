@@ -37,6 +37,7 @@ public partial class CameraPage : ContentPage
 
     private readonly SimpleCubeRenderer _renderer = new();
     private bool _glInitialized;
+    private ModelData? _pendingModel;
     private readonly Dictionary<long, SKPoint> _touchPoints = new();
 
     public CameraPage()
@@ -326,8 +327,9 @@ public partial class CameraPage : ContentPage
 
             if (data != null)
             {
-                _renderer.LoadModel(data);
-                LogService.WriteLine("[CameraPage] Model initialized successfully");
+                _pendingModel = data;
+                _renderer.ResetCamera();
+                LogService.WriteLine("[CameraPage] Model queued for loading");
             }
             else
             {
@@ -415,8 +417,19 @@ public partial class CameraPage : ContentPage
         {
             GL.LoadBindings(new SKGLViewBindingsContext());
             _renderer.Initialize();
+            if (_pendingModel != null)
+            {
+                _renderer.LoadModel(_pendingModel);
+                _pendingModel = null;
+            }
             _glInitialized = true;
         }
+        else if (_pendingModel != null)
+        {
+            _renderer.LoadModel(_pendingModel);
+            _pendingModel = null;
+        }
+
         _renderer.Resize(e.BackendRenderTarget.Width, e.BackendRenderTarget.Height);
         _renderer.Render();
         GL.Flush();
@@ -713,6 +726,10 @@ public partial class CameraPage : ContentPage
     private async void OnImportClicked(object? sender, EventArgs e)
     {
         if (string.IsNullOrEmpty(_selectedPath))
+        {
+            await DisplayAlert("Error", "ファイルが選択されていません", "OK");
+            return;
+        }
 
         RemoveBottomFeature("Open");
         FileSelectMessage.IsVisible = false;
@@ -724,7 +741,9 @@ public partial class CameraPage : ContentPage
         {
             var importer = new ModelImporter();
             var data = await Task.Run(() => importer.ImportModel(_selectedPath));
-            _renderer.LoadModel(data);
+            _pendingModel = data;
+            _renderer.ResetCamera();
+            _glInitialized = false;
         }
         catch (Exception ex)
         {
