@@ -29,26 +29,32 @@ public partial class BoneView : ContentView
     {
         BoneGrid.RowDefinitions.Clear();
         BoneGrid.Children.Clear();
-        BoneGrid.RowDefinitions.Add(new RowDefinition { Height = 20 });
-        BoneGrid.Children.Add(new Label { Text = "Bone", TextColor = Colors.White }, 0, 0);
-        BoneGrid.Children.Add(new Label { Text = "X", TextColor = Colors.White }, 1, 0);
-        BoneGrid.Children.Add(new Label { Text = "Y", TextColor = Colors.White }, 2, 0);
-        BoneGrid.Children.Add(new Label { Text = "Z", TextColor = Colors.White }, 3, 0);
+        BoneGrid.RowDefinitions.Add(new RowDefinition { Height = new GridLength(20) });
+        AddCell(new Label { Text = "Bone", TextColor = Colors.White }, 0, 0);
+        AddCell(new Label { Text = "X", TextColor = Colors.White }, 1, 0);
+        AddCell(new Label { Text = "Y", TextColor = Colors.White }, 2, 0);
+        AddCell(new Label { Text = "Z", TextColor = Colors.White }, 3, 0);
         int row = 1;
         foreach (var b in _bones)
         {
             BoneGrid.RowDefinitions.Add(new RowDefinition { Height = GridLength.Auto });
-            BoneGrid.Children.Add(new Label { Text = b.Name, TextColor = Colors.White, VerticalTextAlignment = TextAlignment.Center }, 0, row);
+            AddCell(new Label { Text = b.Name, TextColor = Colors.White, VerticalTextAlignment = TextAlignment.Center }, 0, row);
             var sx = CreateSlider(b, nameof(b.RotX));
-            BoneGrid.Children.Add(sx, 1, row);
+            AddCell(sx, 1, row);
             var sy = CreateSlider(b, nameof(b.RotY));
-            BoneGrid.Children.Add(sy, 2, row);
+            AddCell(sy, 2, row);
             var sz = CreateSlider(b, nameof(b.RotZ));
-            BoneGrid.Children.Add(sz, 3, row);
+            AddCell(sz, 3, row);
             row++;
         }
     }
 
+    private void AddCell(View view, int column, int row)
+    {
+        Grid.SetColumn(view, column);
+        Grid.SetRow(view, row);
+        BoneGrid.Children.Add(view);
+    }
     private Slider CreateSlider(BoneItem item, string prop)
     {
         var s = new Slider { Minimum = -180, Maximum = 180, Value = GetValue(item, prop) };
