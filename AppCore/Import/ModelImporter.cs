@@ -7,6 +7,8 @@ using System.Collections.Generic;
 using SixLabors.ImageSharp;
 using SixLabors.ImageSharp.PixelFormats;
 using Vector3D = Assimp.Vector3D;
+using SharpGLTF.Schema2;
+using SNode = SharpGLTF.Schema2.Node;
 
 namespace MiniMikuDance.Import;
 
@@ -293,11 +295,11 @@ public class ModelImporter
 
         // SharpGLTF の Node.IsSkinJoint フラグは VRM 0.x/1.0 では正しく設定され
         // ないケースがあるため、Skin の Joint から取得する方式に変更
-        var visited = new HashSet<SharpGLTF.Schema2.Node>();
+        var visited = new HashSet<SNode>();
 
         foreach (var skin in model.LogicalSkins)
         {
-            foreach (var joint in skin.Joints)
+            foreach (var joint in EnumerateJoints(skin))
             {
                 if (!visited.Add(joint)) continue;
                 var r = joint.LocalTransform.Rotation;
@@ -307,5 +309,18 @@ public class ModelImporter
         }
 
         return bones;
+    }
+
+    private static IEnumerable<SNode> EnumerateJoints(Skin skin)
+    {
+        var getJoint = skin.GetType().GetMethod("GetJoint", new[] { typeof(int) });
+        if (getJoint == null) yield break;
+        for (int i = 0; i < skin.JointsCount; i++)
+        {
+            if (getJoint.Invoke(skin, new object[] { i }) is SNode joint)
+            {
+                yield return joint;
+            }
+        }
     }
 }
