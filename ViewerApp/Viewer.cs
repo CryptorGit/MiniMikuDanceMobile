@@ -52,6 +52,8 @@ public class Viewer : IDisposable
         _window = new GameWindow(GameWindowSettings.Default, nativeSettings);
         _window.MakeCurrent();
         GL.LoadBindings(new GLFWBindingsContext());
+        GL.Enable(EnableCap.Blend);
+        GL.BlendFunc(BlendingFactorSrc.SrcAlpha, BlendingFactorDest.OneMinusSrcAlpha);
 
         var model = VrmLoader.Load(modelPath);
         _modelTransform = model.Transform;
@@ -80,8 +82,8 @@ public class Viewer : IDisposable
                            "vec3 lightDir = normalize(vec3(0.3,0.6,0.7));\n" +
                            "float diff = max(dot(normalize(vNormal), lightDir), 0.2);\n" +
                            "vec4 col = texture(uTex, vUV) * uColor;\n" +
-                           // テクスチャのアルファは画面合成に使わない
-                           "FragColor = vec4(col.rgb * diff, 1.0);\n" +
+                           // テクスチャのアルファも利用する
+                           "FragColor = vec4(col.rgb * diff, col.a);\n" +
                            "}";
         int vs = GL.CreateShader(ShaderType.VertexShader);
         GL.ShaderSource(vs, vert);
@@ -146,8 +148,8 @@ public class Viewer : IDisposable
                 var handle = GCHandle.Alloc(sm.Texture, GCHandleType.Pinned);
                 try
                 {
-                    GL.TexImage2D(TextureTarget2d.Texture2D, 0,
-                        TextureComponentCount.Rgba,
+                    GL.TexImage2D(TextureTarget.Texture2D, 0,
+                        PixelInternalFormat.Rgba,
                         sm.TextureWidth, sm.TextureHeight, 0,
                         PixelFormat.Rgba, PixelType.UnsignedByte,
                         handle.AddrOfPinnedObject());
@@ -163,8 +165,8 @@ public class Viewer : IDisposable
                 var handle = GCHandle.Alloc(white, GCHandleType.Pinned);
                 try
                 {
-                    GL.TexImage2D(TextureTarget2d.Texture2D, 0,
-                        TextureComponentCount.Rgba,
+                    GL.TexImage2D(TextureTarget.Texture2D, 0,
+                        PixelInternalFormat.Rgba,
                         1, 1, 0,
                         PixelFormat.Rgba, PixelType.UnsignedByte,
                         handle.AddrOfPinnedObject());
@@ -217,8 +219,8 @@ public class Viewer : IDisposable
         GL.UniformMatrix4(_modelLoc, false, ref model);
         GL.UniformMatrix4(_viewLoc, false, ref _view);
         GL.UniformMatrix4(_projLoc, false, ref proj);
-        // メッシュ描画時は透過処理を行わない
-        GL.Disable(EnableCap.Blend);
+        // メッシュ描画時も透過処理を行う
+        GL.Enable(EnableCap.Blend);
         foreach (var rm in _meshes)
         {
             GL.ActiveTexture(TextureUnit.Texture0);

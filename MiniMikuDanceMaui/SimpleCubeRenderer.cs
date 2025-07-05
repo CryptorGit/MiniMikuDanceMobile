@@ -108,8 +108,8 @@ void main(){
     vec3 lightDir = normalize(vec3(0.3,0.6,0.7));
     float diff = max(dot(normalize(vNormal), lightDir), 0.2);
     vec4 col = texture(uTex, vUV) * uColor;
-    // メッシュの透過を防ぐため、アルファは常に1
-    FragColor = vec4(col.rgb * diff, 1.0);
+    // テクスチャのアルファも利用する
+    FragColor = vec4(col.rgb * diff, col.a);
 }";
         int mvs = GL.CreateShader(ShaderType.VertexShader);
         GL.ShaderSource(mvs, modelVert);
@@ -307,8 +307,8 @@ void main(){
                 var handle = GCHandle.Alloc(sm.TextureData, GCHandleType.Pinned);
                 try
                 {
-                    GL.TexImage2D(TextureTarget2d.Texture2D, 0,
-                        TextureComponentCount.Rgba,
+                    GL.TexImage2D(TextureTarget.Texture2D, 0,
+                        PixelInternalFormat.Rgba,
                         sm.TextureWidth, sm.TextureHeight, 0,
                         PixelFormat.Rgba, PixelType.UnsignedByte,
                         handle.AddrOfPinnedObject());
@@ -324,8 +324,8 @@ void main(){
                 var handle = GCHandle.Alloc(white, GCHandleType.Pinned);
                 try
                 {
-                    GL.TexImage2D(TextureTarget2d.Texture2D, 0,
-                        TextureComponentCount.Rgba,
+                    GL.TexImage2D(TextureTarget.Texture2D, 0,
+                        PixelInternalFormat.Rgba,
                         1, 1, 0,
                         PixelFormat.Rgba, PixelType.UnsignedByte,
                         handle.AddrOfPinnedObject());
@@ -364,8 +364,8 @@ void main(){
         GL.UseProgram(_modelProgram);
         GL.UniformMatrix4(_modelViewLoc, false, ref view);
         GL.UniformMatrix4(_modelProjLoc, false, ref proj);
-        // VRM モデルはアルファ値を利用しないため描画時はブレンドを無効化
-        GL.Disable(EnableCap.Blend);
+        // VRM モデル描画時も透過を利用する
+        GL.Enable(EnableCap.Blend);
         foreach (var rm in _meshes)
         {
             GL.UniformMatrix4(_modelModelLoc, false, ref model);
