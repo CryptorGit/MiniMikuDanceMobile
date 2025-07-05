@@ -78,8 +78,8 @@ void main(){
         _colorLoc = GL.GetUniformLocation(_program, "uColor");
 
         GL.Enable(EnableCap.Blend);
-        // OpenTK では厳密な列挙型を使用する
-        GL.BlendFunc(BlendingFactor.SrcAlpha, BlendingFactor.OneMinusSrcAlpha);
+        // OpenTK 4.x では BlendingFactorSrc/Dest を用いる
+        GL.BlendFunc(BlendingFactorSrc.SrcAlpha, BlendingFactorDest.OneMinusSrcAlpha);
 
         const string modelVert = @"#version 300 es
 layout(location = 0) in vec3 aPosition;
