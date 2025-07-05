@@ -142,7 +142,9 @@ public class ModelImporter
                 byte[]? texBytes = null;
                 int texW = 0;
                 int texH = 0;
-                GLTFImage? image = prim.Material?.FindChannel("BaseColor")?.Texture?.PrimaryImage;
+                var material = prim.Material;
+                GLTFImage? image = material?.FindChannel("BaseColor")?.Texture?.PrimaryImage;
+                var colorFactor = material?.PbrMetallicRoughness?.BaseColorFactor ?? Vector4.One;
                 if (image != null)
                 {
                     using var stream = image.OpenImageFile();
@@ -166,7 +168,8 @@ public class ModelImporter
                     Mesh = sub,
                     TextureData = texBytes,
                     TextureWidth = texW,
-                    TextureHeight = texH
+                    TextureHeight = texH,
+                    ColorFactor = colorFactor
                 });
             }
         }

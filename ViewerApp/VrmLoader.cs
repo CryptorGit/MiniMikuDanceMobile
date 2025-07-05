@@ -18,6 +18,7 @@ internal class VrmSubMesh
     public byte[]? Texture;
     public int TextureWidth;
     public int TextureHeight;
+    public Vector4 ColorFactor = Vector4.One;
 }
 
 internal class VrmModel
@@ -99,7 +100,9 @@ internal static class VrmLoader
                 byte[]? texBytes = null;
                 int texW = 0;
                 int texH = 0;
-                var image = prim.Material?.FindChannel("BaseColor")?.Texture?.PrimaryImage;
+                var material = prim.Material;
+                var image = material?.FindChannel("BaseColor")?.Texture?.PrimaryImage;
+                var colorFactor = material?.PbrMetallicRoughness?.BaseColorFactor ?? Vector4.One;
                 if (image != null)
                 {
                     using var stream = image.OpenImageFile();
@@ -119,7 +122,8 @@ internal static class VrmLoader
                     Indices = idx,
                     Texture = texBytes,
                     TextureWidth = texW,
-                    TextureHeight = texH
+                    TextureHeight = texH,
+                    ColorFactor = colorFactor
                 });
             }
         }

@@ -8,4 +8,5 @@ public class SubMeshData
     public byte[]? TextureData { get; set; }
     public int TextureWidth { get; set; }
     public int TextureHeight { get; set; }
+    public System.Numerics.Vector4 ColorFactor { get; set; } = System.Numerics.Vector4.One;
 }
