@@ -1,6 +1,7 @@
 using System.Linq;
 using System.Collections.Generic;
 using OpenTK.Mathematics;
+using System.Numerics;
 using SharpGLTF.Schema2;
 using ImageSharpImage = SixLabors.ImageSharp.Image;
 using SixLabors.ImageSharp.PixelFormats;
@@ -37,7 +38,9 @@ internal static class VrmLoader
             {
                 var positions = prim.GetVertexAccessor("POSITION").AsVector3Array();
                 var normals = prim.GetVertexAccessor("NORMAL")?.AsVector3Array();
-                var uvs = prim.GetVertexAccessor("TEXCOORD_0")?.AsVector2Array();
+                var texInfo = prim.Material?.FindChannel("BaseColor")?.Texture;
+                int texCoordIndex = texInfo?.Transform?.TextureCoordinateOverride ?? texInfo?.TextureCoordinate ?? 0;
+                var uvs = prim.GetVertexAccessor($"TEXCOORD_{texCoordIndex}")?.AsVector2Array();
                 var indices = prim.IndexAccessor.AsIndicesArray();
 
                 float[] verts = new float[positions.Count * 3];
@@ -66,9 +69,10 @@ internal static class VrmLoader
 
                 if (uvs != null)
                 {
+                    var mat = texInfo?.Transform?.Matrix ?? Matrix3x2.Identity;
                     for (int i = 0; i < uvs.Count; i++)
                     {
-                        var uv = uvs[i];
+                        var uv = Vector2.Transform(uvs[i], mat);
                         tex[i * 2 + 0] = uv.X;
                         // ImageSharp は上端原点なので V を反転
                         tex[i * 2 + 1] = 1.0f - uv.Y;
