@@ -46,20 +46,6 @@ var root = doc.RootElement;
 if (root.TryGetProperty("extensions", out var ext) &&
     ext.TryGetProperty("VRM", out var vrm))
 {
-    if (vrm.TryGetProperty("humanoid", out var humanoid) &&
-        humanoid.TryGetProperty("humanBones", out var bones) &&
-        bones.ValueKind == JsonValueKind.Array)
-    {
-        Console.WriteLine("Humanoid Bones:");
-        foreach (var b in bones.EnumerateArray())
-        {
-            if (b.TryGetProperty("bone", out var boneEl) &&
-                b.TryGetProperty("node", out var nodeEl))
-            {
-                Console.WriteLine($"  {boneEl.GetString()} -> node {nodeEl.GetInt32()}");
-            }
-        }
-    }
     if (vrm.TryGetProperty("materialProperties", out var matProps) &&
         matProps.ValueKind == JsonValueKind.Array)
     {

@@ -191,13 +191,6 @@ public partial class CameraPage : ContentPage
         HideSettingMenu();
     }
 
-    private void OnBoneClicked(object? sender, EventArgs e)
-    {
-        LogService.WriteLine("BONE button clicked");
-        ShowBottomFeature("BONE");
-        HideViewMenu();
-        HideSettingMenu();
-    }
 
     private void OnMToonClicked(object? sender, EventArgs e)
     {
@@ -529,14 +522,6 @@ public partial class CameraPage : ContentPage
                 ev.LoadDirectory(modelsPath);
                 view = ev;
             }
-            else if (name == "BONE")
-            {
-                var bv = new BoneView();
-                if (_currentModel != null)
-                    bv.SetBones(_currentModel.Bones);
-                bv.BoneRotated += OnBoneRotated;
-                view = bv;
-            }
             else if (name == "MTOON")
             {
                 var mv = new MToonView
@@ -632,11 +617,6 @@ public partial class CameraPage : ContentPage
             mv.ShadeShift = _shadeShift;
             mv.ShadeToony = _shadeToony;
             mv.RimIntensity = _rimIntensity;
-        }
-        else if (name == "BONE" && _bottomViews[name] is BoneView bv && _currentModel != null)
-        {
-            bv.SetBones(_currentModel.Bones);
-            bv.BoneRotated += OnBoneRotated;
         }
         SwitchBottomFeature(name);
         BottomRegion.IsVisible = true;
@@ -799,12 +779,4 @@ public partial class CameraPage : ContentPage
         UpdateLayout();
     }
 
-    private void OnBoneRotated(int index, System.Numerics.Quaternion rot)
-    {
-        if (_currentModel == null) return;
-        if (index < 0 || index >= _currentModel.Bones.Count) return;
-        _currentModel.Bones[index].Rotation = rot;
-        _renderer.SetBoneRotation(index, rot);
-        Viewer.InvalidateSurface();
-    }
 }
