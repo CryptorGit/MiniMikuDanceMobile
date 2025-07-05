@@ -141,18 +141,18 @@ public class Viewer : IDisposable
             GL.BindVertexArray(0);
 
             rm.Texture = GL.GenTexture();
-            GL.BindTexture((All)TextureTarget.Texture2D, rm.Texture);
-            GL.PixelStore((All)PixelStoreParameter.UnpackAlignment, 1);
+            GL.BindTexture(TextureTarget.Texture2D, rm.Texture);
+            GL.PixelStore(PixelStoreParameter.UnpackAlignment, 1);
             if (sm.Texture != null)
             {
                 var handle = GCHandle.Alloc(sm.Texture, GCHandleType.Pinned);
                 try
                 {
-            GL.TexImage2D((All)TextureTarget.Texture2D, 0,
-                (All)PixelInternalFormat.Rgba,
-                sm.TextureWidth, sm.TextureHeight, 0,
-                (All)PixelFormat.Rgba, (All)PixelType.UnsignedByte,
-                handle.AddrOfPinnedObject());
+                    GL.TexImage2D(TextureTarget.Texture2D, 0,
+                        PixelInternalFormat.Rgba,
+                        sm.TextureWidth, sm.TextureHeight, 0,
+                        PixelFormat.Rgba, PixelType.UnsignedByte,
+                        handle.AddrOfPinnedObject());
                 }
                 finally
                 {
@@ -165,23 +165,23 @@ public class Viewer : IDisposable
                 var handle = GCHandle.Alloc(white, GCHandleType.Pinned);
                 try
                 {
-            GL.TexImage2D((All)TextureTarget.Texture2D, 0,
-                (All)PixelInternalFormat.Rgba,
-                1, 1, 0,
-                (All)PixelFormat.Rgba, (All)PixelType.UnsignedByte,
-                handle.AddrOfPinnedObject());
+                    GL.TexImage2D(TextureTarget.Texture2D, 0,
+                        PixelInternalFormat.Rgba,
+                        1, 1, 0,
+                        PixelFormat.Rgba, PixelType.UnsignedByte,
+                        handle.AddrOfPinnedObject());
                 }
                 finally
                 {
                     handle.Free();
                 }
             }
-            GL.PixelStore((All)PixelStoreParameter.UnpackAlignment, 4);
-            GL.TexParameter((All)TextureTarget.Texture2D, TextureParameterName.TextureMinFilter, (int)TextureMinFilter.Linear);
-            GL.TexParameter((All)TextureTarget.Texture2D, TextureParameterName.TextureMagFilter, (int)TextureMagFilter.Linear);
-            GL.TexParameter((All)TextureTarget.Texture2D, TextureParameterName.TextureWrapS, (int)TextureWrapMode.Repeat);
-            GL.TexParameter((All)TextureTarget.Texture2D, TextureParameterName.TextureWrapT, (int)TextureWrapMode.Repeat);
-            GL.BindTexture((All)TextureTarget.Texture2D, 0);
+            GL.PixelStore(PixelStoreParameter.UnpackAlignment, 4);
+            GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureMinFilter, (int)TextureMinFilter.Linear);
+            GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureMagFilter, (int)TextureMagFilter.Linear);
+            GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureWrapS, (int)TextureWrapMode.Repeat);
+            GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureWrapT, (int)TextureWrapMode.Repeat);
+            GL.BindTexture(TextureTarget.Texture2D, 0);
 
             _meshes.Add(rm);
         }
@@ -224,11 +224,11 @@ public class Viewer : IDisposable
         foreach (var rm in _meshes)
         {
             GL.ActiveTexture(TextureUnit.Texture0);
-            GL.BindTexture((All)TextureTarget.Texture2D, rm.Texture);
+            GL.BindTexture(TextureTarget.Texture2D, rm.Texture);
             GL.Uniform1(_texLoc, 0);
             GL.Uniform4(_colorLoc, rm.Color);
             GL.BindVertexArray(rm.Vao);
-            GL.DrawElements((All)PrimitiveType.Triangles, rm.IndexCount, (All)DrawElementsType.UnsignedInt, IntPtr.Zero);
+            GL.DrawElements(PrimitiveType.Triangles, rm.IndexCount, DrawElementsType.UnsignedInt, IntPtr.Zero);
             GL.BindVertexArray(0);
         }
         _window.SwapBuffers();
@@ -237,7 +237,7 @@ public class Viewer : IDisposable
     public byte[] CaptureFrame()
     {
         byte[] pixels = new byte[Size.X * Size.Y * 4];
-        GL.ReadPixels(0, 0, Size.X, Size.Y, (All)PixelFormat.Rgba, (All)PixelType.UnsignedByte, pixels);
+        GL.ReadPixels(0, 0, Size.X, Size.Y, PixelFormat.Rgba, PixelType.UnsignedByte, pixels);
         return pixels;
     }
 
