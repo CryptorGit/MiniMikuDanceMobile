@@ -78,7 +78,8 @@ void main(){
         _colorLoc = GL.GetUniformLocation(_program, "uColor");
 
         GL.Enable(EnableCap.Blend);
-        GL.BlendFunc(BlendingFactor.SrcAlpha, BlendingFactor.OneMinusSrcAlpha);
+        // GLES30 の API では引数型が All となっているため明示的にキャストする
+        GL.BlendFunc(All.SrcAlpha, All.OneMinusSrcAlpha);
 
         const string modelVert = @"#version 300 es
 layout(location = 0) in vec3 aPosition;
