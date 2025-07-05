@@ -45,7 +45,6 @@ internal static class VrmLoader
                 var positions = prim.GetVertexAccessor("POSITION").AsVector3Array();
                 var normals = prim.GetVertexAccessor("NORMAL")?.AsVector3Array();
                 var channel = prim.Material?.FindChannel("BaseColor");
-                var texInfo = channel?.Texture;
                 int texCoordIndex = channel?.TextureTransform?.TextureCoordinateOverride ?? channel?.TextureCoordinate ?? 0;
                 var uvs = prim.GetVertexAccessor($"TEXCOORD_{texCoordIndex}")?.AsVector2Array();
                 var indices = prim.IndexAccessor.AsIndicesArray();
