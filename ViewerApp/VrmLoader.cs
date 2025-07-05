@@ -18,7 +18,7 @@ internal class VrmSubMesh
     public byte[]? Texture;
     public int TextureWidth;
     public int TextureHeight;
-    public Vector4 ColorFactor = Vector4.One;
+    public OpenTK.Mathematics.Vector4 ColorFactor = OpenTK.Mathematics.Vector4.One;
 }
 
 internal class VrmModel
@@ -101,8 +101,10 @@ internal static class VrmLoader
                 int texW = 0;
                 int texH = 0;
                 var material = prim.Material;
-                var image = material?.FindChannel("BaseColor")?.Texture?.PrimaryImage;
-                var colorFactor = material?.PbrMetallicRoughness?.BaseColorFactor ?? Vector4.One;
+                // channel is already defined above; reuse it
+                var image = channel?.Texture?.PrimaryImage;
+                var cf = channel?.Parameter ?? new System.Numerics.Vector4(1, 1, 1, 1);
+                var colorFactor = new OpenTK.Mathematics.Vector4(cf.X, cf.Y, cf.Z, cf.W);
                 if (image != null)
                 {
                     using var stream = image.OpenImageFile();

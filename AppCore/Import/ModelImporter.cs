@@ -143,8 +143,10 @@ public class ModelImporter
                 int texW = 0;
                 int texH = 0;
                 var material = prim.Material;
-                GLTFImage? image = material?.FindChannel("BaseColor")?.Texture?.PrimaryImage;
-                var colorFactor = material?.PbrMetallicRoughness?.BaseColorFactor ?? Vector4.One;
+                // channel is already defined above; reuse it
+                GLTFImage? image = channel?.Texture?.PrimaryImage;
+                var colorParam = channel?.Parameter ?? Vector4.One;
+                var colorFactor = colorParam;
                 if (image != null)
                 {
                     using var stream = image.OpenImageFile();
