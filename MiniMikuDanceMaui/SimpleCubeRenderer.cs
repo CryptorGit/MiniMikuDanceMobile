@@ -47,6 +47,7 @@ public class SimpleCubeRenderer : IDisposable
     private int _modelShadeToonyLoc;
     private int _modelRimIntensityLoc;
     private Matrix4 _modelTransform = Matrix4.Identity;
+    private Vector3 _boneRotation = Vector3.Zero;
     private int _width;
     private int _height;
     public float RotateSensitivity { get; set; } = 1f;
@@ -55,6 +56,11 @@ public class SimpleCubeRenderer : IDisposable
     public float ShadeShift { get; set; } = -0.1f;
     public float ShadeToony { get; set; } = 0.9f;
     public float RimIntensity { get; set; } = 0.5f;
+    public Vector3 BoneRotation
+    {
+        get => _boneRotation;
+        set => _boneRotation = value;
+    }
 
     public void Initialize()
     {
@@ -360,7 +366,11 @@ void main(){
         GL.ClearColor(1f, 1f, 1f, 1f);
         GL.Clear(ClearBufferMask.ColorBufferBit | ClearBufferMask.DepthBufferBit);
 
-        Matrix4 model = _modelTransform;
+        Matrix4 boneRot =
+            Matrix4.CreateRotationX(MathHelper.DegreesToRadians(_boneRotation.X)) *
+            Matrix4.CreateRotationY(MathHelper.DegreesToRadians(_boneRotation.Y)) *
+            Matrix4.CreateRotationZ(MathHelper.DegreesToRadians(_boneRotation.Z));
+        Matrix4 model = boneRot * _modelTransform;
         Matrix4 rot = Matrix4.CreateRotationX(_orbitX) * Matrix4.CreateRotationY(_orbitY);
         Vector3 cam = Vector3.TransformPosition(new Vector3(0, 0, _distance), rot) + _target;
         Matrix4 view = Matrix4.LookAt(cam, _target, Vector3.UnitY);

@@ -191,6 +191,14 @@ public partial class CameraPage : ContentPage
         HideSettingMenu();
     }
 
+    private void OnBoneClicked(object? sender, EventArgs e)
+    {
+        LogService.WriteLine("BONE button clicked");
+        ShowBottomFeature("BONE");
+        HideViewMenu();
+        HideSettingMenu();
+    }
+
 
     private void OnMToonClicked(object? sender, EventArgs e)
     {
@@ -522,6 +530,31 @@ public partial class CameraPage : ContentPage
                 ev.LoadDirectory(modelsPath);
                 view = ev;
             }
+            else if (name == "BONE")
+            {
+                var bv = new BoneView();
+                if (_currentModel != null)
+                    bv.SetBones(_currentModel.HumanoidBones.Keys);
+                bv.RotationXChanged += v =>
+                {
+                    var rot = _renderer.BoneRotation;
+                    rot.X = v;
+                    _renderer.BoneRotation = rot;
+                };
+                bv.RotationYChanged += v =>
+                {
+                    var rot = _renderer.BoneRotation;
+                    rot.Y = v;
+                    _renderer.BoneRotation = rot;
+                };
+                bv.RotationZChanged += v =>
+                {
+                    var rot = _renderer.BoneRotation;
+                    rot.Z = v;
+                    _renderer.BoneRotation = rot;
+                };
+                view = bv;
+            }
             else if (name == "MTOON")
             {
                 var mv = new MToonView
@@ -611,6 +644,11 @@ public partial class CameraPage : ContentPage
             sv.RotateSensitivity = _rotateSensitivity;
             sv.PanSensitivity = _panSensitivity;
             sv.CameraLocked = _renderer.CameraLocked;
+        }
+        else if (name == "BONE" && _bottomViews[name] is BoneView bv)
+        {
+            if (_currentModel != null)
+                bv.SetBones(_currentModel.HumanoidBones.Keys);
         }
         else if (name == "MTOON" && _bottomViews[name] is MToonView mv)
         {
