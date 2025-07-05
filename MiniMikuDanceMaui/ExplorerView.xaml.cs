@@ -10,10 +10,15 @@ public partial class ExplorerView : ContentView
 {
     private string _currentPath = string.Empty;
     private readonly string _rootPath;
+    private readonly HashSet<string>? _allowedExtensions;
 
-    public ExplorerView(string rootPath)
+    public event EventHandler<string>? FileSelected;
+
+    public ExplorerView(string rootPath, IEnumerable<string>? extensions = null)
     {
         _rootPath = rootPath;
+        if (extensions != null)
+            _allowedExtensions = extensions.Select(e => e.ToLowerInvariant()).ToHashSet();
         InitializeComponent();
     }
 
@@ -23,7 +28,14 @@ public partial class ExplorerView : ContentView
         _currentPath = path;
         UpdatePathDisplay();
         
-        var items = Directory.EnumerateFileSystemEntries(path)
+        IEnumerable<string> entries = Directory.EnumerateFileSystemEntries(path);
+        if (_allowedExtensions != null)
+        {
+            entries = entries.Where(p => Directory.Exists(p) ||
+                _allowedExtensions.Contains(Path.GetExtension(p).ToLowerInvariant()));
+        }
+
+        var items = entries
             .Select(p => new FileItem(p))
             .OrderByDescending(f => f.IsDirectory)
             .ThenBy(f => f.Name)
@@ -76,14 +88,6 @@ public partial class ExplorerView : ContentView
         }
     }
 
-    private void OnReloadClicked(object? sender, EventArgs e)
-    {
-        if (!string.IsNullOrEmpty(_currentPath))
-        {
-            LoadDirectory(_currentPath);
-        }
-    }
-
     private void OnItemSelected(object? sender, SelectionChangedEventArgs e)
     {
         if (e.CurrentSelection.FirstOrDefault() is FileItem item)
@@ -91,6 +95,10 @@ public partial class ExplorerView : ContentView
             if (item.IsDirectory)
             {
                 LoadDirectory(item.Path);
+            }
+            else
+            {
+                FileSelected?.Invoke(this, item.Path);
             }
             FileList.SelectedItem = null;
         }

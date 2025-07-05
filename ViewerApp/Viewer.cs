@@ -1,6 +1,9 @@
 using System;
 using System.Diagnostics;
-using OpenTK.Graphics.OpenGL4;
+using System.Collections.Generic;
+// Use OpenGL ES 3.0 across projects to avoid enum mismatches
+using OpenTK.Graphics.ES30;
+using GL = OpenTK.Graphics.ES30.GL;
 using OpenTK.Mathematics;
 using OpenTK.Windowing.Common;
 using OpenTK.Windowing.Desktop;
@@ -10,17 +13,24 @@ namespace ViewerApp;
 
 public class Viewer : IDisposable
 {
+    private class RenderMesh
+    {
+        public int Vao;
+        public int Vbo;
+        public int Ebo;
+        public int IndexCount;
+        public Vector4 Color = Vector4.One;
+        public int Texture;
+        public bool HasTexture;
+    }
+
     private readonly GameWindow _window;
-    private readonly int _vao;
-    private readonly int _vbo;
-    private readonly int _ebo;
-    private readonly int _tex;
+    private readonly List<RenderMesh> _meshes = new();
     private readonly int _program;
-    private readonly int _modelLoc;
-    private readonly int _viewLoc;
-    private readonly int _projLoc;
+    private readonly int _mvpLoc;
+    private readonly int _colorLoc;
     private readonly int _texLoc;
-    private readonly int _indexCount;
+    private readonly int _useTexLoc;
     private readonly Matrix4 _modelTransform;
     private Matrix4 _view = Matrix4.Identity;
     private readonly Stopwatch _timer = new();
@@ -41,35 +51,30 @@ public class Viewer : IDisposable
         _window = new GameWindow(GameWindowSettings.Default, nativeSettings);
         _window.MakeCurrent();
         GL.LoadBindings(new GLFWBindingsContext());
+        GL.Enable(EnableCap.Blend);
+        GL.BlendFunc(BlendingFactorSrc.SrcAlpha, BlendingFactorDest.OneMinusSrcAlpha);
 
         var model = VrmLoader.Load(modelPath);
-        _indexCount = model.Indices.Length;
         _modelTransform = model.Transform;
 
         const string vert = "#version 330 core\n" +
                            "layout(location=0) in vec3 aPos;\n" +
-                           "layout(location=1) in vec3 aNormal;\n" +
-                           "layout(location=2) in vec2 aUV;\n" +
-                           "out vec3 vNormal;\n" +
-                           "out vec2 vUV;\n" +
-                           "uniform mat4 uModel;\n" +
-                           "uniform mat4 uView;\n" +
-                           "uniform mat4 uProj;\n" +
+                           "layout(location=1) in vec2 aTex;\n" +
+                           "uniform mat4 uMVP;\n" +
+                           "out vec2 vTex;\n" +
                            "void main(){\n" +
-                           "vNormal = mat3(uModel) * aNormal;\n" +
-                           "vUV = aUV;\n" +
-                           "gl_Position = uProj * uView * uModel * vec4(aPos,1.0);\n" +
+                           "vTex = aTex;\n" +
+                           "gl_Position = uMVP * vec4(aPos,1.0);\n" +
                            "}";
         const string frag = "#version 330 core\n" +
-                           "in vec3 vNormal;\n" +
-                           "in vec2 vUV;\n" +
                            "out vec4 FragColor;\n" +
+                           "in vec2 vTex;\n" +
+                           "uniform vec4 uColor;\n" +
                            "uniform sampler2D uTex;\n" +
+                           "uniform bool uUseTex;\n" +
                            "void main(){\n" +
-                           "vec3 lightDir = normalize(vec3(0.3,0.6,0.7));\n" +
-                           "float diff = max(dot(normalize(vNormal), lightDir), 0.2);\n" +
-                           "vec4 col = texture(uTex, vUV);\n" +
-                           "FragColor = vec4(col.rgb * diff, col.a);\n" +
+                           "vec4 base = uUseTex ? texture(uTex, vTex) : uColor;\n" +
+                           "FragColor = base;\n" +
                            "}";
         int vs = GL.CreateShader(ShaderType.VertexShader);
         GL.ShaderSource(vs, vert);
@@ -83,59 +88,82 @@ public class Viewer : IDisposable
         GL.LinkProgram(_program);
         GL.DeleteShader(vs);
         GL.DeleteShader(fs);
-        _modelLoc = GL.GetUniformLocation(_program, "uModel");
-        _viewLoc = GL.GetUniformLocation(_program, "uView");
-        _projLoc = GL.GetUniformLocation(_program, "uProj");
+        _mvpLoc = GL.GetUniformLocation(_program, "uMVP");
+        _colorLoc = GL.GetUniformLocation(_program, "uColor");
         _texLoc = GL.GetUniformLocation(_program, "uTex");
+        _useTexLoc = GL.GetUniformLocation(_program, "uUseTex");
 
-        _vao = GL.GenVertexArray();
-        _vbo = GL.GenBuffer();
-        _ebo = GL.GenBuffer();
-        GL.BindVertexArray(_vao);
-        GL.BindBuffer(BufferTarget.ArrayBuffer, _vbo);
-        int vcount = model.Positions.Length / 3;
-        float[] buffer = new float[vcount * 8];
-        for (int i = 0; i < vcount; i++)
+        foreach (var sm in model.SubMeshes)
         {
-            buffer[i * 8 + 0] = model.Positions[i * 3 + 0];
-            buffer[i * 8 + 1] = model.Positions[i * 3 + 1];
-            buffer[i * 8 + 2] = model.Positions[i * 3 + 2];
-            buffer[i * 8 + 3] = i * 3 < model.Normals.Length ? model.Normals[i * 3 + 0] : 0f;
-            buffer[i * 8 + 4] = i * 3 < model.Normals.Length ? model.Normals[i * 3 + 1] : 0f;
-            buffer[i * 8 + 5] = i * 3 < model.Normals.Length ? model.Normals[i * 3 + 2] : 1f;
-            buffer[i * 8 + 6] = i * 2 < model.TexCoords.Length ? model.TexCoords[i * 2 + 0] : 0f;
-            buffer[i * 8 + 7] = i * 2 < model.TexCoords.Length ? model.TexCoords[i * 2 + 1] : 0f;
-        }
-        GL.BufferData(BufferTarget.ArrayBuffer, buffer.Length * sizeof(float), buffer, BufferUsageHint.StaticDraw);
-        int stride = 8 * sizeof(float);
+            int vcount = sm.Positions.Length / 3;
+            float[] verts = new float[vcount * 5];
+            for (int i = 0; i < vcount; i++)
+            {
+                verts[i * 5 + 0] = sm.Positions[i * 3 + 0];
+                verts[i * 5 + 1] = sm.Positions[i * 3 + 1];
+                verts[i * 5 + 2] = sm.Positions[i * 3 + 2];
+                if (sm.TexCoords.Length >= (i + 1) * 2)
+                {
+                    verts[i * 5 + 3] = sm.TexCoords[i * 2 + 0];
+                    verts[i * 5 + 4] = sm.TexCoords[i * 2 + 1];
+                }
+                else
+                {
+                    verts[i * 5 + 3] = 0f;
+                    verts[i * 5 + 4] = 0f;
+                }
+            }
+
+            var rm = new RenderMesh();
+            rm.IndexCount = sm.Indices.Length;
+            rm.Vao = GL.GenVertexArray();
+            rm.Vbo = GL.GenBuffer();
+            rm.Ebo = GL.GenBuffer();
+            rm.Color = sm.ColorFactor;
+
+            GL.BindVertexArray(rm.Vao);
+            GL.BindBuffer(BufferTarget.ArrayBuffer, rm.Vbo);
+            GL.BufferData(BufferTarget.ArrayBuffer, verts.Length * sizeof(float), verts, BufferUsageHint.StaticDraw);
+        int stride = 5 * sizeof(float);
         GL.VertexAttribPointer(0, 3, VertexAttribPointerType.Float, false, stride, 0);
         GL.EnableVertexAttribArray(0);
-        GL.VertexAttribPointer(1, 3, VertexAttribPointerType.Float, false, stride, 3 * sizeof(float));
+        GL.VertexAttribPointer(1, 2, VertexAttribPointerType.Float, false, stride, 3 * sizeof(float));
         GL.EnableVertexAttribArray(1);
-        GL.VertexAttribPointer(2, 2, VertexAttribPointerType.Float, false, stride, 6 * sizeof(float));
-        GL.EnableVertexAttribArray(2);
-        GL.BindBuffer(BufferTarget.ElementArrayBuffer, _ebo);
-        GL.BufferData(BufferTarget.ElementArrayBuffer, model.Indices.Length * sizeof(uint), model.Indices, BufferUsageHint.StaticDraw);
-        GL.BindVertexArray(0);
+            GL.BindBuffer(BufferTarget.ElementArrayBuffer, rm.Ebo);
+            GL.BufferData(BufferTarget.ElementArrayBuffer, sm.Indices.Length * sizeof(uint), sm.Indices, BufferUsageHint.StaticDraw);
+            GL.BindVertexArray(0);
 
-        _tex = GL.GenTexture();
-        GL.BindTexture(TextureTarget.Texture2D, _tex);
-        if (model.Texture != null)
-        {
-            GL.TexImage2D(TextureTarget.Texture2D, 0, PixelInternalFormat.Rgba, model.TextureWidth, model.TextureHeight, 0, PixelFormat.Rgba, PixelType.UnsignedByte, model.Texture);
-        }
-        else
-        {
-            byte[] white = { 255, 255, 255, 255 };
-            GL.TexImage2D(TextureTarget.Texture2D, 0, PixelInternalFormat.Rgba, 1, 1, 0, PixelFormat.Rgba, PixelType.UnsignedByte, white);
-        }
-        GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureMinFilter, (int)TextureMinFilter.Linear);
-        GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureMagFilter, (int)TextureMagFilter.Linear);
-        GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureWrapS, (int)TextureWrapMode.Repeat);
-        GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureWrapT, (int)TextureWrapMode.Repeat);
-        GL.BindTexture(TextureTarget.Texture2D, 0);
+            if (sm.TextureBytes != null)
+            {
+                rm.Texture = GL.GenTexture();
+                GL.BindTexture((All)TextureTarget.Texture2D, rm.Texture);
+                var handle = System.Runtime.InteropServices.GCHandle.Alloc(sm.TextureBytes, System.Runtime.InteropServices.GCHandleType.Pinned);
+                try
+                {
+                    GL.TexImage2D((All)TextureTarget.Texture2D, 0, (All)PixelInternalFormat.Rgba,
+                        sm.TextureWidth, sm.TextureHeight, 0, (All)PixelFormat.Rgba,
+                        (All)PixelType.UnsignedByte, handle.AddrOfPinnedObject());
+                }
+                finally
+                {
+                    handle.Free();
+                }
+                GL.TexParameter((All)TextureTarget.Texture2D, (All)TextureParameterName.TextureMinFilter, (int)TextureMinFilter.Linear);
+                GL.TexParameter((All)TextureTarget.Texture2D, (All)TextureParameterName.TextureMagFilter, (int)TextureMagFilter.Linear);
+                rm.HasTexture = true;
+            }
 
+            _meshes.Add(rm);
+        }
+
+        // 深度バッファを正しく利用するための設定
+        GL.ClearDepth(1.0f);
+        GL.DepthFunc(DepthFunction.Lequal);
         GL.Enable(EnableCap.DepthTest);
+        GL.DepthMask(true);
+
+        GL.Enable(EnableCap.CullFace);
+        GL.FrontFace(FrontFaceDirection.Ccw);
         Debug.WriteLine("[Viewer] Initialized");
         _timer.Start();
     }
@@ -148,6 +176,8 @@ public class Viewer : IDisposable
     private void Render()
     {
         NativeWindow.ProcessWindowEvents(false);
+        GL.Enable(EnableCap.DepthTest);
+        GL.DepthMask(true);
         GL.Viewport(0, 0, Size.X, Size.Y);
         GL.ClearColor(1f, 1f, 1f, 1f);
         GL.Clear(ClearBufferMask.ColorBufferBit | ClearBufferMask.DepthBufferBit);
@@ -156,15 +186,32 @@ public class Viewer : IDisposable
         Matrix4 proj = Matrix4.CreatePerspectiveFieldOfView(MathHelper.PiOver4, Size.X / (float)Size.Y, 0.1f, 100f);
 
         GL.UseProgram(_program);
-        GL.UniformMatrix4(_modelLoc, false, ref model);
-        GL.UniformMatrix4(_viewLoc, false, ref _view);
-        GL.UniformMatrix4(_projLoc, false, ref proj);
-        GL.ActiveTexture(TextureUnit.Texture0);
-        GL.BindTexture(TextureTarget.Texture2D, _tex);
-        GL.Uniform1(_texLoc, 0);
-        GL.BindVertexArray(_vao);
-        GL.DrawElements(PrimitiveType.Triangles, _indexCount, DrawElementsType.UnsignedInt, 0);
-        GL.BindVertexArray(0);
+        Matrix4 mvp = proj * _view * model;
+        GL.UniformMatrix4(_mvpLoc, false, ref mvp);
+        // メッシュ描画時も透過処理を行う
+        GL.Enable(EnableCap.Blend);
+        foreach (var rm in _meshes)
+        {
+            GL.Uniform4(_colorLoc, rm.Color);
+            if (rm.HasTexture)
+            {
+                GL.ActiveTexture(TextureUnit.Texture0);
+                GL.BindTexture((All)TextureTarget.Texture2D, rm.Texture);
+                GL.Uniform1(_texLoc, 0);
+                GL.Uniform1(_useTexLoc, 1);
+            }
+            else
+            {
+                GL.Uniform1(_useTexLoc, 0);
+            }
+            GL.BindVertexArray(rm.Vao);
+            GL.DrawElements(PrimitiveType.Triangles, rm.IndexCount, DrawElementsType.UnsignedInt, IntPtr.Zero);
+            GL.BindVertexArray(0);
+            if (rm.HasTexture)
+            {
+                GL.BindTexture((All)TextureTarget.Texture2D, 0);
+            }
+        }
         _window.SwapBuffers();
     }
 
@@ -183,10 +230,14 @@ public class Viewer : IDisposable
 
     public void Dispose()
     {
-        GL.DeleteBuffer(_vbo);
-        GL.DeleteBuffer(_ebo);
-        GL.DeleteVertexArray(_vao);
-        GL.DeleteTexture(_tex);
+        foreach (var rm in _meshes)
+        {
+            if (rm.Vao != 0) GL.DeleteVertexArray(rm.Vao);
+            if (rm.Vbo != 0) GL.DeleteBuffer(rm.Vbo);
+            if (rm.Ebo != 0) GL.DeleteBuffer(rm.Ebo);
+            if (rm.Texture != 0) GL.DeleteTexture(rm.Texture);
+        }
+        _meshes.Clear();
         GL.DeleteProgram(_program);
         _window.Close();
         _window.Dispose();

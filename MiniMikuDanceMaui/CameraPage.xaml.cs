@@ -9,7 +9,9 @@ using SkiaSharp.Views.Maui;
 using SkiaSharp.Views.Maui.Controls;
 using SkiaSharp;
 using OpenTK.Graphics.ES30;
+using GL = OpenTK.Graphics.ES30.GL;
 using Microsoft.Maui.Storage;
+using Microsoft.Maui.Devices;
 using System.IO;
 using System.Linq;
 using MiniMikuDance.Import;
@@ -25,14 +27,17 @@ public partial class CameraPage : ContentPage
     private const double TopMenuHeight = 36;
     private bool _viewMenuOpen;
     private bool _settingMenuOpen;
+    private bool _fileMenuOpen;
     
-    private void UpdateOverlay() => MenuOverlay.IsVisible = _viewMenuOpen || _settingMenuOpen;
+    private void UpdateOverlay() => MenuOverlay.IsVisible = _viewMenuOpen || _settingMenuOpen || _fileMenuOpen;
     private readonly Dictionary<string, View> _bottomViews = new();
     private readonly Dictionary<string, Border> _bottomTabs = new();
     private string? _currentFeature;
+    private string? _selectedPath;
 
     private readonly SimpleCubeRenderer _renderer = new();
     private bool _glInitialized;
+    private ModelData? _pendingModel;
     private readonly Dictionary<long, SKPoint> _touchPoints = new();
 
     public CameraPage()
@@ -76,6 +81,7 @@ public partial class CameraPage : ContentPage
     private void ShowViewMenu()
     {
         HideSettingMenu();
+        HideFileMenu();
         _viewMenuOpen = true;
         ViewMenu.IsVisible = true;
         UpdateOverlay();
@@ -108,6 +114,7 @@ public partial class CameraPage : ContentPage
     private void ShowSettingMenu()
     {
         HideViewMenu();
+        HideFileMenu();
         _settingMenuOpen = true;
         SettingMenu.IsVisible = true;
         if (SettingContent is SettingView sv)
@@ -129,6 +136,35 @@ public partial class CameraPage : ContentPage
         else
         {
             ShowSettingMenu();
+        }
+        UpdateLayout();
+    }
+
+    private void ShowFileMenu()
+    {
+        HideViewMenu();
+        HideSettingMenu();
+        _fileMenuOpen = true;
+        FileMenu.IsVisible = true;
+        UpdateOverlay();
+    }
+
+    private void HideFileMenu()
+    {
+        _fileMenuOpen = false;
+        FileMenu.IsVisible = false;
+        UpdateOverlay();
+    }
+
+    private void OnFileMenuTapped(object? sender, TappedEventArgs e)
+    {
+        if (_fileMenuOpen)
+        {
+            HideFileMenu();
+        }
+        else
+        {
+            ShowFileMenu();
         }
         UpdateLayout();
     }
@@ -189,6 +225,7 @@ public partial class CameraPage : ContentPage
     {
         HideViewMenu();
         HideSettingMenu();
+        HideFileMenu();
         UpdateLayout();
     }
 
@@ -196,6 +233,7 @@ public partial class CameraPage : ContentPage
     {
         HideViewMenu();
         HideSettingMenu();
+        HideFileMenu();
         UpdateLayout();
     }
 
@@ -240,69 +278,31 @@ public partial class CameraPage : ContentPage
     {
         base.OnAppearing();
 #if ANDROID
-        var status = await Permissions.RequestAsync<Permissions.StorageWrite>();
-        if (status != PermissionStatus.Granted)
+        var readStatus = await Permissions.RequestAsync<Permissions.StorageRead>();
+        var writeStatus = await Permissions.RequestAsync<Permissions.StorageWrite>();
+        if (readStatus != PermissionStatus.Granted || writeStatus != PermissionStatus.Granted)
         {
             LogService.WriteLine("[CameraPage] Storage permission denied");
         }
+        if (!Android.OS.Environment.IsExternalStorageManager)
+        {
+            LogService.WriteLine("[CameraPage] MANAGE_EXTERNAL_STORAGE not granted");
+            try
+            {
+                var context = Android.App.Application.Context;
+                var uri = Android.Net.Uri.Parse($"package:{context.PackageName}");
+                var intent = new Android.Content.Intent(Android.Provider.Settings.ActionManageAppAllFilesAccessPermission, uri);
+                intent.AddFlags(Android.Content.ActivityFlags.NewTask);
+                context.StartActivity(intent);
+            }
+            catch (Exception ex)
+            {
+                LogService.WriteLine($"[CameraPage] Failed to launch settings: {ex.Message}");
+            }
+        }
 #endif
-        try
-        {
-            var modelPath = await EnsureSampleModel();
-            var importer = new ModelImporter();
-            ModelData? data = null;
-            if (!string.IsNullOrEmpty(modelPath))
-            {
-                LogService.WriteLine($"[CameraPage] Using model: {modelPath}");
-                data = importer.ImportModel(modelPath);
-            }
-            else
-            {
-                try
-                {
-                    using var stream = await FileSystem.OpenAppPackageFileAsync("AliciaSolid.vrm");
-                    LogService.WriteLine("[CameraPage] Loading bundled model: AliciaSolid.vrm");
-                    data = importer.ImportModel(stream);
-                }
-                catch (FileNotFoundException fnf)
-                {
-                    LogService.WriteLine($"[CameraPage] Bundled model not found: {fnf.FileName}");
-                }
-            }
-
-            if (data != null)
-            {
-                _renderer.LoadModel(data);
-                LogService.WriteLine("[CameraPage] Model initialized successfully");
-            }
-            else
-            {
-                LogService.WriteLine("[CameraPage] Model data was null. Initialization aborted");
-            }
-        }
-        catch (Exception ex)
-        {
-            LogService.WriteLine($"Failed to initialize model: {ex.Message}");
-            LogService.WriteLine(ex.ToString());
-        }
         _glInitialized = false;
         Viewer?.InvalidateSurface();
-    }
-
-    private Task<string?> EnsureSampleModel()
-    {
-        var modelDir = MmdFileSystem.Ensure("Models");
-        MmdFileSystem.AppendAccessLog(modelDir);
-        LogService.WriteLine($"[CameraPage] Searching models in {modelDir}");
-        var vrm = Directory.EnumerateFiles(modelDir, "*.vrm").FirstOrDefault();
-        if (!string.IsNullOrEmpty(vrm))
-        {
-            LogService.WriteLine($"[CameraPage] Found existing model at {vrm}");
-            return Task.FromResult<string?>(vrm);
-        }
-
-        LogService.WriteLine("[CameraPage] No models found in storage");
-        return Task.FromResult<string?>(null);
     }
 
     protected override void OnDisappearing()
@@ -325,12 +325,23 @@ public partial class CameraPage : ContentPage
         AbsoluteLayout.SetLayoutBounds(ViewMenu, new Rect(0, TopMenuHeight, 200,
             ViewMenu.IsVisible ? AbsoluteLayout.AutoSize : 0));
         AbsoluteLayout.SetLayoutFlags(ViewMenu, AbsoluteLayoutFlags.None);
+        AbsoluteLayout.SetLayoutBounds(FileMenu, new Rect(0, TopMenuHeight, 200,
+            FileMenu.IsVisible ? AbsoluteLayout.AutoSize : 0));
+        AbsoluteLayout.SetLayoutFlags(FileMenu, AbsoluteLayoutFlags.None);
         AbsoluteLayout.SetLayoutBounds(SettingMenu, new Rect(0, TopMenuHeight, 250,
             SettingMenu.IsVisible ? AbsoluteLayout.AutoSize : 0));
         AbsoluteLayout.SetLayoutFlags(SettingMenu, AbsoluteLayoutFlags.None);
 
         AbsoluteLayout.SetLayoutBounds(MenuOverlay, new Rect(0, 0, W, H));
         AbsoluteLayout.SetLayoutFlags(MenuOverlay, AbsoluteLayoutFlags.None);
+
+        AbsoluteLayout.SetLayoutBounds(FileSelectMessage, new Rect(0.5, TopMenuHeight + 20, 0.8,
+            FileSelectMessage.IsVisible ? AbsoluteLayout.AutoSize : 0));
+        AbsoluteLayout.SetLayoutFlags(FileSelectMessage,
+            AbsoluteLayoutFlags.XProportional | AbsoluteLayoutFlags.WidthProportional);
+
+        AbsoluteLayout.SetLayoutBounds(LoadingIndicator, new Rect(0.5, 0.5, 40, 40));
+        AbsoluteLayout.SetLayoutFlags(LoadingIndicator, AbsoluteLayoutFlags.PositionProportional);
 
         AbsoluteLayout.SetLayoutBounds(Viewer, new Rect(0, 0, W, H));
         AbsoluteLayout.SetLayoutFlags(Viewer, AbsoluteLayoutFlags.None);
@@ -350,8 +361,19 @@ public partial class CameraPage : ContentPage
         {
             GL.LoadBindings(new SKGLViewBindingsContext());
             _renderer.Initialize();
+            if (_pendingModel != null)
+            {
+                _renderer.LoadModel(_pendingModel);
+                _pendingModel = null;
+            }
             _glInitialized = true;
         }
+        else if (_pendingModel != null)
+        {
+            _renderer.LoadModel(_pendingModel);
+            _pendingModel = null;
+        }
+
         _renderer.Resize(e.BackendRenderTarget.Width, e.BackendRenderTarget.Height);
         _renderer.Render();
         GL.Flush();
@@ -411,7 +433,13 @@ public partial class CameraPage : ContentPage
         {
             var result = await FilePicker.Default.PickAsync(new PickOptions
             {
-                PickerTitle = "Select VRM file"
+                PickerTitle = "Select VRM file",
+                FileTypes = new FilePickerFileType(new Dictionary<DevicePlatform, IEnumerable<string>>
+                {
+                    [DevicePlatform.Android] = new[] { "application/octet-stream", ".vrm" },
+                    [DevicePlatform.WinUI] = new[] { ".vrm" },
+                    [DevicePlatform.iOS] = new[] { ".vrm" }
+                })
             });
 
             if (result != null)
@@ -424,8 +452,9 @@ public partial class CameraPage : ContentPage
 
                 LogService.WriteLine($"Model selected: {result.FileName}");
 
+                await using var stream = await result.OpenReadAsync();
                 var importer = new MiniMikuDance.Import.ModelImporter();
-                var data = importer.ImportModel(result.FullPath);
+                var data = importer.ImportModel(stream);
                 _renderer.LoadModel(data);
                 Viewer?.InvalidateSurface();
             }
@@ -446,6 +475,14 @@ public partial class CameraPage : ContentPage
             {
                 var ev = new ExplorerView(MmdFileSystem.BaseDir);
                 ev.LoadDirectory(MmdFileSystem.BaseDir);
+                view = ev;
+            }
+            else if (name == "Open")
+            {
+                var modelsPath = MmdFileSystem.Ensure("Models");
+                var ev = new ExplorerView(modelsPath, new[] { ".vrm" });
+                ev.FileSelected += OnOpenExplorerFileSelected;
+                ev.LoadDirectory(modelsPath);
                 view = ev;
             }
             else if (name == "SETTING")
@@ -564,5 +601,113 @@ public partial class CameraPage : ContentPage
 
             UpdateLayout();
         }
+    }
+
+    private async void OnAddToLibraryClicked(object? sender, EventArgs e)
+    {
+        HideFileMenu();
+        await AddToLibraryAsync();
+    }
+
+    private async Task AddToLibraryAsync()
+    {
+        try
+        {
+            var result = await FilePicker.Default.PickAsync(new PickOptions
+            {
+                PickerTitle = "Select VRM file",
+                FileTypes = new FilePickerFileType(new Dictionary<DevicePlatform, IEnumerable<string>>
+                {
+                    [DevicePlatform.Android] = new[] { "application/octet-stream", ".vrm" },
+                    [DevicePlatform.WinUI] = new[] { ".vrm" },
+                    [DevicePlatform.iOS] = new[] { ".vrm" }
+                })
+            });
+
+            if (result == null) return;
+
+            string dstDir = MmdFileSystem.Ensure("Models");
+            string dstPath = Path.Combine(dstDir, Path.GetFileName(result.FullPath));
+            await using Stream src = await result.OpenReadAsync();
+            await using FileStream dst = File.Create(dstPath);
+            await src.CopyToAsync(dst);
+
+            await DisplayAlert("Copied", $"{Path.GetFileName(dstPath)} をライブラリに追加しました", "OK");
+        }
+        catch (Exception ex)
+        {
+            await DisplayAlert("Error", ex.Message, "OK");
+        }
+    }
+
+    private void OnOpenInViewerClicked(object? sender, EventArgs e)
+    {
+        HideFileMenu();
+        HideViewMenu();
+        HideSettingMenu();
+        ShowOpenExplorer();
+    }
+
+    private void ShowOpenExplorer()
+    {
+        ShowBottomFeature("Open");
+        FileSelectMessage.IsVisible = true;
+        SelectedFilePath.Text = string.Empty;
+        _selectedPath = null;
+        UpdateLayout();
+    }
+
+    private void OnOpenExplorerFileSelected(object? sender, string path)
+    {
+        if (Path.GetExtension(path).ToLowerInvariant() != ".vrm")
+        {
+            return;
+        }
+        _selectedPath = path;
+        SelectedFilePath.Text = path;
+    }
+
+    private async void OnImportClicked(object? sender, EventArgs e)
+    {
+        if (string.IsNullOrEmpty(_selectedPath))
+        {
+            await DisplayAlert("Error", "ファイルが選択されていません", "OK");
+            return;
+        }
+
+        RemoveBottomFeature("Open");
+        FileSelectMessage.IsVisible = false;
+        LoadingIndicator.IsVisible = true;
+        Viewer.HasRenderLoop = false;
+        UpdateLayout();
+
+        try
+        {
+            var importer = new ModelImporter();
+            var data = await Task.Run(() => importer.ImportModel(_selectedPath));
+            _pendingModel = data;
+            _renderer.ResetCamera();
+            _glInitialized = false;
+        }
+        catch (Exception ex)
+        {
+            await DisplayAlert("Error", ex.Message, "OK");
+        }
+        finally
+        {
+            Viewer.HasRenderLoop = true;
+            LoadingIndicator.IsVisible = false;
+            UpdateLayout();
+            Viewer.InvalidateSurface();
+            _selectedPath = null;
+        }
+    }
+
+    private void OnCancelImportClicked(object? sender, EventArgs e)
+    {
+        _selectedPath = null;
+        FileSelectMessage.IsVisible = false;
+        SelectedFilePath.Text = string.Empty;
+        UpdateLayout();
     }
 }
