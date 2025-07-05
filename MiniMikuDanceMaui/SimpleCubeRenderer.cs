@@ -149,8 +149,6 @@ void main(){
         _modelShadeToonyLoc = GL.GetUniformLocation(_modelProgram, "uShadeToony");
         _modelRimIntensityLoc = GL.GetUniformLocation(_modelProgram, "uRimIntensity");
 
-
-
         // grid vertices (XZ plane)
         int gridLines = (10 - (-10) + 1) * 2; // 21 lines along each axis
         float[] grid = new float[gridLines * 2 * 3];
