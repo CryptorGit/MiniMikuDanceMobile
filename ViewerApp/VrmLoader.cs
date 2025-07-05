@@ -88,7 +88,7 @@ internal static class VrmLoader
                     {
                         var uv = System.Numerics.Vector2.Transform(uvs[i], mat);
                         texCoords[i * 2 + 0] = uv.X;
-                        texCoords[i * 2 + 1] = uv.Y;
+                        texCoords[i * 2 + 1] = 1.0f - uv.Y;
                     }
                 }
 
@@ -117,12 +117,13 @@ internal static class VrmLoader
                     }
                 }
                 var cf = channel?.Parameter ?? new System.Numerics.Vector4(1, 1, 1, 1);
+                // マテリアル側のアルファ値は利用せず常に不透明で描画
+                cf.W = 1.0f;
                 var colorFactor = new OpenTK.Mathematics.Vector4(cf.X, cf.Y, cf.Z, cf.W);
                 if (image != null)
                 {
                     using var stream = image.OpenImageFile();
                     using var img = ImageSharpImage.Load<Rgba32>(stream);
-                    img.Mutate(x => x.Flip(FlipMode.Vertical));
                     texW = img.Width;
                     texH = img.Height;
                     texBytes = new byte[texW * texH * 4];
