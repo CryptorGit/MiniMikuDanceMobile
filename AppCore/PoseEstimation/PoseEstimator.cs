@@ -38,7 +38,7 @@ public class PoseEstimator
             const int jointCount = 33;
 
             using var capture = new VideoCapture(videoPath);
-            float fps = capture.Fps;
+            float fps = (float)capture.Fps;
             if (fps <= 0f || float.IsNaN(fps))
             {
                 fps = 30f;
