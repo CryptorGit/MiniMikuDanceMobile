@@ -24,10 +24,12 @@ namespace MiniMikuDanceMaui;
 
 public partial class CameraPage : ContentPage
 {
-    private double _bottomHeightRatio = 0.5;
+    // 下部領域1 : 上部領域2 の比率となるよう初期値を設定
+    private double _bottomHeightRatio = 1.0 / 3.0;
     private double _bottomWidthRatio = 1.0;
-    private float _rotateSensitivity = 1.0f;
-    private float _panSensitivity = 1.0f;
+    // カメラ感度はスライダーの最小値を初期値とする
+    private float _rotateSensitivity = 0.1f;
+    private float _panSensitivity = 0.1f;
     private float _shadeShift = -0.1f;
     private float _shadeToony = 0.9f;
     private float _rimIntensity = 0.5f;
