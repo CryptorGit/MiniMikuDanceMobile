@@ -910,7 +910,6 @@ public partial class CameraPage : ContentPage
             return;
 
         var eulerTk = new OpenTK.Mathematics.Vector3(bv.RotationX, bv.RotationY, bv.RotationZ);
-        _currentModel.Bones[_selectedBoneIndex].Rotation = eulerTk.ToNumerics().FromEulerDegrees();
         _renderer.SetBoneRotation(_selectedBoneIndex, eulerTk);
         Viewer?.InvalidateSurface();
     }
