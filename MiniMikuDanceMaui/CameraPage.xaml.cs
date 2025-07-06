@@ -584,8 +584,10 @@ public partial class CameraPage : ContentPage
                     if (_humanoidBoneIndices.Count > 0)
                     {
                         var idx0 = _humanoidBoneIndices[0];
-                        var euler = _currentModel.Bones[idx0].Rotation.ToEulerDegrees();
-                        bv.SetRotation(euler.ToOpenTK());
+                        var euler = _renderer.GetBoneRotation(idx0);
+                        bv.SetRotation(euler);
+                        var trans = _renderer.GetBoneTranslation(idx0);
+                        bv.SetTranslation(trans);
                         _selectedBoneIndex = idx0;
                     }
                 }
@@ -593,15 +595,20 @@ public partial class CameraPage : ContentPage
                 {
                     if (idx >= 0 && idx < _humanoidBoneIndices.Count)
                         _selectedBoneIndex = _humanoidBoneIndices[idx];
-                    if (_currentModel != null && _selectedBoneIndex >= 0 && _selectedBoneIndex < _currentModel.Bones.Count)
+                    if (_selectedBoneIndex >= 0)
                     {
-                        var euler = _currentModel.Bones[_selectedBoneIndex].Rotation.ToEulerDegrees();
-                        bv.SetRotation(euler.ToOpenTK());
+                        var euler = _renderer.GetBoneRotation(_selectedBoneIndex);
+                        bv.SetRotation(euler);
+                        var trans = _renderer.GetBoneTranslation(_selectedBoneIndex);
+                        bv.SetTranslation(trans);
                     }
                 };
                 bv.RotationXChanged += v => UpdateSelectedBoneRotation(bv);
                 bv.RotationYChanged += v => UpdateSelectedBoneRotation(bv);
                 bv.RotationZChanged += v => UpdateSelectedBoneRotation(bv);
+                bv.TranslationXChanged += v => UpdateSelectedBoneTranslation(bv);
+                bv.TranslationYChanged += v => UpdateSelectedBoneTranslation(bv);
+                bv.TranslationZChanged += v => UpdateSelectedBoneTranslation(bv);
                 view = bv;
             }
             else if (name == "CAMERA")
@@ -728,10 +735,12 @@ public partial class CameraPage : ContentPage
                     _humanoidBoneIndices.Add(kv.Index);
                 }
                 bv.SetBones(list);
-                if (_selectedBoneIndex >= 0 && _selectedBoneIndex < _currentModel.Bones.Count)
+                if (_selectedBoneIndex >= 0)
                 {
-                    var euler = _currentModel.Bones[_selectedBoneIndex].Rotation.ToEulerDegrees();
-                    bv.SetRotation(euler.ToOpenTK());
+                    var euler = _renderer.GetBoneRotation(_selectedBoneIndex);
+                    bv.SetRotation(euler);
+                    var trans = _renderer.GetBoneTranslation(_selectedBoneIndex);
+                    bv.SetTranslation(trans);
                 }
             }
         }
@@ -1123,6 +1132,17 @@ public partial class CameraPage : ContentPage
 
         var eulerTk = new OpenTK.Mathematics.Vector3(bv.RotationX, bv.RotationY, bv.RotationZ);
         _renderer.SetBoneRotation(_selectedBoneIndex, eulerTk);
+        Viewer?.InvalidateSurface();
+    }
+
+    private void UpdateSelectedBoneTranslation(BoneView bv)
+    {
+        if (_currentModel == null) return;
+        if (_selectedBoneIndex < 0 || _selectedBoneIndex >= _currentModel.Bones.Count)
+            return;
+
+        var t = new OpenTK.Mathematics.Vector3(bv.TranslationX, bv.TranslationY, bv.TranslationZ);
+        _renderer.SetBoneTranslation(_selectedBoneIndex, t);
         Viewer?.InvalidateSurface();
     }
 
