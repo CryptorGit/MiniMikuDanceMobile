@@ -33,9 +33,8 @@ public partial class CameraPage : ContentPage
     private bool _viewMenuOpen;
     private bool _settingMenuOpen;
     private bool _fileMenuOpen;
-    private bool _pageMenuOpen;
 
-    private void UpdateOverlay() => MenuOverlay.IsVisible = _viewMenuOpen || _settingMenuOpen || _fileMenuOpen || _pageMenuOpen;
+    private void UpdateOverlay() => MenuOverlay.IsVisible = _viewMenuOpen || _settingMenuOpen || _fileMenuOpen;
     private readonly Dictionary<string, View> _bottomViews = new();
     private readonly Dictionary<string, Border> _bottomTabs = new();
     private string? _currentFeature;
@@ -116,22 +115,12 @@ public partial class CameraPage : ContentPage
     private async void OnHomeClicked(object? sender, EventArgs e)
     {
         HideViewMenu();
-        HidePageMenu();
         HideSettingMenu();
         HideFileMenu();
         LogService.WriteLine("Home clicked");
         await Navigation.PopToRootAsync();
     }
 
-    private async void OnPageCameraClicked(object? sender, EventArgs e)
-    {
-        await Navigation.PushAsync(new CapturePage());
-    }
-
-    private async void OnPageHomeClicked(object? sender, EventArgs e)
-    {
-        await Navigation.PopToRootAsync();
-    }
 
     private void OnSettingClicked(object? sender, EventArgs e)
     {
@@ -199,36 +188,6 @@ public partial class CameraPage : ContentPage
         LogService.WriteLine($"File menu {(_fileMenuOpen ? "opened" : "closed")}");
     }
 
-    private void ShowPageMenu()
-    {
-        HideViewMenu();
-        HideSettingMenu();
-        HideFileMenu();
-        _pageMenuOpen = true;
-        PageMenu.IsVisible = true;
-        UpdateOverlay();
-    }
-
-    private void HidePageMenu()
-    {
-        _pageMenuOpen = false;
-        PageMenu.IsVisible = false;
-        UpdateOverlay();
-    }
-
-    private void OnPageMenuTapped(object? sender, TappedEventArgs e)
-    {
-        if (_pageMenuOpen)
-        {
-            HidePageMenu();
-        }
-        else
-        {
-            ShowPageMenu();
-        }
-        UpdateLayout();
-        LogService.WriteLine($"Page menu {(_pageMenuOpen ? "opened" : "closed")}");
-    }
 
     private async void OnSelectClicked(object? sender, EventArgs e)
     {
@@ -282,10 +241,9 @@ public partial class CameraPage : ContentPage
     private async void OnCameraClicked(object? sender, EventArgs e)
     {
         LogService.WriteLine("CAMERA button clicked");
+        ShowBottomFeature("CAMERA");
         HideViewMenu();
-        HidePageMenu();
         HideSettingMenu();
-        await Navigation.PushAsync(new CapturePage());
     }
 
     private void OnRecordClicked(object? sender, EventArgs e)
@@ -321,7 +279,6 @@ public partial class CameraPage : ContentPage
     private void OnOverlayTapped(object? sender, TappedEventArgs e)
     {
         HideViewMenu();
-        HidePageMenu();
         HideSettingMenu();
         HideFileMenu();
         UpdateLayout();
@@ -331,7 +288,6 @@ public partial class CameraPage : ContentPage
     private void OnBottomRegionTapped(object? sender, TappedEventArgs e)
     {
         HideViewMenu();
-        HidePageMenu();
         HideSettingMenu();
         HideFileMenu();
         UpdateLayout();
@@ -428,9 +384,6 @@ public partial class CameraPage : ContentPage
         AbsoluteLayout.SetLayoutBounds(FileMenu, new Rect(0, TopMenuHeight, 200,
             FileMenu.IsVisible ? AbsoluteLayout.AutoSize : 0));
         AbsoluteLayout.SetLayoutFlags(FileMenu, AbsoluteLayoutFlags.None);
-        AbsoluteLayout.SetLayoutBounds(PageMenu, new Rect(0, TopMenuHeight, 200,
-            PageMenu.IsVisible ? AbsoluteLayout.AutoSize : 0));
-        AbsoluteLayout.SetLayoutFlags(PageMenu, AbsoluteLayoutFlags.None);
         AbsoluteLayout.SetLayoutBounds(SettingMenu, new Rect(0, TopMenuHeight, 250,
             SettingMenu.IsVisible ? AbsoluteLayout.AutoSize : 0));
         AbsoluteLayout.SetLayoutFlags(SettingMenu, AbsoluteLayoutFlags.None);
@@ -647,6 +600,11 @@ public partial class CameraPage : ContentPage
                 bv.RotationZChanged += v => UpdateSelectedBoneRotation(bv);
                 view = bv;
             }
+            else if (name == "CAMERA")
+            {
+                var cv = new CameraView();
+                view = cv;
+            }
             else if (name == "TERMINAL")
             {
                 var tv = new TerminalView();
@@ -766,6 +724,10 @@ public partial class CameraPage : ContentPage
             mv.ShadeShift = _shadeShift;
             mv.ShadeToony = _shadeToony;
             mv.RimIntensity = _rimIntensity;
+        }
+        else if (name == "CAMERA" && _bottomViews[name] is CameraView)
+        {
+            // nothing to update
         }
         else if (name == "TERMINAL" && _bottomViews[name] is TerminalView)
         {
