@@ -192,6 +192,25 @@ public class ModelImporter
         data.Transform = transform;
         var bones = ReadBones(model, out var nodeMap);
         data.Bones.AddRange(bones);
+
+        // Humanoid に定義されているが Skin の Joint として登録されていないノードを追加
+        foreach (var kv in humanMap)
+        {
+            if (!nodeMap.ContainsKey(kv.Value))
+            {
+                var bNode = model.LogicalNodes[kv.Value];
+                int parent = -1;
+                if (bNode.VisualParent != null && nodeMap.TryGetValue(bNode.VisualParent.LogicalIndex, out var p))
+                {
+                    parent = p;
+                }
+                var r = bNode.LocalTransform.Rotation;
+                var q = new System.Numerics.Quaternion(r.X, r.Y, r.Z, r.W);
+                nodeMap[kv.Value] = data.Bones.Count;
+                data.Bones.Add(new BoneData { Name = bNode.Name ?? kv.Key, Parent = parent, Rotation = q });
+            }
+        }
+
         foreach (var kv in humanMap)
         {
             if (nodeMap.TryGetValue(kv.Value, out var idx))

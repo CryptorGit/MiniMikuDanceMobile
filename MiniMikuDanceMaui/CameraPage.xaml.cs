@@ -399,6 +399,7 @@ public partial class CameraPage : ContentPage
             _renderer.Initialize();
             if (_pendingModel != null)
             {
+                _renderer.ClearBoneRotations();
                 _renderer.LoadModel(_pendingModel);
                 _currentModel = _pendingModel;
                 _shadeShift = _pendingModel.ShadeShift;
@@ -413,6 +414,7 @@ public partial class CameraPage : ContentPage
         }
         else if (_pendingModel != null)
         {
+            _renderer.ClearBoneRotations();
             _renderer.LoadModel(_pendingModel);
             _currentModel = _pendingModel;
             _shadeShift = _pendingModel.ShadeShift;
@@ -876,7 +878,7 @@ public partial class CameraPage : ContentPage
 
         var eulerTk = new OpenTK.Mathematics.Vector3(bv.RotationX, bv.RotationY, bv.RotationZ);
         _currentModel.Bones[_selectedBoneIndex].Rotation = eulerTk.ToNumerics().FromEulerDegrees();
-        _renderer.BoneRotation = eulerTk;
+        _renderer.SetBoneRotation(_selectedBoneIndex, eulerTk);
         Viewer?.InvalidateSurface();
     }
 }
