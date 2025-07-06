@@ -18,5 +18,6 @@
                       CheckedChanged="OnCameraLockChanged"/>
             <Label Text="Lock Camera" TextColor="White" VerticalOptions="Center"/>
         </HorizontalStackLayout>
+        <Button Text="Reset Camera" Clicked="OnResetCameraClicked" />
     </VerticalStackLayout>
 </ContentView>

@@ -56,6 +56,7 @@ AGENTS.md で挙げたカテゴリをより細分化し、優先度や検討事�
 - [ ] JointData から MotionData への変換
 - [ ] スムージングアルゴリズムの検討・実装
 - [ ] モデルボーンへ適用して再生確認
+- [x] AnimationView での再生位置同期や一時停止機能
 
 ## 動画からのモーション適用フロー
 - [ ] pose_landmark_full.onnx を StreamingAssets/pose_model.onnx として配置

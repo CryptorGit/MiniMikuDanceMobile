@@ -12,6 +12,7 @@ public class MotionPlayer
 
     public float PlaybackSpeed { get; private set; } = 1f;
     public bool IsPlaying => _playing;
+    public int FrameIndex => _frameIndex;
     public event Action<JointData>? OnFramePlayed;
 
     public void Play(MotionData data)
@@ -23,6 +24,20 @@ public class MotionPlayer
     }
 
     public void Pause() => _playing = false;
+
+    public void Resume()
+    {
+        if (_current != null)
+            _playing = true;
+    }
+
+    public void Seek(int index)
+    {
+        if (_current == null)
+            return;
+        _frameIndex = Math.Clamp(index, 0, _current.Frames.Length - 1);
+        _elapsed = 0f;
+    }
 
     public void Stop()
     {

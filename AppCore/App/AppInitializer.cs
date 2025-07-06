@@ -25,7 +25,7 @@ public class AppInitializer
     public PoseEstimator? PoseEstimator { get; private set; }
     public MotionGenerator? MotionGenerator { get; private set; }
     public JointData[]? Joints { get; private set; }
-    public MotionData? Motion { get; private set; }
+    public MotionData? Motion { get; set; }
     private string _poseModelPath = string.Empty;
     private string _poseOutputDir = string.Empty;
 
