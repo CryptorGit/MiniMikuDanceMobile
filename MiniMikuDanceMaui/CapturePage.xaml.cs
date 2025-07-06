@@ -1,0 +1,43 @@
+using Microsoft.Maui.Controls;
+using Microsoft.Maui.Storage;
+using System;
+using System.IO;
+
+namespace MiniMikuDanceMaui;
+
+public partial class CapturePage : ContentPage
+{
+    private readonly string _movieDir;
+
+    public CapturePage()
+    {
+        InitializeComponent();
+        NavigationPage.SetHasNavigationBar(this, false);
+        _movieDir = MmdFileSystem.Ensure("Movie");
+    }
+
+    private async void OnRecordClicked(object? sender, EventArgs e)
+    {
+        try
+        {
+            var result = await MediaPicker.Default.CaptureVideoAsync();
+            if (result != null)
+            {
+                var dstPath = Path.Combine(_movieDir, Path.GetFileName(result.FullPath));
+                await using var source = await result.OpenReadAsync();
+                await using var dest = File.Create(dstPath);
+                await source.CopyToAsync(dest);
+                StatusLabel.Text = $"Saved: {dstPath}";
+            }
+        }
+        catch (Exception ex)
+        {
+            await DisplayAlert("Error", ex.Message, "OK");
+        }
+    }
+
+    private async void OnHomeClicked(object? sender, EventArgs e)
+    {
+        await Navigation.PopAsync();
+    }
+}

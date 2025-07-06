@@ -234,6 +234,14 @@ public partial class CameraPage : ContentPage
         HideSettingMenu();
     }
 
+    private async void OnCameraClicked(object? sender, EventArgs e)
+    {
+        LogService.WriteLine("CAMERA button clicked");
+        HideViewMenu();
+        HideSettingMenu();
+        await Navigation.PushAsync(new CapturePage());
+    }
+
     private void OnRecordClicked(object? sender, EventArgs e)
     {
         LogService.WriteLine("RECORD button clicked");
