@@ -403,14 +403,12 @@ public partial class CameraPage : ContentPage
             }
         }
 #endif
-        _glInitialized = false;
         Viewer?.InvalidateSurface();
     }
 
     protected override void OnDisappearing()
     {
         base.OnDisappearing();
-        _glInitialized = false;
     }
 
     private void OnSizeChanged(object? sender, EventArgs e) => UpdateLayout();
