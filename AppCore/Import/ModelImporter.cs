@@ -284,8 +284,8 @@ public class ModelImporter
             {
                 Name = node.Name ?? $"node{i}",
                 Parent = node.VisualParent?.LogicalIndex ?? -1,
-                Rotation = node.LocalRotation,
-                Translation = node.LocalTranslation,
+                Rotation = node.LocalTransform.Rotation,
+                Translation = node.LocalTransform.Translation,
                 BindMatrix = node.WorldMatrix,
             };
             System.Numerics.Matrix4x4.Invert(bd.BindMatrix, out var inv);
