@@ -54,6 +54,7 @@ public class SimpleCubeRenderer : IDisposable
     private int _modelShadeShiftLoc;
     private int _modelShadeToonyLoc;
     private int _modelRimIntensityLoc;
+    private int _modelAmbientLoc;
     private Matrix4 _modelTransform = Matrix4.Identity;
     private int _width;
     private int _height;
@@ -65,6 +66,7 @@ public class SimpleCubeRenderer : IDisposable
     public float ShadeShift { get; set; } = -0.1f;
     public float ShadeToony { get; set; } = 0.9f;
     public float RimIntensity { get; set; } = 0.5f;
+    public float Ambient { get; set; } = 0.3f;
 
     public void Initialize()
     {
@@ -130,13 +132,14 @@ uniform vec3 uViewDir;
 uniform float uShadeShift;
 uniform float uShadeToony;
 uniform float uRimIntensity;
+uniform float uAmbient;
 out vec4 FragColor;
 void main(){
     vec4 base = uUseTex ? texture(uTex, vTex) : uColor;
     float ndotl = max(dot(normalize(vNormal), normalize(uLightDir)), 0.0);
     float light = clamp((ndotl + uShadeShift) * uShadeToony, 0.0, 1.0);
     float rim = pow(1.0 - max(dot(normalize(vNormal), normalize(uViewDir)), 0.0), 3.0) * uRimIntensity;
-    vec3 color = base.rgb * light + base.rgb * rim;
+    vec3 color = base.rgb * (light + uAmbient) + base.rgb * rim;
     FragColor = vec4(color, base.a);
 }";
         int mvs = GL.CreateShader(ShaderType.VertexShader);
@@ -162,6 +165,7 @@ void main(){
         _modelShadeShiftLoc = GL.GetUniformLocation(_modelProgram, "uShadeShift");
         _modelShadeToonyLoc = GL.GetUniformLocation(_modelProgram, "uShadeToony");
         _modelRimIntensityLoc = GL.GetUniformLocation(_modelProgram, "uRimIntensity");
+        _modelAmbientLoc = GL.GetUniformLocation(_modelProgram, "uAmbient");
 
         // grid vertices (XZ plane)
         int gridLines = (10 - (-10) + 1) * 2; // 21 lines along each axis
@@ -478,15 +482,16 @@ void main(){
         GL.UseProgram(_modelProgram);
         GL.UniformMatrix4(_modelViewLoc, false, ref view);
         GL.UniformMatrix4(_modelProjLoc, false, ref proj);
-        // モデル読み込み時に Z 軸を反転しているため
-        // ライトおよび視線方向も -Z 側へ合わせる
+        // ライトと視線方向をカメラ角度に合わせて更新
         Vector3 light = Vector3.Normalize(new Vector3(0.3f, 0.6f, -0.7f));
+        light = Vector3.TransformNormal(light, rot);
         GL.Uniform3(_modelLightDirLoc, ref light);
-        Vector3 viewDir = -Vector3.UnitZ;
+        Vector3 viewDir = Vector3.Normalize(_target - cam);
         GL.Uniform3(_modelViewDirLoc, ref viewDir);
         GL.Uniform1(_modelShadeShiftLoc, ShadeShift);
         GL.Uniform1(_modelShadeToonyLoc, ShadeToony);
         GL.Uniform1(_modelRimIntensityLoc, RimIntensity);
+        GL.Uniform1(_modelAmbientLoc, Ambient);
         // テクスチャのアルファを利用するためブレンドを有効化
         GL.Enable(EnableCap.Blend);
         GL.UniformMatrix4(_modelMatrixLoc, false, ref _modelTransform);
