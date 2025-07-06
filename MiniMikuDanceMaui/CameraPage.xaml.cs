@@ -804,10 +804,6 @@ public partial class CameraPage : ContentPage
             LogService.WriteLine($"Materials: {data.Info.MaterialCount}");
             LogService.WriteLine($"Textures: {data.Info.TextureCount}");
             LogService.WriteLine($"Humanoid bones: {data.Info.HumanoidBoneCount} / 55");
-            foreach (var bone in data.Bones)
-            {
-                LogService.WriteLine($"Bone: {bone.Name}");
-            }
             _renderer.ResetCamera();
             _glInitialized = false;
         }
