@@ -39,7 +39,8 @@ public class SimpleCubeRenderer : IDisposable
     // 初期カメラ位置はモデル正面を向くようY軸回転を0に設定
     private float _orbitY = 0f;
     private float _distance = 4f;
-    private Vector3 _target = Vector3.Zero;
+    // モデル中心より少し高い位置を基準にカメラを配置する
+    private Vector3 _target = new Vector3(0f, 0.5f, 0f);
     private int _groundVao;
     private int _groundVbo;
     private int _modelProgram;
@@ -246,7 +247,8 @@ void main(){
         // モデル読み込み時は正面から表示する
         _orbitY = 0f;
         _distance = 4f;
-        _target = Vector3.Zero;
+        // デフォルトターゲットを少し上にずらしてモデル全体を見やすくする
+        _target = new Vector3(0f, 0.5f, 0f);
     }
 
     public void ClearBoneRotations()
