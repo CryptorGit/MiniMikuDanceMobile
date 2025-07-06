@@ -57,6 +57,16 @@ AGENTS.md で挙げたカテゴリをより細分化し、優先度や検討事�
 - [ ] スムージングアルゴリズムの検討・実装
 - [ ] モデルボーンへ適用して再生確認
 
+## 動画からのモーション適用フロー
+- [ ] pose_landmark_full.onnx を StreamingAssets/pose_model.onnx として配置
+- [ ] 動画ファイル選択 UI を CameraPage 等に追加
+- [ ] 選択ファイルを AppInitializer.AnalyzeVideoAsync() へ渡す処理
+- [ ] PoseEstimator で JointData[] を取得
+- [ ] MotionGenerator.Generate() で MotionData へ変換
+- [ ] BlazePose 関節を Humanoid ボーンへマッピング
+- [ ] MotionPlayer / MotionApplier を拡張しモデルを再生
+- [ ] 一連のフローの動作確認
+
 ## カメラ・センサー連携
 - [ ] ジャイロセンサーから姿勢情報を取得する仕組み
 - [ ] センサーが無い環境向けマウスデバッグモード
