@@ -55,6 +55,15 @@ public partial class CameraPage : ContentPage
     private readonly List<int> _humanoidBoneIndices = new();
     private readonly Dictionary<long, SKPoint> _touchPoints = new();
 
+    private class PoseState
+    {
+        public IList<Vector3> Rotations = new List<Vector3>();
+        public IList<Vector3> Translations = new List<Vector3>();
+    }
+
+    private readonly List<PoseState> _poseHistory = new();
+    private int _poseHistoryIndex = -1;
+
     public CameraPage()
     {
         InitializeComponent();
@@ -417,6 +426,7 @@ public partial class CameraPage : ContentPage
                 _renderer.ShadeToony = _pendingModel.ShadeToony;
                 _renderer.RimIntensity = _pendingModel.RimIntensity;
                 _pendingModel = null;
+                SavePoseState();
             }
             _glInitialized = true;
         }
@@ -432,6 +442,7 @@ public partial class CameraPage : ContentPage
             _renderer.ShadeToony = _pendingModel.ShadeToony;
             _renderer.RimIntensity = _pendingModel.RimIntensity;
             _pendingModel = null;
+            SavePoseState();
         }
 
         _renderer.Resize(e.BackendRenderTarget.Width, e.BackendRenderTarget.Height);
@@ -591,6 +602,10 @@ public partial class CameraPage : ContentPage
                         _selectedBoneIndex = idx0;
                     }
                 }
+                bv.UndoRequested += OnBoneUndo;
+                bv.RedoRequested += OnBoneRedo;
+                bv.ResetRequested += OnBoneReset;
+                bv.RangeChanged += OnBoneRangeChanged;
                 bv.BoneSelected += idx =>
                 {
                     if (idx >= 0 && idx < _humanoidBoneIndices.Count)
@@ -609,6 +624,9 @@ public partial class CameraPage : ContentPage
                 bv.TranslationXChanged += v => UpdateSelectedBoneTranslation(bv);
                 bv.TranslationYChanged += v => UpdateSelectedBoneTranslation(bv);
                 bv.TranslationZChanged += v => UpdateSelectedBoneTranslation(bv);
+                bv.SetRotationRange(-180, 180);
+                if (_poseHistory.Count == 0)
+                    SavePoseState();
                 view = bv;
             }
             else if (name == "CAMERA")
@@ -1132,6 +1150,7 @@ public partial class CameraPage : ContentPage
 
         var eulerTk = new OpenTK.Mathematics.Vector3(bv.RotationX, bv.RotationY, bv.RotationZ);
         _renderer.SetBoneRotation(_selectedBoneIndex, eulerTk);
+        SavePoseState();
         Viewer?.InvalidateSurface();
     }
 
@@ -1143,6 +1162,7 @@ public partial class CameraPage : ContentPage
 
         var t = new OpenTK.Mathematics.Vector3(bv.TranslationX, bv.TranslationY, bv.TranslationZ);
         _renderer.SetBoneTranslation(_selectedBoneIndex, t);
+        SavePoseState();
         Viewer?.InvalidateSurface();
     }
 
@@ -1202,5 +1222,74 @@ public partial class CameraPage : ContentPage
         };
 
         player.OnFramePlayed += _framePlayedHandler;
+    }
+
+    private void SavePoseState()
+    {
+        var state = new PoseState
+        {
+            Rotations = _renderer.GetAllBoneRotations(),
+            Translations = _renderer.GetAllBoneTranslations()
+        };
+        if (_poseHistoryIndex < _poseHistory.Count - 1)
+            _poseHistory.RemoveRange(_poseHistoryIndex + 1, _poseHistory.Count - _poseHistoryIndex - 1);
+        _poseHistory.Add(state);
+        _poseHistoryIndex = _poseHistory.Count - 1;
+    }
+
+    private void ApplyPoseState(PoseState state)
+    {
+        _renderer.SetAllBoneRotations(state.Rotations);
+        _renderer.SetAllBoneTranslations(state.Translations);
+    }
+
+    private void UpdateBoneViewValues()
+    {
+        if (_bottomViews.TryGetValue("BONE", out var v) && v is BoneView bv)
+        {
+            if (_selectedBoneIndex >= 0)
+            {
+                var rot = _renderer.GetBoneRotation(_selectedBoneIndex);
+                var trans = _renderer.GetBoneTranslation(_selectedBoneIndex);
+                bv.SetRotation(rot);
+                bv.SetTranslation(trans);
+            }
+        }
+        Viewer?.InvalidateSurface();
+    }
+
+    private void OnBoneUndo()
+    {
+        if (_poseHistoryIndex > 0)
+        {
+            _poseHistoryIndex--;
+            ApplyPoseState(_poseHistory[_poseHistoryIndex]);
+            UpdateBoneViewValues();
+        }
+    }
+
+    private void OnBoneRedo()
+    {
+        if (_poseHistoryIndex + 1 < _poseHistory.Count)
+        {
+            _poseHistoryIndex++;
+            ApplyPoseState(_poseHistory[_poseHistoryIndex]);
+            UpdateBoneViewValues();
+        }
+    }
+
+    private void OnBoneReset()
+    {
+        _renderer.ClearBoneRotations();
+        SavePoseState();
+        UpdateBoneViewValues();
+    }
+
+    private void OnBoneRangeChanged(int range)
+    {
+        if (_bottomViews.TryGetValue("BONE", out var v) && v is BoneView bv)
+        {
+            bv.SetRotationRange(-range, range);
+        }
     }
 }

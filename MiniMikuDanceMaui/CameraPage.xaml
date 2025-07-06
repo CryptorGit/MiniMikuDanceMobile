@@ -163,11 +163,12 @@
                     </Label.GestureRecognizers>
                 </Label>
             </Grid>
-            <ContentView x:Name="BottomContent" Grid.Row="1">
-                <ContentView.GestureRecognizers>
+            <ScrollView x:Name="BottomScroll" Grid.Row="1" Orientation="Vertical">
+                <ScrollView.GestureRecognizers>
                     <TapGestureRecognizer Tapped="OnBottomRegionTapped" />
-                </ContentView.GestureRecognizers>
-            </ContentView>
+                </ScrollView.GestureRecognizers>
+                <ContentView x:Name="BottomContent" />
+            </ScrollView>
         </Grid>
     </AbsoluteLayout>
 </ContentPage>

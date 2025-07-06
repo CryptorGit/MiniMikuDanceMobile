@@ -15,10 +15,18 @@ public partial class BoneView : ContentView
     public event Action<float>? TranslationXChanged;
     public event Action<float>? TranslationYChanged;
     public event Action<float>? TranslationZChanged;
+    public event Action? UndoRequested;
+    public event Action? RedoRequested;
+    public event Action? ResetRequested;
+    public event Action<int>? RangeChanged;
+
+    private int _range = 180;
 
     public BoneView()
     {
         InitializeComponent();
+        RangePicker.ItemsSource = new List<int> { 30, 45, 90, 180, 360 };
+        RangePicker.SelectedItem = _range;
     }
 
     public void SetBones(IEnumerable<string> bones)
@@ -66,6 +74,21 @@ public partial class BoneView : ContentView
     private void OnTZChanged(object? sender, ValueChangedEventArgs e)
         => TranslationZChanged?.Invoke((float)e.NewValue);
 
+    private void OnUndoClicked(object? sender, EventArgs e) => UndoRequested?.Invoke();
+
+    private void OnRedoClicked(object? sender, EventArgs e) => RedoRequested?.Invoke();
+
+    private void OnResetClicked(object? sender, EventArgs e) => ResetRequested?.Invoke();
+
+    private void OnRangeChanged(object? sender, EventArgs e)
+    {
+        if (RangePicker.SelectedItem is int value)
+        {
+            _range = value;
+            RangeChanged?.Invoke(value);
+        }
+    }
+
     public new float RotationX
     {
         get => (float)SliderX.Value;
@@ -100,5 +123,15 @@ public partial class BoneView : ContentView
     {
         get => (float)SliderTZ.Value;
         set => SliderTZ.Value = value;
+    }
+
+    public void SetRotationRange(int min, int max)
+    {
+        SliderX.Minimum = min;
+        SliderX.Maximum = max;
+        SliderY.Minimum = min;
+        SliderY.Maximum = max;
+        SliderZ.Minimum = min;
+        SliderZ.Maximum = max;
     }
 }

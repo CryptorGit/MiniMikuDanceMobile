@@ -290,6 +290,22 @@ void main(){
         return _boneTranslations[index];
     }
 
+    public IList<Vector3> GetAllBoneRotations() => _boneRotations.ToList();
+
+    public IList<Vector3> GetAllBoneTranslations() => _boneTranslations.ToList();
+
+    public void SetAllBoneRotations(IList<Vector3> list)
+    {
+        _boneRotations.Clear();
+        _boneRotations.AddRange(list);
+    }
+
+    public void SetAllBoneTranslations(IList<Vector3> list)
+    {
+        _boneTranslations.Clear();
+        _boneTranslations.AddRange(list);
+    }
+
     public void LoadModel(MiniMikuDance.Import.ModelData data)
     {
         foreach (var rm in _meshes)
