@@ -561,10 +561,10 @@ public partial class CameraPage : ContentPage
                 {
                     var list = new List<string>();
                     _humanoidBoneIndices.Clear();
-                    foreach (var kv in _currentModel.HumanoidBones)
+                    foreach (var kv in _currentModel.HumanoidBoneList)
                     {
-                        list.Add(kv.Key);
-                        _humanoidBoneIndices.Add(kv.Value);
+                        list.Add(kv.Name);
+                        _humanoidBoneIndices.Add(kv.Index);
                     }
                     bv.SetBones(list);
                     if (_humanoidBoneIndices.Count > 0)
@@ -691,10 +691,10 @@ public partial class CameraPage : ContentPage
             {
                 var list = new List<string>();
                 _humanoidBoneIndices.Clear();
-                foreach (var kv in _currentModel.HumanoidBones)
+                foreach (var kv in _currentModel.HumanoidBoneList)
                 {
-                    list.Add(kv.Key);
-                    _humanoidBoneIndices.Add(kv.Value);
+                    list.Add(kv.Name);
+                    _humanoidBoneIndices.Add(kv.Index);
                 }
                 bv.SetBones(list);
                 if (_selectedBoneIndex >= 0 && _selectedBoneIndex < _currentModel.Bones.Count)

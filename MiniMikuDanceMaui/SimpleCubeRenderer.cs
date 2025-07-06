@@ -97,7 +97,7 @@ public class SimpleCubeRenderer : IDisposable
                     MathHelper.DegreesToRadians(add.Y),
                     MathHelper.DegreesToRadians(add.X),
                     MathHelper.DegreesToRadians(add.Z));
-                rot = System.Numerics.Quaternion.Normalize(rot * qadd);
+                rot = System.Numerics.Quaternion.Normalize(qadd * rot);
             }
 
             Matrix4 local = Matrix4.CreateTranslation(bone.Translation.ToOpenTK()) * rot.ToMatrix4();

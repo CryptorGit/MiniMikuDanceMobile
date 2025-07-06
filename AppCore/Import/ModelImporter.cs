@@ -19,6 +19,7 @@ public class ModelData
     public System.Numerics.Matrix4x4 Transform { get; set; } = System.Numerics.Matrix4x4.Identity;
     public List<BoneData> Bones { get; } = new();
     public Dictionary<string, int> HumanoidBones { get; } = new();
+    public List<(string Name, int Index)> HumanoidBoneList { get; } = new();
     public float ShadeShift { get; set; } = -0.1f;
     public float ShadeToony { get; set; } = 0.9f;
     public float RimIntensity { get; set; } = 0.5f;
@@ -28,6 +29,64 @@ public class ModelData
 public class ModelImporter
 {
     private readonly AssimpContext _context = new();
+    private static readonly string[] s_boneOrder = new[]
+    {
+        "hips",
+        "leftUpperLeg",
+        "rightUpperLeg",
+        "leftLowerLeg",
+        "rightLowerLeg",
+        "leftFoot",
+        "rightFoot",
+        "spine",
+        "chest",
+        "upperChest",
+        "neck",
+        "head",
+        "leftShoulder",
+        "rightShoulder",
+        "leftUpperArm",
+        "rightUpperArm",
+        "leftLowerArm",
+        "rightLowerArm",
+        "leftHand",
+        "rightHand",
+        "leftToes",
+        "rightToes",
+        "leftEye",
+        "rightEye",
+        "jaw",
+        "leftThumbProximal",
+        "leftThumbIntermediate",
+        "leftThumbDistal",
+        "leftIndexProximal",
+        "leftIndexIntermediate",
+        "leftIndexDistal",
+        "leftMiddleProximal",
+        "leftMiddleIntermediate",
+        "leftMiddleDistal",
+        "leftRingProximal",
+        "leftRingIntermediate",
+        "leftRingDistal",
+        "leftLittleProximal",
+        "leftLittleIntermediate",
+        "leftLittleDistal",
+        "rightThumbProximal",
+        "rightThumbIntermediate",
+        "rightThumbDistal",
+        "rightIndexProximal",
+        "rightIndexIntermediate",
+        "rightIndexDistal",
+        "rightMiddleProximal",
+        "rightMiddleIntermediate",
+        "rightMiddleDistal",
+        "rightRingProximal",
+        "rightRingIntermediate",
+        "rightRingDistal",
+        "rightLittleProximal",
+        "rightLittleIntermediate",
+        "rightLittleDistal"
+    };
 
     public ModelData ImportModel(Stream stream)
     {
@@ -241,12 +300,13 @@ public class ModelImporter
             }
         }
 
-        foreach (var kv in humanMap)
+        foreach (var name in s_boneOrder)
         {
-            if (nodeMap.TryGetValue(kv.Value, out var idx))
+            if (humanMap.TryGetValue(name, out var node) && nodeMap.TryGetValue(node, out var idx))
             {
-                data.HumanoidBones[kv.Key] = idx;
-                data.Bones[idx].Name = kv.Key;
+                data.HumanoidBones[name] = idx;
+                data.HumanoidBoneList.Add((name, idx));
+                data.Bones[idx].Name = name;
             }
         }
 
