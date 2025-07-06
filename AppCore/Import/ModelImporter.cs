@@ -201,10 +201,16 @@ public class ModelImporter
         data.Mesh = combined;
         data.Transform = transform;
 
-        // Humanoid ボーン情報は現在未使用
+        // Humanoid ボーン情報を読み込み
         data.Bones.Clear();
         data.HumanoidBones.Clear();
         data.HumanoidBoneList.Clear();
+        data.Bones.AddRange(ReadBones(model));
+        foreach (var kv in humanMap)
+        {
+            data.HumanoidBones[kv.Key] = kv.Value;
+            data.HumanoidBoneList.Add((kv.Key, kv.Value));
+        }
 
         data.ShadeShift = mtoon.shadeShift;
         data.ShadeToony = mtoon.shadeToony;
@@ -266,6 +272,27 @@ public class ModelImporter
         {
         }
         return map;
+    }
+
+    private static List<BoneData> ReadBones(SharpGLTF.Schema2.ModelRoot model)
+    {
+        var list = new List<BoneData>();
+        for (int i = 0; i < model.LogicalNodes.Count; i++)
+        {
+            var node = model.LogicalNodes[i];
+            var bd = new BoneData
+            {
+                Name = node.Name ?? $"node{i}",
+                Parent = node.VisualParent?.LogicalIndex ?? -1,
+                Rotation = node.LocalRotation,
+                Translation = node.LocalTranslation,
+                BindMatrix = node.WorldMatrix,
+            };
+            System.Numerics.Matrix4x4.Invert(bd.BindMatrix, out var inv);
+            bd.InverseBindMatrix = inv;
+            list.Add(bd);
+        }
+        return list;
     }
 
     private static (float shadeShift, float shadeToony, float rimIntensity) ReadMToonParameters(byte[] glb)
