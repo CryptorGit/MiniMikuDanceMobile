@@ -87,6 +87,8 @@ public class ModelImporter
         var combined = new Assimp.Mesh("mesh", Assimp.PrimitiveType.Triangle);
         int combinedIndexOffset = 0;
         var data = new ModelData();
+        var bones = ReadBones(model, out var nodeMap);
+        data.Bones.AddRange(bones);
 
         foreach (var logical in model.LogicalMeshes)
         {
@@ -218,8 +220,6 @@ public class ModelImporter
 
         data.Mesh = combined;
         data.Transform = transform;
-        var bones = ReadBones(model, out var nodeMap);
-        data.Bones.AddRange(bones);
 
         // Humanoid に定義されているが Skin の Joint として登録されていないノードを追加
         foreach (var kv in humanMap)
@@ -250,6 +250,19 @@ public class ModelImporter
             }
         }
 
+        foreach (var sm in data.SubMeshes)
+        {
+            for (int i = 0; i < sm.Joints.Count; i++)
+            {
+                var j = sm.Joints[i];
+                int j0 = nodeMap.TryGetValue((int)j.X, out var b0) ? b0 : 0;
+                int j1 = nodeMap.TryGetValue((int)j.Y, out var b1) ? b1 : 0;
+                int j2 = nodeMap.TryGetValue((int)j.Z, out var b2) ? b2 : 0;
+                int j3 = nodeMap.TryGetValue((int)j.W, out var b3) ? b3 : 0;
+                sm.Joints[i] = new System.Numerics.Vector4(j0, j1, j2, j3);
+            }
+        }
+
         ComputeBindMatrices(data);
         data.ShadeShift = mtoon.shadeShift;
         data.ShadeToony = mtoon.shadeToony;
@@ -264,7 +277,7 @@ public class ModelImporter
         {
             var b = data.Bones[i];
             var rot = System.Numerics.Matrix4x4.CreateFromQuaternion(b.Rotation);
-            var trs = rot * System.Numerics.Matrix4x4.CreateTranslation(b.Translation);
+            var trs = System.Numerics.Matrix4x4.CreateTranslation(b.Translation) * rot;
             if (b.Parent >= 0)
             {
                 world[i] = world[b.Parent] * trs;
