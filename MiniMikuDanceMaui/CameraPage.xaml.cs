@@ -587,11 +587,7 @@ public partial class CameraPage : ContentPage
                         var euler = _renderer.GetBoneRotation(idx0);
                         bv.SetRotation(euler);
                         var trans = _renderer.GetBoneTranslation(idx0);
-                        bv.SetTranslation(trans);=======
-                        var euler = _currentModel.Bones[idx0].Rotation.ToEulerDegrees();
-                        bv.SetRotation(euler.ToOpenTK());
-                        var trans = _currentModel.Bones[idx0].Translation;
-                        bv.SetTranslation(trans.ToOpenTK());
+                        bv.SetTranslation(trans);
                         _selectedBoneIndex = idx0;
                     }
                 }
