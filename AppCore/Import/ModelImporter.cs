@@ -90,9 +90,13 @@ public class ModelImporter
         int combinedIndexOffset = 0;
         var data = new ModelData();
 
-        foreach (var logical in model.LogicalMeshes)
+        foreach (var node in model.LogicalNodes)
         {
-            foreach (var prim in logical.Primitives)
+            if (node.Mesh == null) continue;
+            var skin = node.Skin;
+            int[] jointMap = skin != null ? skin.Joints.Select(j => j.LogicalIndex).ToArray() : Array.Empty<int>();
+
+            foreach (var prim in node.Mesh.Primitives)
             {
                 var sub = new Assimp.Mesh("mesh", Assimp.PrimitiveType.Triangle);
                 var subUvs = new List<System.Numerics.Vector2>();
@@ -142,7 +146,15 @@ public class ModelImporter
                     if (joints != null && i < joints.Count)
                     {
                         var j = joints[i];
-                        subJoints.Add(new System.Numerics.Vector4(j.X, j.Y, j.Z, j.W));
+                        System.Numerics.Vector4 idx = System.Numerics.Vector4.Zero;
+                        if (jointMap.Length > 0)
+                        {
+                            idx.X = j.X < jointMap.Length ? jointMap[(int)j.X] : 0;
+                            idx.Y = j.Y < jointMap.Length ? jointMap[(int)j.Y] : 0;
+                            idx.Z = j.Z < jointMap.Length ? jointMap[(int)j.Z] : 0;
+                            idx.W = j.W < jointMap.Length ? jointMap[(int)j.W] : 0;
+                        }
+                        subJoints.Add(idx);
                     }
                     else
                     {
@@ -231,6 +243,21 @@ public class ModelImporter
         data.HumanoidBones.Clear();
         data.HumanoidBoneList.Clear();
         data.Bones.AddRange(ReadBones(model));
+        foreach (var skin in model.LogicalSkins)
+        {
+            var invs = skin.InverseBindMatrices?.AsMatrix4x4Array();
+            if (invs == null) continue;
+            for (int i = 0; i < skin.Joints.Count && i < invs.Count; i++)
+            {
+                int bi = skin.Joints[i].LogicalIndex;
+                if (bi >= 0 && bi < data.Bones.Count)
+                {
+                    data.Bones[bi].InverseBindMatrix = invs[i];
+                    System.Numerics.Matrix4x4.Invert(invs[i], out var bind);
+                    data.Bones[bi].BindMatrix = bind;
+                }
+            }
+        }
         foreach (var kv in humanMap)
         {
             data.HumanoidBones[kv.Key] = kv.Value;
