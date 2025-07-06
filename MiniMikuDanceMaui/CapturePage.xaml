@@ -5,6 +5,9 @@
              Title="Capture"
              BackgroundColor="Black">
     <ContentPage.MenuBarItems>
+        <MenuBarItem Text="File" />
+        <MenuBarItem Text="Edit" />
+        <MenuBarItem Text="Selection" />
         <MenuBarItem Text="View">
             <MenuFlyoutItem Text="HOME" Clicked="OnHomeClicked" />
         </MenuBarItem>
@@ -12,6 +15,10 @@
             <MenuFlyoutItem Text="CAMERA" Clicked="OnPageCameraClicked" />
             <MenuFlyoutItem Text="HOME" Clicked="OnPageHomeClicked" />
         </MenuBarItem>
+        <MenuBarItem Text="Setting">
+            <MenuFlyoutItem Text="Open" Clicked="OnSettingClicked" />
+        </MenuBarItem>
+        <MenuBarItem Text="Help" />
     </ContentPage.MenuBarItems>
     <Grid>
         <Label x:Name="StatusLabel" Text="" TextColor="White"
