@@ -75,6 +75,11 @@
                         <TapGestureRecognizer Tapped="OnArClicked" />
                     </Label.GestureRecognizers>
                 </Label>
+                <Label Text="CAMERA" TextColor="White">
+                    <Label.GestureRecognizers>
+                        <TapGestureRecognizer Tapped="OnCameraClicked" />
+                    </Label.GestureRecognizers>
+                </Label>
                 <Label Text="RECORD" TextColor="White">
                     <Label.GestureRecognizers>
                         <TapGestureRecognizer Tapped="OnRecordClicked" />

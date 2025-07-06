@@ -22,6 +22,7 @@ public static class MmdFileSystem
             BaseDir = path;
             UsingInternalStorage = false;
             Console.WriteLine($"[MmdFileSystem] Using external storage: {BaseDir}");
+            Directory.CreateDirectory(SystemPath.Combine(BaseDir, "Movie"));
         }
         catch
         {
@@ -33,6 +34,7 @@ public static class MmdFileSystem
             BaseDir = path;
             UsingInternalStorage = true;
             Console.WriteLine($"[MmdFileSystem] Fallback to internal storage: {BaseDir}");
+            Directory.CreateDirectory(SystemPath.Combine(BaseDir, "Movie"));
         }
 #else
         var root = FileSystem.AppDataDirectory;
@@ -40,6 +42,7 @@ public static class MmdFileSystem
         Directory.CreateDirectory(BaseDir);
         UsingInternalStorage = true;
         Console.WriteLine($"[MmdFileSystem] Using internal storage: {BaseDir}");
+        Directory.CreateDirectory(SystemPath.Combine(BaseDir, "Movie"));
 #endif
     }
 
