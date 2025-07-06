@@ -90,15 +90,23 @@ public class ModelImporter
         int combinedIndexOffset = 0;
         var data = new ModelData();
 
-        foreach (var logical in model.LogicalMeshes)
+        foreach (var node in model.LogicalNodes)
         {
-            foreach (var prim in logical.Primitives)
+            if (node.Mesh == null) continue;
+            var skin = node.Skin;
+            int[] jointMap = skin != null ? skin.Joints.Select(j => j.LogicalIndex).ToArray() : Array.Empty<int>();
+
+            foreach (var prim in node.Mesh.Primitives)
             {
                 var sub = new Assimp.Mesh("mesh", Assimp.PrimitiveType.Triangle);
                 var subUvs = new List<System.Numerics.Vector2>();
+                var subJoints = new List<System.Numerics.Vector4>();
+                var subWeights = new List<System.Numerics.Vector4>();
                 var positions = prim.GetVertexAccessor("POSITION").AsVector3Array();
                 var normals = prim.GetVertexAccessor("NORMAL")?.AsVector3Array();
                 var uvs = prim.GetVertexAccessor("TEXCOORD_0")?.AsVector2Array();
+                var joints = prim.GetVertexAccessor("JOINTS_0")?.AsVector4Array();
+                var weights = prim.GetVertexAccessor("WEIGHTS_0")?.AsVector4Array();
                 var channel = prim.Material?.FindChannel("BaseColor");
                 int matIndex = prim.Material?.LogicalIndex ?? -1;
 
@@ -135,6 +143,33 @@ public class ModelImporter
                         subUvs.Add(System.Numerics.Vector2.Zero);
                     }
 
+                    if (joints != null && i < joints.Count)
+                    {
+                        var j = joints[i];
+                        System.Numerics.Vector4 idx = System.Numerics.Vector4.Zero;
+                        if (jointMap.Length > 0)
+                        {
+                            idx.X = j.X < jointMap.Length ? jointMap[(int)j.X] : 0;
+                            idx.Y = j.Y < jointMap.Length ? jointMap[(int)j.Y] : 0;
+                            idx.Z = j.Z < jointMap.Length ? jointMap[(int)j.Z] : 0;
+                            idx.W = j.W < jointMap.Length ? jointMap[(int)j.W] : 0;
+                        }
+                        subJoints.Add(idx);
+                    }
+                    else
+                    {
+                        subJoints.Add(System.Numerics.Vector4.Zero);
+                    }
+                    if (weights != null && i < weights.Count)
+                    {
+                        var w = weights[i];
+                        subWeights.Add(new System.Numerics.Vector4(w.X, w.Y, w.Z, w.W));
+                    }
+                    else
+                    {
+                        subWeights.Add(System.Numerics.Vector4.Zero);
+                    }
+
                 }
 
                 var indices = prim.IndexAccessor.AsIndicesArray();
@@ -168,6 +203,8 @@ public class ModelImporter
                     ColorFactor = colorFactor
                 };
                 smd.TexCoords.AddRange(subUvs);
+                smd.JointIndices.AddRange(subJoints);
+                smd.JointWeights.AddRange(subWeights);
 
                 if (matIndex >= 0 && texMap.TryGetValue(matIndex, out var texIdx))
                 {
@@ -206,6 +243,21 @@ public class ModelImporter
         data.HumanoidBones.Clear();
         data.HumanoidBoneList.Clear();
         data.Bones.AddRange(ReadBones(model));
+        foreach (var skin in model.LogicalSkins)
+        {
+            var invs = skin.InverseBindMatrices?.AsMatrix4x4Array();
+            if (invs == null) continue;
+            for (int i = 0; i < skin.Joints.Count && i < invs.Count; i++)
+            {
+                int bi = skin.Joints[i].LogicalIndex;
+                if (bi >= 0 && bi < data.Bones.Count)
+                {
+                    data.Bones[bi].InverseBindMatrix = invs[i];
+                    System.Numerics.Matrix4x4.Invert(invs[i], out var bind);
+                    data.Bones[bi].BindMatrix = bind;
+                }
+            }
+        }
         foreach (var kv in humanMap)
         {
             data.HumanoidBones[kv.Key] = kv.Value;
