@@ -251,13 +251,14 @@ public class ModelImporter
         foreach (var skin in model.LogicalSkins)
         {
             var acc = skin.GetInverseBindMatricesAccessor();
-            var invs = acc?.AsMatrix4x4Array();
-            if (invs == null) continue;
+            if (acc == null) continue;
+            var invs = acc.AsMatrix4x4Array();
+
             int jointCount = skin.JointsCount;
             for (int i = 0; i < jointCount && i < invs.Count; i++)
             {
                 var jnode = skin.GetJoint(i);
-                int bi = jnode?.LogicalIndex ?? -1;
+                int bi = jnode.LogicalIndex;
                 if (bi >= 0 && bi < data.Bones.Count)
                 {
                     data.Bones[bi].InverseBindMatrix = invs[i];
