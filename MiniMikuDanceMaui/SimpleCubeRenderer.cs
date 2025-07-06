@@ -53,6 +53,7 @@ public class SimpleCubeRenderer : IDisposable
     private Matrix4 _modelTransform = Matrix4.Identity;
     private int _width;
     private int _height;
+    private readonly List<Vector3> _boneRotations = new();
     public float RotateSensitivity { get; set; } = 1f;
     public float PanSensitivity { get; set; } = 1f;
     public bool CameraLocked { get; set; }
@@ -236,6 +237,20 @@ void main(){
         _orbitY = 0f;
         _distance = 4f;
         _target = Vector3.Zero;
+    }
+
+    public void ClearBoneRotations()
+    {
+        _boneRotations.Clear();
+    }
+
+    public void SetBoneRotation(int index, Vector3 degrees)
+    {
+        if (index < 0)
+            return;
+        while (_boneRotations.Count <= index)
+            _boneRotations.Add(Vector3.Zero);
+        _boneRotations[index] = degrees;
     }
 
 
