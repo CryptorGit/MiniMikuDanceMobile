@@ -55,6 +55,7 @@ public class SimpleCubeRenderer : IDisposable
     private readonly Dictionary<int, Vector3> _boneRotations = new();
     private readonly List<MiniMikuDance.Import.BoneData> _bones = new();
     private Matrix4[] _boneMatrices = Array.Empty<Matrix4>();
+    private Matrix4[] _boneWorldMatrices = Array.Empty<Matrix4>();
     private int _modelBonesLoc;
     private int _width;
     private int _height;
@@ -75,7 +76,10 @@ public class SimpleCubeRenderer : IDisposable
         if (_bones.Count == 0)
             return;
         if (_boneMatrices.Length != _bones.Count)
+        {
             _boneMatrices = new Matrix4[_bones.Count];
+            _boneWorldMatrices = new Matrix4[_bones.Count];
+        }
 
         for (int i = 0; i < _bones.Count; i++)
         {
@@ -90,11 +94,15 @@ public class SimpleCubeRenderer : IDisposable
                     MathHelper.DegreesToRadians(add.Z));
                 rot = System.Numerics.Quaternion.Normalize(qadd * rot);
             }
-            Matrix4 local = Matrix4.CreateTranslation(bone.Translation.ToOpenTK()) * rot.ToMatrix4();
+
+            Matrix4 local = rot.ToMatrix4() * Matrix4.CreateTranslation(bone.Translation.ToOpenTK());
             if (bone.Parent >= 0)
-                _boneMatrices[i] = _boneMatrices[bone.Parent] * local;
+                _boneWorldMatrices[i] = _boneWorldMatrices[bone.Parent] * local;
             else
-                _boneMatrices[i] = _modelTransform * local;
+                _boneWorldMatrices[i] = _modelTransform * local;
+
+            Matrix4 invBind = bone.InverseBindMatrix.ToMatrix4();
+            _boneMatrices[i] = _boneWorldMatrices[i] * invBind;
         }
     }
 
@@ -301,6 +309,8 @@ void main(){
         _bones.Clear();
         _bones.AddRange(data.Bones);
         _boneRotations.Clear();
+        _boneMatrices = new Matrix4[_bones.Count];
+        _boneWorldMatrices = new Matrix4[_bones.Count];
 
         if (data.SubMeshes.Count == 0)
         {

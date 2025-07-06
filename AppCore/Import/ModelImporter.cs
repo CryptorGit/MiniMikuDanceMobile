@@ -247,10 +247,34 @@ public class ModelImporter
                 data.Bones[idx].Name = kv.Key;
             }
         }
+
+        ComputeBindMatrices(data);
         data.ShadeShift = mtoon.shadeShift;
         data.ShadeToony = mtoon.shadeToony;
         data.RimIntensity = mtoon.rimIntensity;
         return data;
+    }
+
+    private static void ComputeBindMatrices(ModelData data)
+    {
+        var world = new System.Numerics.Matrix4x4[data.Bones.Count];
+        for (int i = 0; i < data.Bones.Count; i++)
+        {
+            var b = data.Bones[i];
+            var rot = System.Numerics.Matrix4x4.CreateFromQuaternion(b.Rotation);
+            var trs = rot * System.Numerics.Matrix4x4.CreateTranslation(b.Translation);
+            if (b.Parent >= 0)
+            {
+                world[i] = world[b.Parent] * trs;
+            }
+            else
+            {
+                world[i] = data.Transform * trs;
+            }
+            b.BindMatrix = world[i];
+            System.Numerics.Matrix4x4.Invert(world[i], out var inv);
+            b.InverseBindMatrix = inv;
+        }
     }
 
     private static void VerifyMeshWinding(Assimp.Mesh mesh)
