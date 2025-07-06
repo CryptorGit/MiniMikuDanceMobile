@@ -14,7 +14,6 @@ public static class MauiProgram
     {
         var builder = MauiApp.CreateBuilder();
         Trace.Listeners.Add(new LogTraceListener());
-        Debug.Listeners.Add(new LogTraceListener());
         Console.SetOut(new LogConsoleWriter(Console.Out));
 
         builder
