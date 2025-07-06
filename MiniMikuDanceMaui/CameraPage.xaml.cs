@@ -26,11 +26,11 @@ public partial class CameraPage : ContentPage
 {
     private double _bottomHeightRatio = 0.5;
     private double _bottomWidthRatio = 1.0;
-    private double _rotateSensitivity = 1.0;
-    private double _panSensitivity = 1.0;
-    private double _shadeShift = -0.1;
-    private double _shadeToony = 0.9;
-    private double _rimIntensity = 0.5;
+    private float _rotateSensitivity = 1.0f;
+    private float _panSensitivity = 1.0f;
+    private float _shadeShift = -0.1f;
+    private float _shadeToony = 0.9f;
+    private float _rimIntensity = 0.5f;
     private const double TopMenuHeight = 36;
     private bool _viewMenuOpen;
     private bool _settingMenuOpen;
@@ -57,11 +57,11 @@ public partial class CameraPage : ContentPage
         InitializeComponent();
         NavigationPage.SetHasNavigationBar(this, false);
         this.SizeChanged += OnSizeChanged;
-        _renderer.RotateSensitivity = (float)_rotateSensitivity;
-        _renderer.PanSensitivity = (float)_panSensitivity;
-        _renderer.ShadeShift = (float)_shadeShift;
-        _renderer.ShadeToony = (float)_shadeToony;
-        _renderer.RimIntensity = (float)_rimIntensity;
+        _renderer.RotateSensitivity = _rotateSensitivity;
+        _renderer.PanSensitivity = _panSensitivity;
+        _renderer.ShadeShift = _shadeShift;
+        _renderer.ShadeToony = _shadeToony;
+        _renderer.RimIntensity = _rimIntensity;
 
         if (Viewer is SKGLView glView)
         {
@@ -78,13 +78,13 @@ public partial class CameraPage : ContentPage
             };
             setting.RotateSensitivityChanged += v =>
             {
-                _rotateSensitivity = v;
-                _renderer.RotateSensitivity = (float)_rotateSensitivity;
+                _rotateSensitivity = (float)v;
+                _renderer.RotateSensitivity = _rotateSensitivity;
             };
             setting.PanSensitivityChanged += v =>
             {
-                _panSensitivity = v;
-                _renderer.PanSensitivity = (float)_panSensitivity;
+                _panSensitivity = (float)v;
+                _renderer.PanSensitivity = _panSensitivity;
             };
             setting.CameraLockChanged += locked =>
             {
@@ -616,18 +616,18 @@ public partial class CameraPage : ContentPage
                 };
                 mv.ShadeShiftChanged += v =>
                 {
-                    _shadeShift = v;
-                    _renderer.ShadeShift = (float)_shadeShift;
+                    _shadeShift = (float)v;
+                    _renderer.ShadeShift = _shadeShift;
                 };
                 mv.ShadeToonyChanged += v =>
                 {
-                    _shadeToony = v;
-                    _renderer.ShadeToony = (float)_shadeToony;
+                    _shadeToony = (float)v;
+                    _renderer.ShadeToony = _shadeToony;
                 };
                 mv.RimIntensityChanged += v =>
                 {
-                    _rimIntensity = v;
-                    _renderer.RimIntensity = (float)_rimIntensity;
+                    _rimIntensity = (float)v;
+                    _renderer.RimIntensity = _rimIntensity;
                 };
                 view = mv;
             }
@@ -641,13 +641,13 @@ public partial class CameraPage : ContentPage
                 };
                 sv.RotateSensitivityChanged += v =>
                 {
-                    _rotateSensitivity = v;
-                    _renderer.RotateSensitivity = (float)_rotateSensitivity;
+                    _rotateSensitivity = (float)v;
+                    _renderer.RotateSensitivity = _rotateSensitivity;
                 };
                 sv.PanSensitivityChanged += v =>
                 {
-                    _panSensitivity = v;
-                    _renderer.PanSensitivity = (float)_panSensitivity;
+                    _panSensitivity = (float)v;
+                    _renderer.PanSensitivity = _panSensitivity;
                 };
                 sv.CameraLockChanged += locked =>
                 {
