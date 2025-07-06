@@ -163,7 +163,7 @@
                     </Label.GestureRecognizers>
                 </Label>
             </Grid>
-            <ScrollView x:Name="BottomScroll" Grid.Row="1" Orientation="Vertical">
+            <ScrollView x:Name="BottomScroll" Grid.Row="1" Orientation="Vertical" VerticalScrollBarVisibility="Always">
                 <ScrollView.GestureRecognizers>
                     <TapGestureRecognizer Tapped="OnBottomRegionTapped" />
                 </ScrollView.GestureRecognizers>
