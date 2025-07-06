@@ -60,6 +60,7 @@ public class SimpleCubeRenderer : IDisposable
     private int _width;
     private int _height;
     private readonly List<Vector3> _boneRotations = new();
+    private readonly List<Vector3> _boneTranslations = new();
     private List<MiniMikuDance.Import.BoneData> _bones = new();
     // デフォルトのカメラ感度をスライダーの最小値に合わせる
     public float RotateSensitivity { get; set; } = 0.1f;
@@ -254,6 +255,7 @@ void main(){
     public void ClearBoneRotations()
     {
         _boneRotations.Clear();
+        _boneTranslations.Clear();
     }
 
     public void SetBoneRotation(int index, Vector3 degrees)
@@ -263,6 +265,15 @@ void main(){
         while (_boneRotations.Count <= index)
             _boneRotations.Add(Vector3.Zero);
         _boneRotations[index] = degrees;
+    }
+
+    public void SetBoneTranslation(int index, Vector3 translation)
+    {
+        if (index < 0)
+            return;
+        while (_boneTranslations.Count <= index)
+            _boneTranslations.Add(Vector3.Zero);
+        _boneTranslations[index] = translation;
     }
 
 
@@ -416,7 +427,10 @@ void main(){
                 var bone = _bones[i];
                 System.Numerics.Vector3 euler = i < _boneRotations.Count ? _boneRotations[i].ToNumerics() : System.Numerics.Vector3.Zero;
                 var delta = System.Numerics.Quaternion.CreateFromYawPitchRoll(euler.Y * deg2rad, euler.X * deg2rad, euler.Z * deg2rad);
-                var local = System.Numerics.Matrix4x4.CreateFromQuaternion(bone.Rotation * delta) * System.Numerics.Matrix4x4.CreateTranslation(bone.Translation);
+                System.Numerics.Vector3 trans = bone.Translation;
+                if (i < _boneTranslations.Count)
+                    trans += _boneTranslations[i].ToNumerics();
+                var local = System.Numerics.Matrix4x4.CreateFromQuaternion(bone.Rotation * delta) * System.Numerics.Matrix4x4.CreateTranslation(trans);
                 if (bone.Parent >= 0)
                     worldMats[i] = local * worldMats[bone.Parent];
                 else
