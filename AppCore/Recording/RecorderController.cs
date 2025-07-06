@@ -1,17 +1,17 @@
 using System;
 using System.IO;
-using System.Runtime.InteropServices;
-using OpenCvSharp;
+using SixLabors.ImageSharp;
+using SixLabors.ImageSharp.PixelFormats;
+using SixLabors.ImageSharp.Processing;
 
 namespace MiniMikuDance.Recording;
 
 public class RecorderController
 {
     private bool _recording;
-    private string _savedPath = string.Empty;
+    private string _savedDir = string.Empty;
     private string _infoPath = string.Empty;
     private int _frameIndex;
-    private VideoWriter? _writer;
     private string _thumbnailPath = string.Empty;
     private readonly string _baseDir;
 
@@ -25,27 +25,24 @@ public class RecorderController
         Directory.CreateDirectory(_baseDir);
         string folder = Path.Combine(_baseDir, $"record_{DateTime.Now:yyyyMMdd_HHmmss}");
         Directory.CreateDirectory(folder);
-        _savedPath = Path.Combine(folder, "output.mp4");
+        _savedDir = folder;
         _infoPath = Path.Combine(folder, "info.txt");
         File.WriteAllText(_infoPath, $"Resolution:{width}x{height} FPS:{fps} Started:{DateTime.Now}\n");
-
-        _writer = new VideoWriter(_savedPath, FourCC.H264, fps, new Size(width, height));
         _frameIndex = 0;
         _recording = true;
-        return _savedPath;
+        return _savedDir;
     }
 
     public string StopRecording()
     {
         if (!_recording)
         {
-            return _savedPath;
+            return _savedDir;
         }
 
         _recording = false;
-        _writer?.Release();
         File.AppendAllText(_infoPath, $"Stopped:{DateTime.Now}\n");
-        return _savedPath;
+        return _savedDir;
     }
 
     public string ThumbnailPath => _thumbnailPath;
@@ -54,20 +51,18 @@ public class RecorderController
 
     public void Capture(byte[] rgba, int width, int height)
     {
-        if (!_recording || _writer == null) return;
+        if (!_recording) return;
 
-        using var mat = new Mat(height, width, MatType.CV_8UC4);
-        Marshal.Copy(rgba, 0, mat.Data, rgba.Length);
-        Cv2.CvtColor(mat, mat, ColorConversionCodes.RGBA2BGR);
-        Cv2.Flip(mat, mat, FlipMode.X);
+        using var image = Image.LoadPixelData<Rgba32>(rgba, width, height);
+        image.Mutate(x => x.Flip(FlipMode.Vertical));
+        string path = Path.Combine(_savedDir, $"frame_{_frameIndex:D04}.png");
+        image.Save(path);
         if (_frameIndex == 0)
         {
-            _thumbnailPath = Path.Combine(Path.GetDirectoryName(_savedPath)!, "thumb.png");
-            Cv2.ImWrite(_thumbnailPath, mat);
+            _thumbnailPath = path;
         }
-        _writer.Write(mat);
         _frameIndex++;
     }
 
-    public string GetSavedPath() => _savedPath;
+    public string GetSavedPath() => _savedDir;
 }
