@@ -10,13 +10,13 @@ public partial class TerminalView : ContentView
     public TerminalView()
     {
         InitializeComponent();
+        LogService.LineLogged += OnLineLogged;
         var history = LogService.History;
         foreach (var line in history)
         {
             LogStack.Add(new Label { Text = line, TextColor = Colors.White });
         }
         _lastIndex = history.Count;
-        LogService.LineLogged += OnLineLogged;
     }
 
     private void OnLineLogged(string line)
@@ -47,8 +47,8 @@ public partial class TerminalView : ContentView
         }
         if (args.NewHandler != null)
         {
-            AddHistory();
             LogService.LineLogged += OnLineLogged;
+            AddHistory();
         }
     }
 }
