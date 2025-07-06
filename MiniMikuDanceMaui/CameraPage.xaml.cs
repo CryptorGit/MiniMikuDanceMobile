@@ -223,7 +223,7 @@ public partial class CameraPage : ContentPage
         HideSettingMenu();
     }
 
-    private async void OnCameraClicked(object? sender, EventArgs e)
+    private void OnCameraClicked(object? sender, EventArgs e)
     {
         LogService.WriteLine("CAMERA button clicked");
         ShowBottomFeature("CAMERA");
@@ -847,7 +847,7 @@ public partial class CameraPage : ContentPage
         ShowOpenExplorer();
     }
 
-    private async void OnEstimatePoseClicked(object? sender, EventArgs e)
+    private void OnEstimatePoseClicked(object? sender, EventArgs e)
     {
         LogService.WriteLine("Estimate pose clicked");
         HideFileMenu();
