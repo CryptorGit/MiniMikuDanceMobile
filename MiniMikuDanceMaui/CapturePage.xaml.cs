@@ -44,6 +44,7 @@ public partial class CapturePage : ContentPage
                 await using var dest = File.Create(dstPath);
                 await source.CopyToAsync(dest);
                 StatusLabel.Text = $"Saved: {dstPath}";
+                await App.Initializer.AnalyzeVideoAsync(dstPath);
             }
         }
         catch (Exception ex)
