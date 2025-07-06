@@ -9,6 +9,7 @@ using SixLabors.ImageSharp.PixelFormats;
 using Vector3D = Assimp.Vector3D;
 using SharpGLTF.Schema2;
 using SNode = SharpGLTF.Schema2.Node;
+using ViewerApp;
 
 namespace MiniMikuDance.Import;
 
@@ -95,7 +96,7 @@ public class ModelImporter
         stream.CopyTo(ms);
         var bytes = ms.ToArray();
         ms.Position = 0;
-        var textureMap = ReadMainTextureIndices(bytes);
+        var textureMap = VrmUtil.ReadMainTextureIndices(bytes);
         var humanMap = ReadHumanoidMap(bytes);
         var mtoon = ReadMToonParameters(bytes);
         var info = ReadVrmInfo(bytes);
@@ -132,7 +133,7 @@ public class ModelImporter
         var bytes = File.ReadAllBytes(path);
         using var ms = new MemoryStream(bytes);
         var info = ReadVrmInfo(bytes);
-        var textureMap = ReadMainTextureIndices(bytes);
+        var textureMap = VrmUtil.ReadMainTextureIndices(bytes);
         var humanMap = ReadHumanoidMap(bytes);
         var mtoon = ReadMToonParameters(bytes);
         var model = SharpGLTF.Schema2.ModelRoot.ReadGLB(ms);
@@ -322,6 +323,7 @@ public class ModelImporter
         }
 
         ComputeBindMatrices(data);
+        ValidateBoneMappings(data);
         data.ShadeShift = mtoon.shadeShift;
         data.ShadeToony = mtoon.shadeToony;
         data.RimIntensity = mtoon.rimIntensity;
@@ -353,90 +355,32 @@ public class ModelImporter
         }
     }
 
-
-    private static Dictionary<int, int> ReadMainTextureIndices(byte[] glb)
+    private static void ValidateBoneMappings(ModelData data)
     {
-        var map = new Dictionary<int, int>();
-        try
+        int boneCount = data.Bones.Count;
+        foreach (var sm in data.SubMeshes)
         {
-            using var ms = new MemoryStream(glb);
-            using var br = new BinaryReader(ms);
-            uint magic = br.ReadUInt32();
-            if (magic != 0x46546C67) return map; // 'glTF'
-            br.ReadUInt32(); // version
-            br.ReadUInt32(); // length
-            uint jsonLen = br.ReadUInt32();
-            uint chunkType = br.ReadUInt32();
-            if (chunkType != 0x4E4F534A) return map; // JSON
-            byte[] jsonBytes = br.ReadBytes((int)jsonLen);
-            string json = System.Text.Encoding.UTF8.GetString(jsonBytes);
-            var doc = System.Text.Json.JsonDocument.Parse(json);
-            var root = doc.RootElement;
-            if (root.TryGetProperty("extensions", out var exts) &&
-                exts.TryGetProperty("VRM", out var vrmExt) &&
-                vrmExt.TryGetProperty("materialProperties", out var matProps) &&
-                matProps.ValueKind == System.Text.Json.JsonValueKind.Array &&
-                root.TryGetProperty("materials", out var materials))
+            foreach (var j in sm.Joints)
             {
-                foreach (var m in matProps.EnumerateArray())
+                if ((int)j.X >= boneCount || (int)j.Y >= boneCount ||
+                    (int)j.Z >= boneCount || (int)j.W >= boneCount)
                 {
-                    if (!m.TryGetProperty("name", out var nameEl)) continue;
-                    string? name = nameEl.GetString();
-                    int matIndex = -1;
-                    for (int i = 0; i < materials.GetArrayLength(); i++)
-                    {
-                        var mat = materials[i];
-                        if (mat.TryGetProperty("name", out var nm) && nm.GetString() == name)
-                        {
-                            matIndex = i;
-                            break;
-                        }
-                    }
-                    if (matIndex >= 0 &&
-                        m.TryGetProperty("textureProperties", out var texProps) &&
-                        texProps.TryGetProperty("_MainTex", out var mainTexEl))
-                    {
-                        map[matIndex] = mainTexEl.GetInt32();
-                    }
-                }
-            }
-
-            if (root.TryGetProperty("materials", out var mats1))
-            {
-                for (int i = 0; i < mats1.GetArrayLength(); i++)
-                {
-                    var mat = mats1[i];
-                    if (mat.TryGetProperty("extensions", out var mext) &&
-                        mext.TryGetProperty("VRMC_materials_mtoon", out var mtoon) &&
-                        mtoon.TryGetProperty("textures", out var texs) &&
-                        texs.TryGetProperty("mainTexture", out var main) &&
-                        main.TryGetProperty("index", out var idxEl))
-                    {
-                        map[i] = idxEl.GetInt32();
-                    }
-                }
-            }
-
-            if (root.TryGetProperty("materials", out var mats))
-            {
-                for (int i = 0; i < mats.GetArrayLength(); i++)
-                {
-                    if (map.ContainsKey(i)) continue;
-                    var mat = mats[i];
-                    if (mat.TryGetProperty("pbrMetallicRoughness", out var pbr) &&
-                        pbr.TryGetProperty("baseColorTexture", out var tex) &&
-                        tex.TryGetProperty("index", out var idxEl))
-                    {
-                        map[i] = idxEl.GetInt32();
-                    }
+                    throw new InvalidDataException("SubMesh references invalid bone index");
                 }
             }
         }
-        catch
+
+        for (int i = 0; i < boneCount; i++)
         {
+            int p = data.Bones[i].Parent;
+            if (p >= boneCount && p >= 0)
+            {
+                throw new InvalidDataException("Bone parent index out of range");
+            }
         }
-        return map;
     }
+
+
 
     private static Dictionary<string, int> ReadHumanoidMap(byte[] glb)
     {
