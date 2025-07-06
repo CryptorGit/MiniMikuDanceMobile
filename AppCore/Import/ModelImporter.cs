@@ -96,9 +96,13 @@ public class ModelImporter
             {
                 var sub = new Assimp.Mesh("mesh", Assimp.PrimitiveType.Triangle);
                 var subUvs = new List<System.Numerics.Vector2>();
+                var subJoints = new List<System.Numerics.Vector4>();
+                var subWeights = new List<System.Numerics.Vector4>();
                 var positions = prim.GetVertexAccessor("POSITION").AsVector3Array();
                 var normals = prim.GetVertexAccessor("NORMAL")?.AsVector3Array();
                 var uvs = prim.GetVertexAccessor("TEXCOORD_0")?.AsVector2Array();
+                var joints = prim.GetVertexAccessor("JOINTS_0")?.AsVector4Array();
+                var weights = prim.GetVertexAccessor("WEIGHTS_0")?.AsVector4Array();
                 var channel = prim.Material?.FindChannel("BaseColor");
                 int matIndex = prim.Material?.LogicalIndex ?? -1;
 
@@ -135,6 +139,25 @@ public class ModelImporter
                         subUvs.Add(System.Numerics.Vector2.Zero);
                     }
 
+                    if (joints != null && i < joints.Count)
+                    {
+                        var j = joints[i];
+                        subJoints.Add(new System.Numerics.Vector4(j.X, j.Y, j.Z, j.W));
+                    }
+                    else
+                    {
+                        subJoints.Add(System.Numerics.Vector4.Zero);
+                    }
+                    if (weights != null && i < weights.Count)
+                    {
+                        var w = weights[i];
+                        subWeights.Add(new System.Numerics.Vector4(w.X, w.Y, w.Z, w.W));
+                    }
+                    else
+                    {
+                        subWeights.Add(System.Numerics.Vector4.Zero);
+                    }
+
                 }
 
                 var indices = prim.IndexAccessor.AsIndicesArray();
@@ -168,6 +191,8 @@ public class ModelImporter
                     ColorFactor = colorFactor
                 };
                 smd.TexCoords.AddRange(subUvs);
+                smd.JointIndices.AddRange(subJoints);
+                smd.JointWeights.AddRange(subWeights);
 
                 if (matIndex >= 0 && texMap.TryGetValue(matIndex, out var texIdx))
                 {
