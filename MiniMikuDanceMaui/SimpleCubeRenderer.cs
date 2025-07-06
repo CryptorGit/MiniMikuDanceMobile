@@ -23,8 +23,6 @@ public class SimpleCubeRenderer : IDisposable
         public bool HasTexture;
         public Vector3[] Vertices = Array.Empty<Vector3>();
         public Vector3[] Normals = Array.Empty<Vector3>();
-        public Vector4[] Joints = Array.Empty<Vector4>();
-        public Vector4[] Weights = Array.Empty<Vector4>();
     }
     private readonly System.Collections.Generic.List<RenderMesh> _meshes = new();
     private int _gridVao;
@@ -43,6 +41,7 @@ public class SimpleCubeRenderer : IDisposable
     private int _modelProgram;
     private int _modelViewLoc;
     private int _modelProjLoc;
+    private int _modelMatrixLoc;
     private int _modelColorLoc;
     private int _modelTexLoc;
     private int _modelUseTexLoc;
@@ -52,11 +51,6 @@ public class SimpleCubeRenderer : IDisposable
     private int _modelShadeToonyLoc;
     private int _modelRimIntensityLoc;
     private Matrix4 _modelTransform = Matrix4.Identity;
-    private readonly Dictionary<int, Vector3> _boneRotations = new();
-    private readonly List<MiniMikuDance.Import.BoneData> _bones = new();
-    private Matrix4[] _boneMatrices = Array.Empty<Matrix4>();
-    private Matrix4[] _boneWorldMatrices = Array.Empty<Matrix4>();
-    private int _modelBonesLoc;
     private int _width;
     private int _height;
     public float RotateSensitivity { get; set; } = 1f;
@@ -65,60 +59,6 @@ public class SimpleCubeRenderer : IDisposable
     public float ShadeShift { get; set; } = -0.1f;
     public float ShadeToony { get; set; } = 0.9f;
     public float RimIntensity { get; set; } = 0.5f;
-    public void SetBoneRotation(int index, Vector3 degrees)
-        => _boneRotations[index] = degrees;
-
-    public void ClearBoneRotations()
-        => _boneRotations.Clear();
-
-    private void UpdateBoneMatrices()
-    {
-        if (_bones.Count == 0)
-            return;
-        if (_boneMatrices.Length != _bones.Count)
-        {
-            _boneMatrices = new Matrix4[_bones.Count];
-            _boneWorldMatrices = new Matrix4[_bones.Count];
-        }
-
-        var computed = new bool[_bones.Count];
-
-        Matrix4 ComputeWorld(int idx)
-        {
-            if (computed[idx])
-                return _boneWorldMatrices[idx];
-
-            var bone = _bones[idx];
-            var rot = bone.Rotation;
-            if (_boneRotations.TryGetValue(idx, out var euler))
-            {
-                var add = new System.Numerics.Vector3(euler.X, euler.Y, euler.Z);
-                var qadd = System.Numerics.Quaternion.CreateFromYawPitchRoll(
-                    MathHelper.DegreesToRadians(add.Y),
-                    MathHelper.DegreesToRadians(add.X),
-                    MathHelper.DegreesToRadians(add.Z));
-                rot = System.Numerics.Quaternion.Normalize(qadd * rot);
-            }
-
-            Matrix4 local = rot.ToMatrix4() * Matrix4.CreateTranslation(bone.Translation.ToOpenTK());
-            Matrix4 world;
-            if (bone.Parent >= 0)
-                world = ComputeWorld(bone.Parent) * local;
-            else
-                world = _modelTransform * local;
-
-            _boneWorldMatrices[idx] = world;
-            computed[idx] = true;
-            return world;
-        }
-
-        for (int i = 0; i < _bones.Count; i++)
-        {
-            var world = ComputeWorld(i);
-            Matrix4 invBind = _bones[i].InverseBindMatrix.ToMatrix4();
-            _boneMatrices[i] = world * invBind;
-        }
-    }
 
     public void Initialize()
     {
@@ -158,26 +98,17 @@ void main(){
         GL.BlendFunc(BlendingFactorSrc.SrcAlpha, BlendingFactorDest.OneMinusSrcAlpha);
 
         const string modelVert = @"#version 300 es
-#define MAX_BONES 64
 layout(location = 0) in vec3 aPosition;
 layout(location = 1) in vec3 aNormal;
 layout(location = 2) in vec2 aTex;
-layout(location = 3) in vec4 aJoints;
-layout(location = 4) in vec4 aWeights;
+uniform mat4 uModel;
 uniform mat4 uView;
 uniform mat4 uProj;
-uniform mat4 uBones[MAX_BONES];
 out vec3 vNormal;
 out vec2 vTex;
 void main(){
-    float wsum = aWeights.x + aWeights.y + aWeights.z + aWeights.w;
-    mat4 skin = aWeights.x * uBones[int(aJoints.x)] +
-                aWeights.y * uBones[int(aJoints.y)] +
-                aWeights.z * uBones[int(aJoints.z)] +
-                aWeights.w * uBones[int(aJoints.w)];
-    if (wsum == 0.0) skin = uBones[0];
-    vec4 pos = skin * vec4(aPosition,1.0);
-    vNormal = mat3(skin) * aNormal;
+    vec4 pos = uModel * vec4(aPosition,1.0);
+    vNormal = mat3(uModel) * aNormal;
     vTex = aTex;
     gl_Position = uProj * uView * pos;
 }";
@@ -216,7 +147,7 @@ void main(){
         GL.DeleteShader(mfs);
         _modelViewLoc = GL.GetUniformLocation(_modelProgram, "uView");
         _modelProjLoc = GL.GetUniformLocation(_modelProgram, "uProj");
-        _modelBonesLoc = GL.GetUniformLocation(_modelProgram, "uBones[0]");
+        _modelMatrixLoc = GL.GetUniformLocation(_modelProgram, "uModel");
         _modelColorLoc = GL.GetUniformLocation(_modelProgram, "uColor");
         _modelTexLoc = GL.GetUniformLocation(_modelProgram, "uTex");
         _modelUseTexLoc = GL.GetUniformLocation(_modelProgram, "uUseTex");
@@ -320,11 +251,6 @@ void main(){
         _meshes.Clear();
 
         _modelTransform = data.Transform.ToMatrix4();
-        _bones.Clear();
-        _bones.AddRange(data.Bones);
-        _boneRotations.Clear();
-        _boneMatrices = new Matrix4[_bones.Count];
-        _boneWorldMatrices = new Matrix4[_bones.Count];
 
         if (data.SubMeshes.Count == 0)
         {
@@ -337,73 +263,38 @@ void main(){
         foreach (var sm in data.SubMeshes)
         {
             int vcount = sm.Mesh.VertexCount;
-            float[] verts = new float[vcount * 16];
-            var jointArr = sm.Joints;
-            var weightArr = sm.Weights;
+            float[] verts = new float[vcount * 8];
             for (int i = 0; i < vcount; i++)
             {
                 var v = sm.Mesh.Vertices[i];
-                verts[i * 16 + 0] = v.X;
-                verts[i * 16 + 1] = v.Y;
-                verts[i * 16 + 2] = v.Z;
+                verts[i * 8 + 0] = v.X;
+                verts[i * 8 + 1] = v.Y;
+                verts[i * 8 + 2] = v.Z;
                 if (i < sm.Mesh.Normals.Count)
                 {
                     var n = sm.Mesh.Normals[i];
-                    verts[i * 16 + 3] = n.X;
-                    verts[i * 16 + 4] = n.Y;
-                    verts[i * 16 + 5] = n.Z;
+                    verts[i * 8 + 3] = n.X;
+                    verts[i * 8 + 4] = n.Y;
+                    verts[i * 8 + 5] = n.Z;
                 }
                 else
                 {
-                    verts[i * 16 + 3] = 0f;
-                    verts[i * 16 + 4] = 0f;
-                    verts[i * 16 + 5] = 1f;
+                    verts[i * 8 + 3] = 0f;
+                    verts[i * 8 + 4] = 0f;
+                    verts[i * 8 + 5] = 1f;
                 }
                 if (i < sm.TexCoords.Count)
                 {
                     var uv = sm.TexCoords[i];
-                    verts[i * 16 + 6] = uv.X;
-                    verts[i * 16 + 7] = uv.Y;
+                    verts[i * 8 + 6] = uv.X;
+                    verts[i * 8 + 7] = uv.Y;
                 }
                 else
                 {
-                    verts[i * 16 + 6] = 0f;
-                    verts[i * 16 + 7] = 0f;
+                    verts[i * 8 + 6] = 0f;
+                    verts[i * 8 + 7] = 0f;
                 }
-                if (jointArr.Count > i)
-                {
-                    var j = jointArr[i];
-                    verts[i * 16 + 8] = j.X;
-                    verts[i * 16 + 9] = j.Y;
-                    verts[i * 16 +10] = j.Z;
-                    verts[i * 16 +11] = j.W;
-                }
-                else
-                {
-                    verts[i * 16 + 8] = 0f;
-                    verts[i * 16 + 9] = 0f;
-                    verts[i * 16 +10] = 0f;
-                    verts[i * 16 +11] = 0f;
-                }
-                if (weightArr.Count > i)
-                {
-                    var w = weightArr[i];
-                    verts[i * 16 +12] = w.X;
-                    verts[i * 16 +13] = w.Y;
-                    verts[i * 16 +14] = w.Z;
-                    verts[i * 16 +15] = w.W;
-                    if (w.X + w.Y + w.Z + w.W == 0f)
-                    {
-                        verts[i * 16 +12] = 1f;
-                    }
-                }
-                else
-                {
-                    verts[i * 16 +12] = 1f;
-                    verts[i * 16 +13] = 0f;
-                    verts[i * 16 +14] = 0f;
-                    verts[i * 16 +15] = 0f;
-                }
+                // no skinning information
             }
 
             var indices = new System.Collections.Generic.List<uint>();
@@ -417,8 +308,6 @@ void main(){
             rm.IndexCount = indices.Count;
             rm.Vertices = sm.Mesh.Vertices.Select(v => new Vector3(v.X, v.Y, v.Z)).ToArray();
             rm.Normals = sm.Mesh.Normals.Select(n => new Vector3(n.X, n.Y, n.Z)).ToArray();
-            rm.Joints = jointArr.Select(j => j.ToVector4()).ToArray();
-            rm.Weights = weightArr.Select(w => w.ToVector4()).ToArray();
             rm.Vao = GL.GenVertexArray();
             rm.Vbo = GL.GenBuffer();
             rm.Ebo = GL.GenBuffer();
@@ -429,17 +318,13 @@ void main(){
             GL.BindVertexArray(rm.Vao);
             GL.BindBuffer(BufferTarget.ArrayBuffer, rm.Vbo);
             GL.BufferData(BufferTarget.ArrayBuffer, verts.Length * sizeof(float), verts, BufferUsageHint.StaticDraw);
-            int stride = 16 * sizeof(float);
+            int stride = 8 * sizeof(float);
             GL.VertexAttribPointer(0, 3, VertexAttribPointerType.Float, false, stride, 0);
             GL.EnableVertexAttribArray(0);
             GL.VertexAttribPointer(1, 3, VertexAttribPointerType.Float, false, stride, 3 * sizeof(float));
             GL.EnableVertexAttribArray(1);
             GL.VertexAttribPointer(2, 2, VertexAttribPointerType.Float, false, stride, 6 * sizeof(float));
             GL.EnableVertexAttribArray(2);
-            GL.VertexAttribPointer(3, 4, VertexAttribPointerType.Float, false, stride, 8 * sizeof(float));
-            GL.EnableVertexAttribArray(3);
-            GL.VertexAttribPointer(4, 4, VertexAttribPointerType.Float, false, stride, 12 * sizeof(float));
-            GL.EnableVertexAttribArray(4);
             GL.BindBuffer(BufferTarget.ElementArrayBuffer, rm.Ebo);
             GL.BufferData(BufferTarget.ElementArrayBuffer, indices.Count * sizeof(uint), indices.ToArray(), BufferUsageHint.StaticDraw);
             GL.BindVertexArray(0);
@@ -485,7 +370,6 @@ void main(){
         GL.ClearColor(1f, 1f, 1f, 1f);
         GL.Clear(ClearBufferMask.ColorBufferBit | ClearBufferMask.DepthBufferBit);
 
-        UpdateBoneMatrices();
         Matrix4 rot = Matrix4.CreateRotationX(_orbitX) * Matrix4.CreateRotationY(_orbitY);
         Vector3 cam = Vector3.TransformPosition(new Vector3(0, 0, _distance), rot) + _target;
         Matrix4 view = Matrix4.LookAt(cam, _target, Vector3.UnitY);
@@ -504,10 +388,7 @@ void main(){
         GL.Uniform1(_modelRimIntensityLoc, RimIntensity);
         // テクスチャのアルファを利用するためブレンドを有効化
         GL.Enable(EnableCap.Blend);
-        for (int i = 0; i < _bones.Count && i < 64; i++)
-        {
-            GL.UniformMatrix4(_modelBonesLoc + i, false, ref _boneMatrices[i]);
-        }
+        GL.UniformMatrix4(_modelMatrixLoc, false, ref _modelTransform);
         foreach (var rm in _meshes)
         {
             GL.Uniform4(_modelColorLoc, rm.Color);

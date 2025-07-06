@@ -30,64 +30,6 @@ public class ModelData
 public class ModelImporter
 {
     private readonly AssimpContext _context = new();
-    private static readonly string[] s_boneOrder = new[]
-    {
-        "hips",
-        "leftUpperLeg",
-        "rightUpperLeg",
-        "leftLowerLeg",
-        "rightLowerLeg",
-        "leftFoot",
-        "rightFoot",
-        "spine",
-        "chest",
-        "upperChest",
-        "neck",
-        "head",
-        "leftShoulder",
-        "rightShoulder",
-        "leftUpperArm",
-        "rightUpperArm",
-        "leftLowerArm",
-        "rightLowerArm",
-        "leftHand",
-        "rightHand",
-        "leftToes",
-        "rightToes",
-        "leftEye",
-        "rightEye",
-        "jaw",
-        "leftThumbProximal",
-        "leftThumbIntermediate",
-        "leftThumbDistal",
-        "leftIndexProximal",
-        "leftIndexIntermediate",
-        "leftIndexDistal",
-        "leftMiddleProximal",
-        "leftMiddleIntermediate",
-        "leftMiddleDistal",
-        "leftRingProximal",
-        "leftRingIntermediate",
-        "leftRingDistal",
-        "leftLittleProximal",
-        "leftLittleIntermediate",
-        "leftLittleDistal",
-        "rightThumbProximal",
-        "rightThumbIntermediate",
-        "rightThumbDistal",
-        "rightIndexProximal",
-        "rightIndexIntermediate",
-        "rightIndexDistal",
-        "rightMiddleProximal",
-        "rightMiddleIntermediate",
-        "rightMiddleDistal",
-        "rightRingProximal",
-        "rightRingIntermediate",
-        "rightRingDistal",
-        "rightLittleProximal",
-        "rightLittleIntermediate",
-        "rightLittleDistal"
-    };
 
     public ModelData ImportModel(Stream stream)
     {
@@ -147,8 +89,6 @@ public class ModelImporter
         var combined = new Assimp.Mesh("mesh", Assimp.PrimitiveType.Triangle);
         int combinedIndexOffset = 0;
         var data = new ModelData();
-        var bones = ReadBones(model, out var nodeMap);
-        data.Bones.AddRange(bones);
 
         foreach (var logical in model.LogicalMeshes)
         {
@@ -159,10 +99,6 @@ public class ModelImporter
                 var positions = prim.GetVertexAccessor("POSITION").AsVector3Array();
                 var normals = prim.GetVertexAccessor("NORMAL")?.AsVector3Array();
                 var uvs = prim.GetVertexAccessor("TEXCOORD_0")?.AsVector2Array();
-                var jointAcc = prim.GetVertexAccessor("JOINTS_0")?.AsVector4Array();
-                var weightAcc = prim.GetVertexAccessor("WEIGHTS_0")?.AsVector4Array();
-                var jointList = new List<System.Numerics.Vector4>();
-                var weightList = new List<System.Numerics.Vector4>();
                 var channel = prim.Material?.FindChannel("BaseColor");
                 int matIndex = prim.Material?.LogicalIndex ?? -1;
 
@@ -199,18 +135,6 @@ public class ModelImporter
                         subUvs.Add(System.Numerics.Vector2.Zero);
                     }
 
-                    if (jointAcc != null && weightAcc != null && i < jointAcc.Count && i < weightAcc.Count)
-                    {
-                        var jv = jointAcc[i];
-                        var wv = weightAcc[i];
-                        jointList.Add(new System.Numerics.Vector4(jv.X, jv.Y, jv.Z, jv.W));
-                        weightList.Add(new System.Numerics.Vector4(wv.X, wv.Y, wv.Z, wv.W));
-                    }
-                    else
-                    {
-                        jointList.Add(System.Numerics.Vector4.Zero);
-                        weightList.Add(System.Numerics.Vector4.Zero);
-                    }
                 }
 
                 var indices = prim.IndexAccessor.AsIndicesArray();
@@ -244,8 +168,6 @@ public class ModelImporter
                     ColorFactor = colorFactor
                 };
                 smd.TexCoords.AddRange(subUvs);
-                smd.Joints.AddRange(jointList);
-                smd.Weights.AddRange(weightList);
 
                 if (matIndex >= 0 && texMap.TryGetValue(matIndex, out var texIdx))
                 {
@@ -279,106 +201,17 @@ public class ModelImporter
         data.Mesh = combined;
         data.Transform = transform;
 
-        // Humanoid に定義されているが Skin の Joint として登録されていないノードを追加
-        foreach (var kv in humanMap)
-        {
-            if (!nodeMap.ContainsKey(kv.Value))
-            {
-                var bNode = model.LogicalNodes[kv.Value];
-                int parent = -1;
-                if (bNode.VisualParent != null && nodeMap.TryGetValue(bNode.VisualParent.LogicalIndex, out var p))
-                {
-                    parent = p;
-                }
-                var r = bNode.LocalTransform.Rotation;
-                var q = new System.Numerics.Quaternion(r.X, r.Y, -r.Z, r.W);
-                var t = bNode.LocalTransform.Translation;
-                var pos = new System.Numerics.Vector3(t.X, t.Y, -t.Z);
-                nodeMap[kv.Value] = data.Bones.Count;
-                data.Bones.Add(new BoneData { Name = bNode.Name ?? kv.Key, Parent = parent, Rotation = q, Translation = pos });
-            }
-        }
+        // Humanoid ボーン情報は現在未使用
+        data.Bones.Clear();
+        data.HumanoidBones.Clear();
+        data.HumanoidBoneList.Clear();
 
-        foreach (var name in s_boneOrder)
-        {
-            if (humanMap.TryGetValue(name, out var nodeIdx) && nodeMap.TryGetValue(nodeIdx, out var idx))
-            {
-                data.HumanoidBones[name] = idx;
-                data.HumanoidBoneList.Add((name, idx));
-                data.Bones[idx].Name = name;
-            }
-        }
-
-        foreach (var sm in data.SubMeshes)
-        {
-            for (int i = 0; i < sm.Joints.Count; i++)
-            {
-                var j = sm.Joints[i];
-                int j0 = nodeMap.TryGetValue((int)j.X, out var b0) ? b0 : 0;
-                int j1 = nodeMap.TryGetValue((int)j.Y, out var b1) ? b1 : 0;
-                int j2 = nodeMap.TryGetValue((int)j.Z, out var b2) ? b2 : 0;
-                int j3 = nodeMap.TryGetValue((int)j.W, out var b3) ? b3 : 0;
-                sm.Joints[i] = new System.Numerics.Vector4(j0, j1, j2, j3);
-            }
-        }
-
-        ComputeBindMatrices(data);
-        ValidateBoneMappings(data);
         data.ShadeShift = mtoon.shadeShift;
         data.ShadeToony = mtoon.shadeToony;
         data.RimIntensity = mtoon.rimIntensity;
         return data;
     }
 
-    private static void ComputeBindMatrices(ModelData data)
-    {
-        var world = new System.Numerics.Matrix4x4[data.Bones.Count];
-        for (int i = 0; i < data.Bones.Count; i++)
-        {
-            var b = data.Bones[i];
-            var rot = System.Numerics.Matrix4x4.CreateFromQuaternion(b.Rotation);
-            var trs = rot * System.Numerics.Matrix4x4.CreateTranslation(b.Translation);
-            if (b.Parent >= 0)
-            {
-                world[i] = world[b.Parent] * trs;
-            }
-            else
-            {
-                world[i] = data.Transform * trs;
-            }
-            b.BindMatrix = world[i];
-            if (b.InverseBindMatrix == System.Numerics.Matrix4x4.Identity)
-            {
-                System.Numerics.Matrix4x4.Invert(world[i], out var inv);
-                b.InverseBindMatrix = inv;
-            }
-        }
-    }
-
-    private static void ValidateBoneMappings(ModelData data)
-    {
-        int boneCount = data.Bones.Count;
-        foreach (var sm in data.SubMeshes)
-        {
-            foreach (var j in sm.Joints)
-            {
-                if ((int)j.X >= boneCount || (int)j.Y >= boneCount ||
-                    (int)j.Z >= boneCount || (int)j.W >= boneCount)
-                {
-                    throw new InvalidDataException("SubMesh references invalid bone index");
-                }
-            }
-        }
-
-        for (int i = 0; i < boneCount; i++)
-        {
-            int p = data.Bones[i].Parent;
-            if (p >= boneCount && p >= 0)
-            {
-                throw new InvalidDataException("Bone parent index out of range");
-            }
-        }
-    }
 
 
 
@@ -580,79 +413,4 @@ public class ModelImporter
         return info;
     }
 
-    private static List<BoneData> ReadBones(SharpGLTF.Schema2.ModelRoot model, out Dictionary<int, int> nodeToIndex)
-    {
-        var bones = new List<BoneData>();
-        var nodes = new List<SNode>();
-        var visited = new HashSet<SNode>();
-
-        foreach (var skin in model.LogicalSkins)
-        {
-            foreach (var joint in EnumerateJoints(skin))
-            {
-                if (!visited.Add(joint)) continue;
-                nodes.Add(joint);
-            }
-        }
-
-        nodeToIndex = new Dictionary<int, int>();
-        for (int i = 0; i < nodes.Count; i++)
-        {
-            var joint = nodes[i];
-            nodeToIndex[joint.LogicalIndex] = i;
-        }
-
-        var invMap = new Dictionary<int, System.Numerics.Matrix4x4>();
-        foreach (var skin in model.LogicalSkins)
-        {
-            for (int i = 0; i < skin.JointsCount; i++)
-            {
-                var (joint, m) = skin.GetJoint(i);
-                if (joint == null) continue;
-                if (!nodeToIndex.TryGetValue(joint.LogicalIndex, out var idx)) continue;
-                var mat = new System.Numerics.Matrix4x4(
-                    m.M11, m.M12, m.M13, m.M14,
-                    m.M21, m.M22, m.M23, m.M24,
-                    m.M31, m.M32, m.M33, m.M34,
-                    m.M41, m.M42, m.M43, m.M44);
-                var flip = System.Numerics.Matrix4x4.CreateScale(1f, 1f, -1f);
-                mat = flip * mat * flip;
-                invMap[idx] = mat;
-            }
-        }
-
-        for (int i = 0; i < nodes.Count; i++)
-        {
-            var joint = nodes[i];
-            int parent = -1;
-            if (joint.VisualParent != null && nodeToIndex.TryGetValue(joint.VisualParent.LogicalIndex, out var p))
-            {
-                parent = p;
-            }
-            var r = joint.LocalTransform.Rotation;
-            var q = new System.Numerics.Quaternion(r.X, r.Y, -r.Z, r.W);
-            var t = joint.LocalTransform.Translation;
-            var pos = new System.Numerics.Vector3(t.X, t.Y, -t.Z);
-            var bone = new BoneData { Name = joint.Name ?? string.Empty, Parent = parent, Rotation = q, Translation = pos };
-            if (invMap.TryGetValue(i, out var ibm))
-            {
-                bone.InverseBindMatrix = ibm;
-            }
-            bones.Add(bone);
-        }
-
-        return bones;
-    }
-
-    private static IEnumerable<SNode> EnumerateJoints(Skin skin)
-    {
-        for (int i = 0; i < skin.JointsCount; i++)
-        {
-            var (joint, _) = skin.GetJoint(i);
-            if (joint != null)
-            {
-                yield return joint;
-            }
-        }
-    }
 }
