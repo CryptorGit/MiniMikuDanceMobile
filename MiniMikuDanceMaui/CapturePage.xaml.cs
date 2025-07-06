@@ -42,4 +42,14 @@ public partial class CapturePage : ContentPage
     {
         await Navigation.PopAsync();
     }
+
+    private async void OnPageCameraClicked(object? sender, EventArgs e)
+    {
+        // Already on camera page; do nothing.
+    }
+
+    private async void OnPageHomeClicked(object? sender, EventArgs e)
+    {
+        await Navigation.PopAsync();
+    }
 }

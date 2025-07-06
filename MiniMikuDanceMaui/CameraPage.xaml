@@ -11,6 +11,10 @@
         <MenuBarItem Text="Edit" />
         <MenuBarItem Text="Selection" />
         <MenuBarItem Text="View" />
+        <MenuBarItem Text="Page">
+            <MenuFlyoutItem Text="CAMERA" Clicked="OnPageCameraClicked" />
+            <MenuFlyoutItem Text="HOME" Clicked="OnPageHomeClicked" />
+        </MenuBarItem>
         <MenuBarItem Text="Setting">
             <MenuFlyoutItem Text="Open" Clicked="OnSettingClicked" />
         </MenuBarItem>
