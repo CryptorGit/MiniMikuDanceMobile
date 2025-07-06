@@ -37,7 +37,14 @@ public class PoseEstimator
         {
             const int jointCount = 33;
 
-            if (_session == null || !File.Exists(videoPath))
+            using var capture = new VideoCapture(videoPath);
+            float fps = capture.Fps;
+            if (fps <= 0f || float.IsNaN(fps))
+            {
+                fps = 30f;
+            }
+
+            if (_session == null || !capture.IsOpened())
             {
                 // fallback to dummy values
                 int frameCount = 30;
@@ -47,7 +54,7 @@ public class PoseEstimator
                 {
                     var jd = new JointData
                     {
-                        Timestamp = i / 30f,
+                        Timestamp = i / fps,
                         Positions = new Vector3[jointCount],
                         Confidences = new float[jointCount]
                     };
@@ -65,7 +72,6 @@ public class PoseEstimator
                 return dummy;
             }
 
-            using var capture = new VideoCapture(videoPath);
             int total = (int)capture.FrameCount;
             var results = new List<JointData>(total);
             var meta = _session.InputMetadata.First();
@@ -91,7 +97,7 @@ public class PoseEstimator
                 using var output = _session.Run(new[] { NamedOnnxValue.CreateFromTensor(meta.Key, tensor) });
                 var jd = new JointData
                 {
-                    Timestamp = i / 30f,
+                    Timestamp = i / fps,
                     Positions = new Vector3[jointCount],
                     Confidences = new float[jointCount]
                 };
