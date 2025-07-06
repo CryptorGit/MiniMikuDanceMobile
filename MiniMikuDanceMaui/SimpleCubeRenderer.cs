@@ -417,8 +417,8 @@ void main(){
             rm.IndexCount = indices.Count;
             rm.Vertices = sm.Mesh.Vertices.Select(v => new Vector3(v.X, v.Y, v.Z)).ToArray();
             rm.Normals = sm.Mesh.Normals.Select(n => new Vector3(n.X, n.Y, n.Z)).ToArray();
-            rm.Joints = jointArr.ToArray();
-            rm.Weights = weightArr.ToArray();
+            rm.Joints = jointArr.Select(j => j.ToVector4()).ToArray();
+            rm.Weights = weightArr.Select(w => w.ToVector4()).ToArray();
             rm.Vao = GL.GenVertexArray();
             rm.Vbo = GL.GenBuffer();
             rm.Ebo = GL.GenBuffer();
