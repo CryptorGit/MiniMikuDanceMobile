@@ -1,6 +1,7 @@
 using System;
 using System.Linq;
 using System.Numerics;
+using System.Collections.Generic;
 using Microsoft.ML.OnnxRuntime;
 using Microsoft.ML.OnnxRuntime.Tensors;
 using OpenCvSharp;
@@ -66,7 +67,7 @@ public class PoseEstimator
 
             using var capture = new VideoCapture(videoPath);
             int total = (int)capture.FrameCount;
-            var results = new JointData[total];
+            var results = new List<JointData>(total);
             var meta = _session.InputMetadata.First();
             var dims = meta.Value.Dimensions.Select(d => d <= 0 ? 1 : d).ToArray();
             for (int i = 0; i < total; i++)
@@ -118,10 +119,10 @@ public class PoseEstimator
                     jd.Confidences[j] = stride > 3 && idx + 3 < data.Length ? data[idx + 3] : 1f;
                 }
 
-                results[i] = jd;
+                results.Add(jd);
                 onProgress?.Invoke((i + 1) / (float)total);
             }
-            return results;
+            return results.ToArray();
         });
     }
 }
