@@ -276,6 +276,19 @@ void main(){
         _boneTranslations[index] = translation;
     }
 
+    public (Vector3[] rot, Vector3[] trans) GetPose()
+    {
+        return (_boneRotations.ToArray(), _boneTranslations.ToArray());
+    }
+
+    public void SetPose(Vector3[] rot, Vector3[] trans)
+    {
+        _boneRotations.Clear();
+        _boneRotations.AddRange(rot);
+        _boneTranslations.Clear();
+        _boneTranslations.AddRange(trans);
+    }
+
 
     public void LoadModel(MiniMikuDance.Import.ModelData data)
     {

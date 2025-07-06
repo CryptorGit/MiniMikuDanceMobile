@@ -54,6 +54,9 @@ public partial class CameraPage : ContentPage
     private Action<MiniMikuDance.PoseEstimation.JointData>? _framePlayedHandler;
     private readonly List<int> _humanoidBoneIndices = new();
     private readonly Dictionary<long, SKPoint> _touchPoints = new();
+    private readonly List<(Vector3[] rot, Vector3[] trans)> _poseHistory = new();
+    private int _poseHistoryIndex = -1;
+    private bool _suppressPoseRecord;
 
     public CameraPage()
     {
@@ -409,6 +412,7 @@ public partial class CameraPage : ContentPage
             {
                 _renderer.ClearBoneRotations();
                 _renderer.LoadModel(_pendingModel);
+                RecordPose();
                 _currentModel = _pendingModel;
                 _shadeShift = _pendingModel.ShadeShift;
                 _shadeToony = _pendingModel.ShadeToony;
@@ -424,6 +428,7 @@ public partial class CameraPage : ContentPage
         {
             _renderer.ClearBoneRotations();
             _renderer.LoadModel(_pendingModel);
+            RecordPose();
             _currentModel = _pendingModel;
             _shadeShift = _pendingModel.ShadeShift;
             _shadeToony = _pendingModel.ShadeToony;
@@ -609,6 +614,9 @@ public partial class CameraPage : ContentPage
                 bv.TranslationXChanged += v => UpdateSelectedBoneTranslation(bv);
                 bv.TranslationYChanged += v => UpdateSelectedBoneTranslation(bv);
                 bv.TranslationZChanged += v => UpdateSelectedBoneTranslation(bv);
+                bv.UndoRequested += OnUndoPose;
+                bv.RedoRequested += OnRedoPose;
+                bv.ResetRequested += OnResetPose;
                 view = bv;
             }
             else if (name == "CAMERA")
@@ -743,6 +751,9 @@ public partial class CameraPage : ContentPage
                     bv.SetTranslation(trans.ToOpenTK());
                 }
             }
+            bv.UndoRequested += OnUndoPose;
+            bv.RedoRequested += OnRedoPose;
+            bv.ResetRequested += OnResetPose;
         }
         else if (name == "Analyze" && _bottomViews[name] is ExplorerView aev)
         {
@@ -1132,6 +1143,7 @@ public partial class CameraPage : ContentPage
 
         var eulerTk = new OpenTK.Mathematics.Vector3(bv.RotationX, bv.RotationY, bv.RotationZ);
         _renderer.SetBoneRotation(_selectedBoneIndex, eulerTk);
+        if (!_suppressPoseRecord) RecordPose();
         Viewer?.InvalidateSurface();
     }
 
@@ -1143,6 +1155,66 @@ public partial class CameraPage : ContentPage
 
         var t = new OpenTK.Mathematics.Vector3(bv.TranslationX, bv.TranslationY, bv.TranslationZ);
         _renderer.SetBoneTranslation(_selectedBoneIndex, t);
+        if (!_suppressPoseRecord) RecordPose();
+        Viewer?.InvalidateSurface();
+    }
+
+    private void RecordPose()
+    {
+        var pose = _renderer.GetPose();
+        if (_poseHistoryIndex < _poseHistory.Count - 1)
+            _poseHistory.RemoveRange(_poseHistoryIndex + 1, _poseHistory.Count - _poseHistoryIndex - 1);
+        _poseHistory.Add(pose);
+        _poseHistoryIndex = _poseHistory.Count - 1;
+    }
+
+    private void ApplyPose((Vector3[] rot, Vector3[] trans) pose)
+    {
+        _suppressPoseRecord = true;
+        _renderer.SetPose(pose.rot, pose.trans);
+        _suppressPoseRecord = false;
+        UpdateBoneViewSliders();
+        Viewer?.InvalidateSurface();
+    }
+
+    private void UpdateBoneViewSliders()
+    {
+        if (_bottomViews.TryGetValue("BONE", out var v) && v is BoneView bv)
+        {
+            if (_selectedBoneIndex >= 0)
+            {
+                var pose = _renderer.GetPose();
+                if (_selectedBoneIndex < pose.rot.Length)
+                    bv.SetRotation(pose.rot[_selectedBoneIndex]);
+                if (_selectedBoneIndex < pose.trans.Length)
+                    bv.SetTranslation(pose.trans[_selectedBoneIndex]);
+            }
+        }
+    }
+
+    private void OnUndoPose()
+    {
+        if (_poseHistoryIndex > 0)
+        {
+            _poseHistoryIndex--;
+            ApplyPose(_poseHistory[_poseHistoryIndex]);
+        }
+    }
+
+    private void OnRedoPose()
+    {
+        if (_poseHistoryIndex + 1 < _poseHistory.Count)
+        {
+            _poseHistoryIndex++;
+            ApplyPose(_poseHistory[_poseHistoryIndex]);
+        }
+    }
+
+    private void OnResetPose()
+    {
+        _renderer.ClearBoneRotations();
+        RecordPose();
+        UpdateBoneViewSliders();
         Viewer?.InvalidateSurface();
     }
 

@@ -6,16 +6,25 @@
     <VerticalStackLayout Spacing="10" Padding="10">
         <Picker x:Name="BonePicker" Title="Bone" SelectedIndexChanged="OnBoneSelected"/>
         <Label Text="Rotate X" TextColor="White"/>
-        <Slider x:Name="SliderX" Minimum="-180" Maximum="180" ValueChanged="OnXChanged"/>
+        <Slider x:Name="SliderX" Minimum="-180" Maximum="180" StepFrequency="1" ValueChanged="OnXChanged"/>
         <Label Text="Rotate Y" TextColor="White"/>
-        <Slider x:Name="SliderY" Minimum="-180" Maximum="180" ValueChanged="OnYChanged"/>
+        <Slider x:Name="SliderY" Minimum="-180" Maximum="180" StepFrequency="1" ValueChanged="OnYChanged"/>
         <Label Text="Rotate Z" TextColor="White"/>
-        <Slider x:Name="SliderZ" Minimum="-180" Maximum="180" ValueChanged="OnZChanged"/>
+        <Slider x:Name="SliderZ" Minimum="-180" Maximum="180" StepFrequency="1" ValueChanged="OnZChanged"/>
         <Label Text="Translate X" TextColor="White"/>
-        <Slider x:Name="SliderTX" Minimum="-1" Maximum="1" ValueChanged="OnTXChanged"/>
+        <Slider x:Name="SliderTX" Minimum="-1" Maximum="1" StepFrequency="1" ValueChanged="OnTXChanged"/>
         <Label Text="Translate Y" TextColor="White"/>
-        <Slider x:Name="SliderTY" Minimum="-1" Maximum="1" ValueChanged="OnTYChanged"/>
+        <Slider x:Name="SliderTY" Minimum="-1" Maximum="1" StepFrequency="1" ValueChanged="OnTYChanged"/>
         <Label Text="Translate Z" TextColor="White"/>
-        <Slider x:Name="SliderTZ" Minimum="-1" Maximum="1" ValueChanged="OnTZChanged"/>
+        <Slider x:Name="SliderTZ" Minimum="-1" Maximum="1" StepFrequency="1" ValueChanged="OnTZChanged"/>
+        <HorizontalStackLayout Spacing="6">
+            <Button Text="Undo" Clicked="OnUndoClicked" />
+            <Button Text="Redo" Clicked="OnRedoClicked" />
+            <Button Text="Reset" Clicked="OnResetClicked" />
+        </HorizontalStackLayout>
+        <HorizontalStackLayout Spacing="6" VerticalOptions="Center">
+            <Label Text="Range" TextColor="White" VerticalOptions="Center"/>
+            <Picker x:Name="RangePicker" SelectedIndexChanged="OnRangeChanged" />
+        </HorizontalStackLayout>
     </VerticalStackLayout>
 </ContentView>
