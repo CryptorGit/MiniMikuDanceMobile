@@ -61,6 +61,7 @@ AGENTS.md で挙げたカテゴリをより細分化し、優先度や検討事�
 - [ ] pose_landmark_full.onnx を StreamingAssets/pose_model.onnx として配置
 - [ ] 動画ファイル選択 UI を CameraPage 等に追加
 - [ ] 選択ファイルを AppInitializer.AnalyzeVideoAsync() へ渡す処理
+- [ ] CapturePage で録画した動画を保存後、AppInitializer.AnalyzeVideoAsync() へ渡す
 - [ ] PoseEstimator で JointData[] を取得
 - [ ] MotionGenerator.Generate() で MotionData へ変換
 - [ ] BlazePose 関節を Humanoid ボーンへマッピング

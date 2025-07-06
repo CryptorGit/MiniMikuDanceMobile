@@ -1,5 +1,6 @@
 using Microsoft.Maui.Controls;
 using Microsoft.Maui.Storage;
+using Microsoft.Maui.ApplicationModel;
 using System;
 using System.IO;
 
@@ -14,6 +15,19 @@ public partial class CapturePage : ContentPage
         InitializeComponent();
         NavigationPage.SetHasNavigationBar(this, false);
         _movieDir = MmdFileSystem.Ensure("Movie");
+    }
+
+    protected override async void OnAppearing()
+    {
+        base.OnAppearing();
+#if ANDROID || IOS
+        var cam = await Permissions.RequestAsync<Permissions.Camera>();
+        var mic = await Permissions.RequestAsync<Permissions.Microphone>();
+        if (cam != PermissionStatus.Granted || mic != PermissionStatus.Granted)
+        {
+            StatusLabel.Text = "Permission denied";
+        }
+#endif
     }
 
     private async void OnRecordClicked(object? sender, EventArgs e)
