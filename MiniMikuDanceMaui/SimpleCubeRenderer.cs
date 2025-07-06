@@ -60,8 +60,9 @@ public class SimpleCubeRenderer : IDisposable
     private int _height;
     private readonly List<Vector3> _boneRotations = new();
     private List<MiniMikuDance.Import.BoneData> _bones = new();
-    public float RotateSensitivity { get; set; } = 1f;
-    public float PanSensitivity { get; set; } = 1f;
+    // デフォルトのカメラ感度をスライダーの最小値に合わせる
+    public float RotateSensitivity { get; set; } = 0.1f;
+    public float PanSensitivity { get; set; } = 0.1f;
     public bool CameraLocked { get; set; }
     public float ShadeShift { get; set; } = -0.1f;
     public float ShadeToony { get; set; } = 0.9f;
