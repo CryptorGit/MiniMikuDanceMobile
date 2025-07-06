@@ -4,6 +4,7 @@ using OpenTK.Graphics.ES30;
 using GL = OpenTK.Graphics.ES30.GL;
 using System.Runtime.InteropServices;
 using System.Collections.Generic;
+using System.Linq;
 using MiniMikuDance.Util;
 
 namespace MiniMikuDanceMaui;
@@ -20,6 +21,10 @@ public class SimpleCubeRenderer : IDisposable
         public Vector4 Color = Vector4.One;
         public int Texture;
         public bool HasTexture;
+        public Vector3[] Vertices = Array.Empty<Vector3>();
+        public Vector3[] Normals = Array.Empty<Vector3>();
+        public Vector4[] Joints = Array.Empty<Vector4>();
+        public Vector4[] Weights = Array.Empty<Vector4>();
     }
     private readonly System.Collections.Generic.List<RenderMesh> _meshes = new();
     private int _gridVao;
@@ -265,36 +270,68 @@ void main(){
         foreach (var sm in data.SubMeshes)
         {
             int vcount = sm.Mesh.VertexCount;
-            float[] verts = new float[vcount * 8];
+            float[] verts = new float[vcount * 16];
+            var jointArr = sm.Joints;
+            var weightArr = sm.Weights;
             for (int i = 0; i < vcount; i++)
             {
                 var v = sm.Mesh.Vertices[i];
-                verts[i * 8 + 0] = v.X;
-                verts[i * 8 + 1] = v.Y;
-                verts[i * 8 + 2] = v.Z;
+                verts[i * 16 + 0] = v.X;
+                verts[i * 16 + 1] = v.Y;
+                verts[i * 16 + 2] = v.Z;
                 if (i < sm.Mesh.Normals.Count)
                 {
                     var n = sm.Mesh.Normals[i];
-                    verts[i * 8 + 3] = n.X;
-                    verts[i * 8 + 4] = n.Y;
-                    verts[i * 8 + 5] = n.Z;
+                    verts[i * 16 + 3] = n.X;
+                    verts[i * 16 + 4] = n.Y;
+                    verts[i * 16 + 5] = n.Z;
                 }
                 else
                 {
-                    verts[i * 8 + 3] = 0f;
-                    verts[i * 8 + 4] = 0f;
-                    verts[i * 8 + 5] = 1f;
+                    verts[i * 16 + 3] = 0f;
+                    verts[i * 16 + 4] = 0f;
+                    verts[i * 16 + 5] = 1f;
                 }
                 if (i < sm.TexCoords.Count)
                 {
                     var uv = sm.TexCoords[i];
-                    verts[i * 8 + 6] = uv.X;
-                    verts[i * 8 + 7] = uv.Y;
+                    verts[i * 16 + 6] = uv.X;
+                    verts[i * 16 + 7] = uv.Y;
                 }
                 else
                 {
-                    verts[i * 8 + 6] = 0f;
-                    verts[i * 8 + 7] = 0f;
+                    verts[i * 16 + 6] = 0f;
+                    verts[i * 16 + 7] = 0f;
+                }
+                if (jointArr.Count > i)
+                {
+                    var j = jointArr[i];
+                    verts[i * 16 + 8] = j.X;
+                    verts[i * 16 + 9] = j.Y;
+                    verts[i * 16 +10] = j.Z;
+                    verts[i * 16 +11] = j.W;
+                }
+                else
+                {
+                    verts[i * 16 + 8] = 0f;
+                    verts[i * 16 + 9] = 0f;
+                    verts[i * 16 +10] = 0f;
+                    verts[i * 16 +11] = 0f;
+                }
+                if (weightArr.Count > i)
+                {
+                    var w = weightArr[i];
+                    verts[i * 16 +12] = w.X;
+                    verts[i * 16 +13] = w.Y;
+                    verts[i * 16 +14] = w.Z;
+                    verts[i * 16 +15] = w.W;
+                }
+                else
+                {
+                    verts[i * 16 +12] = 0f;
+                    verts[i * 16 +13] = 0f;
+                    verts[i * 16 +14] = 0f;
+                    verts[i * 16 +15] = 0f;
                 }
             }
 
@@ -307,6 +344,10 @@ void main(){
 
             var rm = new RenderMesh();
             rm.IndexCount = indices.Count;
+            rm.Vertices = sm.Mesh.Vertices.Select(v => new Vector3(v.X, v.Y, v.Z)).ToArray();
+            rm.Normals = sm.Mesh.Normals.Select(n => new Vector3(n.X, n.Y, n.Z)).ToArray();
+            rm.Joints = jointArr.ToArray();
+            rm.Weights = weightArr.ToArray();
             rm.Vao = GL.GenVertexArray();
             rm.Vbo = GL.GenBuffer();
             rm.Ebo = GL.GenBuffer();
@@ -317,13 +358,17 @@ void main(){
             GL.BindVertexArray(rm.Vao);
             GL.BindBuffer(BufferTarget.ArrayBuffer, rm.Vbo);
             GL.BufferData(BufferTarget.ArrayBuffer, verts.Length * sizeof(float), verts, BufferUsageHint.StaticDraw);
-            int stride = 8 * sizeof(float);
+            int stride = 16 * sizeof(float);
             GL.VertexAttribPointer(0, 3, VertexAttribPointerType.Float, false, stride, 0);
             GL.EnableVertexAttribArray(0);
             GL.VertexAttribPointer(1, 3, VertexAttribPointerType.Float, false, stride, 3 * sizeof(float));
             GL.EnableVertexAttribArray(1);
             GL.VertexAttribPointer(2, 2, VertexAttribPointerType.Float, false, stride, 6 * sizeof(float));
             GL.EnableVertexAttribArray(2);
+            GL.VertexAttribPointer(3, 4, VertexAttribPointerType.Float, false, stride, 8 * sizeof(float));
+            GL.EnableVertexAttribArray(3);
+            GL.VertexAttribPointer(4, 4, VertexAttribPointerType.Float, false, stride, 12 * sizeof(float));
+            GL.EnableVertexAttribArray(4);
             GL.BindBuffer(BufferTarget.ElementArrayBuffer, rm.Ebo);
             GL.BufferData(BufferTarget.ElementArrayBuffer, indices.Count * sizeof(uint), indices.ToArray(), BufferUsageHint.StaticDraw);
             GL.BindVertexArray(0);

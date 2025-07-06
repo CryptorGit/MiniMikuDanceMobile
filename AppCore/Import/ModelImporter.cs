@@ -90,6 +90,10 @@ public class ModelImporter
                 var positions = prim.GetVertexAccessor("POSITION").AsVector3Array();
                 var normals = prim.GetVertexAccessor("NORMAL")?.AsVector3Array();
                 var uvs = prim.GetVertexAccessor("TEXCOORD_0")?.AsVector2Array();
+                var jointAcc = prim.GetVertexAccessor("JOINTS_0")?.AsVector4Array();
+                var weightAcc = prim.GetVertexAccessor("WEIGHTS_0")?.AsVector4Array();
+                var jointList = new List<System.Numerics.Vector4>();
+                var weightList = new List<System.Numerics.Vector4>();
                 var channel = prim.Material?.FindChannel("BaseColor");
                 int matIndex = prim.Material?.LogicalIndex ?? -1;
 
@@ -125,6 +129,19 @@ public class ModelImporter
                         combined.TextureCoordinateChannels[0].Add(new Vector3D(0, 0, 0));
                         subUvs.Add(System.Numerics.Vector2.Zero);
                     }
+
+                    if (jointAcc != null && weightAcc != null && i < jointAcc.Count && i < weightAcc.Count)
+                    {
+                        var jv = jointAcc[i];
+                        var wv = weightAcc[i];
+                        jointList.Add(new System.Numerics.Vector4(jv.X, jv.Y, jv.Z, jv.W));
+                        weightList.Add(new System.Numerics.Vector4(wv.X, wv.Y, wv.Z, wv.W));
+                    }
+                    else
+                    {
+                        jointList.Add(System.Numerics.Vector4.Zero);
+                        weightList.Add(System.Numerics.Vector4.Zero);
+                    }
                 }
 
                 var indices = prim.IndexAccessor.AsIndicesArray();
@@ -158,6 +175,8 @@ public class ModelImporter
                     ColorFactor = colorFactor
                 };
                 smd.TexCoords.AddRange(subUvs);
+                smd.Joints.AddRange(jointList);
+                smd.Weights.AddRange(weightList);
 
                 if (matIndex >= 0 && texMap.TryGetValue(matIndex, out var texIdx))
                 {
@@ -206,8 +225,10 @@ public class ModelImporter
                 }
                 var r = bNode.LocalTransform.Rotation;
                 var q = new System.Numerics.Quaternion(r.X, r.Y, r.Z, r.W);
+                var t = bNode.LocalTransform.Translation;
+                var pos = new System.Numerics.Vector3(t.X, t.Y, t.Z);
                 nodeMap[kv.Value] = data.Bones.Count;
-                data.Bones.Add(new BoneData { Name = bNode.Name ?? kv.Key, Parent = parent, Rotation = q });
+                data.Bones.Add(new BoneData { Name = bNode.Name ?? kv.Key, Parent = parent, Rotation = q, Translation = pos });
             }
         }
 
@@ -468,7 +489,9 @@ public class ModelImporter
             }
             var r = joint.LocalTransform.Rotation;
             var q = new System.Numerics.Quaternion(r.X, r.Y, r.Z, r.W);
-            bones.Add(new BoneData { Name = joint.Name ?? string.Empty, Parent = parent, Rotation = q });
+            var t = joint.LocalTransform.Translation;
+            var pos = new System.Numerics.Vector3(t.X, t.Y, t.Z);
+            bones.Add(new BoneData { Name = joint.Name ?? string.Empty, Parent = parent, Rotation = q, Translation = pos });
         }
 
         return bones;
