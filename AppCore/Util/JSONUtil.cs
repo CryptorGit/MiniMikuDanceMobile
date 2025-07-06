@@ -4,16 +4,23 @@ namespace MiniMikuDance.Util;
 
 public static class JSONUtil
 {
+    private static JsonSerializerOptions CreateOptions(bool writeIndented = false)
+    {
+        var opts = new JsonSerializerOptions
+        {
+            PropertyNameCaseInsensitive = true,
+            WriteIndented = writeIndented
+        };
+        opts.Converters.Add(new Vector3JsonConverter());
+        return opts;
+    }
     public static T LoadFromStream<T>(Stream stream) where T : new()
     {
         try
         {
             using var reader = new StreamReader(stream, leaveOpen: true);
             var json = reader.ReadToEnd();
-            var opts = new JsonSerializerOptions
-            {
-                PropertyNameCaseInsensitive = true
-            };
+            var opts = CreateOptions();
             return JsonSerializer.Deserialize<T>(json, opts) ?? new T();
         }
         catch
@@ -34,10 +41,7 @@ public static class JSONUtil
         try
         {
             var json = File.ReadAllText(path);
-            var opts = new JsonSerializerOptions
-            {
-                PropertyNameCaseInsensitive = true
-            };
+            var opts = CreateOptions();
             return JsonSerializer.Deserialize<T>(json, opts) ?? new T();
         }
         catch
@@ -51,10 +55,7 @@ public static class JSONUtil
         var dir = Path.GetDirectoryName(path);
         if (!string.IsNullOrEmpty(dir) && !Directory.Exists(dir))
             Directory.CreateDirectory(dir!);
-        var json = JsonSerializer.Serialize(data, new JsonSerializerOptions
-        {
-            WriteIndented = true
-        });
+        var json = JsonSerializer.Serialize(data, CreateOptions(writeIndented: true));
         File.WriteAllText(path, json);
     }
 }
