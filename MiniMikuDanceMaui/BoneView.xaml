@@ -6,8 +6,6 @@
     <VerticalStackLayout Spacing="10" Padding="10">
         <Picker x:Name="BonePicker" Title="Bone" SelectedIndexChanged="OnBoneSelected"/>
         <HorizontalStackLayout Spacing="10">
-            <Button Text="Undo" Clicked="OnUndoClicked" />
-            <Button Text="Redo" Clicked="OnRedoClicked" />
             <Button Text="Reset" Clicked="OnResetClicked" />
         </HorizontalStackLayout>
         <HorizontalStackLayout Spacing="10" VerticalOptions="Center">

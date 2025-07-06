@@ -15,8 +15,6 @@ public partial class BoneView : ContentView
     public event Action<float>? TranslationXChanged;
     public event Action<float>? TranslationYChanged;
     public event Action<float>? TranslationZChanged;
-    public event Action? UndoRequested;
-    public event Action? RedoRequested;
     public event Action? ResetRequested;
     public event Action<int>? RangeChanged;
 
@@ -73,10 +71,6 @@ public partial class BoneView : ContentView
 
     private void OnTZChanged(object? sender, ValueChangedEventArgs e)
         => TranslationZChanged?.Invoke((float)e.NewValue);
-
-    private void OnUndoClicked(object? sender, EventArgs e) => UndoRequested?.Invoke();
-
-    private void OnRedoClicked(object? sender, EventArgs e) => RedoRequested?.Invoke();
 
     private void OnResetClicked(object? sender, EventArgs e) => ResetRequested?.Invoke();
 

@@ -602,8 +602,6 @@ public partial class CameraPage : ContentPage
                         _selectedBoneIndex = idx0;
                     }
                 }
-                bv.UndoRequested += OnBoneUndo;
-                bv.RedoRequested += OnBoneRedo;
                 bv.ResetRequested += OnBoneReset;
                 bv.RangeChanged += OnBoneRangeChanged;
                 bv.BoneSelected += idx =>
@@ -1237,12 +1235,6 @@ public partial class CameraPage : ContentPage
         _poseHistoryIndex = _poseHistory.Count - 1;
     }
 
-    private void ApplyPoseState(PoseState state)
-    {
-        _renderer.SetAllBoneRotations(state.Rotations);
-        _renderer.SetAllBoneTranslations(state.Translations);
-    }
-
     private void UpdateBoneViewValues()
     {
         if (_bottomViews.TryGetValue("BONE", out var v) && v is BoneView bv)
@@ -1256,26 +1248,6 @@ public partial class CameraPage : ContentPage
             }
         }
         Viewer?.InvalidateSurface();
-    }
-
-    private void OnBoneUndo()
-    {
-        if (_poseHistoryIndex > 0)
-        {
-            _poseHistoryIndex--;
-            ApplyPoseState(_poseHistory[_poseHistoryIndex]);
-            UpdateBoneViewValues();
-        }
-    }
-
-    private void OnBoneRedo()
-    {
-        if (_poseHistoryIndex + 1 < _poseHistory.Count)
-        {
-            _poseHistoryIndex++;
-            ApplyPoseState(_poseHistory[_poseHistoryIndex]);
-            UpdateBoneViewValues();
-        }
     }
 
     private void OnBoneReset()
