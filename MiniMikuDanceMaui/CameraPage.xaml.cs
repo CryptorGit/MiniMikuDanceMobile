@@ -379,6 +379,10 @@ public partial class CameraPage : ContentPage
             PoseSelectMessage.IsVisible ? AbsoluteLayout.AutoSize : 0));
         AbsoluteLayout.SetLayoutFlags(PoseSelectMessage,
             AbsoluteLayoutFlags.XProportional | AbsoluteLayoutFlags.WidthProportional);
+        AbsoluteLayout.SetLayoutBounds(AdaptSelectMessage, new Rect(0.5, TopMenuHeight + 20, 0.8,
+            AdaptSelectMessage.IsVisible ? AbsoluteLayout.AutoSize : 0));
+        AbsoluteLayout.SetLayoutFlags(AdaptSelectMessage,
+            AbsoluteLayoutFlags.XProportional | AbsoluteLayoutFlags.WidthProportional);
 
         AbsoluteLayout.SetLayoutBounds(LoadingIndicator, new Rect(0.5, 0.5, 40, 40));
         AbsoluteLayout.SetLayoutFlags(LoadingIndicator, AbsoluteLayoutFlags.PositionProportional);
