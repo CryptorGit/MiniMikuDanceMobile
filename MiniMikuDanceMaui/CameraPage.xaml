@@ -55,6 +55,16 @@
                         <TapGestureRecognizer Tapped="OnPoseClicked" />
                     </Label.GestureRecognizers>
                 </Label>
+                <Label Text="BONE" TextColor="White">
+                    <Label.GestureRecognizers>
+                        <TapGestureRecognizer Tapped="OnBoneClicked" />
+                    </Label.GestureRecognizers>
+                </Label>
+                <Label Text="MTOON" TextColor="White">
+                    <Label.GestureRecognizers>
+                        <TapGestureRecognizer Tapped="OnMToonClicked" />
+                    </Label.GestureRecognizers>
+                </Label>
                 <Label Text="MOTION" TextColor="White">
                     <Label.GestureRecognizers>
                         <TapGestureRecognizer Tapped="OnMotionClicked" />
@@ -68,6 +78,11 @@
                 <Label Text="RECORD" TextColor="White">
                     <Label.GestureRecognizers>
                         <TapGestureRecognizer Tapped="OnRecordClicked" />
+                    </Label.GestureRecognizers>
+                </Label>
+                <Label Text="TERMINAL" TextColor="White">
+                    <Label.GestureRecognizers>
+                        <TapGestureRecognizer Tapped="OnTerminalClicked" />
                     </Label.GestureRecognizers>
                 </Label>
                 <Label Text="RESET CAMERA" TextColor="White">

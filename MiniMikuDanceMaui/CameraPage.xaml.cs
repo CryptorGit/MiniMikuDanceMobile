@@ -15,6 +15,8 @@ using Microsoft.Maui.Devices;
 using System.IO;
 using System.Linq;
 using MiniMikuDance.Import;
+using OpenTK.Mathematics;
+using MiniMikuDance.Util;
 
 namespace MiniMikuDanceMaui;
 
@@ -24,6 +26,9 @@ public partial class CameraPage : ContentPage
     private double _bottomWidthRatio = 1.0;
     private double _rotateSensitivity = 1.0;
     private double _panSensitivity = 1.0;
+    private double _shadeShift = -0.1;
+    private double _shadeToony = 0.9;
+    private double _rimIntensity = 0.5;
     private const double TopMenuHeight = 36;
     private bool _viewMenuOpen;
     private bool _settingMenuOpen;
@@ -38,6 +43,9 @@ public partial class CameraPage : ContentPage
     private readonly SimpleCubeRenderer _renderer = new();
     private bool _glInitialized;
     private ModelData? _pendingModel;
+    private ModelData? _currentModel;
+    private int _selectedBoneIndex = 0;
+    private readonly List<int> _humanoidBoneIndices = new();
     private readonly Dictionary<long, SKPoint> _touchPoints = new();
 
     public CameraPage()
@@ -47,6 +55,9 @@ public partial class CameraPage : ContentPage
         this.SizeChanged += OnSizeChanged;
         _renderer.RotateSensitivity = (float)_rotateSensitivity;
         _renderer.PanSensitivity = (float)_panSensitivity;
+        _renderer.ShadeShift = (float)_shadeShift;
+        _renderer.ShadeToony = (float)_shadeToony;
+        _renderer.RimIntensity = (float)_rimIntensity;
 
         if (Viewer is SKGLView glView)
         {
@@ -98,16 +109,19 @@ public partial class CameraPage : ContentPage
             ShowViewMenu();
         }
         UpdateLayout();
+        LogService.WriteLine($"View menu {(_viewMenuOpen ? "opened" : "closed")}");
     }
 
     private async void OnHomeClicked(object? sender, EventArgs e)
     {
         HideViewMenu();
+        LogService.WriteLine("Home clicked");
         await Navigation.PopToRootAsync();
     }
 
     private void OnSettingClicked(object? sender, EventArgs e)
     {
+        LogService.WriteLine("Setting clicked");
         OnSettingMenuTapped(sender, new TappedEventArgs(null));
     }
 
@@ -138,6 +152,7 @@ public partial class CameraPage : ContentPage
             ShowSettingMenu();
         }
         UpdateLayout();
+        LogService.WriteLine($"Setting menu {(_settingMenuOpen ? "opened" : "closed")}");
     }
 
     private void ShowFileMenu()
@@ -167,12 +182,14 @@ public partial class CameraPage : ContentPage
             ShowFileMenu();
         }
         UpdateLayout();
+        LogService.WriteLine($"File menu {(_fileMenuOpen ? "opened" : "closed")}");
     }
 
     private async void OnSelectClicked(object? sender, EventArgs e)
     {
         HideViewMenu();
         HideSettingMenu();
+        LogService.WriteLine("Select model clicked");
         await ShowModelSelector();
     }
 
@@ -180,6 +197,23 @@ public partial class CameraPage : ContentPage
     {
         LogService.WriteLine("POSE button clicked");
         ShowBottomFeature("POSE");
+        HideViewMenu();
+        HideSettingMenu();
+    }
+
+    private void OnBoneClicked(object? sender, EventArgs e)
+    {
+        LogService.WriteLine("BONE button clicked");
+        ShowBottomFeature("BONE");
+        HideViewMenu();
+        HideSettingMenu();
+    }
+
+
+    private void OnMToonClicked(object? sender, EventArgs e)
+    {
+        LogService.WriteLine("MTOON button clicked");
+        ShowBottomFeature("MTOON");
         HideViewMenu();
         HideSettingMenu();
     }
@@ -208,6 +242,14 @@ public partial class CameraPage : ContentPage
         HideSettingMenu();
     }
 
+    private void OnTerminalClicked(object? sender, EventArgs e)
+    {
+        LogService.WriteLine("TERMINAL button clicked");
+        ShowBottomFeature("TERMINAL");
+        HideViewMenu();
+        HideSettingMenu();
+    }
+
     private void OnCloseBottomTapped(object? sender, TappedEventArgs e)
     {
         if (_currentFeature != null)
@@ -219,6 +261,7 @@ public partial class CameraPage : ContentPage
             HideBottomRegion();
         }
         UpdateLayout();
+        LogService.WriteLine("Bottom region closed");
     }
 
     private void OnOverlayTapped(object? sender, TappedEventArgs e)
@@ -227,6 +270,7 @@ public partial class CameraPage : ContentPage
         HideSettingMenu();
         HideFileMenu();
         UpdateLayout();
+        LogService.WriteLine("Overlay tapped");
     }
 
     private void OnBottomRegionTapped(object? sender, TappedEventArgs e)
@@ -235,6 +279,7 @@ public partial class CameraPage : ContentPage
         HideSettingMenu();
         HideFileMenu();
         UpdateLayout();
+        LogService.WriteLine("Bottom region tapped");
     }
 
     private void OnResetCamClicked(object? sender, EventArgs e)
@@ -248,6 +293,7 @@ public partial class CameraPage : ContentPage
 
     private void OnExplorerClicked(object? sender, EventArgs e)
     {
+        LogService.WriteLine("Explorer clicked");
         ShowBottomFeature("Explorer");
         HideViewMenu();
         HideSettingMenu();
@@ -363,14 +409,30 @@ public partial class CameraPage : ContentPage
             _renderer.Initialize();
             if (_pendingModel != null)
             {
+                _renderer.ClearBoneRotations();
                 _renderer.LoadModel(_pendingModel);
+                _currentModel = _pendingModel;
+                _shadeShift = _pendingModel.ShadeShift;
+                _shadeToony = _pendingModel.ShadeToony;
+                _rimIntensity = _pendingModel.RimIntensity;
+                _renderer.ShadeShift = _pendingModel.ShadeShift;
+                _renderer.ShadeToony = _pendingModel.ShadeToony;
+                _renderer.RimIntensity = _pendingModel.RimIntensity;
                 _pendingModel = null;
             }
             _glInitialized = true;
         }
         else if (_pendingModel != null)
         {
+            _renderer.ClearBoneRotations();
             _renderer.LoadModel(_pendingModel);
+            _currentModel = _pendingModel;
+            _shadeShift = _pendingModel.ShadeShift;
+            _shadeToony = _pendingModel.ShadeToony;
+            _rimIntensity = _pendingModel.RimIntensity;
+            _renderer.ShadeShift = _pendingModel.ShadeShift;
+            _renderer.ShadeToony = _pendingModel.ShadeToony;
+            _renderer.RimIntensity = _pendingModel.RimIntensity;
             _pendingModel = null;
         }
 
@@ -456,6 +518,13 @@ public partial class CameraPage : ContentPage
                 var importer = new MiniMikuDance.Import.ModelImporter();
                 var data = importer.ImportModel(stream);
                 _renderer.LoadModel(data);
+                _currentModel = data;
+                _shadeShift = data.ShadeShift;
+                _shadeToony = data.ShadeToony;
+                _rimIntensity = data.RimIntensity;
+                _renderer.ShadeShift = data.ShadeShift;
+                _renderer.ShadeToony = data.ShadeToony;
+                _renderer.RimIntensity = data.RimIntensity;
                 Viewer?.InvalidateSurface();
             }
         }
@@ -484,6 +553,72 @@ public partial class CameraPage : ContentPage
                 ev.FileSelected += OnOpenExplorerFileSelected;
                 ev.LoadDirectory(modelsPath);
                 view = ev;
+            }
+            else if (name == "BONE")
+            {
+                var bv = new BoneView();
+                if (_currentModel != null)
+                {
+                    var list = new List<string>();
+                    _humanoidBoneIndices.Clear();
+                    foreach (var kv in _currentModel.HumanoidBoneList)
+                    {
+                        list.Add(kv.Name);
+                        _humanoidBoneIndices.Add(kv.Index);
+                    }
+                    bv.SetBones(list);
+                    if (_humanoidBoneIndices.Count > 0)
+                    {
+                        var idx0 = _humanoidBoneIndices[0];
+                        var euler = _currentModel.Bones[idx0].Rotation.ToEulerDegrees();
+                        bv.SetRotation(euler.ToOpenTK());
+                        _selectedBoneIndex = idx0;
+                    }
+                }
+                bv.BoneSelected += idx =>
+                {
+                    if (idx >= 0 && idx < _humanoidBoneIndices.Count)
+                        _selectedBoneIndex = _humanoidBoneIndices[idx];
+                    if (_currentModel != null && _selectedBoneIndex >= 0 && _selectedBoneIndex < _currentModel.Bones.Count)
+                    {
+                        var euler = _currentModel.Bones[_selectedBoneIndex].Rotation.ToEulerDegrees();
+                        bv.SetRotation(euler.ToOpenTK());
+                    }
+                };
+                bv.RotationXChanged += v => UpdateSelectedBoneRotation(bv);
+                bv.RotationYChanged += v => UpdateSelectedBoneRotation(bv);
+                bv.RotationZChanged += v => UpdateSelectedBoneRotation(bv);
+                view = bv;
+            }
+            else if (name == "TERMINAL")
+            {
+                var tv = new TerminalView();
+                view = tv;
+            }
+            else if (name == "MTOON")
+            {
+                var mv = new MToonView
+                {
+                    ShadeShift = _shadeShift,
+                    ShadeToony = _shadeToony,
+                    RimIntensity = _rimIntensity
+                };
+                mv.ShadeShiftChanged += v =>
+                {
+                    _shadeShift = v;
+                    _renderer.ShadeShift = (float)_shadeShift;
+                };
+                mv.ShadeToonyChanged += v =>
+                {
+                    _shadeToony = v;
+                    _renderer.ShadeToony = (float)_shadeToony;
+                };
+                mv.RimIntensityChanged += v =>
+                {
+                    _rimIntensity = v;
+                    _renderer.RimIntensity = (float)_rimIntensity;
+                };
+                view = mv;
             }
             else if (name == "SETTING")
             {
@@ -550,6 +685,35 @@ public partial class CameraPage : ContentPage
             sv.PanSensitivity = _panSensitivity;
             sv.CameraLocked = _renderer.CameraLocked;
         }
+        else if (name == "BONE" && _bottomViews[name] is BoneView bv)
+        {
+            if (_currentModel != null)
+            {
+                var list = new List<string>();
+                _humanoidBoneIndices.Clear();
+                foreach (var kv in _currentModel.HumanoidBoneList)
+                {
+                    list.Add(kv.Name);
+                    _humanoidBoneIndices.Add(kv.Index);
+                }
+                bv.SetBones(list);
+                if (_selectedBoneIndex >= 0 && _selectedBoneIndex < _currentModel.Bones.Count)
+                {
+                    var euler = _currentModel.Bones[_selectedBoneIndex].Rotation.ToEulerDegrees();
+                    bv.SetRotation(euler.ToOpenTK());
+                }
+            }
+        }
+        else if (name == "MTOON" && _bottomViews[name] is MToonView mv)
+        {
+            mv.ShadeShift = _shadeShift;
+            mv.ShadeToony = _shadeToony;
+            mv.RimIntensity = _rimIntensity;
+        }
+        else if (name == "TERMINAL" && _bottomViews[name] is TerminalView)
+        {
+            // nothing to update
+        }
         SwitchBottomFeature(name);
         BottomRegion.IsVisible = true;
         UpdateLayout();
@@ -605,12 +769,14 @@ public partial class CameraPage : ContentPage
 
     private async void OnAddToLibraryClicked(object? sender, EventArgs e)
     {
+        LogService.WriteLine("Add to library clicked");
         HideFileMenu();
         await AddToLibraryAsync();
     }
 
     private async Task AddToLibraryAsync()
     {
+        LogService.WriteLine("Add to library start");
         try
         {
             var result = await FilePicker.Default.PickAsync(new PickOptions
@@ -632,16 +798,20 @@ public partial class CameraPage : ContentPage
             await using FileStream dst = File.Create(dstPath);
             await src.CopyToAsync(dst);
 
+            LogService.WriteLine($"Added to library: {Path.GetFileName(dstPath)}");
+
             await DisplayAlert("Copied", $"{Path.GetFileName(dstPath)} をライブラリに追加しました", "OK");
         }
         catch (Exception ex)
         {
+            LogService.WriteLine($"Add to library failed: {ex.Message}");
             await DisplayAlert("Error", ex.Message, "OK");
         }
     }
 
     private void OnOpenInViewerClicked(object? sender, EventArgs e)
     {
+        LogService.WriteLine("Open in viewer clicked");
         HideFileMenu();
         HideViewMenu();
         HideSettingMenu();
@@ -650,6 +820,7 @@ public partial class CameraPage : ContentPage
 
     private void ShowOpenExplorer()
     {
+        LogService.WriteLine("Show open explorer");
         ShowBottomFeature("Open");
         FileSelectMessage.IsVisible = true;
         SelectedFilePath.Text = string.Empty;
@@ -663,12 +834,14 @@ public partial class CameraPage : ContentPage
         {
             return;
         }
+        LogService.WriteLine($"File selected: {Path.GetFileName(path)}");
         _selectedPath = path;
         SelectedFilePath.Text = path;
     }
 
     private async void OnImportClicked(object? sender, EventArgs e)
     {
+        LogService.WriteLine("Import clicked");
         if (string.IsNullOrEmpty(_selectedPath))
         {
             await DisplayAlert("Error", "ファイルが選択されていません", "OK");
@@ -686,12 +859,30 @@ public partial class CameraPage : ContentPage
             var importer = new ModelImporter();
             var data = await Task.Run(() => importer.ImportModel(_selectedPath));
             _pendingModel = data;
+            LogService.WriteLine($"Imported VRM: {Path.GetFileName(_selectedPath!)}");
+            LogService.WriteLine($"Spec: {data.Info.SpecVersion}");
+            LogService.WriteLine($"Title: {data.Info.Title}");
+            LogService.WriteLine($"Author: {data.Info.Author}");
+            LogService.WriteLine($"License: {data.Info.License}");
+            LogService.WriteLine($"Nodes: {data.Info.NodeCount}");
+            LogService.WriteLine($"Meshes: {data.Info.MeshCount}");
+            LogService.WriteLine($"Skins: {data.Info.SkinCount}");
+            LogService.WriteLine($"Vertices: {data.Info.VertexCount}");
+            LogService.WriteLine($"Triangles: {data.Info.TriangleCount}");
+            LogService.WriteLine($"Materials: {data.Info.MaterialCount}");
+            LogService.WriteLine($"Textures: {data.Info.TextureCount}");
+            LogService.WriteLine($"Humanoid bones: {data.Info.HumanoidBoneCount} / 55");
+            foreach (var bone in data.Bones)
+            {
+                LogService.WriteLine($"Bone: {bone.Name}");
+            }
             _renderer.ResetCamera();
             _glInitialized = false;
         }
         catch (Exception ex)
         {
             await DisplayAlert("Error", ex.Message, "OK");
+            LogService.WriteLine($"Import failed: {ex.Message}");
         }
         finally
         {
@@ -705,9 +896,21 @@ public partial class CameraPage : ContentPage
 
     private void OnCancelImportClicked(object? sender, EventArgs e)
     {
+        LogService.WriteLine("Import canceled");
         _selectedPath = null;
         FileSelectMessage.IsVisible = false;
         SelectedFilePath.Text = string.Empty;
         UpdateLayout();
+    }
+
+    private void UpdateSelectedBoneRotation(BoneView bv)
+    {
+        if (_currentModel == null) return;
+        if (_selectedBoneIndex < 0 || _selectedBoneIndex >= _currentModel.Bones.Count)
+            return;
+
+        var eulerTk = new OpenTK.Mathematics.Vector3(bv.RotationX, bv.RotationY, bv.RotationZ);
+        _renderer.SetBoneRotation(_selectedBoneIndex, eulerTk);
+        Viewer?.InvalidateSurface();
     }
 }

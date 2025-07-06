@@ -7,6 +7,9 @@ using System.Collections.Generic;
 using SixLabors.ImageSharp;
 using SixLabors.ImageSharp.PixelFormats;
 using Vector3D = Assimp.Vector3D;
+using SharpGLTF.Schema2;
+using SNode = SharpGLTF.Schema2.Node;
+using ViewerApp;
 
 namespace MiniMikuDance.Import;
 
@@ -15,6 +18,13 @@ public class ModelData
     public List<SubMeshData> SubMeshes { get; } = new();
     public Assimp.Mesh Mesh { get; set; } = null!;
     public System.Numerics.Matrix4x4 Transform { get; set; } = System.Numerics.Matrix4x4.Identity;
+    public List<BoneData> Bones { get; } = new();
+    public Dictionary<string, int> HumanoidBones { get; } = new();
+    public List<(string Name, int Index)> HumanoidBoneList { get; } = new();
+    public float ShadeShift { get; set; } = -0.1f;
+    public float ShadeToony { get; set; } = 0.9f;
+    public float RimIntensity { get; set; } = 0.5f;
+    public VrmInfo Info { get; set; } = new();
 }
 
 public class ModelImporter
@@ -28,9 +38,14 @@ public class ModelImporter
         stream.CopyTo(ms);
         var bytes = ms.ToArray();
         ms.Position = 0;
-        var textureMap = ReadMainTextureIndices(bytes);
+        var textureMap = VrmUtil.ReadMainTextureIndices(bytes);
+        var humanMap = ReadHumanoidMap(bytes);
+        var mtoon = ReadMToonParameters(bytes);
+        var info = ReadVrmInfo(bytes);
         var model = SharpGLTF.Schema2.ModelRoot.ReadGLB(ms);
-        return ImportVrm(model, textureMap);
+        var data = ImportVrm(model, textureMap, humanMap, mtoon);
+        data.Info = info;
+        return data;
     }
 
     public ModelData ImportModel(string path)
@@ -59,26 +74,44 @@ public class ModelImporter
         Debug.WriteLine($"[ModelImporter] Importing VRM: {path}");
         var bytes = File.ReadAllBytes(path);
         using var ms = new MemoryStream(bytes);
-        var textureMap = ReadMainTextureIndices(bytes);
+        var info = ReadVrmInfo(bytes);
+        var textureMap = VrmUtil.ReadMainTextureIndices(bytes);
+        var humanMap = ReadHumanoidMap(bytes);
+        var mtoon = ReadMToonParameters(bytes);
         var model = SharpGLTF.Schema2.ModelRoot.ReadGLB(ms);
-        return ImportVrm(model, textureMap);
+        var data = ImportVrm(model, textureMap, humanMap, mtoon);
+        data.Info = info;
+        return data;
     }
 
-    private ModelData ImportVrm(SharpGLTF.Schema2.ModelRoot model, Dictionary<int, int> texMap)
+    private ModelData ImportVrm(SharpGLTF.Schema2.ModelRoot model, Dictionary<int, int> texMap, Dictionary<string, int> humanMap, (float shadeShift, float shadeToony, float rimIntensity) mtoon)
     {
         var combined = new Assimp.Mesh("mesh", Assimp.PrimitiveType.Triangle);
         int combinedIndexOffset = 0;
         var data = new ModelData();
 
-        foreach (var logical in model.LogicalMeshes)
+        foreach (var node in model.LogicalNodes)
         {
-            foreach (var prim in logical.Primitives)
+            if (node.Mesh == null) continue;
+            var skin = node.Skin;
+            int[] jointMap = Array.Empty<int>();
+            if (skin != null)
+            {
+                jointMap = new int[skin.JointsCount];
+                for (int j = 0; j < jointMap.Length; j++) jointMap[j] = skin.GetJoint(j).Joint.LogicalIndex;
+            }
+
+            foreach (var prim in node.Mesh.Primitives)
             {
                 var sub = new Assimp.Mesh("mesh", Assimp.PrimitiveType.Triangle);
                 var subUvs = new List<System.Numerics.Vector2>();
+                var subJoints = new List<System.Numerics.Vector4>();
+                var subWeights = new List<System.Numerics.Vector4>();
                 var positions = prim.GetVertexAccessor("POSITION").AsVector3Array();
                 var normals = prim.GetVertexAccessor("NORMAL")?.AsVector3Array();
                 var uvs = prim.GetVertexAccessor("TEXCOORD_0")?.AsVector2Array();
+                var joints = prim.GetVertexAccessor("JOINTS_0")?.AsVector4Array();
+                var weights = prim.GetVertexAccessor("WEIGHTS_0")?.AsVector4Array();
                 var channel = prim.Material?.FindChannel("BaseColor");
                 int matIndex = prim.Material?.LogicalIndex ?? -1;
 
@@ -114,6 +147,34 @@ public class ModelImporter
                         combined.TextureCoordinateChannels[0].Add(new Vector3D(0, 0, 0));
                         subUvs.Add(System.Numerics.Vector2.Zero);
                     }
+
+                    if (joints != null && i < joints.Count)
+                    {
+                        var j = joints[i];
+                        System.Numerics.Vector4 idx = System.Numerics.Vector4.Zero;
+                        if (jointMap.Length > 0)
+                        {
+                            idx.X = j.X < jointMap.Length ? jointMap[(int)j.X] : 0;
+                            idx.Y = j.Y < jointMap.Length ? jointMap[(int)j.Y] : 0;
+                            idx.Z = j.Z < jointMap.Length ? jointMap[(int)j.Z] : 0;
+                            idx.W = j.W < jointMap.Length ? jointMap[(int)j.W] : 0;
+                        }
+                        subJoints.Add(idx);
+                    }
+                    else
+                    {
+                        subJoints.Add(System.Numerics.Vector4.Zero);
+                    }
+                    if (weights != null && i < weights.Count)
+                    {
+                        var w = weights[i];
+                        subWeights.Add(new System.Numerics.Vector4(w.X, w.Y, w.Z, w.W));
+                    }
+                    else
+                    {
+                        subWeights.Add(System.Numerics.Vector4.Zero);
+                    }
+
                 }
 
                 var indices = prim.IndexAccessor.AsIndicesArray();
@@ -147,6 +208,8 @@ public class ModelImporter
                     ColorFactor = colorFactor
                 };
                 smd.TexCoords.AddRange(subUvs);
+                smd.JointIndices.AddRange(subJoints);
+                smd.JointWeights.AddRange(subWeights);
 
                 if (matIndex >= 0 && texMap.TryGetValue(matIndex, out var texIdx))
                 {
@@ -154,7 +217,7 @@ public class ModelImporter
                     var imgSeg = tex.PrimaryImage?.GetImageContent();
                     if (imgSeg.HasValue)
                     {
-                        using var image = Image.Load<Rgba32>(imgSeg.Value.ToArray());
+                        using var image = SixLabors.ImageSharp.Image.Load<Rgba32>(imgSeg.Value.ToArray());
                         smd.TextureWidth = image.Width;
                         smd.TextureHeight = image.Height;
                         smd.TextureBytes = new byte[image.Width * image.Height * 4];
@@ -167,114 +230,101 @@ public class ModelImporter
         }
 
         var transform = System.Numerics.Matrix4x4.Identity;
-        var node = model.DefaultScene?.VisualChildren.FirstOrDefault();
-        if (node != null)
+        var rootNode = model.DefaultScene?.VisualChildren.FirstOrDefault();
+        if (rootNode != null)
         {
-            transform = node.WorldMatrix;
+            transform = rootNode.WorldMatrix;
+            var flip = System.Numerics.Matrix4x4.CreateScale(1f, 1f, -1f);
+            transform = flip * transform * flip;
         }
-
-        VerifyMeshWinding(combined);
 
         Debug.WriteLine($"[ModelImporter] VRM loaded: {combined.VertexCount} vertices");
 
         data.Mesh = combined;
         data.Transform = transform;
+
+        // Humanoid ボーン情報を読み込み
+        data.Bones.Clear();
+        data.HumanoidBones.Clear();
+        data.HumanoidBoneList.Clear();
+        data.Bones.AddRange(ReadBones(model));
+        foreach (var skin in model.LogicalSkins)
+        {
+            var acc = skin.GetInverseBindMatricesAccessor();
+            if (acc == null) continue;
+            var invs = acc.AsMatrix4x4Array();
+
+            int jointCount = skin.JointsCount;
+            for (int i = 0; i < jointCount && i < invs.Count; i++)
+            {
+                var jnode = skin.GetJoint(i).Joint;
+                int bi = jnode.LogicalIndex;
+                if (bi >= 0 && bi < data.Bones.Count)
+                {
+                    data.Bones[bi].InverseBindMatrix = invs[i];
+                    System.Numerics.Matrix4x4.Invert(invs[i], out var bind);
+                    data.Bones[bi].BindMatrix = bind;
+                }
+            }
+        }
+        foreach (var kv in humanMap)
+        {
+            data.HumanoidBones[kv.Key] = kv.Value;
+            data.HumanoidBoneList.Add((kv.Key, kv.Value));
+        }
+
+        data.ShadeShift = mtoon.shadeShift;
+        data.ShadeToony = mtoon.shadeToony;
+        data.RimIntensity = mtoon.rimIntensity;
         return data;
     }
 
-    private static void VerifyMeshWinding(Assimp.Mesh mesh)
-    {
-        if (mesh.FaceCount == 0) return;
-        var face = mesh.Faces[0];
-        if (face.IndexCount < 3) return;
-        var a = ToVector3(mesh.Vertices[face.Indices[0]]);
-        var b = ToVector3(mesh.Vertices[face.Indices[1]]);
-        var c = ToVector3(mesh.Vertices[face.Indices[2]]);
-        var normal = face.Indices[0] < mesh.Normals.Count
-            ? ToVector3(mesh.Normals[face.Indices[0]])
-            : System.Numerics.Vector3.UnitZ;
-        var cross = System.Numerics.Vector3.Cross(b - a, c - a);
-        float dot = System.Numerics.Vector3.Dot(cross, normal);
-        Debug.WriteLine($"[ModelImporter] First face winding {(dot >= 0 ? "CCW" : "CW")}");
-    }
 
-    private static System.Numerics.Vector3 ToVector3(Vector3D v)
-        => new System.Numerics.Vector3(v.X, v.Y, v.Z);
 
-    private static Dictionary<int, int> ReadMainTextureIndices(byte[] glb)
+
+    private static Dictionary<string, int> ReadHumanoidMap(byte[] glb)
     {
-        var map = new Dictionary<int, int>();
+        var map = new Dictionary<string, int>();
         try
         {
             using var ms = new MemoryStream(glb);
             using var br = new BinaryReader(ms);
-            uint magic = br.ReadUInt32();
-            if (magic != 0x46546C67) return map; // 'glTF'
+            if (br.ReadUInt32() != 0x46546C67) return map; // magic 'glTF'
             br.ReadUInt32(); // version
             br.ReadUInt32(); // length
             uint jsonLen = br.ReadUInt32();
-            uint chunkType = br.ReadUInt32();
-            if (chunkType != 0x4E4F534A) return map; // JSON
-            byte[] jsonBytes = br.ReadBytes((int)jsonLen);
-            string json = System.Text.Encoding.UTF8.GetString(jsonBytes);
-            var doc = System.Text.Json.JsonDocument.Parse(json);
+            if (br.ReadUInt32() != 0x4E4F534A) return map; // JSON
+            var jsonBytes = br.ReadBytes((int)jsonLen);
+            var doc = System.Text.Json.JsonDocument.Parse(jsonBytes);
             var root = doc.RootElement;
-            if (root.TryGetProperty("extensions", out var exts) &&
-                exts.TryGetProperty("VRM", out var vrmExt) &&
-                vrmExt.TryGetProperty("materialProperties", out var matProps) &&
-                matProps.ValueKind == System.Text.Json.JsonValueKind.Array &&
-                root.TryGetProperty("materials", out var materials))
+            if (root.TryGetProperty("extensions", out var exts))
             {
-                foreach (var m in matProps.EnumerateArray())
+                if (exts.TryGetProperty("VRM", out var vrm) &&
+                    vrm.TryGetProperty("humanoid", out var humanoid) &&
+                    humanoid.TryGetProperty("humanBones", out var bones) &&
+                    bones.ValueKind == System.Text.Json.JsonValueKind.Array)
                 {
-                    if (!m.TryGetProperty("name", out var nameEl)) continue;
-                    string? name = nameEl.GetString();
-                    int matIndex = -1;
-                    for (int i = 0; i < materials.GetArrayLength(); i++)
+                    foreach (var b in bones.EnumerateArray())
                     {
-                        var mat = materials[i];
-                        if (mat.TryGetProperty("name", out var nm) && nm.GetString() == name)
+                        if (b.TryGetProperty("bone", out var boneEl) &&
+                            b.TryGetProperty("node", out var nodeEl))
                         {
-                            matIndex = i;
-                            break;
+                            var bn = boneEl.GetString();
+                            if (bn != null) map[bn] = nodeEl.GetInt32();
                         }
                     }
-                    if (matIndex >= 0 &&
-                        m.TryGetProperty("textureProperties", out var texProps) &&
-                        texProps.TryGetProperty("_MainTex", out var mainTexEl))
-                    {
-                        map[matIndex] = mainTexEl.GetInt32();
-                    }
                 }
-            }
-
-            if (root.TryGetProperty("materials", out var mats1))
-            {
-                for (int i = 0; i < mats1.GetArrayLength(); i++)
+                if (exts.TryGetProperty("VRMC_humanoid", out var h1) &&
+                    h1.TryGetProperty("humanBones", out var hb) &&
+                    hb.ValueKind == System.Text.Json.JsonValueKind.Object)
                 {
-                    var mat = mats1[i];
-                    if (mat.TryGetProperty("extensions", out var mext) &&
-                        mext.TryGetProperty("VRMC_materials_mtoon", out var mtoon) &&
-                        mtoon.TryGetProperty("textures", out var texs) &&
-                        texs.TryGetProperty("mainTexture", out var main) &&
-                        main.TryGetProperty("index", out var idxEl))
+                    foreach (var prop in hb.EnumerateObject())
                     {
-                        map[i] = idxEl.GetInt32();
-                    }
-                }
-            }
-
-            if (root.TryGetProperty("materials", out var mats))
-            {
-                for (int i = 0; i < mats.GetArrayLength(); i++)
-                {
-                    if (map.ContainsKey(i)) continue;
-                    var mat = mats[i];
-                    if (mat.TryGetProperty("pbrMetallicRoughness", out var pbr) &&
-                        pbr.TryGetProperty("baseColorTexture", out var tex) &&
-                        tex.TryGetProperty("index", out var idxEl))
-                    {
-                        map[i] = idxEl.GetInt32();
+                        var obj = prop.Value;
+                        if (obj.TryGetProperty("node", out var nodeEl))
+                        {
+                            map[prop.Name] = nodeEl.GetInt32();
+                        }
                     }
                 }
             }
@@ -284,4 +334,171 @@ public class ModelImporter
         }
         return map;
     }
+
+    private static List<BoneData> ReadBones(SharpGLTF.Schema2.ModelRoot model)
+    {
+        var list = new List<BoneData>();
+        for (int i = 0; i < model.LogicalNodes.Count; i++)
+        {
+            var node = model.LogicalNodes[i];
+            var bd = new BoneData
+            {
+                Name = node.Name ?? $"node{i}",
+                Parent = node.VisualParent?.LogicalIndex ?? -1,
+                Rotation = node.LocalTransform.Rotation,
+                Translation = node.LocalTransform.Translation,
+                BindMatrix = node.WorldMatrix,
+            };
+            System.Numerics.Matrix4x4.Invert(bd.BindMatrix, out var inv);
+            bd.InverseBindMatrix = inv;
+            list.Add(bd);
+        }
+        return list;
+    }
+
+    private static (float shadeShift, float shadeToony, float rimIntensity) ReadMToonParameters(byte[] glb)
+    {
+        float shadeShift = -0.1f;
+        float shadeToony = 0.9f;
+        float rimIntensity = 0.5f;
+        try
+        {
+            using var ms = new MemoryStream(glb);
+            using var br = new BinaryReader(ms);
+            if (br.ReadUInt32() != 0x46546C67) return (shadeShift, shadeToony, rimIntensity);
+            br.ReadUInt32();
+            br.ReadUInt32();
+            uint jsonLen = br.ReadUInt32();
+            if (br.ReadUInt32() != 0x4E4F534A) return (shadeShift, shadeToony, rimIntensity);
+            var jsonBytes = br.ReadBytes((int)jsonLen);
+            var doc = System.Text.Json.JsonDocument.Parse(jsonBytes);
+            var root = doc.RootElement;
+            if (root.TryGetProperty("extensions", out var exts) &&
+                exts.TryGetProperty("VRM", out var vrmExt) &&
+                vrmExt.TryGetProperty("materialProperties", out var matProps) &&
+                matProps.ValueKind == System.Text.Json.JsonValueKind.Array)
+            {
+                foreach (var m in matProps.EnumerateArray())
+                {
+                    if (m.TryGetProperty("floatProperties", out var floats))
+                    {
+                        if (floats.TryGetProperty("_ShadeShift", out var ss)) shadeShift = (float)ss.GetDouble();
+                        if (floats.TryGetProperty("_ShadeToony", out var st)) shadeToony = (float)st.GetDouble();
+                        if (floats.TryGetProperty("_RimIntensity", out var ri)) rimIntensity = (float)ri.GetDouble();
+                        break;
+                    }
+                }
+            }
+
+            if (root.TryGetProperty("materials", out var mats))
+            {
+                foreach (var mat in mats.EnumerateArray())
+                {
+                    if (mat.TryGetProperty("extensions", out var mext) &&
+                        mext.TryGetProperty("VRMC_materials_mtoon", out var mtoon))
+                    {
+                        if (mtoon.TryGetProperty("shadingShiftFactor", out var ss)) shadeShift = (float)ss.GetDouble();
+                        if (mtoon.TryGetProperty("shadingToonyFactor", out var st)) shadeToony = (float)st.GetDouble();
+                        if (mtoon.TryGetProperty("rimIntensityFactor", out var ri)) rimIntensity = (float)ri.GetDouble();
+                        break;
+                    }
+                }
+            }
+        }
+        catch
+        {
+        }
+        return (shadeShift, shadeToony, rimIntensity);
+    }
+
+    private static VrmInfo ReadVrmInfo(byte[] glb)
+    {
+        var info = new VrmInfo();
+        try
+        {
+            using var ms = new MemoryStream(glb);
+            using var br = new BinaryReader(ms);
+            if (br.ReadUInt32() != 0x46546C67) return info; // magic 'glTF'
+            br.ReadUInt32(); // version
+            br.ReadUInt32(); // length
+            uint jsonLen = br.ReadUInt32();
+            if (br.ReadUInt32() != 0x4E4F534A) return info; // JSON
+            var jsonBytes = br.ReadBytes((int)jsonLen);
+            var doc = System.Text.Json.JsonDocument.Parse(jsonBytes);
+            var root = doc.RootElement;
+
+            info.SpecVersion = "glTF";
+            if (root.TryGetProperty("extensionsUsed", out var used) &&
+                used.ValueKind == System.Text.Json.JsonValueKind.Array &&
+                used.EnumerateArray().Any(e => e.GetString() == "VRM"))
+            {
+                info.SpecVersion = "VRM 0.x";
+            }
+            if (root.TryGetProperty("extensions", out var exts) &&
+                exts.TryGetProperty("VRMC_vrm", out _))
+            {
+                info.SpecVersion = "VRM 1.0";
+            }
+
+            System.Text.Json.JsonElement meta;
+            if (root.TryGetProperty("extensions", out var exts2))
+            {
+                if (exts2.TryGetProperty("VRM", out var vrm) &&
+                    vrm.TryGetProperty("meta", out var m))
+                {
+                    meta = m;
+                }
+                else if (exts2.TryGetProperty("VRMC_vrm", out var vrm1) &&
+                         vrm1.TryGetProperty("meta", out var m1))
+                {
+                    meta = m1;
+                }
+                else
+                {
+                    meta = default;
+                }
+            }
+            else
+            {
+                meta = default;
+            }
+
+            if (meta.ValueKind == System.Text.Json.JsonValueKind.Object)
+            {
+                if (meta.TryGetProperty("title", out var t)) info.Title = t.GetString() ?? string.Empty;
+                if (meta.TryGetProperty("author", out var a)) info.Author = a.GetString() ?? string.Empty;
+                if (meta.TryGetProperty("commercialUssageName", out var cu)) info.License = cu.GetString() ?? string.Empty;
+                else if (meta.TryGetProperty("licenseName", out var ln)) info.License = ln.GetString() ?? string.Empty;
+            }
+
+            if (root.TryGetProperty("nodes", out var nodes)) info.NodeCount = nodes.GetArrayLength();
+            if (root.TryGetProperty("meshes", out var meshes)) info.MeshCount = meshes.GetArrayLength();
+            if (root.TryGetProperty("skins", out var skins)) info.SkinCount = skins.GetArrayLength();
+            if (root.TryGetProperty("materials", out var mats)) info.MaterialCount = mats.GetArrayLength();
+            if (root.TryGetProperty("images", out var imgs)) info.TextureCount = imgs.GetArrayLength();
+
+            var model = SharpGLTF.Schema2.ModelRoot.ReadGLB(new MemoryStream(glb));
+            int vtx = 0;
+            int tri = 0;
+            foreach (var mesh in model.LogicalMeshes)
+            {
+                foreach (var prim in mesh.Primitives)
+                {
+                    vtx += prim.GetVertexAccessor("POSITION").Count;
+                    tri += prim.IndexAccessor.Count / 3;
+                }
+            }
+            info.VertexCount = vtx;
+            info.TriangleCount = tri;
+
+            var humanMap = ReadHumanoidMap(glb);
+            info.HumanoidBoneCount = humanMap.Count;
+        }
+        catch
+        {
+        }
+
+        return info;
+    }
+
 }

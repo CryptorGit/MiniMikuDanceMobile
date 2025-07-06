@@ -26,6 +26,7 @@ public partial class ExplorerView : ContentView
     {
         if (!Directory.Exists(path)) return;
         _currentPath = path;
+        LogService.WriteLine($"Load directory: {path}");
         UpdatePathDisplay();
         
         IEnumerable<string> entries = Directory.EnumerateFileSystemEntries(path);
@@ -73,6 +74,7 @@ public partial class ExplorerView : ContentView
 
     private void OnUpClicked(object? sender, EventArgs e)
     {
+        LogService.WriteLine("Up clicked");
         if (string.IsNullOrEmpty(_currentPath)) return;
         if (Path.GetFullPath(_currentPath).TrimEnd(Path.DirectorySeparatorChar)
             .Equals(Path.GetFullPath(_rootPath).TrimEnd(Path.DirectorySeparatorChar), StringComparison.OrdinalIgnoreCase))
@@ -94,10 +96,12 @@ public partial class ExplorerView : ContentView
         {
             if (item.IsDirectory)
             {
+                LogService.WriteLine($"Enter directory: {item.Path}");
                 LoadDirectory(item.Path);
             }
             else
             {
+                LogService.WriteLine($"File chosen: {Path.GetFileName(item.Path)}");
                 FileSelected?.Invoke(this, item.Path);
             }
             FileList.SelectedItem = null;

@@ -136,20 +136,29 @@ public class Viewer : IDisposable
             if (sm.TextureBytes != null)
             {
                 rm.Texture = GL.GenTexture();
-                GL.BindTexture((All)TextureTarget.Texture2D, rm.Texture);
+                GL.BindTexture(TextureTarget.Texture2D, rm.Texture);
                 var handle = System.Runtime.InteropServices.GCHandle.Alloc(sm.TextureBytes, System.Runtime.InteropServices.GCHandleType.Pinned);
                 try
                 {
-                    GL.TexImage2D((All)TextureTarget.Texture2D, 0, (All)PixelInternalFormat.Rgba,
-                        sm.TextureWidth, sm.TextureHeight, 0, (All)PixelFormat.Rgba,
-                        (All)PixelType.UnsignedByte, handle.AddrOfPinnedObject());
+#pragma warning disable CS0618
+                    GL.TexImage2D(
+                        (All)TextureTarget.Texture2D,
+                        0,
+                        (All)PixelInternalFormat.Rgba,
+                        sm.TextureWidth,
+                        sm.TextureHeight,
+                        0,
+                        (All)PixelFormat.Rgba,
+                        (All)PixelType.UnsignedByte,
+                        handle.AddrOfPinnedObject());
+#pragma warning restore CS0618
                 }
                 finally
                 {
                     handle.Free();
                 }
-                GL.TexParameter((All)TextureTarget.Texture2D, (All)TextureParameterName.TextureMinFilter, (int)TextureMinFilter.Linear);
-                GL.TexParameter((All)TextureTarget.Texture2D, (All)TextureParameterName.TextureMagFilter, (int)TextureMagFilter.Linear);
+                GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureMinFilter, (int)TextureMinFilter.Linear);
+                GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureMagFilter, (int)TextureMagFilter.Linear);
                 rm.HasTexture = true;
             }
 
@@ -196,7 +205,7 @@ public class Viewer : IDisposable
             if (rm.HasTexture)
             {
                 GL.ActiveTexture(TextureUnit.Texture0);
-                GL.BindTexture((All)TextureTarget.Texture2D, rm.Texture);
+                GL.BindTexture(TextureTarget.Texture2D, rm.Texture);
                 GL.Uniform1(_texLoc, 0);
                 GL.Uniform1(_useTexLoc, 1);
             }
@@ -209,7 +218,7 @@ public class Viewer : IDisposable
             GL.BindVertexArray(0);
             if (rm.HasTexture)
             {
-                GL.BindTexture((All)TextureTarget.Texture2D, 0);
+                GL.BindTexture(TextureTarget.Texture2D, 0);
             }
         }
         _window.SwapBuffers();
