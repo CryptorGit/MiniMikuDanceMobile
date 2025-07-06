@@ -109,16 +109,19 @@ public partial class CameraPage : ContentPage
             ShowViewMenu();
         }
         UpdateLayout();
+        LogService.WriteLine($"View menu {(_viewMenuOpen ? "opened" : "closed")}");
     }
 
     private async void OnHomeClicked(object? sender, EventArgs e)
     {
         HideViewMenu();
+        LogService.WriteLine("Home clicked");
         await Navigation.PopToRootAsync();
     }
 
     private void OnSettingClicked(object? sender, EventArgs e)
     {
+        LogService.WriteLine("Setting clicked");
         OnSettingMenuTapped(sender, new TappedEventArgs(null));
     }
 
@@ -149,6 +152,7 @@ public partial class CameraPage : ContentPage
             ShowSettingMenu();
         }
         UpdateLayout();
+        LogService.WriteLine($"Setting menu {(_settingMenuOpen ? "opened" : "closed")}");
     }
 
     private void ShowFileMenu()
@@ -178,12 +182,14 @@ public partial class CameraPage : ContentPage
             ShowFileMenu();
         }
         UpdateLayout();
+        LogService.WriteLine($"File menu {(_fileMenuOpen ? "opened" : "closed")}");
     }
 
     private async void OnSelectClicked(object? sender, EventArgs e)
     {
         HideViewMenu();
         HideSettingMenu();
+        LogService.WriteLine("Select model clicked");
         await ShowModelSelector();
     }
 
@@ -255,6 +261,7 @@ public partial class CameraPage : ContentPage
             HideBottomRegion();
         }
         UpdateLayout();
+        LogService.WriteLine("Bottom region closed");
     }
 
     private void OnOverlayTapped(object? sender, TappedEventArgs e)
@@ -263,6 +270,7 @@ public partial class CameraPage : ContentPage
         HideSettingMenu();
         HideFileMenu();
         UpdateLayout();
+        LogService.WriteLine("Overlay tapped");
     }
 
     private void OnBottomRegionTapped(object? sender, TappedEventArgs e)
@@ -271,6 +279,7 @@ public partial class CameraPage : ContentPage
         HideSettingMenu();
         HideFileMenu();
         UpdateLayout();
+        LogService.WriteLine("Bottom region tapped");
     }
 
     private void OnResetCamClicked(object? sender, EventArgs e)
@@ -284,6 +293,7 @@ public partial class CameraPage : ContentPage
 
     private void OnExplorerClicked(object? sender, EventArgs e)
     {
+        LogService.WriteLine("Explorer clicked");
         ShowBottomFeature("Explorer");
         HideViewMenu();
         HideSettingMenu();
@@ -757,12 +767,14 @@ public partial class CameraPage : ContentPage
 
     private async void OnAddToLibraryClicked(object? sender, EventArgs e)
     {
+        LogService.WriteLine("Add to library clicked");
         HideFileMenu();
         await AddToLibraryAsync();
     }
 
     private async Task AddToLibraryAsync()
     {
+        LogService.WriteLine("Add to library start");
         try
         {
             var result = await FilePicker.Default.PickAsync(new PickOptions
@@ -784,16 +796,20 @@ public partial class CameraPage : ContentPage
             await using FileStream dst = File.Create(dstPath);
             await src.CopyToAsync(dst);
 
+            LogService.WriteLine($"Added to library: {Path.GetFileName(dstPath)}");
+
             await DisplayAlert("Copied", $"{Path.GetFileName(dstPath)} をライブラリに追加しました", "OK");
         }
         catch (Exception ex)
         {
+            LogService.WriteLine($"Add to library failed: {ex.Message}");
             await DisplayAlert("Error", ex.Message, "OK");
         }
     }
 
     private void OnOpenInViewerClicked(object? sender, EventArgs e)
     {
+        LogService.WriteLine("Open in viewer clicked");
         HideFileMenu();
         HideViewMenu();
         HideSettingMenu();
@@ -802,6 +818,7 @@ public partial class CameraPage : ContentPage
 
     private void ShowOpenExplorer()
     {
+        LogService.WriteLine("Show open explorer");
         ShowBottomFeature("Open");
         FileSelectMessage.IsVisible = true;
         SelectedFilePath.Text = string.Empty;
@@ -815,12 +832,14 @@ public partial class CameraPage : ContentPage
         {
             return;
         }
+        LogService.WriteLine($"File selected: {Path.GetFileName(path)}");
         _selectedPath = path;
         SelectedFilePath.Text = path;
     }
 
     private async void OnImportClicked(object? sender, EventArgs e)
     {
+        LogService.WriteLine("Import clicked");
         if (string.IsNullOrEmpty(_selectedPath))
         {
             await DisplayAlert("Error", "ファイルが選択されていません", "OK");
@@ -849,6 +868,7 @@ public partial class CameraPage : ContentPage
         catch (Exception ex)
         {
             await DisplayAlert("Error", ex.Message, "OK");
+            LogService.WriteLine($"Import failed: {ex.Message}");
         }
         finally
         {
@@ -862,6 +882,7 @@ public partial class CameraPage : ContentPage
 
     private void OnCancelImportClicked(object? sender, EventArgs e)
     {
+        LogService.WriteLine("Import canceled");
         _selectedPath = null;
         FileSelectMessage.IsVisible = false;
         SelectedFilePath.Text = string.Empty;
