@@ -39,6 +39,7 @@ public partial class CameraPage : ContentPage
     private readonly Dictionary<string, Border> _bottomTabs = new();
     private string? _currentFeature;
     private string? _selectedPath;
+    private string? _selectedVideoPath;
 
     private readonly SimpleCubeRenderer _renderer = new();
     private bool _glInitialized;
@@ -395,6 +396,10 @@ public partial class CameraPage : ContentPage
             FileSelectMessage.IsVisible ? AbsoluteLayout.AutoSize : 0));
         AbsoluteLayout.SetLayoutFlags(FileSelectMessage,
             AbsoluteLayoutFlags.XProportional | AbsoluteLayoutFlags.WidthProportional);
+        AbsoluteLayout.SetLayoutBounds(PoseSelectMessage, new Rect(0.5, TopMenuHeight + 20, 0.8,
+            PoseSelectMessage.IsVisible ? AbsoluteLayout.AutoSize : 0));
+        AbsoluteLayout.SetLayoutFlags(PoseSelectMessage,
+            AbsoluteLayoutFlags.XProportional | AbsoluteLayoutFlags.WidthProportional);
 
         AbsoluteLayout.SetLayoutBounds(LoadingIndicator, new Rect(0.5, 0.5, 40, 40));
         AbsoluteLayout.SetLayoutFlags(LoadingIndicator, AbsoluteLayoutFlags.PositionProportional);
@@ -564,6 +569,14 @@ public partial class CameraPage : ContentPage
                 ev.LoadDirectory(modelsPath);
                 view = ev;
             }
+            else if (name == "Analyze")
+            {
+                var videoPath = MmdFileSystem.Ensure("Movie");
+                var ev = new ExplorerView(videoPath, new[] { ".mp4" });
+                ev.FileSelected += OnAnalyzeExplorerFileSelected;
+                ev.LoadDirectory(videoPath);
+                view = ev;
+            }
             else if (name == "BONE")
             {
                 var bv = new BoneView();
@@ -719,6 +732,11 @@ public partial class CameraPage : ContentPage
                 }
             }
         }
+        else if (name == "Analyze" && _bottomViews[name] is ExplorerView aev)
+        {
+            var videoPath = MmdFileSystem.Ensure("Movie");
+            aev.LoadDirectory(videoPath);
+        }
         else if (name == "MTOON" && _bottomViews[name] is MToonView mv)
         {
             mv.ShadeShift = _shadeShift;
@@ -841,31 +859,9 @@ public partial class CameraPage : ContentPage
     {
         LogService.WriteLine("Estimate pose clicked");
         HideFileMenu();
-        try
-        {
-            var result = await FilePicker.Default.PickAsync(new PickOptions
-            {
-                PickerTitle = "Select Video file",
-                FileTypes = new FilePickerFileType(new Dictionary<DevicePlatform, IEnumerable<string>>
-                {
-                    [DevicePlatform.Android] = new[] { "video/mp4", ".mp4" },
-                    [DevicePlatform.WinUI] = new[] { ".mp4" },
-                    [DevicePlatform.iOS] = new[] { ".mp4" }
-                })
-            });
-            if (result == null) return;
-
-            string? path = await App.Initializer.AnalyzeVideoAsync(result.FullPath);
-            if (!string.IsNullOrEmpty(path))
-            {
-                await DisplayAlert("Saved", $"{Path.GetFileName(path)} を保存しました", "OK");
-            }
-        }
-        catch (Exception ex)
-        {
-            LogService.WriteLine($"Estimate pose failed: {ex.Message}");
-            await DisplayAlert("Error", ex.Message, "OK");
-        }
+        HideViewMenu();
+        HideSettingMenu();
+        ShowPoseExplorer();
     }
 
     private void ShowOpenExplorer()
@@ -950,6 +946,71 @@ public partial class CameraPage : ContentPage
         _selectedPath = null;
         FileSelectMessage.IsVisible = false;
         SelectedFilePath.Text = string.Empty;
+        UpdateLayout();
+    }
+
+    private void ShowPoseExplorer()
+    {
+        LogService.WriteLine("Show pose explorer");
+        ShowBottomFeature("Analyze");
+        PoseSelectMessage.IsVisible = true;
+        SelectedVideoPath.Text = string.Empty;
+        _selectedVideoPath = null;
+        UpdateLayout();
+    }
+
+    private void OnAnalyzeExplorerFileSelected(object? sender, string path)
+    {
+        if (Path.GetExtension(path).ToLowerInvariant() != ".mp4")
+        {
+            return;
+        }
+        LogService.WriteLine($"Video selected: {Path.GetFileName(path)}");
+        _selectedVideoPath = path;
+        SelectedVideoPath.Text = path;
+    }
+
+    private async void OnStartEstimateClicked(object? sender, EventArgs e)
+    {
+        LogService.WriteLine("Start estimate clicked");
+        if (string.IsNullOrEmpty(_selectedVideoPath))
+        {
+            await DisplayAlert("Error", "ファイルが選択されていません", "OK");
+            return;
+        }
+
+        RemoveBottomFeature("Analyze");
+        PoseSelectMessage.IsVisible = false;
+        LoadingIndicator.IsVisible = true;
+        UpdateLayout();
+
+        try
+        {
+            string? path = await App.Initializer.AnalyzeVideoAsync(_selectedVideoPath);
+            if (!string.IsNullOrEmpty(path))
+            {
+                await DisplayAlert("Saved", $"{Path.GetFileName(path)} を保存しました", "OK");
+            }
+        }
+        catch (Exception ex)
+        {
+            LogService.WriteLine($"Estimate pose failed: {ex.Message}");
+            await DisplayAlert("Error", ex.Message, "OK");
+        }
+        finally
+        {
+            LoadingIndicator.IsVisible = false;
+            UpdateLayout();
+            _selectedVideoPath = null;
+        }
+    }
+
+    private void OnCancelEstimateClicked(object? sender, EventArgs e)
+    {
+        LogService.WriteLine("Estimate canceled");
+        _selectedVideoPath = null;
+        PoseSelectMessage.IsVisible = false;
+        SelectedVideoPath.Text = string.Empty;
         UpdateLayout();
     }
 
