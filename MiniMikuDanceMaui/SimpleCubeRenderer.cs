@@ -478,9 +478,11 @@ void main(){
         GL.UseProgram(_modelProgram);
         GL.UniformMatrix4(_modelViewLoc, false, ref view);
         GL.UniformMatrix4(_modelProjLoc, false, ref proj);
-        Vector3 light = Vector3.Normalize(new Vector3(0.3f, 0.6f, 0.7f));
+        // モデル読み込み時に Z 軸を反転しているため
+        // ライトおよび視線方向も -Z 側へ合わせる
+        Vector3 light = Vector3.Normalize(new Vector3(0.3f, 0.6f, -0.7f));
         GL.Uniform3(_modelLightDirLoc, ref light);
-        Vector3 viewDir = Vector3.UnitZ;
+        Vector3 viewDir = -Vector3.UnitZ;
         GL.Uniform3(_modelViewDirLoc, ref viewDir);
         GL.Uniform1(_modelShadeShiftLoc, ShadeShift);
         GL.Uniform1(_modelShadeToonyLoc, ShadeToony);
