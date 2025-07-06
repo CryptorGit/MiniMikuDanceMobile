@@ -10,11 +10,12 @@ public partial class TerminalView : ContentView
     public TerminalView()
     {
         InitializeComponent();
-        foreach (var line in LogService.History)
+        var history = LogService.History;
+        foreach (var line in history)
         {
             LogStack.Add(new Label { Text = line, TextColor = Colors.White });
         }
-        _lastIndex = LogService.History.Count;
+        _lastIndex = history.Count;
         LogService.LineLogged += OnLineLogged;
     }
 
@@ -29,11 +30,12 @@ public partial class TerminalView : ContentView
 
     private void AddHistory()
     {
-        for (int i = _lastIndex; i < LogService.History.Count; i++)
+        var history = LogService.History;
+        for (int i = _lastIndex; i < history.Count; i++)
         {
-            LogStack.Add(new Label { Text = LogService.History[i], TextColor = Colors.White });
+            LogStack.Add(new Label { Text = history[i], TextColor = Colors.White });
         }
-        _lastIndex = LogService.History.Count;
+        _lastIndex = history.Count;
     }
 
     protected override void OnHandlerChanging(HandlerChangingEventArgs args)
