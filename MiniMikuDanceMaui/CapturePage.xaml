@@ -2,14 +2,23 @@
 <ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
              x:Class="MiniMikuDanceMaui.CapturePage"
-             Title="Capture">
+             Title="Capture"
+             BackgroundColor="Black">
     <ContentPage.MenuBarItems>
         <MenuBarItem Text="View">
             <MenuFlyoutItem Text="HOME" Clicked="OnHomeClicked" />
         </MenuBarItem>
     </ContentPage.MenuBarItems>
-    <VerticalStackLayout Padding="20" Spacing="20">
-        <Button Text="Record Video" Clicked="OnRecordClicked" />
-        <Label x:Name="StatusLabel" Text="" />
-    </VerticalStackLayout>
+    <Grid>
+        <Label x:Name="StatusLabel" Text="" TextColor="White"
+               HorizontalOptions="Center" VerticalOptions="Start"
+               Margin="0,20" />
+        <Frame Padding="6" CornerRadius="46" BackgroundColor="White"
+               HorizontalOptions="Center" VerticalOptions="End"
+               Margin="0,0,0,40">
+            <Button x:Name="RecordButton" Clicked="OnRecordClicked"
+                    BackgroundColor="Red" WidthRequest="80" HeightRequest="80"
+                    CornerRadius="40" />
+        </Frame>
+    </Grid>
 </ContentPage>
