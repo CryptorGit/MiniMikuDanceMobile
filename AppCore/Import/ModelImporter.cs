@@ -208,6 +208,8 @@ public class ModelImporter
         if (node != null)
         {
             transform = node.WorldMatrix;
+            var flip = System.Numerics.Matrix4x4.CreateScale(1f, 1f, -1f);
+            transform = flip * transform * flip;
         }
 
         VerifyMeshWinding(combined);
@@ -231,9 +233,9 @@ public class ModelImporter
                     parent = p;
                 }
                 var r = bNode.LocalTransform.Rotation;
-                var q = new System.Numerics.Quaternion(r.X, r.Y, r.Z, r.W);
+                var q = new System.Numerics.Quaternion(r.X, r.Y, -r.Z, r.W);
                 var t = bNode.LocalTransform.Translation;
-                var pos = new System.Numerics.Vector3(t.X, t.Y, t.Z);
+                var pos = new System.Numerics.Vector3(t.X, t.Y, -t.Z);
                 nodeMap[kv.Value] = data.Bones.Count;
                 data.Bones.Add(new BoneData { Name = bNode.Name ?? kv.Key, Parent = parent, Rotation = q, Translation = pos });
             }
@@ -609,9 +611,9 @@ public class ModelImporter
                 parent = p;
             }
             var r = joint.LocalTransform.Rotation;
-            var q = new System.Numerics.Quaternion(r.X, r.Y, r.Z, r.W);
+            var q = new System.Numerics.Quaternion(r.X, r.Y, -r.Z, r.W);
             var t = joint.LocalTransform.Translation;
-            var pos = new System.Numerics.Vector3(t.X, t.Y, t.Z);
+            var pos = new System.Numerics.Vector3(t.X, t.Y, -t.Z);
             bones.Add(new BoneData { Name = joint.Name ?? string.Empty, Parent = parent, Rotation = q, Translation = pos });
         }
 
