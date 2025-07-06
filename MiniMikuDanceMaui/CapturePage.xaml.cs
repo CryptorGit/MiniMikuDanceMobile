@@ -52,4 +52,9 @@ public partial class CapturePage : ContentPage
     {
         await Navigation.PopAsync();
     }
+
+    private async void OnSettingClicked(object? sender, EventArgs e)
+    {
+        await DisplayAlert("Setting", "Not implemented", "OK");
+    }
 }
