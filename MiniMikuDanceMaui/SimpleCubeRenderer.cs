@@ -81,11 +81,16 @@ public class SimpleCubeRenderer : IDisposable
             _boneWorldMatrices = new Matrix4[_bones.Count];
         }
 
-        for (int i = 0; i < _bones.Count; i++)
+        var computed = new bool[_bones.Count];
+
+        Matrix4 ComputeWorld(int idx)
         {
-            var bone = _bones[i];
+            if (computed[idx])
+                return _boneWorldMatrices[idx];
+
+            var bone = _bones[idx];
             var rot = bone.Rotation;
-            if (_boneRotations.TryGetValue(i, out var euler))
+            if (_boneRotations.TryGetValue(idx, out var euler))
             {
                 var add = new System.Numerics.Vector3(euler.X, euler.Y, euler.Z);
                 var qadd = System.Numerics.Quaternion.CreateFromYawPitchRoll(
@@ -96,13 +101,22 @@ public class SimpleCubeRenderer : IDisposable
             }
 
             Matrix4 local = rot.ToMatrix4() * Matrix4.CreateTranslation(bone.Translation.ToOpenTK());
+            Matrix4 world;
             if (bone.Parent >= 0)
-                _boneWorldMatrices[i] = _boneWorldMatrices[bone.Parent] * local;
+                world = ComputeWorld(bone.Parent) * local;
             else
-                _boneWorldMatrices[i] = _modelTransform * local;
+                world = _modelTransform * local;
 
-            Matrix4 invBind = bone.InverseBindMatrix.ToMatrix4();
-            _boneMatrices[i] = _boneWorldMatrices[i] * invBind;
+            _boneWorldMatrices[idx] = world;
+            computed[idx] = true;
+            return world;
+        }
+
+        for (int i = 0; i < _bones.Count; i++)
+        {
+            var world = ComputeWorld(i);
+            Matrix4 invBind = _bones[i].InverseBindMatrix.ToMatrix4();
+            _boneMatrices[i] = world * invBind;
         }
     }
 
