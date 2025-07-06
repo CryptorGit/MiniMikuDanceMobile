@@ -23,7 +23,9 @@ public partial class CapturePage : ContentPage
             var result = await MediaPicker.Default.CaptureVideoAsync();
             if (result != null)
             {
-                var dstPath = Path.Combine(_movieDir, Path.GetFileName(result.FullPath));
+                var ext = Path.GetExtension(result.FileName);
+                var name = $"video_{DateTime.Now:yyyyMMdd_HHmmss}{ext}";
+                var dstPath = Path.Combine(_movieDir, name);
                 await using var source = await result.OpenReadAsync();
                 await using var dest = File.Create(dstPath);
                 await source.CopyToAsync(dest);

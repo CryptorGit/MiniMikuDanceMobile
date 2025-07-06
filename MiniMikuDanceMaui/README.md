@@ -12,3 +12,10 @@ dotnet workload install maui
 ```
 
 その上で `dotnet build` を実行し、各プラットフォーム固有の出力を生成します。
+
+## カメラ撮影機能
+
+アプリ起動時に `MiniMikuDance/data/Movie` フォルダが自動生成され、撮影した動画はすべてここに保存されます。
+画面上部の **View** メニューから **CAMERA** を選択すると撮影ページへ遷移します。
+撮影が完了したら同じく **View > HOME** で 3D ビューアへ戻ることができます。
+保存される動画ファイル名は `video_YYYYMMDD_HHMMSS.mp4` の形式で、重複しないようタイムスタンプが付加されます。
