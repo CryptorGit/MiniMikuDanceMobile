@@ -276,6 +276,19 @@ void main(){
         _boneTranslations[index] = translation;
     }
 
+    public Vector3 GetBoneRotation(int index)
+    {
+        if (index < 0 || index >= _boneRotations.Count)
+            return Vector3.Zero;
+        return _boneRotations[index];
+    }
+
+    public Vector3 GetBoneTranslation(int index)
+    {
+        if (index < 0 || index >= _boneTranslations.Count)
+            return Vector3.Zero;
+        return _boneTranslations[index];
+    }
 
     public void LoadModel(MiniMikuDance.Import.ModelData data)
     {
