@@ -22,6 +22,7 @@ public class ModelData
     public float ShadeShift { get; set; } = -0.1f;
     public float ShadeToony { get; set; } = 0.9f;
     public float RimIntensity { get; set; } = 0.5f;
+    public VrmInfo Info { get; set; } = new();
 }
 
 public class ModelImporter
@@ -38,8 +39,11 @@ public class ModelImporter
         var textureMap = ReadMainTextureIndices(bytes);
         var humanMap = ReadHumanoidMap(bytes);
         var mtoon = ReadMToonParameters(bytes);
+        var info = ReadVrmInfo(bytes);
         var model = SharpGLTF.Schema2.ModelRoot.ReadGLB(ms);
-        return ImportVrm(model, textureMap, humanMap, mtoon);
+        var data = ImportVrm(model, textureMap, humanMap, mtoon);
+        data.Info = info;
+        return data;
     }
 
     public ModelData ImportModel(string path)
@@ -68,11 +72,14 @@ public class ModelImporter
         Debug.WriteLine($"[ModelImporter] Importing VRM: {path}");
         var bytes = File.ReadAllBytes(path);
         using var ms = new MemoryStream(bytes);
+        var info = ReadVrmInfo(bytes);
         var textureMap = ReadMainTextureIndices(bytes);
         var humanMap = ReadHumanoidMap(bytes);
         var mtoon = ReadMToonParameters(bytes);
         var model = SharpGLTF.Schema2.ModelRoot.ReadGLB(ms);
-        return ImportVrm(model, textureMap, humanMap, mtoon);
+        var data = ImportVrm(model, textureMap, humanMap, mtoon);
+        data.Info = info;
+        return data;
     }
 
     private ModelData ImportVrm(SharpGLTF.Schema2.ModelRoot model, Dictionary<int, int> texMap, Dictionary<string, int> humanMap, (float shadeShift, float shadeToony, float rimIntensity) mtoon)
@@ -434,6 +441,96 @@ public class ModelImporter
         {
         }
         return (shadeShift, shadeToony, rimIntensity);
+    }
+
+    private static VrmInfo ReadVrmInfo(byte[] glb)
+    {
+        var info = new VrmInfo();
+        try
+        {
+            using var ms = new MemoryStream(glb);
+            using var br = new BinaryReader(ms);
+            if (br.ReadUInt32() != 0x46546C67) return info; // magic 'glTF'
+            br.ReadUInt32(); // version
+            br.ReadUInt32(); // length
+            uint jsonLen = br.ReadUInt32();
+            if (br.ReadUInt32() != 0x4E4F534A) return info; // JSON
+            var jsonBytes = br.ReadBytes((int)jsonLen);
+            var doc = System.Text.Json.JsonDocument.Parse(jsonBytes);
+            var root = doc.RootElement;
+
+            info.SpecVersion = "glTF";
+            if (root.TryGetProperty("extensionsUsed", out var used) &&
+                used.ValueKind == System.Text.Json.JsonValueKind.Array &&
+                used.EnumerateArray().Any(e => e.GetString() == "VRM"))
+            {
+                info.SpecVersion = "VRM 0.x";
+            }
+            if (root.TryGetProperty("extensions", out var exts) &&
+                exts.TryGetProperty("VRMC_vrm", out _))
+            {
+                info.SpecVersion = "VRM 1.0";
+            }
+
+            System.Text.Json.JsonElement meta;
+            if (root.TryGetProperty("extensions", out var exts2))
+            {
+                if (exts2.TryGetProperty("VRM", out var vrm) &&
+                    vrm.TryGetProperty("meta", out var m))
+                {
+                    meta = m;
+                }
+                else if (exts2.TryGetProperty("VRMC_vrm", out var vrm1) &&
+                         vrm1.TryGetProperty("meta", out var m1))
+                {
+                    meta = m1;
+                }
+                else
+                {
+                    meta = default;
+                }
+            }
+            else
+            {
+                meta = default;
+            }
+
+            if (meta.ValueKind == System.Text.Json.JsonValueKind.Object)
+            {
+                if (meta.TryGetProperty("title", out var t)) info.Title = t.GetString() ?? string.Empty;
+                if (meta.TryGetProperty("author", out var a)) info.Author = a.GetString() ?? string.Empty;
+                if (meta.TryGetProperty("commercialUssageName", out var cu)) info.License = cu.GetString() ?? string.Empty;
+                else if (meta.TryGetProperty("licenseName", out var ln)) info.License = ln.GetString() ?? string.Empty;
+            }
+
+            if (root.TryGetProperty("nodes", out var nodes)) info.NodeCount = nodes.GetArrayLength();
+            if (root.TryGetProperty("meshes", out var meshes)) info.MeshCount = meshes.GetArrayLength();
+            if (root.TryGetProperty("skins", out var skins)) info.SkinCount = skins.GetArrayLength();
+            if (root.TryGetProperty("materials", out var mats)) info.MaterialCount = mats.GetArrayLength();
+            if (root.TryGetProperty("images", out var imgs)) info.TextureCount = imgs.GetArrayLength();
+
+            var model = SharpGLTF.Schema2.ModelRoot.ReadGLB(new MemoryStream(glb));
+            int vtx = 0;
+            int tri = 0;
+            foreach (var mesh in model.LogicalMeshes)
+            {
+                foreach (var prim in mesh.Primitives)
+                {
+                    vtx += prim.GetVertexAccessor("POSITION").Count;
+                    tri += prim.IndexAccessor.Count / 3;
+                }
+            }
+            info.VertexCount = vtx;
+            info.TriangleCount = tri;
+
+            var humanMap = ReadHumanoidMap(glb);
+            info.HumanoidBoneCount = humanMap.Count;
+        }
+        catch
+        {
+        }
+
+        return info;
     }
 
     private static List<BoneData> ReadBones(SharpGLTF.Schema2.ModelRoot model, out Dictionary<int, int> nodeToIndex)

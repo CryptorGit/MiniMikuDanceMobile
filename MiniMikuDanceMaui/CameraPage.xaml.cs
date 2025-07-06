@@ -860,6 +860,18 @@ public partial class CameraPage : ContentPage
             var data = await Task.Run(() => importer.ImportModel(_selectedPath));
             _pendingModel = data;
             LogService.WriteLine($"Imported VRM: {Path.GetFileName(_selectedPath!)}");
+            LogService.WriteLine($"Spec: {data.Info.SpecVersion}");
+            LogService.WriteLine($"Title: {data.Info.Title}");
+            LogService.WriteLine($"Author: {data.Info.Author}");
+            LogService.WriteLine($"License: {data.Info.License}");
+            LogService.WriteLine($"Nodes: {data.Info.NodeCount}");
+            LogService.WriteLine($"Meshes: {data.Info.MeshCount}");
+            LogService.WriteLine($"Skins: {data.Info.SkinCount}");
+            LogService.WriteLine($"Vertices: {data.Info.VertexCount}");
+            LogService.WriteLine($"Triangles: {data.Info.TriangleCount}");
+            LogService.WriteLine($"Materials: {data.Info.MaterialCount}");
+            LogService.WriteLine($"Textures: {data.Info.TextureCount}");
+            LogService.WriteLine($"Humanoid bones: {data.Info.HumanoidBoneCount} / 55");
             foreach (var bone in data.Bones)
             {
                 LogService.WriteLine($"Bone: {bone.Name}");
