@@ -15,13 +15,52 @@ public class MotionApplier
 
     public void Apply(JointData joint)
     {
-        if (joint.Positions.Length == 0)
+        if (joint.Positions.Length == 0 || _model.Bones.Count == 0)
             return;
 
-        var pos = joint.Positions[0];
-        var rotAngle = joint.Positions.Length > 1 ? joint.Positions[1].Y : 0f;
-        var trans = Matrix4x4.CreateTranslation(pos);
-        var rot = Matrix4x4.CreateFromAxisAngle(Vector3.UnitY, rotAngle);
-        _model.Transform = rot * trans;
+        for (int i = 0; i < _model.Bones.Count && i < joint.Positions.Length; i++)
+        {
+            var bone = _model.Bones[i];
+            int parent = bone.Parent;
+            Vector3 world = joint.Positions[i];
+            Vector3 parentWorld = (parent >= 0 && parent < joint.Positions.Length)
+                ? joint.Positions[parent]
+                : Vector3.Zero;
+
+            bone.Translation = world - parentWorld;
+
+            if (parent >= 0 && parent < joint.Positions.Length)
+            {
+                Vector3 dir = world - parentWorld;
+                if (dir.LengthSquared() > 1e-6f)
+                {
+                    dir = Vector3.Normalize(dir);
+                    var axis = Vector3.Cross(Vector3.UnitY, dir);
+                    float len = axis.Length();
+                    if (len > 1e-6f)
+                    {
+                        axis /= len;
+                        float dot = Math.Clamp(Vector3.Dot(Vector3.UnitY, dir), -1f, 1f);
+                        float angle = MathF.Acos(dot);
+                        bone.Rotation = Quaternion.CreateFromAxisAngle(axis, angle);
+                    }
+                    else
+                    {
+                        float dot = Math.Clamp(Vector3.Dot(Vector3.UnitY, dir), -1f, 1f);
+                        bone.Rotation = dot >= 0f
+                            ? Quaternion.Identity
+                            : Quaternion.CreateFromAxisAngle(Vector3.UnitX, MathF.PI);
+                    }
+                }
+                else
+                {
+                    bone.Rotation = Quaternion.Identity;
+                }
+            }
+            else
+            {
+                bone.Rotation = Quaternion.Identity;
+            }
+        }
     }
 }
