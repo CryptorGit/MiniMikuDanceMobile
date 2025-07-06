@@ -6,6 +6,7 @@ using System.Runtime.InteropServices;
 using System.Collections.Generic;
 using System.Linq;
 using MiniMikuDance.Util;
+using MiniMikuDance.Import;
 
 namespace MiniMikuDanceMaui;
 
@@ -23,6 +24,9 @@ public class SimpleCubeRenderer : IDisposable
         public bool HasTexture;
         public Vector3[] Vertices = Array.Empty<Vector3>();
         public Vector3[] Normals = Array.Empty<Vector3>();
+        public Vector2[] TexCoords = Array.Empty<Vector2>();
+        public Vector4[] JointIndices = Array.Empty<Vector4>();
+        public Vector4[] JointWeights = Array.Empty<Vector4>();
     }
     private readonly System.Collections.Generic.List<RenderMesh> _meshes = new();
     private int _gridVao;
@@ -54,6 +58,7 @@ public class SimpleCubeRenderer : IDisposable
     private int _width;
     private int _height;
     private readonly List<Vector3> _boneRotations = new();
+    private List<MiniMikuDance.Import.BoneData> _bones = new();
     public float RotateSensitivity { get; set; } = 1f;
     public float PanSensitivity { get; set; } = 1f;
     public bool CameraLocked { get; set; }
@@ -264,6 +269,7 @@ void main(){
             if (rm.Texture != 0) GL.DeleteTexture(rm.Texture);
         }
         _meshes.Clear();
+        _bones = data.Bones.ToList();
 
         _modelTransform = data.Transform.ToMatrix4();
 
@@ -309,7 +315,6 @@ void main(){
                     verts[i * 8 + 6] = 0f;
                     verts[i * 8 + 7] = 0f;
                 }
-                // no skinning information
             }
 
             var indices = new System.Collections.Generic.List<uint>();
@@ -323,6 +328,9 @@ void main(){
             rm.IndexCount = indices.Count;
             rm.Vertices = sm.Mesh.Vertices.Select(v => new Vector3(v.X, v.Y, v.Z)).ToArray();
             rm.Normals = sm.Mesh.Normals.Select(n => new Vector3(n.X, n.Y, n.Z)).ToArray();
+            rm.TexCoords = sm.TexCoords.Select(t => new Vector2(t.X, t.Y)).ToArray();
+            rm.JointIndices = sm.JointIndices.Select(j => new Vector4(j.X, j.Y, j.Z, j.W)).ToArray();
+            rm.JointWeights = sm.JointWeights.Select(w => new Vector4(w.X, w.Y, w.Z, w.W)).ToArray();
             rm.Vao = GL.GenVertexArray();
             rm.Vbo = GL.GenBuffer();
             rm.Ebo = GL.GenBuffer();
@@ -390,6 +398,82 @@ void main(){
         Matrix4 view = Matrix4.LookAt(cam, _target, Vector3.UnitY);
         float aspect = _width == 0 || _height == 0 ? 1f : _width / (float)_height;
         Matrix4 proj = Matrix4.CreatePerspectiveFieldOfView(MathHelper.PiOver4, aspect, 0.1f, 100f);
+
+        // CPU skinning: update vertex buffers based on current bone rotations
+        if (_bones.Count > 0)
+        {
+            const float deg2rad = MathF.PI / 180f;
+            var worldMats = new System.Numerics.Matrix4x4[_bones.Count];
+            for (int i = 0; i < _bones.Count; i++)
+            {
+                var bone = _bones[i];
+                System.Numerics.Vector3 euler = i < _boneRotations.Count ? _boneRotations[i].ToNumerics() : System.Numerics.Vector3.Zero;
+                var delta = System.Numerics.Quaternion.CreateFromYawPitchRoll(euler.Y * deg2rad, euler.X * deg2rad, euler.Z * deg2rad);
+                var local = System.Numerics.Matrix4x4.CreateFromQuaternion(bone.Rotation * delta) * System.Numerics.Matrix4x4.CreateTranslation(bone.Translation);
+                if (bone.Parent >= 0)
+                    worldMats[i] = local * worldMats[bone.Parent];
+                else
+                    worldMats[i] = local;
+            }
+
+            var skinMats = new System.Numerics.Matrix4x4[_bones.Count];
+            for (int i = 0; i < _bones.Count; i++)
+                skinMats[i] = _bones[i].InverseBindMatrix * worldMats[i];
+
+            foreach (var rm in _meshes)
+            {
+                if (rm.JointIndices.Length != rm.Vertices.Length)
+                    continue;
+                float[] buf = new float[rm.Vertices.Length * 8];
+                for (int vi = 0; vi < rm.Vertices.Length; vi++)
+                {
+                    var pos = System.Numerics.Vector3.Zero;
+                    var norm = System.Numerics.Vector3.Zero;
+                    var jp = rm.JointIndices[vi];
+                    var jw = rm.JointWeights[vi];
+                    for (int k = 0; k < 4; k++)
+                    {
+                        int bi = (int)jp[k];
+                        float w = jw[k];
+                        if (bi >= 0 && bi < skinMats.Length && w > 0f)
+                        {
+                            var m = skinMats[bi];
+                            pos += System.Numerics.Vector3.Transform(rm.Vertices[vi].ToNumerics(), m) * w;
+                            norm += System.Numerics.Vector3.TransformNormal(rm.Normals[vi].ToNumerics(), m) * w;
+                        }
+                    }
+                    if (norm.LengthSquared() > 0)
+                        norm = System.Numerics.Vector3.Normalize(norm);
+
+                    buf[vi * 8 + 0] = pos.X;
+                    buf[vi * 8 + 1] = pos.Y;
+                    buf[vi * 8 + 2] = pos.Z;
+                    buf[vi * 8 + 3] = norm.X;
+                    buf[vi * 8 + 4] = norm.Y;
+                    buf[vi * 8 + 5] = norm.Z;
+                    if (vi < rm.TexCoords.Length)
+                    {
+                        buf[vi * 8 + 6] = rm.TexCoords[vi].X;
+                        buf[vi * 8 + 7] = rm.TexCoords[vi].Y;
+                    }
+                    else
+                    {
+                        buf[vi * 8 + 6] = 0f;
+                        buf[vi * 8 + 7] = 0f;
+                    }
+                }
+                GL.BindBuffer(BufferTarget.ArrayBuffer, rm.Vbo);
+                var handle = System.Runtime.InteropServices.GCHandle.Alloc(buf, System.Runtime.InteropServices.GCHandleType.Pinned);
+                try
+                {
+                    GL.BufferSubData(BufferTarget.ArrayBuffer, IntPtr.Zero, buf.Length * sizeof(float), handle.AddrOfPinnedObject());
+                }
+                finally
+                {
+                    handle.Free();
+                }
+            }
+        }
 
         GL.UseProgram(_modelProgram);
         GL.UniformMatrix4(_modelViewLoc, false, ref view);
