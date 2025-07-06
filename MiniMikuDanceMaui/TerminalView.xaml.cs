@@ -9,6 +9,10 @@ public partial class TerminalView : ContentView
     public TerminalView()
     {
         InitializeComponent();
+        foreach (var line in LogService.History)
+        {
+            LogStack.Add(new Label { Text = line, TextColor = Colors.White });
+        }
         LogService.LineLogged += OnLineLogged;
     }
 
