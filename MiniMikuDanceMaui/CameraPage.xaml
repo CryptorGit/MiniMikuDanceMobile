@@ -13,10 +13,6 @@
         <MenuBarItem Text="View">
             <MenuFlyoutItem Text="HOME" Clicked="OnHomeClicked" />
         </MenuBarItem>
-        <MenuBarItem Text="Page">
-            <MenuFlyoutItem Text="CAMERA" Clicked="OnPageCameraClicked" />
-            <MenuFlyoutItem Text="HOME" Clicked="OnPageHomeClicked" />
-        </MenuBarItem>
         <MenuBarItem Text="Setting">
             <MenuFlyoutItem Text="Open" Clicked="OnSettingClicked" />
         </MenuBarItem>
@@ -35,11 +31,6 @@
             <Label Text="View" TextColor="White">
                 <Label.GestureRecognizers>
                     <TapGestureRecognizer Tapped="OnViewMenuTapped" />
-                </Label.GestureRecognizers>
-            </Label>
-            <Label Text="Page" TextColor="White">
-                <Label.GestureRecognizers>
-                    <TapGestureRecognizer Tapped="OnPageMenuTapped" />
                 </Label.GestureRecognizers>
             </Label>
             <Label Text="Setting" TextColor="White">
@@ -113,20 +104,6 @@
                 <Label Text="Import VRM" TextColor="White">
                     <Label.GestureRecognizers>
                         <TapGestureRecognizer Tapped="OnOpenInViewerClicked" />
-                    </Label.GestureRecognizers>
-                </Label>
-            </VerticalStackLayout>
-        </Frame>
-        <Frame x:Name="PageMenu" IsVisible="False" BackgroundColor="#1E1E1E" Padding="0" ZIndex="20">
-            <VerticalStackLayout Spacing="4" Padding="8">
-                <Label Text="CAMERA" TextColor="White">
-                    <Label.GestureRecognizers>
-                        <TapGestureRecognizer Tapped="OnCameraClicked" />
-                    </Label.GestureRecognizers>
-                </Label>
-                <Label Text="HOME" TextColor="White">
-                    <Label.GestureRecognizers>
-                        <TapGestureRecognizer Tapped="OnHomeClicked" />
                     </Label.GestureRecognizers>
                 </Label>
             </VerticalStackLayout>
