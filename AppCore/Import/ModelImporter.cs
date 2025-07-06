@@ -98,7 +98,7 @@ public class ModelImporter
             if (skin != null)
             {
                 jointMap = new int[skin.JointsCount];
-                for (int j = 0; j < jointMap.Length; j++) jointMap[j] = skin.GetJoint(j).LogicalIndex;
+                for (int j = 0; j < jointMap.Length; j++) jointMap[j] = skin.GetJoint(j).Joint.LogicalIndex;
             }
 
             foreach (var prim in node.Mesh.Primitives)
@@ -257,7 +257,7 @@ public class ModelImporter
             int jointCount = skin.JointsCount;
             for (int i = 0; i < jointCount && i < invs.Count; i++)
             {
-                var jnode = skin.GetJoint(i);
+                var jnode = skin.GetJoint(i).Joint;
                 int bi = jnode.LogicalIndex;
                 if (bi >= 0 && bi < data.Bones.Count)
                 {
