@@ -80,6 +80,11 @@
                         <TapGestureRecognizer Tapped="OnRecordClicked" />
                     </Label.GestureRecognizers>
                 </Label>
+                <Label Text="TERMINAL" TextColor="White">
+                    <Label.GestureRecognizers>
+                        <TapGestureRecognizer Tapped="OnTerminalClicked" />
+                    </Label.GestureRecognizers>
+                </Label>
                 <Label Text="RESET CAMERA" TextColor="White">
                     <Label.GestureRecognizers>
                         <TapGestureRecognizer Tapped="OnResetCamClicked" />
