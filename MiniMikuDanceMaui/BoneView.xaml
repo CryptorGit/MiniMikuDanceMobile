@@ -11,5 +11,11 @@
         <Slider x:Name="SliderY" Minimum="-180" Maximum="180" ValueChanged="OnYChanged"/>
         <Label Text="Rotate Z" TextColor="White"/>
         <Slider x:Name="SliderZ" Minimum="-180" Maximum="180" ValueChanged="OnZChanged"/>
+        <Label Text="Translate X" TextColor="White"/>
+        <Slider x:Name="SliderTX" Minimum="-1" Maximum="1" ValueChanged="OnTXChanged"/>
+        <Label Text="Translate Y" TextColor="White"/>
+        <Slider x:Name="SliderTY" Minimum="-1" Maximum="1" ValueChanged="OnTYChanged"/>
+        <Label Text="Translate Z" TextColor="White"/>
+        <Slider x:Name="SliderTZ" Minimum="-1" Maximum="1" ValueChanged="OnTZChanged"/>
     </VerticalStackLayout>
 </ContentView>
