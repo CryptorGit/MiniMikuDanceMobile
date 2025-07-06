@@ -100,7 +100,7 @@ public class SimpleCubeRenderer : IDisposable
                 rot = System.Numerics.Quaternion.Normalize(qadd * rot);
             }
 
-            Matrix4 local = Matrix4.CreateTranslation(bone.Translation.ToOpenTK()) * rot.ToMatrix4();
+            Matrix4 local = rot.ToMatrix4() * Matrix4.CreateTranslation(bone.Translation.ToOpenTK());
             Matrix4 world;
             if (bone.Parent >= 0)
                 world = ComputeWorld(bone.Parent) * local;

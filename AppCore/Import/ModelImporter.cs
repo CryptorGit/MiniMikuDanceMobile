@@ -337,7 +337,7 @@ public class ModelImporter
         {
             var b = data.Bones[i];
             var rot = System.Numerics.Matrix4x4.CreateFromQuaternion(b.Rotation);
-            var trs = System.Numerics.Matrix4x4.CreateTranslation(b.Translation) * rot;
+            var trs = rot * System.Numerics.Matrix4x4.CreateTranslation(b.Translation);
             if (b.Parent >= 0)
             {
                 world[i] = world[b.Parent] * trs;
