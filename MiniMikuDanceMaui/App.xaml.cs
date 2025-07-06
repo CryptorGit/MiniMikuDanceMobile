@@ -19,7 +19,25 @@ public partial class App : Application
 
         Directory.SetCurrentDirectory(MmdFileSystem.BaseDir);
         var uiConfig = DataManager.Instance.LoadConfig<UIConfig>("UIConfig");
-        var poseModel = Path.Combine(FileSystem.AppDataDirectory, "pose_landmark_full.onnx");
+
+        var modelName = "pose_landmark_full.onnx";
+        var poseModel = Path.Combine(FileSystem.AppDataDirectory, modelName);
+        if (!File.Exists(poseModel))
+        {
+            try
+            {
+                var src = Path.Combine(AppContext.BaseDirectory, "StreamingAssets", "PoseEstimation", modelName);
+                if (File.Exists(src))
+                {
+                    File.Copy(src, poseModel);
+                }
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine($"[App] Failed to copy pose model: {e.Message}");
+            }
+        }
+
         Initializer.Initialize(uiConfig, null, poseModel, MmdFileSystem.BaseDir);
 
         MainPage = new NavigationPage(new CameraPage());
