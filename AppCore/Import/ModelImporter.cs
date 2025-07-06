@@ -94,7 +94,12 @@ public class ModelImporter
         {
             if (node.Mesh == null) continue;
             var skin = node.Skin;
-            int[] jointMap = skin != null ? skin.Joints.Select(j => j.LogicalIndex).ToArray() : Array.Empty<int>();
+            int[] jointMap = Array.Empty<int>();
+            if (skin != null)
+            {
+                jointMap = new int[skin.JointsCount];
+                for (int j = 0; j < jointMap.Length; j++) jointMap[j] = skin.GetJoint(j).LogicalIndex;
+            }
 
             foreach (var prim in node.Mesh.Primitives)
             {
@@ -245,11 +250,14 @@ public class ModelImporter
         data.Bones.AddRange(ReadBones(model));
         foreach (var skin in model.LogicalSkins)
         {
-            var invs = skin.InverseBindMatrices?.AsMatrix4x4Array();
+            var acc = skin.GetInverseBindMatricesAccessor();
+            var invs = acc?.AsMatrix4x4Array();
             if (invs == null) continue;
-            for (int i = 0; i < skin.Joints.Count && i < invs.Count; i++)
+            int jointCount = skin.JointsCount;
+            for (int i = 0; i < jointCount && i < invs.Count; i++)
             {
-                int bi = skin.Joints[i].LogicalIndex;
+                var jnode = skin.GetJoint(i);
+                int bi = jnode?.LogicalIndex ?? -1;
                 if (bi >= 0 && bi < data.Bones.Count)
                 {
                     data.Bones[bi].InverseBindMatrix = invs[i];
