@@ -16,6 +16,7 @@ public partial class App : Application
         InitializeComponent();
         MmdFileSystem.Ensure("Movie");
 
+        Directory.SetCurrentDirectory(MmdFileSystem.BaseDir);
         var uiConfig = DataManager.Instance.LoadConfig<UIConfig>("UIConfig");
         var poseModel = Path.Combine(FileSystem.AppDataDirectory, "pose_landmark_full.onnx");
         Initializer.Initialize(uiConfig, null, poseModel, MmdFileSystem.BaseDir);
