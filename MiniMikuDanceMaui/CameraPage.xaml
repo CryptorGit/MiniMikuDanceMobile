@@ -134,6 +134,16 @@
                 </HorizontalStackLayout>
             </VerticalStackLayout>
         </Frame>
+        <Frame x:Name="PoseSelectMessage" IsVisible="False" BackgroundColor="#1E1E1E" Padding="8" ZIndex="30">
+            <VerticalStackLayout Spacing="6">
+                <Label Text="動画ファイルを以下から選択してください" TextColor="White" />
+                <Label x:Name="SelectedVideoPath" TextColor="White" FontSize="12" />
+                <HorizontalStackLayout HorizontalOptions="Center" Spacing="20">
+                    <Button Text="Start" Clicked="OnStartEstimateClicked" />
+                    <Button Text="キャンセル" Clicked="OnCancelEstimateClicked" />
+                </HorizontalStackLayout>
+            </VerticalStackLayout>
+        </Frame>
         <ActivityIndicator x:Name="LoadingIndicator" IsRunning="True" IsVisible="False" Color="Blue" ZIndex="30" />
         <skia:SKGLView x:Name="Viewer" HasRenderLoop="True" EnableTouchEvents="True" />
         <Grid x:Name="BottomRegion" BackgroundColor="#1E1E1E" IsVisible="False" ZIndex="2">
