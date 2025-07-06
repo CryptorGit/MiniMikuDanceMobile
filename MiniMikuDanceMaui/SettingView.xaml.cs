@@ -17,21 +17,25 @@ public partial class SettingView : ContentView
 
     private void OnHeightChanged(object? sender, ValueChangedEventArgs e)
     {
+        LogService.WriteLine($"Height slider: {e.NewValue:F2}");
         HeightRatioChanged?.Invoke(e.NewValue);
     }
 
     private void OnRotateChanged(object? sender, ValueChangedEventArgs e)
     {
+        LogService.WriteLine($"Rotate sensitivity: {e.NewValue:F2}");
         RotateSensitivityChanged?.Invoke(e.NewValue);
     }
 
     private void OnPanChanged(object? sender, ValueChangedEventArgs e)
     {
+        LogService.WriteLine($"Pan sensitivity: {e.NewValue:F2}");
         PanSensitivityChanged?.Invoke(e.NewValue);
     }
 
     private void OnCameraLockChanged(object? sender, CheckedChangedEventArgs e)
     {
+        LogService.WriteLine($"Camera lock: {e.Value}");
         CameraLockChanged?.Invoke(e.Value);
     }
 
