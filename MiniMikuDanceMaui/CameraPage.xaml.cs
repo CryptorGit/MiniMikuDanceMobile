@@ -401,6 +401,9 @@ public partial class CameraPage : ContentPage
         double bottomWidth = W * _bottomWidthRatio;
         AbsoluteLayout.SetLayoutBounds(BottomRegion, new Rect((W - bottomWidth) / 2, H - bottomHeight, bottomWidth, bottomHeight));
         AbsoluteLayout.SetLayoutFlags(BottomRegion, AbsoluteLayoutFlags.None);
+        BottomScroll.HeightRequest = Math.Max(0, bottomHeight - 40);
+        if (Viewer is View v)
+            v.InputTransparent = BottomRegion.IsVisible;
     }
 
 
