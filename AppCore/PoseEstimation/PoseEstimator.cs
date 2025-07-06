@@ -7,13 +7,6 @@ using OpenCvSharp;
 
 namespace MiniMikuDance.PoseEstimation;
 
-public class JointData
-{
-    public float Timestamp { get; set; }
-    public Vector3[] Positions { get; set; } = Array.Empty<Vector3>();
-    public float[] Confidences { get; set; } = Array.Empty<float>();
-}
-
 public class PoseEstimator
 {
     private readonly InferenceSession? _session;

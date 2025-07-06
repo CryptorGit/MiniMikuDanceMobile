@@ -41,7 +41,7 @@ public partial class CameraPage : ContentPage
     private string? _currentFeature;
     private string? _selectedPath;
 
-    private readonly SimpleCubeRenderer _renderer = new();
+    private readonly ModelViewer _renderer = new();
     private bool _glInitialized;
     private ModelData? _pendingModel;
     private ModelData? _currentModel;
@@ -651,7 +651,7 @@ public partial class CameraPage : ContentPage
             }
             else if (name == "TERMINAL")
             {
-                var tv = new TerminalView();
+                var tv = new LogView();
                 view = tv;
             }
             else if (name == "MTOON")
@@ -769,7 +769,7 @@ public partial class CameraPage : ContentPage
             mv.ShadeToony = _shadeToony;
             mv.RimIntensity = _rimIntensity;
         }
-        else if (name == "TERMINAL" && _bottomViews[name] is TerminalView)
+        else if (name == "TERMINAL" && _bottomViews[name] is LogView)
         {
             // nothing to update
         }

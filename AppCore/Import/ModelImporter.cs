@@ -13,20 +13,6 @@ using ViewerApp;
 
 namespace MiniMikuDance.Import;
 
-public class ModelData
-{
-    public List<SubMeshData> SubMeshes { get; } = new();
-    public Assimp.Mesh Mesh { get; set; } = null!;
-    public System.Numerics.Matrix4x4 Transform { get; set; } = System.Numerics.Matrix4x4.Identity;
-    public List<BoneData> Bones { get; } = new();
-    public Dictionary<string, int> HumanoidBones { get; } = new();
-    public List<(string Name, int Index)> HumanoidBoneList { get; } = new();
-    public float ShadeShift { get; set; } = -0.1f;
-    public float ShadeToony { get; set; } = 0.9f;
-    public float RimIntensity { get; set; } = 0.5f;
-    public VrmInfo Info { get; set; } = new();
-}
-
 public class ModelImporter
 {
     private readonly AssimpContext _context = new();

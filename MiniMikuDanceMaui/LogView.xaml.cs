@@ -4,10 +4,10 @@ using Microsoft.Maui.Graphics;
 
 namespace MiniMikuDanceMaui;
 
-public partial class TerminalView : ContentView
+public partial class LogView : ContentView
 {
     private int _lastIndex;
-    public TerminalView()
+    public LogView()
     {
         InitializeComponent();
         LogService.LineLogged += OnLineLogged;

@@ -3,12 +3,6 @@ using System.Numerics;
 
 namespace MiniMikuDance.Motion;
 
-public class MotionData
-{
-    public float FrameInterval { get; set; }
-    public JointData[] Frames { get; set; } = Array.Empty<JointData>();
-}
-
 public class MotionGenerator
 {
     private readonly int _smoothWindow;

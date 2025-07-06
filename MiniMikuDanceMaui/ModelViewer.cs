@@ -10,7 +10,7 @@ using MiniMikuDance.Import;
 
 namespace MiniMikuDanceMaui;
 
-public class SimpleCubeRenderer : IDisposable
+public class ModelViewer : IDisposable
 {
     private int _program;
     private class RenderMesh
