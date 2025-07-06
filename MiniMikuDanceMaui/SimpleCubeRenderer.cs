@@ -41,7 +41,6 @@ public class SimpleCubeRenderer : IDisposable
     private int _groundVao;
     private int _groundVbo;
     private int _modelProgram;
-    private int _modelModelLoc;
     private int _modelViewLoc;
     private int _modelProjLoc;
     private int _modelColorLoc;
@@ -54,6 +53,9 @@ public class SimpleCubeRenderer : IDisposable
     private int _modelRimIntensityLoc;
     private Matrix4 _modelTransform = Matrix4.Identity;
     private readonly Dictionary<int, Vector3> _boneRotations = new();
+    private readonly List<MiniMikuDance.Import.BoneData> _bones = new();
+    private Matrix4[] _boneMatrices = Array.Empty<Matrix4>();
+    private int _modelBonesLoc;
     private int _width;
     private int _height;
     public float RotateSensitivity { get; set; } = 1f;
@@ -67,6 +69,34 @@ public class SimpleCubeRenderer : IDisposable
 
     public void ClearBoneRotations()
         => _boneRotations.Clear();
+
+    private void UpdateBoneMatrices()
+    {
+        if (_bones.Count == 0)
+            return;
+        if (_boneMatrices.Length != _bones.Count)
+            _boneMatrices = new Matrix4[_bones.Count];
+
+        for (int i = 0; i < _bones.Count; i++)
+        {
+            var bone = _bones[i];
+            var rot = bone.Rotation;
+            if (_boneRotations.TryGetValue(i, out var euler))
+            {
+                var add = new System.Numerics.Vector3(euler.X, euler.Y, euler.Z);
+                var qadd = System.Numerics.Quaternion.CreateFromYawPitchRoll(
+                    MathHelper.DegreesToRadians(add.Y),
+                    MathHelper.DegreesToRadians(add.X),
+                    MathHelper.DegreesToRadians(add.Z));
+                rot = System.Numerics.Quaternion.Normalize(qadd * rot);
+            }
+            Matrix4 local = Matrix4.CreateTranslation(bone.Translation.ToOpenTK()) * rot.ToMatrix4();
+            if (bone.Parent >= 0)
+                _boneMatrices[i] = _boneMatrices[bone.Parent] * local;
+            else
+                _boneMatrices[i] = _modelTransform * local;
+        }
+    }
 
     public void Initialize()
     {
@@ -106,18 +136,28 @@ void main(){
         GL.BlendFunc(BlendingFactorSrc.SrcAlpha, BlendingFactorDest.OneMinusSrcAlpha);
 
         const string modelVert = @"#version 300 es
+#define MAX_BONES 64
 layout(location = 0) in vec3 aPosition;
 layout(location = 1) in vec3 aNormal;
 layout(location = 2) in vec2 aTex;
-uniform mat4 uModel;
+layout(location = 3) in vec4 aJoints;
+layout(location = 4) in vec4 aWeights;
 uniform mat4 uView;
 uniform mat4 uProj;
+uniform mat4 uBones[MAX_BONES];
 out vec3 vNormal;
 out vec2 vTex;
 void main(){
-    vNormal = mat3(uModel) * aNormal;
+    float wsum = aWeights.x + aWeights.y + aWeights.z + aWeights.w;
+    mat4 skin = aWeights.x * uBones[int(aJoints.x)] +
+                aWeights.y * uBones[int(aJoints.y)] +
+                aWeights.z * uBones[int(aJoints.z)] +
+                aWeights.w * uBones[int(aJoints.w)];
+    if (wsum == 0.0) skin = uBones[0];
+    vec4 pos = skin * vec4(aPosition,1.0);
+    vNormal = mat3(skin) * aNormal;
     vTex = aTex;
-    gl_Position = uProj * uView * uModel * vec4(aPosition,1.0);
+    gl_Position = uProj * uView * pos;
 }";
         const string modelFrag = @"#version 300 es
 precision mediump float;
@@ -152,9 +192,9 @@ void main(){
         GL.LinkProgram(_modelProgram);
         GL.DeleteShader(mvs);
         GL.DeleteShader(mfs);
-        _modelModelLoc = GL.GetUniformLocation(_modelProgram, "uModel");
         _modelViewLoc = GL.GetUniformLocation(_modelProgram, "uView");
         _modelProjLoc = GL.GetUniformLocation(_modelProgram, "uProj");
+        _modelBonesLoc = GL.GetUniformLocation(_modelProgram, "uBones[0]");
         _modelColorLoc = GL.GetUniformLocation(_modelProgram, "uColor");
         _modelTexLoc = GL.GetUniformLocation(_modelProgram, "uTex");
         _modelUseTexLoc = GL.GetUniformLocation(_modelProgram, "uUseTex");
@@ -258,6 +298,9 @@ void main(){
         _meshes.Clear();
 
         _modelTransform = data.Transform.ToMatrix4();
+        _bones.Clear();
+        _bones.AddRange(data.Bones);
+        _boneRotations.Clear();
 
         if (data.SubMeshes.Count == 0)
         {
@@ -325,10 +368,14 @@ void main(){
                     verts[i * 16 +13] = w.Y;
                     verts[i * 16 +14] = w.Z;
                     verts[i * 16 +15] = w.W;
+                    if (w.X + w.Y + w.Z + w.W == 0f)
+                    {
+                        verts[i * 16 +12] = 1f;
+                    }
                 }
                 else
                 {
-                    verts[i * 16 +12] = 0f;
+                    verts[i * 16 +12] = 1f;
                     verts[i * 16 +13] = 0f;
                     verts[i * 16 +14] = 0f;
                     verts[i * 16 +15] = 0f;
@@ -414,12 +461,7 @@ void main(){
         GL.ClearColor(1f, 1f, 1f, 1f);
         GL.Clear(ClearBufferMask.ColorBufferBit | ClearBufferMask.DepthBufferBit);
 
-        Vector3 rootRot = _boneRotations.TryGetValue(0, out var r) ? r : Vector3.Zero;
-        Matrix4 boneRot =
-            Matrix4.CreateRotationX(MathHelper.DegreesToRadians(rootRot.X)) *
-            Matrix4.CreateRotationY(MathHelper.DegreesToRadians(rootRot.Y)) *
-            Matrix4.CreateRotationZ(MathHelper.DegreesToRadians(rootRot.Z));
-        Matrix4 model = boneRot * _modelTransform;
+        UpdateBoneMatrices();
         Matrix4 rot = Matrix4.CreateRotationX(_orbitX) * Matrix4.CreateRotationY(_orbitY);
         Vector3 cam = Vector3.TransformPosition(new Vector3(0, 0, _distance), rot) + _target;
         Matrix4 view = Matrix4.LookAt(cam, _target, Vector3.UnitY);
@@ -438,9 +480,12 @@ void main(){
         GL.Uniform1(_modelRimIntensityLoc, RimIntensity);
         // テクスチャのアルファを利用するためブレンドを有効化
         GL.Enable(EnableCap.Blend);
+        for (int i = 0; i < _bones.Count && i < 64; i++)
+        {
+            GL.UniformMatrix4(_modelBonesLoc + i, false, ref _boneMatrices[i]);
+        }
         foreach (var rm in _meshes)
         {
-            GL.UniformMatrix4(_modelModelLoc, false, ref model);
             GL.Uniform4(_modelColorLoc, rm.Color);
             if (rm.HasTexture)
             {
