@@ -99,9 +99,11 @@
             </VerticalStackLayout>
         </Frame>
         <Frame x:Name="SettingMenu" IsVisible="False" BackgroundColor="#1E1E1E" Padding="8" ZIndex="20">
-            <VerticalStackLayout Spacing="10">
-                <mmd:SettingView x:Name="SettingContent" />
-            </VerticalStackLayout>
+            <ScrollView>
+                <VerticalStackLayout Spacing="10">
+                    <mmd:SettingView x:Name="SettingContent" />
+                </VerticalStackLayout>
+            </ScrollView>
         </Frame>
         <!-- Overlay は BottomRegion より背面に配置しつつ Viewer より前面に表示する -->
         <BoxView x:Name="MenuOverlay" BackgroundColor="Transparent" IsVisible="False" ZIndex="1">

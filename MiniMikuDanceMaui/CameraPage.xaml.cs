@@ -373,8 +373,9 @@ public partial class CameraPage : ContentPage
         AbsoluteLayout.SetLayoutBounds(FileMenu, new Rect(0, TopMenuHeight, 200,
             FileMenu.IsVisible ? AbsoluteLayout.AutoSize : 0));
         AbsoluteLayout.SetLayoutFlags(FileMenu, AbsoluteLayoutFlags.None);
+        double settingHeight = H - TopMenuHeight;
         AbsoluteLayout.SetLayoutBounds(SettingMenu, new Rect(0, TopMenuHeight, 250,
-            SettingMenu.IsVisible ? AbsoluteLayout.AutoSize : 0));
+            SettingMenu.IsVisible ? settingHeight : 0));
         AbsoluteLayout.SetLayoutFlags(SettingMenu, AbsoluteLayoutFlags.None);
 
         AbsoluteLayout.SetLayoutBounds(MenuOverlay, new Rect(0, 0, W, H));
