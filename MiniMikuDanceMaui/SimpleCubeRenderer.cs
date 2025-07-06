@@ -290,7 +290,6 @@ void main(){
         return _boneTranslations[index];
     }
 
-
     public void LoadModel(MiniMikuDance.Import.ModelData data)
     {
         foreach (var rm in _meshes)
