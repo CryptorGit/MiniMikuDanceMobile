@@ -265,10 +265,10 @@ public class ModelImporter
         }
 
         var transform = System.Numerics.Matrix4x4.Identity;
-        var node = model.DefaultScene?.VisualChildren.FirstOrDefault();
-        if (node != null)
+        var rootNode = model.DefaultScene?.VisualChildren.FirstOrDefault();
+        if (rootNode != null)
         {
-            transform = node.WorldMatrix;
+            transform = rootNode.WorldMatrix;
             var flip = System.Numerics.Matrix4x4.CreateScale(1f, 1f, -1f);
             transform = flip * transform * flip;
         }
@@ -302,7 +302,7 @@ public class ModelImporter
 
         foreach (var name in s_boneOrder)
         {
-            if (humanMap.TryGetValue(name, out var node) && nodeMap.TryGetValue(node, out var idx))
+            if (humanMap.TryGetValue(name, out var nodeIdx) && nodeMap.TryGetValue(nodeIdx, out var idx))
             {
                 data.HumanoidBones[name] = idx;
                 data.HumanoidBoneList.Add((name, idx));
