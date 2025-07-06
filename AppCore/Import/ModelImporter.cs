@@ -273,8 +273,6 @@ public class ModelImporter
             transform = flip * transform * flip;
         }
 
-        VerifyMeshWinding(combined);
-
         Debug.WriteLine($"[ModelImporter] VRM loaded: {combined.VertexCount} vertices");
 
         data.Mesh = combined;
@@ -347,29 +345,14 @@ public class ModelImporter
                 world[i] = data.Transform * trs;
             }
             b.BindMatrix = world[i];
-            System.Numerics.Matrix4x4.Invert(world[i], out var inv);
-            b.InverseBindMatrix = inv;
+            if (b.InverseBindMatrix == System.Numerics.Matrix4x4.Identity)
+            {
+                System.Numerics.Matrix4x4.Invert(world[i], out var inv);
+                b.InverseBindMatrix = inv;
+            }
         }
     }
 
-    private static void VerifyMeshWinding(Assimp.Mesh mesh)
-    {
-        if (mesh.FaceCount == 0) return;
-        var face = mesh.Faces[0];
-        if (face.IndexCount < 3) return;
-        var a = ToVector3(mesh.Vertices[face.Indices[0]]);
-        var b = ToVector3(mesh.Vertices[face.Indices[1]]);
-        var c = ToVector3(mesh.Vertices[face.Indices[2]]);
-        var normal = face.Indices[0] < mesh.Normals.Count
-            ? ToVector3(mesh.Normals[face.Indices[0]])
-            : System.Numerics.Vector3.UnitZ;
-        var cross = System.Numerics.Vector3.Cross(b - a, c - a);
-        float dot = System.Numerics.Vector3.Dot(cross, normal);
-        Debug.WriteLine($"[ModelImporter] First face winding {(dot >= 0 ? "CCW" : "CW")}");
-    }
-
-    private static System.Numerics.Vector3 ToVector3(Vector3D v)
-        => new System.Numerics.Vector3(v.X, v.Y, v.Z);
 
     private static Dictionary<int, int> ReadMainTextureIndices(byte[] glb)
     {
@@ -675,6 +658,29 @@ public class ModelImporter
             nodeToIndex[joint.LogicalIndex] = i;
         }
 
+        var invMap = new Dictionary<int, System.Numerics.Matrix4x4>();
+        foreach (var skin in model.LogicalSkins)
+        {
+            var accessor = skin.InverseBindMatrices;
+            if (accessor == null) continue;
+            var matrices = accessor.AsMatrix4x4Array();
+            for (int i = 0; i < skin.JointsCount && i < matrices.Count; i++)
+            {
+                var joint = skin.GetJoint(i);
+                if (joint == null) continue;
+                if (!nodeToIndex.TryGetValue(joint.LogicalIndex, out var idx)) continue;
+                var m = matrices[i];
+                var mat = new System.Numerics.Matrix4x4(
+                    m.M11, m.M12, m.M13, m.M14,
+                    m.M21, m.M22, m.M23, m.M24,
+                    m.M31, m.M32, m.M33, m.M34,
+                    m.M41, m.M42, m.M43, m.M44);
+                var flip = System.Numerics.Matrix4x4.CreateScale(1f, 1f, -1f);
+                mat = flip * mat * flip;
+                invMap[idx] = mat;
+            }
+        }
+
         for (int i = 0; i < nodes.Count; i++)
         {
             var joint = nodes[i];
@@ -687,7 +693,12 @@ public class ModelImporter
             var q = new System.Numerics.Quaternion(r.X, r.Y, -r.Z, r.W);
             var t = joint.LocalTransform.Translation;
             var pos = new System.Numerics.Vector3(t.X, t.Y, -t.Z);
-            bones.Add(new BoneData { Name = joint.Name ?? string.Empty, Parent = parent, Rotation = q, Translation = pos });
+            var bone = new BoneData { Name = joint.Name ?? string.Empty, Parent = parent, Rotation = q, Translation = pos };
+            if (invMap.TryGetValue(i, out var ibm))
+            {
+                bone.InverseBindMatrix = ibm;
+            }
+            bones.Add(bone);
         }
 
         return bones;
