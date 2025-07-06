@@ -661,15 +661,11 @@ public class ModelImporter
         var invMap = new Dictionary<int, System.Numerics.Matrix4x4>();
         foreach (var skin in model.LogicalSkins)
         {
-            var accessor = skin.InverseBindMatrices;
-            if (accessor == null) continue;
-            var matrices = accessor.AsMatrix4x4Array();
-            for (int i = 0; i < skin.JointsCount && i < matrices.Count; i++)
+            for (int i = 0; i < skin.JointsCount; i++)
             {
-                var joint = skin.GetJoint(i);
+                var (joint, m) = skin.GetJoint(i);
                 if (joint == null) continue;
                 if (!nodeToIndex.TryGetValue(joint.LogicalIndex, out var idx)) continue;
-                var m = matrices[i];
                 var mat = new System.Numerics.Matrix4x4(
                     m.M11, m.M12, m.M13, m.M14,
                     m.M21, m.M22, m.M23, m.M24,
@@ -706,11 +702,10 @@ public class ModelImporter
 
     private static IEnumerable<SNode> EnumerateJoints(Skin skin)
     {
-        var getJoint = skin.GetType().GetMethod("GetJoint", new[] { typeof(int) });
-        if (getJoint == null) yield break;
         for (int i = 0; i < skin.JointsCount; i++)
         {
-            if (getJoint.Invoke(skin, new object[] { i }) is SNode joint)
+            var (joint, _) = skin.GetJoint(i);
+            if (joint != null)
             {
                 yield return joint;
             }
