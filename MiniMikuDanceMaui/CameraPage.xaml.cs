@@ -45,6 +45,7 @@ public partial class CameraPage : ContentPage
     private ModelData? _pendingModel;
     private ModelData? _currentModel;
     private int _selectedBoneIndex = 0;
+    private readonly List<int> _humanoidBoneIndices = new();
     private readonly Dictionary<long, SKPoint> _touchPoints = new();
 
     public CameraPage()
@@ -231,6 +232,14 @@ public partial class CameraPage : ContentPage
     {
         LogService.WriteLine("RECORD button clicked");
         ShowBottomFeature("RECORD");
+        HideViewMenu();
+        HideSettingMenu();
+    }
+
+    private void OnTerminalClicked(object? sender, EventArgs e)
+    {
+        LogService.WriteLine("TERMINAL button clicked");
+        ShowBottomFeature("TERMINAL");
         HideViewMenu();
         HideSettingMenu();
     }
@@ -539,24 +548,28 @@ public partial class CameraPage : ContentPage
                 if (_currentModel != null)
                 {
                     var list = new List<string>();
-                    for (int i = 0; i < _currentModel.Bones.Count; i++)
+                    _humanoidBoneIndices.Clear();
+                    foreach (var kv in _currentModel.HumanoidBones)
                     {
-                        var boneName = _currentModel.Bones[i].Name;
-                        list.Add(string.IsNullOrEmpty(boneName) ? $"Bone{i}" : boneName);
+                        list.Add(kv.Key);
+                        _humanoidBoneIndices.Add(kv.Value);
                     }
                     bv.SetBones(list);
-                    if (_currentModel.Bones.Count > 0)
+                    if (_humanoidBoneIndices.Count > 0)
                     {
-                        var euler = _currentModel.Bones[0].Rotation.ToEulerDegrees();
+                        var idx0 = _humanoidBoneIndices[0];
+                        var euler = _currentModel.Bones[idx0].Rotation.ToEulerDegrees();
                         bv.SetRotation(euler.ToOpenTK());
+                        _selectedBoneIndex = idx0;
                     }
                 }
                 bv.BoneSelected += idx =>
                 {
-                    _selectedBoneIndex = idx;
-                    if (_currentModel != null && idx >= 0 && idx < _currentModel.Bones.Count)
+                    if (idx >= 0 && idx < _humanoidBoneIndices.Count)
+                        _selectedBoneIndex = _humanoidBoneIndices[idx];
+                    if (_currentModel != null && _selectedBoneIndex >= 0 && _selectedBoneIndex < _currentModel.Bones.Count)
                     {
-                        var euler = _currentModel.Bones[idx].Rotation.ToEulerDegrees();
+                        var euler = _currentModel.Bones[_selectedBoneIndex].Rotation.ToEulerDegrees();
                         bv.SetRotation(euler.ToOpenTK());
                     }
                 };
@@ -564,6 +577,11 @@ public partial class CameraPage : ContentPage
                 bv.RotationYChanged += v => UpdateSelectedBoneRotation(bv);
                 bv.RotationZChanged += v => UpdateSelectedBoneRotation(bv);
                 view = bv;
+            }
+            else if (name == "TERMINAL")
+            {
+                var tv = new TerminalView();
+                view = tv;
             }
             else if (name == "MTOON")
             {
@@ -660,10 +678,11 @@ public partial class CameraPage : ContentPage
             if (_currentModel != null)
             {
                 var list = new List<string>();
-                for (int i = 0; i < _currentModel.Bones.Count; i++)
+                _humanoidBoneIndices.Clear();
+                foreach (var kv in _currentModel.HumanoidBones)
                 {
-                    var bname = _currentModel.Bones[i].Name;
-                    list.Add(string.IsNullOrEmpty(bname) ? $"Bone{i}" : bname);
+                    list.Add(kv.Key);
+                    _humanoidBoneIndices.Add(kv.Value);
                 }
                 bv.SetBones(list);
                 if (_selectedBoneIndex >= 0 && _selectedBoneIndex < _currentModel.Bones.Count)
@@ -678,6 +697,10 @@ public partial class CameraPage : ContentPage
             mv.ShadeShift = _shadeShift;
             mv.ShadeToony = _shadeToony;
             mv.RimIntensity = _rimIntensity;
+        }
+        else if (name == "TERMINAL" && _bottomViews[name] is TerminalView)
+        {
+            // nothing to update
         }
         SwitchBottomFeature(name);
         BottomRegion.IsVisible = true;
@@ -815,6 +838,11 @@ public partial class CameraPage : ContentPage
             var importer = new ModelImporter();
             var data = await Task.Run(() => importer.ImportModel(_selectedPath));
             _pendingModel = data;
+            LogService.WriteLine($"Imported VRM: {Path.GetFileName(_selectedPath!)}");
+            foreach (var bone in data.Bones)
+            {
+                LogService.WriteLine($"Bone: {bone.Name}");
+            }
             _renderer.ResetCamera();
             _glInitialized = false;
         }
