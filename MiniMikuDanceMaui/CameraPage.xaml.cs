@@ -44,6 +44,7 @@ public partial class CameraPage : ContentPage
     private string? _currentFeature;
     private string? _selectedPath;
     private string? _selectedVideoPath;
+    private string? _selectedPosePath;
 
     private readonly SimpleCubeRenderer _renderer = new();
     private bool _glInitialized;
@@ -378,6 +379,10 @@ public partial class CameraPage : ContentPage
             PoseSelectMessage.IsVisible ? AbsoluteLayout.AutoSize : 0));
         AbsoluteLayout.SetLayoutFlags(PoseSelectMessage,
             AbsoluteLayoutFlags.XProportional | AbsoluteLayoutFlags.WidthProportional);
+        AbsoluteLayout.SetLayoutBounds(AdaptSelectMessage, new Rect(0.5, TopMenuHeight + 20, 0.8,
+            AdaptSelectMessage.IsVisible ? AbsoluteLayout.AutoSize : 0));
+        AbsoluteLayout.SetLayoutFlags(AdaptSelectMessage,
+            AbsoluteLayoutFlags.XProportional | AbsoluteLayoutFlags.WidthProportional);
 
         AbsoluteLayout.SetLayoutBounds(LoadingIndicator, new Rect(0.5, 0.5, 40, 40));
         AbsoluteLayout.SetLayoutFlags(LoadingIndicator, AbsoluteLayoutFlags.PositionProportional);
@@ -555,6 +560,14 @@ public partial class CameraPage : ContentPage
                 ev.LoadDirectory(videoPath);
                 view = ev;
             }
+            else if (name == "Adapt")
+            {
+                var posePath = MmdFileSystem.Ensure("Poses");
+                var ev = new ExplorerView(posePath, new[] { ".json" });
+                ev.FileSelected += OnAdaptExplorerFileSelected;
+                ev.LoadDirectory(posePath);
+                view = ev;
+            }
             else if (name == "BONE")
             {
                 var bv = new BoneView();
@@ -727,6 +740,11 @@ public partial class CameraPage : ContentPage
             var videoPath = MmdFileSystem.Ensure("Movie");
             aev.LoadDirectory(videoPath);
         }
+        else if (name == "Adapt" && _bottomViews[name] is ExplorerView aev2)
+        {
+            var posePath = MmdFileSystem.Ensure("Poses");
+            aev2.LoadDirectory(posePath);
+        }
         else if (name == "MTOON" && _bottomViews[name] is MToonView mv)
         {
             mv.ShadeShift = _shadeShift;
@@ -858,45 +876,13 @@ public partial class CameraPage : ContentPage
         ShowPoseExplorer();
     }
 
-    private async void OnAdaptPoseClicked(object? sender, EventArgs e)
+    private void OnAdaptPoseClicked(object? sender, EventArgs e)
     {
         LogService.WriteLine("Adapt pose clicked");
         HideFileMenu();
         HideViewMenu();
         HideSettingMenu();
-
-        try
-        {
-            var result = await FilePicker.Default.PickAsync();
-            if (result != null)
-            {
-                using var stream = await result.OpenReadAsync();
-                using var reader = new StreamReader(stream);
-                var json = await reader.ReadToEndAsync();
-                var opts = new System.Text.Json.JsonSerializerOptions
-                {
-                    PropertyNameCaseInsensitive = true
-                };
-                opts.Converters.Add(new MiniMikuDance.Util.Vector3JsonConverter());
-                var joints = System.Text.Json.JsonSerializer.Deserialize<MiniMikuDance.PoseEstimation.JointData[]>(json, opts);
-                if (joints != null && App.Initializer.MotionGenerator != null && App.Initializer.MotionPlayer != null)
-                {
-                    var motion = App.Initializer.MotionGenerator.Generate(joints);
-                    App.Initializer.Motion = motion;
-                    AttachFramePlayedHandler();
-                    if (_bottomViews.TryGetValue("ANIMATION", out var view) && view is AnimationView av2)
-                    {
-                        av2.SetFrameCount(motion.Frames.Length);
-                        av2.UpdatePlayState(true);
-                    }
-                    App.Initializer.MotionPlayer.Play(motion);
-                }
-            }
-        }
-        catch (Exception ex)
-        {
-            await DisplayAlert("Error", ex.Message, "OK");
-        }
+        ShowAdaptExplorer();
     }
 
     private void ShowOpenExplorer()
@@ -984,6 +970,27 @@ public partial class CameraPage : ContentPage
         UpdateLayout();
     }
 
+    private void ShowAdaptExplorer()
+    {
+        LogService.WriteLine("Show adapt explorer");
+        ShowBottomFeature("Adapt");
+        AdaptSelectMessage.IsVisible = true;
+        SelectedPosePath.Text = string.Empty;
+        _selectedPosePath = null;
+        UpdateLayout();
+    }
+
+    private void OnAdaptExplorerFileSelected(object? sender, string path)
+    {
+        if (Path.GetExtension(path).ToLowerInvariant() != ".json")
+        {
+            return;
+        }
+        LogService.WriteLine($"Pose selected: {Path.GetFileName(path)}");
+        _selectedPosePath = path;
+        SelectedPosePath.Text = path;
+    }
+
     private void ShowPoseExplorer()
     {
         LogService.WriteLine("Show pose explorer");
@@ -1046,6 +1053,65 @@ public partial class CameraPage : ContentPage
         _selectedVideoPath = null;
         PoseSelectMessage.IsVisible = false;
         SelectedVideoPath.Text = string.Empty;
+        UpdateLayout();
+    }
+
+    private async void OnStartAdaptClicked(object? sender, EventArgs e)
+    {
+        LogService.WriteLine("Start adapt clicked");
+        if (string.IsNullOrEmpty(_selectedPosePath))
+        {
+            await DisplayAlert("Error", "ファイルが選択されていません", "OK");
+            return;
+        }
+
+        RemoveBottomFeature("Adapt");
+        AdaptSelectMessage.IsVisible = false;
+        LoadingIndicator.IsVisible = true;
+        UpdateLayout();
+
+        try
+        {
+            using var stream = File.OpenRead(_selectedPosePath);
+            using var reader = new StreamReader(stream);
+            var json = await reader.ReadToEndAsync();
+            var opts = new System.Text.Json.JsonSerializerOptions
+            {
+                PropertyNameCaseInsensitive = true
+            };
+            opts.Converters.Add(new MiniMikuDance.Util.Vector3JsonConverter());
+            var joints = System.Text.Json.JsonSerializer.Deserialize<MiniMikuDance.PoseEstimation.JointData[]>(json, opts);
+            if (joints != null && App.Initializer.MotionGenerator != null && App.Initializer.MotionPlayer != null)
+            {
+                var motion = App.Initializer.MotionGenerator.Generate(joints);
+                App.Initializer.Motion = motion;
+                AttachFramePlayedHandler();
+                if (_bottomViews.TryGetValue("ANIMATION", out var view) && view is AnimationView av2)
+                {
+                    av2.SetFrameCount(motion.Frames.Length);
+                    av2.UpdatePlayState(true);
+                }
+                App.Initializer.MotionPlayer.Play(motion);
+            }
+        }
+        catch (Exception ex)
+        {
+            await DisplayAlert("Error", ex.Message, "OK");
+        }
+        finally
+        {
+            LoadingIndicator.IsVisible = false;
+            UpdateLayout();
+            _selectedPosePath = null;
+        }
+    }
+
+    private void OnCancelAdaptClicked(object? sender, EventArgs e)
+    {
+        LogService.WriteLine("Adapt canceled");
+        _selectedPosePath = null;
+        AdaptSelectMessage.IsVisible = false;
+        SelectedPosePath.Text = string.Empty;
         UpdateLayout();
     }
 
