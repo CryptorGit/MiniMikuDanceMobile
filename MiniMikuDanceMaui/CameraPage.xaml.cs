@@ -837,6 +837,37 @@ public partial class CameraPage : ContentPage
         ShowOpenExplorer();
     }
 
+    private async void OnEstimatePoseClicked(object? sender, EventArgs e)
+    {
+        LogService.WriteLine("Estimate pose clicked");
+        HideFileMenu();
+        try
+        {
+            var result = await FilePicker.Default.PickAsync(new PickOptions
+            {
+                PickerTitle = "Select Video file",
+                FileTypes = new FilePickerFileType(new Dictionary<DevicePlatform, IEnumerable<string>>
+                {
+                    [DevicePlatform.Android] = new[] { "video/mp4", ".mp4" },
+                    [DevicePlatform.WinUI] = new[] { ".mp4" },
+                    [DevicePlatform.iOS] = new[] { ".mp4" }
+                })
+            });
+            if (result == null) return;
+
+            string? path = await App.Initializer.AnalyzeVideoAsync(result.FullPath);
+            if (!string.IsNullOrEmpty(path))
+            {
+                await DisplayAlert("Saved", $"{Path.GetFileName(path)} を保存しました", "OK");
+            }
+        }
+        catch (Exception ex)
+        {
+            LogService.WriteLine($"Estimate pose failed: {ex.Message}");
+            await DisplayAlert("Error", ex.Message, "OK");
+        }
+    }
+
     private void ShowOpenExplorer()
     {
         LogService.WriteLine("Show open explorer");

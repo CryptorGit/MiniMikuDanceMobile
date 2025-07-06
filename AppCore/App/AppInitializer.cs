@@ -27,6 +27,7 @@ public class AppInitializer
     public JointData[]? Joints { get; private set; }
     public MotionData? Motion { get; private set; }
     private string _poseModelPath = string.Empty;
+    private string _poseOutputDir = string.Empty;
 
     public void Initialize(UIConfig uiConfig, string? modelPath, string poseModelPath, string baseDir)
     {
@@ -35,6 +36,9 @@ public class AppInitializer
         _poseModelPath = poseModelPath;
         PoseEstimator = new PoseEstimator(poseModelPath);
         MotionGenerator = new MotionGenerator();
+
+        _poseOutputDir = Path.Combine(baseDir, "Poses");
+        Directory.CreateDirectory(_poseOutputDir);
 
         MotionPlayer = new MotionPlayer();
         Camera = new CameraController();
@@ -94,14 +98,18 @@ public class AppInitializer
         };
     }
 
-    public async Task AnalyzeVideoAsync(string videoPath)
+    public async Task<string?> AnalyzeVideoAsync(string videoPath)
     {
         if (PoseEstimator == null)
-            return;
+            return null;
         UIManager.Instance.SetMessage("Analyzing video...");
         Joints = await PoseEstimator.EstimateAsync(videoPath, p => UIManager.Instance.Progress = p);
+        string outPath = Path.Combine(_poseOutputDir,
+            Path.GetFileNameWithoutExtension(videoPath) + ".json");
+        JSONUtil.Save(outPath, Joints);
         UIManager.Instance.SetMessage("Analyze complete");
         UIManager.Instance.Progress = 0f;
+        return outPath;
     }
 
     public void GenerateMotion()

@@ -15,6 +15,7 @@ public partial class App : Application
     {
         InitializeComponent();
         MmdFileSystem.Ensure("Movie");
+        MmdFileSystem.Ensure("Poses");
 
         Directory.SetCurrentDirectory(MmdFileSystem.BaseDir);
         var uiConfig = DataManager.Instance.LoadConfig<UIConfig>("UIConfig");
