@@ -8,6 +8,10 @@
         <MenuBarItem Text="View">
             <MenuFlyoutItem Text="HOME" Clicked="OnHomeClicked" />
         </MenuBarItem>
+        <MenuBarItem Text="Page">
+            <MenuFlyoutItem Text="CAMERA" Clicked="OnPageCameraClicked" />
+            <MenuFlyoutItem Text="HOME" Clicked="OnPageHomeClicked" />
+        </MenuBarItem>
     </ContentPage.MenuBarItems>
     <Grid>
         <Label x:Name="StatusLabel" Text="" TextColor="White"
