@@ -28,6 +28,17 @@ public partial class CapturePage : ContentPage
             StatusLabel.Text = "Permission denied";
         }
 #endif
+        // カメラプレビューを表示
+        if (CameraPreview != null)
+        {
+            CameraPreview.Source = new HtmlWebViewSource
+            {
+                Html = @"<!DOCTYPE html><html><body style='margin:0;padding:0;overflow:hidden;background:black;'>" +
+                       "<video id='v' autoplay playsinline style='width:100%;height:100%;object-fit:cover;'></video>" +
+                       "<script>navigator.mediaDevices.getUserMedia({video:true}).then(s=>{document.getElementById('v').srcObject=s;})" +
+                       ".catch(e=>{document.body.innerText='Camera Error: '+e;});</script></body></html>"
+            };
+        }
     }
 
     private async void OnRecordClicked(object? sender, EventArgs e)

@@ -20,8 +20,21 @@
         </MenuBarItem>
         <MenuBarItem Text="Help" />
     </ContentPage.MenuBarItems>
-    <Grid RowDefinitions="Auto,*">
-        <HorizontalStackLayout x:Name="TopTabs" BackgroundColor="#2A2A2A"
+    <Grid RowDefinitions="Auto,Auto,*">
+        <!-- 上部メニュー -->
+        <HorizontalStackLayout x:Name="TopMenu" BackgroundColor="#2A2A2A"
+                               Spacing="20" Padding="10,0" HeightRequest="36">
+            <Label Text="File" TextColor="White"/>
+            <Label Text="Edit" TextColor="White"/>
+            <Label Text="Selection" TextColor="White"/>
+            <Label Text="View" TextColor="White"/>
+            <Label Text="Page" TextColor="White"/>
+            <Label Text="Setting" TextColor="White"/>
+            <Label Text="Help" TextColor="White"/>
+        </HorizontalStackLayout>
+
+        <!-- ページタブ -->
+        <HorizontalStackLayout x:Name="TopTabs" Grid.Row="1" BackgroundColor="#2A2A2A"
                                Spacing="20" Padding="10,0" HeightRequest="36">
             <Label Text="HOME" TextColor="White">
                 <Label.GestureRecognizers>
@@ -34,11 +47,18 @@
                 </Label.GestureRecognizers>
             </Label>
         </HorizontalStackLayout>
-        <Grid Grid.Row="1">
+
+        <!-- メインコンテンツ -->
+        <Grid Grid.Row="2">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="*" />
+                <RowDefinition Height="Auto" />
+            </Grid.RowDefinitions>
+            <WebView x:Name="CameraPreview" Grid.Row="0" />
             <Label x:Name="StatusLabel" Text="" TextColor="White"
                    HorizontalOptions="Center" VerticalOptions="Start"
                    Margin="0,20" />
-            <Frame Padding="6" CornerRadius="46" BackgroundColor="White"
+            <Frame Padding="6" CornerRadius="46" BackgroundColor="White" Grid.Row="1"
                    HorizontalOptions="Center" VerticalOptions="End"
                    Margin="0,0,0,40">
                 <Button x:Name="RecordButton" Clicked="OnRecordClicked"
