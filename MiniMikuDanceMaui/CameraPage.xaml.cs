@@ -119,6 +119,16 @@ public partial class CameraPage : ContentPage
         await Navigation.PopToRootAsync();
     }
 
+    private async void OnPageCameraClicked(object? sender, EventArgs e)
+    {
+        await Navigation.PushAsync(new CapturePage());
+    }
+
+    private async void OnPageHomeClicked(object? sender, EventArgs e)
+    {
+        await Navigation.PopToRootAsync();
+    }
+
     private void OnSettingClicked(object? sender, EventArgs e)
     {
         LogService.WriteLine("Setting clicked");
