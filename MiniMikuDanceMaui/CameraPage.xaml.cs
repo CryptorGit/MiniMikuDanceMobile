@@ -17,6 +17,8 @@ using System.Linq;
 using MiniMikuDance.Import;
 using OpenTK.Mathematics;
 using MiniMikuDance.Util;
+using MiniMikuDance.PoseEstimation;
+using MiniMikuDance.Motion;
 
 namespace MiniMikuDanceMaui;
 
@@ -46,6 +48,7 @@ public partial class CameraPage : ContentPage
     private ModelData? _pendingModel;
     private ModelData? _currentModel;
     private int _selectedBoneIndex = 0;
+    private Action<MiniMikuDance.PoseEstimation.JointData>? _framePlayedHandler;
     private readonly List<int> _humanoidBoneIndices = new();
     private readonly Dictionary<long, SKPoint> _touchPoints = new();
 
@@ -86,6 +89,11 @@ public partial class CameraPage : ContentPage
             setting.CameraLockChanged += locked =>
             {
                 _renderer.CameraLocked = locked;
+            };
+            setting.ResetCameraRequested += () =>
+            {
+                _renderer.ResetCamera();
+                Viewer?.InvalidateSurface();
             };
         }
     }
@@ -198,14 +206,6 @@ public partial class CameraPage : ContentPage
         await ShowModelSelector();
     }
 
-    private void OnPoseClicked(object? sender, EventArgs e)
-    {
-        LogService.WriteLine("POSE button clicked");
-        ShowBottomFeature("POSE");
-        HideViewMenu();
-        HideSettingMenu();
-    }
-
     private void OnBoneClicked(object? sender, EventArgs e)
     {
         LogService.WriteLine("BONE button clicked");
@@ -223,22 +223,6 @@ public partial class CameraPage : ContentPage
         HideSettingMenu();
     }
 
-    private void OnMotionClicked(object? sender, EventArgs e)
-    {
-        LogService.WriteLine("MOTION button clicked");
-        ShowBottomFeature("MOTION");
-        HideViewMenu();
-        HideSettingMenu();
-    }
-    
-    private void OnArClicked(object? sender, EventArgs e)
-    {
-        LogService.WriteLine("AR button clicked");
-        ShowBottomFeature("AR");
-        HideViewMenu();
-        HideSettingMenu();
-    }
-
     private async void OnCameraClicked(object? sender, EventArgs e)
     {
         LogService.WriteLine("CAMERA button clicked");
@@ -247,10 +231,10 @@ public partial class CameraPage : ContentPage
         HideSettingMenu();
     }
 
-    private void OnRecordClicked(object? sender, EventArgs e)
+    private void OnAnimationClicked(object? sender, EventArgs e)
     {
-        LogService.WriteLine("RECORD button clicked");
-        ShowBottomFeature("RECORD");
+        LogService.WriteLine("ANIMATION button clicked");
+        ShowBottomFeature("ANIMATION");
         HideViewMenu();
         HideSettingMenu();
     }
@@ -295,14 +279,6 @@ public partial class CameraPage : ContentPage
         LogService.WriteLine("Bottom region tapped");
     }
 
-    private void OnResetCamClicked(object? sender, EventArgs e)
-    {
-        _renderer.ResetCamera();
-        Viewer?.InvalidateSurface();
-        LogService.WriteLine("Camera reset");
-        HideViewMenu();
-        HideSettingMenu();
-    }
 
     private void OnExplorerClicked(object? sender, EventArgs e)
     {
@@ -623,6 +599,13 @@ public partial class CameraPage : ContentPage
                 var tv = new TerminalView();
                 view = tv;
             }
+            else if (name == "ANIMATION")
+            {
+                var av = new AnimationView();
+                av.PlayRequested += OnPlayAnimationRequested;
+                av.FrameChanged += OnAnimationFrameChanged;
+                view = av;
+            }
             else if (name == "MTOON")
             {
                 var mv = new MToonView
@@ -669,6 +652,11 @@ public partial class CameraPage : ContentPage
                 sv.CameraLockChanged += locked =>
                 {
                     _renderer.CameraLocked = locked;
+                };
+                sv.ResetCameraRequested += () =>
+                {
+                    _renderer.ResetCamera();
+                    Viewer?.InvalidateSurface();
                 };
                 view = sv;
             }
@@ -742,6 +730,10 @@ public partial class CameraPage : ContentPage
             mv.ShadeShift = _shadeShift;
             mv.ShadeToony = _shadeToony;
             mv.RimIntensity = _rimIntensity;
+        }
+        else if (name == "ANIMATION" && _bottomViews[name] is AnimationView av)
+        {
+            // nothing to update for now
         }
         else if (name == "CAMERA" && _bottomViews[name] is CameraView)
         {
@@ -862,6 +854,47 @@ public partial class CameraPage : ContentPage
         HideViewMenu();
         HideSettingMenu();
         ShowPoseExplorer();
+    }
+
+    private async void OnAdaptPoseClicked(object? sender, EventArgs e)
+    {
+        LogService.WriteLine("Adapt pose clicked");
+        HideFileMenu();
+        HideViewMenu();
+        HideSettingMenu();
+
+        try
+        {
+            var result = await FilePicker.Default.PickAsync();
+            if (result != null)
+            {
+                using var stream = await result.OpenReadAsync();
+                using var reader = new StreamReader(stream);
+                var json = await reader.ReadToEndAsync();
+                var opts = new System.Text.Json.JsonSerializerOptions
+                {
+                    PropertyNameCaseInsensitive = true
+                };
+                opts.Converters.Add(new MiniMikuDance.Util.Vector3JsonConverter());
+                var joints = System.Text.Json.JsonSerializer.Deserialize<MiniMikuDance.PoseEstimation.JointData[]>(json, opts);
+                if (joints != null && App.Initializer.MotionGenerator != null && App.Initializer.MotionPlayer != null)
+                {
+                    var motion = App.Initializer.MotionGenerator.Generate(joints);
+                    App.Initializer.Motion = motion;
+                    AttachFramePlayedHandler();
+                    if (_bottomViews.TryGetValue("ANIMATION", out var view) && view is AnimationView av2)
+                    {
+                        av2.SetFrameCount(motion.Frames.Length);
+                        av2.UpdatePlayState(true);
+                    }
+                    App.Initializer.MotionPlayer.Play(motion);
+                }
+            }
+        }
+        catch (Exception ex)
+        {
+            await DisplayAlert("Error", ex.Message, "OK");
+        }
     }
 
     private void ShowOpenExplorer()
@@ -1023,5 +1056,63 @@ public partial class CameraPage : ContentPage
         var eulerTk = new OpenTK.Mathematics.Vector3(bv.RotationX, bv.RotationY, bv.RotationZ);
         _renderer.SetBoneRotation(_selectedBoneIndex, eulerTk);
         Viewer?.InvalidateSurface();
+    }
+
+    private void OnPlayAnimationRequested()
+    {
+        var player = App.Initializer.MotionPlayer;
+        var motion = App.Initializer.Motion;
+        if (player == null || motion == null)
+            return;
+
+        if (player.IsPlaying)
+        {
+            player.Pause();
+            if (_bottomViews.TryGetValue("ANIMATION", out var v) && v is AnimationView av)
+                av.UpdatePlayState(false);
+        }
+        else
+        {
+            if (player.FrameIndex >= motion.Frames.Length)
+                player.Restart();
+            else if (player.FrameIndex == 0)
+                player.Play(motion);
+            else
+                player.Resume();
+
+            if (_bottomViews.TryGetValue("ANIMATION", out var v) && v is AnimationView av)
+                av.UpdatePlayState(true);
+        }
+    }
+
+    private void OnAnimationFrameChanged(int frame)
+    {
+        var player = App.Initializer.MotionPlayer;
+        if (player == null)
+            return;
+        player.Seek(frame);
+        if (_bottomViews.TryGetValue("ANIMATION", out var v) && v is AnimationView av)
+            av.SetFrameIndex(player.FrameIndex);
+    }
+
+    private void AttachFramePlayedHandler()
+    {
+        var player = App.Initializer.MotionPlayer;
+        if (player == null)
+            return;
+        if (_framePlayedHandler != null)
+            player.OnFramePlayed -= _framePlayedHandler;
+
+        _framePlayedHandler = _ =>
+        {
+            if (_bottomViews.TryGetValue("ANIMATION", out var v) && v is AnimationView av)
+            {
+                av.SetFrameIndex(player.FrameIndex);
+                if (!player.IsPlaying)
+                    av.UpdatePlayState(false);
+            }
+        };
+
+        player.OnFramePlayed += _framePlayedHandler;
     }
 }

@@ -9,6 +9,7 @@ public partial class SettingView : ContentView
     public event Action<double>? RotateSensitivityChanged;
     public event Action<double>? PanSensitivityChanged;
     public event Action<bool>? CameraLockChanged;
+    public event Action? ResetCameraRequested;
 
     public SettingView()
     {
@@ -37,6 +38,11 @@ public partial class SettingView : ContentView
     {
         LogService.WriteLine($"Camera lock: {e.Value}");
         CameraLockChanged?.Invoke(e.Value);
+    }
+
+    private void OnResetCameraClicked(object? sender, EventArgs e)
+    {
+        ResetCameraRequested?.Invoke();
     }
 
     public double HeightRatio

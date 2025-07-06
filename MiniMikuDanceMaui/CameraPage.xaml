@@ -52,11 +52,6 @@
                         <TapGestureRecognizer Tapped="OnExplorerClicked" />
                     </Label.GestureRecognizers>
                 </Label>
-                <Label Text="POSE" TextColor="White">
-                    <Label.GestureRecognizers>
-                        <TapGestureRecognizer Tapped="OnPoseClicked" />
-                    </Label.GestureRecognizers>
-                </Label>
                 <Label Text="BONE" TextColor="White">
                     <Label.GestureRecognizers>
                         <TapGestureRecognizer Tapped="OnBoneClicked" />
@@ -67,14 +62,9 @@
                         <TapGestureRecognizer Tapped="OnMToonClicked" />
                     </Label.GestureRecognizers>
                 </Label>
-                <Label Text="MOTION" TextColor="White">
+                <Label Text="ANIMATION" TextColor="White">
                     <Label.GestureRecognizers>
-                        <TapGestureRecognizer Tapped="OnMotionClicked" />
-                    </Label.GestureRecognizers>
-                </Label>
-                <Label Text="AR" TextColor="White">
-                    <Label.GestureRecognizers>
-                        <TapGestureRecognizer Tapped="OnArClicked" />
+                        <TapGestureRecognizer Tapped="OnAnimationClicked" />
                     </Label.GestureRecognizers>
                 </Label>
                 <Label Text="CAMERA" TextColor="White">
@@ -82,19 +72,9 @@
                         <TapGestureRecognizer Tapped="OnCameraClicked" />
                     </Label.GestureRecognizers>
                 </Label>
-                <Label Text="RECORD" TextColor="White">
-                    <Label.GestureRecognizers>
-                        <TapGestureRecognizer Tapped="OnRecordClicked" />
-                    </Label.GestureRecognizers>
-                </Label>
                 <Label Text="TERMINAL" TextColor="White">
                     <Label.GestureRecognizers>
                         <TapGestureRecognizer Tapped="OnTerminalClicked" />
-                    </Label.GestureRecognizers>
-                </Label>
-                <Label Text="RESET CAMERA" TextColor="White">
-                    <Label.GestureRecognizers>
-                        <TapGestureRecognizer Tapped="OnResetCamClicked" />
                     </Label.GestureRecognizers>
                 </Label>
             </VerticalStackLayout>
@@ -109,6 +89,11 @@
                 <Label Text="Estimate Pose" TextColor="White">
                     <Label.GestureRecognizers>
                         <TapGestureRecognizer Tapped="OnEstimatePoseClicked" />
+                    </Label.GestureRecognizers>
+                </Label>
+                <Label Text="Adapt Pose" TextColor="White">
+                    <Label.GestureRecognizers>
+                        <TapGestureRecognizer Tapped="OnAdaptPoseClicked" />
                     </Label.GestureRecognizers>
                 </Label>
             </VerticalStackLayout>
