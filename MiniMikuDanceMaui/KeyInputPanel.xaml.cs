@@ -33,6 +33,8 @@ public partial class KeyInputPanel : ContentView
     public void SetFrame(int frame)
         => FrameEntry.Text = frame.ToString();
 
+    // VisualElement には Frame と Rotation というプロパティが定義されているため
+    // 競合を避ける目的で FrameNumber/EulerRotation の名称を採用している
     public int FrameNumber => int.TryParse(FrameEntry.Text, out var f) ? f : 0;
     public string SelectedBone => BonePicker.SelectedItem as string ?? string.Empty;
     public int SelectedBoneIndex => BonePicker.SelectedIndex;
