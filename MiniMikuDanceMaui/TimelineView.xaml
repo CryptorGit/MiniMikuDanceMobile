@@ -9,11 +9,11 @@
     <Grid RowDefinitions="Auto,*" ColumnDefinitions="100,*" ColumnSpacing="6" RowSpacing="6" Padding="10">
         <HorizontalStackLayout Grid.Row="0" Grid.ColumnSpan="2" Spacing="10">
             <ImageButton x:Name="PlayButton"
-                         mi:MauiIcon.Value="{mi:Material Icon=PlayArrow}"
+                         mi:MauiIcon.Value="{mi:MaterialOutlined Icon=PlayArrow}"
                          Clicked="OnPlayClicked"
                          WidthRequest="36" HeightRequest="36" />
             <ImageButton x:Name="AddKeyButton"
-                         mi:MauiIcon.Value="{mi:Material Icon=Add}"
+                         mi:MauiIcon.Value="{mi:MaterialOutlined Icon=Add}"
                          Clicked="OnAddKeyClicked"
                          WidthRequest="36" HeightRequest="36" />
             <Slider x:Name="TimelineSlider" Minimum="0" Maximum="0" ValueChanged="OnSliderChanged"
