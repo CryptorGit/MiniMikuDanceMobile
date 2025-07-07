@@ -17,6 +17,7 @@ public event Action? AddKeyRequested;
     private readonly List<HashSet<int>> _keyFrames = new();
     private readonly List<string> _bones = new();
     private int _currentFrame;
+    private bool _suppressScroll;
 
     public TimelineView()
     {
@@ -78,7 +79,14 @@ public event Action? AddKeyRequested;
         int row = 0;
         foreach (var name in bones)
         {
-            BoneList.Children.Add(new Label { Text = name, TextColor = Colors.White, FontSize = 12 });
+            BoneList.Children.Add(new Label
+            {
+                Text = name,
+                TextColor = Colors.White,
+                FontSize = 12,
+                HeightRequest = 24,
+                Margin = new Thickness(0, 0, 0, 4)
+            });
             TimelineGrid.RowDefinitions.Add(new RowDefinition { Height = 24 });
             _keyFrames.Add(new HashSet<int>());
             _bones.Add(name);
@@ -222,5 +230,25 @@ public event Action? AddKeyRequested;
                 }
             }
         }
+    }
+
+    private void OnBoneListScrolled(object? sender, ScrolledEventArgs e)
+    {
+        if (_suppressScroll)
+            return;
+
+        _suppressScroll = true;
+        TimelineScrollView.ScrollToAsync(TimelineScrollView.ScrollX, e.ScrollY, false);
+        _suppressScroll = false;
+    }
+
+    private void OnTimelineScrolled(object? sender, ScrolledEventArgs e)
+    {
+        if (_suppressScroll)
+            return;
+
+        _suppressScroll = true;
+        BoneListScrollView.ScrollToAsync(0, e.ScrollY, false);
+        _suppressScroll = false;
     }
 }

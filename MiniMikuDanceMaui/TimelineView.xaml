@@ -24,10 +24,10 @@
                 <Button x:Name="AddToneButton" Text="＋" Clicked="OnAddToneClicked" />
                 <Slider x:Name="TimelineSlider" Minimum="0" Maximum="0" ValueChanged="OnSliderChanged" HorizontalOptions="FillAndExpand" />
             </HorizontalStackLayout>
-            <ScrollView Grid.Row="1" Grid.Column="0" Orientation="Vertical">
+            <ScrollView x:Name="BoneListScrollView" Grid.Row="1" Grid.Column="0" Orientation="Vertical" Scrolled="OnBoneListScrolled">
                 <VerticalStackLayout x:Name="BoneList" Spacing="4" />
             </ScrollView>
-            <ScrollView Grid.Row="1" Grid.Column="1" Orientation="Both">
+            <ScrollView x:Name="TimelineScrollView" Grid.Row="1" Grid.Column="1" Orientation="Both" Scrolled="OnTimelineScrolled">
                 <Grid x:Name="TimelinePanel">
                     <Grid.RowDefinitions>
                         <RowDefinition Height="20" />
