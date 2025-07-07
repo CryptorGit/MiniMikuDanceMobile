@@ -33,12 +33,12 @@ public partial class KeyInputPanel : ContentView
     public void SetFrame(int frame)
         => FrameEntry.Text = frame.ToString();
 
-    public int Frame => int.TryParse(FrameEntry.Text, out var f) ? f : 0;
+    public int FrameNumber => int.TryParse(FrameEntry.Text, out var f) ? f : 0;
     public string SelectedBone => BonePicker.SelectedItem as string ?? string.Empty;
     public int SelectedBoneIndex => BonePicker.SelectedIndex;
 
     public Vector3 Translation => new((float)PosXSlider.Value, (float)PosYSlider.Value, (float)PosZSlider.Value);
-    public Vector3 Rotation => new((float)RotXSlider.Value, (float)RotYSlider.Value, (float)RotZSlider.Value);
+    public Vector3 EulerRotation => new((float)RotXSlider.Value, (float)RotYSlider.Value, (float)RotZSlider.Value);
 
     public void SetTranslation(Vector3 t)
     {
@@ -53,7 +53,7 @@ public partial class KeyInputPanel : ContentView
     }
 
     private void OnConfirmClicked(object? sender, EventArgs e)
-        => Confirmed?.Invoke(SelectedBone, Frame, Translation, Rotation);
+        => Confirmed?.Invoke(SelectedBone, FrameNumber, Translation, EulerRotation);
 
     private void OnCancelClicked(object? sender, EventArgs e)
         => Canceled?.Invoke();

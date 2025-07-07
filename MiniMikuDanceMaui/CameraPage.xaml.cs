@@ -1245,7 +1245,7 @@ public partial class CameraPage : ContentPage
 
     private void OnKeyBoneChanged(int index)
     {
-        int frame = KeyPanel.Frame;
+        int frame = KeyPanel.FrameNumber;
         if (_currentModel == null) return;
         if (_timelineKeyframes.TryGetValue(frame, out var pose))
         {

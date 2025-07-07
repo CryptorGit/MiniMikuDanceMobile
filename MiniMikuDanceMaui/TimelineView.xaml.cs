@@ -98,12 +98,6 @@ public partial class TimelineView : ContentView
         _drawable.AddKeyFrame(bone, frame);
         Editor?.AddKeyFrame(bone, frame);
         KeyFrameAdded?.Invoke(bone, frame);
-        TimelineCanvas.Invalidate();
-        var rect = _drawable.AddKeyFrame(bone, frame);
-        if (rect != RectF.Zero)
-            TimelineCanvas.Invalidate(rect);
-        else
-            TimelineCanvas.Invalidate();
         SetFrameIndex(frame);
     }
 
@@ -112,12 +106,7 @@ public partial class TimelineView : ContentView
         _drawable.RemoveKeyFrame(bone, frame);
         Editor?.RemoveKeyFrame(bone, frame);
         KeyFrameRemoved?.Invoke(bone, frame);
-        TimelineCanvas.Invalidate();
-        var rect = _drawable.RemoveKeyFrame(bone, frame);
-        if (rect != RectF.Zero)
-            TimelineCanvas.Invalidate(rect);
-        else
-            TimelineCanvas.Invalidate();
+        SetFrameIndex(frame);
     }
 
     private void BuildTimeline()
@@ -226,11 +215,6 @@ public partial class TimelineView : ContentView
         {
             AddKeyFrame(bone, col);
         }
-        if (rect != RectF.Zero)
-            TimelineCanvas.Invalidate(rect);
-        else
-            TimelineCanvas.Invalidate();
-        SetFrameIndex(col);
     }
 }
 
