@@ -10,8 +10,12 @@
             <Button Text="Reset" Clicked="OnResetClicked" />
         </HorizontalStackLayout>
         <HorizontalStackLayout Spacing="10" VerticalOptions="Center">
-            <Label Text="Range" TextColor="White" VerticalOptions="Center" />
-            <Picker x:Name="RangePicker" SelectedIndexChanged="OnRangeChanged" />
+            <Label Text="Rotate Range" TextColor="White" VerticalOptions="Center" />
+            <Picker x:Name="RotateRangePicker" SelectedIndexChanged="OnRotateRangeChanged" />
+        </HorizontalStackLayout>
+        <HorizontalStackLayout Spacing="10" VerticalOptions="Center">
+            <Label Text="Position Range" TextColor="White" VerticalOptions="Center" />
+            <Picker x:Name="PositionRangePicker" SelectedIndexChanged="OnPositionRangeChanged" />
         </HorizontalStackLayout>
         <HorizontalStackLayout Spacing="10">
             <Label Text="Rotate X" TextColor="White"/>
@@ -28,11 +32,20 @@
             <Label x:Name="LabelZ" Text="0" TextColor="White" />
         </HorizontalStackLayout>
         <Slider x:Name="SliderZ" Minimum="-180" Maximum="180" ValueChanged="OnZChanged"/>
-        <Label Text="Translate X" TextColor="White"/>
+        <HorizontalStackLayout Spacing="10">
+            <Label Text="Position X" TextColor="White"/>
+            <Label x:Name="LabelTX" Text="0" TextColor="White" />
+        </HorizontalStackLayout>
         <Slider x:Name="SliderTX" Minimum="-1" Maximum="1" ValueChanged="OnTXChanged"/>
-        <Label Text="Translate Y" TextColor="White"/>
+        <HorizontalStackLayout Spacing="10">
+            <Label Text="Position Y" TextColor="White"/>
+            <Label x:Name="LabelTY" Text="0" TextColor="White" />
+        </HorizontalStackLayout>
         <Slider x:Name="SliderTY" Minimum="-1" Maximum="1" ValueChanged="OnTYChanged"/>
-        <Label Text="Translate Z" TextColor="White"/>
+        <HorizontalStackLayout Spacing="10">
+            <Label Text="Position Z" TextColor="White"/>
+            <Label x:Name="LabelTZ" Text="0" TextColor="White" />
+        </HorizontalStackLayout>
         <Slider x:Name="SliderTZ" Minimum="-1" Maximum="1" ValueChanged="OnTZChanged"/>
     </VerticalStackLayout>
     </ScrollView>

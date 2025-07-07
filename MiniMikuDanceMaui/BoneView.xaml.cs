@@ -16,18 +16,24 @@ public partial class BoneView : ContentView
     public event Action<float>? TranslationYChanged;
     public event Action<float>? TranslationZChanged;
     public event Action? ResetRequested;
-    public event Action<int>? RangeChanged;
+    public event Action<int>? RotateRangeChanged;
+    public event Action<int>? PositionRangeChanged;
 
     private int _range = 180;
 
     public BoneView()
     {
         InitializeComponent();
-        RangePicker.ItemsSource = new List<int> { 30, 45, 90, 180, 360 };
-        RangePicker.SelectedItem = _range;
+        RotateRangePicker.ItemsSource = new List<int> { 30, 45, 90, 180, 360 };
+        RotateRangePicker.SelectedItem = _range;
+        PositionRangePicker.ItemsSource = new List<int> { 1, 2, 5, 10 };
+        PositionRangePicker.SelectedItem = 1;
         LabelX.Text = "0";
         LabelY.Text = "0";
         LabelZ.Text = "0";
+        LabelTX.Text = "0";
+        LabelTY.Text = "0";
+        LabelTZ.Text = "0";
     }
 
     public void SetBones(IEnumerable<string> bones)
@@ -52,6 +58,9 @@ public partial class BoneView : ContentView
         TranslationX = t.X;
         TranslationY = t.Y;
         TranslationZ = t.Z;
+        LabelTX.Text = $"{t.X:F2}";
+        LabelTY.Text = $"{t.Y:F2}";
+        LabelTZ.Text = $"{t.Z:F2}";
     }
 
     private void OnBoneSelected(object? sender, EventArgs e)
@@ -79,22 +88,45 @@ public partial class BoneView : ContentView
     }
 
     private void OnTXChanged(object? sender, ValueChangedEventArgs e)
-        => TranslationXChanged?.Invoke((float)e.NewValue);
+    {
+        LabelTX.Text = $"{e.NewValue:F2}";
+        TranslationXChanged?.Invoke((float)e.NewValue);
+    }
 
     private void OnTYChanged(object? sender, ValueChangedEventArgs e)
-        => TranslationYChanged?.Invoke((float)e.NewValue);
+    {
+        LabelTY.Text = $"{e.NewValue:F2}";
+        TranslationYChanged?.Invoke((float)e.NewValue);
+    }
 
     private void OnTZChanged(object? sender, ValueChangedEventArgs e)
-        => TranslationZChanged?.Invoke((float)e.NewValue);
+    {
+        LabelTZ.Text = $"{e.NewValue:F2}";
+        TranslationZChanged?.Invoke((float)e.NewValue);
+    }
 
     private void OnResetClicked(object? sender, EventArgs e) => ResetRequested?.Invoke();
 
-    private void OnRangeChanged(object? sender, EventArgs e)
+    private void OnRotateRangeChanged(object? sender, EventArgs e)
     {
-        if (RangePicker.SelectedItem is int value)
+        if (RotateRangePicker.SelectedItem is int value)
         {
             _range = value;
-            RangeChanged?.Invoke(value);
+            RotateRangeChanged?.Invoke(value);
+        }
+    }
+
+    private void OnPositionRangeChanged(object? sender, EventArgs e)
+    {
+        if (PositionRangePicker.SelectedItem is int value)
+        {
+            SliderTX.Minimum = -value;
+            SliderTX.Maximum = value;
+            SliderTY.Minimum = -value;
+            SliderTY.Maximum = value;
+            SliderTZ.Minimum = -value;
+            SliderTZ.Maximum = value;
+            PositionRangeChanged?.Invoke(value);
         }
     }
 
@@ -142,5 +174,15 @@ public partial class BoneView : ContentView
         SliderY.Maximum = max;
         SliderZ.Minimum = min;
         SliderZ.Maximum = max;
+    }
+
+    public void SetTranslationRange(int min, int max)
+    {
+        SliderTX.Minimum = min;
+        SliderTX.Maximum = max;
+        SliderTY.Minimum = min;
+        SliderTY.Maximum = max;
+        SliderTZ.Minimum = min;
+        SliderTZ.Maximum = max;
     }
 }
