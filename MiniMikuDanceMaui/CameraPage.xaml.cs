@@ -656,7 +656,6 @@ public partial class CameraPage : ContentPage
                 av.PlayRequested += OnPlayAnimationRequested;
                 av.FrameChanged += OnAnimationFrameChanged;
                 av.AddKeyRequested += OnAddKeyRequested;
-                av.SetKeyInputPanelVisible(false);
                 if (_currentModel != null)
                 {
                     var list = _currentModel.HumanoidBoneList.Select(h => h.Name).ToList();
@@ -798,7 +797,6 @@ public partial class CameraPage : ContentPage
         }
         else if (name == "TIMELINE" && _bottomViews[name] is TimelineView av)
         {
-            av.SetKeyInputPanelVisible(true);
             if (_currentModel != null)
             {
                 var list = _currentModel.HumanoidBoneList.Select(h => h.Name).ToList();
@@ -825,10 +823,7 @@ public partial class CameraPage : ContentPage
             BottomContent.Content = view;
             _currentFeature = name;
             UpdateTabColors();
-            if (_bottomViews.TryGetValue("TIMELINE", out var tl) && tl is TimelineView tv)
-            {
-                tv.SetKeyInputPanelVisible(name == "TIMELINE");
-            }
+            // no special handling needed when switching features
         }
     }
 
@@ -1173,9 +1168,31 @@ public partial class CameraPage : ContentPage
     {
         if (_bottomViews.TryGetValue("TIMELINE", out var v) && v is TimelineView tv)
         {
-            var bone = ToneBonePicker.SelectedItem as string ?? string.Empty;
-            if (int.TryParse(ToneFrameEntry.Text, out var frame))
-                tv.AddKeyFrame(bone, frame);
+            var bone = ToneBonePicker.SelectedItem as string ?? BoneEntry.Text ?? string.Empty;
+            int frame = 0;
+            if (!int.TryParse(ToneFrameEntry.Text, out frame))
+                int.TryParse(FrameEntry.Text, out frame);
+            tv.AddKeyFrame(bone, frame);
+
+            if (_currentModel != null)
+            {
+                int index = _currentModel.HumanoidBoneList.FindIndex(h => h.Name == bone);
+                if (index >= 0)
+                {
+                    if (float.TryParse(PosXEntry.Text, out var px) &&
+                        float.TryParse(PosYEntry.Text, out var py) &&
+                        float.TryParse(PosZEntry.Text, out var pz))
+                        _renderer.SetBoneTranslation(index, new Vector3(px, py, pz));
+
+                    if (float.TryParse(RotXEntry.Text, out var rx) &&
+                        float.TryParse(RotYEntry.Text, out var ry) &&
+                        float.TryParse(RotZEntry.Text, out var rz))
+                        _renderer.SetBoneRotation(index, new Vector3(rx, ry, rz));
+
+                    SavePoseState();
+                    Viewer?.InvalidateSurface();
+                }
+            }
         }
         ToneAddPanel.IsVisible = false;
         UpdateLayout();

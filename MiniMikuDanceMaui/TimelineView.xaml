@@ -13,25 +13,7 @@
             </Grid.ColumnDefinitions>
             <!-- 3D viewer with floor grid -->
             <skia:SKGLView x:Name="PreviewViewer" Grid.Column="0" />
-            <!-- Keyframe edit panel -->
-            <VerticalStackLayout x:Name="KeyInputPanel" Grid.Column="1" Spacing="6" Padding="10" IsVisible="False">
-                <Entry x:Name="BoneEntry" Placeholder="Bone" />
-                <HorizontalStackLayout Spacing="4">
-                    <Button x:Name="FrameBackButton" Text="-5" />
-                    <Entry x:Name="FrameEntry" WidthRequest="60" Keyboard="Numeric" />
-                    <Button x:Name="FrameForwardButton" Text="+5" />
-                </HorizontalStackLayout>
-                <Entry x:Name="PosXEntry" Placeholder="Pos X" Keyboard="Numeric" />
-                <Entry x:Name="PosYEntry" Placeholder="Pos Y" Keyboard="Numeric" />
-                <Entry x:Name="PosZEntry" Placeholder="Pos Z" Keyboard="Numeric" />
-                <Entry x:Name="RotXEntry" Placeholder="Rot X" Keyboard="Numeric" />
-                <Entry x:Name="RotYEntry" Placeholder="Rot Y" Keyboard="Numeric" />
-                <Entry x:Name="RotZEntry" Placeholder="Rot Z" Keyboard="Numeric" />
-                <HorizontalStackLayout Spacing="10" HorizontalOptions="End">
-                    <Button x:Name="ConfirmButton" Text="確定" />
-                    <Button x:Name="CancelButton" Text="キャンセル" />
-                </HorizontalStackLayout>
-            </VerticalStackLayout>
+            
         </Grid>
         <!-- Bottom region: timeline UI -->
         <Grid Grid.Row="1" RowDefinitions="Auto,*" ColumnDefinitions="100,*" ColumnSpacing="6" RowSpacing="6" Padding="10">

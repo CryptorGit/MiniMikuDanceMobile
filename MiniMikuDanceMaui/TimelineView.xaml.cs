@@ -67,10 +67,6 @@ public event Action? AddKeyRequested;
         PlayButton.Text = playing ? "⏸" : "▶";
     }
 
-    public void SetKeyInputPanelVisible(bool visible)
-    {
-        KeyInputPanel.IsVisible = visible;
-    }
 
     public void SetBones(IEnumerable<string> bones)
     {
@@ -223,10 +219,6 @@ public event Action? AddKeyRequested;
                         _keyFrames[r].Add(c);
 
                     SetFrameIndex(c);
-                    if (_bones.Count > r)
-                        BoneEntry.Text = _bones[r];
-                    FrameEntry.Text = c.ToString();
-                    SetKeyInputPanelVisible(true);
                 }
             }
         }
