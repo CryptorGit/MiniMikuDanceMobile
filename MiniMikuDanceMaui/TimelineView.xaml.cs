@@ -5,6 +5,9 @@ using System.Linq;
 using Microsoft.Maui.Graphics;
 using MauiIcons.Core;
 using MauiIcons.Material.Outlined;
+using SkiaSharp;
+using SkiaSharp.Views.Maui;
+using SkiaSharp.Views.Maui.Controls;
 
 namespace MiniMikuDanceMaui;
 
@@ -18,7 +21,7 @@ public partial class TimelineView : ContentView
     private const int DefaultFrameColumns = 20;
     private int _frameCount = DefaultFrameColumns;
     private const int RowHeight = 24;
-    public const int RowSpacing = 4;
+    public const double RowSpacing = 4.0;
     private int _currentFrame;
     private bool _suppressScroll;
     private bool _initialized;
@@ -137,18 +140,6 @@ public partial class TimelineView : ContentView
         TimelineCanvas.Invalidate();
     }
 
-    private void OnTimelineStartInteraction(object? sender, TouchEventArgs e)
-    {
-        var p = e.Touches[0];
-        int frame = (int)((p.X + TimelineScrollView.ScrollX) / 20);
-        SetFrameIndex(frame);
-    }
-
-    private void OnTimelineEndInteraction(object? sender, TouchEventArgs e)
-    {
-    }
-
-
     private async void OnBoneListScrolled(object? sender, ScrolledEventArgs e)
     {
         if (_suppressScroll)
@@ -214,7 +205,7 @@ public void Draw(ICanvas canvas, RectF dirtyRect)
     {
         const float cellWidth = 20f;
         const float rowHeight = 24f;
-        const float rowSpacing = TimelineView.RowSpacing;
+        const float rowSpacing = (float)TimelineView.RowSpacing;
 
         canvas.Translate(-ScrollX, -ScrollY);
 
@@ -270,6 +261,50 @@ public void Draw(ICanvas canvas, RectF dirtyRect)
             canvas.StrokeSize = 2;
             canvas.DrawLine(x, 0, x, _bones.Count * (rowHeight + rowSpacing));
         }
+    }
+
+    private void OnTimelineCanvasPaint(object? sender, SKPaintSurfaceEventArgs e)
+    {
+        var canvas = e.Surface.Canvas;
+        canvas.Clear();
+
+        float cellWidth = 20;
+        float cellHeight = RowHeight + RowSpacing;
+        for (int r = 0; r < _keyFrames.Count; r++)
+        {
+            for (int c = 0; c < _frameCount; c++)
+            {
+                float x = c * cellWidth;
+                float y = r * cellHeight;
+                canvas.DrawRect(x, y, cellWidth, RowHeight, _gridPaint);
+                if (_keyFrames[r].Contains(c))
+                {
+                    canvas.DrawText("◆", x + cellWidth / 2, y + RowHeight / 2, _keyPaint);
+                }
+            }
+        }
+    }
+
+    private void OnCanvasTouch(object? sender, SKTouchEventArgs e)
+    {
+        if (e.ActionType != SKTouchAction.Released)
+            return;
+
+        float cellWidth = 20;
+        float cellHeight = RowHeight + RowSpacing;
+        int column = (int)(e.Location.X / cellWidth);
+        int row = (int)(e.Location.Y / cellHeight);
+        if (row >= 0 && row < _keyFrames.Count && column >= 0 && column < _frameCount)
+        {
+            if (_keyFrames[row].Contains(column))
+                _keyFrames[row].Remove(column);
+            else
+                _keyFrames[row].Add(column);
+
+            SetFrameIndex(column);
+            TimelineCanvas.InvalidateSurface();
+        }
+        e.Handled = true;
     }
 }
 
