@@ -5,6 +5,7 @@ using SkiaSharp.Views.Maui.Controls.Hosting;
 using System.Diagnostics;
 using System;
 using System.IO;
+using MauiIcons.Material.Outlined;
 
 namespace MiniMikuDanceMaui;
 
@@ -19,6 +20,7 @@ public static class MauiProgram
         builder
             // ← 型パラメータで自分の App クラスを渡す
             .UseMauiApp<App>()
+            .UseMaterialOutlinedMauiIcons()
             .UseSkiaSharp()
             .ConfigureFonts(fonts =>
             {
