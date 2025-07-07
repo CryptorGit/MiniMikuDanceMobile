@@ -6,7 +6,7 @@ using Microsoft.Maui.Graphics;
 
 namespace MiniMikuDanceMaui;
 
-public partial class AnimationView : ContentView
+public partial class TimelineView : ContentView
 {
     public event Action? PlayRequested;
     public event Action<int>? FrameChanged;
@@ -15,7 +15,7 @@ public partial class AnimationView : ContentView
     private int _frameCount = DefaultFrameColumns;
     private readonly List<HashSet<int>> _keyFrames = new();
 
-    public AnimationView()
+    public TimelineView()
     {
         InitializeComponent();
     }
