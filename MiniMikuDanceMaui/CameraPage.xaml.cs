@@ -54,6 +54,7 @@ public partial class CameraPage : ContentPage
     private Action<MiniMikuDance.PoseEstimation.JointData>? _framePlayedHandler;
     private readonly List<int> _humanoidBoneIndices = new();
     private readonly Dictionary<long, SKPoint> _touchPoints = new();
+    private MotionEditor? _motionEditor;
 
     private class PoseState
     {
@@ -677,6 +678,7 @@ public partial class CameraPage : ContentPage
                 av.PlayRequested += OnPlayAnimationRequested;
                 av.FrameChanged += OnAnimationFrameChanged;
                 av.AddKeyRequested += OnAddKeyRequested;
+                av.Editor = _motionEditor;
                 if (_currentModel != null)
                 {
                     var list = _currentModel.HumanoidBoneList.Select(h => h.Name).ToList();
@@ -823,6 +825,7 @@ public partial class CameraPage : ContentPage
                 var list = _currentModel.HumanoidBoneList.Select(h => h.Name).ToList();
                 av.SetBones(list);
             }
+            av.Editor = _motionEditor;
         }
         else if (name == "CAMERA" && _bottomViews[name] is CameraView)
         {
@@ -1166,8 +1169,11 @@ public partial class CameraPage : ContentPage
             {
                 var motion = App.Initializer.MotionGenerator.Generate(joints);
                 App.Initializer.Motion = motion;
+                _motionEditor = new MotionEditor(motion);
+                if (_bottomViews.TryGetValue("TIMELINE", out var tvView) && tvView is TimelineView tv)
+                    tv.Editor = _motionEditor;
                 AttachFramePlayedHandler();
-                if (_bottomViews.TryGetValue("TIMELINE", out var view) && view is TimelineView av2)
+                if (_bottomViews.TryGetValue("TIMELINE", out var tmpView) && tmpView is TimelineView av2)
                 {
                     av2.SetFrameCount(motion.Frames.Length);
                     av2.UpdatePlayState(true);
@@ -1207,6 +1213,7 @@ public partial class CameraPage : ContentPage
             int frame = 0;
             int.TryParse(ToneFrameEntry.Text, out frame);
             tv.AddKeyFrame(bone, frame);
+            _motionEditor?.AddKeyFrame(bone, frame);
 
             if (_currentModel != null)
             {

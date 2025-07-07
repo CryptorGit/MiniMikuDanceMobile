@@ -1,5 +1,6 @@
 using MiniMikuDance.PoseEstimation;
 using System.Numerics;
+using System.Collections.Generic;
 
 namespace MiniMikuDance.Motion;
 
@@ -7,6 +8,7 @@ public class MotionData
 {
     public float FrameInterval { get; set; }
     public JointData[] Frames { get; set; } = Array.Empty<JointData>();
+    public Dictionary<string, SortedSet<int>> KeyFrames { get; } = new();
 }
 
 public class MotionGenerator
