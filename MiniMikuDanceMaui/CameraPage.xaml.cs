@@ -392,6 +392,9 @@ public partial class CameraPage : ContentPage
             AdaptSelectMessage.IsVisible ? AbsoluteLayout.AutoSize : 0));
         AbsoluteLayout.SetLayoutFlags(AdaptSelectMessage,
             AbsoluteLayoutFlags.XProportional | AbsoluteLayoutFlags.WidthProportional);
+        AbsoluteLayout.SetLayoutBounds(ToneAddPanel, new Rect(W - 200, TopMenuHeight + 20,
+            200, ToneAddPanel.IsVisible ? AbsoluteLayout.AutoSize : 0));
+        AbsoluteLayout.SetLayoutFlags(ToneAddPanel, AbsoluteLayoutFlags.None);
 
         AbsoluteLayout.SetLayoutBounds(LoadingIndicator, new Rect(0.5, 0.5, 40, 40));
         AbsoluteLayout.SetLayoutFlags(LoadingIndicator, AbsoluteLayoutFlags.PositionProportional);
@@ -652,6 +655,7 @@ public partial class CameraPage : ContentPage
                 var av = new TimelineView();
                 av.PlayRequested += OnPlayAnimationRequested;
                 av.FrameChanged += OnAnimationFrameChanged;
+                av.AddKeyRequested += OnAddKeyRequested;
                 av.SetKeyInputPanelVisible(false);
                 if (_currentModel != null)
                 {
@@ -1165,6 +1169,24 @@ public partial class CameraPage : ContentPage
         UpdateLayout();
     }
 
+    private void OnToneConfirmClicked(object? sender, EventArgs e)
+    {
+        if (_bottomViews.TryGetValue("TIMELINE", out var v) && v is TimelineView tv)
+        {
+            var bone = ToneBonePicker.SelectedItem as string ?? string.Empty;
+            if (int.TryParse(ToneFrameEntry.Text, out var frame))
+                tv.AddKeyFrame(bone, frame);
+        }
+        ToneAddPanel.IsVisible = false;
+        UpdateLayout();
+    }
+
+    private void OnToneCancelClicked(object? sender, EventArgs e)
+    {
+        ToneAddPanel.IsVisible = false;
+        UpdateLayout();
+    }
+
     private void UpdateSelectedBoneRotation(BoneView bv)
     {
         if (_currentModel == null) return;
@@ -1224,6 +1246,16 @@ public partial class CameraPage : ContentPage
         player.Seek(frame);
         if (_bottomViews.TryGetValue("TIMELINE", out var v) && v is TimelineView av)
             av.SetFrameIndex(player.FrameIndex);
+    }
+
+    private void OnAddKeyRequested()
+    {
+        if (_currentModel == null)
+            return;
+        ToneBonePicker.ItemsSource = _currentModel.HumanoidBoneList.Select(h => h.Name).ToList();
+        ToneFrameEntry.Text = "0";
+        ToneAddPanel.IsVisible = true;
+        UpdateLayout();
     }
 
     private void AttachFramePlayedHandler()
