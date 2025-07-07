@@ -1151,6 +1151,7 @@ public partial class CameraPage : ContentPage
         catch (Exception ex)
         {
             await DisplayAlert("Error", ex.Message, "OK");
+            LogService.WriteLine($"[CameraPage] Adapt failed: {ex.Message}");
         }
         finally
         {
@@ -1213,28 +1214,35 @@ public partial class CameraPage : ContentPage
 
     private void OnPlayAnimationRequested()
     {
-        var player = App.Initializer.MotionPlayer;
-        var motion = App.Initializer.Motion;
-        if (player == null || motion == null)
-            return;
+        try
+        {
+            var player = App.Initializer.MotionPlayer;
+            var motion = App.Initializer.Motion;
+            if (player == null || motion == null)
+                return;
 
-        if (player.IsPlaying)
-        {
-            player.Pause();
-            if (_bottomViews.TryGetValue("TIMELINE", out var v) && v is TimelineView av)
-                av.UpdatePlayState(false);
-        }
-        else
-        {
-            if (player.FrameIndex >= motion.Frames.Length)
-                player.Restart();
-            else if (player.FrameIndex == 0)
-                player.Play(motion);
+            if (player.IsPlaying)
+            {
+                player.Pause();
+                if (_bottomViews.TryGetValue("TIMELINE", out var v) && v is TimelineView av)
+                    av.UpdatePlayState(false);
+            }
             else
-                player.Resume();
+            {
+                if (player.FrameIndex >= motion.Frames.Length)
+                    player.Restart();
+                else if (player.FrameIndex == 0)
+                    player.Play(motion);
+                else
+                    player.Resume();
 
-            if (_bottomViews.TryGetValue("TIMELINE", out var v) && v is TimelineView av)
-                av.UpdatePlayState(true);
+                if (_bottomViews.TryGetValue("TIMELINE", out var v) && v is TimelineView av)
+                    av.UpdatePlayState(true);
+            }
+        }
+        catch (Exception ex)
+        {
+            LogService.WriteLine($"[CameraPage] OnPlayAnimationRequested error: {ex.Message}");
         }
     }
 
@@ -1262,7 +1270,10 @@ public partial class CameraPage : ContentPage
     {
         var player = App.Initializer.MotionPlayer;
         if (player == null)
+        {
+            LogService.WriteLine("[CameraPage] MotionPlayer is null. Cannot attach frame handler.");
             return;
+        }
         if (_framePlayedHandler != null)
             player.OnFramePlayed -= _framePlayedHandler;
 
