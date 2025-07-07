@@ -8,8 +8,9 @@ namespace MiniMikuDanceMaui;
 
 public partial class TimelineView : ContentView
 {
-    public event Action? PlayRequested;
-    public event Action<int>? FrameChanged;
+public event Action? PlayRequested;
+public event Action<int>? FrameChanged;
+public event Action? AddKeyRequested;
     private bool _isPlaying;
     private const int DefaultFrameColumns = 20;
     private int _frameCount = DefaultFrameColumns;
@@ -45,7 +46,8 @@ public partial class TimelineView : ContentView
                 TextColor = Colors.White,
                 HorizontalOptions = LayoutOptions.Center,
                 VerticalOptions = LayoutOptions.Center,
-                InputTransparent = true
+                InputTransparent = true,
+                BackgroundColor = (c % 2 == 0) ? Color.FromArgb("#303030") : Color.FromArgb("#202020")
             }, c, 0);
         }
         UpdateTimeline();
@@ -62,7 +64,7 @@ public partial class TimelineView : ContentView
     public void UpdatePlayState(bool playing)
     {
         _isPlaying = playing;
-        PlayButton.Text = playing ? "Pause" : "Play";
+        PlayButton.Text = playing ? "⏸" : "▶";
     }
 
     public void SetKeyInputPanelVisible(bool visible)
@@ -90,6 +92,16 @@ public partial class TimelineView : ContentView
         SetFrameCount(_frameCount);
     }
 
+    public void AddKeyFrame(string bone, int frame)
+    {
+        int index = _bones.IndexOf(bone);
+        if (index >= 0 && index < _keyFrames.Count)
+        {
+            _keyFrames[index].Add(frame);
+            SetFrameIndex(frame);
+        }
+    }
+
     private void UpdateTimeline()
     {
         TimelineGrid.Children.Clear();
@@ -99,7 +111,7 @@ public partial class TimelineView : ContentView
             var keys = _keyFrames[r].OrderBy(i => i).ToList();
             for (int c = 0; c < _frameCount; c++)
             {
-                var cell = new Grid { StyleId = $"{r}_{c}" };
+                var cell = new Grid { StyleId = $"{r}_{c}", BackgroundColor = (r % 2 == 0) ? Color.FromArgb("#303030") : Color.FromArgb("#202020") };
                 var tap = new TapGestureRecognizer();
                 tap.Tapped += OnCellTapped;
                 cell.GestureRecognizers.Add(tap);
@@ -110,7 +122,7 @@ public partial class TimelineView : ContentView
                     {
                         Text = "◆",
                         FontSize = 10,
-                        TextColor = Colors.Orange,
+                        TextColor = Colors.White,
                         HorizontalOptions = LayoutOptions.Center,
                         VerticalOptions = LayoutOptions.Center,
                         InputTransparent = true
@@ -151,7 +163,8 @@ public partial class TimelineView : ContentView
                     TextColor = Colors.White,
                     HorizontalOptions = LayoutOptions.Center,
                     VerticalOptions = LayoutOptions.Center,
-                    InputTransparent = true
+                    InputTransparent = true,
+                    BackgroundColor = (c % 2 == 0) ? Color.FromArgb("#303030") : Color.FromArgb("#202020")
                 }, c, 0);
             }
 
@@ -181,6 +194,11 @@ public partial class TimelineView : ContentView
     private void OnPlayClicked(object? sender, EventArgs e)
     {
         PlayRequested?.Invoke();
+    }
+
+    private void OnAddToneClicked(object? sender, EventArgs e)
+    {
+        AddKeyRequested?.Invoke();
     }
 
     private void OnSliderChanged(object? sender, ValueChangedEventArgs e)

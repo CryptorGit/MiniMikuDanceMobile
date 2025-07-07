@@ -139,6 +139,16 @@
                 </HorizontalStackLayout>
             </VerticalStackLayout>
         </Frame>
+        <Frame x:Name="ToneAddPanel" IsVisible="False" BackgroundColor="#88000000" Padding="8" ZIndex="30">
+            <VerticalStackLayout Spacing="6">
+                <Picker x:Name="ToneBonePicker" Title="Bone" />
+                <Entry x:Name="ToneFrameEntry" Placeholder="Frame" Keyboard="Numeric" />
+                <HorizontalStackLayout Spacing="10" HorizontalOptions="End">
+                    <Button Text="確定" Clicked="OnToneConfirmClicked" />
+                    <Button Text="キャンセル" Clicked="OnToneCancelClicked" />
+                </HorizontalStackLayout>
+            </VerticalStackLayout>
+        </Frame>
         <ActivityIndicator x:Name="LoadingIndicator" IsRunning="True" IsVisible="False" Color="Blue" ZIndex="30" />
         <skia:SKGLView x:Name="Viewer" HasRenderLoop="True" EnableTouchEvents="True" />
         <Grid x:Name="BottomRegion" BackgroundColor="#1E1E1E" IsVisible="False" ZIndex="2">
