@@ -128,6 +128,10 @@ public partial class CameraPage : ContentPage
                 Viewer?.InvalidateSurface();
             };
         }
+
+        KeyPanel.Confirmed += OnKeyConfirmClicked;
+        KeyPanel.Canceled += OnKeyCancelClicked;
+        KeyPanel.BoneChanged += OnKeyBoneChanged;
     }
 
     private void ShowViewMenu()
@@ -414,9 +418,9 @@ public partial class CameraPage : ContentPage
             AdaptSelectMessage.IsVisible ? AbsoluteLayout.AutoSize : 0));
         AbsoluteLayout.SetLayoutFlags(AdaptSelectMessage,
             AbsoluteLayoutFlags.XProportional | AbsoluteLayoutFlags.WidthProportional);
-        AbsoluteLayout.SetLayoutBounds(ToneAddPanel, new Rect(W - 200, TopMenuHeight + 20,
-            200, ToneAddPanel.IsVisible ? AbsoluteLayout.AutoSize : 0));
-        AbsoluteLayout.SetLayoutFlags(ToneAddPanel, AbsoluteLayoutFlags.None);
+        AbsoluteLayout.SetLayoutBounds(KeyPanel, new Rect(W - 200, TopMenuHeight + 20,
+            200, KeyPanel.IsVisible ? AbsoluteLayout.AutoSize : 0));
+        AbsoluteLayout.SetLayoutFlags(KeyPanel, AbsoluteLayoutFlags.None);
 
         AbsoluteLayout.SetLayoutBounds(LoadingIndicator, new Rect(0.5, 0.5, 40, 40));
         AbsoluteLayout.SetLayoutFlags(LoadingIndicator, AbsoluteLayoutFlags.PositionProportional);
@@ -1206,15 +1210,12 @@ public partial class CameraPage : ContentPage
         UpdateLayout();
     }
 
-    private async void OnToneConfirmClicked(object? sender, EventArgs e)
+    private async void OnKeyConfirmClicked(string bone, int frame, Vector3 trans, Vector3 rot)
     {
         if (_bottomViews.TryGetValue("TIMELINE", out var v) && v is TimelineView tv)
         {
             LoadingIndicator.IsVisible = true;
             await Task.Delay(50);
-            var bone = ToneBonePicker.SelectedItem as string ?? string.Empty;
-            int frame = 0;
-            int.TryParse(ToneFrameEntry.Text, out frame);
             tv.AddKeyFrame(bone, frame);
             _motionEditor?.AddKeyFrame(bone, frame);
 
@@ -1223,87 +1224,47 @@ public partial class CameraPage : ContentPage
                 int index = _currentModel.HumanoidBoneList.FindIndex(h => h.Name == bone);
                 if (index >= 0)
                 {
-                    var t = new Vector3((float)PosXSlider.Value, (float)PosYSlider.Value, (float)PosZSlider.Value);
-                    _renderer.SetBoneTranslation(index, t);
-
-                    var r = new Vector3((float)RotXSlider.Value, (float)RotYSlider.Value, (float)RotZSlider.Value);
-                    _renderer.SetBoneRotation(index, r);
+                    _renderer.SetBoneTranslation(index, trans);
+                    _renderer.SetBoneRotation(index, rot);
 
                     SavePoseState();
                     Viewer?.InvalidateSurface();
                 }
             }
         }
-        ToneAddPanel.IsVisible = false;
+        KeyPanel.IsVisible = false;
         LoadingIndicator.IsVisible = false;
         UpdateLayout();
     }
 
-    private void OnToneCancelClicked(object? sender, EventArgs e)
+    private void OnKeyCancelClicked()
     {
-        ToneAddPanel.IsVisible = false;
+        KeyPanel.IsVisible = false;
         UpdateLayout();
     }
 
-    private void OnToneFrameMinusClicked(object? sender, EventArgs e)
+    private void OnKeyBoneChanged(int index)
     {
-        if (int.TryParse(ToneFrameEntry.Text, out var value))
-            ToneFrameEntry.Text = (value - 1).ToString();
-        else
-            ToneFrameEntry.Text = "0";
-    }
-
-    private void OnToneFramePlusClicked(object? sender, EventArgs e)
-    {
-        if (int.TryParse(ToneFrameEntry.Text, out var value))
-            ToneFrameEntry.Text = (value + 1).ToString();
-        else
-            ToneFrameEntry.Text = "0";
-    }
-
-    private void OnRotRangeChanged(object? sender, EventArgs e)
-    {
-        if (RotRangePicker.SelectedItem is int range)
+        int frame = KeyPanel.Frame;
+        if (_currentModel == null) return;
+        if (_timelineKeyframes.TryGetValue(frame, out var pose))
         {
-            RotXSlider.Minimum = -range;
-            RotXSlider.Maximum = range;
-            RotYSlider.Minimum = -range;
-            RotYSlider.Maximum = range;
-            RotZSlider.Minimum = -range;
-            RotZSlider.Maximum = range;
+            if (index >= 0 && index < pose.Rotations.Count)
+            {
+                KeyPanel.SetTranslation(pose.Translations[index]);
+                KeyPanel.SetRotation(pose.Rotations[index]);
+                return;
+            }
+        }
+        if (index >= 0 && index < _currentModel.HumanoidBoneList.Count)
+        {
+            int boneIndex = _currentModel.HumanoidBoneList[index].Index;
+            var t = _renderer.GetBoneTranslation(boneIndex);
+            var r = _renderer.GetBoneRotation(boneIndex);
+            KeyPanel.SetTranslation(t);
+            KeyPanel.SetRotation(r);
         }
     }
-
-    private void OnPosRangeChanged(object? sender, EventArgs e)
-    {
-        if (PosRangePicker.SelectedItem is int range)
-        {
-            PosXSlider.Minimum = -range;
-            PosXSlider.Maximum = range;
-            PosYSlider.Minimum = -range;
-            PosYSlider.Maximum = range;
-            PosZSlider.Minimum = -range;
-            PosZSlider.Maximum = range;
-        }
-    }
-
-    private void OnPosXChanged(object? sender, ValueChangedEventArgs e)
-        => PosXLabel.Text = $"{e.NewValue:F2}";
-
-    private void OnPosYChanged(object? sender, ValueChangedEventArgs e)
-        => PosYLabel.Text = $"{e.NewValue:F2}";
-
-    private void OnPosZChanged(object? sender, ValueChangedEventArgs e)
-        => PosZLabel.Text = $"{e.NewValue:F2}";
-
-    private void OnRotXChanged(object? sender, ValueChangedEventArgs e)
-        => RotXLabel.Text = $"{e.NewValue:F0}";
-
-    private void OnRotYChanged(object? sender, ValueChangedEventArgs e)
-        => RotYLabel.Text = $"{e.NewValue:F0}";
-
-    private void OnRotZChanged(object? sender, ValueChangedEventArgs e)
-        => RotZLabel.Text = $"{e.NewValue:F0}";
 
     private void UpdateSelectedBoneRotation(BoneView bv)
     {
@@ -1384,21 +1345,29 @@ public partial class CameraPage : ContentPage
     {
         if (_currentModel == null)
             return;
-        ToneBonePicker.ItemsSource = _currentModel.HumanoidBoneList.Select(h => h.Name).ToList();
-        ToneFrameEntry.Text = "0";
-        PosRangePicker.ItemsSource = new List<int> { 1, 2, 5, 10 };
-        PosRangePicker.SelectedItem = 1;
-        RotRangePicker.ItemsSource = new List<int> { 30, 45, 90, 180, 360 };
-        RotRangePicker.SelectedItem = 180;
-        OnPosRangeChanged(null, EventArgs.Empty);
-        OnRotRangeChanged(null, EventArgs.Empty);
-        PosXSlider.Value = 0; PosXLabel.Text = "0";
-        PosYSlider.Value = 0; PosYLabel.Text = "0";
-        PosZSlider.Value = 0; PosZLabel.Text = "0";
-        RotXSlider.Value = 0; RotXLabel.Text = "0";
-        RotYSlider.Value = 0; RotYLabel.Text = "0";
-        RotZSlider.Value = 0; RotZLabel.Text = "0";
-        ToneAddPanel.IsVisible = true;
+
+        KeyPanel.SetBones(_currentModel.HumanoidBoneList.Select(h => h.Name).ToList());
+
+        int frame = App.Initializer.MotionPlayer?.FrameIndex ?? 0;
+        KeyPanel.SetFrame(frame);
+
+
+        if (_timelineKeyframes.TryGetValue(frame, out var pose) && _currentModel.HumanoidBoneList.Count > 0)
+        {
+            var t = pose.Translations[0];
+            var r = pose.Rotations[0];
+            KeyPanel.SetTranslation(t);
+            KeyPanel.SetRotation(r);
+        }
+        else
+        {
+            KeyPanel.SetTranslation(new Vector3(0, 0, 0));
+            KeyPanel.SetRotation(new Vector3(0, 0, 0));
+        }
+
+        OnKeyBoneChanged(KeyPanel.SelectedBoneIndex);
+
+        KeyPanel.IsVisible = true;
         UpdateLayout();
     }
 
