@@ -3,6 +3,8 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using Microsoft.Maui.Graphics;
+using MauiIcons.Core;
+using MauiIcons.Material.Outlined;
 
 namespace MiniMikuDanceMaui;
 
@@ -26,6 +28,8 @@ public event Action? AddKeyRequested;
     public TimelineView()
     {
         InitializeComponent();
+        // Workaround for MauiIcons namespace usage
+        _ = new MauiIcon();
         _cursorLine = new BoxView
         {
             Color = Colors.Red,
@@ -64,7 +68,8 @@ public event Action? AddKeyRequested;
     public void UpdatePlayState(bool playing)
     {
         _isPlaying = playing;
-        PlayButton.Text = playing ? "⏸" : "▶";
+        PlayButton.Source = (playing ? MaterialOutlinedIcons.Pause : MaterialOutlinedIcons.PlayArrow)
+            .ToImageSource(Colors.White, 36);
     }
 
 
