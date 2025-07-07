@@ -3,6 +3,7 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
              x:Class="MiniMikuDanceMaui.BoneView"
              BackgroundColor="#1E1E1E">
+    <ScrollView>
     <VerticalStackLayout Spacing="10" Padding="10">
         <Picker x:Name="BonePicker" Title="Bone" SelectedIndexChanged="OnBoneSelected"/>
         <HorizontalStackLayout Spacing="10">
@@ -12,11 +13,20 @@
             <Label Text="Range" TextColor="White" VerticalOptions="Center" />
             <Picker x:Name="RangePicker" SelectedIndexChanged="OnRangeChanged" />
         </HorizontalStackLayout>
-        <Label Text="Rotate X" TextColor="White"/>
+        <HorizontalStackLayout Spacing="10">
+            <Label Text="Rotate X" TextColor="White"/>
+            <Label x:Name="LabelX" Text="0" TextColor="White" />
+        </HorizontalStackLayout>
         <Slider x:Name="SliderX" Minimum="-180" Maximum="180" ValueChanged="OnXChanged"/>
-        <Label Text="Rotate Y" TextColor="White"/>
+        <HorizontalStackLayout Spacing="10">
+            <Label Text="Rotate Y" TextColor="White"/>
+            <Label x:Name="LabelY" Text="0" TextColor="White" />
+        </HorizontalStackLayout>
         <Slider x:Name="SliderY" Minimum="-180" Maximum="180" ValueChanged="OnYChanged"/>
-        <Label Text="Rotate Z" TextColor="White"/>
+        <HorizontalStackLayout Spacing="10">
+            <Label Text="Rotate Z" TextColor="White"/>
+            <Label x:Name="LabelZ" Text="0" TextColor="White" />
+        </HorizontalStackLayout>
         <Slider x:Name="SliderZ" Minimum="-180" Maximum="180" ValueChanged="OnZChanged"/>
         <Label Text="Translate X" TextColor="White"/>
         <Slider x:Name="SliderTX" Minimum="-1" Maximum="1" ValueChanged="OnTXChanged"/>
@@ -25,4 +35,5 @@
         <Label Text="Translate Z" TextColor="White"/>
         <Slider x:Name="SliderTZ" Minimum="-1" Maximum="1" ValueChanged="OnTZChanged"/>
     </VerticalStackLayout>
+    </ScrollView>
 </ContentView>

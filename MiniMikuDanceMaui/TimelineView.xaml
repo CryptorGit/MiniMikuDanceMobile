@@ -19,8 +19,6 @@
         <Grid Grid.Row="1" RowDefinitions="Auto,*" ColumnDefinitions="100,*" ColumnSpacing="6" RowSpacing="6" Padding="10">
             <HorizontalStackLayout Grid.Row="0" Grid.ColumnSpan="2" Spacing="10">
                 <Button x:Name="PlayButton" Text="▶" Clicked="OnPlayClicked" />
-                <Button x:Name="ZoomInButton" Text="+" />
-                <Button x:Name="ZoomOutButton" Text="-" />
                 <Button x:Name="AddToneButton" Text="＋" Clicked="OnAddToneClicked" />
                 <Slider x:Name="TimelineSlider" Minimum="0" Maximum="0" ValueChanged="OnSliderChanged" HorizontalOptions="FillAndExpand" />
             </HorizontalStackLayout>

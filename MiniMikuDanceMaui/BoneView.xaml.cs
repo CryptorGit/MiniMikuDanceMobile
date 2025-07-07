@@ -25,6 +25,9 @@ public partial class BoneView : ContentView
         InitializeComponent();
         RangePicker.ItemsSource = new List<int> { 30, 45, 90, 180, 360 };
         RangePicker.SelectedItem = _range;
+        LabelX.Text = "0";
+        LabelY.Text = "0";
+        LabelZ.Text = "0";
     }
 
     public void SetBones(IEnumerable<string> bones)
@@ -39,6 +42,9 @@ public partial class BoneView : ContentView
         RotationX = degrees.X;
         RotationY = degrees.Y;
         RotationZ = degrees.Z;
+        LabelX.Text = $"{degrees.X:F0}";
+        LabelY.Text = $"{degrees.Y:F0}";
+        LabelZ.Text = $"{degrees.Z:F0}";
     }
 
     public void SetTranslation(OpenTK.Mathematics.Vector3 t)
@@ -55,13 +61,22 @@ public partial class BoneView : ContentView
     }
 
     private void OnXChanged(object? sender, ValueChangedEventArgs e)
-        => RotationXChanged?.Invoke((float)e.NewValue);
+    {
+        LabelX.Text = $"{e.NewValue:F0}";
+        RotationXChanged?.Invoke((float)e.NewValue);
+    }
 
     private void OnYChanged(object? sender, ValueChangedEventArgs e)
-        => RotationYChanged?.Invoke((float)e.NewValue);
+    {
+        LabelY.Text = $"{e.NewValue:F0}";
+        RotationYChanged?.Invoke((float)e.NewValue);
+    }
 
     private void OnZChanged(object? sender, ValueChangedEventArgs e)
-        => RotationZChanged?.Invoke((float)e.NewValue);
+    {
+        LabelZ.Text = $"{e.NewValue:F0}";
+        RotationZChanged?.Invoke((float)e.NewValue);
+    }
 
     private void OnTXChanged(object? sender, ValueChangedEventArgs e)
         => TranslationXChanged?.Invoke((float)e.NewValue);

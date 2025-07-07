@@ -18,10 +18,30 @@ public event Action? AddKeyRequested;
     private readonly List<string> _bones = new();
     private int _currentFrame;
     private bool _suppressScroll;
+    private readonly BoxView _cursorLine;
+    private readonly Label _cursorArrow;
+    private bool _initialized;
 
     public TimelineView()
     {
         InitializeComponent();
+        _cursorLine = new BoxView
+        {
+            Color = Colors.Red,
+            WidthRequest = 2,
+            HorizontalOptions = LayoutOptions.Center,
+            VerticalOptions = LayoutOptions.Fill,
+            InputTransparent = true
+        };
+        _cursorArrow = new Label
+        {
+            Text = "▲",
+            FontSize = 10,
+            TextColor = Colors.Black,
+            HorizontalOptions = LayoutOptions.Center,
+            VerticalOptions = LayoutOptions.End,
+            InputTransparent = true
+        };
     }
 
     public void SetFrameCount(int count)
@@ -29,29 +49,7 @@ public event Action? AddKeyRequested;
         _frameCount = Math.Max(1, count);
         TimelineSlider.Maximum = _frameCount > 0 ? _frameCount - 1 : 0;
 
-        TimelineGrid.ColumnDefinitions.Clear();
-        FrameHeader.ColumnDefinitions.Clear();
-        for (int c = 0; c < _frameCount; c++)
-        {
-            TimelineGrid.ColumnDefinitions.Add(new ColumnDefinition { Width = 20 });
-            FrameHeader.ColumnDefinitions.Add(new ColumnDefinition { Width = 20 });
-        }
-
-        FrameHeader.Children.Clear();
-        for (int c = 0; c < _frameCount; c++)
-        {
-            FrameHeader.Add(new Label
-            {
-                Text = c.ToString(),
-                FontSize = 10,
-                TextColor = Colors.White,
-                HorizontalOptions = LayoutOptions.Center,
-                VerticalOptions = LayoutOptions.Center,
-                InputTransparent = true,
-                BackgroundColor = (c % 2 == 0) ? Color.FromArgb("#303030") : Color.FromArgb("#202020")
-            }, c, 0);
-        }
-        UpdateTimeline();
+        BuildTimeline();
     }
 
     public void SetFrameIndex(int index)
@@ -59,7 +57,7 @@ public event Action? AddKeyRequested;
         _currentFrame = index;
         if ((int)TimelineSlider.Value != index)
             TimelineSlider.Value = index;
-        UpdateTimeline();
+        UpdateCurrentIndicator();
     }
 
     public void UpdatePlayState(bool playing)
@@ -101,14 +99,37 @@ public event Action? AddKeyRequested;
         if (index >= 0 && index < _keyFrames.Count)
         {
             _keyFrames[index].Add(frame);
+            BuildTimeline();
             SetFrameIndex(frame);
         }
     }
 
-    private void UpdateTimeline()
+    private void BuildTimeline()
     {
-        TimelineGrid.Children.Clear();
+        TimelineGrid.ColumnDefinitions.Clear();
+        FrameHeader.ColumnDefinitions.Clear();
+        for (int c = 0; c < _frameCount; c++)
+        {
+            TimelineGrid.ColumnDefinitions.Add(new ColumnDefinition { Width = 20 });
+            FrameHeader.ColumnDefinitions.Add(new ColumnDefinition { Width = 20 });
+        }
 
+        FrameHeader.Children.Clear();
+        for (int c = 0; c < _frameCount; c++)
+        {
+            FrameHeader.Add(new Label
+            {
+                Text = c.ToString(),
+                FontSize = 10,
+                TextColor = Colors.White,
+                HorizontalOptions = LayoutOptions.Center,
+                VerticalOptions = LayoutOptions.Center,
+                InputTransparent = true,
+                BackgroundColor = (c % 2 == 0) ? Color.FromArgb("#303030") : Color.FromArgb("#202020")
+            }, c, 0);
+        }
+
+        TimelineGrid.Children.Clear();
         for (int r = 0; r < _keyFrames.Count; r++)
         {
             var keys = _keyFrames[r].OrderBy(i => i).ToList();
@@ -154,44 +175,22 @@ public event Action? AddKeyRequested;
             }
         }
 
-        if (_currentFrame >= 0 && _currentFrame < _frameCount)
+        if (!_initialized)
         {
-            FrameHeader.Children.Clear();
-            for (int c = 0; c < _frameCount; c++)
-            {
-                FrameHeader.Add(new Label
-                {
-                    Text = c.ToString(),
-                    FontSize = 10,
-                    TextColor = Colors.White,
-                    HorizontalOptions = LayoutOptions.Center,
-                    VerticalOptions = LayoutOptions.Center,
-                    InputTransparent = true,
-                    BackgroundColor = (c % 2 == 0) ? Color.FromArgb("#303030") : Color.FromArgb("#202020")
-                }, c, 0);
-            }
-
-            var line = new BoxView
-            {
-                Color = Colors.Red,
-                WidthRequest = 2,
-                HorizontalOptions = LayoutOptions.Center,
-                VerticalOptions = LayoutOptions.Fill,
-                InputTransparent = true
-            };
-            TimelineGrid.Add(line, _currentFrame, 0);
-            Grid.SetRowSpan(line, _keyFrames.Count);
-
-            FrameHeader.Add(new Label
-            {
-                Text = "▲",
-                FontSize = 10,
-                TextColor = Colors.Black,
-                HorizontalOptions = LayoutOptions.Center,
-                VerticalOptions = LayoutOptions.End,
-                InputTransparent = true
-            }, _currentFrame, 0);
+            TimelineGrid.Add(_cursorLine, _currentFrame, 0);
+            Grid.SetRowSpan(_cursorLine, _keyFrames.Count);
+            FrameHeader.Add(_cursorArrow, _currentFrame, 0);
+            _initialized = true;
         }
+        UpdateCurrentIndicator();
+    }
+
+    private void UpdateCurrentIndicator()
+    {
+        if (!_initialized)
+            return;
+        Grid.SetColumn(_cursorLine, _currentFrame);
+        Grid.SetColumn(_cursorArrow, _currentFrame);
     }
 
     private void OnPlayClicked(object? sender, EventArgs e)
@@ -208,7 +207,7 @@ public event Action? AddKeyRequested;
     {
         _currentFrame = (int)e.NewValue;
         FrameChanged?.Invoke(_currentFrame);
-        UpdateTimeline();
+        UpdateCurrentIndicator();
     }
 
     private void OnCellTapped(object? sender, TappedEventArgs e)
