@@ -31,6 +31,11 @@ public partial class AnimationView : ContentView
         PlayButton.Text = playing ? "Pause" : "Play";
     }
 
+    public void SetKeyInputPanelVisible(bool visible)
+    {
+        KeyInputPanel.IsVisible = visible;
+    }
+
     private void OnPlayClicked(object? sender, EventArgs e)
     {
         PlayRequested?.Invoke();

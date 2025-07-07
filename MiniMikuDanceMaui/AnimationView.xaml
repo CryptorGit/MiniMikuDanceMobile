@@ -1,10 +1,46 @@
 <?xml version="1.0" encoding="utf-8" ?>
 <ContentView xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:skia="clr-namespace:SkiaSharp.Views.Maui.Controls;assembly=SkiaSharp.Views.Maui.Controls"
              x:Class="MiniMikuDanceMaui.AnimationView"
              BackgroundColor="#1E1E1E">
-    <VerticalStackLayout Spacing="10" Padding="10">
-        <Slider x:Name="TimelineSlider" Minimum="0" Maximum="0" ValueChanged="OnSliderChanged"/>
-        <Button x:Name="PlayButton" Text="Play" Clicked="OnPlayClicked"/>
-    </VerticalStackLayout>
+    <Grid RowDefinitions="*,2*">
+        <!-- Top region: 3D viewer and keyframe input panel -->
+        <Grid>
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="3*" />
+                <ColumnDefinition Width="2*" />
+            </Grid.ColumnDefinitions>
+            <!-- Placeholder viewer -->
+            <skia:SKGLView x:Name="PreviewViewer" Grid.Column="0" />
+            <!-- Keyframe numeric input panel -->
+            <VerticalStackLayout x:Name="KeyInputPanel" Grid.Column="1" Spacing="6" Padding="10" IsVisible="False">
+                <Picker x:Name="BonePicker" Title="Bone" />
+                <HorizontalStackLayout Spacing="4">
+                    <Button x:Name="FrameBackButton" Text="-5" />
+                    <Entry x:Name="FrameEntry" WidthRequest="60" Keyboard="Numeric" />
+                    <Button x:Name="FrameForwardButton" Text="+5" />
+                </HorizontalStackLayout>
+                <Entry x:Name="PosXEntry" Placeholder="Pos X" Keyboard="Numeric" />
+                <Entry x:Name="PosYEntry" Placeholder="Pos Y" Keyboard="Numeric" />
+                <Entry x:Name="PosZEntry" Placeholder="Pos Z" Keyboard="Numeric" />
+                <Entry x:Name="RotXEntry" Placeholder="Rot X" Keyboard="Numeric" />
+                <Entry x:Name="RotYEntry" Placeholder="Rot Y" Keyboard="Numeric" />
+                <Entry x:Name="RotZEntry" Placeholder="Rot Z" Keyboard="Numeric" />
+                <HorizontalStackLayout Spacing="10" HorizontalOptions="End">
+                    <Button x:Name="ConfirmButton" Text="確定" />
+                    <Button x:Name="CancelButton" Text="キャンセル" />
+                </HorizontalStackLayout>
+            </VerticalStackLayout>
+        </Grid>
+        <!-- Bottom region: simple timeline placeholder -->
+        <VerticalStackLayout Grid.Row="1" Spacing="6" Padding="10">
+            <HorizontalStackLayout Spacing="10">
+                <Button x:Name="PlayButton" Text="Play" Clicked="OnPlayClicked" />
+                <Button Text="-" />
+                <Button Text="+" />
+            </HorizontalStackLayout>
+            <Slider x:Name="TimelineSlider" Minimum="0" Maximum="0" ValueChanged="OnSliderChanged" />
+        </VerticalStackLayout>
+    </Grid>
 </ContentView>

@@ -37,6 +37,7 @@ public partial class CameraPage : ContentPage
     private bool _viewMenuOpen;
     private bool _settingMenuOpen;
     private bool _fileMenuOpen;
+    private bool _timelinePanelVisible;
 
     private void UpdateOverlay() => MenuOverlay.IsVisible = _viewMenuOpen || _settingMenuOpen || _fileMenuOpen;
     private readonly Dictionary<string, View> _bottomViews = new();
@@ -247,6 +248,16 @@ public partial class CameraPage : ContentPage
     {
         LogService.WriteLine("ANIMATION button clicked");
         ShowBottomFeature("ANIMATION");
+        HideViewMenu();
+        HideSettingMenu();
+    }
+
+    private void OnTimelineClicked(object? sender, EventArgs e)
+    {
+        _timelinePanelVisible = !_timelinePanelVisible;
+        if (_bottomViews.TryGetValue("ANIMATION", out var v) && v is AnimationView av)
+            av.SetKeyInputPanelVisible(_timelinePanelVisible);
+        LogService.WriteLine($"TIMELINE panel {(_timelinePanelVisible ? "shown" : "hidden")}");
         HideViewMenu();
         HideSettingMenu();
     }
@@ -642,6 +653,7 @@ public partial class CameraPage : ContentPage
                 var av = new AnimationView();
                 av.PlayRequested += OnPlayAnimationRequested;
                 av.FrameChanged += OnAnimationFrameChanged;
+                av.SetKeyInputPanelVisible(_timelinePanelVisible);
                 view = av;
             }
             else if (name == "MTOON")
@@ -778,7 +790,7 @@ public partial class CameraPage : ContentPage
         }
         else if (name == "ANIMATION" && _bottomViews[name] is AnimationView av)
         {
-            // nothing to update for now
+            av.SetKeyInputPanelVisible(_timelinePanelVisible);
         }
         else if (name == "CAMERA" && _bottomViews[name] is CameraView)
         {
