@@ -246,10 +246,17 @@ internal class TimelineDrawable : IDrawable
 
         canvas.Translate(-ScrollX, -ScrollY);
 
-        for (int r = 0; r < _bones.Count; r++)
+        int startRow = Math.Max(0, (int)(ScrollY / (rowHeight + rowSpacing)));
+        int endRow = Math.Min(_bones.Count - 1,
+            (int)((ScrollY + dirtyRect.Height) / (rowHeight + rowSpacing)) + 1);
+        int startCol = Math.Max(0, (int)(ScrollX / cellWidth));
+        int endCol = Math.Min(_frameCount - 1,
+            (int)((ScrollX + dirtyRect.Width) / cellWidth) + 1);
+
+        for (int r = startRow; r <= endRow; r++)
         {
             float y = r * (rowHeight + rowSpacing);
-            for (int c = 0; c < _frameCount; c++)
+            for (int c = startCol; c <= endCol; c++)
             {
                 float x = c * cellWidth;
                 canvas.FillColor = (r % 2 == 0) ? Color.FromArgb("#303030") : Color.FromArgb("#202020");
