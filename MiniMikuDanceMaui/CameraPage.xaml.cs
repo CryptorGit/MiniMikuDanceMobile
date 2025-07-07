@@ -829,7 +829,7 @@ public partial class CameraPage : ContentPage
             if (name == "TIMELINE")
             {
                 BottomScroll.IsEnabled = false;
-                BottomScroll.InputTransparent = true;
+                BottomScroll.InputTransparent = false;
                 BottomScroll.VerticalScrollBarVisibility = ScrollBarVisibility.Never;
             }
             else

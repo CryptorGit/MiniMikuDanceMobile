@@ -7,8 +7,14 @@
              BackgroundColor="#1E1E1E">
     <Grid RowDefinitions="Auto,*" ColumnDefinitions="100,*" ColumnSpacing="6" RowSpacing="6" Padding="10">
         <HorizontalStackLayout Grid.Row="0" Grid.ColumnSpan="2" Spacing="10">
-            <Button x:Name="PlayButton" Text="▶" Clicked="OnPlayClicked" />
-            <Button x:Name="AddKeyButton" Text="＋" Clicked="OnAddKeyClicked" />
+            <ImageButton x:Name="PlayButton"
+                         mi:MauiIcon.Value="{mi:Material Icon=PlayArrow}"
+                         Clicked="OnPlayClicked"
+                         WidthRequest="36" HeightRequest="36" />
+            <ImageButton x:Name="AddKeyButton"
+                         mi:MauiIcon.Value="{mi:Material Icon=Add}"
+                         Clicked="OnAddKeyClicked"
+                         WidthRequest="36" HeightRequest="36" />
             <Slider x:Name="TimelineSlider" Minimum="0" Maximum="0" ValueChanged="OnSliderChanged"
                     HorizontalOptions="FillAndExpand" />
         </HorizontalStackLayout>
