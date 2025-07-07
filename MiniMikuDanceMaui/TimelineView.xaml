@@ -1,40 +1,17 @@
 <?xml version="1.0" encoding="utf-8" ?>
 <ContentView xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
-             xmlns:skia="clr-namespace:SkiaSharp.Views.Maui.Controls;assembly=SkiaSharp.Views.Maui.Controls"
              x:Class="MiniMikuDanceMaui.TimelineView"
              BackgroundColor="#1E1E1E">
-    <Grid RowDefinitions="*,2*">
-        <!-- Top region: 3D viewer and keyframe input panel -->
-        <Grid>
-            <Grid.ColumnDefinitions>
-                <ColumnDefinition Width="3*" />
-                <ColumnDefinition Width="2*" />
-            </Grid.ColumnDefinitions>
-            <!-- 3D viewer with floor grid -->
-            <skia:SKGLView x:Name="PreviewViewer" Grid.Column="0" />
-            
-        </Grid>
-        <!-- Bottom region: timeline UI -->
-        <Grid Grid.Row="1" RowDefinitions="Auto,*" ColumnDefinitions="100,*" ColumnSpacing="6" RowSpacing="6" Padding="10">
-            <HorizontalStackLayout Grid.Row="0" Grid.ColumnSpan="2" Spacing="10">
-                <Button x:Name="PlayButton" Text="▶" Clicked="OnPlayClicked" />
-                <Button x:Name="AddToneButton" Text="＋" Clicked="OnAddToneClicked" />
-                <Slider x:Name="TimelineSlider" Minimum="0" Maximum="0" ValueChanged="OnSliderChanged" HorizontalOptions="FillAndExpand" />
-            </HorizontalStackLayout>
-            <ScrollView x:Name="BoneListScrollView" Grid.Row="1" Grid.Column="0" Orientation="Vertical" Scrolled="OnBoneListScrolled">
-                <VerticalStackLayout x:Name="BoneList" Spacing="4" />
-            </ScrollView>
-            <ScrollView x:Name="TimelineScrollView" Grid.Row="1" Grid.Column="1" Orientation="Both" Scrolled="OnTimelineScrolled" VerticalScrollBarVisibility="Always" HorizontalScrollBarVisibility="Always">
-                <Grid x:Name="TimelinePanel">
-                    <Grid.RowDefinitions>
-                        <RowDefinition Height="20" />
-                        <RowDefinition Height="*" />
-                    </Grid.RowDefinitions>
-                    <Grid x:Name="FrameHeader" Grid.Row="0" ColumnSpacing="4" />
-                    <Grid x:Name="TimelineGrid" Grid.Row="1" RowSpacing="4" ColumnSpacing="4" />
-                </Grid>
-            </ScrollView>
-        </Grid>
-    </Grid>
+    <VerticalStackLayout Spacing="6" Padding="10">
+        <HorizontalStackLayout Spacing="10">
+            <Button x:Name="PlayButton" Text="▶" Clicked="OnPlayClicked" />
+            <Button x:Name="AddKeyButton" Text="＋" Clicked="OnAddKeyClicked" />
+            <Slider x:Name="TimelineSlider" Minimum="0" Maximum="0" ValueChanged="OnSliderChanged"
+                    HorizontalOptions="FillAndExpand" />
+        </HorizontalStackLayout>
+        <ScrollView x:Name="TimelineScrollView" Orientation="Horizontal" HorizontalScrollBarVisibility="Always">
+            <HorizontalStackLayout x:Name="FrameContainer" Spacing="2" />
+        </ScrollView>
+    </VerticalStackLayout>
 </ContentView>
