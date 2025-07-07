@@ -444,6 +444,11 @@ public partial class CameraPage : ContentPage
                 _renderer.ShadeToony = _pendingModel.ShadeToony;
                 _renderer.RimIntensity = _pendingModel.RimIntensity;
                 _pendingModel = null;
+                if (_bottomViews.TryGetValue("ANIMATION", out var view) && view is AnimationView av && _currentModel != null)
+                {
+                    var list = _currentModel.HumanoidBoneList.Select(h => h.Name).ToList();
+                    av.SetBones(list);
+                }
                 SavePoseState();
             }
             _glInitialized = true;
@@ -460,6 +465,11 @@ public partial class CameraPage : ContentPage
             _renderer.ShadeToony = _pendingModel.ShadeToony;
             _renderer.RimIntensity = _pendingModel.RimIntensity;
             _pendingModel = null;
+            if (_bottomViews.TryGetValue("ANIMATION", out var view) && view is AnimationView av && _currentModel != null)
+            {
+                var list = _currentModel.HumanoidBoneList.Select(h => h.Name).ToList();
+                av.SetBones(list);
+            }
             SavePoseState();
         }
 
