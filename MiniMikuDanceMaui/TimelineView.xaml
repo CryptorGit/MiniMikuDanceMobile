@@ -11,11 +11,11 @@
                 <ColumnDefinition Width="3*" />
                 <ColumnDefinition Width="2*" />
             </Grid.ColumnDefinitions>
-            <!-- Placeholder viewer -->
+            <!-- 3D viewer with floor grid -->
             <skia:SKGLView x:Name="PreviewViewer" Grid.Column="0" />
-            <!-- Keyframe numeric input panel -->
+            <!-- Keyframe edit panel -->
             <VerticalStackLayout x:Name="KeyInputPanel" Grid.Column="1" Spacing="6" Padding="10" IsVisible="False">
-                <Picker x:Name="BonePicker" Title="Bone" />
+                <Entry x:Name="BoneEntry" Placeholder="Bone" />
                 <HorizontalStackLayout Spacing="4">
                     <Button x:Name="FrameBackButton" Text="-5" />
                     <Entry x:Name="FrameEntry" WidthRequest="60" Keyboard="Numeric" />
@@ -37,15 +37,22 @@
         <Grid Grid.Row="1" RowDefinitions="Auto,*" ColumnDefinitions="100,*" ColumnSpacing="6" RowSpacing="6" Padding="10">
             <HorizontalStackLayout Grid.Row="0" Grid.ColumnSpan="2" Spacing="10">
                 <Button x:Name="PlayButton" Text="Play" Clicked="OnPlayClicked" />
-                <Button x:Name="ZoomOutButton" Text="-" />
                 <Button x:Name="ZoomInButton" Text="+" />
+                <Button x:Name="ZoomOutButton" Text="-" />
                 <Slider x:Name="TimelineSlider" Minimum="0" Maximum="0" ValueChanged="OnSliderChanged" HorizontalOptions="FillAndExpand" />
             </HorizontalStackLayout>
             <ScrollView Grid.Row="1" Grid.Column="0" Orientation="Vertical">
                 <VerticalStackLayout x:Name="BoneList" Spacing="4" />
             </ScrollView>
             <ScrollView Grid.Row="1" Grid.Column="1" Orientation="Both">
-                <Grid x:Name="TimelineGrid" RowSpacing="4" ColumnSpacing="4" />
+                <Grid x:Name="TimelinePanel">
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="20" />
+                        <RowDefinition Height="*" />
+                    </Grid.RowDefinitions>
+                    <Grid x:Name="FrameHeader" Grid.Row="0" ColumnSpacing="4" />
+                    <Grid x:Name="TimelineGrid" Grid.Row="1" RowSpacing="4" ColumnSpacing="4" />
+                </Grid>
             </ScrollView>
         </Grid>
     </Grid>

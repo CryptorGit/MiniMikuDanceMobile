@@ -14,6 +14,7 @@ public partial class TimelineView : ContentView
     private const int DefaultFrameColumns = 20;
     private int _frameCount = DefaultFrameColumns;
     private readonly List<HashSet<int>> _keyFrames = new();
+    private readonly List<string> _bones = new();
     private int _currentFrame;
 
     public TimelineView()
@@ -27,9 +28,25 @@ public partial class TimelineView : ContentView
         TimelineSlider.Maximum = _frameCount > 0 ? _frameCount - 1 : 0;
 
         TimelineGrid.ColumnDefinitions.Clear();
+        FrameHeader.ColumnDefinitions.Clear();
         for (int c = 0; c < _frameCount; c++)
         {
             TimelineGrid.ColumnDefinitions.Add(new ColumnDefinition { Width = 20 });
+            FrameHeader.ColumnDefinitions.Add(new ColumnDefinition { Width = 20 });
+        }
+
+        FrameHeader.Children.Clear();
+        for (int c = 0; c < _frameCount; c++)
+        {
+            FrameHeader.Add(new Label
+            {
+                Text = c.ToString(),
+                FontSize = 10,
+                TextColor = Colors.White,
+                HorizontalOptions = LayoutOptions.Center,
+                VerticalOptions = LayoutOptions.Center,
+                InputTransparent = true
+            }, c, 0);
         }
         UpdateTimeline();
     }
@@ -58,6 +75,7 @@ public partial class TimelineView : ContentView
         BoneList.Children.Clear();
         TimelineGrid.RowDefinitions.Clear();
         _keyFrames.Clear();
+        _bones.Clear();
 
         int row = 0;
         foreach (var name in bones)
@@ -65,6 +83,7 @@ public partial class TimelineView : ContentView
             BoneList.Children.Add(new Label { Text = name, TextColor = Colors.White, FontSize = 12 });
             TimelineGrid.RowDefinitions.Add(new RowDefinition { Height = 24 });
             _keyFrames.Add(new HashSet<int>());
+            _bones.Add(name);
             row++;
         }
 
@@ -122,6 +141,20 @@ public partial class TimelineView : ContentView
 
         if (_currentFrame >= 0 && _currentFrame < _frameCount)
         {
+            FrameHeader.Children.Clear();
+            for (int c = 0; c < _frameCount; c++)
+            {
+                FrameHeader.Add(new Label
+                {
+                    Text = c.ToString(),
+                    FontSize = 10,
+                    TextColor = Colors.White,
+                    HorizontalOptions = LayoutOptions.Center,
+                    VerticalOptions = LayoutOptions.Center,
+                    InputTransparent = true
+                }, c, 0);
+            }
+
             var line = new BoxView
             {
                 Color = Colors.Red,
@@ -132,6 +165,16 @@ public partial class TimelineView : ContentView
             };
             TimelineGrid.Add(line, _currentFrame, 0);
             Grid.SetRowSpan(line, _keyFrames.Count);
+
+            FrameHeader.Add(new Label
+            {
+                Text = "▲",
+                FontSize = 10,
+                TextColor = Colors.Black,
+                HorizontalOptions = LayoutOptions.Center,
+                VerticalOptions = LayoutOptions.End,
+                InputTransparent = true
+            }, _currentFrame, 0);
         }
     }
 
@@ -162,7 +205,8 @@ public partial class TimelineView : ContentView
                         _keyFrames[r].Add(c);
 
                     SetFrameIndex(c);
-                    BonePicker.SelectedIndex = r;
+                    if (_bones.Count > r)
+                        BoneEntry.Text = _bones[r];
                     FrameEntry.Text = c.ToString();
                     SetKeyInputPanelVisible(true);
                 }
