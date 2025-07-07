@@ -22,6 +22,8 @@ public partial class TimelineView : ContentView
     private int _currentFrame;
     private bool _suppressScroll;
     private bool _initialized;
+    private double _lastScrollX;
+    private double _lastScrollY;
     private readonly TimelineDrawable _drawable = new();
     private readonly TimelineHeaderDrawable _headerDrawable = new();
 
@@ -88,9 +90,21 @@ public partial class TimelineView : ContentView
 
     public void AddKeyFrame(string bone, int frame)
     {
-        _drawable.AddKeyFrame(bone, frame);
-        TimelineCanvas.Invalidate();
+        var rect = _drawable.AddKeyFrame(bone, frame);
+        if (rect.Width > 0 && rect.Height > 0)
+            TimelineCanvas.Invalidate(rect);
+        else
+            TimelineCanvas.Invalidate();
         SetFrameIndex(frame);
+    }
+
+    public void RemoveKeyFrame(string bone, int frame)
+    {
+        var rect = _drawable.RemoveKeyFrame(bone, frame);
+        if (rect.Width > 0 && rect.Height > 0)
+            TimelineCanvas.Invalidate(rect);
+        else
+            TimelineCanvas.Invalidate();
     }
 
     private void BuildTimeline()
@@ -142,9 +156,14 @@ public partial class TimelineView : ContentView
         if (_suppressScroll)
             return;
 
+        if (Math.Abs(e.ScrollY - _lastScrollY) < 0.5)
+            return;
+
         _suppressScroll = true;
         await TimelineScrollView.ScrollToAsync(TimelineScrollView.ScrollX, e.ScrollY, false);
         _suppressScroll = false;
+
+        _lastScrollY = e.ScrollY;
         _drawable.ScrollY = (float)e.ScrollY;
         _headerDrawable.ScrollX = (float)TimelineScrollView.ScrollX;
         FrameHeaderCanvas.Invalidate();
@@ -156,9 +175,15 @@ public partial class TimelineView : ContentView
         if (_suppressScroll)
             return;
 
+        if (Math.Abs(e.ScrollX - _lastScrollX) < 0.5 && Math.Abs(e.ScrollY - _lastScrollY) < 0.5)
+            return;
+
         _suppressScroll = true;
         await BoneListScrollView.ScrollToAsync(0, e.ScrollY, false);
         _suppressScroll = false;
+
+        _lastScrollX = e.ScrollX;
+        _lastScrollY = e.ScrollY;
         _drawable.ScrollX = (float)e.ScrollX;
         _drawable.ScrollY = (float)e.ScrollY;
         _headerDrawable.ScrollX = (float)e.ScrollX;
@@ -191,11 +216,37 @@ internal class TimelineDrawable : IDrawable
             _keyFrames.Add(new HashSet<int>());
     }
 
-    public void AddKeyFrame(string bone, int frame)
+    public RectF AddKeyFrame(string bone, int frame)
     {
         int index = _bones.IndexOf(bone);
         if (index >= 0)
-            _keyFrames[index].Add(frame);
+        {
+            if (_keyFrames[index].Add(frame))
+            {
+                const float cellWidth = 20f;
+                const float rowHeight = 24f;
+                const float rowSpacing = (float)TimelineView.RowSpacing;
+                float x = frame * cellWidth;
+                float y = index * (rowHeight + rowSpacing);
+                return new RectF(x, y, cellWidth, rowHeight);
+            }
+        }
+        return RectF.Zero;
+    }
+
+    public RectF RemoveKeyFrame(string bone, int frame)
+    {
+        int index = _bones.IndexOf(bone);
+        if (index >= 0 && _keyFrames[index].Remove(frame))
+        {
+            const float cellWidth = 20f;
+            const float rowHeight = 24f;
+            const float rowSpacing = (float)TimelineView.RowSpacing;
+            float x = frame * cellWidth;
+            float y = index * (rowHeight + rowSpacing);
+            return new RectF(x, y, cellWidth, rowHeight);
+        }
+        return RectF.Zero;
     }
 
 public void Draw(ICanvas canvas, RectF dirtyRect)
