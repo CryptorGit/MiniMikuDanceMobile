@@ -1,5 +1,7 @@
 using Microsoft.Maui.Controls;
 using System;
+using System.Collections.Generic;
+using Microsoft.Maui.Graphics;
 
 namespace MiniMikuDanceMaui;
 
