@@ -19,7 +19,6 @@ using OpenTK.Mathematics;
 using MiniMikuDance.Util;
 using MiniMikuDance.PoseEstimation;
 using MiniMikuDance.Motion;
-using System.Numerics;
 
 namespace MiniMikuDanceMaui;
 

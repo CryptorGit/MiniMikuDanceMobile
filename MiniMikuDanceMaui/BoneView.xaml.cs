@@ -148,19 +148,19 @@ public partial class BoneView : ContentView
         set => SliderZ.Value = value;
     }
 
-    public float TranslationX
+    public new float TranslationX
     {
         get => (float)SliderTX.Value;
         set => SliderTX.Value = value;
     }
 
-    public float TranslationY
+    public new float TranslationY
     {
         get => (float)SliderTY.Value;
         set => SliderTY.Value = value;
     }
 
-    public float TranslationZ
+    public new float TranslationZ
     {
         get => (float)SliderTZ.Value;
         set => SliderTZ.Value = value;
