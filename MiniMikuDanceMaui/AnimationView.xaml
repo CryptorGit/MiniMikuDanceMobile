@@ -33,14 +33,20 @@
                 </HorizontalStackLayout>
             </VerticalStackLayout>
         </Grid>
-        <!-- Bottom region: simple timeline placeholder -->
-        <VerticalStackLayout Grid.Row="1" Spacing="6" Padding="10">
-            <HorizontalStackLayout Spacing="10">
+        <!-- Bottom region: timeline UI -->
+        <Grid Grid.Row="1" RowDefinitions="Auto,*" ColumnDefinitions="100,*" ColumnSpacing="6" RowSpacing="6" Padding="10">
+            <HorizontalStackLayout Grid.Row="0" Grid.ColumnSpan="2" Spacing="10">
                 <Button x:Name="PlayButton" Text="Play" Clicked="OnPlayClicked" />
-                <Button Text="-" />
-                <Button Text="+" />
+                <Button x:Name="ZoomOutButton" Text="-" />
+                <Button x:Name="ZoomInButton" Text="+" />
+                <Slider x:Name="TimelineSlider" Minimum="0" Maximum="0" ValueChanged="OnSliderChanged" HorizontalOptions="FillAndExpand" />
             </HorizontalStackLayout>
-            <Slider x:Name="TimelineSlider" Minimum="0" Maximum="0" ValueChanged="OnSliderChanged" />
-        </VerticalStackLayout>
+            <ScrollView Grid.Row="1" Grid.Column="0" Orientation="Vertical">
+                <VerticalStackLayout x:Name="BoneList" Spacing="4" />
+            </ScrollView>
+            <ScrollView Grid.Row="1" Grid.Column="1" Orientation="Both">
+                <Grid x:Name="TimelineGrid" RowSpacing="4" ColumnSpacing="4" />
+            </ScrollView>
+        </Grid>
     </Grid>
 </ContentView>

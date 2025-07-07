@@ -256,7 +256,14 @@ public partial class CameraPage : ContentPage
     {
         _timelinePanelVisible = !_timelinePanelVisible;
         if (_bottomViews.TryGetValue("ANIMATION", out var v) && v is AnimationView av)
+        {
             av.SetKeyInputPanelVisible(_timelinePanelVisible);
+            if (_currentModel != null)
+            {
+                var list = _currentModel.HumanoidBoneList.Select(h => h.Name).ToList();
+                av.SetBones(list);
+            }
+        }
         LogService.WriteLine($"TIMELINE panel {(_timelinePanelVisible ? "shown" : "hidden")}");
         HideViewMenu();
         HideSettingMenu();
@@ -654,6 +661,11 @@ public partial class CameraPage : ContentPage
                 av.PlayRequested += OnPlayAnimationRequested;
                 av.FrameChanged += OnAnimationFrameChanged;
                 av.SetKeyInputPanelVisible(_timelinePanelVisible);
+                if (_currentModel != null)
+                {
+                    var list = _currentModel.HumanoidBoneList.Select(h => h.Name).ToList();
+                    av.SetBones(list);
+                }
                 view = av;
             }
             else if (name == "MTOON")
@@ -791,6 +803,11 @@ public partial class CameraPage : ContentPage
         else if (name == "ANIMATION" && _bottomViews[name] is AnimationView av)
         {
             av.SetKeyInputPanelVisible(_timelinePanelVisible);
+            if (_currentModel != null)
+            {
+                var list = _currentModel.HumanoidBoneList.Select(h => h.Name).ToList();
+                av.SetBones(list);
+            }
         }
         else if (name == "CAMERA" && _bottomViews[name] is CameraView)
         {
