@@ -14,6 +14,7 @@ public partial class TimelineView : ContentView
     private const int DefaultFrameColumns = 20;
     private int _frameCount = DefaultFrameColumns;
     private readonly List<HashSet<int>> _keyFrames = new();
+    private int _currentFrame;
 
     public TimelineView()
     {
@@ -35,8 +36,10 @@ public partial class TimelineView : ContentView
 
     public void SetFrameIndex(int index)
     {
+        _currentFrame = index;
         if ((int)TimelineSlider.Value != index)
             TimelineSlider.Value = index;
+        UpdateTimeline();
     }
 
     public void UpdatePlayState(bool playing)
@@ -116,6 +119,20 @@ public partial class TimelineView : ContentView
                 TimelineGrid.Add(cell, c, r);
             }
         }
+
+        if (_currentFrame >= 0 && _currentFrame < _frameCount)
+        {
+            var line = new BoxView
+            {
+                Color = Colors.Red,
+                WidthRequest = 2,
+                HorizontalOptions = LayoutOptions.Center,
+                VerticalOptions = LayoutOptions.Fill,
+                InputTransparent = true
+            };
+            TimelineGrid.Add(line, _currentFrame, 0);
+            Grid.SetRowSpan(line, _keyFrames.Count);
+        }
     }
 
     private void OnPlayClicked(object? sender, EventArgs e)
@@ -125,7 +142,9 @@ public partial class TimelineView : ContentView
 
     private void OnSliderChanged(object? sender, ValueChangedEventArgs e)
     {
-        FrameChanged?.Invoke((int)e.NewValue);
+        _currentFrame = (int)e.NewValue;
+        FrameChanged?.Invoke(_currentFrame);
+        UpdateTimeline();
     }
 
     private void OnCellTapped(object? sender, TappedEventArgs e)
@@ -142,7 +161,10 @@ public partial class TimelineView : ContentView
                     else
                         _keyFrames[r].Add(c);
 
-                    UpdateTimeline();
+                    SetFrameIndex(c);
+                    BonePicker.SelectedIndex = r;
+                    FrameEntry.Text = c.ToString();
+                    SetKeyInputPanelVisible(true);
                 }
             }
         }
