@@ -21,6 +21,7 @@ public event Action? AddKeyRequested;
     private bool _suppressScroll;
     private readonly BoxView _cursorLine;
     private readonly Label _cursorArrow;
+    private bool _initialized;
 
     public TimelineView()
     {
@@ -181,14 +182,20 @@ public event Action? AddKeyRequested;
             }
         }
 
-        TimelineGrid.Add(_cursorLine, _currentFrame, 0);
-        Grid.SetRowSpan(_cursorLine, _keyFrames.Count);
-        FrameHeader.Add(_cursorArrow, _currentFrame, 0);
+        if (!_initialized)
+        {
+            TimelineGrid.Add(_cursorLine, _currentFrame, 0);
+            Grid.SetRowSpan(_cursorLine, _keyFrames.Count);
+            FrameHeader.Add(_cursorArrow, _currentFrame, 0);
+            _initialized = true;
+        }
         UpdateCurrentIndicator();
     }
 
     private void UpdateCurrentIndicator()
     {
+        if (!_initialized)
+            return;
         Grid.SetColumn(_cursorLine, _currentFrame);
         Grid.SetColumn(_cursorArrow, _currentFrame);
     }
@@ -198,7 +205,7 @@ public event Action? AddKeyRequested;
         PlayRequested?.Invoke();
     }
 
-    private void OnAddToneClicked(object? sender, EventArgs e)
+    private void OnAddKeyClicked(object? sender, EventArgs e)
     {
         AddKeyRequested?.Invoke();
     }
