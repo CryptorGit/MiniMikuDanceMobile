@@ -13,6 +13,10 @@ public class MotionEditor
     public MotionEditor(MotionData motion)
     {
         Motion = motion;
+        foreach (var kv in motion.KeyFrames)
+        {
+            _keyFrames[kv.Key] = new SortedSet<int>(kv.Value);
+        }
     }
 
     public void AddKeyFrame(string bone, int frame)
@@ -23,6 +27,12 @@ public class MotionEditor
             _keyFrames[bone] = set;
         }
         set.Add(frame);
+        if (!Motion.KeyFrames.TryGetValue(bone, out var mset))
+        {
+            mset = new SortedSet<int>();
+            Motion.KeyFrames[bone] = mset;
+        }
+        mset.Add(frame);
         EnsureFrameCount(frame + 1);
     }
 
@@ -30,10 +40,15 @@ public class MotionEditor
     {
         if (_keyFrames.TryGetValue(bone, out var set))
             set.Remove(frame);
+        if (Motion.KeyFrames.TryGetValue(bone, out var mset))
+            mset.Remove(frame);
     }
 
     public bool HasKeyFrame(string bone, int frame)
-        => _keyFrames.TryGetValue(bone, out var set) && set.Contains(frame);
+    {
+        return (_keyFrames.TryGetValue(bone, out var set) && set.Contains(frame))
+            || (Motion.KeyFrames.TryGetValue(bone, out var mset) && mset.Contains(frame));
+    }
 
     private void EnsureFrameCount(int count)
     {
