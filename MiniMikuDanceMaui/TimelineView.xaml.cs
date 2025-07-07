@@ -14,6 +14,7 @@ public partial class TimelineView : ContentView
     public event Action? PlayRequested;
     public event Action<int>? FrameChanged;
     public event Action? AddKeyRequested;
+    public event Action<int>? KeyFrameRemoved;
 
     public MotionEditor? Editor { get; set; }
 
@@ -205,6 +206,7 @@ public partial class TimelineView : ContentView
         {
             _drawable.RemoveKeyFrame(row, col);
             Editor?.RemoveKeyFrame(row >= 0 && row < _drawable.Bones.Count ? _drawable.Bones[row] : string.Empty, col);
+            KeyFrameRemoved?.Invoke(col);
         }
         else
         {

@@ -677,6 +677,7 @@ public partial class CameraPage : ContentPage
                 av.PlayRequested += OnPlayAnimationRequested;
                 av.FrameChanged += OnAnimationFrameChanged;
                 av.AddKeyRequested += OnAddKeyRequested;
+                av.KeyFrameRemoved += OnKeyFrameRemoved;
                 if (_currentModel != null)
                 {
                     var list = _currentModel.HumanoidBoneList.Select(h => h.Name).ToList();
@@ -1397,6 +1398,11 @@ public partial class CameraPage : ContentPage
         UpdateLayout();
     }
 
+    private void OnKeyFrameRemoved(int frame)
+    {
+        _timelineKeyframes.Remove(frame);
+    }
+
     private void AttachFramePlayedHandler()
     {
         var player = App.Initializer.MotionPlayer;
@@ -1470,7 +1476,10 @@ public partial class CameraPage : ContentPage
             int frame = kv.Key;
             if (frame < 0 || frame >= motion.Frames.Length)
                 continue;
-            var jd = PoseToJointData(kv.Value);
+            var pose = kv.Value;
+            if (pose.Rotations.Count == 0 && pose.Translations.Count == 0)
+                continue;
+            var jd = PoseToJointData(pose);
             jd.Timestamp = motion.Frames[frame].Timestamp;
             motion.Frames[frame] = jd;
         }
