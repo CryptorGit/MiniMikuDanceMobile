@@ -17,6 +17,7 @@ public event Action? AddKeyRequested;
     private readonly List<HashSet<int>> _keyFrames = new();
     private readonly List<string> _bones = new();
     private const int RowHeight = 24;
+    public const int RowSpacing = 4;
     private int _currentFrame;
     private bool _suppressScroll;
     private readonly BoxView _cursorLine;
@@ -26,6 +27,8 @@ public event Action? AddKeyRequested;
     public TimelineView()
     {
         InitializeComponent();
+        BoneList.Spacing = RowSpacing;
+        TimelineGrid.RowSpacing = RowSpacing;
         _cursorLine = new BoxView
         {
             Color = Colors.Red,
@@ -41,7 +44,9 @@ public event Action? AddKeyRequested;
             TextColor = Colors.Black,
             HorizontalOptions = LayoutOptions.Center,
             VerticalOptions = LayoutOptions.End,
-            InputTransparent = true
+            InputTransparent = true,
+            Margin = new Thickness(0),
+            Padding = new Thickness(0)
         };
     }
 
@@ -85,7 +90,10 @@ public event Action? AddKeyRequested;
                 FontSize = 12,
                 HeightRequest = RowHeight,
                 LineBreakMode = LineBreakMode.NoWrap,
-                MaxLines = 1
+                MaxLines = 1,
+                Margin = new Thickness(0),
+                Padding = new Thickness(0),
+                VerticalTextAlignment = TextAlignment.Center
             });
             TimelineGrid.RowDefinitions.Add(new RowDefinition { Height = RowHeight });
             _keyFrames.Add(new HashSet<int>());
@@ -127,7 +135,9 @@ public event Action? AddKeyRequested;
                 TextColor = Colors.White,
                 HorizontalOptions = LayoutOptions.Center,
                 VerticalOptions = LayoutOptions.Center,
-                BackgroundColor = (c % 2 == 0) ? Color.FromArgb("#303030") : Color.FromArgb("#202020")
+                BackgroundColor = (c % 2 == 0) ? Color.FromArgb("#303030") : Color.FromArgb("#202020"),
+                Margin = new Thickness(0),
+                Padding = new Thickness(0)
             };
             var headerTap = new TapGestureRecognizer();
             int captured = c;
@@ -156,7 +166,9 @@ public event Action? AddKeyRequested;
                         TextColor = Colors.White,
                         HorizontalOptions = LayoutOptions.Center,
                         VerticalOptions = LayoutOptions.Center,
-                        InputTransparent = true
+                        InputTransparent = true,
+                        Margin = new Thickness(0),
+                        Padding = new Thickness(0)
                     });
                 }
                 else
