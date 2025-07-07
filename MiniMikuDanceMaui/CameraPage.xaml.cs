@@ -51,7 +51,6 @@ public partial class CameraPage : ContentPage
     private ModelData? _pendingModel;
     private ModelData? _currentModel;
     private int _selectedBoneIndex = 0;
-    private Action<MiniMikuDance.PoseEstimation.JointData>? _framePlayedHandler;
     private readonly List<int> _humanoidBoneIndices = new();
     private readonly Dictionary<long, SKPoint> _touchPoints = new();
     private MotionEditor? _motionEditor;
@@ -64,9 +63,6 @@ public partial class CameraPage : ContentPage
 
     private readonly List<PoseState> _poseHistory = new();
     private int _poseHistoryIndex = -1;
-    // キーフレームごとの姿勢を保持する辞書
-    private readonly Dictionary<int, PoseState> _timelineKeyframes = new();
-    private readonly Dictionary<int, HashSet<string>> _frameBones = new();
     private static readonly (BlazePoseJoint Joint, string Bone)[] _jointBonePairs = new[]
     {
         (BlazePoseJoint.LeftShoulder, "leftShoulder"),
@@ -267,13 +263,6 @@ public partial class CameraPage : ContentPage
         HideSettingMenu();
     }
 
-    private void OnTimelineClicked(object? sender, EventArgs e)
-    {
-        LogService.WriteLine("TIMELINE button clicked");
-        ShowBottomFeature("TIMELINE");
-        HideViewMenu();
-        HideSettingMenu();
-    }
 
     private void OnTerminalClicked(object? sender, EventArgs e)
     {
@@ -455,11 +444,6 @@ public partial class CameraPage : ContentPage
                 _renderer.ShadeToony = _pendingModel.ShadeToony;
                 _renderer.RimIntensity = _pendingModel.RimIntensity;
                 _pendingModel = null;
-                if (_bottomViews.TryGetValue("TIMELINE", out var view) && view is TimelineView av && _currentModel != null)
-                {
-                    var list = _currentModel.HumanoidBoneList.Select(h => h.Name).ToList();
-                    av.SetBones(list);
-                }
                 SavePoseState();
             }
             _glInitialized = true;
@@ -476,11 +460,6 @@ public partial class CameraPage : ContentPage
             _renderer.ShadeToony = _pendingModel.ShadeToony;
             _renderer.RimIntensity = _pendingModel.RimIntensity;
             _pendingModel = null;
-            if (_bottomViews.TryGetValue("TIMELINE", out var view) && view is TimelineView av && _currentModel != null)
-            {
-                var list = _currentModel.HumanoidBoneList.Select(h => h.Name).ToList();
-                av.SetBones(list);
-            }
             SavePoseState();
         }
 
@@ -677,22 +656,6 @@ public partial class CameraPage : ContentPage
                 var tv = new TerminalView();
                 view = tv;
             }
-            else if (name == "TIMELINE")
-            {
-                var av = new TimelineView();
-                av.PlayRequested += OnPlayAnimationRequested;
-                av.FrameChanged += OnAnimationFrameChanged;
-                av.AddKeyRequested += OnAddKeyRequested;
-                av.KeyFrameAdded += OnKeyFrameAdded;
-                av.Editor = _motionEditor;
-                av.KeyFrameRemoved += OnKeyFrameRemoved;
-                if (_currentModel != null)
-                {
-                    var list = _currentModel.HumanoidBoneList.Select(h => h.Name).ToList();
-                    av.SetBones(list);
-                }
-                view = av;
-            }
             else if (name == "MTOON")
             {
                 var mv = new MToonView
@@ -825,15 +788,6 @@ public partial class CameraPage : ContentPage
             mv.ShadeToony = _shadeToony;
             mv.RimIntensity = _rimIntensity;
         }
-        else if (name == "TIMELINE" && _bottomViews[name] is TimelineView av)
-        {
-            if (_currentModel != null)
-            {
-                var list = _currentModel.HumanoidBoneList.Select(h => h.Name).ToList();
-                av.SetBones(list);
-            }
-            av.Editor = _motionEditor;
-        }
         else if (name == "CAMERA" && _bottomViews[name] is CameraView)
         {
             // nothing to update
@@ -854,18 +808,9 @@ public partial class CameraPage : ContentPage
             BottomContent.Content = view;
             _currentFeature = name;
             UpdateTabColors();
-            if (name == "TIMELINE")
-            {
-                BottomScroll.IsEnabled = false;
-                BottomScroll.InputTransparent = false;
-                BottomScroll.VerticalScrollBarVisibility = ScrollBarVisibility.Never;
-            }
-            else
-            {
-                BottomScroll.IsEnabled = true;
-                BottomScroll.InputTransparent = false;
-                BottomScroll.VerticalScrollBarVisibility = ScrollBarVisibility.Always;
-            }
+            BottomScroll.IsEnabled = true;
+            BottomScroll.InputTransparent = false;
+            BottomScroll.VerticalScrollBarVisibility = ScrollBarVisibility.Always;
         }
     }
 
@@ -1177,14 +1122,6 @@ public partial class CameraPage : ContentPage
                 var motion = App.Initializer.MotionGenerator.Generate(joints);
                 App.Initializer.Motion = motion;
                 _motionEditor = new MotionEditor(motion);
-                if (_bottomViews.TryGetValue("TIMELINE", out var tvView) && tvView is TimelineView tv)
-                    tv.Editor = _motionEditor;
-                AttachFramePlayedHandler();
-                if (_bottomViews.TryGetValue("TIMELINE", out var tmpView) && tmpView is TimelineView av2)
-                {
-                    av2.SetFrameCount(motion.Frames.Length);
-                    av2.UpdatePlayState(true);
-                }
                 App.Initializer.MotionPlayer.Play(motion);
             }
         }
@@ -1212,24 +1149,20 @@ public partial class CameraPage : ContentPage
 
     private async void OnKeyConfirmClicked(string bone, int frame, Vector3 trans, Vector3 rot)
     {
-        if (_bottomViews.TryGetValue("TIMELINE", out var v) && v is TimelineView tv)
+        LoadingIndicator.IsVisible = true;
+        await Task.Delay(50);
+        _motionEditor?.AddKeyFrame(bone, frame);
+
+        if (_currentModel != null)
         {
-            LoadingIndicator.IsVisible = true;
-            await Task.Delay(50);
-            tv.AddKeyFrame(bone, frame);
-            _motionEditor?.AddKeyFrame(bone, frame);
-
-            if (_currentModel != null)
+            int index = _currentModel.HumanoidBoneList.FindIndex(h => h.Name == bone);
+            if (index >= 0)
             {
-                int index = _currentModel.HumanoidBoneList.FindIndex(h => h.Name == bone);
-                if (index >= 0)
-                {
-                    _renderer.SetBoneTranslation(index, trans);
-                    _renderer.SetBoneRotation(index, rot);
+                _renderer.SetBoneTranslation(index, trans);
+                _renderer.SetBoneRotation(index, rot);
 
-                    SavePoseState();
-                    Viewer?.InvalidateSurface();
-                }
+                SavePoseState();
+                Viewer?.InvalidateSurface();
             }
         }
         KeyPanel.IsVisible = false;
@@ -1247,15 +1180,6 @@ public partial class CameraPage : ContentPage
     {
         int frame = KeyPanel.FrameNumber;
         if (_currentModel == null) return;
-        if (_timelineKeyframes.TryGetValue(frame, out var pose))
-        {
-            if (index >= 0 && index < pose.Rotations.Count)
-            {
-                KeyPanel.SetTranslation(pose.Translations[index]);
-                KeyPanel.SetRotation(pose.Rotations[index]);
-                return;
-            }
-        }
         if (index >= 0 && index < _currentModel.HumanoidBoneList.Count)
         {
             int boneIndex = _currentModel.HumanoidBoneList[index].Index;
@@ -1302,21 +1226,15 @@ public partial class CameraPage : ContentPage
             if (player.IsPlaying)
             {
                 player.Pause();
-                if (_bottomViews.TryGetValue("TIMELINE", out var v) && v is TimelineView av)
-                    av.UpdatePlayState(false);
             }
             else
             {
-                ApplyTimelineToMotion(motion);
                 if (player.FrameIndex >= motion.Frames.Length)
                     player.Restart();
                 else if (player.FrameIndex == 0)
                     player.Play(motion);
                 else
                     player.Resume();
-
-                if (_bottomViews.TryGetValue("TIMELINE", out var v) && v is TimelineView av)
-                    av.UpdatePlayState(true);
             }
         }
         catch (Exception ex)
@@ -1331,97 +1249,10 @@ public partial class CameraPage : ContentPage
         if (player == null)
             return;
         player.Seek(frame);
-        if (_timelineKeyframes.TryGetValue(frame, out var pose))
-        {
-            _renderer.SetAllBoneRotations(pose.Rotations);
-            _renderer.SetAllBoneTranslations(pose.Translations);
-            Viewer?.InvalidateSurface();
-        }
-        if (_bottomViews.TryGetValue("TIMELINE", out var v) && v is TimelineView av)
-            av.SetFrameIndex(player.FrameIndex);
+        Viewer?.InvalidateSurface();
     }
 
-    private void OnAddKeyRequested()
-    {
-        if (_currentModel == null)
-            return;
 
-        KeyPanel.SetBones(_currentModel.HumanoidBoneList.Select(h => h.Name).ToList());
-
-        int frame = App.Initializer.MotionPlayer?.FrameIndex ?? 0;
-        KeyPanel.SetFrame(frame);
-
-
-        if (_timelineKeyframes.TryGetValue(frame, out var pose) && _currentModel.HumanoidBoneList.Count > 0)
-        {
-            var t = pose.Translations[0];
-            var r = pose.Rotations[0];
-            KeyPanel.SetTranslation(t);
-            KeyPanel.SetRotation(r);
-        }
-        else
-        {
-            KeyPanel.SetTranslation(new Vector3(0, 0, 0));
-            KeyPanel.SetRotation(new Vector3(0, 0, 0));
-        }
-
-        OnKeyBoneChanged(KeyPanel.SelectedBoneIndex);
-
-        KeyPanel.IsVisible = true;
-        UpdateLayout();
-    }
-
-    private void OnKeyFrameAdded(string bone, int frame)
-    {
-        if (!_frameBones.TryGetValue(frame, out var set))
-        {
-            set = new HashSet<string>();
-            _frameBones[frame] = set;
-        }
-        set.Add(bone);
-        _timelineKeyframes[frame] = new PoseState
-        {
-            Rotations = _renderer.GetAllBoneRotations(),
-            Translations = _renderer.GetAllBoneTranslations()
-        };
-    }
-
-    private void OnKeyFrameRemoved(string bone, int frame)
-    {
-        if (_frameBones.TryGetValue(frame, out var set))
-        {
-            set.Remove(bone);
-            if (set.Count == 0)
-            {
-                _frameBones.Remove(frame);
-                _timelineKeyframes.Remove(frame);
-            }
-        }
-    }
-
-    private void AttachFramePlayedHandler()
-    {
-        var player = App.Initializer.MotionPlayer;
-        if (player == null)
-        {
-            LogService.WriteLine("[CameraPage] MotionPlayer is null. Cannot attach frame handler.");
-            return;
-        }
-        if (_framePlayedHandler != null)
-            player.OnFramePlayed -= _framePlayedHandler;
-
-        _framePlayedHandler = _ =>
-        {
-            if (_bottomViews.TryGetValue("TIMELINE", out var v) && v is TimelineView av)
-            {
-                av.SetFrameIndex(player.FrameIndex);
-                if (!player.IsPlaying)
-                    av.UpdatePlayState(false);
-            }
-        };
-
-        player.OnFramePlayed += _framePlayedHandler;
-    }
 
     private void SavePoseState()
     {
@@ -1436,61 +1267,7 @@ public partial class CameraPage : ContentPage
         _poseHistoryIndex = _poseHistory.Count - 1;
     }
 
-    private JointData PoseToJointData(PoseState pose, IEnumerable<string>? bones = null)
-    {
-        int jointCount = Enum.GetValues<BlazePoseJoint>().Length;
-        var jd = new JointData
-        {
-            Timestamp = 0f,
-            Positions = new System.Numerics.Vector3[jointCount],
-            Confidences = new float[jointCount]
-        };
 
-        if (_currentModel == null)
-            return jd;
-
-        HashSet<string>? set = bones != null ? new HashSet<string>(bones) : null;
-
-        foreach (var pair in _jointBonePairs)
-        {
-            if (set != null && !set.Contains(pair.Bone))
-                continue;
-            if (_currentModel.HumanoidBones.TryGetValue(pair.Bone, out int bIdx))
-            {
-                if (bIdx >= 0 && bIdx < pose.Translations.Count)
-                {
-                    var t = pose.Translations[bIdx].ToNumerics();
-                    jd.Positions[(int)pair.Joint] = t;
-                    jd.Confidences[(int)pair.Joint] = 1f;
-                }
-            }
-        }
-
-        return jd;
-    }
-
-    private void ApplyTimelineToMotion(MotionData motion)
-    {
-        foreach (var kv in _timelineKeyframes)
-        {
-            int frame = kv.Key;
-            if (frame < 0 || frame >= motion.Frames.Length)
-                continue;
-            if (!_frameBones.TryGetValue(frame, out var bones) || bones.Count == 0)
-                continue;
-            var jd = motion.Frames[frame];
-            var update = PoseToJointData(kv.Value, bones);
-            for (int i = 0; i < jd.Positions.Length; i++)
-            {
-                if (update.Confidences[i] > 0f)
-                {
-                    jd.Positions[i] = update.Positions[i];
-                    jd.Confidences[i] = update.Confidences[i];
-                }
-            }
-            motion.Frames[frame] = jd;
-        }
-    }
 
     private void UpdateBoneViewValues()
     {

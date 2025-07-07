@@ -62,11 +62,6 @@
                         <TapGestureRecognizer Tapped="OnMToonClicked" />
                     </Label.GestureRecognizers>
                 </Label>
-                <Label Text="TIMELINE" TextColor="White">
-                    <Label.GestureRecognizers>
-                        <TapGestureRecognizer Tapped="OnTimelineClicked" />
-                    </Label.GestureRecognizers>
-                </Label>
                 <Label Text="CAMERA" TextColor="White">
                     <Label.GestureRecognizers>
                         <TapGestureRecognizer Tapped="OnCameraClicked" />
