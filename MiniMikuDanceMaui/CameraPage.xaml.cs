@@ -1169,10 +1169,9 @@ public partial class CameraPage : ContentPage
     {
         if (_bottomViews.TryGetValue("TIMELINE", out var v) && v is TimelineView tv)
         {
-            var bone = ToneBonePicker.SelectedItem as string ?? BoneEntry.Text ?? string.Empty;
+            var bone = ToneBonePicker.SelectedItem as string ?? string.Empty;
             int frame = 0;
-            if (!int.TryParse(ToneFrameEntry.Text, out frame))
-                int.TryParse(FrameEntry.Text, out frame);
+            int.TryParse(ToneFrameEntry.Text, out frame);
             tv.AddKeyFrame(bone, frame);
 
             if (_currentModel != null)
@@ -1180,15 +1179,11 @@ public partial class CameraPage : ContentPage
                 int index = _currentModel.HumanoidBoneList.FindIndex(h => h.Name == bone);
                 if (index >= 0)
                 {
-                    if (float.TryParse(PosXEntry.Text, out var px) &&
-                        float.TryParse(PosYEntry.Text, out var py) &&
-                        float.TryParse(PosZEntry.Text, out var pz))
-                        _renderer.SetBoneTranslation(index, new Vector3(px, py, pz));
+                    var t = new Vector3((float)PosXSlider.Value, (float)PosYSlider.Value, (float)PosZSlider.Value);
+                    _renderer.SetBoneTranslation(index, t);
 
-                    if (float.TryParse(RotXEntry.Text, out var rx) &&
-                        float.TryParse(RotYEntry.Text, out var ry) &&
-                        float.TryParse(RotZEntry.Text, out var rz))
-                        _renderer.SetBoneRotation(index, new Vector3(rx, ry, rz));
+                    var r = new Vector3((float)RotXSlider.Value, (float)RotYSlider.Value, (float)RotZSlider.Value);
+                    _renderer.SetBoneRotation(index, r);
 
                     SavePoseState();
                     Viewer?.InvalidateSurface();
@@ -1203,6 +1198,35 @@ public partial class CameraPage : ContentPage
     {
         ToneAddPanel.IsVisible = false;
         UpdateLayout();
+    }
+
+    private void OnToneFrameMinusClicked(object? sender, EventArgs e)
+    {
+        if (int.TryParse(ToneFrameEntry.Text, out var value))
+            ToneFrameEntry.Text = (value - 1).ToString();
+        else
+            ToneFrameEntry.Text = "0";
+    }
+
+    private void OnToneFramePlusClicked(object? sender, EventArgs e)
+    {
+        if (int.TryParse(ToneFrameEntry.Text, out var value))
+            ToneFrameEntry.Text = (value + 1).ToString();
+        else
+            ToneFrameEntry.Text = "0";
+    }
+
+    private void OnToneRangeChanged(object? sender, EventArgs e)
+    {
+        if (ToneRangePicker.SelectedItem is int range)
+        {
+            RotXSlider.Minimum = -range;
+            RotXSlider.Maximum = range;
+            RotYSlider.Minimum = -range;
+            RotYSlider.Maximum = range;
+            RotZSlider.Minimum = -range;
+            RotZSlider.Maximum = range;
+        }
     }
 
     private void UpdateSelectedBoneRotation(BoneView bv)
@@ -1279,6 +1303,15 @@ public partial class CameraPage : ContentPage
             return;
         ToneBonePicker.ItemsSource = _currentModel.HumanoidBoneList.Select(h => h.Name).ToList();
         ToneFrameEntry.Text = "0";
+        ToneRangePicker.ItemsSource = new List<int> { 30, 45, 90, 180, 360 };
+        ToneRangePicker.SelectedItem = 180;
+        OnToneRangeChanged(null, EventArgs.Empty);
+        PosXSlider.Value = 0;
+        PosYSlider.Value = 0;
+        PosZSlider.Value = 0;
+        RotXSlider.Value = 0;
+        RotYSlider.Value = 0;
+        RotZSlider.Value = 0;
         ToneAddPanel.IsVisible = true;
         UpdateLayout();
     }
