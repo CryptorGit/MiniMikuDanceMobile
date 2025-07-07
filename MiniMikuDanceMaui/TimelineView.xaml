@@ -30,8 +30,11 @@
                     <RowDefinition Height="*" />
                 </Grid.RowDefinitions>
                 <GraphicsView x:Name="FrameHeaderCanvas" Grid.Row="0" />
-                <GraphicsView x:Name="TimelineCanvas"
-                              Grid.Row="1" />
+                <GraphicsView x:Name="TimelineCanvas" Grid.Row="1">
+                    <GraphicsView.GestureRecognizers>
+                        <TapGestureRecognizer Tapped="OnTimelineTapped" />
+                    </GraphicsView.GestureRecognizers>
+                </GraphicsView>
             </Grid>
         </ScrollView>
     </Grid>

@@ -5,6 +5,7 @@ using System.Linq;
 using Microsoft.Maui.Graphics;
 using MauiIcons.Core;
 using MauiIcons.Material.Outlined;
+using MiniMikuDance.Motion;
 
 namespace MiniMikuDanceMaui;
 
@@ -13,6 +14,8 @@ public partial class TimelineView : ContentView
     public event Action? PlayRequested;
     public event Action<int>? FrameChanged;
     public event Action? AddKeyRequested;
+
+    public MotionEditor? Editor { get; set; }
 
     private bool _isPlaying;
     private const int DefaultFrameColumns = 20;
@@ -190,6 +193,32 @@ public partial class TimelineView : ContentView
         FrameHeaderCanvas.Invalidate();
         TimelineCanvas.Invalidate();
     }
+
+    private void OnTimelineTapped(object? sender, TappedEventArgs e)
+    {
+        var point = e.GetPosition(TimelineCanvas);
+        if (point == null)
+            return;
+
+        int col = (int)((point.Value.X + _drawable.ScrollX) / 20f);
+        int row = (int)((point.Value.Y + _drawable.ScrollY) / (RowHeight + RowSpacing));
+        if (row < 0 || row >= _drawable.BoneCount)
+            return;
+        if (col < 0 || col >= _frameCount)
+            return;
+
+        if (_drawable.HasKeyFrame(row, col))
+        {
+            _drawable.RemoveKeyFrame(row, col);
+            Editor?.RemoveKeyFrame(row >= 0 && row < _drawable.Bones.Count ? _drawable.Bones[row] : string.Empty, col);
+        }
+        else
+        {
+            _drawable.AddKeyFrame(row, col);
+            Editor?.AddKeyFrame(row >= 0 && row < _drawable.Bones.Count ? _drawable.Bones[row] : string.Empty, col);
+        }
+        SetFrameIndex(col);
+    }
 }
 
 internal class TimelineDrawable : IDrawable
@@ -249,7 +278,22 @@ internal class TimelineDrawable : IDrawable
         return RectF.Zero;
     }
 
-public void Draw(ICanvas canvas, RectF dirtyRect)
+    public void AddKeyFrame(int row, int frame)
+    {
+        if (row >= 0 && row < _keyFrames.Count)
+            _keyFrames[row].Add(frame);
+    }
+
+    public void RemoveKeyFrame(int row, int frame)
+    {
+        if (row >= 0 && row < _keyFrames.Count)
+            _keyFrames[row].Remove(frame);
+    }
+
+    public bool HasKeyFrame(int row, int frame)
+        => row >= 0 && row < _keyFrames.Count && _keyFrames[row].Contains(frame);
+
+    public void Draw(ICanvas canvas, RectF dirtyRect)
     {
         const float cellWidth = 20f;
         const float rowHeight = 24f;
@@ -272,33 +316,34 @@ public void Draw(ICanvas canvas, RectF dirtyRect)
                 float x = c * cellWidth;
                 canvas.FillColor = (r % 2 == 0) ? Color.FromArgb("#303030") : Color.FromArgb("#202020");
                 canvas.FillRectangle(x, y, cellWidth, rowHeight);
+            }
 
-                if (_keyFrames[r].Contains(c))
-                {
-                    canvas.FillColor = Colors.White;
-                    var cx = x + cellWidth / 2f;
-                    var cy = y + rowHeight / 2f;
-                    var path = new PathF();
-                    path.MoveTo(cx, cy - 4);
-                    path.LineTo(cx + 4, cy);
-                    path.LineTo(cx, cy + 4);
-                    path.LineTo(cx - 4, cy);
-                    path.Close();
-                    canvas.FillPath(path);
-                }
-                else
-                {
-                    var keys = _keyFrames[r].OrderBy(i => i).ToList();
-                    for (int i = 0; i < keys.Count - 1; i++)
-                    {
-                        if (c > keys[i] && c < keys[i + 1])
-                        {
-                            canvas.FillColor = Colors.Orange;
-                            canvas.FillRectangle(x, y + rowHeight / 2f - 1.5f, cellWidth, 3);
-                            break;
-                        }
-                    }
-                }
+            var keys = _keyFrames[r].OrderBy(i => i).ToList();
+            foreach (var k in keys)
+            {
+                if (k < startCol || k > endCol)
+                    continue;
+                float x = k * cellWidth;
+                canvas.FillColor = Colors.White;
+                var cx = x + cellWidth / 2f;
+                var cy = y + rowHeight / 2f;
+                var path = new PathF();
+                path.MoveTo(cx, cy - 4);
+                path.LineTo(cx + 4, cy);
+                path.LineTo(cx, cy + 4);
+                path.LineTo(cx - 4, cy);
+                path.Close();
+                canvas.FillPath(path);
+            }
+
+            for (int i = 0; i < keys.Count - 1; i++)
+            {
+                float x1 = keys[i] * cellWidth + cellWidth / 2f;
+                float x2 = keys[i + 1] * cellWidth + cellWidth / 2f;
+                float yLine = y + rowHeight / 2f;
+                canvas.StrokeColor = Colors.Orange;
+                canvas.StrokeSize = 3f;
+                canvas.DrawLine(x1, yLine, x2, yLine);
             }
         }
 
