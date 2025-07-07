@@ -5,6 +5,9 @@ using System.Linq;
 using Microsoft.Maui.Graphics;
 using MauiIcons.Core;
 using MauiIcons.Material.Outlined;
+using SkiaSharp;
+using SkiaSharp.Views.Maui;
+using SkiaSharp.Views.Maui.Controls;
 
 namespace MiniMikuDanceMaui;
 
@@ -25,6 +28,8 @@ public event Action? AddKeyRequested;
     private readonly BoxView _cursorLine;
     private readonly Label _cursorArrow;
     private bool _initialized;
+    private readonly SKPaint _gridPaint = new() { Color = SKColors.Gray, StrokeWidth = 1 };
+    private readonly SKPaint _keyPaint = new() { Color = SKColors.Orange };
 
     public TimelineView()
     {
@@ -152,52 +157,7 @@ public event Action? AddKeyRequested;
         }
 
         TimelineGrid.Children.Clear();
-        for (int r = 0; r < _keyFrames.Count; r++)
-        {
-            var keys = _keyFrames[r].OrderBy(i => i).ToList();
-            for (int c = 0; c < _frameCount; c++)
-            {
-                var cell = new Grid { StyleId = $"{r}_{c}", BackgroundColor = (r % 2 == 0) ? Color.FromArgb("#303030") : Color.FromArgb("#202020") };
-                var tap = new TapGestureRecognizer();
-                tap.Tapped += OnCellTapped;
-                cell.GestureRecognizers.Add(tap);
-
-                if (_keyFrames[r].Contains(c))
-                {
-                    cell.Children.Add(new Label
-                    {
-                        Text = "◆",
-                        FontSize = 10,
-                        TextColor = Colors.White,
-                        HorizontalOptions = LayoutOptions.Center,
-                        VerticalOptions = LayoutOptions.Center,
-                        InputTransparent = true,
-                        Margin = new Thickness(0),
-                        Padding = new Thickness(0)
-                    });
-                }
-                else
-                {
-                    for (int i = 0; i < keys.Count - 1; i++)
-                    {
-                        if (c > keys[i] && c < keys[i + 1])
-                        {
-                            cell.Children.Add(new BoxView
-                            {
-                                Color = Colors.Orange,
-                                HeightRequest = 3,
-                                HorizontalOptions = LayoutOptions.Fill,
-                                VerticalOptions = LayoutOptions.Center,
-                                InputTransparent = true
-                            });
-                            break;
-                        }
-                    }
-                }
-
-                TimelineGrid.Add(cell, c, r);
-            }
-        }
+        TimelineCanvas.InvalidateSurface();
 
         if (!_initialized)
         {
@@ -234,25 +194,6 @@ public event Action? AddKeyRequested;
         UpdateCurrentIndicator();
     }
 
-    private void OnCellTapped(object? sender, TappedEventArgs e)
-    {
-        if (sender is VisualElement ve && ve.StyleId != null)
-        {
-            var parts = ve.StyleId.Split('_');
-            if (parts.Length == 2 && int.TryParse(parts[0], out var r) && int.TryParse(parts[1], out var c))
-            {
-                if (_keyFrames.Count > r)
-                {
-                    if (_keyFrames[r].Contains(c))
-                        _keyFrames[r].Remove(c);
-                    else
-                        _keyFrames[r].Add(c);
-
-                    SetFrameIndex(c);
-                }
-            }
-        }
-    }
 
     private async void OnBoneListScrolled(object? sender, ScrolledEventArgs e)
     {
@@ -272,5 +213,49 @@ public event Action? AddKeyRequested;
         _suppressScroll = true;
         await BoneListScrollView.ScrollToAsync(0, e.ScrollY, false);
         _suppressScroll = false;
+    }
+
+    private void OnTimelineCanvasPaint(object? sender, SKPaintSurfaceEventArgs e)
+    {
+        var canvas = e.Surface.Canvas;
+        canvas.Clear();
+
+        float cellWidth = 20;
+        float cellHeight = RowHeight + RowSpacing;
+        for (int r = 0; r < _keyFrames.Count; r++)
+        {
+            for (int c = 0; c < _frameCount; c++)
+            {
+                float x = c * cellWidth;
+                float y = r * cellHeight;
+                canvas.DrawRect(x, y, cellWidth, RowHeight, _gridPaint);
+                if (_keyFrames[r].Contains(c))
+                {
+                    canvas.DrawText("◆", x + cellWidth / 2, y + RowHeight / 2, _keyPaint);
+                }
+            }
+        }
+    }
+
+    private void OnCanvasTouch(object? sender, SKTouchEventArgs e)
+    {
+        if (e.ActionType != SKTouchAction.Released)
+            return;
+
+        float cellWidth = 20;
+        float cellHeight = RowHeight + RowSpacing;
+        int column = (int)(e.Location.X / cellWidth);
+        int row = (int)(e.Location.Y / cellHeight);
+        if (row >= 0 && row < _keyFrames.Count && column >= 0 && column < _frameCount)
+        {
+            if (_keyFrames[row].Contains(column))
+                _keyFrames[row].Remove(column);
+            else
+                _keyFrames[row].Add(column);
+
+            SetFrameIndex(column);
+            TimelineCanvas.InvalidateSurface();
+        }
+        e.Handled = true;
     }
 }
