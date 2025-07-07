@@ -142,15 +142,27 @@
         <Frame x:Name="ToneAddPanel" IsVisible="False" BackgroundColor="#88000000" Padding="8" ZIndex="30">
             <VerticalStackLayout Spacing="6">
                 <Picker x:Name="ToneBonePicker" Title="Bone" />
-                <Entry x:Name="ToneFrameEntry" Placeholder="Frame" Keyboard="Numeric" />
-                <Entry x:Name="BoneEntry" Placeholder="Bone" />
-                <Entry x:Name="FrameEntry" Placeholder="Frame" Keyboard="Numeric" />
-                <Entry x:Name="PosXEntry" Placeholder="Pos X" Keyboard="Numeric" />
-                <Entry x:Name="PosYEntry" Placeholder="Pos Y" Keyboard="Numeric" />
-                <Entry x:Name="PosZEntry" Placeholder="Pos Z" Keyboard="Numeric" />
-                <Entry x:Name="RotXEntry" Placeholder="Rot X" Keyboard="Numeric" />
-                <Entry x:Name="RotYEntry" Placeholder="Rot Y" Keyboard="Numeric" />
-                <Entry x:Name="RotZEntry" Placeholder="Rot Z" Keyboard="Numeric" />
+                <HorizontalStackLayout Spacing="4" VerticalOptions="Center">
+                    <Button Text="-1" Clicked="OnToneFrameMinusClicked" />
+                    <Entry x:Name="ToneFrameEntry" Placeholder="Frame" WidthRequest="60" Keyboard="Numeric" />
+                    <Button Text="+1" Clicked="OnToneFramePlusClicked" />
+                </HorizontalStackLayout>
+                <HorizontalStackLayout Spacing="10" VerticalOptions="Center">
+                    <Label Text="Range" TextColor="White" VerticalOptions="Center" />
+                    <Picker x:Name="ToneRangePicker" SelectedIndexChanged="OnToneRangeChanged" />
+                </HorizontalStackLayout>
+                <Label Text="Pos X" TextColor="White" />
+                <Slider x:Name="PosXSlider" Minimum="-1" Maximum="1" />
+                <Label Text="Pos Y" TextColor="White" />
+                <Slider x:Name="PosYSlider" Minimum="-1" Maximum="1" />
+                <Label Text="Pos Z" TextColor="White" />
+                <Slider x:Name="PosZSlider" Minimum="-1" Maximum="1" />
+                <Label Text="Rot X" TextColor="White" />
+                <Slider x:Name="RotXSlider" Minimum="-180" Maximum="180" />
+                <Label Text="Rot Y" TextColor="White" />
+                <Slider x:Name="RotYSlider" Minimum="-180" Maximum="180" />
+                <Label Text="Rot Z" TextColor="White" />
+                <Slider x:Name="RotZSlider" Minimum="-180" Maximum="180" />
                 <HorizontalStackLayout Spacing="10" HorizontalOptions="End">
                     <Button Text="確定" Clicked="OnToneConfirmClicked" />
                     <Button Text="キャンセル" Clicked="OnToneCancelClicked" />

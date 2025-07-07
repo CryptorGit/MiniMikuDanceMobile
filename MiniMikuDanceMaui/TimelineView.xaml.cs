@@ -84,8 +84,7 @@ public event Action? AddKeyRequested;
                 Text = name,
                 TextColor = Colors.White,
                 FontSize = 12,
-                HeightRequest = 24,
-                Margin = new Thickness(0, 0, 0, 4)
+                HeightRequest = 24
             });
             TimelineGrid.RowDefinitions.Add(new RowDefinition { Height = 24 });
             _keyFrames.Add(new HashSet<int>());
