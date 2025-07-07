@@ -98,7 +98,6 @@ public partial class TimelineView : ContentView
         _drawable.AddKeyFrame(bone, frame);
         Editor?.AddKeyFrame(bone, frame);
         KeyFrameAdded?.Invoke(bone, frame);
-        TimelineCanvas.Invalidate();
         SetFrameIndex(frame);
     }
 
@@ -107,7 +106,6 @@ public partial class TimelineView : ContentView
         _drawable.RemoveKeyFrame(bone, frame);
         Editor?.RemoveKeyFrame(bone, frame);
         KeyFrameRemoved?.Invoke(bone, frame);
-        TimelineCanvas.Invalidate();
         SetFrameIndex(frame);
     }
 
