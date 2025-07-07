@@ -19,6 +19,7 @@ using OpenTK.Mathematics;
 using MiniMikuDance.Util;
 using MiniMikuDance.PoseEstimation;
 using MiniMikuDance.Motion;
+using System.Numerics;
 
 namespace MiniMikuDanceMaui;
 
@@ -63,6 +64,24 @@ public partial class CameraPage : ContentPage
 
     private readonly List<PoseState> _poseHistory = new();
     private int _poseHistoryIndex = -1;
+    // キーフレームごとの姿勢を保持する辞書
+    private readonly Dictionary<int, PoseState> _timelineKeyframes = new();
+    private static readonly (BlazePoseJoint Joint, string Bone)[] _jointBonePairs = new[]
+    {
+        (BlazePoseJoint.LeftShoulder, "leftShoulder"),
+        (BlazePoseJoint.RightShoulder, "rightShoulder"),
+        (BlazePoseJoint.LeftElbow, "leftLowerArm"),
+        (BlazePoseJoint.RightElbow, "rightLowerArm"),
+        (BlazePoseJoint.LeftWrist, "leftHand"),
+        (BlazePoseJoint.RightWrist, "rightHand"),
+        (BlazePoseJoint.LeftHip, "leftUpperLeg"),
+        (BlazePoseJoint.RightHip, "rightUpperLeg"),
+        (BlazePoseJoint.LeftKnee, "leftLowerLeg"),
+        (BlazePoseJoint.RightKnee, "rightLowerLeg"),
+        (BlazePoseJoint.LeftAnkle, "leftFoot"),
+        (BlazePoseJoint.RightAnkle, "rightFoot"),
+        (BlazePoseJoint.Nose, "head"),
+    };
 
     public CameraPage()
     {
@@ -1202,6 +1221,11 @@ public partial class CameraPage : ContentPage
                     _renderer.SetBoneRotation(index, r);
 
                     SavePoseState();
+                    _timelineKeyframes[frame] = new PoseState
+                    {
+                        Rotations = _renderer.GetAllBoneRotations(),
+                        Translations = _renderer.GetAllBoneTranslations()
+                    };
                     Viewer?.InvalidateSurface();
                 }
             }
@@ -1318,6 +1342,7 @@ public partial class CameraPage : ContentPage
             }
             else
             {
+                ApplyTimelineToMotion(motion);
                 if (player.FrameIndex >= motion.Frames.Length)
                     player.Restart();
                 else if (player.FrameIndex == 0)
@@ -1341,6 +1366,12 @@ public partial class CameraPage : ContentPage
         if (player == null)
             return;
         player.Seek(frame);
+        if (_timelineKeyframes.TryGetValue(frame, out var pose))
+        {
+            _renderer.SetAllBoneRotations(pose.Rotations);
+            _renderer.SetAllBoneTranslations(pose.Translations);
+            Viewer?.InvalidateSurface();
+        }
         if (_bottomViews.TryGetValue("TIMELINE", out var v) && v is TimelineView av)
             av.SetFrameIndex(player.FrameIndex);
     }
@@ -1402,6 +1433,48 @@ public partial class CameraPage : ContentPage
             _poseHistory.RemoveRange(_poseHistoryIndex + 1, _poseHistory.Count - _poseHistoryIndex - 1);
         _poseHistory.Add(state);
         _poseHistoryIndex = _poseHistory.Count - 1;
+    }
+
+    private JointData PoseToJointData(PoseState pose)
+    {
+        int jointCount = Enum.GetValues<BlazePoseJoint>().Length;
+        var jd = new JointData
+        {
+            Timestamp = 0f,
+            Positions = new System.Numerics.Vector3[jointCount],
+            Confidences = new float[jointCount]
+        };
+
+        if (_currentModel == null)
+            return jd;
+
+        foreach (var pair in _jointBonePairs)
+        {
+            if (_currentModel.HumanoidBones.TryGetValue(pair.Bone, out int bIdx))
+            {
+                if (bIdx >= 0 && bIdx < pose.Translations.Count)
+                {
+                    var t = pose.Translations[bIdx].ToNumerics();
+                    jd.Positions[(int)pair.Joint] = t;
+                    jd.Confidences[(int)pair.Joint] = 1f;
+                }
+            }
+        }
+
+        return jd;
+    }
+
+    private void ApplyTimelineToMotion(MotionData motion)
+    {
+        foreach (var kv in _timelineKeyframes)
+        {
+            int frame = kv.Key;
+            if (frame < 0 || frame >= motion.Frames.Length)
+                continue;
+            var jd = PoseToJointData(kv.Value);
+            jd.Timestamp = motion.Frames[frame].Timestamp;
+            motion.Frames[frame] = jd;
+        }
     }
 
     private void UpdateBoneViewValues()
