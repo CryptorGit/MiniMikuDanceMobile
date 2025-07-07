@@ -29,7 +29,7 @@
                     <RowDefinition Height="20" />
                     <RowDefinition Height="*" />
                 </Grid.RowDefinitions>
-                <Grid x:Name="FrameHeader" Grid.Row="0" ColumnSpacing="4" />
+                <GraphicsView x:Name="FrameHeaderCanvas" Grid.Row="0" />
                 <GraphicsView x:Name="TimelineCanvas"
                               Grid.Row="1"
                               StartInteraction="OnTimelineStartInteraction"

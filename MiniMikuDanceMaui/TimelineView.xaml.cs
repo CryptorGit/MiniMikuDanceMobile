@@ -21,9 +21,9 @@ public partial class TimelineView : ContentView
     public const int RowSpacing = 4;
     private int _currentFrame;
     private bool _suppressScroll;
-    private readonly Label _cursorArrow;
     private bool _initialized;
     private readonly TimelineDrawable _drawable = new();
+    private readonly TimelineHeaderDrawable _headerDrawable = new();
 
     public TimelineView()
     {
@@ -32,17 +32,7 @@ public partial class TimelineView : ContentView
         _ = new MauiIcon();
         BoneList.Spacing = RowSpacing;
         TimelineCanvas.Drawable = _drawable;
-        _cursorArrow = new Label
-        {
-            Text = "▲",
-            FontSize = 10,
-            TextColor = Colors.Black,
-            HorizontalOptions = LayoutOptions.Center,
-            VerticalOptions = LayoutOptions.End,
-            InputTransparent = true,
-            Margin = new Thickness(0),
-            Padding = new Thickness(0)
-        };
+        FrameHeaderCanvas.Drawable = _headerDrawable;
     }
 
     public void SetFrameCount(int count)
@@ -50,7 +40,6 @@ public partial class TimelineView : ContentView
         _frameCount = Math.Max(1, count);
         TimelineSlider.Maximum = _frameCount > 0 ? _frameCount - 1 : 0;
 
-        _drawable.SetFrameCount(_frameCount);
         BuildTimeline();
         TimelineCanvas.Invalidate();
     }
@@ -106,49 +95,28 @@ public partial class TimelineView : ContentView
 
     private void BuildTimeline()
     {
-        FrameHeader.ColumnDefinitions.Clear();
-        for (int c = 0; c < _frameCount; c++)
-        {
-            FrameHeader.ColumnDefinitions.Add(new ColumnDefinition { Width = 20 });
-        }
-
-        FrameHeader.Children.Clear();
-        for (int c = 0; c < _frameCount; c++)
-        {
-            var headerLabel = new Label
-            {
-                Text = c.ToString(),
-                FontSize = 10,
-                TextColor = Colors.White,
-                HorizontalOptions = LayoutOptions.Center,
-                VerticalOptions = LayoutOptions.Center,
-                BackgroundColor = (c % 2 == 0) ? Color.FromArgb("#303030") : Color.FromArgb("#202020"),
-                Margin = new Thickness(0),
-                Padding = new Thickness(0)
-            };
-            var headerTap = new TapGestureRecognizer();
-            int captured = c;
-            headerTap.Tapped += (_, _) => SetFrameIndex(captured);
-            headerLabel.GestureRecognizers.Add(headerTap);
-            FrameHeader.Add(headerLabel, c, 0);
-        }
-
         if (!_initialized)
         {
-            FrameHeader.Add(_cursorArrow, _currentFrame, 0);
             _initialized = true;
         }
 
+        _drawable.SetFrameCount(_frameCount);
+        _headerDrawable.SetFrameCount(_frameCount);
+
         TimelineCanvas.WidthRequest = 20 * _frameCount;
         TimelineCanvas.HeightRequest = _drawable.BoneCount * RowHeight + (_drawable.BoneCount - 1) * RowSpacing;
+        FrameHeaderCanvas.WidthRequest = 20 * _frameCount;
+
         UpdateCurrentIndicator();
+        FrameHeaderCanvas.Invalidate();
     }
 
     private void UpdateCurrentIndicator()
     {
         if (!_initialized)
             return;
-        Grid.SetColumn(_cursorArrow, _currentFrame);
+        _headerDrawable.CurrentFrame = _currentFrame;
+        FrameHeaderCanvas.Invalidate();
     }
 
     private void OnPlayClicked(object? sender, EventArgs e)
@@ -190,6 +158,8 @@ public partial class TimelineView : ContentView
         await TimelineScrollView.ScrollToAsync(TimelineScrollView.ScrollX, e.ScrollY, false);
         _suppressScroll = false;
         _drawable.ScrollY = (float)e.ScrollY;
+        _headerDrawable.ScrollX = (float)TimelineScrollView.ScrollX;
+        FrameHeaderCanvas.Invalidate();
         TimelineCanvas.Invalidate();
     }
 
@@ -203,6 +173,8 @@ public partial class TimelineView : ContentView
         _suppressScroll = false;
         _drawable.ScrollX = (float)e.ScrollX;
         _drawable.ScrollY = (float)e.ScrollY;
+        _headerDrawable.ScrollX = (float)e.ScrollX;
+        FrameHeaderCanvas.Invalidate();
         TimelineCanvas.Invalidate();
     }
 }
@@ -238,7 +210,7 @@ internal class TimelineDrawable : IDrawable
             _keyFrames[index].Add(frame);
     }
 
-    public void Draw(ICanvas canvas, RectF dirtyRect)
+public void Draw(ICanvas canvas, RectF dirtyRect)
     {
         const float cellWidth = 20f;
         const float rowHeight = 24f;
@@ -297,6 +269,56 @@ internal class TimelineDrawable : IDrawable
             canvas.StrokeColor = Colors.Red;
             canvas.StrokeSize = 2;
             canvas.DrawLine(x, 0, x, _bones.Count * (rowHeight + rowSpacing));
+        }
+    }
+}
+
+internal class TimelineHeaderDrawable : IDrawable
+{
+    private int _frameCount = 20;
+
+    public float ScrollX { get; set; }
+    public int CurrentFrame { get; set; }
+
+    public void SetFrameCount(int count) => _frameCount = Math.Max(1, count);
+
+    public void Draw(ICanvas canvas, RectF dirtyRect)
+    {
+        const float cellWidth = 20f;
+        const float headerHeight = 20f;
+
+        canvas.Translate(-ScrollX, 0);
+
+        int startCol = Math.Max(0, (int)(ScrollX / cellWidth));
+        int endCol = Math.Min(_frameCount - 1,
+            (int)((ScrollX + dirtyRect.Width) / cellWidth) + 1);
+
+        for (int c = startCol; c <= endCol; c++)
+        {
+            float x = c * cellWidth;
+            canvas.FillColor = (c % 2 == 0) ? Color.FromArgb("#303030") : Color.FromArgb("#202020");
+            canvas.FillRectangle(x, 0, cellWidth, headerHeight);
+
+            canvas.FontColor = Colors.White;
+            canvas.FontSize = 10;
+            canvas.DrawString(c.ToString(), x, 0, cellWidth, headerHeight,
+                HorizontalAlignment.Center, VerticalAlignment.Center);
+        }
+
+        if (CurrentFrame >= 0 && CurrentFrame < _frameCount)
+        {
+            float x = CurrentFrame * cellWidth + cellWidth / 2f;
+            canvas.FillColor = Colors.Black;
+            var path = new PathF();
+            path.MoveTo(x - 4, headerHeight);
+            path.LineTo(x + 4, headerHeight);
+            path.LineTo(x, headerHeight - 6);
+            path.Close();
+            canvas.FillPath(path);
+
+            canvas.StrokeColor = Colors.Red;
+            canvas.StrokeSize = 2;
+            canvas.DrawLine(x, headerHeight, x, headerHeight + 6);
         }
     }
 }
