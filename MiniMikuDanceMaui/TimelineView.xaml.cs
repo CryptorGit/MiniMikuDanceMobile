@@ -1,32 +1,54 @@
 using Microsoft.Maui.Controls;
-using Microsoft.Maui.Graphics;
 using System;
 using System.Collections.Generic;
+using System.Linq;
+using Microsoft.Maui.Graphics;
 
 namespace MiniMikuDanceMaui;
 
 public partial class TimelineView : ContentView
 {
-    public event Action? PlayRequested;
-    public event Action<int>? FrameChanged;
-    public event Action? AddKeyRequested;
-
-    private const int DefaultFrameCount = 20;
-    private int _frameCount = DefaultFrameCount;
-    private int _currentFrame;
-    private readonly Dictionary<int, HashSet<string>> _keyFrames = new();
+public event Action? PlayRequested;
+public event Action<int>? FrameChanged;
+public event Action? AddKeyRequested;
     private bool _isPlaying;
+    private const int DefaultFrameColumns = 20;
+    private int _frameCount = DefaultFrameColumns;
+    private readonly List<HashSet<int>> _keyFrames = new();
+    private readonly List<string> _bones = new();
+    private const int RowHeight = 24;
+    private int _currentFrame;
+    private bool _suppressScroll;
+    private readonly BoxView _cursorLine;
+    private readonly Label _cursorArrow;
 
     public TimelineView()
     {
         InitializeComponent();
-        BuildTimeline();
+        _cursorLine = new BoxView
+        {
+            Color = Colors.Red,
+            WidthRequest = 2,
+            HorizontalOptions = LayoutOptions.Center,
+            VerticalOptions = LayoutOptions.Fill,
+            InputTransparent = true
+        };
+        _cursorArrow = new Label
+        {
+            Text = "▲",
+            FontSize = 10,
+            TextColor = Colors.Black,
+            HorizontalOptions = LayoutOptions.Center,
+            VerticalOptions = LayoutOptions.End,
+            InputTransparent = true
+        };
     }
 
     public void SetFrameCount(int count)
     {
         _frameCount = Math.Max(1, count);
         TimelineSlider.Maximum = _frameCount > 0 ? _frameCount - 1 : 0;
+
         BuildTimeline();
     }
 
@@ -35,7 +57,7 @@ public partial class TimelineView : ContentView
         _currentFrame = index;
         if ((int)TimelineSlider.Value != index)
             TimelineSlider.Value = index;
-        UpdateHighlight();
+        UpdateCurrentIndicator();
     }
 
     public void UpdatePlayState(bool playing)
@@ -43,6 +65,7 @@ public partial class TimelineView : ContentView
         _isPlaying = playing;
         PlayButton.Text = playing ? "⏸" : "▶";
     }
+
 
     public void SetBones(IEnumerable<string> bones)
     {
@@ -60,7 +83,8 @@ public partial class TimelineView : ContentView
                 TextColor = Colors.White,
                 FontSize = 12,
                 HeightRequest = RowHeight,
-                LineBreakMode = LineBreakMode.NoWrap
+                LineBreakMode = LineBreakMode.NoWrap,
+                MaxLines = 1
             });
             TimelineGrid.RowDefinitions.Add(new RowDefinition { Height = RowHeight });
             _keyFrames.Add(new HashSet<int>());
@@ -73,31 +97,42 @@ public partial class TimelineView : ContentView
 
     public void AddKeyFrame(string bone, int frame)
     {
-        if (!_keyFrames.TryGetValue(frame, out var set))
+        int index = _bones.IndexOf(bone);
+        if (index >= 0 && index < _keyFrames.Count)
         {
-            set = new HashSet<string>();
-            _keyFrames[frame] = set;
+            _keyFrames[index].Add(frame);
+            BuildTimeline();
+            SetFrameIndex(frame);
         }
-        set.Add(bone);
-        BuildTimeline();
-        SetFrameIndex(frame);
     }
 
     private void BuildTimeline()
     {
-        FrameContainer.Children.Clear();
-        for (int i = 0; i < _frameCount; i++)
+        TimelineGrid.ColumnDefinitions.Clear();
+        FrameHeader.ColumnDefinitions.Clear();
+        for (int c = 0; c < _frameCount; c++)
         {
-            FrameHeader.Add(new Label
+            TimelineGrid.ColumnDefinitions.Add(new ColumnDefinition { Width = 20 });
+            FrameHeader.ColumnDefinitions.Add(new ColumnDefinition { Width = 20 });
+        }
+
+        FrameHeader.Children.Clear();
+        for (int c = 0; c < _frameCount; c++)
+        {
+            var headerLabel = new Label
             {
-                Text = i.ToString(),
+                Text = c.ToString(),
                 FontSize = 10,
                 TextColor = Colors.White,
                 HorizontalOptions = LayoutOptions.Center,
                 VerticalOptions = LayoutOptions.Center,
-                InputTransparent = true,
                 BackgroundColor = (c % 2 == 0) ? Color.FromArgb("#303030") : Color.FromArgb("#202020")
-            }, c, 0);
+            };
+            var headerTap = new TapGestureRecognizer();
+            int captured = c;
+            headerTap.Tapped += (_, _) => SetFrameIndex(captured);
+            headerLabel.GestureRecognizers.Add(headerTap);
+            FrameHeader.Add(headerLabel, c, 0);
         }
 
         TimelineGrid.Children.Clear();
@@ -106,51 +141,112 @@ public partial class TimelineView : ContentView
             var keys = _keyFrames[r].OrderBy(i => i).ToList();
             for (int c = 0; c < _frameCount; c++)
             {
-                cell.Children.Add(new Label
+                var cell = new Grid { StyleId = $"{r}_{c}", BackgroundColor = (r % 2 == 0) ? Color.FromArgb("#303030") : Color.FromArgb("#202020") };
+                var tap = new TapGestureRecognizer();
+                tap.Tapped += OnCellTapped;
+                cell.GestureRecognizers.Add(tap);
+
+                if (_keyFrames[r].Contains(c))
                 {
-                    Text = "◆",
-                    FontSize = 10,
-                    TextColor = Colors.Orange,
-                    HorizontalOptions = LayoutOptions.Center,
-                    VerticalOptions = LayoutOptions.End
-                });
+                    cell.Children.Add(new Label
+                    {
+                        Text = "◆",
+                        FontSize = 10,
+                        TextColor = Colors.White,
+                        HorizontalOptions = LayoutOptions.Center,
+                        VerticalOptions = LayoutOptions.Center,
+                        InputTransparent = true
+                    });
+                }
+                else
+                {
+                    for (int i = 0; i < keys.Count - 1; i++)
+                    {
+                        if (c > keys[i] && c < keys[i + 1])
+                        {
+                            cell.Children.Add(new BoxView
+                            {
+                                Color = Colors.Orange,
+                                HeightRequest = 3,
+                                HorizontalOptions = LayoutOptions.Fill,
+                                VerticalOptions = LayoutOptions.Center,
+                                InputTransparent = true
+                            });
+                            break;
+                        }
+                    }
+                }
+
+                TimelineGrid.Add(cell, c, r);
             }
-            var tap = new TapGestureRecognizer();
-            int captured = i;
-            tap.Tapped += (_, _) => OnFrameTapped(captured);
-            cell.GestureRecognizers.Add(tap);
-            FrameContainer.Add(cell);
         }
-        UpdateHighlight();
+
+        TimelineGrid.Add(_cursorLine, _currentFrame, 0);
+        Grid.SetRowSpan(_cursorLine, _keyFrames.Count);
+        FrameHeader.Add(_cursorArrow, _currentFrame, 0);
+        UpdateCurrentIndicator();
     }
 
-    private void UpdateHighlight()
+    private void UpdateCurrentIndicator()
     {
-        foreach (var child in FrameContainer.Children)
-        {
-            if (child is VisualElement ve)
-            {
-                ve.BackgroundColor = ve.StyleId == _currentFrame.ToString()
-                    ? Color.FromArgb("#555555")
-                    : Color.FromArgb("#303030");
-            }
-        }
+        Grid.SetColumn(_cursorLine, _currentFrame);
+        Grid.SetColumn(_cursorArrow, _currentFrame);
     }
 
-    private void OnFrameTapped(int frame)
+    private void OnPlayClicked(object? sender, EventArgs e)
     {
-        SetFrameIndex(frame);
-        FrameChanged?.Invoke(frame);
+        PlayRequested?.Invoke();
     }
 
-    private void OnPlayClicked(object? sender, EventArgs e) => PlayRequested?.Invoke();
-
-    private void OnAddKeyClicked(object? sender, EventArgs e) => AddKeyRequested?.Invoke();
+    private void OnAddToneClicked(object? sender, EventArgs e)
+    {
+        AddKeyRequested?.Invoke();
+    }
 
     private void OnSliderChanged(object? sender, ValueChangedEventArgs e)
     {
         _currentFrame = (int)e.NewValue;
         FrameChanged?.Invoke(_currentFrame);
-        UpdateHighlight();
+        UpdateCurrentIndicator();
+    }
+
+    private void OnCellTapped(object? sender, TappedEventArgs e)
+    {
+        if (sender is VisualElement ve && ve.StyleId != null)
+        {
+            var parts = ve.StyleId.Split('_');
+            if (parts.Length == 2 && int.TryParse(parts[0], out var r) && int.TryParse(parts[1], out var c))
+            {
+                if (_keyFrames.Count > r)
+                {
+                    if (_keyFrames[r].Contains(c))
+                        _keyFrames[r].Remove(c);
+                    else
+                        _keyFrames[r].Add(c);
+
+                    SetFrameIndex(c);
+                }
+            }
+        }
+    }
+
+    private async void OnBoneListScrolled(object? sender, ScrolledEventArgs e)
+    {
+        if (_suppressScroll)
+            return;
+
+        _suppressScroll = true;
+        await TimelineScrollView.ScrollToAsync(TimelineScrollView.ScrollX, e.ScrollY, false);
+        _suppressScroll = false;
+    }
+
+    private async void OnTimelineScrolled(object? sender, ScrolledEventArgs e)
+    {
+        if (_suppressScroll)
+            return;
+
+        _suppressScroll = true;
+        await BoneListScrollView.ScrollToAsync(0, e.ScrollY, false);
+        _suppressScroll = false;
     }
 }
