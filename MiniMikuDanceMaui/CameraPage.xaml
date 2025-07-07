@@ -139,58 +139,7 @@
                 </HorizontalStackLayout>
             </VerticalStackLayout>
         </Frame>
-        <Frame x:Name="ToneAddPanel" IsVisible="False" BackgroundColor="#88000000" Padding="8" ZIndex="30">
-            <VerticalStackLayout Spacing="6">
-                <Picker x:Name="ToneBonePicker" Title="Bone" />
-                <HorizontalStackLayout Spacing="4" VerticalOptions="Center">
-                    <Button Text="-1" Clicked="OnToneFrameMinusClicked" />
-                    <Entry x:Name="ToneFrameEntry" Placeholder="Frame" WidthRequest="60" Keyboard="Numeric" />
-                    <Button Text="+1" Clicked="OnToneFramePlusClicked" />
-                </HorizontalStackLayout>
-                <HorizontalStackLayout Spacing="10" VerticalOptions="Center">
-                    <Label Text="Pos Range" TextColor="White" VerticalOptions="Center" />
-                    <Picker x:Name="PosRangePicker" SelectedIndexChanged="OnPosRangeChanged" />
-                </HorizontalStackLayout>
-                <HorizontalStackLayout Spacing="10" VerticalOptions="Center">
-                    <Label Text="Rot Range" TextColor="White" VerticalOptions="Center" />
-                    <Picker x:Name="RotRangePicker" SelectedIndexChanged="OnRotRangeChanged" />
-                </HorizontalStackLayout>
-                <HorizontalStackLayout Spacing="10">
-                    <Label Text="Pos X" TextColor="White" />
-                    <Label x:Name="PosXLabel" Text="0" TextColor="White" />
-                </HorizontalStackLayout>
-                <Slider x:Name="PosXSlider" Minimum="-1" Maximum="1" ValueChanged="OnPosXChanged" />
-                <HorizontalStackLayout Spacing="10">
-                    <Label Text="Pos Y" TextColor="White" />
-                    <Label x:Name="PosYLabel" Text="0" TextColor="White" />
-                </HorizontalStackLayout>
-                <Slider x:Name="PosYSlider" Minimum="-1" Maximum="1" ValueChanged="OnPosYChanged" />
-                <HorizontalStackLayout Spacing="10">
-                    <Label Text="Pos Z" TextColor="White" />
-                    <Label x:Name="PosZLabel" Text="0" TextColor="White" />
-                </HorizontalStackLayout>
-                <Slider x:Name="PosZSlider" Minimum="-1" Maximum="1" ValueChanged="OnPosZChanged" />
-                <HorizontalStackLayout Spacing="10">
-                    <Label Text="Rot X" TextColor="White" />
-                    <Label x:Name="RotXLabel" Text="0" TextColor="White" />
-                </HorizontalStackLayout>
-                <Slider x:Name="RotXSlider" Minimum="-180" Maximum="180" ValueChanged="OnRotXChanged" />
-                <HorizontalStackLayout Spacing="10">
-                    <Label Text="Rot Y" TextColor="White" />
-                    <Label x:Name="RotYLabel" Text="0" TextColor="White" />
-                </HorizontalStackLayout>
-                <Slider x:Name="RotYSlider" Minimum="-180" Maximum="180" ValueChanged="OnRotYChanged" />
-                <HorizontalStackLayout Spacing="10">
-                    <Label Text="Rot Z" TextColor="White" />
-                    <Label x:Name="RotZLabel" Text="0" TextColor="White" />
-                </HorizontalStackLayout>
-                <Slider x:Name="RotZSlider" Minimum="-180" Maximum="180" ValueChanged="OnRotZChanged" />
-                <HorizontalStackLayout Spacing="10" HorizontalOptions="End">
-                    <Button Text="確定" Clicked="OnToneConfirmClicked" />
-                    <Button Text="キャンセル" Clicked="OnToneCancelClicked" />
-                </HorizontalStackLayout>
-            </VerticalStackLayout>
-        </Frame>
+        <mmd:KeyInputPanel x:Name="KeyPanel" IsVisible="False" ZIndex="30" />
         <ActivityIndicator x:Name="LoadingIndicator" IsRunning="True" IsVisible="False" Color="Blue" ZIndex="30" />
         <skia:SKGLView x:Name="Viewer" HasRenderLoop="True" EnableTouchEvents="True" />
         <Grid x:Name="BottomRegion" BackgroundColor="#1E1E1E" IsVisible="False" ZIndex="2">
