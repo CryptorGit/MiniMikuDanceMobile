@@ -1397,6 +1397,7 @@ public partial class CameraPage : ContentPage
                 _timelineKeyframes.Remove(frame);
             }
         }
+    }
 
     private void AttachFramePlayedHandler()
     {
