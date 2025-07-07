@@ -24,15 +24,17 @@
         </ScrollView>
         <ScrollView x:Name="TimelineScrollView" Grid.Row="1" Grid.Column="1" Orientation="Both"
                     Scrolled="OnTimelineScrolled" VerticalScrollBarVisibility="Always" HorizontalScrollBarVisibility="Always">
-                <Grid x:Name="TimelinePanel">
-                    <Grid.RowDefinitions>
-                        <RowDefinition Height="20" />
-                        <RowDefinition Height="*" />
-                    </Grid.RowDefinitions>
-                    <Grid x:Name="FrameHeader" Grid.Row="0" ColumnSpacing="4" />
-                    <Grid x:Name="TimelineGrid" Grid.Row="1" RowSpacing="{x:Static local:TimelineView.RowSpacing}" ColumnSpacing="4" />
-                    <skia:SKCanvasView x:Name="TimelineCanvas" Grid.Row="1" PaintSurface="OnTimelineCanvasPaint" EnableTouchEvents="True" Touch="OnCanvasTouch" />
-                </Grid>
+            <Grid x:Name="TimelinePanel">
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="20" />
+                    <RowDefinition Height="*" />
+                </Grid.RowDefinitions>
+                <GraphicsView x:Name="FrameHeaderCanvas" Grid.Row="0" />
+                <GraphicsView x:Name="TimelineCanvas"
+                              Grid.Row="1"
+                              StartInteraction="OnTimelineStartInteraction"
+                              EndInteraction="OnTimelineEndInteraction" />
+            </Grid>
         </ScrollView>
     </Grid>
 </ContentView>

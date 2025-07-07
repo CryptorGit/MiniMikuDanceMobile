@@ -119,7 +119,7 @@ AGENTS.md で挙げたカテゴリをより細分化し、優先度や検討事�
 - [ ] トラック折りたたみやフレーム幅調整などMMDに近い高度な操作UI
 - [ ] KeyInputPanel の統合
 - [ ] KeyInputPanel の行揃えを修正
-- [ ] タイムラインヘッダーを GraphicsView に置き換え大量の Label 生成を抑制
+- [x] タイムラインヘッダーを GraphicsView に置き換え大量の Label 生成を抑制
 
 ## ドキュメント整備
 - [x] README の更新（Visual Studio / Windows セットアップ手順）
