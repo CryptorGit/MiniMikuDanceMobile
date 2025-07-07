@@ -21,7 +21,7 @@ public partial class TimelineView : ContentView
     private const int DefaultFrameColumns = 20;
     private int _frameCount = DefaultFrameColumns;
     private const int RowHeight = 24;
-    public const int RowSpacing = 4;
+    public const double RowSpacing = 4.0;
     private int _currentFrame;
     private bool _suppressScroll;
     private readonly Label _cursorArrow;
@@ -237,7 +237,7 @@ internal class TimelineDrawable : IDrawable
     {
         const float cellWidth = 20f;
         const float rowHeight = 24f;
-        const float rowSpacing = TimelineView.RowSpacing;
+        const float rowSpacing = (float)TimelineView.RowSpacing;
 
         canvas.Translate(-ScrollX, -ScrollY);
 
