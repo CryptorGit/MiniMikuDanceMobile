@@ -83,7 +83,8 @@ public event Action? AddKeyRequested;
                 Text = name,
                 TextColor = Colors.White,
                 FontSize = 12,
-                HeightRequest = RowHeight
+                HeightRequest = RowHeight,
+                LineBreakMode = LineBreakMode.NoWrap
             });
             TimelineGrid.RowDefinitions.Add(new RowDefinition { Height = RowHeight });
             _keyFrames.Add(new HashSet<int>());
@@ -231,23 +232,23 @@ public event Action? AddKeyRequested;
         }
     }
 
-    private void OnBoneListScrolled(object? sender, ScrolledEventArgs e)
+    private async void OnBoneListScrolled(object? sender, ScrolledEventArgs e)
     {
         if (_suppressScroll)
             return;
 
         _suppressScroll = true;
-        TimelineScrollView.ScrollToAsync(TimelineScrollView.ScrollX, e.ScrollY, false);
+        await TimelineScrollView.ScrollToAsync(TimelineScrollView.ScrollX, e.ScrollY, false);
         _suppressScroll = false;
     }
 
-    private void OnTimelineScrolled(object? sender, ScrolledEventArgs e)
+    private async void OnTimelineScrolled(object? sender, ScrolledEventArgs e)
     {
         if (_suppressScroll)
             return;
 
         _suppressScroll = true;
-        BoneListScrollView.ScrollToAsync(0, e.ScrollY, false);
+        await BoneListScrollView.ScrollToAsync(0, e.ScrollY, false);
         _suppressScroll = false;
     }
 }
