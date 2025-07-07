@@ -84,8 +84,7 @@ public event Action? AddKeyRequested;
                 TextColor = Colors.White,
                 FontSize = 12,
                 HeightRequest = RowHeight,
-                LineBreakMode = LineBreakMode.NoWrap,
-                MaxLines = 1
+                LineBreakMode = LineBreakMode.NoWrap
             });
             TimelineGrid.RowDefinitions.Add(new RowDefinition { Height = RowHeight });
             _keyFrames.Add(new HashSet<int>());
@@ -120,20 +119,16 @@ public event Action? AddKeyRequested;
         FrameHeader.Children.Clear();
         for (int c = 0; c < _frameCount; c++)
         {
-            var headerLabel = new Label
+            FrameHeader.Add(new Label
             {
                 Text = c.ToString(),
                 FontSize = 10,
                 TextColor = Colors.White,
                 HorizontalOptions = LayoutOptions.Center,
                 VerticalOptions = LayoutOptions.Center,
+                InputTransparent = true,
                 BackgroundColor = (c % 2 == 0) ? Color.FromArgb("#303030") : Color.FromArgb("#202020")
-            };
-            var headerTap = new TapGestureRecognizer();
-            int captured = c;
-            headerTap.Tapped += (_, _) => SetFrameIndex(captured);
-            headerLabel.GestureRecognizers.Add(headerTap);
-            FrameHeader.Add(headerLabel, c, 0);
+            }, c, 0);
         }
 
         TimelineGrid.Children.Clear();
