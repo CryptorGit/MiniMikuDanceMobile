@@ -5,9 +5,6 @@ using System.Linq;
 using Microsoft.Maui.Graphics;
 using MauiIcons.Core;
 using MauiIcons.Material.Outlined;
-using SkiaSharp;
-using SkiaSharp.Views.Maui;
-using SkiaSharp.Views.Maui.Controls;
 
 namespace MiniMikuDanceMaui;
 
@@ -263,49 +260,6 @@ public void Draw(ICanvas canvas, RectF dirtyRect)
         }
     }
 
-    private void OnTimelineCanvasPaint(object? sender, SKPaintSurfaceEventArgs e)
-    {
-        var canvas = e.Surface.Canvas;
-        canvas.Clear();
-
-        float cellWidth = 20;
-        float cellHeight = RowHeight + RowSpacing;
-        for (int r = 0; r < _keyFrames.Count; r++)
-        {
-            for (int c = 0; c < _frameCount; c++)
-            {
-                float x = c * cellWidth;
-                float y = r * cellHeight;
-                canvas.DrawRect(x, y, cellWidth, RowHeight, _gridPaint);
-                if (_keyFrames[r].Contains(c))
-                {
-                    canvas.DrawText("◆", x + cellWidth / 2, y + RowHeight / 2, _keyPaint);
-                }
-            }
-        }
-    }
-
-    private void OnCanvasTouch(object? sender, SKTouchEventArgs e)
-    {
-        if (e.ActionType != SKTouchAction.Released)
-            return;
-
-        float cellWidth = 20;
-        float cellHeight = RowHeight + RowSpacing;
-        int column = (int)(e.Location.X / cellWidth);
-        int row = (int)(e.Location.Y / cellHeight);
-        if (row >= 0 && row < _keyFrames.Count && column >= 0 && column < _frameCount)
-        {
-            if (_keyFrames[row].Contains(column))
-                _keyFrames[row].Remove(column);
-            else
-                _keyFrames[row].Add(column);
-
-            SetFrameIndex(column);
-            TimelineCanvas.InvalidateSurface();
-        }
-        e.Handled = true;
-    }
 }
 
 internal class TimelineHeaderDrawable : IDrawable
