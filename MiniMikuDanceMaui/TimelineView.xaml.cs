@@ -46,7 +46,29 @@ public partial class TimelineView : ContentView
 
     public void SetBones(IEnumerable<string> bones)
     {
-        // Simplified view does not show bones, method retained for compatibility
+        BoneList.Children.Clear();
+        TimelineGrid.RowDefinitions.Clear();
+        _keyFrames.Clear();
+        _bones.Clear();
+
+        int row = 0;
+        foreach (var name in bones)
+        {
+            BoneList.Children.Add(new Label
+            {
+                Text = name,
+                TextColor = Colors.White,
+                FontSize = 12,
+                HeightRequest = RowHeight,
+                LineBreakMode = LineBreakMode.NoWrap
+            });
+            TimelineGrid.RowDefinitions.Add(new RowDefinition { Height = RowHeight });
+            _keyFrames.Add(new HashSet<int>());
+            _bones.Add(name);
+            row++;
+        }
+
+        SetFrameCount(_frameCount);
     }
 
     public void AddKeyFrame(string bone, int frame)
@@ -66,17 +88,23 @@ public partial class TimelineView : ContentView
         FrameContainer.Children.Clear();
         for (int i = 0; i < _frameCount; i++)
         {
-            var cell = new Grid { StyleId = i.ToString(), WidthRequest = 24, HeightRequest = 40, BackgroundColor = Color.FromArgb("#303030") };
-            var label = new Label
+            FrameHeader.Add(new Label
             {
                 Text = i.ToString(),
                 FontSize = 10,
                 TextColor = Colors.White,
                 HorizontalOptions = LayoutOptions.Center,
-                VerticalOptions = LayoutOptions.Start
-            };
-            cell.Children.Add(label);
-            if (_keyFrames.ContainsKey(i))
+                VerticalOptions = LayoutOptions.Center,
+                InputTransparent = true,
+                BackgroundColor = (c % 2 == 0) ? Color.FromArgb("#303030") : Color.FromArgb("#202020")
+            }, c, 0);
+        }
+
+        TimelineGrid.Children.Clear();
+        for (int r = 0; r < _keyFrames.Count; r++)
+        {
+            var keys = _keyFrames[r].OrderBy(i => i).ToList();
+            for (int c = 0; c < _frameCount; c++)
             {
                 cell.Children.Add(new Label
                 {
