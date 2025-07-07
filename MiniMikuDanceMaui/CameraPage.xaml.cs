@@ -66,6 +66,7 @@ public partial class CameraPage : ContentPage
     private int _poseHistoryIndex = -1;
     // キーフレームごとの姿勢を保持する辞書
     private readonly Dictionary<int, PoseState> _timelineKeyframes = new();
+    private readonly Dictionary<int, HashSet<string>> _frameBones = new();
     private static readonly (BlazePoseJoint Joint, string Bone)[] _jointBonePairs = new[]
     {
         (BlazePoseJoint.LeftShoulder, "leftShoulder"),
@@ -678,6 +679,7 @@ public partial class CameraPage : ContentPage
                 av.PlayRequested += OnPlayAnimationRequested;
                 av.FrameChanged += OnAnimationFrameChanged;
                 av.AddKeyRequested += OnAddKeyRequested;
+                av.KeyFrameAdded += OnKeyFrameAdded;
                 av.Editor = _motionEditor;
                 av.KeyFrameRemoved += OnKeyFrameRemoved;
                 if (_currentModel != null)
@@ -1228,11 +1230,6 @@ public partial class CameraPage : ContentPage
                     _renderer.SetBoneRotation(index, r);
 
                     SavePoseState();
-                    _timelineKeyframes[frame] = new PoseState
-                    {
-                        Rotations = _renderer.GetAllBoneRotations(),
-                        Translations = _renderer.GetAllBoneTranslations()
-                    };
                     Viewer?.InvalidateSurface();
                 }
             }
@@ -1405,10 +1402,32 @@ public partial class CameraPage : ContentPage
         UpdateLayout();
     }
 
-    private void OnKeyFrameRemoved(int frame)
+    private void OnKeyFrameAdded(string bone, int frame)
     {
-        _timelineKeyframes.Remove(frame);
+        if (!_frameBones.TryGetValue(frame, out var set))
+        {
+            set = new HashSet<string>();
+            _frameBones[frame] = set;
+        }
+        set.Add(bone);
+        _timelineKeyframes[frame] = new PoseState
+        {
+            Rotations = _renderer.GetAllBoneRotations(),
+            Translations = _renderer.GetAllBoneTranslations()
+        };
     }
+
+    private void OnKeyFrameRemoved(string bone, int frame)
+    {
+        if (_frameBones.TryGetValue(frame, out var set))
+        {
+            set.Remove(bone);
+            if (set.Count == 0)
+            {
+                _frameBones.Remove(frame);
+                _timelineKeyframes.Remove(frame);
+            }
+        }
 
     private void AttachFramePlayedHandler()
     {
@@ -1447,7 +1466,7 @@ public partial class CameraPage : ContentPage
         _poseHistoryIndex = _poseHistory.Count - 1;
     }
 
-    private JointData PoseToJointData(PoseState pose)
+    private JointData PoseToJointData(PoseState pose, IEnumerable<string>? bones = null)
     {
         int jointCount = Enum.GetValues<BlazePoseJoint>().Length;
         var jd = new JointData
@@ -1460,8 +1479,12 @@ public partial class CameraPage : ContentPage
         if (_currentModel == null)
             return jd;
 
+        HashSet<string>? set = bones != null ? new HashSet<string>(bones) : null;
+
         foreach (var pair in _jointBonePairs)
         {
+            if (set != null && !set.Contains(pair.Bone))
+                continue;
             if (_currentModel.HumanoidBones.TryGetValue(pair.Bone, out int bIdx))
             {
                 if (bIdx >= 0 && bIdx < pose.Translations.Count)
@@ -1483,11 +1506,18 @@ public partial class CameraPage : ContentPage
             int frame = kv.Key;
             if (frame < 0 || frame >= motion.Frames.Length)
                 continue;
-            var pose = kv.Value;
-            if (pose.Rotations.Count == 0 && pose.Translations.Count == 0)
+            if (!_frameBones.TryGetValue(frame, out var bones) || bones.Count == 0)
                 continue;
-            var jd = PoseToJointData(pose);
-            jd.Timestamp = motion.Frames[frame].Timestamp;
+            var jd = motion.Frames[frame];
+            var update = PoseToJointData(kv.Value, bones);
+            for (int i = 0; i < jd.Positions.Length; i++)
+            {
+                if (update.Confidences[i] > 0f)
+                {
+                    jd.Positions[i] = update.Positions[i];
+                    jd.Confidences[i] = update.Confidences[i];
+                }
+            }
             motion.Frames[frame] = jd;
         }
     }

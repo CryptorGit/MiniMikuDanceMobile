@@ -14,7 +14,8 @@ public partial class TimelineView : ContentView
     public event Action? PlayRequested;
     public event Action<int>? FrameChanged;
     public event Action? AddKeyRequested;
-    public event Action<int>? KeyFrameRemoved;
+    public event Action<string, int>? KeyFrameAdded;
+    public event Action<string, int>? KeyFrameRemoved;
 
     public MotionEditor? Editor { get; set; }
 
@@ -94,6 +95,10 @@ public partial class TimelineView : ContentView
 
     public void AddKeyFrame(string bone, int frame)
     {
+        _drawable.AddKeyFrame(bone, frame);
+        Editor?.AddKeyFrame(bone, frame);
+        KeyFrameAdded?.Invoke(bone, frame);
+        TimelineCanvas.Invalidate();
         var rect = _drawable.AddKeyFrame(bone, frame);
         if (rect != RectF.Zero)
             TimelineCanvas.Invalidate(rect);
@@ -104,6 +109,10 @@ public partial class TimelineView : ContentView
 
     public void RemoveKeyFrame(string bone, int frame)
     {
+        _drawable.RemoveKeyFrame(bone, frame);
+        Editor?.RemoveKeyFrame(bone, frame);
+        KeyFrameRemoved?.Invoke(bone, frame);
+        TimelineCanvas.Invalidate();
         var rect = _drawable.RemoveKeyFrame(bone, frame);
         if (rect != RectF.Zero)
             TimelineCanvas.Invalidate(rect);
@@ -208,17 +217,14 @@ public partial class TimelineView : ContentView
         if (col < 0 || col >= _frameCount)
             return;
 
-        RectF rect;
+        var bone = row >= 0 && row < _drawable.Bones.Count ? _drawable.Bones[row] : string.Empty;
         if (_drawable.HasKeyFrame(row, col))
         {
-            rect = _drawable.RemoveKeyFrame(row, col);
-            Editor?.RemoveKeyFrame(row >= 0 && row < _drawable.Bones.Count ? _drawable.Bones[row] : string.Empty, col);
-            KeyFrameRemoved?.Invoke(col);
+            RemoveKeyFrame(bone, col);
         }
         else
         {
-            rect = _drawable.AddKeyFrame(row, col);
-            Editor?.AddKeyFrame(row >= 0 && row < _drawable.Bones.Count ? _drawable.Bones[row] : string.Empty, col);
+            AddKeyFrame(bone, col);
         }
         if (rect != RectF.Zero)
             TimelineCanvas.Invalidate(rect);
