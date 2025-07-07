@@ -29,6 +29,8 @@ public event Action? AddKeyRequested;
     public TimelineView()
     {
         InitializeComponent();
+        // URL スタイルの名前空間利用時に必要な一時的ワークアラウンド
+        _ = new MauiIcon();
         BoneList.Spacing = RowSpacing;
         TimelineGrid.RowSpacing = RowSpacing;
         _cursorLine = new BoxView
