@@ -16,6 +16,7 @@ public event Action? AddKeyRequested;
     private int _frameCount = DefaultFrameColumns;
     private readonly List<HashSet<int>> _keyFrames = new();
     private readonly List<string> _bones = new();
+    private const int RowHeight = 24;
     private int _currentFrame;
     private bool _suppressScroll;
     private readonly BoxView _cursorLine;
@@ -82,9 +83,9 @@ public event Action? AddKeyRequested;
                 Text = name,
                 TextColor = Colors.White,
                 FontSize = 12,
-                HeightRequest = 24
+                HeightRequest = RowHeight
             });
-            TimelineGrid.RowDefinitions.Add(new RowDefinition { Height = 24 });
+            TimelineGrid.RowDefinitions.Add(new RowDefinition { Height = RowHeight });
             _keyFrames.Add(new HashSet<int>());
             _bones.Add(name);
             row++;
