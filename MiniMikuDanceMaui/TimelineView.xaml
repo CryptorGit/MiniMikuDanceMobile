@@ -31,9 +31,7 @@
                 </Grid.RowDefinitions>
                 <GraphicsView x:Name="FrameHeaderCanvas" Grid.Row="0" />
                 <GraphicsView x:Name="TimelineCanvas"
-                              Grid.Row="1"
-                              StartInteraction="OnTimelineStartInteraction"
-                              EndInteraction="OnTimelineEndInteraction" />
+                              Grid.Row="1" />
             </Grid>
         </ScrollView>
     </Grid>
