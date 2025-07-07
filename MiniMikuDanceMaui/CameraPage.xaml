@@ -143,6 +143,14 @@
             <VerticalStackLayout Spacing="6">
                 <Picker x:Name="ToneBonePicker" Title="Bone" />
                 <Entry x:Name="ToneFrameEntry" Placeholder="Frame" Keyboard="Numeric" />
+                <Entry x:Name="BoneEntry" Placeholder="Bone" />
+                <Entry x:Name="FrameEntry" Placeholder="Frame" Keyboard="Numeric" />
+                <Entry x:Name="PosXEntry" Placeholder="Pos X" Keyboard="Numeric" />
+                <Entry x:Name="PosYEntry" Placeholder="Pos Y" Keyboard="Numeric" />
+                <Entry x:Name="PosZEntry" Placeholder="Pos Z" Keyboard="Numeric" />
+                <Entry x:Name="RotXEntry" Placeholder="Rot X" Keyboard="Numeric" />
+                <Entry x:Name="RotYEntry" Placeholder="Rot Y" Keyboard="Numeric" />
+                <Entry x:Name="RotZEntry" Placeholder="Rot Z" Keyboard="Numeric" />
                 <HorizontalStackLayout Spacing="10" HorizontalOptions="End">
                     <Button Text="確定" Clicked="OnToneConfirmClicked" />
                     <Button Text="キャンセル" Clicked="OnToneCancelClicked" />
