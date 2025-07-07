@@ -99,6 +99,11 @@ public partial class TimelineView : ContentView
         Editor?.AddKeyFrame(bone, frame);
         KeyFrameAdded?.Invoke(bone, frame);
         TimelineCanvas.Invalidate();
+        var rect = _drawable.AddKeyFrame(bone, frame);
+        if (rect != RectF.Zero)
+            TimelineCanvas.Invalidate(rect);
+        else
+            TimelineCanvas.Invalidate();
         SetFrameIndex(frame);
     }
 
@@ -108,6 +113,11 @@ public partial class TimelineView : ContentView
         Editor?.RemoveKeyFrame(bone, frame);
         KeyFrameRemoved?.Invoke(bone, frame);
         TimelineCanvas.Invalidate();
+        var rect = _drawable.RemoveKeyFrame(bone, frame);
+        if (rect != RectF.Zero)
+            TimelineCanvas.Invalidate(rect);
+        else
+            TimelineCanvas.Invalidate();
     }
 
     private void BuildTimeline()
@@ -216,6 +226,10 @@ public partial class TimelineView : ContentView
         {
             AddKeyFrame(bone, col);
         }
+        if (rect != RectF.Zero)
+            TimelineCanvas.Invalidate(rect);
+        else
+            TimelineCanvas.Invalidate();
         SetFrameIndex(col);
     }
 }
@@ -247,46 +261,41 @@ internal class TimelineDrawable : IDrawable
     public RectF AddKeyFrame(string bone, int frame)
     {
         int index = _bones.IndexOf(bone);
-        if (index >= 0)
-        {
-            if (_keyFrames[index].Add(frame))
-            {
-                const float cellWidth = 20f;
-                const float rowHeight = 24f;
-                const float rowSpacing = (float)TimelineView.RowSpacing;
-                float x = frame * cellWidth;
-                float y = index * (rowHeight + rowSpacing);
-                return new RectF(x, y, cellWidth, rowHeight);
-            }
-        }
-        return RectF.Zero;
+        return AddKeyFrame(index, frame);
     }
 
     public RectF RemoveKeyFrame(string bone, int frame)
     {
         int index = _bones.IndexOf(bone);
-        if (index >= 0 && _keyFrames[index].Remove(frame))
+        return RemoveKeyFrame(index, frame);
+    }
+
+    public RectF AddKeyFrame(int row, int frame)
+    {
+        if (row >= 0 && row < _keyFrames.Count && _keyFrames[row].Add(frame))
         {
             const float cellWidth = 20f;
             const float rowHeight = 24f;
             const float rowSpacing = (float)TimelineView.RowSpacing;
             float x = frame * cellWidth;
-            float y = index * (rowHeight + rowSpacing);
+            float y = row * (rowHeight + rowSpacing);
             return new RectF(x, y, cellWidth, rowHeight);
         }
         return RectF.Zero;
     }
 
-    public void AddKeyFrame(int row, int frame)
+    public RectF RemoveKeyFrame(int row, int frame)
     {
-        if (row >= 0 && row < _keyFrames.Count)
-            _keyFrames[row].Add(frame);
-    }
-
-    public void RemoveKeyFrame(int row, int frame)
-    {
-        if (row >= 0 && row < _keyFrames.Count)
-            _keyFrames[row].Remove(frame);
+        if (row >= 0 && row < _keyFrames.Count && _keyFrames[row].Remove(frame))
+        {
+            const float cellWidth = 20f;
+            const float rowHeight = 24f;
+            const float rowSpacing = (float)TimelineView.RowSpacing;
+            float x = frame * cellWidth;
+            float y = row * (rowHeight + rowSpacing);
+            return new RectF(x, y, cellWidth, rowHeight);
+        }
+        return RectF.Zero;
     }
 
     public bool HasKeyFrame(int row, int frame)
