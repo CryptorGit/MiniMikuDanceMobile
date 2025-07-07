@@ -93,21 +93,15 @@ public partial class TimelineView : ContentView
 
     public void AddKeyFrame(string bone, int frame)
     {
-        var rect = _drawable.AddKeyFrame(bone, frame);
-        if (rect.Width > 0 && rect.Height > 0)
-            TimelineCanvas.Invalidate(rect);
-        else
-            TimelineCanvas.Invalidate();
+        _drawable.AddKeyFrame(bone, frame);
+        TimelineCanvas.Invalidate();
         SetFrameIndex(frame);
     }
 
     public void RemoveKeyFrame(string bone, int frame)
     {
-        var rect = _drawable.RemoveKeyFrame(bone, frame);
-        if (rect.Width > 0 && rect.Height > 0)
-            TimelineCanvas.Invalidate(rect);
-        else
-            TimelineCanvas.Invalidate();
+        _drawable.RemoveKeyFrame(bone, frame);
+        TimelineCanvas.Invalidate();
     }
 
     private void BuildTimeline()
