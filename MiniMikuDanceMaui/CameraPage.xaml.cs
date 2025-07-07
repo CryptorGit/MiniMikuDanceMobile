@@ -37,7 +37,6 @@ public partial class CameraPage : ContentPage
     private bool _viewMenuOpen;
     private bool _settingMenuOpen;
     private bool _fileMenuOpen;
-    private bool _timelinePanelVisible;
 
     private void UpdateOverlay() => MenuOverlay.IsVisible = _viewMenuOpen || _settingMenuOpen || _fileMenuOpen;
     private readonly Dictionary<string, View> _bottomViews = new();
@@ -244,27 +243,10 @@ public partial class CameraPage : ContentPage
         HideSettingMenu();
     }
 
-    private void OnAnimationClicked(object? sender, EventArgs e)
-    {
-        LogService.WriteLine("ANIMATION button clicked");
-        ShowBottomFeature("ANIMATION");
-        HideViewMenu();
-        HideSettingMenu();
-    }
-
     private void OnTimelineClicked(object? sender, EventArgs e)
     {
-        _timelinePanelVisible = !_timelinePanelVisible;
-        if (_bottomViews.TryGetValue("ANIMATION", out var v) && v is AnimationView av)
-        {
-            av.SetKeyInputPanelVisible(_timelinePanelVisible);
-            if (_currentModel != null)
-            {
-                var list = _currentModel.HumanoidBoneList.Select(h => h.Name).ToList();
-                av.SetBones(list);
-            }
-        }
-        LogService.WriteLine($"TIMELINE panel {(_timelinePanelVisible ? "shown" : "hidden")}");
+        LogService.WriteLine("TIMELINE button clicked");
+        ShowBottomFeature("TIMELINE");
         HideViewMenu();
         HideSettingMenu();
     }
@@ -444,7 +426,7 @@ public partial class CameraPage : ContentPage
                 _renderer.ShadeToony = _pendingModel.ShadeToony;
                 _renderer.RimIntensity = _pendingModel.RimIntensity;
                 _pendingModel = null;
-                if (_bottomViews.TryGetValue("ANIMATION", out var view) && view is AnimationView av && _currentModel != null)
+                if (_bottomViews.TryGetValue("TIMELINE", out var view) && view is TimelineView av && _currentModel != null)
                 {
                     var list = _currentModel.HumanoidBoneList.Select(h => h.Name).ToList();
                     av.SetBones(list);
@@ -465,7 +447,7 @@ public partial class CameraPage : ContentPage
             _renderer.ShadeToony = _pendingModel.ShadeToony;
             _renderer.RimIntensity = _pendingModel.RimIntensity;
             _pendingModel = null;
-            if (_bottomViews.TryGetValue("ANIMATION", out var view) && view is AnimationView av && _currentModel != null)
+            if (_bottomViews.TryGetValue("TIMELINE", out var view) && view is TimelineView av && _currentModel != null)
             {
                 var list = _currentModel.HumanoidBoneList.Select(h => h.Name).ToList();
                 av.SetBones(list);
@@ -665,12 +647,12 @@ public partial class CameraPage : ContentPage
                 var tv = new TerminalView();
                 view = tv;
             }
-            else if (name == "ANIMATION")
+            else if (name == "TIMELINE")
             {
-                var av = new AnimationView();
+                var av = new TimelineView();
                 av.PlayRequested += OnPlayAnimationRequested;
                 av.FrameChanged += OnAnimationFrameChanged;
-                av.SetKeyInputPanelVisible(_timelinePanelVisible);
+                av.SetKeyInputPanelVisible(false);
                 if (_currentModel != null)
                 {
                     var list = _currentModel.HumanoidBoneList.Select(h => h.Name).ToList();
@@ -810,9 +792,9 @@ public partial class CameraPage : ContentPage
             mv.ShadeToony = _shadeToony;
             mv.RimIntensity = _rimIntensity;
         }
-        else if (name == "ANIMATION" && _bottomViews[name] is AnimationView av)
+        else if (name == "TIMELINE" && _bottomViews[name] is TimelineView av)
         {
-            av.SetKeyInputPanelVisible(_timelinePanelVisible);
+            av.SetKeyInputPanelVisible(true);
             if (_currentModel != null)
             {
                 var list = _currentModel.HumanoidBoneList.Select(h => h.Name).ToList();
@@ -839,6 +821,10 @@ public partial class CameraPage : ContentPage
             BottomContent.Content = view;
             _currentFeature = name;
             UpdateTabColors();
+            if (_bottomViews.TryGetValue("TIMELINE", out var tl) && tl is TimelineView tv)
+            {
+                tv.SetKeyInputPanelVisible(name == "TIMELINE");
+            }
         }
     }
 
@@ -1150,7 +1136,7 @@ public partial class CameraPage : ContentPage
                 var motion = App.Initializer.MotionGenerator.Generate(joints);
                 App.Initializer.Motion = motion;
                 AttachFramePlayedHandler();
-                if (_bottomViews.TryGetValue("ANIMATION", out var view) && view is AnimationView av2)
+                if (_bottomViews.TryGetValue("TIMELINE", out var view) && view is TimelineView av2)
                 {
                     av2.SetFrameCount(motion.Frames.Length);
                     av2.UpdatePlayState(true);
@@ -1213,7 +1199,7 @@ public partial class CameraPage : ContentPage
         if (player.IsPlaying)
         {
             player.Pause();
-            if (_bottomViews.TryGetValue("ANIMATION", out var v) && v is AnimationView av)
+            if (_bottomViews.TryGetValue("TIMELINE", out var v) && v is TimelineView av)
                 av.UpdatePlayState(false);
         }
         else
@@ -1225,7 +1211,7 @@ public partial class CameraPage : ContentPage
             else
                 player.Resume();
 
-            if (_bottomViews.TryGetValue("ANIMATION", out var v) && v is AnimationView av)
+            if (_bottomViews.TryGetValue("TIMELINE", out var v) && v is TimelineView av)
                 av.UpdatePlayState(true);
         }
     }
@@ -1236,7 +1222,7 @@ public partial class CameraPage : ContentPage
         if (player == null)
             return;
         player.Seek(frame);
-        if (_bottomViews.TryGetValue("ANIMATION", out var v) && v is AnimationView av)
+        if (_bottomViews.TryGetValue("TIMELINE", out var v) && v is TimelineView av)
             av.SetFrameIndex(player.FrameIndex);
     }
 
@@ -1250,7 +1236,7 @@ public partial class CameraPage : ContentPage
 
         _framePlayedHandler = _ =>
         {
-            if (_bottomViews.TryGetValue("ANIMATION", out var v) && v is AnimationView av)
+            if (_bottomViews.TryGetValue("TIMELINE", out var v) && v is TimelineView av)
             {
                 av.SetFrameIndex(player.FrameIndex);
                 if (!player.IsPlaying)

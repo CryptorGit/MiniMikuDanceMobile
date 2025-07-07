@@ -2,7 +2,7 @@
 <ContentView xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
              xmlns:skia="clr-namespace:SkiaSharp.Views.Maui.Controls;assembly=SkiaSharp.Views.Maui.Controls"
-             x:Class="MiniMikuDanceMaui.AnimationView"
+             x:Class="MiniMikuDanceMaui.TimelineView"
              BackgroundColor="#1E1E1E">
     <Grid RowDefinitions="*,2*">
         <!-- Top region: 3D viewer and keyframe input panel -->
