@@ -2,7 +2,7 @@
 <ContentView xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
              x:Class="MiniMikuDanceMaui.KeyInputPanel"
-             BackgroundColor="#88000000">
+            BackgroundColor="#CC000000">
     <VerticalStackLayout Spacing="6" Padding="8">
         <Picker x:Name="BonePicker" Title="Bone" SelectedIndexChanged="OnBoneChanged" />
         <HorizontalStackLayout Spacing="4" VerticalOptions="Center">
