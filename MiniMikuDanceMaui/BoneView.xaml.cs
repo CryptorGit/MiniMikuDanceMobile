@@ -44,6 +44,22 @@ public partial class BoneView : ContentView
         CenterYPicker.SelectedItem = 0;
         CenterZPicker.SelectedItem = 0;
 
+        var posRangeValues = Enumerable.Range(0, 11).Select(i => i / 10f).ToList();
+        RangeTXPicker.ItemsSource = posRangeValues;
+        RangeTYPicker.ItemsSource = posRangeValues;
+        RangeTZPicker.ItemsSource = posRangeValues;
+        RangeTXPicker.SelectedItem = 1f;
+        RangeTYPicker.SelectedItem = 1f;
+        RangeTZPicker.SelectedItem = 1f;
+
+        var posCenterValues = Enumerable.Range(0, 21).Select(i => -1f + i * 0.1f).ToList();
+        CenterTXPicker.ItemsSource = posCenterValues;
+        CenterTYPicker.ItemsSource = posCenterValues;
+        CenterTZPicker.ItemsSource = posCenterValues;
+        CenterTXPicker.SelectedItem = 0f;
+        CenterTYPicker.SelectedItem = 0f;
+        CenterTZPicker.SelectedItem = 0f;
+
         SliderX.Minimum = -180;
         SliderX.Maximum = 180;
         SliderY.Minimum = -180;
@@ -198,9 +214,9 @@ public partial class BoneView : ContentView
         }
     }
 
-    private void OnCenterTXEntryChanged(object? sender, EventArgs e)
+    private void OnCenterTXChanged(object? sender, EventArgs e)
     {
-        if (float.TryParse(CenterTXEntry.Text, out var v))
+        if (CenterTXPicker.SelectedItem is float v)
         {
             _centerPosX = v;
             LabelTX.Text = $"{SliderTX.Value + _centerPosX:F2}";
@@ -208,9 +224,9 @@ public partial class BoneView : ContentView
         }
     }
 
-    private void OnCenterTYEntryChanged(object? sender, EventArgs e)
+    private void OnCenterTYChanged(object? sender, EventArgs e)
     {
-        if (float.TryParse(CenterTYEntry.Text, out var v))
+        if (CenterTYPicker.SelectedItem is float v)
         {
             _centerPosY = v;
             LabelTY.Text = $"{SliderTY.Value + _centerPosY:F2}";
@@ -218,13 +234,40 @@ public partial class BoneView : ContentView
         }
     }
 
-    private void OnCenterTZEntryChanged(object? sender, EventArgs e)
+    private void OnCenterTZChanged(object? sender, EventArgs e)
     {
-        if (float.TryParse(CenterTZEntry.Text, out var v))
+        if (CenterTZPicker.SelectedItem is float v)
         {
             _centerPosZ = v;
             LabelTZ.Text = $"{SliderTZ.Value + _centerPosZ:F2}";
             TranslationZChanged?.Invoke((float)(SliderTZ.Value + _centerPosZ));
+        }
+    }
+
+    private void OnRangeTXChanged(object? sender, EventArgs e)
+    {
+        if (RangeTXPicker.SelectedItem is float range)
+        {
+            SliderTX.Minimum = -range;
+            SliderTX.Maximum = range;
+        }
+    }
+
+    private void OnRangeTYChanged(object? sender, EventArgs e)
+    {
+        if (RangeTYPicker.SelectedItem is float range)
+        {
+            SliderTY.Minimum = -range;
+            SliderTY.Maximum = range;
+        }
+    }
+
+    private void OnRangeTZChanged(object? sender, EventArgs e)
+    {
+        if (RangeTZPicker.SelectedItem is float range)
+        {
+            SliderTZ.Minimum = -range;
+            SliderTZ.Maximum = range;
         }
     }
 
@@ -285,5 +328,8 @@ public partial class BoneView : ContentView
         SliderTY.Maximum = max;
         SliderTZ.Minimum = min;
         SliderTZ.Maximum = max;
+        RangeTXPicker.SelectedItem = Math.Min(Math.Abs(max), 1f);
+        RangeTYPicker.SelectedItem = Math.Min(Math.Abs(max), 1f);
+        RangeTZPicker.SelectedItem = Math.Min(Math.Abs(max), 1f);
     }
 }
