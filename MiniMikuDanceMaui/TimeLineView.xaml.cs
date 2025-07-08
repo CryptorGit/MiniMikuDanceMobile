@@ -1,13 +1,39 @@
 using Microsoft.Maui.Controls;
-using System;
+using Microsoft.Maui.Dispatching;
+using SkiaSharp.Views.Maui;
+using SkiaSharp.Views.Maui.Controls;
+using SkiaSharp;
+using MiniMikuDance.Motion;
+using MiniMikuDance.App;
 
 namespace MiniMikuDanceMaui;
 
 public partial class TimeLineView : ContentView
 {
+    private MotionPlayer? _player;
+    private int _frameCount;
+    private int _currentFrame;
+
+    public MotionPlayer? MotionPlayer
+    {
+        get => _player;
+        set
+        {
+            if (_player != null)
+                _player.OnFramePlayed -= OnFramePlayed;
+            _player = value;
+            if (_player != null)
+            {
+                _player.OnFramePlayed += OnFramePlayed;
+                _frameCount = App.Initializer.Motion?.Frames.Length ?? 0;
+            }
+            TimeSlider.InvalidateSurface();
+        }
+    }
     public TimeLineView()
     {
         InitializeComponent();
+        MotionPlayer = App.Initializer.MotionPlayer;
     }
 
     public void ShowAddOverlay()
@@ -70,4 +96,79 @@ public partial class TimeLineView : ContentView
 
     private void OnEditSeqChanged(object? sender, ValueChangedEventArgs e)
         => EditSeqEntry.Text = ((int)e.NewValue).ToString();
+
+    private void OnSliderPaintSurface(object? sender, SKPaintSurfaceEventArgs e)
+    {
+        var canvas = e.Surface.Canvas;
+        canvas.Clear();
+
+        var width = e.Info.Width;
+        var height = e.Info.Height;
+        using var paint = new SKPaint { Color = SKColors.Gray, StrokeWidth = 2 };
+        canvas.DrawLine(0, height / 2f, width, height / 2f, paint);
+
+        if (_frameCount > 0)
+        {
+            float x = width * _currentFrame / (float)_frameCount;
+            paint.Color = SKColors.Red;
+            canvas.DrawLine(x, 0, x, height, paint);
+        }
+    }
+
+    private void OnSliderTouched(object? sender, SKTouchEventArgs e)
+    {
+        if (_player == null || _frameCount == 0)
+            return;
+
+        if (e.ActionType == SKTouchAction.Pressed || e.ActionType == SKTouchAction.Moved)
+        {
+            var width = ((SKCanvasView)sender).CanvasSize.Width;
+            var ratio = Math.Clamp(e.Location.X / width, 0f, 1f);
+            _currentFrame = (int)(ratio * _frameCount);
+            _player.Seek(_currentFrame);
+            ((SKCanvasView)sender).InvalidateSurface();
+            e.Handled = true;
+        }
+    }
+
+    private void OnFramePlayed(MiniMikuDance.PoseEstimation.JointData obj)
+    {
+        if (_player == null) return;
+        MainThread.BeginInvokeOnMainThread(() =>
+        {
+            _currentFrame = _player.FrameIndex;
+            TimeSlider.InvalidateSurface();
+        });
+    }
+
+    private void OnPlayClicked(object? sender, EventArgs e)
+    {
+        if (_player == null)
+            return;
+
+        var motion = App.Initializer.Motion;
+        if (motion == null)
+            return;
+
+        if (_player.IsPlaying)
+            return;
+
+        if (_player.FrameIndex >= motion.Frames.Length)
+            _player.Restart();
+        else if (_player.FrameIndex == 0)
+            _player.Play(motion);
+        else
+            _player.Resume();
+    }
+
+    private void OnPauseClicked(object? sender, EventArgs e) => _player?.Pause();
+
+    private void OnStopClicked(object? sender, EventArgs e)
+    {
+        if (_player == null)
+            return;
+        _player.Stop();
+        _currentFrame = 0;
+        TimeSlider.InvalidateSurface();
+    }
 }
