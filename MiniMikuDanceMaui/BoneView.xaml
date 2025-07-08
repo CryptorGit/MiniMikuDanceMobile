@@ -3,7 +3,7 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
              xmlns:local="clr-namespace:MiniMikuDanceMaui"
              x:Class="MiniMikuDanceMaui.BoneView"
-             BackgroundColor="#1E1E1E">
+             BackgroundColor="{StaticResource BackgroundColor}">
     <ScrollView>
     <VerticalStackLayout Spacing="10" Padding="10">
         <Picker x:Name="BonePicker" Title="Bone" SelectedIndexChanged="OnBoneSelected"/>

@@ -2,9 +2,9 @@
 <ContentView xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
              x:Class="MiniMikuDanceMaui.CameraView"
-             BackgroundColor="#1E1E1E">
+             BackgroundColor="{StaticResource BackgroundColor}">
     <VerticalStackLayout Padding="10" Spacing="10">
         <Button x:Name="RecordButton" Text="Record" Clicked="OnRecordClicked"
-                BackgroundColor="Red" TextColor="White" />
+                BackgroundColor="{StaticResource RecordButtonColor}" TextColor="{StaticResource TextColor}" />
     </VerticalStackLayout>
 </ContentView>

@@ -3,10 +3,15 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
              xmlns:mmd="clr-namespace:MiniMikuDanceMaui"
              x:Class="MiniMikuDanceMaui.TimeLineView"
-             BackgroundColor="#1E1E1E">
-    <Grid RowDefinitions="48,64,*">
+             BackgroundColor="{StaticResource BackgroundColor}">
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="{StaticResource RowHeight}" />
+            <RowDefinition Height="64" />
+            <RowDefinition Height="*" />
+        </Grid.RowDefinitions>
         <!-- 操作バー -->
-        <HorizontalStackLayout Spacing="10" Padding="8" HeightRequest="48">
+        <HorizontalStackLayout Spacing="10" Padding="8" HeightRequest="{StaticResource RowHeight}">
             <Button Text="Add Bone" x:Name="AddBoneButton" />
             <Button Text="Add Key" x:Name="AddKeyButton" />
             <Button Text="Edit Key" x:Name="EditKeyButton" />

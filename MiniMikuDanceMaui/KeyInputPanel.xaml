@@ -2,7 +2,7 @@
 <ContentView xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
              x:Class="MiniMikuDanceMaui.KeyInputPanel"
-             BackgroundColor="#88000000">
+             BackgroundColor="{StaticResource OverlayBackgroundColor}">
     <VerticalStackLayout Spacing="6" Padding="8">
         <Picker x:Name="BonePicker" Title="Bone" SelectedIndexChanged="OnBoneChanged" />
         <HorizontalStackLayout Spacing="4" VerticalOptions="Center">
@@ -11,41 +11,41 @@
             <Button Text="+1" Clicked="OnFramePlusClicked" />
         </HorizontalStackLayout>
         <HorizontalStackLayout Spacing="10" VerticalOptions="Center">
-            <Label Text="Pos Range" TextColor="White" VerticalOptions="Center" />
+            <Label Text="Pos Range" TextColor="{StaticResource TextColor}" VerticalOptions="Center" />
             <Picker x:Name="PosRangePicker" SelectedIndexChanged="OnPosRangeChanged" />
         </HorizontalStackLayout>
         <HorizontalStackLayout Spacing="10" VerticalOptions="Center">
-            <Label Text="Rot Range" TextColor="White" VerticalOptions="Center" />
+            <Label Text="Rot Range" TextColor="{StaticResource TextColor}" VerticalOptions="Center" />
             <Picker x:Name="RotRangePicker" SelectedIndexChanged="OnRotRangeChanged" />
         </HorizontalStackLayout>
         <Grid ColumnDefinitions="80,*" RowSpacing="2">
-            <Label Text="Pos X" TextColor="White" Grid.Column="0" />
-            <Label x:Name="PosXLabel" Text="0" TextColor="White" HorizontalTextAlignment="End" Grid.Column="1" />
+            <Label Text="Pos X" TextColor="{StaticResource TextColor}" Grid.Column="0" />
+            <Label x:Name="PosXLabel" Text="0" TextColor="{StaticResource TextColor}" HorizontalTextAlignment="End" Grid.Column="1" />
         </Grid>
         <Slider x:Name="PosXSlider" Minimum="-1" Maximum="1" ValueChanged="OnPosXChanged" />
         <Grid ColumnDefinitions="80,*" RowSpacing="2">
-            <Label Text="Pos Y" TextColor="White" Grid.Column="0" />
-            <Label x:Name="PosYLabel" Text="0" TextColor="White" HorizontalTextAlignment="End" Grid.Column="1" />
+            <Label Text="Pos Y" TextColor="{StaticResource TextColor}" Grid.Column="0" />
+            <Label x:Name="PosYLabel" Text="0" TextColor="{StaticResource TextColor}" HorizontalTextAlignment="End" Grid.Column="1" />
         </Grid>
         <Slider x:Name="PosYSlider" Minimum="-1" Maximum="1" ValueChanged="OnPosYChanged" />
         <Grid ColumnDefinitions="80,*" RowSpacing="2">
-            <Label Text="Pos Z" TextColor="White" Grid.Column="0" />
-            <Label x:Name="PosZLabel" Text="0" TextColor="White" HorizontalTextAlignment="End" Grid.Column="1" />
+            <Label Text="Pos Z" TextColor="{StaticResource TextColor}" Grid.Column="0" />
+            <Label x:Name="PosZLabel" Text="0" TextColor="{StaticResource TextColor}" HorizontalTextAlignment="End" Grid.Column="1" />
         </Grid>
         <Slider x:Name="PosZSlider" Minimum="-1" Maximum="1" ValueChanged="OnPosZChanged" />
         <Grid ColumnDefinitions="80,*" RowSpacing="2">
-            <Label Text="Rot X" TextColor="White" Grid.Column="0" />
-            <Label x:Name="RotXLabel" Text="0" TextColor="White" HorizontalTextAlignment="End" Grid.Column="1" />
+            <Label Text="Rot X" TextColor="{StaticResource TextColor}" Grid.Column="0" />
+            <Label x:Name="RotXLabel" Text="0" TextColor="{StaticResource TextColor}" HorizontalTextAlignment="End" Grid.Column="1" />
         </Grid>
         <Slider x:Name="RotXSlider" Minimum="-180" Maximum="180" ValueChanged="OnRotXChanged" />
         <Grid ColumnDefinitions="80,*" RowSpacing="2">
-            <Label Text="Rot Y" TextColor="White" Grid.Column="0" />
-            <Label x:Name="RotYLabel" Text="0" TextColor="White" HorizontalTextAlignment="End" Grid.Column="1" />
+            <Label Text="Rot Y" TextColor="{StaticResource TextColor}" Grid.Column="0" />
+            <Label x:Name="RotYLabel" Text="0" TextColor="{StaticResource TextColor}" HorizontalTextAlignment="End" Grid.Column="1" />
         </Grid>
         <Slider x:Name="RotYSlider" Minimum="-180" Maximum="180" ValueChanged="OnRotYChanged" />
         <Grid ColumnDefinitions="80,*" RowSpacing="2">
-            <Label Text="Rot Z" TextColor="White" Grid.Column="0" />
-            <Label x:Name="RotZLabel" Text="0" TextColor="White" HorizontalTextAlignment="End" Grid.Column="1" />
+            <Label Text="Rot Z" TextColor="{StaticResource TextColor}" Grid.Column="0" />
+            <Label x:Name="RotZLabel" Text="0" TextColor="{StaticResource TextColor}" HorizontalTextAlignment="End" Grid.Column="1" />
         </Grid>
         <Slider x:Name="RotZSlider" Minimum="-180" Maximum="180" ValueChanged="OnRotZChanged" />
         <HorizontalStackLayout Spacing="10" HorizontalOptions="End">
