@@ -1,10 +1,13 @@
 <?xml version="1.0" encoding="utf-8" ?>
 <Application xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:maui="clr-namespace:Microsoft.Maui.Controls;assembly=Microsoft.Maui.Controls"
              x:Class="MiniMikuDanceMaui.App">
-    <Application.Resources>
-        <AppThemeColor x:Key="BackgroundColor" Light="#FFFFFF" Dark="#1E1E1E" />
-        <AppThemeColor x:Key="OverlayBackgroundColor" Light="#88000000" Dark="#88000000" />
-        <AppThemeColor x:Key="TextColor" Light="#000000" Dark="#FFFFFF" />
-    </Application.Resources>
-</Application>
+     <Application.Resources>
+         <ResourceDictionary>
+             <maui:AppThemeColor x:Key="BackgroundColor" Light="#FFFFFF" Dark="#1E1E1E" />
+             <maui:AppThemeColor x:Key="OverlayBackgroundColor" Light="#88000000" Dark="#88000000" />
+             <maui:AppThemeColor x:Key="TextColor" Light="#000000" Dark="#FFFFFF" />
+         </ResourceDictionary>
+     </Application.Resources>
+ </Application>
