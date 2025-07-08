@@ -12,9 +12,22 @@ public partial class KeyInputPanel : ContentView
     public event Action? Canceled;
     public event Action<int>? BoneChanged;
 
+    private bool _isEditMode;
+    public bool IsEditMode
+    {
+        get => _isEditMode;
+        set
+        {
+            _isEditMode = value;
+            ConfirmButton.Text = _isEditMode ? "apply" : "select";
+            CancelButton.Text = "cancel";
+        }
+    }
+
     public KeyInputPanel()
     {
         InitializeComponent();
+        IsEditMode = false;
         PosRangePicker.ItemsSource = new List<int> { 1, 2, 5, 10 };
         PosRangePicker.SelectedItem = 1;
         RotRangePicker.ItemsSource = new List<int> { 30, 45, 90, 180, 360 };
@@ -72,6 +85,42 @@ public partial class KeyInputPanel : ContentView
             FrameEntry.Text = (value + 1).ToString();
         else
             FrameEntry.Text = "0";
+    }
+
+    private void OnPosXSetClicked(object? sender, EventArgs e)
+    {
+        if (sender is Button btn && double.TryParse(btn.Text, out var v))
+            PosXSlider.Value = v;
+    }
+
+    private void OnPosYSetClicked(object? sender, EventArgs e)
+    {
+        if (sender is Button btn && double.TryParse(btn.Text, out var v))
+            PosYSlider.Value = v;
+    }
+
+    private void OnPosZSetClicked(object? sender, EventArgs e)
+    {
+        if (sender is Button btn && double.TryParse(btn.Text, out var v))
+            PosZSlider.Value = v;
+    }
+
+    private void OnRotXSetClicked(object? sender, EventArgs e)
+    {
+        if (sender is Button btn && double.TryParse(btn.Text, out var v))
+            RotXSlider.Value = v;
+    }
+
+    private void OnRotYSetClicked(object? sender, EventArgs e)
+    {
+        if (sender is Button btn && double.TryParse(btn.Text, out var v))
+            RotYSlider.Value = v;
+    }
+
+    private void OnRotZSetClicked(object? sender, EventArgs e)
+    {
+        if (sender is Button btn && double.TryParse(btn.Text, out var v))
+            RotZSlider.Value = v;
     }
 
     private void OnRotRangeChanged(object? sender, EventArgs e)

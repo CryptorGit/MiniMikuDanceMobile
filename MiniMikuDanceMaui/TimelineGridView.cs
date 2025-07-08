@@ -10,7 +10,7 @@ namespace MiniMikuDanceMaui;
 public class TimelineGridView : GraphicsView, IDrawable
 {
     public int FrameScale { get; set; } = 10; // pixel per frame
-    public int RowHeight { get; set; } = 20;
+    public int RowHeight { get; set; } = 48;
     public MotionEditor? MotionEditor { get; set; }
     public MotionPlayer? MotionPlayer { get; set; }
     private readonly List<string> _bones = new();
@@ -63,10 +63,19 @@ public class TimelineGridView : GraphicsView, IDrawable
         canvas.FillRectangle(0, 0, (float)WidthRequest, (float)HeightRequest);
 
         canvas.StrokeColor = Colors.Gray;
+        canvas.FillColor = Colors.Gray;
         for (int i = 0; i <= frameCount; i++)
         {
             float x = i * FrameScale;
             canvas.DrawLine(x, 0, x, rowCount * RowHeight);
+
+            float half = FrameScale / 2f;
+            var path = new PathF();
+            path.MoveTo(x - half, 0);
+            path.LineTo(x + half, 0);
+            path.LineTo(x, half);
+            path.Close();
+            canvas.FillPath(path);
         }
         for (int r = 0; r <= rowCount; r++)
         {
@@ -76,7 +85,6 @@ public class TimelineGridView : GraphicsView, IDrawable
 
         if (MotionEditor != null)
         {
-            canvas.FillColor = Colors.Yellow;
             for (int r = 0; r < rowCount; r++)
             {
                 var bone = _bones[r];
@@ -84,15 +92,33 @@ public class TimelineGridView : GraphicsView, IDrawable
                 {
                     foreach (var f in set)
                     {
-                        float cx = f * FrameScale + FrameScale/2f;
-                        float cy = r * RowHeight + RowHeight/2f;
-                        canvas.FillCircle(cx, cy, 3);
+                        float cx = f * FrameScale + FrameScale / 2f;
+                        float cy = r * RowHeight + RowHeight / 2f;
+
+                        float s = 3f;
+                        var path = new PathF();
+                        path.MoveTo(cx - s, cy);
+                        path.LineTo(cx, cy - s);
+                        path.LineTo(cx + s, cy);
+                        path.LineTo(cx, cy + s);
+                        path.Close();
+
+                        if (_selection.Contains((r, f)))
+                        {
+                            canvas.StrokeColor = Color.FromArgb("#006680");
+                            canvas.DrawPath(path);
+                        }
+                        else
+                        {
+                            canvas.FillColor = Colors.Yellow;
+                            canvas.FillPath(path);
+                        }
                     }
                 }
             }
         }
 
-        canvas.StrokeColor = Colors.Cyan;
+        canvas.StrokeColor = Color.FromArgb("#006680");
         foreach (var (row, frame) in _selection)
         {
             canvas.DrawRectangle(frame * FrameScale, row * RowHeight, FrameScale, RowHeight);

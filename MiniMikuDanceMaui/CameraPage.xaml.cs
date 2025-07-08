@@ -1253,6 +1253,7 @@ public partial class CameraPage : ContentPage
         var bones = _currentModel.HumanoidBoneList.Select(b => b.Name);
         KeyPanel.SetBones(bones);
         KeyPanel.SetFrame(App.Initializer.MotionPlayer?.FrameIndex ?? 0);
+        KeyPanel.IsEditMode = false;
         KeyPanel.IsVisible = true;
         UpdateLayout();
     }
@@ -1263,6 +1264,7 @@ public partial class CameraPage : ContentPage
         var bones = _currentModel.HumanoidBoneList.Select(b => b.Name);
         KeyPanel.SetBones(bones);
         KeyPanel.SetFrame(App.Initializer.MotionPlayer?.FrameIndex ?? 0);
+        KeyPanel.IsEditMode = true;
         KeyPanel.IsVisible = true;
         UpdateLayout();
     }
