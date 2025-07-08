@@ -29,6 +29,8 @@ public static class Theme
 
     public static Color TimelineGridLineColor => GetColor(nameof(TimelineGridLineColor));
     public static SKColor TimelineGridLineSKColor => GetSkColor(nameof(TimelineGridLineColor));
+    public static Color TimelineGridAccentColor => GetColor(nameof(TimelineGridAccentColor));
+    public static SKColor TimelineGridAccentSKColor => GetSkColor(nameof(TimelineGridAccentColor));
 
     public static Color TimelineEvenRowColor => GetColor(nameof(TimelineEvenRowColor));
     public static Color TimelineOddRowColor => GetColor(nameof(TimelineOddRowColor));

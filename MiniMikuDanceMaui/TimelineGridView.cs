@@ -45,10 +45,12 @@ public class TimelineGridView : GraphicsView, IDrawable
         }
 
         var gridLine = ((Color)Application.Current.Resources["TimelineGridLineColor"]).ToSKColor();
-        using var linePaint = new SKPaint { Style = SKPaintStyle.Stroke, Color = gridLine };
+        var accentLine = ((Color)Application.Current.Resources["TimelineGridAccentColor"]).ToSKColor();
+        using var linePaint = new SKPaint { Style = SKPaintStyle.Stroke };
         for (int i = 0; i <= frameCount; i++)
         {
             float x = i * FrameScale;
+            linePaint.Color = i % 5 == 0 ? accentLine : gridLine;
             skCanvas.DrawLine(x, 0, x, rowCount * RowHeight, linePaint);
         }
         for (int r = 0; r <= rowCount; r++)
@@ -138,12 +140,15 @@ public class TimelineGridView : GraphicsView, IDrawable
                 canvas.FillRectangle(startFrame * FrameScale, r * RowHeight, (endFrame - startFrame) * FrameScale, RowHeight);
             }
 
-            canvas.StrokeColor = (Color)Application.Current.Resources["TimelineGridLineColor"];
+            var gridLineColor = (Color)Application.Current.Resources["TimelineGridLineColor"];
+            var accentColor = (Color)Application.Current.Resources["TimelineGridAccentColor"];
             for (int i = startFrame; i <= endFrame; i++)
             {
                 float x = i * FrameScale;
+                canvas.StrokeColor = i % 5 == 0 ? accentColor : gridLineColor;
                 canvas.DrawLine(x, startRow * RowHeight, x, endRow * RowHeight);
             }
+            canvas.StrokeColor = gridLineColor;
             for (int r = startRow; r <= endRow; r++)
             {
                 float y = r * RowHeight;
