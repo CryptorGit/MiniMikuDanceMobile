@@ -12,7 +12,7 @@ namespace MiniMikuDanceMaui;
 public class TimelineGridView : GraphicsView, IDrawable
 {
     public int FrameScale { get; set; } = 10; // pixel per frame
-    public int RowHeight { get; set; } = 20;
+    public int RowHeight { get; set; } = 48;
     public MotionEditor? MotionEditor { get; set; }
     public MotionPlayer? MotionPlayer { get; set; }
     private readonly List<string> _bones = new();
@@ -62,6 +62,15 @@ public class TimelineGridView : GraphicsView, IDrawable
         _bones.Clear();
         _bones.AddRange(bones);
         Invalidate();
+    }
+
+    public int AddBone(string bone)
+    {
+        if (_bones.Contains(bone))
+            return _bones.IndexOf(bone);
+        _bones.Add(bone);
+        Invalidate();
+        return _bones.Count - 1;
     }
 
     public IEnumerable<(int Row,int Frame)> Selection => _selection;
@@ -156,7 +165,7 @@ public class TimelineGridView : GraphicsView, IDrawable
             }
         }
 
-        canvas.StrokeColor = Colors.Cyan;
+        canvas.StrokeColor = Color.FromArgb("#006680");
         foreach (var (row, frame) in _selection)
         {
             if (row < startRow || row >= endRow) continue;
