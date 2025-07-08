@@ -31,12 +31,12 @@
         <CollectionView x:Name="BoneList" Grid.Row="2" ItemSizingStrategy="MeasureAllItems" Scrolled="OnBoneListScrolled">
             <CollectionView.ItemTemplate>
                 <DataTemplate>
-                    <Label Text="{Binding}" TextColor="{StaticResource TextColor}" HeightRequest="48" VerticalTextAlignment="Center" />
+                    <Label Text="{Binding}" TextColor="{StaticResource TextColor}" HeightRequest="{StaticResource RowHeight}" VerticalTextAlignment="Center" />
                 </DataTemplate>
             </CollectionView.ItemTemplate>
         </CollectionView>
         <ScrollView Grid.Row="2" Grid.Column="1" x:Name="GridScroll" Orientation="Both" Scrolled="OnGridScrolled">
-            <mmd:TimelineGridView x:Name="GridView" x:FieldModifier="public" />
+            <mmd:TimelineGridView x:Name="GridView" x:FieldModifier="public" RowHeight="{StaticResource RowHeight}" />
         </ScrollView>
     </Grid>
 </ContentView>

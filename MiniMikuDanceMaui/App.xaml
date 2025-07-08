@@ -9,7 +9,7 @@
                 <ResourceDictionary Source="Resources/Styles/Theme.xaml" />
             </ResourceDictionary.MergedDictionaries>
             <!-- サイズ設定 -->
-            <x:Double x:Key="RowHeight">48</x:Double>
+            <x:Double x:Key="RowHeight">44</x:Double>
         </ResourceDictionary>
      </Application.Resources>
  </Application>
