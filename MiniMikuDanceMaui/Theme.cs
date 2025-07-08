@@ -27,10 +27,12 @@ public static class Theme
 
     public static SKColor GetSkColor(string key) => ToSkColor(GetColor(key));
 
-    public static Color TimelineGridLineColor => GetColor(nameof(TimelineGridLineColor));
-    public static SKColor TimelineGridLineSKColor => GetSkColor(nameof(TimelineGridLineColor));
-    public static Color TimelineGridAccentColor => GetColor(nameof(TimelineGridAccentColor));
-    public static SKColor TimelineGridAccentSKColor => GetSkColor(nameof(TimelineGridAccentColor));
+    public static Color TimelineGridVerticalLineColor => GetColor(nameof(TimelineGridVerticalLineColor));
+    public static Color TimelineGridHorizontalLineColor => GetColor(nameof(TimelineGridHorizontalLineColor));
+    public static Color TimelineGridMajorLineColor => GetColor(nameof(TimelineGridMajorLineColor));
+    public static SKColor TimelineGridVerticalLineSKColor => GetSkColor(nameof(TimelineGridVerticalLineColor));
+    public static SKColor TimelineGridHorizontalLineSKColor => GetSkColor(nameof(TimelineGridHorizontalLineColor));
+    public static SKColor TimelineGridMajorLineSKColor => GetSkColor(nameof(TimelineGridMajorLineColor));
 
     public static Color TimelineEvenRowColor => GetColor(nameof(TimelineEvenRowColor));
     public static Color TimelineOddRowColor => GetColor(nameof(TimelineOddRowColor));

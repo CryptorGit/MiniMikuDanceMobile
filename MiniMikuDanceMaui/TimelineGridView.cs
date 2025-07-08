@@ -11,8 +11,8 @@ namespace MiniMikuDanceMaui;
 
 public class TimelineGridView : GraphicsView, IDrawable
 {
-    public int FrameScale { get; set; } = 10; // pixel per frame
-    public int RowHeight { get; set; } = 48;
+    public int FrameScale { get; set; } = 24; // pixel per frame
+    public int RowHeight { get; set; } = 44;
     public MotionEditor? MotionEditor { get; set; }
     public MotionPlayer? MotionPlayer { get; set; }
     private readonly List<string> _bones = new();
@@ -44,6 +44,25 @@ public class TimelineGridView : GraphicsView, IDrawable
             skCanvas.DrawRect(0, r * RowHeight, frameCount * FrameScale, RowHeight, fillPaint);
         }
 
+        var verticalLine = ((Color)Application.Current.Resources["TimelineGridVerticalLineColor"]).ToSKColor();
+        var horizontalLine = ((Color)Application.Current.Resources["TimelineGridHorizontalLineColor"]).ToSKColor();
+        var majorLine = ((Color)Application.Current.Resources["TimelineGridMajorLineColor"]).ToSKColor();
+        using var vPaint = new SKPaint { Style = SKPaintStyle.Stroke, Color = verticalLine, StrokeWidth = 1 };
+        using var hPaint = new SKPaint { Style = SKPaintStyle.Stroke, Color = horizontalLine, StrokeWidth = 1 };
+        using var mPaint = new SKPaint { Style = SKPaintStyle.Stroke, Color = majorLine, StrokeWidth = 2 };
+        using var textPaint = new SKPaint { Style = SKPaintStyle.Fill, Color = ((Color)Application.Current.Resources["TextColor"]).ToSKColor(), TextSize = 12, IsAntialias = true };
+        for (int i = 0; i <= frameCount; i++)
+        {
+            float x = i * FrameScale;
+            if (i % 5 == 0)
+            {
+                skCanvas.DrawLine(x, 0, x, rowCount * RowHeight, mPaint);
+                skCanvas.DrawText(i.ToString(), x + 2, 12, textPaint);
+            }
+            else
+            {
+                skCanvas.DrawLine(x, 0, x, rowCount * RowHeight, vPaint);
+            }
         var gridLine = ((Color)Application.Current.Resources["TimelineGridLineColor"]).ToSKColor();
         var accentLine = ((Color)Application.Current.Resources["TimelineGridAccentColor"]).ToSKColor();
         using var linePaint = new SKPaint { Style = SKPaintStyle.Stroke };
@@ -56,7 +75,7 @@ public class TimelineGridView : GraphicsView, IDrawable
         for (int r = 0; r <= rowCount; r++)
         {
             float y = r * RowHeight;
-            skCanvas.DrawLine(0, y, frameCount * FrameScale, y, linePaint);
+            skCanvas.DrawLine(0, y, frameCount * FrameScale, y, hPaint);
         }
 
         _gridCache = recorder.EndRecording();
@@ -168,6 +187,32 @@ public class TimelineGridView : GraphicsView, IDrawable
                 canvas.FillRectangle(startFrame * FrameScale, r * RowHeight, (endFrame - startFrame) * FrameScale, RowHeight);
             }
 
+            var verticalLine = (Color)Application.Current.Resources["TimelineGridVerticalLineColor"];
+            var horizontalLine = (Color)Application.Current.Resources["TimelineGridHorizontalLineColor"];
+            var majorLine = (Color)Application.Current.Resources["TimelineGridMajorLineColor"];
+            var textColor = (Color)Application.Current.Resources["TextColor"];
+
+            for (int i = startFrame; i <= endFrame; i++)
+            {
+                float x = i * FrameScale;
+                if (i % 5 == 0)
+                {
+                    canvas.StrokeColor = majorLine;
+                    canvas.StrokeSize = 2;
+                    canvas.DrawLine(x, startRow * RowHeight, x, endRow * RowHeight);
+                    canvas.StrokeSize = 1;
+                    canvas.StrokeColor = verticalLine;
+                    canvas.FontColor = textColor;
+                    canvas.DrawString(i.ToString(), x + 2, 0, FrameScale, RowHeight, HorizontalAlignment.Left, VerticalAlignment.Top);
+                }
+                else
+                {
+                    canvas.StrokeColor = verticalLine;
+                    canvas.DrawLine(x, startRow * RowHeight, x, endRow * RowHeight);
+                }
+            }
+            canvas.StrokeColor = horizontalLine;
+            
             var gridLineColor = (Color)Application.Current.Resources["TimelineGridLineColor"];
             var accentColor = (Color)Application.Current.Resources["TimelineGridAccentColor"];
             for (int i = startFrame; i <= endFrame; i++)
