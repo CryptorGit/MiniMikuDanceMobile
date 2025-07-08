@@ -1332,8 +1332,10 @@ public partial class CameraPage : ContentPage
             return;
         }
 
-        foreach (var (row, frame) in selection)
+        foreach (var pair in selection)
         {
+            var row = pair.Row;
+            var frame = pair.Frame;
             if (row < 0 || row >= _currentModel.HumanoidBoneList.Count) continue;
             var bone = _currentModel.HumanoidBoneList[row].Name;
             _motionEditor.RemoveKeyFrame(bone, frame, false);
