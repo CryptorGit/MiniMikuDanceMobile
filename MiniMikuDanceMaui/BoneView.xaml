@@ -11,7 +11,7 @@
         </HorizontalStackLayout>
         <VerticalStackLayout Spacing="2">
             <Grid ColumnDefinitions="80,40,*,80,80,60">
-                <Label Text="Rotate" TextColor="White" Grid.Column="0" />
+                <Label Text="Rot" TextColor="White" Grid.Column="0" />
                 <Label Text="X" TextColor="White" Grid.Column="1" />
                 <Label x:Name="LabelX" Text="0" TextColor="White" HorizontalTextAlignment="End" Grid.Column="2" />
                 <Picker x:Name="CenterXPicker" Grid.Column="3" WidthRequest="80" SelectedIndexChanged="OnCenterXChanged" />
@@ -22,7 +22,7 @@
         </VerticalStackLayout>
         <VerticalStackLayout Spacing="2">
             <Grid ColumnDefinitions="80,40,*,80,80,60">
-                <Label Text="Rotate" TextColor="White" Grid.Column="0" />
+                <Label Text="Rot" TextColor="White" Grid.Column="0" />
                 <Label Text="Y" TextColor="White" Grid.Column="1" />
                 <Label x:Name="LabelY" Text="0" TextColor="White" HorizontalTextAlignment="End" Grid.Column="2" />
                 <Picker x:Name="CenterYPicker" Grid.Column="3" WidthRequest="80" SelectedIndexChanged="OnCenterYChanged" />
@@ -33,7 +33,7 @@
         </VerticalStackLayout>
         <VerticalStackLayout Spacing="2">
             <Grid ColumnDefinitions="80,40,*,80,80,60">
-                <Label Text="Rotate" TextColor="White" Grid.Column="0" />
+                <Label Text="Rot" TextColor="White" Grid.Column="0" />
                 <Label Text="Z" TextColor="White" Grid.Column="1" />
                 <Label x:Name="LabelZ" Text="0" TextColor="White" HorizontalTextAlignment="End" Grid.Column="2" />
                 <Picker x:Name="CenterZPicker" Grid.Column="3" WidthRequest="80" SelectedIndexChanged="OnCenterZChanged" />
@@ -44,7 +44,7 @@
         </VerticalStackLayout>
         <VerticalStackLayout Spacing="2">
             <Grid ColumnDefinitions="80,40,*,80,80,60">
-                <Label Text="Position" TextColor="White" Grid.Column="0" />
+                <Label Text="Pos" TextColor="White" Grid.Column="0" />
                 <Label Text="X" TextColor="White" Grid.Column="1" />
                 <Label x:Name="LabelTX" Text="0" TextColor="White" HorizontalTextAlignment="End" Grid.Column="2" />
                 <Picker x:Name="CenterTXPicker" Grid.Column="3" WidthRequest="80" SelectedIndexChanged="OnCenterTXChanged" />
@@ -55,7 +55,7 @@
         </VerticalStackLayout>
         <VerticalStackLayout Spacing="2">
             <Grid ColumnDefinitions="80,40,*,80,80,60">
-                <Label Text="Position" TextColor="White" Grid.Column="0" />
+                <Label Text="Pos" TextColor="White" Grid.Column="0" />
                 <Label Text="Y" TextColor="White" Grid.Column="1" />
                 <Label x:Name="LabelTY" Text="0" TextColor="White" HorizontalTextAlignment="End" Grid.Column="2" />
                 <Picker x:Name="CenterTYPicker" Grid.Column="3" WidthRequest="80" SelectedIndexChanged="OnCenterTYChanged" />
@@ -66,7 +66,7 @@
         </VerticalStackLayout>
         <VerticalStackLayout Spacing="2">
             <Grid ColumnDefinitions="80,40,*,80,80,60">
-                <Label Text="Position" TextColor="White" Grid.Column="0" />
+                <Label Text="Pos" TextColor="White" Grid.Column="0" />
                 <Label Text="Z" TextColor="White" Grid.Column="1" />
                 <Label x:Name="LabelTZ" Text="0" TextColor="White" HorizontalTextAlignment="End" Grid.Column="2" />
                 <Picker x:Name="CenterTZPicker" Grid.Column="3" WidthRequest="80" SelectedIndexChanged="OnCenterTZChanged" />
