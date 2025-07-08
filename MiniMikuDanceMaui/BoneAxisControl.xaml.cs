@@ -96,7 +96,7 @@ public partial class BoneAxisControl : ContentView
         }
     }
 
-    private void OnResetClicked(object? sender, EventArgs e)
+    public void Reset()
     {
         if (_defaultCenter != null)
             CenterPicker.SelectedItem = _defaultCenter;
@@ -105,4 +105,6 @@ public partial class BoneAxisControl : ContentView
         Slider.Value = 0;
         ResetClicked?.Invoke();
     }
+
+    private void OnResetClicked(object? sender, EventArgs e) => Reset();
 }

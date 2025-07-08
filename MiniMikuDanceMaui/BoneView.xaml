@@ -8,7 +8,7 @@
     <VerticalStackLayout Spacing="10" Padding="10">
         <Picker x:Name="BonePicker" Title="Bone" SelectedIndexChanged="OnBoneSelected"/>
         <HorizontalStackLayout Spacing="10">
-            <Button Text="Reset" Clicked="OnResetClicked" />
+            <Button Text="AllReset" Clicked="OnResetClicked" />
         </HorizontalStackLayout>
         <local:BoneAxisControl x:Name="RotXControl" ValueFormat="F0"
                                CenterChanged="OnCenterXChanged"
