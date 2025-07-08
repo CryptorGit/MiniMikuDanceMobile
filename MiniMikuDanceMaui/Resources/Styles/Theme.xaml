@@ -46,7 +46,7 @@
     <Style x:Key="TimelineButtonStyle" TargetType="Button">
         <Setter Property="BackgroundColor" Value="{StaticResource TimelineButtonBackgroundColor}" />
         <Setter Property="BorderColor" Value="{StaticResource TimelineButtonBorderColor}" />
-        <Setter Property="BorderWidth" Value="1" />
+        <Setter Property="BorderWidth" Value="2" />
         <Setter Property="WidthRequest" Value="88" />
         <Setter Property="HeightRequest" Value="30" />
         <Setter Property="CornerRadius" Value="4" />
