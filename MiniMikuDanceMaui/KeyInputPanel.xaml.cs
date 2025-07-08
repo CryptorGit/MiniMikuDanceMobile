@@ -34,6 +34,7 @@ public partial class KeyInputPanel : ContentView
         RotRangePicker.SelectedItem = 180;
         OnPosRangeChanged(null, EventArgs.Empty);
         OnRotRangeChanged(null, EventArgs.Empty);
+        UpdateConfirmEnabled();
     }
 
     public void SetBones(IEnumerable<string> bones)
@@ -41,10 +42,14 @@ public partial class KeyInputPanel : ContentView
         BonePicker.ItemsSource = bones.ToList();
         if (BonePicker.ItemsSource.Cast<object>().Any())
             BonePicker.SelectedIndex = 0;
+        UpdateConfirmEnabled();
     }
 
     public void SetFrame(int frame)
-        => FrameEntry.Text = frame.ToString();
+    {
+        FrameEntry.Text = frame.ToString();
+        UpdateConfirmEnabled();
+    }
 
     public int FrameNumber => int.TryParse(FrameEntry.Text, out var f) ? f : 0;
     public string SelectedBone => BonePicker.SelectedItem as string ?? string.Empty;
@@ -77,6 +82,7 @@ public partial class KeyInputPanel : ContentView
             FrameEntry.Text = (value - 1).ToString();
         else
             FrameEntry.Text = "0";
+        UpdateConfirmEnabled();
     }
 
     private void OnFramePlusClicked(object? sender, EventArgs e)
@@ -85,6 +91,7 @@ public partial class KeyInputPanel : ContentView
             FrameEntry.Text = (value + 1).ToString();
         else
             FrameEntry.Text = "0";
+        UpdateConfirmEnabled();
     }
 
     private void OnPosXSetClicked(object? sender, EventArgs e)
@@ -123,6 +130,12 @@ public partial class KeyInputPanel : ContentView
             RotZSlider.Value = v;
     }
 
+    private void UpdateConfirmEnabled()
+        => ConfirmButton.IsEnabled = BonePicker.SelectedIndex >= 0 && int.TryParse(FrameEntry.Text, out _);
+
+    private void OnFrameTextChanged(object? sender, TextChangedEventArgs e)
+        => UpdateConfirmEnabled();
+
     private void OnRotRangeChanged(object? sender, EventArgs e)
     {
         if (RotRangePicker.SelectedItem is int range)
@@ -157,5 +170,8 @@ public partial class KeyInputPanel : ContentView
         => RotZLabel.Text = $"{e.NewValue:F0}";
 
     private void OnBoneChanged(object? sender, EventArgs e)
-        => BoneChanged?.Invoke(BonePicker.SelectedIndex);
+    {
+        BoneChanged?.Invoke(BonePicker.SelectedIndex);
+        UpdateConfirmEnabled();
+    }
 }

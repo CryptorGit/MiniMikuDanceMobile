@@ -7,7 +7,7 @@
         <Picker x:Name="BonePicker" Title="Bone" SelectedIndexChanged="OnBoneChanged" />
         <HorizontalStackLayout Spacing="4" VerticalOptions="Center">
             <Button Text="-1" Clicked="OnFrameMinusClicked" />
-            <Entry x:Name="FrameEntry" Placeholder="Frame" WidthRequest="60" Keyboard="Numeric" />
+            <Entry x:Name="FrameEntry" Placeholder="Frame" WidthRequest="60" Keyboard="Numeric" TextChanged="OnFrameTextChanged" />
             <Button Text="+1" Clicked="OnFramePlusClicked" />
         </HorizontalStackLayout>
         <HorizontalStackLayout Spacing="10" VerticalOptions="Center">
