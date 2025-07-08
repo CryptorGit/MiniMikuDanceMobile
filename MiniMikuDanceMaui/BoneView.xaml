@@ -9,24 +9,33 @@
         <HorizontalStackLayout Spacing="10">
             <Button Text="Reset" Clicked="OnResetClicked" />
         </HorizontalStackLayout>
-        <HorizontalStackLayout Spacing="10">
-            <Label Text="Rotate X" TextColor="White"/>
-            <Label x:Name="LabelX" Text="0" TextColor="White" />
-        </HorizontalStackLayout>
-        <Entry x:Name="CenterXEntry" Text="0" Keyboard="Numeric" WidthRequest="60" HorizontalOptions="Center" Completed="OnCenterXEntryChanged" />
-        <Slider x:Name="SliderX" Minimum="-180" Maximum="180" ValueChanged="OnXChanged"/>
-        <HorizontalStackLayout Spacing="10">
-            <Label Text="Rotate Y" TextColor="White"/>
-            <Label x:Name="LabelY" Text="0" TextColor="White" />
-        </HorizontalStackLayout>
-        <Entry x:Name="CenterYEntry" Text="0" Keyboard="Numeric" WidthRequest="60" HorizontalOptions="Center" Completed="OnCenterYEntryChanged" />
-        <Slider x:Name="SliderY" Minimum="-180" Maximum="180" ValueChanged="OnYChanged"/>
-        <HorizontalStackLayout Spacing="10">
-            <Label Text="Rotate Z" TextColor="White"/>
-            <Label x:Name="LabelZ" Text="0" TextColor="White" />
-        </HorizontalStackLayout>
-        <Entry x:Name="CenterZEntry" Text="0" Keyboard="Numeric" WidthRequest="60" HorizontalOptions="Center" Completed="OnCenterZEntryChanged" />
-        <Slider x:Name="SliderZ" Minimum="-180" Maximum="180" ValueChanged="OnZChanged"/>
+        <Grid ColumnDefinitions="*,Auto,Auto">
+            <Grid Grid.Column="0" ColumnDefinitions="80,*">
+                <Label Text="Rotate X" TextColor="White" Grid.Column="0" />
+                <Label x:Name="LabelX" Text="0" TextColor="White" HorizontalTextAlignment="End" Grid.Column="1" />
+            </Grid>
+            <Picker x:Name="CenterXPicker" Grid.Column="1" SelectedIndexChanged="OnCenterXChanged" />
+            <Picker x:Name="RangeXPicker" Grid.Column="2" SelectedIndexChanged="OnRangeXChanged" />
+        </Grid>
+        <Slider x:Name="SliderX" Minimum="-180" Maximum="180" ValueChanged="OnXChanged" />
+        <Grid ColumnDefinitions="*,Auto,Auto">
+            <Grid Grid.Column="0" ColumnDefinitions="80,*">
+                <Label Text="Rotate Y" TextColor="White" Grid.Column="0" />
+                <Label x:Name="LabelY" Text="0" TextColor="White" HorizontalTextAlignment="End" Grid.Column="1" />
+            </Grid>
+            <Picker x:Name="CenterYPicker" Grid.Column="1" SelectedIndexChanged="OnCenterYChanged" />
+            <Picker x:Name="RangeYPicker" Grid.Column="2" SelectedIndexChanged="OnRangeYChanged" />
+        </Grid>
+        <Slider x:Name="SliderY" Minimum="-180" Maximum="180" ValueChanged="OnYChanged" />
+        <Grid ColumnDefinitions="*,Auto,Auto">
+            <Grid Grid.Column="0" ColumnDefinitions="80,*">
+                <Label Text="Rotate Z" TextColor="White" Grid.Column="0" />
+                <Label x:Name="LabelZ" Text="0" TextColor="White" HorizontalTextAlignment="End" Grid.Column="1" />
+            </Grid>
+            <Picker x:Name="CenterZPicker" Grid.Column="1" SelectedIndexChanged="OnCenterZChanged" />
+            <Picker x:Name="RangeZPicker" Grid.Column="2" SelectedIndexChanged="OnRangeZChanged" />
+        </Grid>
+        <Slider x:Name="SliderZ" Minimum="-180" Maximum="180" ValueChanged="OnZChanged" />
         <HorizontalStackLayout Spacing="10">
             <Label Text="Position X" TextColor="White"/>
             <Label x:Name="LabelTX" Text="0" TextColor="White" />
