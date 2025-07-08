@@ -7,7 +7,7 @@
             <HorizontalStackLayout Grid.Column="0" Spacing="2" VerticalOptions="Center">
                 <Label x:Name="TypeLabel" Text="Rot" TextColor="White" />
                 <Label x:Name="AxisLabel" Text="X" TextColor="White" />
-                <Label Text="&#x7B;" TextColor="White" />
+                <Label Text="{}{" TextColor="White" />
                 <Label x:Name="ValueLabel" Text="0" TextColor="White" />
                 <Label Text="&#x7D;" TextColor="White" />
             </HorizontalStackLayout>
