@@ -19,6 +19,7 @@ public partial class TimeLineView : ContentView
     public event Action? StopClicked;
 
     private bool _syncingScroll;
+    private List<string> _bones = new();
 
     public TimeLineView()
     {
@@ -39,15 +40,24 @@ public partial class TimeLineView : ContentView
     public void SetBones(IEnumerable<string> bones)
     {
         LogService.WriteLine($"SetBones count={bones.Count()}");
-        var list = bones.ToList();
-        GridView.SetBones(list);
-        BoneList.ItemsSource = list;
+        _bones = bones.ToList();
+        GridView.SetBones(_bones);
+        BoneList.ItemsSource = _bones;
+        UpdateButtonStates();
     }
 
     public int AddBone(string bone)
     {
         LogService.WriteLine($"AddBone {bone}");
-        return GridView.AddBone(bone);
+        int row = GridView.AddBone(bone);
+        if (!_bones.Contains(bone))
+        {
+            _bones.Add(bone);
+            BoneList.ItemsSource = null;
+            BoneList.ItemsSource = _bones;
+        }
+        UpdateButtonStates();
+        return row;
     }
 
     public Task ScrollToRowAsync(int index)
@@ -58,6 +68,7 @@ public partial class TimeLineView : ContentView
         LogService.WriteLine("SetMotion called");
         GridView.MotionEditor = editor;
         GridView.MotionPlayer = player;
+        UpdateButtonStates();
     }
 
     private async void OnGridScrolled(object? sender, ScrolledEventArgs e)
@@ -82,5 +93,17 @@ public partial class TimeLineView : ContentView
     private void OnCloseClicked(object? sender, EventArgs e)
     {
         CloseClicked?.Invoke();
+    }
+
+    public void UpdateButtonStates()
+    {
+        bool isPlaying = GridView.MotionPlayer?.IsPlaying ?? false;
+        bool hasBone = _bones.Count > 0;
+
+        AddBoneButton.IsEnabled = !isPlaying;
+        bool enableKeyButtons = hasBone && !isPlaying;
+        AddKeyButton.IsEnabled = enableKeyButtons;
+        EditKeyButton.IsEnabled = enableKeyButtons;
+        DeleteKeyButton.IsEnabled = enableKeyButtons;
     }
 }

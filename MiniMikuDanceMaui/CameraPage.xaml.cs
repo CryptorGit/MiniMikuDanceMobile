@@ -1347,12 +1347,18 @@ public partial class CameraPage : ContentPage
     }
 
     private void OnTimelinePlay()
-        => OnPlayAnimationRequested();
+    {
+        OnPlayAnimationRequested();
+        if (_bottomViews.TryGetValue("TIMELINE", out var tv) && tv is TimeLineView tl)
+            tl.UpdateButtonStates();
+    }
 
     private void OnTimelinePause()
     {
         var player = App.Initializer.MotionPlayer;
         player?.Pause();
+        if (_bottomViews.TryGetValue("TIMELINE", out var tv) && tv is TimeLineView tl)
+            tl.UpdateButtonStates();
     }
 
     private void OnTimelineStop()
@@ -1360,6 +1366,8 @@ public partial class CameraPage : ContentPage
         var player = App.Initializer.MotionPlayer;
         player?.Stop();
         Viewer?.InvalidateSurface();
+        if (_bottomViews.TryGetValue("TIMELINE", out var tv) && tv is TimeLineView tl)
+            tl.UpdateButtonStates();
     }
 
     private void UpdateSelectedBoneRotation(BoneView bv)
