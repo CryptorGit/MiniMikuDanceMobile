@@ -44,9 +44,9 @@ public partial class BoneView : ContentView
         RotXControl.CenterChanged += _ => OnCenterXChanged();
         RotYControl.CenterChanged += _ => OnCenterYChanged();
         RotZControl.CenterChanged += _ => OnCenterZChanged();
-        RotXControl.ResetClicked += OnResetClicked;
-        RotYControl.ResetClicked += OnResetClicked;
-        RotZControl.ResetClicked += OnResetClicked;
+        RotXControl.ResetClicked += () => ResetRotationXRequested?.Invoke();
+        RotYControl.ResetClicked += () => ResetRotationYRequested?.Invoke();
+        RotZControl.ResetClicked += () => ResetRotationZRequested?.Invoke();
 
         var posRangeValues = Enumerable.Range(0, 11).Select(i => (object)(i / 10f)).ToList();
         var posCenterValues = Enumerable.Range(0, 21).Select(i => (object)(-1f + i * 0.1f)).ToList();
@@ -65,9 +65,9 @@ public partial class BoneView : ContentView
         PosXControl.CenterChanged += _ => OnCenterTXChanged();
         PosYControl.CenterChanged += _ => OnCenterTYChanged();
         PosZControl.CenterChanged += _ => OnCenterTZChanged();
-        PosXControl.ResetClicked += OnResetClicked;
-        PosYControl.ResetClicked += OnResetClicked;
-        PosZControl.ResetClicked += OnResetClicked;
+        PosXControl.ResetClicked += () => ResetTranslationXRequested?.Invoke();
+        PosYControl.ResetClicked += () => ResetTranslationYRequested?.Invoke();
+        PosZControl.ResetClicked += () => ResetTranslationZRequested?.Invoke();
     }
 
     public void SetBones(IEnumerable<string> bones)

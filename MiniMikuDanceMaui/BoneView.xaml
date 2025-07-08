@@ -12,28 +12,22 @@
         </HorizontalStackLayout>
         <local:BoneAxisControl x:Name="RotXControl" ValueFormat="F0"
                                CenterChanged="OnCenterXChanged"
-                               ValueChanged="OnXChanged"
-                               ResetClicked="OnResetClicked" />
+                               ValueChanged="OnXChanged" />
         <local:BoneAxisControl x:Name="RotYControl" ValueFormat="F0"
                                CenterChanged="OnCenterYChanged"
-                               ValueChanged="OnYChanged"
-                               ResetClicked="OnResetClicked" />
+                               ValueChanged="OnYChanged" />
         <local:BoneAxisControl x:Name="RotZControl" ValueFormat="F0"
                                CenterChanged="OnCenterZChanged"
-                               ValueChanged="OnZChanged"
-                               ResetClicked="OnResetClicked" />
+                               ValueChanged="OnZChanged" />
         <local:BoneAxisControl x:Name="PosXControl" ValueFormat="F2"
                                CenterChanged="OnCenterTXChanged"
-                               ValueChanged="OnTXChanged"
-                               ResetClicked="OnResetClicked" />
+                               ValueChanged="OnTXChanged" />
         <local:BoneAxisControl x:Name="PosYControl" ValueFormat="F2"
                                CenterChanged="OnCenterTYChanged"
-                               ValueChanged="OnTYChanged"
-                               ResetClicked="OnResetClicked" />
+                               ValueChanged="OnTYChanged" />
         <local:BoneAxisControl x:Name="PosZControl" ValueFormat="F2"
                                CenterChanged="OnCenterTZChanged"
-                               ValueChanged="OnTZChanged"
-                               ResetClicked="OnResetClicked" />
+                               ValueChanged="OnTZChanged" />
     </VerticalStackLayout>
     </ScrollView>
 </ContentView>
