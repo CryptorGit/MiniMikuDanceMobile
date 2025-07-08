@@ -16,8 +16,11 @@ public partial class TimeLineView : ContentView
     private int _frameCount;
     private int _currentFrame;
     private const int FrameWidth = 20;
+    private const int VisibleRange = 30;
     private MotionEditor? _editor;
     private readonly List<string> _bones = new();
+    private readonly Dictionary<string, SKBitmap> _cache = new();
+    private readonly Dictionary<string, SKCanvasView> _cursorLayers = new();
     private IList<string> _availableBones = new List<string>();
 
     public MotionEditor? MotionEditor
@@ -98,23 +101,62 @@ public partial class TimeLineView : ContentView
         var label = new Label
         {
             Text = bone,
-            TextColor = Colors.White,
+            TextColor = (Color)Application.Current.Resources["TextColor"],
             VerticalTextAlignment = TextAlignment.Center,
             Padding = new Thickness(4, 0)
         };
         TimeGrid.Add(label, 0, row);
 
+        var rowGrid = new Grid();
         var canvas = new SKCanvasView
         {
             EnableTouchEvents = true,
             WidthRequest = _frameCount * FrameWidth,
             HeightRequest = 30
         };
+        canvas.BindingContext = bone;
         canvas.PaintSurface += OnKeyCanvasPaintSurface;
         canvas.Touch += OnKeyCanvasTouched;
-        TimeGrid.Add(canvas, 1, row);
+        rowGrid.Add(canvas);
+
+        var cursor = new SKCanvasView
+        {
+            InputTransparent = true,
+            WidthRequest = _frameCount * FrameWidth,
+            HeightRequest = 30
+        };
+        cursor.BindingContext = bone;
+        cursor.PaintSurface += OnCursorPaintSurface;
+        rowGrid.Add(cursor);
+        TimeGrid.Add(rowGrid, 1, row);
 
         _bones.Add(bone);
+        _cursorLayers[bone] = cursor;
+        BuildCache(bone);
+    }
+
+    private void BuildCache(string bone)
+    {
+        if (_editor == null || !_editor.Motion.KeyFrames.TryGetValue(bone, out var set))
+            return;
+
+        var width = _frameCount * FrameWidth;
+        var bmp = new SKBitmap(width, 30);
+        using var canvas = new SKCanvas(bmp);
+        canvas.Clear();
+        using var paint = new SKPaint { Color = SKColors.LightGreen };
+        foreach (var f in set)
+        {
+            float x = f * FrameWidth + FrameWidth / 2f;
+            canvas.DrawCircle(x, bmp.Height / 2f, 5, paint);
+        }
+        _cache[bone] = bmp;
+    }
+
+    private void InvalidateCursorLayers()
+    {
+        foreach (var cv in _cursorLayers.Values)
+            cv.InvalidateSurface();
     }
 
     public void ShowAddOverlay()
@@ -171,6 +213,8 @@ public partial class TimeLineView : ContentView
             _editor!.AddKeyFrame(bone, frame);
             if (!_bones.Contains(bone))
                 AddBoneRow(bone);
+            else
+                BuildCache(bone);
             UpdateBonePickers();
             // レイアウトを更新するため、ビュー全体の測定を無効化する
             this.InvalidateMeasure();
@@ -214,26 +258,46 @@ public partial class TimeLineView : ContentView
         }
     }
 
+    private void OnCursorPaintSurface(object? sender, SKPaintSurfaceEventArgs e)
+    {
+        var canvasView = (SKCanvasView)sender!;
+        if (canvasView.BindingContext is not string bone) return;
+
+        var canvas = e.Surface.Canvas;
+        canvas.Clear();
+
+        if (_frameCount > 0)
+        {
+            float x = _currentFrame * FrameWidth + FrameWidth / 2f;
+            using var paint = new SKPaint { Color = SKColors.Red, StrokeWidth = 2 };
+            canvas.DrawLine(x, 0, x, e.Info.Height, paint);
+        }
+    }
+
     private void OnKeyCanvasPaintSurface(object? sender, SKPaintSurfaceEventArgs e)
     {
         if (MotionEditor == null) return;
 
         var canvasView = (SKCanvasView)sender!;
-        int row = Grid.GetRow(canvasView);
-        if (row < 0 || row >= _bones.Count) return;
-        string bone = _bones[row];
+        if (canvasView.BindingContext is not string bone) return;
 
         var canvas = e.Surface.Canvas;
         canvas.Clear();
 
-        using var paint = new SKPaint { Color = SKColors.LightGreen };
-        if (_editor!.Motion.KeyFrames.TryGetValue(bone, out var set))
+        if (!_cache.TryGetValue(bone, out var bmp))
         {
-            foreach (var f in set)
-            {
-                float x = f * FrameWidth + FrameWidth / 2f;
-                canvas.DrawCircle(x, e.Info.Height / 2f, 5, paint);
-            }
+            BuildCache(bone);
+            _cache.TryGetValue(bone, out bmp);
+        }
+
+        if (bmp != null)
+        {
+            int start = Math.Max(0, _currentFrame - VisibleRange);
+            int end = Math.Min(_frameCount - 1, _currentFrame + VisibleRange);
+            canvas.Save();
+            canvas.ClipRect(new SKRect(start * FrameWidth, 0, (end + 1) * FrameWidth, e.Info.Height));
+            canvas.DrawBitmap(bmp, 0, 0);
+            canvas.Restore();
         }
     }
 
@@ -243,9 +307,7 @@ public partial class TimeLineView : ContentView
             return;
 
         var canvasView = (SKCanvasView)sender!;
-        int row = Grid.GetRow(canvasView);
-        if (row < 0 || row >= _bones.Count) return;
-        string bone = _bones[row];
+        if (canvasView.BindingContext is not string bone) return;
 
         int frame = (int)(e.Location.X / FrameWidth);
         if (_editor!.HasKeyFrame(bone, frame))
@@ -269,6 +331,7 @@ public partial class TimeLineView : ContentView
             _currentFrame = (int)(ratio * _frameCount);
             _player.Seek(_currentFrame);
             ((SKCanvasView)sender).InvalidateSurface();
+            InvalidateCursorLayers();
             e.Handled = true;
         }
     }
@@ -280,6 +343,7 @@ public partial class TimeLineView : ContentView
         {
             _currentFrame = _player.FrameIndex;
             TimeSlider.InvalidateSurface();
+            InvalidateCursorLayers();
         });
     }
 
@@ -312,5 +376,6 @@ public partial class TimeLineView : ContentView
         _player.Stop();
         _currentFrame = 0;
         TimeSlider.InvalidateSurface();
+        InvalidateCursorLayers();
     }
 }
