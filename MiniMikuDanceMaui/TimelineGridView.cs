@@ -51,7 +51,7 @@ public class TimelineGridView : GraphicsView, IDrawable
         HeightRequest = rowCount * RowHeight;
 
         canvas.FillColor = Colors.Transparent;
-        canvas.FillRectangle(0,0, WidthRequest, HeightRequest);
+        canvas.FillRectangle(0, 0, (float)WidthRequest, (float)HeightRequest);
 
         canvas.StrokeColor = Colors.Gray;
         for (int i = 0; i <= frameCount; i++)
