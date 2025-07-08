@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentView xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:mmd="clr-namespace:MiniMikuDanceMaui"
+             x:Class="MiniMikuDanceMaui.TimeLineView"
+             BackgroundColor="#1E1E1E">
+    <Grid RowDefinitions="48,64,*">
+        <!-- 操作バー -->
+        <HorizontalStackLayout Spacing="10" Padding="8" HeightRequest="48">
+            <Button Text="Add Bone" x:Name="AddBoneButton" />
+            <Button Text="Add Key" x:Name="AddKeyButton" />
+            <Button Text="Edit Key" x:Name="EditKeyButton" />
+            <Button Text="Delete Key" x:Name="DeleteKeyButton" />
+        </HorizontalStackLayout>
+        <!-- トランスポートとフレームヘッダー -->
+        <Grid Row="1" ColumnDefinitions="Auto,Auto,Auto,*,Auto,Auto" Padding="8" HeightRequest="64" VerticalOptions="Center">
+            <Button Text="Play" x:Name="PlayButton" />
+            <Button Text="Pause" x:Name="PauseButton" Grid.Column="1" />
+            <Button Text="Stop" x:Name="StopButton" Grid.Column="2" />
+            <StackLayout Orientation="Horizontal" Grid.Column="4" Spacing="4">
+                <Entry x:Name="LoopStart" Placeholder="Start" WidthRequest="50" Keyboard="Numeric" />
+                <Entry x:Name="LoopEnd" Placeholder="End" WidthRequest="50" Keyboard="Numeric" />
+            </StackLayout>
+            <Entry x:Name="FrameScaleEntry" Grid.Column="5" Placeholder="Scale" WidthRequest="50" Keyboard="Numeric" />
+        </Grid>
+        <!-- キーグリッド -->
+        <ScrollView Grid.Row="2" x:Name="GridScroll" Orientation="Both" >
+            <mmd:TimelineGridView x:Name="GridView" />
+        </ScrollView>
+    </Grid>
+</ContentView>
