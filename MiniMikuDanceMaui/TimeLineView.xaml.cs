@@ -21,6 +21,7 @@ public partial class TimeLineView : ContentView
     private MotionEditor? _editor;
     private readonly List<string> _bones = new();
     private readonly Dictionary<string, SKBitmap> _cache = new();
+    private readonly Dictionary<string, (int Start, int End)> _cacheRange = new();
     private readonly Dictionary<string, SKCanvasView> _cursorLayers = new();
     private IList<string> _availableBones = new List<string>();
     private string? _editingBone;
@@ -155,25 +156,27 @@ public partial class TimeLineView : ContentView
 
         _bones.Add(bone);
         _cursorLayers[bone] = cursor;
-        BuildCache(bone);
+        BuildCache(bone, 0, _frameCount - 1);
     }
 
-    private void BuildCache(string bone)
+    private void BuildCache(string bone, int start, int end)
     {
         if (_editor == null || !_editor.Motion.KeyFrames.TryGetValue(bone, out var set))
             return;
 
-        var width = _frameCount * FrameWidth;
+        var width = (end - start + 1) * FrameWidth;
         var bmp = new SKBitmap(width, 30);
         using var canvas = new SKCanvas(bmp);
         canvas.Clear();
         using var paint = new SKPaint { Color = SKColors.LightGreen };
         foreach (var f in set)
         {
-            float x = f * FrameWidth + FrameWidth / 2f;
+            if (f < start || f > end) continue;
+            float x = (f - start) * FrameWidth + FrameWidth / 2f;
             canvas.DrawCircle(x, bmp.Height / 2f, 5, paint);
         }
         _cache[bone] = bmp;
+        _cacheRange[bone] = (start, end);
     }
 
     private void InvalidateCursorLayers()
@@ -264,7 +267,7 @@ public partial class TimeLineView : ContentView
             if (!_bones.Contains(bone))
                 AddBoneRow(bone);
             else
-                BuildCache(bone);
+                BuildCache(bone, 0, _frameCount - 1);
             UpdateBonePickers();
             // レイアウトを更新するため、ビュー全体の測定を無効化する
             this.InvalidateMeasure();
@@ -293,10 +296,10 @@ public partial class TimeLineView : ContentView
             if (!_bones.Contains(newBone))
                 AddBoneRow(newBone);
             else
-                BuildCache(newBone);
+                BuildCache(newBone, 0, _frameCount - 1);
 
             if (oldBone != newBone)
-                BuildCache(oldBone);
+                BuildCache(oldBone, 0, _frameCount - 1);
 
             UpdateBonePickers();
             this.InvalidateMeasure();
@@ -318,7 +321,7 @@ public partial class TimeLineView : ContentView
         if (DeleteBonePicker.SelectedItem is string bone && DeleteTimePicker.SelectedItem is int frame)
         {
             _editor!.RemoveKeyFrame(bone, frame);
-            BuildCache(bone);
+            BuildCache(bone, 0, _frameCount - 1);
             OnDeleteBoneChanged(null, EventArgs.Empty);
             UpdateBonePickers();
             this.InvalidateMeasure();
@@ -377,20 +380,20 @@ public partial class TimeLineView : ContentView
         var canvas = e.Surface.Canvas;
         canvas.Clear();
 
-        if (!_cache.TryGetValue(bone, out var bmp))
+        int start = Math.Max(0, _currentFrame - VisibleRange);
+        int end = Math.Min(_frameCount - 1, _currentFrame + VisibleRange);
+
+        if (!_cache.TryGetValue(bone, out var bmp) ||
+            !_cacheRange.TryGetValue(bone, out var range) ||
+            range.Start != start || range.End != end)
         {
-            BuildCache(bone);
+            BuildCache(bone, start, end);
             _cache.TryGetValue(bone, out bmp);
         }
 
         if (bmp != null)
         {
-            int start = Math.Max(0, _currentFrame - VisibleRange);
-            int end = Math.Min(_frameCount - 1, _currentFrame + VisibleRange);
-            canvas.Save();
-            canvas.ClipRect(new SKRect(start * FrameWidth, 0, (end + 1) * FrameWidth, e.Info.Height));
-            canvas.DrawBitmap(bmp, 0, 0);
-            canvas.Restore();
+            canvas.DrawBitmap(bmp, start * FrameWidth, 0);
         }
     }
 
