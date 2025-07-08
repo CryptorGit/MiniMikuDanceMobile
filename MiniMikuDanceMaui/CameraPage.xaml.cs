@@ -684,6 +684,7 @@ public partial class CameraPage : ContentPage
                     tl.SetBones(bones);
                 }
                 tl.SetMotion(_motionEditor, App.Initializer.MotionPlayer);
+                tl.AddBoneClicked += () => OnTimelineAddBone(tl);
                 tl.AddKeyClicked += () => OnTimelineAddKey(tl);
                 tl.EditKeyClicked += () => OnTimelineEditKey(tl);
                 view = tl;
@@ -1233,6 +1234,17 @@ public partial class CameraPage : ContentPage
             KeyPanel.SetTranslation(t);
             KeyPanel.SetRotation(r);
         }
+    }
+
+    private async void OnTimelineAddBone(TimeLineView tl)
+    {
+        if (_currentModel == null) return;
+        if (_selectedBoneIndex < 0 || _selectedBoneIndex >= _currentModel.Bones.Count)
+            return;
+
+        string bone = _currentModel.Bones[_selectedBoneIndex].Name;
+        int row = tl.AddBone(bone);
+        await tl.ScrollToRowAsync(row);
     }
 
     private void OnTimelineAddKey(TimeLineView tl)
