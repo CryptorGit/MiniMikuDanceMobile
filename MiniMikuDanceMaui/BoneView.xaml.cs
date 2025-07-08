@@ -104,7 +104,16 @@ public partial class BoneView : ContentView
     private void OnTYChanged(double v) => TranslationYChanged?.Invoke((float)v);
     private void OnTZChanged(double v) => TranslationZChanged?.Invoke((float)v);
 
-    private void OnResetClicked() => ResetRequested?.Invoke();
+    private void OnResetClicked()
+    {
+        RotXControl.Reset();
+        RotYControl.Reset();
+        RotZControl.Reset();
+        PosXControl.Reset();
+        PosYControl.Reset();
+        PosZControl.Reset();
+        ResetRequested?.Invoke();
+    }
 
     private void OnResetClicked(object? sender, EventArgs e) => OnResetClicked();
 
