@@ -687,6 +687,7 @@ public partial class CameraPage : ContentPage
                 tl.AddBoneClicked += () => OnTimelineAddBone(tl);
                 tl.AddKeyClicked += () => OnTimelineAddKey(tl);
                 tl.EditKeyClicked += () => OnTimelineEditKey(tl);
+                tl.CloseClicked += () => RemoveBottomFeature("TIMELINE");
                 view = tl;
             }
             else if (name == "MTOON")

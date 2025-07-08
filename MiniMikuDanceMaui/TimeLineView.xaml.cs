@@ -13,6 +13,7 @@ public partial class TimeLineView : ContentView
     public event Action? AddKeyClicked;
     public event Action? EditKeyClicked;
     public event Action? DeleteKeyClicked;
+    public event Action? CloseClicked;
 
     private bool _syncingScroll;
 
@@ -23,6 +24,7 @@ public partial class TimeLineView : ContentView
         AddKeyButton.Clicked += (s, e) => AddKeyClicked?.Invoke();
         EditKeyButton.Clicked += (s, e) => EditKeyClicked?.Invoke();
         DeleteKeyButton.Clicked += (s, e) => DeleteKeyClicked?.Invoke();
+        CloseButton.Clicked += OnCloseClicked;
         FrameScaleEntry.Text = "10";
         GridScroll.Scrolled += OnGridScrolled;
         BoneList.Scrolled += OnBoneListScrolled;
@@ -68,5 +70,10 @@ public partial class TimeLineView : ContentView
         _syncingScroll = true;
         await GridScroll.ScrollToAsync(GridScroll.ScrollX, e.VerticalOffset, false);
         _syncingScroll = false;
+    }
+
+    private void OnCloseClicked(object? sender, EventArgs e)
+    {
+        CloseClicked?.Invoke();
     }
 }

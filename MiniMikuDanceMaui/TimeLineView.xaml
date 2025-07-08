@@ -17,6 +17,7 @@
             <Button Text="Edit Key" x:Name="EditKeyButton" />
             <Button Text="Delete Key" x:Name="DeleteKeyButton" />
         </HorizontalStackLayout>
+        <Button Text="×" x:Name="CloseButton" Grid.Column="1" HorizontalOptions="End" VerticalOptions="Center" Clicked="OnCloseClicked" />
         <!-- トランスポートとフレームヘッダー -->
         <Grid Row="1" ColumnDefinitions="1*,5*,Auto,Auto" Padding="8" HeightRequest="64" VerticalOptions="Center" Grid.ColumnSpan="2">
             <HorizontalStackLayout Spacing="10">
