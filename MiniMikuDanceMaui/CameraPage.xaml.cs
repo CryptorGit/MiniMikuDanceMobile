@@ -621,8 +621,6 @@ public partial class CameraPage : ContentPage
                     }
                 }
                 bv.ResetRequested += OnBoneReset;
-                bv.RotateRangeChanged += OnBoneRangeChanged;
-                bv.PositionRangeChanged += OnBonePositionRangeChanged;
                 bv.BoneSelected += idx =>
                 {
                     if (idx >= 0 && idx < _humanoidBoneIndices.Count)

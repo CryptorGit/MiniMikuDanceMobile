@@ -13,37 +13,37 @@
             <Label Text="Rotate X" TextColor="White"/>
             <Label x:Name="LabelX" Text="0" TextColor="White" />
         </HorizontalStackLayout>
-        <Entry x:Name="RangeXEntry" Text="180" Keyboard="Numeric" WidthRequest="60" HorizontalOptions="Center" Completed="OnRangeXEntryChanged" />
+        <Entry x:Name="CenterXEntry" Text="0" Keyboard="Numeric" WidthRequest="60" HorizontalOptions="Center" Completed="OnCenterXEntryChanged" />
         <Slider x:Name="SliderX" Minimum="-180" Maximum="180" ValueChanged="OnXChanged"/>
         <HorizontalStackLayout Spacing="10">
             <Label Text="Rotate Y" TextColor="White"/>
             <Label x:Name="LabelY" Text="0" TextColor="White" />
         </HorizontalStackLayout>
-        <Entry x:Name="RangeYEntry" Text="180" Keyboard="Numeric" WidthRequest="60" HorizontalOptions="Center" Completed="OnRangeYEntryChanged" />
+        <Entry x:Name="CenterYEntry" Text="0" Keyboard="Numeric" WidthRequest="60" HorizontalOptions="Center" Completed="OnCenterYEntryChanged" />
         <Slider x:Name="SliderY" Minimum="-180" Maximum="180" ValueChanged="OnYChanged"/>
         <HorizontalStackLayout Spacing="10">
             <Label Text="Rotate Z" TextColor="White"/>
             <Label x:Name="LabelZ" Text="0" TextColor="White" />
         </HorizontalStackLayout>
-        <Entry x:Name="RangeZEntry" Text="180" Keyboard="Numeric" WidthRequest="60" HorizontalOptions="Center" Completed="OnRangeZEntryChanged" />
+        <Entry x:Name="CenterZEntry" Text="0" Keyboard="Numeric" WidthRequest="60" HorizontalOptions="Center" Completed="OnCenterZEntryChanged" />
         <Slider x:Name="SliderZ" Minimum="-180" Maximum="180" ValueChanged="OnZChanged"/>
         <HorizontalStackLayout Spacing="10">
             <Label Text="Position X" TextColor="White"/>
             <Label x:Name="LabelTX" Text="0" TextColor="White" />
         </HorizontalStackLayout>
-        <Entry x:Name="RangeTXEntry" Text="1" Keyboard="Numeric" WidthRequest="60" HorizontalOptions="Center" Completed="OnRangeTXEntryChanged" />
+        <Entry x:Name="CenterTXEntry" Text="0" Keyboard="Numeric" WidthRequest="60" HorizontalOptions="Center" Completed="OnCenterTXEntryChanged" />
         <Slider x:Name="SliderTX" Minimum="-1" Maximum="1" ValueChanged="OnTXChanged"/>
         <HorizontalStackLayout Spacing="10">
             <Label Text="Position Y" TextColor="White"/>
             <Label x:Name="LabelTY" Text="0" TextColor="White" />
         </HorizontalStackLayout>
-        <Entry x:Name="RangeTYEntry" Text="1" Keyboard="Numeric" WidthRequest="60" HorizontalOptions="Center" Completed="OnRangeTYEntryChanged" />
+        <Entry x:Name="CenterTYEntry" Text="0" Keyboard="Numeric" WidthRequest="60" HorizontalOptions="Center" Completed="OnCenterTYEntryChanged" />
         <Slider x:Name="SliderTY" Minimum="-1" Maximum="1" ValueChanged="OnTYChanged"/>
         <HorizontalStackLayout Spacing="10">
             <Label Text="Position Z" TextColor="White"/>
             <Label x:Name="LabelTZ" Text="0" TextColor="White" />
         </HorizontalStackLayout>
-        <Entry x:Name="RangeTZEntry" Text="1" Keyboard="Numeric" WidthRequest="60" HorizontalOptions="Center" Completed="OnRangeTZEntryChanged" />
+        <Entry x:Name="CenterTZEntry" Text="0" Keyboard="Numeric" WidthRequest="60" HorizontalOptions="Center" Completed="OnCenterTZEntryChanged" />
         <Slider x:Name="SliderTZ" Minimum="-1" Maximum="1" ValueChanged="OnTZChanged"/>
     </VerticalStackLayout>
     </ScrollView>
