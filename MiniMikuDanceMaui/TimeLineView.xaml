@@ -12,18 +12,18 @@
         </Grid.RowDefinitions>
         <!-- 操作バー -->
         <HorizontalStackLayout Spacing="10" Padding="8" HeightRequest="{StaticResource RowHeight}">
-            <Button Text="Add Bone" x:Name="AddBoneButton" />
-            <Button Text="Add Key" x:Name="AddKeyButton" />
-            <Button Text="Edit Key" x:Name="EditKeyButton" />
-            <Button Text="Delete Key" x:Name="DeleteKeyButton" />
+            <Button Text="Add Bone" x:Name="AddBoneButton" Style="{StaticResource TimelineButtonStyle}" />
+            <Button Text="Add Key" x:Name="AddKeyButton" Style="{StaticResource TimelineButtonStyle}" />
+            <Button Text="Edit Key" x:Name="EditKeyButton" Style="{StaticResource TimelineButtonStyle}" />
+            <Button Text="Delete Key" x:Name="DeleteKeyButton" Style="{StaticResource TimelineButtonStyle}" />
         </HorizontalStackLayout>
         <Button Text="×" x:Name="CloseButton" Grid.Column="1" HorizontalOptions="End" VerticalOptions="Center" Clicked="OnCloseClicked" />
         <!-- トランスポートとフレームヘッダー -->
         <Grid Row="1" ColumnDefinitions="1*,5*" Padding="8" HeightRequest="64" VerticalOptions="Center" Grid.ColumnSpan="2">
             <HorizontalStackLayout Spacing="10">
-                <Button Text="Play" x:Name="PlayButton" />
-                <Button Text="Pause" x:Name="PauseButton" />
-                <Button Text="Stop" x:Name="StopButton" />
+                <Button Text="▶" x:Name="PlayButton" Style="{StaticResource TimelineButtonStyle}" />
+                <Button Text="Ⅱ" x:Name="PauseButton" Style="{StaticResource TimelineButtonStyle}" />
+                <Button Text="■" x:Name="StopButton" Style="{StaticResource TimelineButtonStyle}" />
             </HorizontalStackLayout>
             <BoxView Grid.Column="1" Color="Transparent" />
         </Grid>

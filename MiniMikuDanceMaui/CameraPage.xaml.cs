@@ -129,6 +129,9 @@ public partial class CameraPage : ContentPage
         KeyPanel.Confirmed += OnKeyConfirmClicked;
         KeyPanel.Canceled += OnKeyCancelClicked;
         KeyPanel.BoneChanged += OnKeyBoneChanged;
+        DeletePanel.Confirmed += OnKeyDeleteConfirmClicked;
+        DeletePanel.Canceled += OnKeyDeleteCancelClicked;
+        DeletePanel.BoneChanged += OnDeleteBoneChanged;
 
     }
 
@@ -421,6 +424,9 @@ public partial class CameraPage : ContentPage
         AbsoluteLayout.SetLayoutBounds(KeyPanel, new Rect(W - 200, TopMenuHeight + 20,
             200, KeyPanel.IsVisible ? AbsoluteLayout.AutoSize : 0));
         AbsoluteLayout.SetLayoutFlags(KeyPanel, AbsoluteLayoutFlags.None);
+        AbsoluteLayout.SetLayoutBounds(DeletePanel, new Rect(W - 200, TopMenuHeight + 20,
+            200, DeletePanel.IsVisible ? AbsoluteLayout.AutoSize : 0));
+        AbsoluteLayout.SetLayoutFlags(DeletePanel, AbsoluteLayoutFlags.None);
 
         AbsoluteLayout.SetLayoutBounds(LoadingIndicator, new Rect(0.5, 0.5, 40, 40));
         AbsoluteLayout.SetLayoutFlags(LoadingIndicator, AbsoluteLayoutFlags.PositionProportional);
@@ -1229,6 +1235,26 @@ public partial class CameraPage : ContentPage
         UpdateLayout();
     }
 
+    private async void OnKeyDeleteConfirmClicked(string bone, int frame)
+    {
+        LoadingIndicator.IsVisible = true;
+        await Task.Delay(50);
+        _motionEditor?.RemoveKeyFrame(bone, frame);
+        DeletePanel.IsVisible = false;
+        if (_bottomViews.TryGetValue("TIMELINE", out var tv) && tv is TimeLineView tl)
+        {
+            tl.SetMotion(_motionEditor, App.Initializer.MotionPlayer);
+        }
+        LoadingIndicator.IsVisible = false;
+        UpdateLayout();
+    }
+
+    private void OnKeyDeleteCancelClicked()
+    {
+        DeletePanel.IsVisible = false;
+        UpdateLayout();
+    }
+
     private void OnKeyBoneChanged(int index)
     {
         int frame = KeyPanel.FrameNumber;
@@ -1240,6 +1266,19 @@ public partial class CameraPage : ContentPage
             var r = _renderer.GetBoneRotation(boneIndex);
             KeyPanel.SetTranslation(t);
             KeyPanel.SetRotation(r);
+        }
+    }
+
+    private void OnDeleteBoneChanged(int index)
+    {
+        if (_currentModel == null) return;
+        if (index >= 0 && index < _currentModel.HumanoidBoneList.Count)
+        {
+            var bone = _currentModel.HumanoidBoneList[index].Name;
+            if (_motionEditor != null && _motionEditor.Motion.KeyFrames.TryGetValue(bone, out var set))
+                DeletePanel.SetFrames(set);
+            else
+                DeletePanel.SetFrames(Array.Empty<int>());
         }
     }
 
@@ -1280,6 +1319,12 @@ public partial class CameraPage : ContentPage
 
     private void OnTimelineDeleteKey(TimeLineView tl)
     {
+        if (_currentModel == null) return;
+        var bones = _currentModel.HumanoidBoneList.Select(b => b.Name);
+        DeletePanel.SetBones(bones);
+        OnDeleteBoneChanged(DeletePanel.SelectedBoneIndex);
+        DeletePanel.IsVisible = true;
+        UpdateLayout();
         // TODO: implement key frame deletion UI
     }
 

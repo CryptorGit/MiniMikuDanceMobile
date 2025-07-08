@@ -140,6 +140,7 @@
             </VerticalStackLayout>
         </Frame>
         <mmd:KeyInputPanel x:Name="KeyPanel" IsVisible="False" ZIndex="30" />
+        <mmd:KeyDeletePanel x:Name="DeletePanel" IsVisible="False" ZIndex="30" />
         <ActivityIndicator x:Name="LoadingIndicator" IsRunning="True" IsVisible="False" Color="{StaticResource IndicatorColor}" ZIndex="30" />
         <skia:SKGLView x:Name="Viewer" HasRenderLoop="True" EnableTouchEvents="True" />
         <Grid x:Name="BottomRegion" BackgroundColor="{StaticResource BackgroundColor}" IsVisible="False" ZIndex="2">
