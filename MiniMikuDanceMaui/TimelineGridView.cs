@@ -1,5 +1,6 @@
 using Microsoft.Maui.Controls;
 using Microsoft.Maui.Graphics;
+using Microsoft.Maui.Graphics.Skia;
 using MiniMikuDance.Motion;
 using SkiaSharp;
 using System;
