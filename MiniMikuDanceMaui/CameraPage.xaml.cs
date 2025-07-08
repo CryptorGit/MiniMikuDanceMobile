@@ -274,6 +274,14 @@ public partial class CameraPage : ContentPage
         HideSettingMenu();
     }
 
+    private void OnTimelineClicked(object? sender, EventArgs e)
+    {
+        LogService.WriteLine("TIMELINE button clicked");
+        ShowBottomFeature("TIMELINE");
+        HideViewMenu();
+        HideSettingMenu();
+    }
+
 
     private void OnCloseBottomTapped(object? sender, TappedEventArgs e)
     {
@@ -667,6 +675,18 @@ public partial class CameraPage : ContentPage
                 var tv = new TerminalView();
                 view = tv;
             }
+            else if (name == "TIMELINE")
+            {
+                var tl = new TimeLineView();
+                if (_currentModel != null)
+                {
+                    var bones = _currentModel.HumanoidBoneList.Select(b => b.Name).ToList();
+                    tl.SetBones(bones);
+                }
+                tl.SetMotion(_motionEditor, App.Initializer.MotionPlayer);
+                tl.AddKeyClicked += () => OnTimelineAddKey(tl);
+                view = tl;
+            }
             else if (name == "MTOON")
             {
                 var mv = new LightingView
@@ -806,6 +826,15 @@ public partial class CameraPage : ContentPage
         else if (name == "TERMINAL" && _bottomViews[name] is TerminalView)
         {
             // nothing to update
+        }
+        else if (name == "TIMELINE" && _bottomViews[name] is TimeLineView tl)
+        {
+            tl.SetMotion(_motionEditor, App.Initializer.MotionPlayer);
+            if (_currentModel != null)
+            {
+                var bones = _currentModel.HumanoidBoneList.Select(b => b.Name);
+                tl.SetBones(bones);
+            }
         }
         SwitchBottomFeature(name);
         BottomRegion.IsVisible = true;
@@ -1177,6 +1206,10 @@ public partial class CameraPage : ContentPage
             }
         }
         KeyPanel.IsVisible = false;
+        if (_bottomViews.TryGetValue("TIMELINE", out var tv) && tv is TimeLineView tl)
+        {
+            tl.SetMotion(_motionEditor, App.Initializer.MotionPlayer);
+        }
         LoadingIndicator.IsVisible = false;
         UpdateLayout();
     }
@@ -1199,6 +1232,16 @@ public partial class CameraPage : ContentPage
             KeyPanel.SetTranslation(t);
             KeyPanel.SetRotation(r);
         }
+    }
+
+    private void OnTimelineAddKey(TimeLineView tl)
+    {
+        if (_currentModel == null) return;
+        var bones = _currentModel.HumanoidBoneList.Select(b => b.Name);
+        KeyPanel.SetBones(bones);
+        KeyPanel.SetFrame(App.Initializer.MotionPlayer?.FrameIndex ?? 0);
+        KeyPanel.IsVisible = true;
+        UpdateLayout();
     }
 
     private void UpdateSelectedBoneRotation(BoneView bv)
