@@ -19,15 +19,28 @@ public partial class BoneView : ContentView
     public event Action<int>? RotateRangeChanged;
     public event Action<int>? PositionRangeChanged;
 
-    private int _range = 180;
-
     public BoneView()
     {
         InitializeComponent();
-        RotateRangePicker.ItemsSource = new List<int> { 30, 45, 90, 180, 360 };
-        RotateRangePicker.SelectedItem = _range;
-        PositionRangePicker.ItemsSource = new List<int> { 1, 2, 5, 10 };
-        PositionRangePicker.SelectedItem = 1;
+        RangeXEntry.Text = "180";
+        RangeYEntry.Text = "180";
+        RangeZEntry.Text = "180";
+        RangeTXEntry.Text = "1";
+        RangeTYEntry.Text = "1";
+        RangeTZEntry.Text = "1";
+
+        SliderX.Minimum = -180;
+        SliderX.Maximum = 180;
+        SliderY.Minimum = -180;
+        SliderY.Maximum = 180;
+        SliderZ.Minimum = -180;
+        SliderZ.Maximum = 180;
+        SliderTX.Minimum = -1;
+        SliderTX.Maximum = 1;
+        SliderTY.Minimum = -1;
+        SliderTY.Maximum = 1;
+        SliderTZ.Minimum = -1;
+        SliderTZ.Maximum = 1;
         LabelX.Text = "0";
         LabelY.Text = "0";
         LabelZ.Text = "0";
@@ -107,26 +120,63 @@ public partial class BoneView : ContentView
 
     private void OnResetClicked(object? sender, EventArgs e) => ResetRequested?.Invoke();
 
-    private void OnRotateRangeChanged(object? sender, EventArgs e)
+    private void OnRangeXEntryChanged(object? sender, EventArgs e)
     {
-        if (RotateRangePicker.SelectedItem is int value)
+        if (float.TryParse(RangeXEntry.Text, out var v))
         {
-            _range = value;
-            RotateRangeChanged?.Invoke(value);
+            SliderX.Minimum = -v;
+            SliderX.Maximum = v;
+            RotateRangeChanged?.Invoke((int)v);
         }
     }
 
-    private void OnPositionRangeChanged(object? sender, EventArgs e)
+    private void OnRangeYEntryChanged(object? sender, EventArgs e)
     {
-        if (PositionRangePicker.SelectedItem is int value)
+        if (float.TryParse(RangeYEntry.Text, out var v))
         {
-            SliderTX.Minimum = -value;
-            SliderTX.Maximum = value;
-            SliderTY.Minimum = -value;
-            SliderTY.Maximum = value;
-            SliderTZ.Minimum = -value;
-            SliderTZ.Maximum = value;
-            PositionRangeChanged?.Invoke(value);
+            SliderY.Minimum = -v;
+            SliderY.Maximum = v;
+            RotateRangeChanged?.Invoke((int)v);
+        }
+    }
+
+    private void OnRangeZEntryChanged(object? sender, EventArgs e)
+    {
+        if (float.TryParse(RangeZEntry.Text, out var v))
+        {
+            SliderZ.Minimum = -v;
+            SliderZ.Maximum = v;
+            RotateRangeChanged?.Invoke((int)v);
+        }
+    }
+
+    private void OnRangeTXEntryChanged(object? sender, EventArgs e)
+    {
+        if (float.TryParse(RangeTXEntry.Text, out var v))
+        {
+            SliderTX.Minimum = -v;
+            SliderTX.Maximum = v;
+            PositionRangeChanged?.Invoke((int)v);
+        }
+    }
+
+    private void OnRangeTYEntryChanged(object? sender, EventArgs e)
+    {
+        if (float.TryParse(RangeTYEntry.Text, out var v))
+        {
+            SliderTY.Minimum = -v;
+            SliderTY.Maximum = v;
+            PositionRangeChanged?.Invoke((int)v);
+        }
+    }
+
+    private void OnRangeTZEntryChanged(object? sender, EventArgs e)
+    {
+        if (float.TryParse(RangeTZEntry.Text, out var v))
+        {
+            SliderTZ.Minimum = -v;
+            SliderTZ.Maximum = v;
+            PositionRangeChanged?.Invoke((int)v);
         }
     }
 
@@ -174,6 +224,9 @@ public partial class BoneView : ContentView
         SliderY.Maximum = max;
         SliderZ.Minimum = min;
         SliderZ.Maximum = max;
+        RangeXEntry.Text = Math.Abs(min).ToString();
+        RangeYEntry.Text = Math.Abs(min).ToString();
+        RangeZEntry.Text = Math.Abs(min).ToString();
     }
 
     public void SetTranslationRange(int min, int max)
@@ -184,5 +237,8 @@ public partial class BoneView : ContentView
         SliderTY.Maximum = max;
         SliderTZ.Minimum = min;
         SliderTZ.Maximum = max;
+        RangeTXEntry.Text = Math.Abs(min).ToString();
+        RangeTYEntry.Text = Math.Abs(min).ToString();
+        RangeTZEntry.Text = Math.Abs(min).ToString();
     }
 }

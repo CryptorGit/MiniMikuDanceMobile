@@ -247,9 +247,9 @@ public partial class CameraPage : ContentPage
     }
 
 
-    private void OnMToonClicked(object? sender, EventArgs e)
+    private void OnLightingClicked(object? sender, EventArgs e)
     {
-        LogService.WriteLine("MTOON button clicked");
+        LogService.WriteLine("Lighting button clicked");
         ShowBottomFeature("MTOON");
         HideViewMenu();
         HideSettingMenu();
@@ -658,7 +658,7 @@ public partial class CameraPage : ContentPage
             }
             else if (name == "MTOON")
             {
-                var mv = new MToonView
+                var mv = new LightingView
                 {
                     ShadeShift = _shadeShift,
                     ShadeToony = _shadeToony,
@@ -782,7 +782,7 @@ public partial class CameraPage : ContentPage
             var posePath = MmdFileSystem.Ensure("Poses");
             aev2.LoadDirectory(posePath);
         }
-        else if (name == "MTOON" && _bottomViews[name] is MToonView mv)
+        else if (name == "MTOON" && _bottomViews[name] is LightingView mv)
         {
             mv.ShadeShift = _shadeShift;
             mv.ShadeToony = _shadeToony;
