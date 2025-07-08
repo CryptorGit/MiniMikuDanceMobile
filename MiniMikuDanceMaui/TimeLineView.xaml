@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentView xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             x:Class="MiniMikuDanceMaui.TimeLineView"
+             BackgroundColor="#1E1E1E">
+    <Grid RowSpacing="0">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="*" />
+        </Grid.RowDefinitions>
+        <!-- キー操作領域 -->
+        <Grid Grid.Row="0" />
+        <!-- タイムライン操作領域 -->
+        <Grid Grid.Row="1" />
+        <!-- タイムライン表示領域 -->
+        <Grid Grid.Row="2" />
+    </Grid>
+</ContentView>

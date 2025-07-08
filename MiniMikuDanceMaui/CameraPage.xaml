@@ -72,6 +72,11 @@
                         <TapGestureRecognizer Tapped="OnTerminalClicked" />
                     </Label.GestureRecognizers>
                 </Label>
+                <Label Text="TIMELINE" TextColor="White">
+                    <Label.GestureRecognizers>
+                        <TapGestureRecognizer Tapped="OnTimeLineClicked" />
+                    </Label.GestureRecognizers>
+                </Label>
             </VerticalStackLayout>
         </Frame>
         <Frame x:Name="FileMenu" IsVisible="False" BackgroundColor="#1E1E1E" Padding="0" ZIndex="20">
