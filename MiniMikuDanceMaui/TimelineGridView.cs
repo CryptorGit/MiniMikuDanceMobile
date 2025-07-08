@@ -154,6 +154,7 @@ public class TimelineGridView : GraphicsView, IDrawable
         if (MotionEditor != null)
         {
             canvas.FillColor = (Color)Application.Current.Resources["TimelineKeyFrameColor"];
+            const float size = 3f;
             for (int r = startRow; r < endRow; r++)
             {
                 var bone = _bones[r];
@@ -164,7 +165,18 @@ public class TimelineGridView : GraphicsView, IDrawable
                         if (f < startFrame || f >= endFrame) continue;
                         float cx = f * FrameScale + FrameScale / 2f;
                         float cy = r * RowHeight + RowHeight / 2f;
-                        canvas.FillCircle(cx, cy, 3);
+
+                        canvas.SaveState();
+                        canvas.Translate(cx, cy);
+                        canvas.Rotate(45);
+                        canvas.FillColor = Colors.White;
+                        canvas.FillRectangle(-size, -size, size * 2, size * 2);
+                        if (_selection.Contains((r, f)))
+                        {
+                            canvas.StrokeColor = Color.FromArgb("#006680");
+                            canvas.DrawRectangle(-size, -size, size * 2, size * 2);
+                        }
+                        canvas.RestoreState();
                     }
                 }
             }
@@ -185,6 +197,15 @@ public class TimelineGridView : GraphicsView, IDrawable
             {
                 canvas.StrokeColor = (Color)Application.Current.Resources["TimelinePlayheadColor"];
                 canvas.DrawLine(x, startRow * RowHeight, x, endRow * RowHeight);
+
+                canvas.FillColor = Colors.Red;
+                float half = FrameScale / 2f;
+                var path = new PathF();
+                path.MoveTo(x, 0);
+                path.LineTo(x - half, FrameScale);
+                path.LineTo(x + half, FrameScale);
+                path.Close();
+                canvas.FillPath(path);
             }
         }
     }

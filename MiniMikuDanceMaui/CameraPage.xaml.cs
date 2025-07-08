@@ -1241,10 +1241,12 @@ public partial class CameraPage : ContentPage
     private async void OnTimelineAddBone(TimeLineView tl)
     {
         if (_currentModel == null) return;
-        if (_selectedBoneIndex < 0 || _selectedBoneIndex >= _currentModel.Bones.Count)
+
+        var bones = _currentModel.Bones.Select(b => b.Name).ToArray();
+        string? bone = await DisplayActionSheet("Select Bone", "Cancel", null, bones);
+        if (string.IsNullOrEmpty(bone) || bone == "Cancel")
             return;
 
-        string bone = _currentModel.Bones[_selectedBoneIndex].Name;
         int row = tl.AddBone(bone);
         await tl.ScrollToRowAsync(row);
     }
