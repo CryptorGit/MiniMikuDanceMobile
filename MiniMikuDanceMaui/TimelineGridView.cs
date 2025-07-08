@@ -93,6 +93,34 @@ public class TimelineGridView : GraphicsView, IDrawable
         Invalidate();
     }
 
+    public (int Row, int Frame)? HitTest(PointF point)
+    {
+        if (MotionEditor == null)
+            return null;
+
+        int row = (int)(point.Y / RowHeight);
+        if (row < 0 || row >= _bones.Count)
+            return null;
+
+        var bone = _bones[row];
+        if (!MotionEditor.Motion.KeyFrames.TryGetValue(bone, out var set))
+            return null;
+
+        const float radius = 16f;
+        float r2 = radius * radius;
+        foreach (var frame in set)
+        {
+            float cx = frame * FrameScale + FrameScale / 2f;
+            float cy = row * RowHeight + RowHeight / 2f;
+            float dx = point.X - cx;
+            float dy = point.Y - cy;
+            if (dx * dx + dy * dy <= r2)
+                return (row, frame);
+        }
+
+        return null;
+    }
+
     public void Draw(ICanvas canvas, RectF dirtyRect)
     {
         int frameCount = MotionEditor?.Motion.Frames.Length ?? 0;
@@ -159,7 +187,7 @@ public class TimelineGridView : GraphicsView, IDrawable
         if (MotionEditor != null)
         {
             canvas.FillColor = (Color)Application.Current.Resources["TimelineKeyFrameColor"];
-            const float size = 3f;
+            const float size = 7f; // half of 14dp
             for (int r = startRow; r < endRow; r++)
             {
                 var bone = _bones[r];
@@ -179,6 +207,7 @@ public class TimelineGridView : GraphicsView, IDrawable
                         if (_selection.Contains((r, f)))
                         {
                             canvas.StrokeColor = Color.FromArgb("#006680");
+                            canvas.StrokeSize = 2;
                             canvas.DrawRectangle(-size, -size, size * 2, size * 2);
                         }
                         canvas.RestoreState();
