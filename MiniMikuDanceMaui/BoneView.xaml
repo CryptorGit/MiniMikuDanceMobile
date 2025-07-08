@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="utf-8" ?>
 <ContentView xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:local="clr-namespace:MiniMikuDanceMaui"
              x:Class="MiniMikuDanceMaui.BoneView"
              BackgroundColor="#1E1E1E">
     <ScrollView>
@@ -9,72 +10,30 @@
         <HorizontalStackLayout Spacing="10">
             <Button Text="Reset" Clicked="OnResetClicked" />
         </HorizontalStackLayout>
-        <VerticalStackLayout Spacing="2">
-            <Grid ColumnDefinitions="80,40,*,80,80,60">
-                <Label Text="Rot" TextColor="White" Grid.Column="0" />
-                <Label Text="X" TextColor="White" Grid.Column="1" />
-                <Label x:Name="LabelX" Text="0" TextColor="White" HorizontalTextAlignment="End" Grid.Column="2" />
-                <Picker x:Name="CenterXPicker" Grid.Column="3" WidthRequest="80" SelectedIndexChanged="OnCenterXChanged" />
-                <Picker x:Name="RangeXPicker" Grid.Column="4" WidthRequest="80" SelectedIndexChanged="OnRangeXChanged" />
-                <Button Text="Reset" Grid.Column="5" Clicked="OnResetRotationXClicked" />
-            </Grid>
-            <Slider x:Name="SliderX" Minimum="-180" Maximum="180" ValueChanged="OnXChanged" />
-        </VerticalStackLayout>
-        <VerticalStackLayout Spacing="2">
-            <Grid ColumnDefinitions="80,40,*,80,80,60">
-                <Label Text="Rot" TextColor="White" Grid.Column="0" />
-                <Label Text="Y" TextColor="White" Grid.Column="1" />
-                <Label x:Name="LabelY" Text="0" TextColor="White" HorizontalTextAlignment="End" Grid.Column="2" />
-                <Picker x:Name="CenterYPicker" Grid.Column="3" WidthRequest="80" SelectedIndexChanged="OnCenterYChanged" />
-                <Picker x:Name="RangeYPicker" Grid.Column="4" WidthRequest="80" SelectedIndexChanged="OnRangeYChanged" />
-                <Button Text="Reset" Grid.Column="5" Clicked="OnResetRotationYClicked" />
-            </Grid>
-            <Slider x:Name="SliderY" Minimum="-180" Maximum="180" ValueChanged="OnYChanged" />
-        </VerticalStackLayout>
-        <VerticalStackLayout Spacing="2">
-            <Grid ColumnDefinitions="80,40,*,80,80,60">
-                <Label Text="Rot" TextColor="White" Grid.Column="0" />
-                <Label Text="Z" TextColor="White" Grid.Column="1" />
-                <Label x:Name="LabelZ" Text="0" TextColor="White" HorizontalTextAlignment="End" Grid.Column="2" />
-                <Picker x:Name="CenterZPicker" Grid.Column="3" WidthRequest="80" SelectedIndexChanged="OnCenterZChanged" />
-                <Picker x:Name="RangeZPicker" Grid.Column="4" WidthRequest="80" SelectedIndexChanged="OnRangeZChanged" />
-                <Button Text="Reset" Grid.Column="5" Clicked="OnResetRotationZClicked" />
-            </Grid>
-            <Slider x:Name="SliderZ" Minimum="-180" Maximum="180" ValueChanged="OnZChanged" />
-        </VerticalStackLayout>
-        <VerticalStackLayout Spacing="2">
-            <Grid ColumnDefinitions="80,40,*,80,80,60">
-                <Label Text="Pos" TextColor="White" Grid.Column="0" />
-                <Label Text="X" TextColor="White" Grid.Column="1" />
-                <Label x:Name="LabelTX" Text="0" TextColor="White" HorizontalTextAlignment="End" Grid.Column="2" />
-                <Picker x:Name="CenterTXPicker" Grid.Column="3" WidthRequest="80" SelectedIndexChanged="OnCenterTXChanged" />
-                <Picker x:Name="RangeTXPicker" Grid.Column="4" WidthRequest="80" SelectedIndexChanged="OnRangeTXChanged" />
-                <Button Text="Reset" Grid.Column="5" Clicked="OnResetTranslationXClicked" />
-            </Grid>
-            <Slider x:Name="SliderTX" Minimum="-1" Maximum="1" ValueChanged="OnTXChanged" />
-        </VerticalStackLayout>
-        <VerticalStackLayout Spacing="2">
-            <Grid ColumnDefinitions="80,40,*,80,80,60">
-                <Label Text="Pos" TextColor="White" Grid.Column="0" />
-                <Label Text="Y" TextColor="White" Grid.Column="1" />
-                <Label x:Name="LabelTY" Text="0" TextColor="White" HorizontalTextAlignment="End" Grid.Column="2" />
-                <Picker x:Name="CenterTYPicker" Grid.Column="3" WidthRequest="80" SelectedIndexChanged="OnCenterTYChanged" />
-                <Picker x:Name="RangeTYPicker" Grid.Column="4" WidthRequest="80" SelectedIndexChanged="OnRangeTYChanged" />
-                <Button Text="Reset" Grid.Column="5" Clicked="OnResetTranslationYClicked" />
-            </Grid>
-            <Slider x:Name="SliderTY" Minimum="-1" Maximum="1" ValueChanged="OnTYChanged" />
-        </VerticalStackLayout>
-        <VerticalStackLayout Spacing="2">
-            <Grid ColumnDefinitions="80,40,*,80,80,60">
-                <Label Text="Pos" TextColor="White" Grid.Column="0" />
-                <Label Text="Z" TextColor="White" Grid.Column="1" />
-                <Label x:Name="LabelTZ" Text="0" TextColor="White" HorizontalTextAlignment="End" Grid.Column="2" />
-                <Picker x:Name="CenterTZPicker" Grid.Column="3" WidthRequest="80" SelectedIndexChanged="OnCenterTZChanged" />
-                <Picker x:Name="RangeTZPicker" Grid.Column="4" WidthRequest="80" SelectedIndexChanged="OnRangeTZChanged" />
-                <Button Text="Reset" Grid.Column="5" Clicked="OnResetTranslationZClicked" />
-            </Grid>
-            <Slider x:Name="SliderTZ" Minimum="-1" Maximum="1" ValueChanged="OnTZChanged" />
-        </VerticalStackLayout>
+        <local:BoneAxisControl x:Name="RotXControl" ValueFormat="F0"
+                               CenterChanged="OnCenterXChanged"
+                               ValueChanged="OnXChanged"
+                               ResetClicked="OnResetClicked" />
+        <local:BoneAxisControl x:Name="RotYControl" ValueFormat="F0"
+                               CenterChanged="OnCenterYChanged"
+                               ValueChanged="OnYChanged"
+                               ResetClicked="OnResetClicked" />
+        <local:BoneAxisControl x:Name="RotZControl" ValueFormat="F0"
+                               CenterChanged="OnCenterZChanged"
+                               ValueChanged="OnZChanged"
+                               ResetClicked="OnResetClicked" />
+        <local:BoneAxisControl x:Name="PosXControl" ValueFormat="F2"
+                               CenterChanged="OnCenterTXChanged"
+                               ValueChanged="OnTXChanged"
+                               ResetClicked="OnResetClicked" />
+        <local:BoneAxisControl x:Name="PosYControl" ValueFormat="F2"
+                               CenterChanged="OnCenterTYChanged"
+                               ValueChanged="OnTYChanged"
+                               ResetClicked="OnResetClicked" />
+        <local:BoneAxisControl x:Name="PosZControl" ValueFormat="F2"
+                               CenterChanged="OnCenterTZChanged"
+                               ValueChanged="OnTZChanged"
+                               ResetClicked="OnResetClicked" />
     </VerticalStackLayout>
     </ScrollView>
 </ContentView>
