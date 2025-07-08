@@ -95,8 +95,8 @@ public partial class BoneView : ContentView
 
     public void SetRotation(OpenTK.Mathematics.Vector3 degrees)
     {
-        RotationX = degrees.X;
-        RotationY = degrees.Y;
+        BoneRotationX = degrees.X;
+        BoneRotationY = degrees.Y;
         RotationZ = degrees.Z;
         LabelX.Text = $"{degrees.X:F0}";
         LabelY.Text = $"{degrees.Y:F0}";
@@ -105,8 +105,8 @@ public partial class BoneView : ContentView
 
     public void SetTranslation(OpenTK.Mathematics.Vector3 t)
     {
-        TranslationX = t.X;
-        TranslationY = t.Y;
+        BoneTranslationX = t.X;
+        BoneTranslationY = t.Y;
         TranslationZ = t.Z;
         LabelTX.Text = $"{t.X:F2}";
         LabelTY.Text = $"{t.Y:F2}";
@@ -289,13 +289,13 @@ public partial class BoneView : ContentView
         }
     }
 
-    public new float RotationX
+    public new float BoneRotationX
     {
         get => (float)(SliderX.Value + _centerRotX);
         set => SliderX.Value = value - _centerRotX;
     }
 
-    public new float RotationY
+    public new float BoneRotationY
     {
         get => (float)(SliderY.Value + _centerRotY);
         set => SliderY.Value = value - _centerRotY;
@@ -307,13 +307,13 @@ public partial class BoneView : ContentView
         set => SliderZ.Value = value - _centerRotZ;
     }
 
-    public new float TranslationX
+    public new float BoneTranslationX
     {
         get => (float)(SliderTX.Value + _centerPosX);
         set => SliderTX.Value = value - _centerPosX;
     }
 
-    public new float TranslationY
+    public new float BoneTranslationY
     {
         get => (float)(SliderTY.Value + _centerPosY);
         set => SliderTY.Value = value - _centerPosY;
