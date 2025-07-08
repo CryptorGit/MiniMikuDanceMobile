@@ -25,7 +25,6 @@ public partial class TimeLineView : ContentView
         EditKeyButton.Clicked += (s, e) => EditKeyClicked?.Invoke();
         DeleteKeyButton.Clicked += (s, e) => DeleteKeyClicked?.Invoke();
         CloseButton.Clicked += OnCloseClicked;
-        FrameScaleEntry.Text = "10";
         GridScroll.Scrolled += OnGridScrolled;
         BoneList.Scrolled += OnBoneListScrolled;
     }
