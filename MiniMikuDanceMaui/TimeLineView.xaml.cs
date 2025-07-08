@@ -370,7 +370,7 @@ public partial class TimeLineView : ContentView
         var canvasView = (SKCanvasView)sender!;
         if (canvasView.BindingContext is not string bone) return;
 
-        int frame = (int)(e.Location.X / FrameWidth);
+        int frame = Math.Clamp((int)(e.Location.X / FrameWidth), 0, _frameCount - 1);
         if (_editor!.HasKeyFrame(bone, frame))
         {
             _editingBone = bone;
