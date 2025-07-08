@@ -180,6 +180,15 @@ public class TimelineGridView : GraphicsView, IDrawable
             {
                 canvas.StrokeColor = Colors.Red;
                 canvas.DrawLine(x, startRow * RowHeight, x, endRow * RowHeight);
+
+                canvas.FillColor = Colors.Red;
+                float half = FrameScale / 2f;
+                var path = new PathF();
+                path.MoveTo(x, 0);
+                path.LineTo(x - half, FrameScale);
+                path.LineTo(x + half, FrameScale);
+                path.Close();
+                canvas.FillPath(path);
             }
         }
     }
