@@ -18,8 +18,6 @@ public class TimelineGridView : GraphicsView, IDrawable
     private readonly List<string> _bones = new();
     private readonly HashSet<(int Row, int Frame)> _selection = new();
     private SKPicture? _gridCache;
-    private int _cacheFrameCount;
-    private int _cacheRowCount;
     private int _cacheFrameScale;
     private int _cacheRowHeight;
     private int _cacheStartFrame;
@@ -41,7 +39,7 @@ public class TimelineGridView : GraphicsView, IDrawable
             return;
         }
 
-        LogService.WriteLine($"BuildGridCache {frameCount} frames {rowCount} rows");
+        LogService.WriteLine($"BuildGridCache {endFrame - startFrame} frames {endRow - startRow} rows");
 
         _gridCache?.Dispose();
         var recorder = new SKPictureRecorder();
@@ -187,8 +185,6 @@ public class TimelineGridView : GraphicsView, IDrawable
                          startRow < _cacheStartRow || endRow > _cacheEndRow;
         if (needCache)
         {
-            _cacheFrameCount = frameCount;
-            _cacheRowCount = rowCount;
             _cacheFrameScale = FrameScale;
             _cacheRowHeight = RowHeight;
             _cacheStartFrame = startFrame;
