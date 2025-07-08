@@ -3,13 +3,23 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
              x:Class="MiniMikuDanceMaui.BoneAxisControl">
     <VerticalStackLayout Spacing="2">
-        <Grid ColumnDefinitions="80,40,*,80,80,60" RowSpacing="0">
-            <Label x:Name="TypeLabel" Text="Rot" TextColor="White" Grid.Column="0" VerticalOptions="Center" />
-            <Label x:Name="AxisLabel" Text="X" TextColor="White" Grid.Column="1" VerticalOptions="Center" />
-            <Label x:Name="ValueLabel" Text="0" TextColor="White" HorizontalTextAlignment="End" Grid.Column="2" VerticalOptions="Center" />
-            <Picker x:Name="CenterPicker" Grid.Column="3" WidthRequest="80" SelectedIndexChanged="OnCenterChanged" VerticalOptions="Center" />
-            <Picker x:Name="RangePicker" Grid.Column="4" WidthRequest="80" SelectedIndexChanged="OnRangeChanged" VerticalOptions="Center" />
-            <Button x:Name="ResetButton" Text="Reset" Grid.Column="5" Clicked="OnResetClicked" VerticalOptions="Center" />
+        <Grid ColumnDefinitions="*,80,80,60" RowSpacing="0">
+            <HorizontalStackLayout Grid.Column="0" Spacing="2" VerticalOptions="Center">
+                <Label x:Name="TypeLabel" Text="Rot" TextColor="White" />
+                <Label x:Name="AxisLabel" Text="X" TextColor="White" />
+                <Label Text="&#x7B;" TextColor="White" />
+                <Label x:Name="ValueLabel" Text="0" TextColor="White" />
+                <Label Text="&#x7D;" TextColor="White" />
+            </HorizontalStackLayout>
+            <HorizontalStackLayout Grid.Column="1" Spacing="2" VerticalOptions="Center">
+                <Label Text="Ctr:" TextColor="White" VerticalOptions="Center" />
+                <Picker x:Name="CenterPicker" WidthRequest="60" SelectedIndexChanged="OnCenterChanged" />
+            </HorizontalStackLayout>
+            <HorizontalStackLayout Grid.Column="2" Spacing="2" VerticalOptions="Center">
+                <Label Text="Rng:" TextColor="White" VerticalOptions="Center" />
+                <Picker x:Name="RangePicker" WidthRequest="60" SelectedIndexChanged="OnRangeChanged" />
+            </HorizontalStackLayout>
+            <Button x:Name="ResetButton" Text="Reset" Grid.Column="3" Clicked="OnResetClicked" VerticalOptions="Center" />
         </Grid>
         <Slider x:Name="Slider" Minimum="-180" Maximum="180" ValueChanged="OnSliderChanged" />
     </VerticalStackLayout>
