@@ -17,7 +17,7 @@ public partial class TimeLineView : ContentView
     private int _frameCount;
     private int _currentFrame;
     private const int FrameWidth = 20;
-    private const int VisibleRange = 30;
+    private const int VisibleRange = 50;
     private MotionEditor? _editor;
     private readonly List<string> _bones = new();
     private readonly Dictionary<string, SKBitmap> _cache = new();
@@ -34,6 +34,15 @@ public partial class TimeLineView : ContentView
     {
         get => (bool)GetValue(AddValidProperty);
         set => SetValue(AddValidProperty, value);
+    }
+
+    public static readonly BindableProperty AddBoneValidProperty =
+        BindableProperty.Create(nameof(AddBoneValid), typeof(bool), typeof(TimeLineView), false);
+
+    public bool AddBoneValid
+    {
+        get => (bool)GetValue(AddBoneValidProperty);
+        set => SetValue(AddBoneValidProperty, value);
     }
 
     public static readonly BindableProperty EditValidProperty =
@@ -116,7 +125,8 @@ public partial class TimeLineView : ContentView
         var remaining = new List<string>(_availableBones);
         foreach (var b in _bones)
             remaining.Remove(b);
-        AddBonePicker.ItemsSource = remaining;
+        AddKeyBonePicker.ItemsSource = remaining;
+        AddBoneOnlyPicker.ItemsSource = remaining;
         EditBonePicker.ItemsSource = new List<string>(_bones);
         DeleteBonePicker.ItemsSource = new List<string>(_bones);
     }
@@ -196,7 +206,19 @@ public partial class TimeLineView : ContentView
         UpdateBonePickers();
         CheckAddValid();
         Overlay.IsVisible = true;
+        AddBoneWindow.IsVisible = false;
         AddWindow.IsVisible = true;
+        EditWindow.IsVisible = false;
+        DeleteWindow.IsVisible = false;
+    }
+
+    public void ShowAddBoneOverlay()
+    {
+        UpdateBonePickers();
+        CheckAddBoneValid();
+        Overlay.IsVisible = true;
+        AddBoneWindow.IsVisible = true;
+        AddWindow.IsVisible = false;
         EditWindow.IsVisible = false;
         DeleteWindow.IsVisible = false;
     }
@@ -216,6 +238,7 @@ public partial class TimeLineView : ContentView
         UpdateBonePickers();
         OnDeleteBoneChanged(null, EventArgs.Empty);
         Overlay.IsVisible = true;
+        AddBoneWindow.IsVisible = false;
         AddWindow.IsVisible = false;
         EditWindow.IsVisible = false;
         DeleteWindow.IsVisible = true;
@@ -224,12 +247,14 @@ public partial class TimeLineView : ContentView
     public void HideOverlay()
     {
         Overlay.IsVisible = false;
+        AddBoneWindow.IsVisible = false;
         AddWindow.IsVisible = false;
         EditWindow.IsVisible = false;
         DeleteWindow.IsVisible = false;
     }
 
-    private void OnAddClicked(object? sender, EventArgs e) => ShowAddOverlay();
+    private void OnAddBoneClicked(object? sender, EventArgs e) => ShowAddBoneOverlay();
+    private void OnAddKeyClicked(object? sender, EventArgs e) => ShowAddOverlay();
     private void OnEditClicked(object? sender, EventArgs e) => ShowEditOverlay();
     private void OnDeleteClicked(object? sender, EventArgs e) => ShowDeleteOverlay();
     private void OnCancelClicked(object? sender, EventArgs e) => HideOverlay();
@@ -250,10 +275,15 @@ public partial class TimeLineView : ContentView
 
     private void OnAddInputChanged(object? sender, EventArgs e) => CheckAddValid();
 
+    private void OnAddBoneInputChanged(object? sender, EventArgs e) => CheckAddBoneValid();
+
     private void OnEditInputChanged(object? sender, EventArgs e) => CheckEditValid();
 
     private void CheckAddValid()
-        => AddValid = AddBonePicker.SelectedItem is string && int.TryParse(AddTimeEntry.Text, out _);
+        => AddValid = AddKeyBonePicker.SelectedItem is string && int.TryParse(AddTimeEntry.Text, out _);
+
+    private void CheckAddBoneValid()
+        => AddBoneValid = AddBoneOnlyPicker.SelectedItem is string;
 
     private void CheckEditValid()
         => EditValid = EditBonePicker.SelectedItem is string && int.TryParse(EditTimeEntry.Text, out _);
@@ -266,7 +296,7 @@ public partial class TimeLineView : ContentView
             return;
         }
 
-        if (AddBonePicker.SelectedItem is string bone &&
+        if (AddKeyBonePicker.SelectedItem is string bone &&
             int.TryParse(AddTimeEntry.Text, out var frame))
         {
             _editor!.AddKeyFrame(bone, frame);
@@ -276,6 +306,23 @@ public partial class TimeLineView : ContentView
                 BuildCache(bone, 0, _frameCount - 1);
             UpdateBonePickers();
             // レイアウトを更新するため、ビュー全体の測定を無効化する
+            this.InvalidateMeasure();
+        }
+        HideOverlay();
+    }
+
+    private void OnAddBoneConfirmClicked(object? sender, EventArgs e)
+    {
+        if (MotionEditor == null)
+        {
+            HideOverlay();
+            return;
+        }
+
+        if (AddBoneOnlyPicker.SelectedItem is string bone && !_bones.Contains(bone))
+        {
+            AddBoneRow(bone);
+            UpdateBonePickers();
             this.InvalidateMeasure();
         }
         HideOverlay();
