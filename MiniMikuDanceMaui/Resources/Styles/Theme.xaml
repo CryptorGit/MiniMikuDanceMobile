@@ -24,7 +24,9 @@
     <!-- Timeline colors -->
     <Color x:Key="TimelineRowEvenColor">#202020</Color>
     <Color x:Key="TimelineRowOddColor">#151515</Color>
-    <Color x:Key="TimelineGridLineColor">#003A4D</Color>
+    <Color x:Key="TimelineGridVerticalLineColor">#2A2A2A</Color>
+    <Color x:Key="TimelineGridHorizontalLineColor">#000000</Color>
+    <Color x:Key="TimelineGridMajorLineColor">#006680</Color>
     <Color x:Key="TimelineKeyFrameColor">#FFFFFF</Color>
     <Color x:Key="TimelineSelectionColor">#006680</Color>
     <Color x:Key="TimelinePlayheadColor">Red</Color>
