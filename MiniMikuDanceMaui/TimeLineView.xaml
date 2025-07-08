@@ -3,6 +3,7 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
              xmlns:skia="clr-namespace:SkiaSharp.Views.Maui.Controls;assembly=SkiaSharp.Views.Maui.Controls"
              x:Class="MiniMikuDanceMaui.TimeLineView"
+             x:Name="Root"
              BackgroundColor="{DynamicResource BackgroundColor}">
     <Grid RowSpacing="0">
         <Grid.RowDefinitions>
@@ -38,27 +39,27 @@
                 <Grid>
                     <!-- 追加ウィンドウ -->
                     <VerticalStackLayout x:Name="AddWindow" Spacing="6" IsVisible="False">
-                        <Picker x:Name="AddBonePicker" Title="Bone" />
-                        <Entry x:Name="AddTimeEntry" Placeholder="Frame" Keyboard="Numeric" />
+                        <Picker x:Name="AddBonePicker" Title="Bone" SelectedIndexChanged="OnAddInputChanged" />
+                        <Entry x:Name="AddTimeEntry" Placeholder="Frame" Keyboard="Numeric" TextChanged="OnAddInputChanged" />
                         <Grid ColumnDefinitions="*,60">
                             <Slider x:Name="AddSeqSlider" Minimum="0" Maximum="100" ValueChanged="OnAddSeqChanged" />
                             <Entry x:Name="AddSeqEntry" Grid.Column="1" WidthRequest="60" Keyboard="Numeric" />
                         </Grid>
                         <HorizontalStackLayout Spacing="10" HorizontalOptions="End">
-                            <Button Text="追加" Clicked="OnAddConfirmClicked" />
+                            <Button Text="追加" Clicked="OnAddConfirmClicked" IsEnabled="{Binding AddValid, Source={x:Reference Root}}" />
                             <Button Text="キャンセル" Clicked="OnCancelClicked" />
                         </HorizontalStackLayout>
                     </VerticalStackLayout>
                     <!-- 編集ウィンドウ -->
                     <VerticalStackLayout x:Name="EditWindow" Spacing="6" IsVisible="False">
-                        <Picker x:Name="EditBonePicker" Title="Bone" />
-                        <Entry x:Name="EditTimeEntry" Placeholder="Frame" Keyboard="Numeric" />
+                        <Picker x:Name="EditBonePicker" Title="Bone" SelectedIndexChanged="OnEditInputChanged" />
+                        <Entry x:Name="EditTimeEntry" Placeholder="Frame" Keyboard="Numeric" TextChanged="OnEditInputChanged" />
                         <Grid ColumnDefinitions="*,60">
                             <Slider x:Name="EditSeqSlider" Minimum="0" Maximum="100" ValueChanged="OnEditSeqChanged" />
                             <Entry x:Name="EditSeqEntry" Grid.Column="1" WidthRequest="60" Keyboard="Numeric" />
                         </Grid>
                         <HorizontalStackLayout Spacing="10" HorizontalOptions="End">
-                            <Button Text="適用" Clicked="OnEditConfirmClicked" />
+                            <Button Text="適用" Clicked="OnEditConfirmClicked" IsEnabled="{Binding EditValid, Source={x:Reference Root}}" />
                             <Button Text="キャンセル" Clicked="OnCancelClicked" />
                         </HorizontalStackLayout>
                     </VerticalStackLayout>

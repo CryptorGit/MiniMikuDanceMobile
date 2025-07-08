@@ -26,6 +26,24 @@ public partial class TimeLineView : ContentView
     private string? _editingBone;
     private int _editingFrame;
 
+    public static readonly BindableProperty AddValidProperty =
+        BindableProperty.Create(nameof(AddValid), typeof(bool), typeof(TimeLineView), false);
+
+    public bool AddValid
+    {
+        get => (bool)GetValue(AddValidProperty);
+        set => SetValue(AddValidProperty, value);
+    }
+
+    public static readonly BindableProperty EditValidProperty =
+        BindableProperty.Create(nameof(EditValid), typeof(bool), typeof(TimeLineView), false);
+
+    public bool EditValid
+    {
+        get => (bool)GetValue(EditValidProperty);
+        set => SetValue(EditValidProperty, value);
+    }
+
     public MotionEditor? MotionEditor
     {
         get => _editor;
@@ -165,6 +183,7 @@ public partial class TimeLineView : ContentView
     public void ShowAddOverlay()
     {
         UpdateBonePickers();
+        CheckAddValid();
         Overlay.IsVisible = true;
         AddWindow.IsVisible = true;
         EditWindow.IsVisible = false;
@@ -174,6 +193,7 @@ public partial class TimeLineView : ContentView
     public void ShowEditOverlay()
     {
         UpdateBonePickers();
+        CheckEditValid();
         Overlay.IsVisible = true;
         AddWindow.IsVisible = false;
         EditWindow.IsVisible = true;
@@ -216,6 +236,16 @@ public partial class TimeLineView : ContentView
         else
             DeleteTimePicker.ItemsSource = null;
     }
+
+    private void OnAddInputChanged(object? sender, EventArgs e) => CheckAddValid();
+
+    private void OnEditInputChanged(object? sender, EventArgs e) => CheckEditValid();
+
+    private void CheckAddValid()
+        => AddValid = AddBonePicker.SelectedItem is string && int.TryParse(AddTimeEntry.Text, out _);
+
+    private void CheckEditValid()
+        => EditValid = EditBonePicker.SelectedItem is string && int.TryParse(EditTimeEntry.Text, out _);
 
     private void OnAddConfirmClicked(object? sender, EventArgs e)
     {
