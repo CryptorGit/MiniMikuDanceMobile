@@ -142,7 +142,7 @@ public class TimelineGridView : GraphicsView, IDrawable
         if (!MotionEditor.Motion.KeyFrames.TryGetValue(bone, out var set))
             return null;
 
-        const float radius = 16f;
+        const float radius = 8f;
         float r2 = radius * radius;
         foreach (var frame in set)
         {
