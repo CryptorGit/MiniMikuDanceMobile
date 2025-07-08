@@ -49,7 +49,7 @@ public class TimelineGridView : GraphicsView, IDrawable
         var majorLine = ((Color)Application.Current.Resources["TimelineGridMajorLineColor"]).ToSKColor();
         using var vPaint = new SKPaint { Style = SKPaintStyle.Stroke, Color = verticalLine, StrokeWidth = 1 };
         using var hPaint = new SKPaint { Style = SKPaintStyle.Stroke, Color = horizontalLine, StrokeWidth = 1 };
-        using var mPaint = new SKPaint { Style = SKPaintStyle.Stroke, Color = majorLine, StrokeWidth = 2 };
+        using var mPaint = new SKPaint { Style = SKPaintStyle.Stroke, Color = majorLine, StrokeWidth = 1 };
         using var textPaint = new SKPaint { Style = SKPaintStyle.Fill, Color = ((Color)Application.Current.Resources["TextColor"]).ToSKColor(), IsAntialias = true };
         using var textFont = new SKFont { Size = 12 };
         for (int i = 0; i <= frameCount; i++)
