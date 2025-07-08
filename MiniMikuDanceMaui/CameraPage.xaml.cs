@@ -129,6 +129,8 @@ public partial class CameraPage : ContentPage
         KeyPanel.Confirmed += OnKeyConfirmClicked;
         KeyPanel.Canceled += OnKeyCancelClicked;
         KeyPanel.BoneChanged += OnKeyBoneChanged;
+
+        ShowBottomFeature("TIMELINE");
     }
 
     private void ShowViewMenu()
@@ -283,7 +285,7 @@ public partial class CameraPage : ContentPage
 
     private void OnCloseBottomTapped(object? sender, TappedEventArgs e)
     {
-        if (_currentFeature != null)
+        if (_currentFeature != null && _currentFeature != "TIMELINE")
         {
             RemoveBottomFeature(_currentFeature);
         }
@@ -331,6 +333,8 @@ public partial class CameraPage : ContentPage
 
     private void HideBottomRegion()
     {
+        if (_bottomViews.ContainsKey("TIMELINE"))
+            return;
         BottomRegion.IsVisible = false;
         _currentFeature = null;
         UpdateTabColors();

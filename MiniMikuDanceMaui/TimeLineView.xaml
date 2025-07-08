@@ -12,11 +12,12 @@
             <RowDefinition Height="*" />
         </Grid.RowDefinitions>
         <!-- キー操作領域 -->
-        <HorizontalStackLayout Grid.Row="0" Spacing="6" Padding="8" x:Name="KeyButtons">
-            <Button Text="追加" Clicked="OnAddClicked" />
-            <Button Text="編集" Clicked="OnEditClicked" />
-            <Button Text="削除" Clicked="OnDeleteClicked" />
-        </HorizontalStackLayout>
+        <Grid Grid.Row="0" x:Name="KeyButtons" Padding="8" ColumnDefinitions="*,*,*,*">
+            <Button Text="Add Bone" Clicked="OnAddBoneClicked" Grid.Column="0" />
+            <Button Text="Add Key" Clicked="OnAddKeyClicked" Grid.Column="1" />
+            <Button Text="Edit Key" Clicked="OnEditClicked" Grid.Column="2" />
+            <Button Text="Delete Key" Clicked="OnDeleteClicked" Grid.Column="3" />
+        </Grid>
         <!-- タイムライン操作領域 -->
         <Grid Grid.Row="1" ColumnDefinitions="Auto,*" Padding="8" VerticalOptions="Center">
             <HorizontalStackLayout Spacing="6" VerticalOptions="Center">
@@ -37,9 +38,17 @@
         <ContentView x:Name="Overlay" IsVisible="False" BackgroundColor="{DynamicResource OverlayBackgroundColor}" Grid.RowSpan="3" ZIndex="10">
             <Frame x:Name="OverlayContent" Padding="8" BackgroundColor="{DynamicResource BackgroundColor}" HorizontalOptions="End" VerticalOptions="Start">
                 <Grid>
-                    <!-- 追加ウィンドウ -->
+                    <!-- ボーン追加ウィンドウ -->
+                    <VerticalStackLayout x:Name="AddBoneWindow" Spacing="6" IsVisible="False">
+                        <Picker x:Name="AddBoneOnlyPicker" Title="Bone" SelectedIndexChanged="OnAddBoneInputChanged" />
+                        <HorizontalStackLayout Spacing="10" HorizontalOptions="End">
+                            <Button Text="追加" Clicked="OnAddBoneConfirmClicked" IsEnabled="{Binding AddBoneValid, Source={x:Reference Root}}" />
+                            <Button Text="キャンセル" Clicked="OnCancelClicked" />
+                        </HorizontalStackLayout>
+                    </VerticalStackLayout>
+                    <!-- キー追加ウィンドウ -->
                     <VerticalStackLayout x:Name="AddWindow" Spacing="6" IsVisible="False">
-                        <Picker x:Name="AddBonePicker" Title="Bone" SelectedIndexChanged="OnAddInputChanged" />
+                        <Picker x:Name="AddKeyBonePicker" Title="Bone" SelectedIndexChanged="OnAddInputChanged" />
                         <Entry x:Name="AddTimeEntry" Placeholder="Frame" Keyboard="Numeric" TextChanged="OnAddInputChanged" />
                         <Grid ColumnDefinitions="*,60">
                             <Slider x:Name="AddSeqSlider" Minimum="0" Maximum="100" ValueChanged="OnAddSeqChanged" />
