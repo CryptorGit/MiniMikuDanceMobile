@@ -42,32 +42,32 @@
         </HorizontalStackLayout>
         <Frame x:Name="ViewMenu" IsVisible="False" BackgroundColor="#1E1E1E" Padding="0" ZIndex="20">
             <VerticalStackLayout Spacing="4" Padding="8">
-                <Label Text="HOME" TextColor="White">
+                <Label Text="Home" TextColor="White">
                     <Label.GestureRecognizers>
                         <TapGestureRecognizer Tapped="OnHomeClicked" />
                     </Label.GestureRecognizers>
                 </Label>
-                <Label Text="EXPLORER" TextColor="White">
+                <Label Text="Explorer" TextColor="White">
                     <Label.GestureRecognizers>
                         <TapGestureRecognizer Tapped="OnExplorerClicked" />
                     </Label.GestureRecognizers>
                 </Label>
-                <Label Text="BONE" TextColor="White">
+                <Label Text="Bone" TextColor="White">
                     <Label.GestureRecognizers>
                         <TapGestureRecognizer Tapped="OnBoneClicked" />
                     </Label.GestureRecognizers>
                 </Label>
-                <Label Text="MTOON" TextColor="White">
+                <Label Text="Lighting" TextColor="White">
                     <Label.GestureRecognizers>
-                        <TapGestureRecognizer Tapped="OnMToonClicked" />
+                        <TapGestureRecognizer Tapped="OnLightingClicked" />
                     </Label.GestureRecognizers>
                 </Label>
-                <Label Text="CAMERA" TextColor="White">
+                <Label Text="Camera" TextColor="White">
                     <Label.GestureRecognizers>
                         <TapGestureRecognizer Tapped="OnCameraClicked" />
                     </Label.GestureRecognizers>
                 </Label>
-                <Label Text="TERMINAL" TextColor="White">
+                <Label Text="Terminal" TextColor="White">
                     <Label.GestureRecognizers>
                         <TapGestureRecognizer Tapped="OnTerminalClicked" />
                     </Label.GestureRecognizers>

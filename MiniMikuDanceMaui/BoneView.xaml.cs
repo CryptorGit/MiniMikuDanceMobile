@@ -16,24 +16,58 @@ public partial class BoneView : ContentView
     public event Action<float>? TranslationYChanged;
     public event Action<float>? TranslationZChanged;
     public event Action? ResetRequested;
-    public event Action<int>? RotateRangeChanged;
-    public event Action<int>? PositionRangeChanged;
-
-    private int _range = 180;
+    public event Action? ResetRotationXRequested;
+    public event Action? ResetRotationYRequested;
+    public event Action? ResetRotationZRequested;
+    public event Action? ResetTranslationXRequested;
+    public event Action? ResetTranslationYRequested;
+    public event Action? ResetTranslationZRequested;
 
     public BoneView()
     {
         InitializeComponent();
-        RotateRangePicker.ItemsSource = new List<int> { 30, 45, 90, 180, 360 };
-        RotateRangePicker.SelectedItem = _range;
-        PositionRangePicker.ItemsSource = new List<int> { 1, 2, 5, 10 };
-        PositionRangePicker.SelectedItem = 1;
-        LabelX.Text = "0";
-        LabelY.Text = "0";
-        LabelZ.Text = "0";
-        LabelTX.Text = "0";
-        LabelTY.Text = "0";
-        LabelTZ.Text = "0";
+
+        var rangeValues = Enumerable.Range(0, 37).Select(i => (object)(i * 5)).ToList();
+        var centerValues = Enumerable.Range(0, 37).Select(i => (object)(-180 + i * 10)).ToList();
+        RotXControl.SetLabels("Rot", "X");
+        RotYControl.SetLabels("Rot", "Y");
+        RotZControl.SetLabels("Rot", "Z");
+        RotXControl.SetPickers(centerValues, rangeValues, 0, 180);
+        RotYControl.SetPickers(centerValues, rangeValues, 0, 180);
+        RotZControl.SetPickers(centerValues, rangeValues, 0, 180);
+        RotXControl.SetRange(-180, 180);
+        RotYControl.SetRange(-180, 180);
+        RotZControl.SetRange(-180, 180);
+        RotXControl.ValueChanged += OnXChanged;
+        RotYControl.ValueChanged += OnYChanged;
+        RotZControl.ValueChanged += OnZChanged;
+        RotXControl.CenterChanged += OnCenterXChanged;
+        RotYControl.CenterChanged += OnCenterYChanged;
+        RotZControl.CenterChanged += OnCenterZChanged;
+        RotXControl.ResetClicked += () => ResetRotationXRequested?.Invoke();
+        RotYControl.ResetClicked += () => ResetRotationYRequested?.Invoke();
+        RotZControl.ResetClicked += () => ResetRotationZRequested?.Invoke();
+
+        var posRangeValues = Enumerable.Range(0, 11).Select(i => (object)(i / 10f)).ToList();
+        var posCenterValues = Enumerable.Range(0, 21).Select(i => (object)(-1f + i * 0.1f)).ToList();
+        PosXControl.SetLabels("Pos", "X");
+        PosYControl.SetLabels("Pos", "Y");
+        PosZControl.SetLabels("Pos", "Z");
+        PosXControl.SetPickers(posCenterValues, posRangeValues, 0f, 1f);
+        PosYControl.SetPickers(posCenterValues, posRangeValues, 0f, 1f);
+        PosZControl.SetPickers(posCenterValues, posRangeValues, 0f, 1f);
+        PosXControl.SetRange(-1, 1);
+        PosYControl.SetRange(-1, 1);
+        PosZControl.SetRange(-1, 1);
+        PosXControl.ValueChanged += OnTXChanged;
+        PosYControl.ValueChanged += OnTYChanged;
+        PosZControl.ValueChanged += OnTZChanged;
+        PosXControl.CenterChanged += OnCenterTXChanged;
+        PosYControl.CenterChanged += OnCenterTYChanged;
+        PosZControl.CenterChanged += OnCenterTZChanged;
+        PosXControl.ResetClicked += () => ResetTranslationXRequested?.Invoke();
+        PosYControl.ResetClicked += () => ResetTranslationYRequested?.Invoke();
+        PosZControl.ResetClicked += () => ResetTranslationZRequested?.Invoke();
     }
 
     public void SetBones(IEnumerable<string> bones)
@@ -43,24 +77,18 @@ public partial class BoneView : ContentView
             BonePicker.SelectedIndex = 0;
     }
 
-    public void SetRotation(OpenTK.Mathematics.Vector3 degrees)
+    public void SetRotation(Vector3 degrees)
     {
-        RotationX = degrees.X;
-        RotationY = degrees.Y;
-        RotationZ = degrees.Z;
-        LabelX.Text = $"{degrees.X:F0}";
-        LabelY.Text = $"{degrees.Y:F0}";
-        LabelZ.Text = $"{degrees.Z:F0}";
+        RotXControl.Value = degrees.X;
+        RotYControl.Value = degrees.Y;
+        RotZControl.Value = degrees.Z;
     }
 
-    public void SetTranslation(OpenTK.Mathematics.Vector3 t)
+    public void SetTranslation(Vector3 t)
     {
-        TranslationX = t.X;
-        TranslationY = t.Y;
-        TranslationZ = t.Z;
-        LabelTX.Text = $"{t.X:F2}";
-        LabelTY.Text = $"{t.Y:F2}";
-        LabelTZ.Text = $"{t.Z:F2}";
+        PosXControl.Value = t.X;
+        PosYControl.Value = t.Y;
+        PosZControl.Value = t.Z;
     }
 
     private void OnBoneSelected(object? sender, EventArgs e)
@@ -69,120 +97,86 @@ public partial class BoneView : ContentView
             BoneSelected?.Invoke(BonePicker.SelectedIndex);
     }
 
-    private void OnXChanged(object? sender, ValueChangedEventArgs e)
+    private void OnXChanged(double v) => RotationXChanged?.Invoke((float)v);
+    private void OnYChanged(double v) => RotationYChanged?.Invoke((float)v);
+    private void OnZChanged(double v) => RotationZChanged?.Invoke((float)v);
+    private void OnTXChanged(double v) => TranslationXChanged?.Invoke((float)v);
+    private void OnTYChanged(double v) => TranslationYChanged?.Invoke((float)v);
+    private void OnTZChanged(double v) => TranslationZChanged?.Invoke((float)v);
+
+    private void OnResetClicked()
     {
-        LabelX.Text = $"{e.NewValue:F0}";
-        RotationXChanged?.Invoke((float)e.NewValue);
+        RotXControl.Reset();
+        RotYControl.Reset();
+        RotZControl.Reset();
+        PosXControl.Reset();
+        PosYControl.Reset();
+        PosZControl.Reset();
+        ResetRequested?.Invoke();
     }
 
-    private void OnYChanged(object? sender, ValueChangedEventArgs e)
+    private void OnResetClicked(object? sender, EventArgs e) => OnResetClicked();
+
+    private void OnCenterXChanged(double _) => RotationXChanged?.Invoke((float)RotXControl.Value);
+    private void OnCenterYChanged(double _) => RotationYChanged?.Invoke((float)RotYControl.Value);
+    private void OnCenterZChanged(double _) => RotationZChanged?.Invoke((float)RotZControl.Value);
+    private void OnCenterTXChanged(double _) => TranslationXChanged?.Invoke((float)PosXControl.Value);
+    private void OnCenterTYChanged(double _) => TranslationYChanged?.Invoke((float)PosYControl.Value);
+    private void OnCenterTZChanged(double _) => TranslationZChanged?.Invoke((float)PosZControl.Value);
+
+    public float BoneRotationX
     {
-        LabelY.Text = $"{e.NewValue:F0}";
-        RotationYChanged?.Invoke((float)e.NewValue);
+        get => (float)RotXControl.Value;
+        set => RotXControl.Value = value;
     }
 
-    private void OnZChanged(object? sender, ValueChangedEventArgs e)
+    public float BoneRotationY
     {
-        LabelZ.Text = $"{e.NewValue:F0}";
-        RotationZChanged?.Invoke((float)e.NewValue);
-    }
-
-    private void OnTXChanged(object? sender, ValueChangedEventArgs e)
-    {
-        LabelTX.Text = $"{e.NewValue:F2}";
-        TranslationXChanged?.Invoke((float)e.NewValue);
-    }
-
-    private void OnTYChanged(object? sender, ValueChangedEventArgs e)
-    {
-        LabelTY.Text = $"{e.NewValue:F2}";
-        TranslationYChanged?.Invoke((float)e.NewValue);
-    }
-
-    private void OnTZChanged(object? sender, ValueChangedEventArgs e)
-    {
-        LabelTZ.Text = $"{e.NewValue:F2}";
-        TranslationZChanged?.Invoke((float)e.NewValue);
-    }
-
-    private void OnResetClicked(object? sender, EventArgs e) => ResetRequested?.Invoke();
-
-    private void OnRotateRangeChanged(object? sender, EventArgs e)
-    {
-        if (RotateRangePicker.SelectedItem is int value)
-        {
-            _range = value;
-            RotateRangeChanged?.Invoke(value);
-        }
-    }
-
-    private void OnPositionRangeChanged(object? sender, EventArgs e)
-    {
-        if (PositionRangePicker.SelectedItem is int value)
-        {
-            SliderTX.Minimum = -value;
-            SliderTX.Maximum = value;
-            SliderTY.Minimum = -value;
-            SliderTY.Maximum = value;
-            SliderTZ.Minimum = -value;
-            SliderTZ.Maximum = value;
-            PositionRangeChanged?.Invoke(value);
-        }
-    }
-
-    public new float RotationX
-    {
-        get => (float)SliderX.Value;
-        set => SliderX.Value = value;
-    }
-
-    public new float RotationY
-    {
-        get => (float)SliderY.Value;
-        set => SliderY.Value = value;
+        get => (float)RotYControl.Value;
+        set => RotYControl.Value = value;
     }
 
     public float RotationZ
     {
-        get => (float)SliderZ.Value;
-        set => SliderZ.Value = value;
+        get => (float)RotZControl.Value;
+        set => RotZControl.Value = value;
     }
 
-    public new float TranslationX
+    public float BoneTranslationX
     {
-        get => (float)SliderTX.Value;
-        set => SliderTX.Value = value;
+        get => (float)PosXControl.Value;
+        set => PosXControl.Value = value;
     }
 
-    public new float TranslationY
+    public float BoneTranslationY
     {
-        get => (float)SliderTY.Value;
-        set => SliderTY.Value = value;
+        get => (float)PosYControl.Value;
+        set => PosYControl.Value = value;
     }
 
     public float TranslationZ
     {
-        get => (float)SliderTZ.Value;
-        set => SliderTZ.Value = value;
+        get => (float)PosZControl.Value;
+        set => PosZControl.Value = value;
     }
 
     public void SetRotationRange(int min, int max)
     {
-        SliderX.Minimum = min;
-        SliderX.Maximum = max;
-        SliderY.Minimum = min;
-        SliderY.Maximum = max;
-        SliderZ.Minimum = min;
-        SliderZ.Maximum = max;
+        RotXControl.SetRange(min, max);
+        RotYControl.SetRange(min, max);
+        RotZControl.SetRange(min, max);
+        RotXControl.SelectedRange = Math.Min(max, 180);
+        RotYControl.SelectedRange = Math.Min(max, 180);
+        RotZControl.SelectedRange = Math.Min(max, 180);
     }
 
     public void SetTranslationRange(int min, int max)
     {
-        SliderTX.Minimum = min;
-        SliderTX.Maximum = max;
-        SliderTY.Minimum = min;
-        SliderTY.Maximum = max;
-        SliderTZ.Minimum = min;
-        SliderTZ.Maximum = max;
+        PosXControl.SetRange(min, max);
+        PosYControl.SetRange(min, max);
+        PosZControl.SetRange(min, max);
+        PosXControl.SelectedRange = Math.Min(Math.Abs(max), 1f);
+        PosYControl.SelectedRange = Math.Min(Math.Abs(max), 1f);
+        PosZControl.SelectedRange = Math.Min(Math.Abs(max), 1f);
     }
 }

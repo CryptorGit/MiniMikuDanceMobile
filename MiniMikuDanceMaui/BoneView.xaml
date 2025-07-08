@@ -1,52 +1,33 @@
 <?xml version="1.0" encoding="utf-8" ?>
 <ContentView xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:local="clr-namespace:MiniMikuDanceMaui"
              x:Class="MiniMikuDanceMaui.BoneView"
              BackgroundColor="#1E1E1E">
     <ScrollView>
     <VerticalStackLayout Spacing="10" Padding="10">
         <Picker x:Name="BonePicker" Title="Bone" SelectedIndexChanged="OnBoneSelected"/>
         <HorizontalStackLayout Spacing="10">
-            <Button Text="Reset" Clicked="OnResetClicked" />
+            <Button Text="AllReset" Clicked="OnResetClicked" />
         </HorizontalStackLayout>
-        <HorizontalStackLayout Spacing="10" VerticalOptions="Center">
-            <Label Text="Rotate Range" TextColor="White" VerticalOptions="Center" />
-            <Picker x:Name="RotateRangePicker" SelectedIndexChanged="OnRotateRangeChanged" />
-        </HorizontalStackLayout>
-        <HorizontalStackLayout Spacing="10" VerticalOptions="Center">
-            <Label Text="Position Range" TextColor="White" VerticalOptions="Center" />
-            <Picker x:Name="PositionRangePicker" SelectedIndexChanged="OnPositionRangeChanged" />
-        </HorizontalStackLayout>
-        <HorizontalStackLayout Spacing="10">
-            <Label Text="Rotate X" TextColor="White"/>
-            <Label x:Name="LabelX" Text="0" TextColor="White" />
-        </HorizontalStackLayout>
-        <Slider x:Name="SliderX" Minimum="-180" Maximum="180" ValueChanged="OnXChanged"/>
-        <HorizontalStackLayout Spacing="10">
-            <Label Text="Rotate Y" TextColor="White"/>
-            <Label x:Name="LabelY" Text="0" TextColor="White" />
-        </HorizontalStackLayout>
-        <Slider x:Name="SliderY" Minimum="-180" Maximum="180" ValueChanged="OnYChanged"/>
-        <HorizontalStackLayout Spacing="10">
-            <Label Text="Rotate Z" TextColor="White"/>
-            <Label x:Name="LabelZ" Text="0" TextColor="White" />
-        </HorizontalStackLayout>
-        <Slider x:Name="SliderZ" Minimum="-180" Maximum="180" ValueChanged="OnZChanged"/>
-        <HorizontalStackLayout Spacing="10">
-            <Label Text="Position X" TextColor="White"/>
-            <Label x:Name="LabelTX" Text="0" TextColor="White" />
-        </HorizontalStackLayout>
-        <Slider x:Name="SliderTX" Minimum="-1" Maximum="1" ValueChanged="OnTXChanged"/>
-        <HorizontalStackLayout Spacing="10">
-            <Label Text="Position Y" TextColor="White"/>
-            <Label x:Name="LabelTY" Text="0" TextColor="White" />
-        </HorizontalStackLayout>
-        <Slider x:Name="SliderTY" Minimum="-1" Maximum="1" ValueChanged="OnTYChanged"/>
-        <HorizontalStackLayout Spacing="10">
-            <Label Text="Position Z" TextColor="White"/>
-            <Label x:Name="LabelTZ" Text="0" TextColor="White" />
-        </HorizontalStackLayout>
-        <Slider x:Name="SliderTZ" Minimum="-1" Maximum="1" ValueChanged="OnTZChanged"/>
+        <local:BoneAxisControl x:Name="RotXControl" ValueFormat="F0"
+                               CenterChanged="OnCenterXChanged"
+                               ValueChanged="OnXChanged" />
+        <local:BoneAxisControl x:Name="RotYControl" ValueFormat="F0"
+                               CenterChanged="OnCenterYChanged"
+                               ValueChanged="OnYChanged" />
+        <local:BoneAxisControl x:Name="RotZControl" ValueFormat="F0"
+                               CenterChanged="OnCenterZChanged"
+                               ValueChanged="OnZChanged" />
+        <local:BoneAxisControl x:Name="PosXControl" ValueFormat="F2"
+                               CenterChanged="OnCenterTXChanged"
+                               ValueChanged="OnTXChanged" />
+        <local:BoneAxisControl x:Name="PosYControl" ValueFormat="F2"
+                               CenterChanged="OnCenterTYChanged"
+                               ValueChanged="OnTYChanged" />
+        <local:BoneAxisControl x:Name="PosZControl" ValueFormat="F2"
+                               CenterChanged="OnCenterTZChanged"
+                               ValueChanged="OnTZChanged" />
     </VerticalStackLayout>
     </ScrollView>
 </ContentView>

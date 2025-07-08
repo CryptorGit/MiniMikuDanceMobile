@@ -248,9 +248,9 @@ public partial class CameraPage : ContentPage
     }
 
 
-    private void OnMToonClicked(object? sender, EventArgs e)
+    private void OnLightingClicked(object? sender, EventArgs e)
     {
-        LogService.WriteLine("MTOON button clicked");
+        LogService.WriteLine("Lighting button clicked");
         ShowBottomFeature("MTOON");
         HideViewMenu();
         HideSettingMenu();
@@ -426,7 +426,11 @@ public partial class CameraPage : ContentPage
         AbsoluteLayout.SetLayoutBounds(Viewer, new Rect(0, 0, W, H));
         AbsoluteLayout.SetLayoutFlags(Viewer, AbsoluteLayoutFlags.None);
         double bottomWidth = W * _bottomWidthRatio;
-        AbsoluteLayout.SetLayoutBounds(BottomRegion, new Rect((W - bottomWidth) / 2, H - bottomHeight, bottomWidth, bottomHeight));
+        AbsoluteLayout.SetLayoutBounds(BottomRegion,
+            new Rect((W - bottomWidth) / 2,
+                H - bottomHeight - safe.Bottom,
+                bottomWidth,
+                bottomHeight));
         AbsoluteLayout.SetLayoutFlags(BottomRegion, AbsoluteLayoutFlags.None);
     }
 
@@ -630,8 +634,12 @@ public partial class CameraPage : ContentPage
                     }
                 }
                 bv.ResetRequested += OnBoneReset;
-                bv.RotateRangeChanged += OnBoneRangeChanged;
-                bv.PositionRangeChanged += OnBonePositionRangeChanged;
+                bv.ResetRotationXRequested += OnBoneRotationXReset;
+                bv.ResetRotationYRequested += OnBoneRotationYReset;
+                bv.ResetRotationZRequested += OnBoneRotationZReset;
+                bv.ResetTranslationXRequested += OnBoneTranslationXReset;
+                bv.ResetTranslationYRequested += OnBoneTranslationYReset;
+                bv.ResetTranslationZRequested += OnBoneTranslationZReset;
                 bv.BoneSelected += idx =>
                 {
                     if (idx >= 0 && idx < _humanoidBoneIndices.Count)
@@ -677,7 +685,7 @@ public partial class CameraPage : ContentPage
             }
             else if (name == "MTOON")
             {
-                var mv = new MToonView
+                var mv = new LightingView
                 {
                     ShadeShift = _shadeShift,
                     ShadeToony = _shadeToony,
@@ -801,7 +809,7 @@ public partial class CameraPage : ContentPage
             var posePath = MmdFileSystem.Ensure("Poses");
             aev2.LoadDirectory(posePath);
         }
-        else if (name == "MTOON" && _bottomViews[name] is MToonView mv)
+        else if (name == "MTOON" && _bottomViews[name] is LightingView mv)
         {
             mv.ShadeShift = _shadeShift;
             mv.ShadeToony = _shadeToony;
@@ -1229,7 +1237,7 @@ public partial class CameraPage : ContentPage
         if (_selectedBoneIndex < 0 || _selectedBoneIndex >= _currentModel.Bones.Count)
             return;
 
-        var eulerTk = new OpenTK.Mathematics.Vector3(bv.RotationX, bv.RotationY, bv.RotationZ);
+        var eulerTk = new OpenTK.Mathematics.Vector3(bv.BoneRotationX, bv.BoneRotationY, bv.RotationZ);
         _renderer.SetBoneRotation(_selectedBoneIndex, eulerTk);
         SavePoseState();
         Viewer?.InvalidateSurface();
@@ -1241,7 +1249,7 @@ public partial class CameraPage : ContentPage
         if (_selectedBoneIndex < 0 || _selectedBoneIndex >= _currentModel.Bones.Count)
             return;
 
-        var t = new OpenTK.Mathematics.Vector3(bv.TranslationX, bv.TranslationY, bv.TranslationZ);
+        var t = new OpenTK.Mathematics.Vector3(bv.BoneTranslationX, bv.BoneTranslationY, bv.TranslationZ);
         _renderer.SetBoneTranslation(_selectedBoneIndex, t);
         SavePoseState();
         Viewer?.InvalidateSurface();
@@ -1338,5 +1346,77 @@ public partial class CameraPage : ContentPage
         {
             bv.SetTranslationRange(-range, range);
         }
+    }
+
+    private void OnBoneRotationXReset()
+    {
+        if (_currentModel == null) return;
+        if (_selectedBoneIndex < 0 || _selectedBoneIndex >= _currentModel.Bones.Count)
+            return;
+        var rot = _renderer.GetBoneRotation(_selectedBoneIndex);
+        rot.X = 0f;
+        _renderer.SetBoneRotation(_selectedBoneIndex, rot);
+        SavePoseState();
+        UpdateBoneViewValues();
+    }
+
+    private void OnBoneRotationYReset()
+    {
+        if (_currentModel == null) return;
+        if (_selectedBoneIndex < 0 || _selectedBoneIndex >= _currentModel.Bones.Count)
+            return;
+        var rot = _renderer.GetBoneRotation(_selectedBoneIndex);
+        rot.Y = 0f;
+        _renderer.SetBoneRotation(_selectedBoneIndex, rot);
+        SavePoseState();
+        UpdateBoneViewValues();
+    }
+
+    private void OnBoneRotationZReset()
+    {
+        if (_currentModel == null) return;
+        if (_selectedBoneIndex < 0 || _selectedBoneIndex >= _currentModel.Bones.Count)
+            return;
+        var rot = _renderer.GetBoneRotation(_selectedBoneIndex);
+        rot.Z = 0f;
+        _renderer.SetBoneRotation(_selectedBoneIndex, rot);
+        SavePoseState();
+        UpdateBoneViewValues();
+    }
+
+    private void OnBoneTranslationXReset()
+    {
+        if (_currentModel == null) return;
+        if (_selectedBoneIndex < 0 || _selectedBoneIndex >= _currentModel.Bones.Count)
+            return;
+        var t = _renderer.GetBoneTranslation(_selectedBoneIndex);
+        t.X = 0f;
+        _renderer.SetBoneTranslation(_selectedBoneIndex, t);
+        SavePoseState();
+        UpdateBoneViewValues();
+    }
+
+    private void OnBoneTranslationYReset()
+    {
+        if (_currentModel == null) return;
+        if (_selectedBoneIndex < 0 || _selectedBoneIndex >= _currentModel.Bones.Count)
+            return;
+        var t = _renderer.GetBoneTranslation(_selectedBoneIndex);
+        t.Y = 0f;
+        _renderer.SetBoneTranslation(_selectedBoneIndex, t);
+        SavePoseState();
+        UpdateBoneViewValues();
+    }
+
+    private void OnBoneTranslationZReset()
+    {
+        if (_currentModel == null) return;
+        if (_selectedBoneIndex < 0 || _selectedBoneIndex >= _currentModel.Bones.Count)
+            return;
+        var t = _renderer.GetBoneTranslation(_selectedBoneIndex);
+        t.Z = 0f;
+        _renderer.SetBoneTranslation(_selectedBoneIndex, t);
+        SavePoseState();
+        UpdateBoneViewValues();
     }
 }
