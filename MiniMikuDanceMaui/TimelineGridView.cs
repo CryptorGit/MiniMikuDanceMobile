@@ -36,13 +36,16 @@ public class TimelineGridView : GraphicsView, IDrawable
         var skCanvas = recorder.BeginRecording(rect);
 
         using var fillPaint = new SKPaint { Style = SKPaintStyle.Fill };
+        var evenRow = ((Color)Application.Current.Resources["TimelineRowEvenColor"]).ToSKColor();
+        var oddRow = ((Color)Application.Current.Resources["TimelineRowOddColor"]).ToSKColor();
         for (int r = 0; r < rowCount; r++)
         {
-            fillPaint.Color = SKColor.Parse(r % 2 == 0 ? "#151515" : "#202020");
+            fillPaint.Color = r % 2 == 0 ? evenRow : oddRow;
             skCanvas.DrawRect(0, r * RowHeight, frameCount * FrameScale, RowHeight, fillPaint);
         }
 
-        using var linePaint = new SKPaint { Style = SKPaintStyle.Stroke, Color = SKColors.Gray };
+        var gridLine = ((Color)Application.Current.Resources["TimelineGridLineColor"]).ToSKColor();
+        using var linePaint = new SKPaint { Style = SKPaintStyle.Stroke, Color = gridLine };
         for (int i = 0; i <= frameCount; i++)
         {
             float x = i * FrameScale;
@@ -127,13 +130,15 @@ public class TimelineGridView : GraphicsView, IDrawable
         }
         else
         {
+            var evenRow = (Color)Application.Current.Resources["TimelineRowEvenColor"];
+            var oddRow = (Color)Application.Current.Resources["TimelineRowOddColor"];
             for (int r = startRow; r < endRow; r++)
             {
-                canvas.FillColor = Color.FromArgb(r % 2 == 0 ? "#151515" : "#202020");
+                canvas.FillColor = r % 2 == 0 ? evenRow : oddRow;
                 canvas.FillRectangle(startFrame * FrameScale, r * RowHeight, (endFrame - startFrame) * FrameScale, RowHeight);
             }
 
-            canvas.StrokeColor = Colors.Gray;
+            canvas.StrokeColor = (Color)Application.Current.Resources["TimelineGridLineColor"];
             for (int i = startFrame; i <= endFrame; i++)
             {
                 float x = i * FrameScale;
@@ -148,7 +153,7 @@ public class TimelineGridView : GraphicsView, IDrawable
 
         if (MotionEditor != null)
         {
-            canvas.FillColor = Colors.Yellow;
+            canvas.FillColor = (Color)Application.Current.Resources["TimelineKeyFrameColor"];
             for (int r = startRow; r < endRow; r++)
             {
                 var bone = _bones[r];
@@ -165,7 +170,7 @@ public class TimelineGridView : GraphicsView, IDrawable
             }
         }
 
-        canvas.StrokeColor = Color.FromArgb("#006680");
+        canvas.StrokeColor = (Color)Application.Current.Resources["TimelineSelectionColor"];
         foreach (var (row, frame) in _selection)
         {
             if (row < startRow || row >= endRow) continue;
@@ -178,7 +183,7 @@ public class TimelineGridView : GraphicsView, IDrawable
             float x = MotionPlayer.FrameIndex * FrameScale;
             if (x >= startFrame * FrameScale && x <= endFrame * FrameScale)
             {
-                canvas.StrokeColor = Colors.Red;
+                canvas.StrokeColor = (Color)Application.Current.Resources["TimelinePlayheadColor"];
                 canvas.DrawLine(x, startRow * RowHeight, x, endRow * RowHeight);
             }
         }
