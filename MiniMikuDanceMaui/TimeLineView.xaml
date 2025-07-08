@@ -64,7 +64,7 @@
                     </VerticalStackLayout>
                     <!-- 削除ウィンドウ -->
                     <VerticalStackLayout x:Name="DeleteWindow" Spacing="6" IsVisible="False">
-                        <Picker x:Name="DeleteBonePicker" Title="Bone" />
+                        <Picker x:Name="DeleteBonePicker" Title="Bone" SelectedIndexChanged="OnDeleteBoneChanged" />
                         <Picker x:Name="DeleteTimePicker" Title="Time" />
                         <HorizontalStackLayout Spacing="10" HorizontalOptions="End">
                             <Button Text="削除" Clicked="OnDeleteConfirmClicked" />

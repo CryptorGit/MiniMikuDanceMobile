@@ -6,6 +6,7 @@ using SkiaSharp;
 using MiniMikuDance.Motion;
 using MiniMikuDance.App;
 using System.Collections.Generic;
+using System.Linq;
 using Microsoft.Maui.Graphics;
 
 namespace MiniMikuDanceMaui;
@@ -22,6 +23,8 @@ public partial class TimeLineView : ContentView
     private readonly Dictionary<string, SKBitmap> _cache = new();
     private readonly Dictionary<string, SKCanvasView> _cursorLayers = new();
     private IList<string> _availableBones = new List<string>();
+    private string? _editingBone;
+    private int _editingFrame;
 
     public MotionEditor? MotionEditor
     {
@@ -180,6 +183,7 @@ public partial class TimeLineView : ContentView
     public void ShowDeleteOverlay()
     {
         UpdateBonePickers();
+        OnDeleteBoneChanged(null, EventArgs.Empty);
         Overlay.IsVisible = true;
         AddWindow.IsVisible = false;
         EditWindow.IsVisible = false;
@@ -198,6 +202,20 @@ public partial class TimeLineView : ContentView
     private void OnEditClicked(object? sender, EventArgs e) => ShowEditOverlay();
     private void OnDeleteClicked(object? sender, EventArgs e) => ShowDeleteOverlay();
     private void OnCancelClicked(object? sender, EventArgs e) => HideOverlay();
+
+    private void OnDeleteBoneChanged(object? sender, EventArgs e)
+    {
+        if (MotionEditor == null || DeleteBonePicker.SelectedItem is not string bone)
+        {
+            DeleteTimePicker.ItemsSource = null;
+            return;
+        }
+
+        if (_editor!.Motion.KeyFrames.TryGetValue(bone, out var set))
+            DeleteTimePicker.ItemsSource = set.Select(f => f).ToList();
+        else
+            DeleteTimePicker.ItemsSource = null;
+    }
 
     private void OnAddConfirmClicked(object? sender, EventArgs e)
     {
@@ -224,13 +242,56 @@ public partial class TimeLineView : ContentView
 
     private void OnEditConfirmClicked(object? sender, EventArgs e)
     {
-        // TODO: 編集処理を実装する
+        if (MotionEditor == null)
+        {
+            HideOverlay();
+            return;
+        }
+
+        if (EditBonePicker.SelectedItem is string newBone && int.TryParse(EditTimeEntry.Text, out var newFrame))
+        {
+            var oldBone = _editingBone ?? newBone;
+            var oldFrame = _editingFrame;
+
+            if (!string.IsNullOrEmpty(oldBone))
+                _editor!.RemoveKeyFrame(oldBone, oldFrame);
+
+            _editor!.AddKeyFrame(newBone, newFrame);
+
+            if (!_bones.Contains(newBone))
+                AddBoneRow(newBone);
+            else
+                BuildCache(newBone);
+
+            if (oldBone != newBone)
+                BuildCache(oldBone);
+
+            UpdateBonePickers();
+            this.InvalidateMeasure();
+            _editingBone = newBone;
+            _editingFrame = newFrame;
+        }
+
         HideOverlay();
     }
 
     private void OnDeleteConfirmClicked(object? sender, EventArgs e)
     {
-        // TODO: 削除処理を実装する
+        if (MotionEditor == null)
+        {
+            HideOverlay();
+            return;
+        }
+
+        if (DeleteBonePicker.SelectedItem is string bone && DeleteTimePicker.SelectedItem is int frame)
+        {
+            _editor!.RemoveKeyFrame(bone, frame);
+            BuildCache(bone);
+            OnDeleteBoneChanged(null, EventArgs.Empty);
+            UpdateBonePickers();
+            this.InvalidateMeasure();
+        }
+
         HideOverlay();
     }
 
@@ -312,6 +373,8 @@ public partial class TimeLineView : ContentView
         int frame = (int)(e.Location.X / FrameWidth);
         if (_editor!.HasKeyFrame(bone, frame))
         {
+            _editingBone = bone;
+            _editingFrame = frame;
             EditBonePicker.SelectedItem = bone;
             EditTimeEntry.Text = frame.ToString();
             ShowEditOverlay();
