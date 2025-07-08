@@ -9,60 +9,72 @@
         <HorizontalStackLayout Spacing="10">
             <Button Text="Reset" Clicked="OnResetClicked" />
         </HorizontalStackLayout>
-        <Grid ColumnDefinitions="*,80,80">
-            <Grid Grid.Column="0" ColumnDefinitions="80,*">
-                <Label Text="Rotate X" TextColor="White" Grid.Column="0" />
-                <Label x:Name="LabelX" Text="0" TextColor="White" HorizontalTextAlignment="End" Grid.Column="1" />
+        <VerticalStackLayout Spacing="2">
+            <Grid ColumnDefinitions="*,80,80">
+                <Grid Grid.Column="0" ColumnDefinitions="80,*">
+                    <Label Text="Rotate X" TextColor="White" Grid.Column="0" />
+                    <Label x:Name="LabelX" Text="0" TextColor="White" HorizontalTextAlignment="End" Grid.Column="1" />
+                </Grid>
+                <Picker x:Name="CenterXPicker" Grid.Column="1" WidthRequest="80" SelectedIndexChanged="OnCenterXChanged" />
+                <Picker x:Name="RangeXPicker" Grid.Column="2" WidthRequest="80" SelectedIndexChanged="OnRangeXChanged" />
             </Grid>
-            <Picker x:Name="CenterXPicker" Grid.Column="1" WidthRequest="80" SelectedIndexChanged="OnCenterXChanged" />
-            <Picker x:Name="RangeXPicker" Grid.Column="2" WidthRequest="80" SelectedIndexChanged="OnRangeXChanged" />
-        </Grid>
-        <Slider x:Name="SliderX" Minimum="-180" Maximum="180" ValueChanged="OnXChanged" />
-        <Grid ColumnDefinitions="*,80,80">
-            <Grid Grid.Column="0" ColumnDefinitions="80,*">
-                <Label Text="Rotate Y" TextColor="White" Grid.Column="0" />
-                <Label x:Name="LabelY" Text="0" TextColor="White" HorizontalTextAlignment="End" Grid.Column="1" />
+            <Slider x:Name="SliderX" Minimum="-180" Maximum="180" ValueChanged="OnXChanged" />
+        </VerticalStackLayout>
+        <VerticalStackLayout Spacing="2">
+            <Grid ColumnDefinitions="*,80,80">
+                <Grid Grid.Column="0" ColumnDefinitions="80,*">
+                    <Label Text="Rotate Y" TextColor="White" Grid.Column="0" />
+                    <Label x:Name="LabelY" Text="0" TextColor="White" HorizontalTextAlignment="End" Grid.Column="1" />
+                </Grid>
+                <Picker x:Name="CenterYPicker" Grid.Column="1" WidthRequest="80" SelectedIndexChanged="OnCenterYChanged" />
+                <Picker x:Name="RangeYPicker" Grid.Column="2" WidthRequest="80" SelectedIndexChanged="OnRangeYChanged" />
             </Grid>
-            <Picker x:Name="CenterYPicker" Grid.Column="1" WidthRequest="80" SelectedIndexChanged="OnCenterYChanged" />
-            <Picker x:Name="RangeYPicker" Grid.Column="2" WidthRequest="80" SelectedIndexChanged="OnRangeYChanged" />
-        </Grid>
-        <Slider x:Name="SliderY" Minimum="-180" Maximum="180" ValueChanged="OnYChanged" />
-        <Grid ColumnDefinitions="*,80,80">
-            <Grid Grid.Column="0" ColumnDefinitions="80,*">
-                <Label Text="Rotate Z" TextColor="White" Grid.Column="0" />
-                <Label x:Name="LabelZ" Text="0" TextColor="White" HorizontalTextAlignment="End" Grid.Column="1" />
+            <Slider x:Name="SliderY" Minimum="-180" Maximum="180" ValueChanged="OnYChanged" />
+        </VerticalStackLayout>
+        <VerticalStackLayout Spacing="2">
+            <Grid ColumnDefinitions="*,80,80">
+                <Grid Grid.Column="0" ColumnDefinitions="80,*">
+                    <Label Text="Rotate Z" TextColor="White" Grid.Column="0" />
+                    <Label x:Name="LabelZ" Text="0" TextColor="White" HorizontalTextAlignment="End" Grid.Column="1" />
+                </Grid>
+                <Picker x:Name="CenterZPicker" Grid.Column="1" WidthRequest="80" SelectedIndexChanged="OnCenterZChanged" />
+                <Picker x:Name="RangeZPicker" Grid.Column="2" WidthRequest="80" SelectedIndexChanged="OnRangeZChanged" />
             </Grid>
-            <Picker x:Name="CenterZPicker" Grid.Column="1" WidthRequest="80" SelectedIndexChanged="OnCenterZChanged" />
-            <Picker x:Name="RangeZPicker" Grid.Column="2" WidthRequest="80" SelectedIndexChanged="OnRangeZChanged" />
-        </Grid>
-        <Slider x:Name="SliderZ" Minimum="-180" Maximum="180" ValueChanged="OnZChanged" />
-        <Grid ColumnDefinitions="*,80,80">
-            <Grid Grid.Column="0" ColumnDefinitions="80,*">
-                <Label Text="Position X" TextColor="White" Grid.Column="0" />
-                <Label x:Name="LabelTX" Text="0" TextColor="White" HorizontalTextAlignment="End" Grid.Column="1" />
+            <Slider x:Name="SliderZ" Minimum="-180" Maximum="180" ValueChanged="OnZChanged" />
+        </VerticalStackLayout>
+        <VerticalStackLayout Spacing="2">
+            <Grid ColumnDefinitions="*,80,80">
+                <Grid Grid.Column="0" ColumnDefinitions="80,*">
+                    <Label Text="Position X" TextColor="White" Grid.Column="0" />
+                    <Label x:Name="LabelTX" Text="0" TextColor="White" HorizontalTextAlignment="End" Grid.Column="1" />
+                </Grid>
+                <Picker x:Name="CenterTXPicker" Grid.Column="1" WidthRequest="80" SelectedIndexChanged="OnCenterTXChanged" />
+                <Picker x:Name="RangeTXPicker" Grid.Column="2" WidthRequest="80" SelectedIndexChanged="OnRangeTXChanged" />
             </Grid>
-            <Picker x:Name="CenterTXPicker" Grid.Column="1" WidthRequest="80" SelectedIndexChanged="OnCenterTXChanged" />
-            <Picker x:Name="RangeTXPicker" Grid.Column="2" WidthRequest="80" SelectedIndexChanged="OnRangeTXChanged" />
-        </Grid>
-        <Slider x:Name="SliderTX" Minimum="-1" Maximum="1" ValueChanged="OnTXChanged" />
-        <Grid ColumnDefinitions="*,80,80">
-            <Grid Grid.Column="0" ColumnDefinitions="80,*">
-                <Label Text="Position Y" TextColor="White" Grid.Column="0" />
-                <Label x:Name="LabelTY" Text="0" TextColor="White" HorizontalTextAlignment="End" Grid.Column="1" />
+            <Slider x:Name="SliderTX" Minimum="-1" Maximum="1" ValueChanged="OnTXChanged" />
+        </VerticalStackLayout>
+        <VerticalStackLayout Spacing="2">
+            <Grid ColumnDefinitions="*,80,80">
+                <Grid Grid.Column="0" ColumnDefinitions="80,*">
+                    <Label Text="Position Y" TextColor="White" Grid.Column="0" />
+                    <Label x:Name="LabelTY" Text="0" TextColor="White" HorizontalTextAlignment="End" Grid.Column="1" />
+                </Grid>
+                <Picker x:Name="CenterTYPicker" Grid.Column="1" WidthRequest="80" SelectedIndexChanged="OnCenterTYChanged" />
+                <Picker x:Name="RangeTYPicker" Grid.Column="2" WidthRequest="80" SelectedIndexChanged="OnRangeTYChanged" />
             </Grid>
-            <Picker x:Name="CenterTYPicker" Grid.Column="1" WidthRequest="80" SelectedIndexChanged="OnCenterTYChanged" />
-            <Picker x:Name="RangeTYPicker" Grid.Column="2" WidthRequest="80" SelectedIndexChanged="OnRangeTYChanged" />
-        </Grid>
-        <Slider x:Name="SliderTY" Minimum="-1" Maximum="1" ValueChanged="OnTYChanged" />
-        <Grid ColumnDefinitions="*,80,80">
-            <Grid Grid.Column="0" ColumnDefinitions="80,*">
-                <Label Text="Position Z" TextColor="White" Grid.Column="0" />
-                <Label x:Name="LabelTZ" Text="0" TextColor="White" HorizontalTextAlignment="End" Grid.Column="1" />
+            <Slider x:Name="SliderTY" Minimum="-1" Maximum="1" ValueChanged="OnTYChanged" />
+        </VerticalStackLayout>
+        <VerticalStackLayout Spacing="2">
+            <Grid ColumnDefinitions="*,80,80">
+                <Grid Grid.Column="0" ColumnDefinitions="80,*">
+                    <Label Text="Position Z" TextColor="White" Grid.Column="0" />
+                    <Label x:Name="LabelTZ" Text="0" TextColor="White" HorizontalTextAlignment="End" Grid.Column="1" />
+                </Grid>
+                <Picker x:Name="CenterTZPicker" Grid.Column="1" WidthRequest="80" SelectedIndexChanged="OnCenterTZChanged" />
+                <Picker x:Name="RangeTZPicker" Grid.Column="2" WidthRequest="80" SelectedIndexChanged="OnRangeTZChanged" />
             </Grid>
-            <Picker x:Name="CenterTZPicker" Grid.Column="1" WidthRequest="80" SelectedIndexChanged="OnCenterTZChanged" />
-            <Picker x:Name="RangeTZPicker" Grid.Column="2" WidthRequest="80" SelectedIndexChanged="OnRangeTZChanged" />
-        </Grid>
-        <Slider x:Name="SliderTZ" Minimum="-1" Maximum="1" ValueChanged="OnTZChanged" />
+            <Slider x:Name="SliderTZ" Minimum="-1" Maximum="1" ValueChanged="OnTZChanged" />
+        </VerticalStackLayout>
     </VerticalStackLayout>
     </ScrollView>
 </ContentView>
