@@ -10,7 +10,7 @@ namespace MiniMikuDanceMaui;
 public class TimelineGridView : GraphicsView, IDrawable
 {
     public int FrameScale { get; set; } = 10; // pixel per frame
-    public int RowHeight { get; set; } = 20;
+    public int RowHeight { get; set; } = 48;
     public MotionEditor? MotionEditor { get; set; }
     public MotionPlayer? MotionPlayer { get; set; }
     private readonly List<string> _bones = new();
