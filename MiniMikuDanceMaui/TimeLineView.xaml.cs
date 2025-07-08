@@ -23,15 +23,8 @@ public partial class TimeLineView : ContentView
         AddKeyButton.Clicked += (s, e) => AddKeyClicked?.Invoke();
         EditKeyButton.Clicked += (s, e) => EditKeyClicked?.Invoke();
         DeleteKeyButton.Clicked += (s, e) => DeleteKeyClicked?.Invoke();
-        FrameScaleEntry.Text = "10";
         GridScroll.Scrolled += OnGridScrolled;
         BoneList.Scrolled += OnBoneListScrolled;
-    }
-
-    public int FrameScale
-    {
-        get => int.TryParse(FrameScaleEntry.Text, out var v) ? v : 10;
-        set => FrameScaleEntry.Text = value.ToString();
     }
 
     public void SetBones(IEnumerable<string> bones)
