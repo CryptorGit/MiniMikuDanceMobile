@@ -95,6 +95,10 @@ public partial class TimeLineView : ContentView
         _cursorLayers.Clear();
         _cache.Clear();
 
+        foreach (var bmp in _cache.Values)
+            bmp.Dispose();
+        _cache.Clear();
+
         if (_editor != null)
         {
             _frameCount = _editor.Motion.Frames.Length;
@@ -175,6 +179,8 @@ public partial class TimeLineView : ContentView
             float x = (f - start) * FrameWidth + FrameWidth / 2f;
             canvas.DrawCircle(x, bmp.Height / 2f, 5, paint);
         }
+        if (_cache.TryGetValue(bone, out var oldBmp))
+            oldBmp.Dispose();
         _cache[bone] = bmp;
         _cacheRange[bone] = (start, end);
     }
