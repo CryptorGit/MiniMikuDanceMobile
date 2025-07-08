@@ -16,6 +16,12 @@ public partial class BoneView : ContentView
     public event Action<float>? TranslationYChanged;
     public event Action<float>? TranslationZChanged;
     public event Action? ResetRequested;
+    public event Action? ResetRotationXRequested;
+    public event Action? ResetRotationYRequested;
+    public event Action? ResetRotationZRequested;
+    public event Action? ResetTranslationXRequested;
+    public event Action? ResetTranslationYRequested;
+    public event Action? ResetTranslationZRequested;
 
     private float _centerRotX = 0f;
     private float _centerRotY = 0f;
@@ -154,6 +160,18 @@ public partial class BoneView : ContentView
         LabelTZ.Text = $"{value:F2}";
         TranslationZChanged?.Invoke(value);
     }
+
+    private void OnResetRotationXClicked(object? sender, EventArgs e) => ResetRotationXRequested?.Invoke();
+
+    private void OnResetRotationYClicked(object? sender, EventArgs e) => ResetRotationYRequested?.Invoke();
+
+    private void OnResetRotationZClicked(object? sender, EventArgs e) => ResetRotationZRequested?.Invoke();
+
+    private void OnResetTranslationXClicked(object? sender, EventArgs e) => ResetTranslationXRequested?.Invoke();
+
+    private void OnResetTranslationYClicked(object? sender, EventArgs e) => ResetTranslationYRequested?.Invoke();
+
+    private void OnResetTranslationZClicked(object? sender, EventArgs e) => ResetTranslationZRequested?.Invoke();
 
     private void OnResetClicked(object? sender, EventArgs e) => ResetRequested?.Invoke();
 
