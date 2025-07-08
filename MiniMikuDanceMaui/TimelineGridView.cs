@@ -38,7 +38,7 @@ public class TimelineGridView : GraphicsView, IDrawable
         using var fillPaint = new SKPaint { Style = SKPaintStyle.Fill };
         for (int r = 0; r < rowCount; r++)
         {
-            fillPaint.Color = SKColor.Parse(r % 2 == 0 ? "#151515" : "#202020");
+            fillPaint.Color = SKColor.Parse(r % 2 == 0 ? "#202020" : "#151515");
             skCanvas.DrawRect(0, r * RowHeight, frameCount * FrameScale, RowHeight, fillPaint);
         }
 
@@ -129,7 +129,7 @@ public class TimelineGridView : GraphicsView, IDrawable
         {
             for (int r = startRow; r < endRow; r++)
             {
-                canvas.FillColor = Color.FromArgb(r % 2 == 0 ? "#151515" : "#202020");
+                canvas.FillColor = Color.FromArgb(r % 2 == 0 ? "#202020" : "#151515");
                 canvas.FillRectangle(startFrame * FrameScale, r * RowHeight, (endFrame - startFrame) * FrameScale, RowHeight);
             }
 
