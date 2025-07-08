@@ -22,6 +22,10 @@ public class TimelineGridView : GraphicsView, IDrawable
     private int _cacheRowCount;
     private int _cacheFrameScale;
     private int _cacheRowHeight;
+    private int _cacheStartFrame;
+    private int _cacheEndFrame;
+    private int _cacheStartRow;
+    private int _cacheEndRow;
 
     public TimelineGridView()
     {
@@ -29,7 +33,7 @@ public class TimelineGridView : GraphicsView, IDrawable
         LogService.WriteLine("TimelineGridView created");
     }
 
-    private void BuildGridCache(int frameCount, int rowCount)
+    private void BuildGridCache(int startFrame, int endFrame, int startRow, int endRow)
     {
         if (Application.Current?.Resources == null)
         {
@@ -41,16 +45,18 @@ public class TimelineGridView : GraphicsView, IDrawable
 
         _gridCache?.Dispose();
         var recorder = new SKPictureRecorder();
-        var rect = new SKRect(0, 0, frameCount * FrameScale, rowCount * RowHeight);
+        var width = (endFrame - startFrame) * FrameScale;
+        var height = (endRow - startRow) * RowHeight;
+        var rect = new SKRect(0, 0, width, height);
         var skCanvas = recorder.BeginRecording(rect);
 
         using var fillPaint = new SKPaint { Style = SKPaintStyle.Fill };
         var evenRow = ((Color)Application.Current.Resources["TimelineRowEvenColor"]).ToSKColor();
         var oddRow = ((Color)Application.Current.Resources["TimelineRowOddColor"]).ToSKColor();
-        for (int r = 0; r < rowCount; r++)
+        for (int r = startRow; r < endRow; r++)
         {
             fillPaint.Color = r % 2 == 0 ? evenRow : oddRow;
-            skCanvas.DrawRect(0, r * RowHeight, frameCount * FrameScale, RowHeight, fillPaint);
+            skCanvas.DrawRect(0, (r - startRow) * RowHeight, width, RowHeight, fillPaint);
         }
 
         var verticalLine = ((Color)Application.Current.Resources["TimelineGridVerticalLineColor"]).ToSKColor();
@@ -61,32 +67,32 @@ public class TimelineGridView : GraphicsView, IDrawable
         using var mPaint = new SKPaint { Style = SKPaintStyle.Stroke, Color = majorLine, StrokeWidth = 1 };
         using var textPaint = new SKPaint { Style = SKPaintStyle.Fill, Color = ((Color)Application.Current.Resources["TextColor"]).ToSKColor(), IsAntialias = true };
         using var textFont = new SKFont { Size = 12 };
-        for (int i = 0; i <= frameCount; i++)
+        for (int i = startFrame; i <= endFrame; i++)
         {
-            float x = i * FrameScale;
+            float x = (i - startFrame) * FrameScale;
             if (i % 5 == 0)
             {
-                skCanvas.DrawLine(x, 0, x, rowCount * RowHeight, mPaint);
+                skCanvas.DrawLine(x, 0, x, height, mPaint);
                 skCanvas.DrawText(i.ToString(), x + 2, 12, SKTextAlign.Left, textFont, textPaint);
             }
             else
             {
-                skCanvas.DrawLine(x, 0, x, rowCount * RowHeight, vPaint);
+                skCanvas.DrawLine(x, 0, x, height, vPaint);
             }
         }
         var gridLine = ((Color)Application.Current.Resources["TimelineGridLineColor"]).ToSKColor();
         var accentLine = ((Color)Application.Current.Resources["TimelineGridAccentColor"]).ToSKColor();
         using var linePaint = new SKPaint { Style = SKPaintStyle.Stroke };
-        for (int i = 0; i <= frameCount; i++)
+        for (int i = startFrame; i <= endFrame; i++)
         {
-            float x = i * FrameScale;
+            float x = (i - startFrame) * FrameScale;
             linePaint.Color = i % 5 == 0 ? accentLine : gridLine;
-            skCanvas.DrawLine(x, 0, x, rowCount * RowHeight, linePaint);
+            skCanvas.DrawLine(x, 0, x, height, linePaint);
         }
-        for (int r = 0; r <= rowCount; r++)
+        for (int r = startRow; r <= endRow; r++)
         {
-            float y = r * RowHeight;
-            skCanvas.DrawLine(0, y, frameCount * FrameScale, y, hPaint);
+            float y = (r - startRow) * RowHeight;
+            skCanvas.DrawLine(0, y, width, y, hPaint);
         }
 
         _gridCache = recorder.EndRecording();
@@ -169,30 +175,35 @@ public class TimelineGridView : GraphicsView, IDrawable
         canvas.FillColor = Colors.Transparent;
         canvas.FillRectangle(0, 0, (float)WidthRequest, (float)HeightRequest);
 
+        int startFrame = Math.Max(0, (int)Math.Floor(dirtyRect.Left / FrameScale));
+        int endFrame = Math.Min(frameCount, (int)Math.Ceiling(dirtyRect.Right / FrameScale));
+        int startRow = Math.Max(0, (int)Math.Floor(dirtyRect.Top / RowHeight));
+        int endRow = Math.Min(rowCount, (int)Math.Ceiling(dirtyRect.Bottom / RowHeight));
+
         bool needCache = _gridCache == null ||
-                         _cacheFrameCount != frameCount ||
-                         _cacheRowCount != rowCount ||
                          _cacheFrameScale != FrameScale ||
-                         _cacheRowHeight != RowHeight;
+                         _cacheRowHeight != RowHeight ||
+                         startFrame < _cacheStartFrame || endFrame > _cacheEndFrame ||
+                         startRow < _cacheStartRow || endRow > _cacheEndRow;
         if (needCache)
         {
             _cacheFrameCount = frameCount;
             _cacheRowCount = rowCount;
             _cacheFrameScale = FrameScale;
             _cacheRowHeight = RowHeight;
-            BuildGridCache(frameCount, rowCount);
+            _cacheStartFrame = startFrame;
+            _cacheEndFrame = endFrame;
+            _cacheStartRow = startRow;
+            _cacheEndRow = endRow;
+            BuildGridCache(_cacheStartFrame, _cacheEndFrame, _cacheStartRow, _cacheEndRow);
         }
-
-        int startFrame = Math.Max(0, (int)Math.Floor(dirtyRect.Left / FrameScale));
-        int endFrame = Math.Min(frameCount, (int)Math.Ceiling(dirtyRect.Right / FrameScale));
-        int startRow = Math.Max(0, (int)Math.Floor(dirtyRect.Top / RowHeight));
-        int endRow = Math.Min(rowCount, (int)Math.Ceiling(dirtyRect.Bottom / RowHeight));
 
         if (canvas is SkiaCanvas skCanvas && _gridCache != null)
         {
             var clip = new SKRect(startFrame * FrameScale, startRow * RowHeight, endFrame * FrameScale, endRow * RowHeight);
             skCanvas.Canvas.Save();
             skCanvas.Canvas.ClipRect(clip);
+            skCanvas.Canvas.Translate(_cacheStartFrame * FrameScale, _cacheStartRow * RowHeight);
             skCanvas.Canvas.DrawPicture(_gridCache);
             skCanvas.Canvas.Restore();
         }
