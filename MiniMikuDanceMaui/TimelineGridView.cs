@@ -4,8 +4,11 @@ using Microsoft.Maui.Graphics.Skia;
 using MiniMikuDance.Motion;
 using SkiaSharp;
 using System;
+using System.Threading;
+using System.Threading.Tasks;
 using System.Collections.Generic;
 using System.Linq;
+using Microsoft.Maui.ApplicationModel;
 
 namespace MiniMikuDanceMaui;
 
@@ -25,10 +28,19 @@ public class TimelineGridView : GraphicsView, IDrawable
     private int _cacheStartRow;
     private int _cacheEndRow;
 
+    private CancellationTokenSource? _pressCts;
+    private (int Row, int Frame)? _pressHit;
+    private bool _longPressTriggered;
+
+    public event Action<int, int>? KeyLongPressed;
+
     public TimelineGridView()
     {
         Drawable = this;
         LogService.WriteLine("TimelineGridView created");
+        StartInteraction += OnStartInteraction;
+        EndInteraction += OnEndInteraction;
+        CancelInteraction += OnCancelInteraction;
     }
 
     private void BuildGridCache(int startFrame, int endFrame, int startRow, int endRow)
@@ -153,6 +165,56 @@ public class TimelineGridView : GraphicsView, IDrawable
         }
 
         return null;
+    }
+
+    private void OnStartInteraction(object? sender, GraphicsView.TouchEventArgs e)
+    {
+        _pressHit = null;
+        if (e.Touches.Length == 0) return;
+        var pt = e.Touches[0];
+        _pressHit = HitTest(pt);
+        _longPressTriggered = false;
+        _pressCts?.Cancel();
+        if (_pressHit != null)
+        {
+            _pressCts = new CancellationTokenSource();
+            var token = _pressCts.Token;
+            _ = Task.Run(async () =>
+            {
+                try
+                {
+                    await Task.Delay(450, token);
+                    if (!token.IsCancellationRequested && _pressHit != null)
+                    {
+                        _longPressTriggered = true;
+                        MainThread.BeginInvokeOnMainThread(() =>
+                        {
+                            var (r, f) = _pressHit.Value;
+                            Select(r, f);
+                            KeyLongPressed?.Invoke(r, f);
+                        });
+                    }
+                }
+                catch (TaskCanceledException) { }
+            });
+        }
+    }
+
+    private void OnEndInteraction(object? sender, GraphicsView.TouchEventArgs e)
+    {
+        _pressCts?.Cancel();
+        if (!_longPressTriggered && _pressHit != null)
+        {
+            var (r, f) = _pressHit.Value;
+            Select(r, f);
+        }
+        _pressHit = null;
+    }
+
+    private void OnCancelInteraction(object? sender, EventArgs e)
+    {
+        _pressCts?.Cancel();
+        _pressHit = null;
     }
 
     public void Draw(ICanvas canvas, RectF dirtyRect)
