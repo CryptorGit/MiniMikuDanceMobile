@@ -4,7 +4,7 @@
              xmlns:mmd="clr-namespace:MiniMikuDanceMaui"
              x:Class="MiniMikuDanceMaui.TimeLineView"
              BackgroundColor="{StaticResource BackgroundColor}">
-    <Grid ColumnDefinitions="1*,5*">
+    <Grid ColumnDefinitions="1*,3*">
         <Grid.RowDefinitions>
             <RowDefinition Height="{StaticResource RowHeight}" />
             <RowDefinition Height="64" />
@@ -17,6 +17,7 @@
             <Button Text="Edit Key" x:Name="EditKeyButton" />
             <Button Text="Delete Key" x:Name="DeleteKeyButton" />
         </HorizontalStackLayout>
+        <Button Text="×" x:Name="CloseButton" Grid.Column="1" HorizontalOptions="End" VerticalOptions="Center" Clicked="OnCloseClicked" />
         <!-- トランスポートとフレームヘッダー -->
         <Grid Row="1" ColumnDefinitions="1*,5*" Padding="8" HeightRequest="64" VerticalOptions="Center" Grid.ColumnSpan="2">
             <HorizontalStackLayout Spacing="10">
