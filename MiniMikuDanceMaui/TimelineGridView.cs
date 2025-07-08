@@ -67,7 +67,6 @@ public class TimelineGridView : GraphicsView, IDrawable
 
         if (MotionEditor != null)
         {
-            canvas.FillColor = Colors.Yellow;
             for (int r = 0; r < rowCount; r++)
             {
                 var bone = _bones[r];
@@ -75,9 +74,27 @@ public class TimelineGridView : GraphicsView, IDrawable
                 {
                     foreach (var f in set)
                     {
-                        float cx = f * FrameScale + FrameScale/2f;
-                        float cy = r * RowHeight + RowHeight/2f;
-                        canvas.FillCircle(cx, cy, 3);
+                        float cx = f * FrameScale + FrameScale / 2f;
+                        float cy = r * RowHeight + RowHeight / 2f;
+
+                        float s = 3f;
+                        var path = new PathF();
+                        path.MoveTo(cx - s, cy);
+                        path.LineTo(cx, cy - s);
+                        path.LineTo(cx + s, cy);
+                        path.LineTo(cx, cy + s);
+                        path.Close();
+
+                        if (_selection.Contains((r, f)))
+                        {
+                            canvas.StrokeColor = Color.FromArgb("#006680");
+                            canvas.DrawPath(path);
+                        }
+                        else
+                        {
+                            canvas.FillColor = Colors.Yellow;
+                            canvas.FillPath(path);
+                        }
                     }
                 }
             }
