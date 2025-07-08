@@ -28,6 +28,15 @@ public class TimelineGridView : GraphicsView, IDrawable
         Invalidate();
     }
 
+    public int AddBone(string bone)
+    {
+        if (_bones.Contains(bone))
+            return _bones.IndexOf(bone);
+        _bones.Add(bone);
+        Invalidate();
+        return _bones.Count - 1;
+    }
+
     public IEnumerable<(int Row,int Frame)> Selection => _selection;
 
     public void ClearSelection()

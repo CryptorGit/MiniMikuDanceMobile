@@ -1,6 +1,7 @@
 using Microsoft.Maui.Controls;
 using System;
 using System.Collections.Generic;
+using System.Threading.Tasks;
 using MiniMikuDance.Motion;
 
 namespace MiniMikuDanceMaui;
@@ -30,6 +31,12 @@ public partial class TimeLineView : ContentView
 
     public void SetBones(IEnumerable<string> bones)
         => GridView.SetBones(bones);
+
+    public int AddBone(string bone)
+        => GridView.AddBone(bone);
+
+    public Task ScrollToRowAsync(int index)
+        => GridScroll.ScrollToAsync(0, index * GridView.RowHeight, true);
 
     public void SetMotion(MotionEditor? editor, MotionPlayer? player)
     {
