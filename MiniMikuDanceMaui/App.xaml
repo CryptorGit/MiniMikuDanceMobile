@@ -13,6 +13,12 @@
             <Color x:Key="IndicatorColor">Blue</Color>
             <Color x:Key="RecordButtonColor">Red</Color>
 
+            <!-- Timeline colors -->
+            <Color x:Key="TimelineGridLineColor">#003A4D</Color>
+            <Color x:Key="TimelineEvenRowColor">#151515</Color>
+            <Color x:Key="TimelineOddRowColor">#202020</Color>
+            <Color x:Key="TimelineSelectionColor">#006680</Color>
+
             <!-- サイズ設定 -->
             <x:Double x:Key="RowHeight">48</x:Double>
         </ResourceDictionary>
