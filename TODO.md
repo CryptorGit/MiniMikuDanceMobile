@@ -1,0 +1,4 @@
+- [ ] Implement key frame deletion UI triggered by Delete Key button in TimeLineView.
+- [ ] Draw timeline ruler with per-frame ticks and numbering.
+- [ ] Update theme colors to match spec (timeline grid border #003A4D, button border colors, etc.).
+- [ ] Verify mobile layout adjustments for 1:5 playback control ratio and 80% overlay opacity.
