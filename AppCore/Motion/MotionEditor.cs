@@ -125,6 +125,16 @@ public class MotionEditor
             || (Motion.KeyFrames.TryGetValue(bone, out var mset) && mset.Contains(frame));
     }
 
+    public (int? Prev, int? Next) GetNeighborKeyFrames(string bone, int frame)
+    {
+        if (!_keyFrames.TryGetValue(bone, out var set))
+            return (null, null);
+
+        int? prev = set.Where(f => f < frame).DefaultIfEmpty().Max();
+        int? next = set.Where(f => f > frame).DefaultIfEmpty().Min();
+        return (prev == 0 && !set.Contains(0) ? null : prev, next == 0 && !set.Contains(0) ? null : next);
+    }
+
     public Dictionary<string, List<int>> GetKeyFramesInRange(IEnumerable<string> bones, int startFrame, int endFrame)
     {
         var result = new Dictionary<string, List<int>>();
