@@ -227,7 +227,15 @@ public class TimelineGridView : GraphicsView, IDrawable
 
         LogService.WriteLine($"Draw called {dirtyRect}");
 
-        int frameCount = MotionEditor?.Motion.Frames.Length ?? 0;
+        int frameCount = 0;
+        if (MotionEditor != null)
+        {
+            frameCount = MotionEditor.Motion.KeyFrames
+                .Values
+                .SelectMany(v => v)
+                .DefaultIfEmpty(0)
+                .Max() + 5;
+        }
         int rowCount = _bones.Count;
         WidthRequest = frameCount * FrameScale;
         HeightRequest = rowCount * RowHeight;
