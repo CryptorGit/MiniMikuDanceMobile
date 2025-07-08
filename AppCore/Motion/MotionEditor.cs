@@ -49,7 +49,7 @@ public class MotionEditor
         };
     }
 
-    private void SaveState()
+    public void SaveState()
     {
         if (_historyIndex >= 0 && _historyIndex < _history.Count - 1)
             _history.RemoveRange(_historyIndex + 1, _history.Count - _historyIndex - 1);
