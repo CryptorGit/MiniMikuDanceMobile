@@ -421,10 +421,10 @@ public partial class CameraPage : ContentPage
             AdaptSelectMessage.IsVisible ? AbsoluteLayout.AutoSize : 0));
         AbsoluteLayout.SetLayoutFlags(AdaptSelectMessage,
             AbsoluteLayoutFlags.XProportional | AbsoluteLayoutFlags.WidthProportional);
-        AbsoluteLayout.SetLayoutBounds(KeyPanel, new Rect(W - 200, TopMenuHeight + 20,
+        AbsoluteLayout.SetLayoutBounds(KeyPanel, new Rect(W - 200 - 8, TopMenuHeight + 8,
             200, KeyPanel.IsVisible ? AbsoluteLayout.AutoSize : 0));
         AbsoluteLayout.SetLayoutFlags(KeyPanel, AbsoluteLayoutFlags.None);
-        AbsoluteLayout.SetLayoutBounds(DeletePanel, new Rect(W - 200, TopMenuHeight + 20,
+        AbsoluteLayout.SetLayoutBounds(DeletePanel, new Rect(W - 200 - 8, TopMenuHeight + 8,
             200, DeletePanel.IsVisible ? AbsoluteLayout.AutoSize : 0));
         AbsoluteLayout.SetLayoutFlags(DeletePanel, AbsoluteLayoutFlags.None);
 
