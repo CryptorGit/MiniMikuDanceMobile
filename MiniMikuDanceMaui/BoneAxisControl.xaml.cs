@@ -13,6 +13,8 @@ public partial class BoneAxisControl : ContentView
     public event Action? ResetClicked;
 
     private double _center = 0;
+    private object? _defaultCenter;
+    private object? _defaultRange;
 
     public string ValueFormat { get; set; } = "F0";
 
@@ -27,6 +29,8 @@ public partial class BoneAxisControl : ContentView
         RangePicker.ItemsSource = ranges.ToList();
         CenterPicker.SelectedItem = defaultCenter;
         RangePicker.SelectedItem = defaultRange;
+        _defaultCenter = defaultCenter;
+        _defaultRange = defaultRange;
     }
 
     public double Value
@@ -94,6 +98,11 @@ public partial class BoneAxisControl : ContentView
 
     private void OnResetClicked(object? sender, EventArgs e)
     {
+        if (_defaultCenter != null)
+            CenterPicker.SelectedItem = _defaultCenter;
+        if (_defaultRange != null)
+            RangePicker.SelectedItem = _defaultRange;
+        Slider.Value = 0;
         ResetClicked?.Invoke();
     }
 }
