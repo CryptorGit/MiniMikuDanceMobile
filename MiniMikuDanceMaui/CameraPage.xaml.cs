@@ -685,6 +685,7 @@ public partial class CameraPage : ContentPage
                 }
                 tl.SetMotion(_motionEditor, App.Initializer.MotionPlayer);
                 tl.AddKeyClicked += () => OnTimelineAddKey(tl);
+                tl.EditKeyClicked += () => OnTimelineEditKey(tl);
                 view = tl;
             }
             else if (name == "MTOON")
@@ -1235,6 +1236,16 @@ public partial class CameraPage : ContentPage
     }
 
     private void OnTimelineAddKey(TimeLineView tl)
+    {
+        if (_currentModel == null) return;
+        var bones = _currentModel.HumanoidBoneList.Select(b => b.Name);
+        KeyPanel.SetBones(bones);
+        KeyPanel.SetFrame(App.Initializer.MotionPlayer?.FrameIndex ?? 0);
+        KeyPanel.IsVisible = true;
+        UpdateLayout();
+    }
+
+    private void OnTimelineEditKey(TimeLineView tl)
     {
         if (_currentModel == null) return;
         var bones = _currentModel.HumanoidBoneList.Select(b => b.Name);
