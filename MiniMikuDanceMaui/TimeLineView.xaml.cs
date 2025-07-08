@@ -35,6 +35,7 @@ public partial class TimeLineView : ContentView
         StopButton.Clicked += (s, e) => StopClicked?.Invoke();
         GridScroll.Scrolled += OnGridScrolled;
         BoneList.Scrolled += OnBoneListScrolled;
+        GridView.KeyLongPressed += OnGridKeyLongPressed;
     }
 
     public void SetBones(IEnumerable<string> bones)
@@ -93,6 +94,11 @@ public partial class TimeLineView : ContentView
     private void OnCloseClicked(object? sender, EventArgs e)
     {
         CloseClicked?.Invoke();
+    }
+
+    private void OnGridKeyLongPressed(int row, int frame)
+    {
+        EditKeyClicked?.Invoke();
     }
 
     public void UpdateButtonStates()

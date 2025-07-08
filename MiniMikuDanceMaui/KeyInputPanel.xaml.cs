@@ -45,10 +45,65 @@ public partial class KeyInputPanel : ContentView
         UpdateConfirmEnabled();
     }
 
-    public void SetFrame(int frame)
+    public void SetFrame(int frame,
+        MiniMikuDance.Motion.MotionEditor? editor = null,
+        Func<string, int, Vector3>? getTrans = null,
+        Func<string, int, Vector3>? getRot = null,
+        Func<string, Vector3>? getCurrentTrans = null,
+        Func<string, Vector3>? getCurrentRot = null)
     {
         FrameEntry.Text = frame.ToString();
-        UpdateConfirmEnabled();
+
+        if (editor == null)
+        {
+            if (getCurrentTrans != null)
+                SetTranslation(getCurrentTrans(SelectedBone));
+            if (getCurrentRot != null)
+                SetRotation(getCurrentRot(SelectedBone));
+            return;
+        }
+
+        var (prev, next) = editor.GetNeighborKeyFrames(SelectedBone, frame);
+        if (prev == null && next == null)
+        {
+            if (getCurrentTrans != null)
+                SetTranslation(getCurrentTrans(SelectedBone));
+            if (getCurrentRot != null)
+                SetRotation(getCurrentRot(SelectedBone));
+            return;
+        }
+
+        Vector3 baseTrans = Vector3.Zero;
+        Vector3 baseRot = Vector3.Zero;
+        if (prev != null && next != null && getTrans != null && getRot != null)
+        {
+            var t0 = getTrans(SelectedBone, prev.Value);
+            var t1 = getTrans(SelectedBone, next.Value);
+            baseTrans = (t0 + t1) * 0.5f;
+            var r0 = getRot(SelectedBone, prev.Value);
+            var r1 = getRot(SelectedBone, next.Value);
+            baseRot = (r0 + r1) * 0.5f;
+        }
+        else if (prev != null && getTrans != null && getRot != null)
+        {
+            baseTrans = getTrans(SelectedBone, prev.Value);
+            baseRot = getRot(SelectedBone, prev.Value);
+        }
+        else if (next != null && getTrans != null && getRot != null)
+        {
+            baseTrans = getTrans(SelectedBone, next.Value);
+            baseRot = getRot(SelectedBone, next.Value);
+        }
+        else
+        {
+            if (getCurrentTrans != null)
+                baseTrans = getCurrentTrans(SelectedBone);
+            if (getCurrentRot != null)
+                baseRot = getCurrentRot(SelectedBone);
+        }
+
+        SetTranslation(baseTrans);
+        SetRotation(baseRot);
     }
 
     public int FrameNumber => int.TryParse(FrameEntry.Text, out var f) ? f : 0;
