@@ -26,10 +26,19 @@ public class TimelineGridView : GraphicsView, IDrawable
     public TimelineGridView()
     {
         Drawable = this;
+        LogService.WriteLine("TimelineGridView created");
     }
 
     private void BuildGridCache(int frameCount, int rowCount)
     {
+        if (Application.Current?.Resources == null)
+        {
+            LogService.WriteLine("Application resources not ready in BuildGridCache");
+            return;
+        }
+
+        LogService.WriteLine($"BuildGridCache {frameCount} frames {rowCount} rows");
+
         _gridCache?.Dispose();
         var recorder = new SKPictureRecorder();
         var rect = new SKRect(0, 0, frameCount * FrameScale, rowCount * RowHeight);
@@ -144,6 +153,14 @@ public class TimelineGridView : GraphicsView, IDrawable
 
     public void Draw(ICanvas canvas, RectF dirtyRect)
     {
+        if (Application.Current?.Resources == null)
+        {
+            LogService.WriteLine("Application resources not ready in Draw");
+            return;
+        }
+
+        LogService.WriteLine($"Draw called {dirtyRect}");
+
         int frameCount = MotionEditor?.Motion.Frames.Length ?? 0;
         int rowCount = _bones.Count;
         WidthRequest = frameCount * FrameScale;

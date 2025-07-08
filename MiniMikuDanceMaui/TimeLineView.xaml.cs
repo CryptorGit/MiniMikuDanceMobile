@@ -22,6 +22,7 @@ public partial class TimeLineView : ContentView
 
     public TimeLineView()
     {
+        LogService.WriteLine("TimeLineView constructor");
         InitializeComponent();
         AddBoneButton.Clicked += (s, e) => AddBoneClicked?.Invoke();
         AddKeyButton.Clicked += (s, e) => AddKeyClicked?.Invoke();
@@ -37,25 +38,31 @@ public partial class TimeLineView : ContentView
 
     public void SetBones(IEnumerable<string> bones)
     {
+        LogService.WriteLine($"SetBones count={bones.Count()}");
         var list = bones.ToList();
         GridView.SetBones(list);
         BoneList.ItemsSource = list;
     }
 
     public int AddBone(string bone)
-        => GridView.AddBone(bone);
+    {
+        LogService.WriteLine($"AddBone {bone}");
+        return GridView.AddBone(bone);
+    }
 
     public Task ScrollToRowAsync(int index)
         => GridScroll.ScrollToAsync(0, index * GridView.RowHeight, true);
 
     public void SetMotion(MotionEditor? editor, MotionPlayer? player)
     {
+        LogService.WriteLine("SetMotion called");
         GridView.MotionEditor = editor;
         GridView.MotionPlayer = player;
     }
 
     private async void OnGridScrolled(object? sender, ScrolledEventArgs e)
     {
+        LogService.WriteLine($"GridScrolled {e.ScrollX},{e.ScrollY}");
         if (_syncingScroll) return;
         _syncingScroll = true;
         int index = (int)(e.ScrollY / GridView.RowHeight);
@@ -65,6 +72,7 @@ public partial class TimeLineView : ContentView
 
     private async void OnBoneListScrolled(object? sender, ItemsViewScrolledEventArgs e)
     {
+        LogService.WriteLine($"BoneListScrolled {e.HorizontalOffset},{e.VerticalOffset}");
         if (_syncingScroll) return;
         _syncingScroll = true;
         await GridScroll.ScrollToAsync(GridScroll.ScrollX, e.VerticalOffset, false);
