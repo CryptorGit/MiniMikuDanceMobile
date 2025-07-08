@@ -54,10 +54,19 @@ public class TimelineGridView : GraphicsView, IDrawable
         canvas.FillRectangle(0, 0, (float)WidthRequest, (float)HeightRequest);
 
         canvas.StrokeColor = Colors.Gray;
+        canvas.FillColor = Colors.Gray;
         for (int i = 0; i <= frameCount; i++)
         {
             float x = i * FrameScale;
             canvas.DrawLine(x, 0, x, rowCount * RowHeight);
+
+            float half = FrameScale / 2f;
+            var path = new PathF();
+            path.MoveTo(x - half, 0);
+            path.LineTo(x + half, 0);
+            path.LineTo(x, half);
+            path.Close();
+            canvas.FillPath(path);
         }
         for (int r = 0; r <= rowCount; r++)
         {
