@@ -18,7 +18,7 @@
             <Button Text="Delete Key" x:Name="DeleteKeyButton" />
         </HorizontalStackLayout>
         <!-- トランスポートとフレームヘッダー -->
-        <Grid Row="1" ColumnDefinitions="Auto,Auto,Auto,*,Auto,Auto" Padding="8" HeightRequest="64" VerticalOptions="Center">
+        <Grid Row="1" ColumnDefinitions="Auto,Auto,Auto,*,Auto,Auto" Padding="8" HeightRequest="64" VerticalOptions="Center" Grid.ColumnSpan="2">
             <Button Text="Play" x:Name="PlayButton" />
             <Button Text="Pause" x:Name="PauseButton" Grid.Column="1" />
             <Button Text="Stop" x:Name="StopButton" Grid.Column="2" />
@@ -28,8 +28,15 @@
             </StackLayout>
             <Entry x:Name="FrameScaleEntry" Grid.Column="5" Placeholder="Scale" WidthRequest="50" Keyboard="Numeric" />
         </Grid>
-        <!-- キーグリッド -->
-        <ScrollView Grid.Row="2" x:Name="GridScroll" Orientation="Both" >
+        <!-- ボーンリストとキーグリッド -->
+        <CollectionView x:Name="BoneList" Grid.Row="2" ItemSizingStrategy="MeasureAllItems" Scrolled="OnBoneListScrolled">
+            <CollectionView.ItemTemplate>
+                <DataTemplate>
+                    <Label Text="{Binding}" TextColor="White" HeightRequest="48" VerticalTextAlignment="Center" />
+                </DataTemplate>
+            </CollectionView.ItemTemplate>
+        </CollectionView>
+        <ScrollView Grid.Row="2" Grid.Column="1" x:Name="GridScroll" Orientation="Both" Scrolled="OnGridScrolled">
             <mmd:TimelineGridView x:Name="GridView" />
         </ScrollView>
     </Grid>
