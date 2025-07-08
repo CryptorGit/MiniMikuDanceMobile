@@ -30,12 +30,6 @@ public partial class TimeLineView : ContentView
         BoneList.Scrolled += OnBoneListScrolled;
     }
 
-    public int FrameScale
-    {
-        get => int.TryParse(FrameScaleEntry.Text, out var v) ? v : 10;
-        set => FrameScaleEntry.Text = value.ToString();
-    }
-
     public void SetBones(IEnumerable<string> bones)
     {
         var list = bones.ToList();
