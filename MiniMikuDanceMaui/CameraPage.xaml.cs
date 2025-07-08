@@ -130,7 +130,6 @@ public partial class CameraPage : ContentPage
         KeyPanel.Canceled += OnKeyCancelClicked;
         KeyPanel.BoneChanged += OnKeyBoneChanged;
 
-        ShowBottomFeature("TIMELINE");
     }
 
     private void ShowViewMenu()
@@ -275,17 +274,10 @@ public partial class CameraPage : ContentPage
         HideSettingMenu();
     }
 
-    private void OnTimeLineClicked(object? sender, EventArgs e)
-    {
-        LogService.WriteLine("TIMELINE button clicked");
-        ShowBottomFeature("TIMELINE");
-        HideViewMenu();
-        HideSettingMenu();
-    }
 
     private void OnCloseBottomTapped(object? sender, TappedEventArgs e)
     {
-        if (_currentFeature != null && _currentFeature != "TIMELINE")
+        if (_currentFeature != null)
         {
             RemoveBottomFeature(_currentFeature);
         }
@@ -333,8 +325,6 @@ public partial class CameraPage : ContentPage
 
     private void HideBottomRegion()
     {
-        if (_bottomViews.ContainsKey("TIMELINE"))
-            return;
         BottomRegion.IsVisible = false;
         _currentFeature = null;
         UpdateTabColors();
@@ -677,16 +667,6 @@ public partial class CameraPage : ContentPage
                 var tv = new TerminalView();
                 view = tv;
             }
-            else if (name == "TIMELINE")
-            {
-                var tl = new TimeLineView
-                {
-                    MotionPlayer = MotionPlayer,
-                    MotionEditor = _motionEditor,
-                    AvailableBones = _currentModel?.HumanoidBoneList.Select(b => b.Name).ToList() ?? new List<string>()
-                };
-                view = tl;
-            }
             else if (name == "MTOON")
             {
                 var mv = new LightingView
@@ -824,10 +804,6 @@ public partial class CameraPage : ContentPage
             // nothing to update
         }
         else if (name == "TERMINAL" && _bottomViews[name] is TerminalView)
-        {
-            // nothing to update
-        }
-        else if (name == "TIMELINE" && _bottomViews[name] is TimeLineView)
         {
             // nothing to update
         }
@@ -1158,11 +1134,6 @@ public partial class CameraPage : ContentPage
                 App.Initializer.Motion = motion;
                 _motionEditor = new MotionEditor(motion);
                 App.Initializer.MotionPlayer.Play(motion);
-                if (_bottomViews.TryGetValue("TIMELINE", out var tv) && tv is TimeLineView tlView)
-                {
-                    tlView.MotionEditor = _motionEditor;
-                    tlView.AvailableBones = _currentModel?.HumanoidBoneList.Select(b => b.Name).ToList() ?? new List<string>();
-                }
             }
         }
         catch (Exception ex)
@@ -1192,11 +1163,6 @@ public partial class CameraPage : ContentPage
         LoadingIndicator.IsVisible = true;
         await Task.Delay(50);
         _motionEditor?.AddKeyFrame(bone, frame);
-        if (_bottomViews.TryGetValue("TIMELINE", out var tv) && tv is TimeLineView tlv)
-        {
-            tlv.MotionEditor = _motionEditor;
-            tlv.AvailableBones = _currentModel?.HumanoidBoneList.Select(bn => bn.Name).ToList() ?? new List<string>();
-        }
 
         if (_currentModel != null)
         {
