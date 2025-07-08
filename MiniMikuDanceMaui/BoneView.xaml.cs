@@ -16,18 +16,17 @@ public partial class BoneView : ContentView
     public event Action<float>? TranslationYChanged;
     public event Action<float>? TranslationZChanged;
     public event Action? ResetRequested;
-    public event Action<int>? RotateRangeChanged;
-    public event Action<int>? PositionRangeChanged;
+
+    private float _centerRotX = 0f;
+    private float _centerRotY = 0f;
+    private float _centerRotZ = 0f;
+    private float _centerPosX = 0f;
+    private float _centerPosY = 0f;
+    private float _centerPosZ = 0f;
 
     public BoneView()
     {
         InitializeComponent();
-        RangeXEntry.Text = "180";
-        RangeYEntry.Text = "180";
-        RangeZEntry.Text = "180";
-        RangeTXEntry.Text = "1";
-        RangeTYEntry.Text = "1";
-        RangeTZEntry.Text = "1";
 
         SliderX.Minimum = -180;
         SliderX.Maximum = 180;
@@ -84,136 +83,142 @@ public partial class BoneView : ContentView
 
     private void OnXChanged(object? sender, ValueChangedEventArgs e)
     {
-        LabelX.Text = $"{e.NewValue:F0}";
-        RotationXChanged?.Invoke((float)e.NewValue);
+        var value = (float)(e.NewValue + _centerRotX);
+        LabelX.Text = $"{value:F0}";
+        RotationXChanged?.Invoke(value);
     }
 
     private void OnYChanged(object? sender, ValueChangedEventArgs e)
     {
-        LabelY.Text = $"{e.NewValue:F0}";
-        RotationYChanged?.Invoke((float)e.NewValue);
+        var value = (float)(e.NewValue + _centerRotY);
+        LabelY.Text = $"{value:F0}";
+        RotationYChanged?.Invoke(value);
     }
 
     private void OnZChanged(object? sender, ValueChangedEventArgs e)
     {
-        LabelZ.Text = $"{e.NewValue:F0}";
-        RotationZChanged?.Invoke((float)e.NewValue);
+        var value = (float)(e.NewValue + _centerRotZ);
+        LabelZ.Text = $"{value:F0}";
+        RotationZChanged?.Invoke(value);
     }
 
     private void OnTXChanged(object? sender, ValueChangedEventArgs e)
     {
-        LabelTX.Text = $"{e.NewValue:F2}";
-        TranslationXChanged?.Invoke((float)e.NewValue);
+        var value = (float)(e.NewValue + _centerPosX);
+        LabelTX.Text = $"{value:F2}";
+        TranslationXChanged?.Invoke(value);
     }
 
     private void OnTYChanged(object? sender, ValueChangedEventArgs e)
     {
-        LabelTY.Text = $"{e.NewValue:F2}";
-        TranslationYChanged?.Invoke((float)e.NewValue);
+        var value = (float)(e.NewValue + _centerPosY);
+        LabelTY.Text = $"{value:F2}";
+        TranslationYChanged?.Invoke(value);
     }
 
     private void OnTZChanged(object? sender, ValueChangedEventArgs e)
     {
-        LabelTZ.Text = $"{e.NewValue:F2}";
-        TranslationZChanged?.Invoke((float)e.NewValue);
+        var value = (float)(e.NewValue + _centerPosZ);
+        LabelTZ.Text = $"{value:F2}";
+        TranslationZChanged?.Invoke(value);
     }
 
     private void OnResetClicked(object? sender, EventArgs e) => ResetRequested?.Invoke();
 
-    private void OnRangeXEntryChanged(object? sender, EventArgs e)
+    private void OnCenterXEntryChanged(object? sender, EventArgs e)
     {
-        if (float.TryParse(RangeXEntry.Text, out var v))
+        if (float.TryParse(CenterXEntry.Text, out var v))
         {
-            SliderX.Minimum = -v;
-            SliderX.Maximum = v;
-            RotateRangeChanged?.Invoke((int)v);
+            _centerRotX = v;
+            LabelX.Text = $"{SliderX.Value + _centerRotX:F0}";
+            RotationXChanged?.Invoke((float)(SliderX.Value + _centerRotX));
         }
     }
 
-    private void OnRangeYEntryChanged(object? sender, EventArgs e)
+    private void OnCenterYEntryChanged(object? sender, EventArgs e)
     {
-        if (float.TryParse(RangeYEntry.Text, out var v))
+        if (float.TryParse(CenterYEntry.Text, out var v))
         {
-            SliderY.Minimum = -v;
-            SliderY.Maximum = v;
-            RotateRangeChanged?.Invoke((int)v);
+            _centerRotY = v;
+            LabelY.Text = $"{SliderY.Value + _centerRotY:F0}";
+            RotationYChanged?.Invoke((float)(SliderY.Value + _centerRotY));
         }
     }
 
-    private void OnRangeZEntryChanged(object? sender, EventArgs e)
+    private void OnCenterZEntryChanged(object? sender, EventArgs e)
     {
-        if (float.TryParse(RangeZEntry.Text, out var v))
+        if (float.TryParse(CenterZEntry.Text, out var v))
         {
-            SliderZ.Minimum = -v;
-            SliderZ.Maximum = v;
-            RotateRangeChanged?.Invoke((int)v);
+            _centerRotZ = v;
+            LabelZ.Text = $"{SliderZ.Value + _centerRotZ:F0}";
+            RotationZChanged?.Invoke((float)(SliderZ.Value + _centerRotZ));
         }
     }
 
-    private void OnRangeTXEntryChanged(object? sender, EventArgs e)
+    private void OnCenterTXEntryChanged(object? sender, EventArgs e)
     {
-        if (float.TryParse(RangeTXEntry.Text, out var v))
+        if (float.TryParse(CenterTXEntry.Text, out var v))
         {
-            SliderTX.Minimum = -v;
-            SliderTX.Maximum = v;
-            PositionRangeChanged?.Invoke((int)v);
+            _centerPosX = v;
+            LabelTX.Text = $"{SliderTX.Value + _centerPosX:F2}";
+            TranslationXChanged?.Invoke((float)(SliderTX.Value + _centerPosX));
         }
     }
 
-    private void OnRangeTYEntryChanged(object? sender, EventArgs e)
+    private void OnCenterTYEntryChanged(object? sender, EventArgs e)
     {
-        if (float.TryParse(RangeTYEntry.Text, out var v))
+        if (float.TryParse(CenterTYEntry.Text, out var v))
         {
-            SliderTY.Minimum = -v;
-            SliderTY.Maximum = v;
-            PositionRangeChanged?.Invoke((int)v);
+            _centerPosY = v;
+            LabelTY.Text = $"{SliderTY.Value + _centerPosY:F2}";
+            TranslationYChanged?.Invoke((float)(SliderTY.Value + _centerPosY));
         }
     }
 
-    private void OnRangeTZEntryChanged(object? sender, EventArgs e)
+    private void OnCenterTZEntryChanged(object? sender, EventArgs e)
     {
-        if (float.TryParse(RangeTZEntry.Text, out var v))
+        if (float.TryParse(CenterTZEntry.Text, out var v))
         {
-            SliderTZ.Minimum = -v;
-            SliderTZ.Maximum = v;
-            PositionRangeChanged?.Invoke((int)v);
+            _centerPosZ = v;
+            LabelTZ.Text = $"{SliderTZ.Value + _centerPosZ:F2}";
+            TranslationZChanged?.Invoke((float)(SliderTZ.Value + _centerPosZ));
         }
     }
 
     public new float RotationX
     {
-        get => (float)SliderX.Value;
-        set => SliderX.Value = value;
+        get => (float)(SliderX.Value + _centerRotX);
+        set => SliderX.Value = value - _centerRotX;
     }
 
     public new float RotationY
     {
-        get => (float)SliderY.Value;
-        set => SliderY.Value = value;
+        get => (float)(SliderY.Value + _centerRotY);
+        set => SliderY.Value = value - _centerRotY;
     }
 
     public float RotationZ
     {
-        get => (float)SliderZ.Value;
-        set => SliderZ.Value = value;
+        get => (float)(SliderZ.Value + _centerRotZ);
+        set => SliderZ.Value = value - _centerRotZ;
     }
 
     public new float TranslationX
     {
-        get => (float)SliderTX.Value;
-        set => SliderTX.Value = value;
+        get => (float)(SliderTX.Value + _centerPosX);
+        set => SliderTX.Value = value - _centerPosX;
     }
 
     public new float TranslationY
     {
-        get => (float)SliderTY.Value;
-        set => SliderTY.Value = value;
+        get => (float)(SliderTY.Value + _centerPosY);
+        set => SliderTY.Value = value - _centerPosY;
     }
 
     public float TranslationZ
     {
-        get => (float)SliderTZ.Value;
-        set => SliderTZ.Value = value;
+        get => (float)(SliderTZ.Value + _centerPosZ);
+        set => SliderTZ.Value = value - _centerPosZ;
     }
 
     public void SetRotationRange(int min, int max)
@@ -224,9 +229,6 @@ public partial class BoneView : ContentView
         SliderY.Maximum = max;
         SliderZ.Minimum = min;
         SliderZ.Maximum = max;
-        RangeXEntry.Text = Math.Abs(min).ToString();
-        RangeYEntry.Text = Math.Abs(min).ToString();
-        RangeZEntry.Text = Math.Abs(min).ToString();
     }
 
     public void SetTranslationRange(int min, int max)
@@ -237,8 +239,5 @@ public partial class BoneView : ContentView
         SliderTY.Maximum = max;
         SliderTZ.Minimum = min;
         SliderTZ.Maximum = max;
-        RangeTXEntry.Text = Math.Abs(min).ToString();
-        RangeTYEntry.Text = Math.Abs(min).ToString();
-        RangeTZEntry.Text = Math.Abs(min).ToString();
     }
 }
