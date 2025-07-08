@@ -694,6 +694,9 @@ public partial class CameraPage : ContentPage
                 tl.AddKeyClicked += () => OnTimelineAddKey(tl);
                 tl.EditKeyClicked += () => OnTimelineEditKey(tl);
                 tl.DeleteKeyClicked += () => OnTimelineDeleteKey(tl);
+                tl.PlayClicked += OnTimelinePlay;
+                tl.PauseClicked += OnTimelinePause;
+                tl.StopClicked += OnTimelineStop;
                 tl.CloseClicked += () => RemoveBottomFeature("TIMELINE");
                 view = tl;
             }
@@ -1322,6 +1325,23 @@ public partial class CameraPage : ContentPage
         OnDeleteBoneChanged(DeletePanel.SelectedBoneIndex);
         DeletePanel.IsVisible = true;
         UpdateLayout();
+        // TODO: implement key frame deletion UI
+    }
+
+    private void OnTimelinePlay()
+        => OnPlayAnimationRequested();
+
+    private void OnTimelinePause()
+    {
+        var player = App.Initializer.MotionPlayer;
+        player?.Pause();
+    }
+
+    private void OnTimelineStop()
+    {
+        var player = App.Initializer.MotionPlayer;
+        player?.Stop();
+        Viewer?.InvalidateSurface();
     }
 
     private void UpdateSelectedBoneRotation(BoneView bv)

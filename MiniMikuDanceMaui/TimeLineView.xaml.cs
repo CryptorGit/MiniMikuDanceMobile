@@ -14,6 +14,9 @@ public partial class TimeLineView : ContentView
     public event Action? EditKeyClicked;
     public event Action? DeleteKeyClicked;
     public event Action? CloseClicked;
+    public event Action? PlayClicked;
+    public event Action? PauseClicked;
+    public event Action? StopClicked;
 
     private bool _syncingScroll;
 
@@ -25,6 +28,9 @@ public partial class TimeLineView : ContentView
         EditKeyButton.Clicked += (s, e) => EditKeyClicked?.Invoke();
         DeleteKeyButton.Clicked += (s, e) => DeleteKeyClicked?.Invoke();
         CloseButton.Clicked += OnCloseClicked;
+        PlayButton.Clicked += (s, e) => PlayClicked?.Invoke();
+        PauseButton.Clicked += (s, e) => PauseClicked?.Invoke();
+        StopButton.Clicked += (s, e) => StopClicked?.Invoke();
         GridScroll.Scrolled += OnGridScrolled;
         BoneList.Scrolled += OnBoneListScrolled;
     }
