@@ -28,7 +28,9 @@
                                Touch="OnSliderTouched" />
         </Grid>
         <!-- タイムライン表示領域 -->
-        <Grid Grid.Row="2" />
+        <ScrollView Grid.Row="2" x:Name="Scroll" Orientation="Horizontal">
+            <Grid x:Name="TimeGrid" ColumnDefinitions="*,3*" RowSpacing="2" />
+        </ScrollView>
 
         <!-- オーバーレイ -->
         <ContentView x:Name="Overlay" IsVisible="False" BackgroundColor="#88000000" Grid.RowSpan="3" ZIndex="10">
