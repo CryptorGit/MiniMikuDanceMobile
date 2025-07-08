@@ -669,7 +669,9 @@ public partial class CameraPage : ContentPage
             {
                 var tl = new TimeLineView
                 {
-                    MotionPlayer = MotionPlayer
+                    MotionPlayer = MotionPlayer,
+                    MotionEditor = _motionEditor,
+                    AvailableBones = _currentModel?.HumanoidBoneList.Select(b => b.Name).ToList() ?? new List<string>()
                 };
                 view = tl;
             }
@@ -1144,6 +1146,11 @@ public partial class CameraPage : ContentPage
                 App.Initializer.Motion = motion;
                 _motionEditor = new MotionEditor(motion);
                 App.Initializer.MotionPlayer.Play(motion);
+                if (_bottomViews.TryGetValue("TIMELINE", out var tv) && tv is TimeLineView tlView)
+                {
+                    tlView.MotionEditor = _motionEditor;
+                    tlView.AvailableBones = _currentModel?.HumanoidBoneList.Select(b => b.Name).ToList() ?? new List<string>();
+                }
             }
         }
         catch (Exception ex)
@@ -1173,6 +1180,11 @@ public partial class CameraPage : ContentPage
         LoadingIndicator.IsVisible = true;
         await Task.Delay(50);
         _motionEditor?.AddKeyFrame(bone, frame);
+        if (_bottomViews.TryGetValue("TIMELINE", out var tv) && tv is TimeLineView tlv)
+        {
+            tlv.MotionEditor = _motionEditor;
+            tlv.AvailableBones = _currentModel?.HumanoidBoneList.Select(bn => bn.Name).ToList() ?? new List<string>();
+        }
 
         if (_currentModel != null)
         {

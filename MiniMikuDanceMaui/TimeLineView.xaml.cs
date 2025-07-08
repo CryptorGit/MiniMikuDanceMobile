@@ -5,6 +5,8 @@ using SkiaSharp.Views.Maui.Controls;
 using SkiaSharp;
 using MiniMikuDance.Motion;
 using MiniMikuDance.App;
+using System.Collections.Generic;
+using Microsoft.Maui.Graphics;
 
 namespace MiniMikuDanceMaui;
 
@@ -13,6 +15,30 @@ public partial class TimeLineView : ContentView
     private MotionPlayer? _player;
     private int _frameCount;
     private int _currentFrame;
+    private const int FrameWidth = 20;
+    private MotionEditor? _editor;
+    private readonly List<string> _bones = new();
+    private IList<string> _availableBones = new List<string>();
+
+    public MotionEditor? MotionEditor
+    {
+        get => _editor;
+        set
+        {
+            _editor = value;
+            InitializeTimeline();
+        }
+    }
+
+    public IList<string> AvailableBones
+    {
+        get => _availableBones;
+        set
+        {
+            _availableBones = value;
+            UpdateBonePickers();
+        }
+    }
 
     public MotionPlayer? MotionPlayer
     {
@@ -25,7 +51,7 @@ public partial class TimeLineView : ContentView
             if (_player != null)
             {
                 _player.OnFramePlayed += OnFramePlayed;
-                _frameCount = App.Initializer.Motion?.Frames.Length ?? 0;
+                _frameCount = _editor?.Motion.Frames.Length ?? App.Initializer.Motion?.Frames.Length ?? 0;
             }
             TimeSlider.InvalidateSurface();
         }
@@ -36,8 +62,64 @@ public partial class TimeLineView : ContentView
         MotionPlayer = App.Initializer.MotionPlayer;
     }
 
+    private void InitializeTimeline()
+    {
+        TimeGrid.RowDefinitions.Clear();
+        TimeGrid.Children.Clear();
+        _bones.Clear();
+
+        if (_editor != null)
+        {
+            _frameCount = _editor.Motion.Frames.Length;
+            foreach (var bone in _editor.Motion.KeyFrames.Keys)
+            {
+                AddBoneRow(bone);
+            }
+        }
+        UpdateBonePickers();
+        TimeSlider.InvalidateSurface();
+    }
+
+    private void UpdateBonePickers()
+    {
+        var remaining = new List<string>(_availableBones);
+        foreach (var b in _bones)
+            remaining.Remove(b);
+        AddBonePicker.ItemsSource = remaining;
+        EditBonePicker.ItemsSource = new List<string>(_bones);
+        DeleteBonePicker.ItemsSource = new List<string>(_bones);
+    }
+
+    private void AddBoneRow(string bone)
+    {
+        int row = TimeGrid.RowDefinitions.Count;
+        TimeGrid.RowDefinitions.Add(new RowDefinition { Height = GridLength.Auto });
+
+        var label = new Label
+        {
+            Text = bone,
+            TextColor = Colors.White,
+            VerticalTextAlignment = TextAlignment.Center,
+            Padding = new Thickness(4, 0)
+        };
+        TimeGrid.Add(label, 0, row);
+
+        var canvas = new SKCanvasView
+        {
+            EnableTouchEvents = true,
+            WidthRequest = _frameCount * FrameWidth,
+            HeightRequest = 30
+        };
+        canvas.PaintSurface += OnKeyCanvasPaintSurface;
+        canvas.Touch += OnKeyCanvasTouched;
+        TimeGrid.Add(canvas, 1, row);
+
+        _bones.Add(bone);
+    }
+
     public void ShowAddOverlay()
     {
+        UpdateBonePickers();
         Overlay.IsVisible = true;
         AddWindow.IsVisible = true;
         EditWindow.IsVisible = false;
@@ -46,6 +128,7 @@ public partial class TimeLineView : ContentView
 
     public void ShowEditOverlay()
     {
+        UpdateBonePickers();
         Overlay.IsVisible = true;
         AddWindow.IsVisible = false;
         EditWindow.IsVisible = true;
@@ -54,6 +137,7 @@ public partial class TimeLineView : ContentView
 
     public void ShowDeleteOverlay()
     {
+        UpdateBonePickers();
         Overlay.IsVisible = true;
         AddWindow.IsVisible = false;
         EditWindow.IsVisible = false;
@@ -75,7 +159,22 @@ public partial class TimeLineView : ContentView
 
     private void OnAddConfirmClicked(object? sender, EventArgs e)
     {
-        // TODO: 実際の追加処理を実装する
+        if (MotionEditor == null)
+        {
+            HideOverlay();
+            return;
+        }
+
+        if (AddBonePicker.SelectedItem is string bone &&
+            int.TryParse(AddTimeEntry.Text, out var frame))
+        {
+            _editor!.AddKeyFrame(bone, frame);
+            if (!_bones.Contains(bone))
+                AddBoneRow(bone);
+            UpdateBonePickers();
+            Scroll.InvalidateMeasure();
+            TimeGrid.InvalidateMeasure();
+        }
         HideOverlay();
     }
 
@@ -113,6 +212,49 @@ public partial class TimeLineView : ContentView
             paint.Color = SKColors.Red;
             canvas.DrawLine(x, 0, x, height, paint);
         }
+    }
+
+    private void OnKeyCanvasPaintSurface(object? sender, SKPaintSurfaceEventArgs e)
+    {
+        if (MotionEditor == null) return;
+
+        var canvasView = (SKCanvasView)sender!;
+        int row = Grid.GetRow(canvasView);
+        if (row < 0 || row >= _bones.Count) return;
+        string bone = _bones[row];
+
+        var canvas = e.Surface.Canvas;
+        canvas.Clear();
+
+        using var paint = new SKPaint { Color = SKColors.LightGreen };
+        if (_editor!.Motion.KeyFrames.TryGetValue(bone, out var set))
+        {
+            foreach (var f in set)
+            {
+                float x = f * FrameWidth + FrameWidth / 2f;
+                canvas.DrawCircle(x, e.Info.Height / 2f, 5, paint);
+            }
+        }
+    }
+
+    private void OnKeyCanvasTouched(object? sender, SKTouchEventArgs e)
+    {
+        if (e.ActionType != SKTouchAction.Released || MotionEditor == null)
+            return;
+
+        var canvasView = (SKCanvasView)sender!;
+        int row = Grid.GetRow(canvasView);
+        if (row < 0 || row >= _bones.Count) return;
+        string bone = _bones[row];
+
+        int frame = (int)(e.Location.X / FrameWidth);
+        if (_editor!.HasKeyFrame(bone, frame))
+        {
+            EditBonePicker.SelectedItem = bone;
+            EditTimeEntry.Text = frame.ToString();
+            ShowEditOverlay();
+        }
+        e.Handled = true;
     }
 
     private void OnSliderTouched(object? sender, SKTouchEventArgs e)
