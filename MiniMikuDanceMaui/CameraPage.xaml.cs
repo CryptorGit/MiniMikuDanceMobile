@@ -63,6 +63,7 @@ public partial class CameraPage : ContentPage
 
     private readonly List<PoseState> _poseHistory = new();
     private int _poseHistoryIndex = -1;
+    public MotionPlayer? MotionPlayer => App.Initializer.MotionPlayer;
     private static readonly (BlazePoseJoint Joint, string Bone)[] _jointBonePairs = new[]
     {
         (BlazePoseJoint.LeftShoulder, "leftShoulder"),
@@ -666,7 +667,10 @@ public partial class CameraPage : ContentPage
             }
             else if (name == "TIMELINE")
             {
-                var tl = new TimeLineView();
+                var tl = new TimeLineView
+                {
+                    MotionPlayer = MotionPlayer
+                };
                 view = tl;
             }
             else if (name == "MTOON")
