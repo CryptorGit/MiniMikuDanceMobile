@@ -41,9 +41,9 @@ public partial class BoneView : ContentView
         RotXControl.ValueChanged += OnXChanged;
         RotYControl.ValueChanged += OnYChanged;
         RotZControl.ValueChanged += OnZChanged;
-        RotXControl.CenterChanged += _ => OnCenterXChanged();
-        RotYControl.CenterChanged += _ => OnCenterYChanged();
-        RotZControl.CenterChanged += _ => OnCenterZChanged();
+        RotXControl.CenterChanged += OnCenterXChanged;
+        RotYControl.CenterChanged += OnCenterYChanged;
+        RotZControl.CenterChanged += OnCenterZChanged;
         RotXControl.ResetClicked += () => ResetRotationXRequested?.Invoke();
         RotYControl.ResetClicked += () => ResetRotationYRequested?.Invoke();
         RotZControl.ResetClicked += () => ResetRotationZRequested?.Invoke();
@@ -62,9 +62,9 @@ public partial class BoneView : ContentView
         PosXControl.ValueChanged += OnTXChanged;
         PosYControl.ValueChanged += OnTYChanged;
         PosZControl.ValueChanged += OnTZChanged;
-        PosXControl.CenterChanged += _ => OnCenterTXChanged();
-        PosYControl.CenterChanged += _ => OnCenterTYChanged();
-        PosZControl.CenterChanged += _ => OnCenterTZChanged();
+        PosXControl.CenterChanged += OnCenterTXChanged;
+        PosYControl.CenterChanged += OnCenterTYChanged;
+        PosZControl.CenterChanged += OnCenterTZChanged;
         PosXControl.ResetClicked += () => ResetTranslationXRequested?.Invoke();
         PosYControl.ResetClicked += () => ResetTranslationYRequested?.Invoke();
         PosZControl.ResetClicked += () => ResetTranslationZRequested?.Invoke();
@@ -108,12 +108,12 @@ public partial class BoneView : ContentView
 
     private void OnResetClicked(object? sender, EventArgs e) => OnResetClicked();
 
-    private void OnCenterXChanged() => RotationXChanged?.Invoke((float)RotXControl.Value);
-    private void OnCenterYChanged() => RotationYChanged?.Invoke((float)RotYControl.Value);
-    private void OnCenterZChanged() => RotationZChanged?.Invoke((float)RotZControl.Value);
-    private void OnCenterTXChanged() => TranslationXChanged?.Invoke((float)PosXControl.Value);
-    private void OnCenterTYChanged() => TranslationYChanged?.Invoke((float)PosYControl.Value);
-    private void OnCenterTZChanged() => TranslationZChanged?.Invoke((float)PosZControl.Value);
+    private void OnCenterXChanged(double _) => RotationXChanged?.Invoke((float)RotXControl.Value);
+    private void OnCenterYChanged(double _) => RotationYChanged?.Invoke((float)RotYControl.Value);
+    private void OnCenterZChanged(double _) => RotationZChanged?.Invoke((float)RotZControl.Value);
+    private void OnCenterTXChanged(double _) => TranslationXChanged?.Invoke((float)PosXControl.Value);
+    private void OnCenterTYChanged(double _) => TranslationYChanged?.Invoke((float)PosYControl.Value);
+    private void OnCenterTZChanged(double _) => TranslationZChanged?.Invoke((float)PosZControl.Value);
 
     public float BoneRotationX
     {
