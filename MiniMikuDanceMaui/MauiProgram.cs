@@ -24,7 +24,7 @@ public static class MauiProgram
             .UseSkiaSharp()
             .ConfigureFonts(fonts =>
             {
-                fonts.AddFont("OpenSans-Regular.ttf", "OpenSansRegular");
+                fonts.AddFont("NotoSansJP-Regular.otf", "NotoSansJP");
             });
 
         return builder.Build();

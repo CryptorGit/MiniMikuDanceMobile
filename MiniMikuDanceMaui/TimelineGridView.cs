@@ -63,6 +63,14 @@ public class TimelineGridView : GraphicsView, IDrawable
             {
                 skCanvas.DrawLine(x, 0, x, rowCount * RowHeight, vPaint);
             }
+        var gridLine = ((Color)Application.Current.Resources["TimelineGridLineColor"]).ToSKColor();
+        var accentLine = ((Color)Application.Current.Resources["TimelineGridAccentColor"]).ToSKColor();
+        using var linePaint = new SKPaint { Style = SKPaintStyle.Stroke };
+        for (int i = 0; i <= frameCount; i++)
+        {
+            float x = i * FrameScale;
+            linePaint.Color = i % 5 == 0 ? accentLine : gridLine;
+            skCanvas.DrawLine(x, 0, x, rowCount * RowHeight, linePaint);
         }
         for (int r = 0; r <= rowCount; r++)
         {
@@ -102,6 +110,34 @@ public class TimelineGridView : GraphicsView, IDrawable
         if (!append) _selection.Clear();
         _selection.Add((row, frame));
         Invalidate();
+    }
+
+    public (int Row, int Frame)? HitTest(PointF point)
+    {
+        if (MotionEditor == null)
+            return null;
+
+        int row = (int)(point.Y / RowHeight);
+        if (row < 0 || row >= _bones.Count)
+            return null;
+
+        var bone = _bones[row];
+        if (!MotionEditor.Motion.KeyFrames.TryGetValue(bone, out var set))
+            return null;
+
+        const float radius = 16f;
+        float r2 = radius * radius;
+        foreach (var frame in set)
+        {
+            float cx = frame * FrameScale + FrameScale / 2f;
+            float cy = row * RowHeight + RowHeight / 2f;
+            float dx = point.X - cx;
+            float dy = point.Y - cy;
+            if (dx * dx + dy * dy <= r2)
+                return (row, frame);
+        }
+
+        return null;
     }
 
     public void Draw(ICanvas canvas, RectF dirtyRect)
@@ -176,6 +212,16 @@ public class TimelineGridView : GraphicsView, IDrawable
                 }
             }
             canvas.StrokeColor = horizontalLine;
+            
+            var gridLineColor = (Color)Application.Current.Resources["TimelineGridLineColor"];
+            var accentColor = (Color)Application.Current.Resources["TimelineGridAccentColor"];
+            for (int i = startFrame; i <= endFrame; i++)
+            {
+                float x = i * FrameScale;
+                canvas.StrokeColor = i % 5 == 0 ? accentColor : gridLineColor;
+                canvas.DrawLine(x, startRow * RowHeight, x, endRow * RowHeight);
+            }
+            canvas.StrokeColor = gridLineColor;
             for (int r = startRow; r <= endRow; r++)
             {
                 float y = r * RowHeight;
@@ -186,7 +232,7 @@ public class TimelineGridView : GraphicsView, IDrawable
         if (MotionEditor != null)
         {
             canvas.FillColor = (Color)Application.Current.Resources["TimelineKeyFrameColor"];
-            const float size = 3f;
+            const float size = 7f; // half of 14dp
             for (int r = startRow; r < endRow; r++)
             {
                 var bone = _bones[r];
@@ -206,6 +252,7 @@ public class TimelineGridView : GraphicsView, IDrawable
                         if (_selection.Contains((r, f)))
                         {
                             canvas.StrokeColor = Color.FromArgb("#006680");
+                            canvas.StrokeSize = 2;
                             canvas.DrawRectangle(-size, -size, size * 2, size * 2);
                         }
                         canvas.RestoreState();

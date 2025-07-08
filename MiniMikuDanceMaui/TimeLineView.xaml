@@ -11,11 +11,11 @@
             <RowDefinition Height="*" />
         </Grid.RowDefinitions>
         <!-- 操作バー -->
-        <HorizontalStackLayout Spacing="10" Padding="8" HeightRequest="{StaticResource RowHeight}">
-            <Button Text="Add Bone" x:Name="AddBoneButton" Style="{StaticResource TimelineButtonStyle}" />
-            <Button Text="Add Key" x:Name="AddKeyButton" Style="{StaticResource TimelineButtonStyle}" />
-            <Button Text="Edit Key" x:Name="EditKeyButton" Style="{StaticResource TimelineButtonStyle}" />
-            <Button Text="Delete Key" x:Name="DeleteKeyButton" Style="{StaticResource TimelineButtonStyle}" />
+        <HorizontalStackLayout Spacing="8" Padding="8" HeightRequest="{StaticResource RowHeight}">
+            <Button Text="Add Bone" x:Name="AddBoneButton" Style="{StaticResource TimelineButtonStyle}" HorizontalOptions="StartAndExpand" />
+            <Button Text="Add Key" x:Name="AddKeyButton" Style="{StaticResource TimelineButtonStyle}" HorizontalOptions="End" />
+            <Button Text="Edit Key" x:Name="EditKeyButton" Style="{StaticResource TimelineButtonStyle}" HorizontalOptions="End" />
+            <Button Text="Delete Key" x:Name="DeleteKeyButton" Style="{StaticResource TimelineButtonStyle}" HorizontalOptions="End" />
         </HorizontalStackLayout>
         <Button Text="×" x:Name="CloseButton" Grid.Column="1" HorizontalOptions="End" VerticalOptions="Center" Clicked="OnCloseClicked" />
         <!-- トランスポートとフレームヘッダー -->

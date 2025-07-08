@@ -33,10 +33,23 @@
     <Color x:Key="TimelineButtonBorderColor">#003A4D</Color>
     <Color x:Key="TimelineButtonBackgroundColor">#2F2F2F</Color>
 
+    <!-- default font style -->
+    <Style TargetType="Label">
+        <Setter Property="FontFamily" Value="NotoSansJP" />
+        <Setter Property="FontSize" Value="11" />
+    </Style>
+    <Style TargetType="Button">
+        <Setter Property="FontFamily" Value="NotoSansJP" />
+        <Setter Property="FontSize" Value="11" />
+    </Style>
+
     <Style x:Key="TimelineButtonStyle" TargetType="Button">
         <Setter Property="BackgroundColor" Value="{StaticResource TimelineButtonBackgroundColor}" />
         <Setter Property="BorderColor" Value="{StaticResource TimelineButtonBorderColor}" />
         <Setter Property="BorderWidth" Value="1" />
+        <Setter Property="WidthRequest" Value="88" />
+        <Setter Property="HeightRequest" Value="30" />
+        <Setter Property="CornerRadius" Value="4" />
         <Setter Property="TextColor" Value="{StaticResource TextColor}" />
     </Style>
 </ResourceDictionary>
