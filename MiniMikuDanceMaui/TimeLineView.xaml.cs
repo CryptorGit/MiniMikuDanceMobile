@@ -172,8 +172,8 @@ public partial class TimeLineView : ContentView
             if (!_bones.Contains(bone))
                 AddBoneRow(bone);
             UpdateBonePickers();
-            Scroll.InvalidateMeasure();
-            TimeGrid.InvalidateMeasure();
+            // レイアウトを更新するため、ビュー全体の測定を無効化する
+            this.InvalidateMeasure();
         }
         HideOverlay();
     }
