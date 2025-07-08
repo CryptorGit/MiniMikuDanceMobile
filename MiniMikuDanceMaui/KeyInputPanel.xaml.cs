@@ -12,9 +12,22 @@ public partial class KeyInputPanel : ContentView
     public event Action? Canceled;
     public event Action<int>? BoneChanged;
 
+    private bool _isEditMode;
+    public bool IsEditMode
+    {
+        get => _isEditMode;
+        set
+        {
+            _isEditMode = value;
+            ConfirmButton.Text = _isEditMode ? "apply" : "select";
+            CancelButton.Text = "cancel";
+        }
+    }
+
     public KeyInputPanel()
     {
         InitializeComponent();
+        IsEditMode = false;
         PosRangePicker.ItemsSource = new List<int> { 1, 2, 5, 10 };
         PosRangePicker.SelectedItem = 1;
         RotRangePicker.ItemsSource = new List<int> { 30, 45, 90, 180, 360 };

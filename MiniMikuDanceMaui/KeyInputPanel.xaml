@@ -49,8 +49,8 @@
         </Grid>
         <Slider x:Name="RotZSlider" Minimum="-180" Maximum="180" ValueChanged="OnRotZChanged" />
         <HorizontalStackLayout Spacing="10" HorizontalOptions="End">
-            <Button Text="確定" Clicked="OnConfirmClicked" />
-            <Button Text="キャンセル" Clicked="OnCancelClicked" />
+            <Button x:Name="ConfirmButton" Text="select" Clicked="OnConfirmClicked" />
+            <Button x:Name="CancelButton" Text="cancel" Clicked="OnCancelClicked" />
         </HorizontalStackLayout>
     </VerticalStackLayout>
 </ContentView>
