@@ -745,20 +745,22 @@ public partial class CameraPage : ContentPage
             }
             else
             {
-                view = new Label { Text = $"{name} view", TextColor = Colors.White, HorizontalTextAlignment = TextAlignment.Center, VerticalTextAlignment = TextAlignment.Center };
+                var textColor = (Color)Application.Current.Resources["TextColor"];
+                view = new Label { Text = $"{name} view", TextColor = textColor, HorizontalTextAlignment = TextAlignment.Center, VerticalTextAlignment = TextAlignment.Center };
             }
             _bottomViews[name] = view;
 
+            var tabBgColor = (Color)Application.Current.Resources["TabBackgroundColor"];
             var border = new Border
             {
-                BackgroundColor = Color.FromArgb("#444444"),
+                BackgroundColor = tabBgColor,
                 Padding = new Thickness(8, 2),
                 MinimumWidthRequest = 60
             };
             var label = new Label
             {
                 Text = name,
-                TextColor = Colors.White,
+                TextColor = (Color)Application.Current.Resources["TextColor"],
                 FontSize = 14,
                 HorizontalTextAlignment = TextAlignment.Center,
                 VerticalTextAlignment = TextAlignment.Center
@@ -858,11 +860,11 @@ public partial class CameraPage : ContentPage
 
     private void UpdateTabColors()
     {
+        var active = (Color)Application.Current.Resources["TabActiveColor"];
+        var inactive = (Color)Application.Current.Resources["TabInactiveColor"];
         foreach (var kv in _bottomTabs)
         {
-            kv.Value.BackgroundColor = kv.Key == _currentFeature
-                ? Color.FromArgb("#333333")
-                : Color.FromArgb("#666666");
+            kv.Value.BackgroundColor = kv.Key == _currentFeature ? active : inactive;
         }
     }
 

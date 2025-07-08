@@ -12,9 +12,10 @@ public partial class TerminalView : ContentView
         InitializeComponent();
         LogService.LineLogged += OnLineLogged;
         var history = LogService.History;
+        var textColor = (Color)Application.Current.Resources["TextColor"];
         foreach (var line in history)
         {
-            LogStack.Add(new Label { Text = line, TextColor = Colors.White });
+            LogStack.Add(new Label { Text = line, TextColor = textColor });
         }
         _lastIndex = history.Count;
     }
@@ -23,7 +24,8 @@ public partial class TerminalView : ContentView
     {
         MainThread.BeginInvokeOnMainThread(() =>
         {
-            LogStack.Add(new Label { Text = line, TextColor = Colors.White });
+            var textColor = (Color)Application.Current.Resources["TextColor"];
+            LogStack.Add(new Label { Text = line, TextColor = textColor });
             _lastIndex++;
         });
     }
@@ -33,7 +35,8 @@ public partial class TerminalView : ContentView
         var history = LogService.History;
         for (int i = _lastIndex; i < history.Count; i++)
         {
-            LogStack.Add(new Label { Text = history[i], TextColor = Colors.White });
+            var textColor = (Color)Application.Current.Resources["TextColor"];
+            LogStack.Add(new Label { Text = history[i], TextColor = textColor });
         }
         _lastIndex = history.Count;
     }
