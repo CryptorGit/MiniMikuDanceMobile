@@ -10,10 +10,57 @@
             <RowDefinition Height="*" />
         </Grid.RowDefinitions>
         <!-- キー操作領域 -->
-        <Grid Grid.Row="0" />
+        <HorizontalStackLayout Grid.Row="0" Spacing="6" Padding="8" x:Name="KeyButtons">
+            <Button Text="追加" Clicked="OnAddClicked" />
+            <Button Text="編集" Clicked="OnEditClicked" />
+            <Button Text="削除" Clicked="OnDeleteClicked" />
+        </HorizontalStackLayout>
         <!-- タイムライン操作領域 -->
         <Grid Grid.Row="1" />
         <!-- タイムライン表示領域 -->
         <Grid Grid.Row="2" />
+
+        <!-- オーバーレイ -->
+        <ContentView x:Name="Overlay" IsVisible="False" BackgroundColor="#88000000" Grid.RowSpan="3" ZIndex="10">
+            <Frame x:Name="OverlayContent" Padding="8" BackgroundColor="#1E1E1E" HorizontalOptions="End" VerticalOptions="Start">
+                <Grid>
+                    <!-- 追加ウィンドウ -->
+                    <VerticalStackLayout x:Name="AddWindow" Spacing="6" IsVisible="False">
+                        <Picker x:Name="AddBonePicker" Title="Bone" />
+                        <Entry x:Name="AddTimeEntry" Placeholder="Frame" Keyboard="Numeric" />
+                        <Grid ColumnDefinitions="*,60">
+                            <Slider x:Name="AddSeqSlider" Minimum="0" Maximum="100" ValueChanged="OnAddSeqChanged" />
+                            <Entry x:Name="AddSeqEntry" Grid.Column="1" WidthRequest="60" Keyboard="Numeric" />
+                        </Grid>
+                        <HorizontalStackLayout Spacing="10" HorizontalOptions="End">
+                            <Button Text="追加" Clicked="OnAddConfirmClicked" />
+                            <Button Text="キャンセル" Clicked="OnCancelClicked" />
+                        </HorizontalStackLayout>
+                    </VerticalStackLayout>
+                    <!-- 編集ウィンドウ -->
+                    <VerticalStackLayout x:Name="EditWindow" Spacing="6" IsVisible="False">
+                        <Picker x:Name="EditBonePicker" Title="Bone" />
+                        <Entry x:Name="EditTimeEntry" Placeholder="Frame" Keyboard="Numeric" />
+                        <Grid ColumnDefinitions="*,60">
+                            <Slider x:Name="EditSeqSlider" Minimum="0" Maximum="100" ValueChanged="OnEditSeqChanged" />
+                            <Entry x:Name="EditSeqEntry" Grid.Column="1" WidthRequest="60" Keyboard="Numeric" />
+                        </Grid>
+                        <HorizontalStackLayout Spacing="10" HorizontalOptions="End">
+                            <Button Text="適用" Clicked="OnEditConfirmClicked" />
+                            <Button Text="キャンセル" Clicked="OnCancelClicked" />
+                        </HorizontalStackLayout>
+                    </VerticalStackLayout>
+                    <!-- 削除ウィンドウ -->
+                    <VerticalStackLayout x:Name="DeleteWindow" Spacing="6" IsVisible="False">
+                        <Picker x:Name="DeleteBonePicker" Title="Bone" />
+                        <Picker x:Name="DeleteTimePicker" Title="Time" />
+                        <HorizontalStackLayout Spacing="10" HorizontalOptions="End">
+                            <Button Text="削除" Clicked="OnDeleteConfirmClicked" />
+                            <Button Text="キャンセル" Clicked="OnCancelClicked" />
+                        </HorizontalStackLayout>
+                    </VerticalStackLayout>
+                </Grid>
+            </Frame>
+        </ContentView>
     </Grid>
 </ContentView>
