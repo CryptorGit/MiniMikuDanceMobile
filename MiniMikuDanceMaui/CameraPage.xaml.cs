@@ -81,6 +81,8 @@ public partial class CameraPage : ContentPage
         (BlazePoseJoint.Nose, "head"),
     };
 
+    private static readonly Dictionary<string, BlazePoseJoint> _boneToJoint = _jointBonePairs.ToDictionary(p => p.Bone, p => p.Joint);
+
     public CameraPage()
     {
         InitializeComponent();
@@ -1300,7 +1302,13 @@ public partial class CameraPage : ContentPage
         if (_currentModel == null) return;
         var bones = _currentModel.HumanoidBoneList.Select(b => b.Name);
         KeyPanel.SetBones(bones);
-        KeyPanel.SetFrame(App.Initializer.MotionPlayer?.FrameIndex ?? 0);
+        KeyPanel.SetFrame(
+            App.Initializer.MotionPlayer?.FrameIndex ?? 0,
+            _motionEditor,
+            GetBoneTranslationAtFrame,
+            GetBoneRotationAtFrame,
+            GetCurrentBoneTranslation,
+            GetCurrentBoneRotation);
         KeyPanel.IsEditMode = false;
         KeyPanel.IsVisible = true;
         UpdateLayout();
@@ -1311,7 +1319,13 @@ public partial class CameraPage : ContentPage
         if (_currentModel == null) return;
         var bones = _currentModel.HumanoidBoneList.Select(b => b.Name);
         KeyPanel.SetBones(bones);
-        KeyPanel.SetFrame(App.Initializer.MotionPlayer?.FrameIndex ?? 0);
+        KeyPanel.SetFrame(
+            App.Initializer.MotionPlayer?.FrameIndex ?? 0,
+            _motionEditor,
+            GetBoneTranslationAtFrame,
+            GetBoneRotationAtFrame,
+            GetCurrentBoneTranslation,
+            GetCurrentBoneRotation);
         KeyPanel.IsEditMode = true;
         KeyPanel.IsVisible = true;
         UpdateLayout();
@@ -1445,6 +1459,51 @@ public partial class CameraPage : ContentPage
             _poseHistory.RemoveRange(_poseHistoryIndex + 1, _poseHistory.Count - _poseHistoryIndex - 1);
         _poseHistory.Add(state);
         _poseHistoryIndex = _poseHistory.Count - 1;
+    }
+
+    private Vector3 GetBoneTranslationAtFrame(string bone, int frame)
+    {
+        if (_motionEditor == null)
+            return Vector3.Zero;
+        if (!_boneToJoint.TryGetValue(bone, out var joint))
+            return Vector3.Zero;
+        var frames = _motionEditor.Motion.Frames;
+        if (frame < 0 || frame >= frames.Length)
+            return Vector3.Zero;
+        var pos = frames[frame].Positions[(int)joint];
+        return new Vector3(pos.X, pos.Y, pos.Z);
+    }
+
+    private Vector3 GetBoneRotationAtFrame(string bone, int frame)
+    {
+        // TODO: calculate rotation from motion data
+        return _renderer.GetBoneRotation(_selectedBoneIndex);
+    }
+
+    private Vector3 GetCurrentBoneTranslation(string bone)
+    {
+        if (_currentModel == null)
+            return Vector3.Zero;
+        int idx = _currentModel.HumanoidBoneList.FindIndex(h => h.Name == bone);
+        if (idx >= 0)
+        {
+            int bIndex = _currentModel.HumanoidBoneList[idx].Index;
+            return _renderer.GetBoneTranslation(bIndex);
+        }
+        return Vector3.Zero;
+    }
+
+    private Vector3 GetCurrentBoneRotation(string bone)
+    {
+        if (_currentModel == null)
+            return Vector3.Zero;
+        int idx = _currentModel.HumanoidBoneList.FindIndex(h => h.Name == bone);
+        if (idx >= 0)
+        {
+            int bIndex = _currentModel.HumanoidBoneList[idx].Index;
+            return _renderer.GetBoneRotation(bIndex);
+        }
+        return Vector3.Zero;
     }
 
 
