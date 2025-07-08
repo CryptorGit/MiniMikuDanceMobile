@@ -1194,7 +1194,7 @@ public partial class CameraPage : ContentPage
         if (_selectedBoneIndex < 0 || _selectedBoneIndex >= _currentModel.Bones.Count)
             return;
 
-        var eulerTk = new OpenTK.Mathematics.Vector3(bv.RotationX, bv.RotationY, bv.RotationZ);
+        var eulerTk = new OpenTK.Mathematics.Vector3(bv.BoneRotationX, bv.BoneRotationY, bv.RotationZ);
         _renderer.SetBoneRotation(_selectedBoneIndex, eulerTk);
         SavePoseState();
         Viewer?.InvalidateSurface();
@@ -1206,7 +1206,7 @@ public partial class CameraPage : ContentPage
         if (_selectedBoneIndex < 0 || _selectedBoneIndex >= _currentModel.Bones.Count)
             return;
 
-        var t = new OpenTK.Mathematics.Vector3(bv.TranslationX, bv.TranslationY, bv.TranslationZ);
+        var t = new OpenTK.Mathematics.Vector3(bv.BoneTranslationX, bv.BoneTranslationY, bv.TranslationZ);
         _renderer.SetBoneTranslation(_selectedBoneIndex, t);
         SavePoseState();
         Viewer?.InvalidateSurface();
