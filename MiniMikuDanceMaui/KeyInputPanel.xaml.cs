@@ -74,6 +74,42 @@ public partial class KeyInputPanel : ContentView
             FrameEntry.Text = "0";
     }
 
+    private void OnPosXSetClicked(object? sender, EventArgs e)
+    {
+        if (sender is Button btn && double.TryParse(btn.Text, out var v))
+            PosXSlider.Value = v;
+    }
+
+    private void OnPosYSetClicked(object? sender, EventArgs e)
+    {
+        if (sender is Button btn && double.TryParse(btn.Text, out var v))
+            PosYSlider.Value = v;
+    }
+
+    private void OnPosZSetClicked(object? sender, EventArgs e)
+    {
+        if (sender is Button btn && double.TryParse(btn.Text, out var v))
+            PosZSlider.Value = v;
+    }
+
+    private void OnRotXSetClicked(object? sender, EventArgs e)
+    {
+        if (sender is Button btn && double.TryParse(btn.Text, out var v))
+            RotXSlider.Value = v;
+    }
+
+    private void OnRotYSetClicked(object? sender, EventArgs e)
+    {
+        if (sender is Button btn && double.TryParse(btn.Text, out var v))
+            RotYSlider.Value = v;
+    }
+
+    private void OnRotZSetClicked(object? sender, EventArgs e)
+    {
+        if (sender is Button btn && double.TryParse(btn.Text, out var v))
+            RotZSlider.Value = v;
+    }
+
     private void OnRotRangeChanged(object? sender, EventArgs e)
     {
         if (RotRangePicker.SelectedItem is int range)
