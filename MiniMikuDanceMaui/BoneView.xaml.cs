@@ -113,13 +113,13 @@ public partial class BoneView : ContentView
     private void OnCenterTYChanged() => TranslationYChanged?.Invoke((float)PosYControl.Value);
     private void OnCenterTZChanged() => TranslationZChanged?.Invoke((float)PosZControl.Value);
 
-    public new float BoneRotationX
+    public float BoneRotationX
     {
         get => (float)RotXControl.Value;
         set => RotXControl.Value = value;
     }
 
-    public new float BoneRotationY
+    public float BoneRotationY
     {
         get => (float)RotYControl.Value;
         set => RotYControl.Value = value;
@@ -131,13 +131,13 @@ public partial class BoneView : ContentView
         set => RotZControl.Value = value;
     }
 
-    public new float BoneTranslationX
+    public float BoneTranslationX
     {
         get => (float)PosXControl.Value;
         set => PosXControl.Value = value;
     }
 
-    public new float BoneTranslationY
+    public float BoneTranslationY
     {
         get => (float)PosYControl.Value;
         set => PosYControl.Value = value;
