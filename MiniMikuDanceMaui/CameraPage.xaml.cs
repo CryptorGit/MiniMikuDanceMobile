@@ -1319,13 +1319,29 @@ public partial class CameraPage : ContentPage
 
     private void OnTimelineDeleteKey(TimeLineView tl)
     {
-        if (_currentModel == null) return;
-        var bones = _currentModel.HumanoidBoneList.Select(b => b.Name);
-        DeletePanel.SetBones(bones);
-        OnDeleteBoneChanged(DeletePanel.SelectedBoneIndex);
-        DeletePanel.IsVisible = true;
-        UpdateLayout();
-        // TODO: implement key frame deletion UI
+        if (_currentModel == null || _motionEditor == null) return;
+
+        var selection = tl.GridView.Selection.ToList();
+        if (selection.Count == 0)
+        {
+            var bones = _currentModel.HumanoidBoneList.Select(b => b.Name);
+            DeletePanel.SetBones(bones);
+            OnDeleteBoneChanged(DeletePanel.SelectedBoneIndex);
+            DeletePanel.IsVisible = true;
+            UpdateLayout();
+            return;
+        }
+
+        foreach (var (row, frame) in selection)
+        {
+            if (row < 0 || row >= _currentModel.HumanoidBoneList.Count) continue;
+            var bone = _currentModel.HumanoidBoneList[row].Name;
+            _motionEditor.RemoveKeyFrame(bone, frame, false);
+        }
+        _motionEditor.SaveState();
+
+        tl.GridView.ClearSelection();
+        tl.SetMotion(_motionEditor, App.Initializer.MotionPlayer);
     }
 
     private void OnTimelinePlay()
