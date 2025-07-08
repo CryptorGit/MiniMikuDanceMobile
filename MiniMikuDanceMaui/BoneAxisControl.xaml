@@ -3,7 +3,8 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
              x:Class="MiniMikuDanceMaui.BoneAxisControl">
     <VerticalStackLayout Spacing="2">
-        <Grid ColumnDefinitions="120,120,120,80" RowSpacing="0">
+        <!-- 列幅を可変にして小さい画面でも見切れないよう調整 -->
+        <Grid ColumnDefinitions="*,Auto,Auto,Auto" RowSpacing="0">
             <HorizontalStackLayout Grid.Column="0" Spacing="2" VerticalOptions="Center">
                 <Label x:Name="TypeLabel" Text="Rot" TextColor="White" />
                 <Label x:Name="AxisLabel" Text="X" TextColor="White" />
