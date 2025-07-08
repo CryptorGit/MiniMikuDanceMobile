@@ -50,19 +50,21 @@ public class TimelineGridView : GraphicsView, IDrawable
         using var vPaint = new SKPaint { Style = SKPaintStyle.Stroke, Color = verticalLine, StrokeWidth = 1 };
         using var hPaint = new SKPaint { Style = SKPaintStyle.Stroke, Color = horizontalLine, StrokeWidth = 1 };
         using var mPaint = new SKPaint { Style = SKPaintStyle.Stroke, Color = majorLine, StrokeWidth = 2 };
-        using var textPaint = new SKPaint { Style = SKPaintStyle.Fill, Color = ((Color)Application.Current.Resources["TextColor"]).ToSKColor(), TextSize = 12, IsAntialias = true };
+        using var textPaint = new SKPaint { Style = SKPaintStyle.Fill, Color = ((Color)Application.Current.Resources["TextColor"]).ToSKColor(), IsAntialias = true };
+        using var textFont = new SKFont { Size = 12 };
         for (int i = 0; i <= frameCount; i++)
         {
             float x = i * FrameScale;
             if (i % 5 == 0)
             {
                 skCanvas.DrawLine(x, 0, x, rowCount * RowHeight, mPaint);
-                skCanvas.DrawText(i.ToString(), x + 2, 12, textPaint);
+                skCanvas.DrawText(i.ToString(), x + 2, 12, SKTextAlign.Left, textFont, textPaint);
             }
             else
             {
                 skCanvas.DrawLine(x, 0, x, rowCount * RowHeight, vPaint);
             }
+        }
         var gridLine = ((Color)Application.Current.Resources["TimelineGridLineColor"]).ToSKColor();
         var accentLine = ((Color)Application.Current.Resources["TimelineGridAccentColor"]).ToSKColor();
         using var linePaint = new SKPaint { Style = SKPaintStyle.Stroke };
