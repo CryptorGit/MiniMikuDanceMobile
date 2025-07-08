@@ -16,6 +16,12 @@ public partial class BoneView : ContentView
     public event Action<float>? TranslationYChanged;
     public event Action<float>? TranslationZChanged;
     public event Action? ResetRequested;
+    public event Action? ResetRotationXRequested;
+    public event Action? ResetRotationYRequested;
+    public event Action? ResetRotationZRequested;
+    public event Action? ResetTranslationXRequested;
+    public event Action? ResetTranslationYRequested;
+    public event Action? ResetTranslationZRequested;
 
     public BoneView()
     {
@@ -107,13 +113,13 @@ public partial class BoneView : ContentView
     private void OnCenterTYChanged() => TranslationYChanged?.Invoke((float)PosYControl.Value);
     private void OnCenterTZChanged() => TranslationZChanged?.Invoke((float)PosZControl.Value);
 
-    public new float RotationX
+    public new float BoneRotationX
     {
         get => (float)RotXControl.Value;
         set => RotXControl.Value = value;
     }
 
-    public new float RotationY
+    public new float BoneRotationY
     {
         get => (float)RotYControl.Value;
         set => RotYControl.Value = value;
@@ -125,13 +131,13 @@ public partial class BoneView : ContentView
         set => RotZControl.Value = value;
     }
 
-    public new float TranslationX
+    public new float BoneTranslationX
     {
         get => (float)PosXControl.Value;
         set => PosXControl.Value = value;
     }
 
-    public new float TranslationY
+    public new float BoneTranslationY
     {
         get => (float)PosYControl.Value;
         set => PosYControl.Value = value;

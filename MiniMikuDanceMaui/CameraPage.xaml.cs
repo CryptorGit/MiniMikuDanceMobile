@@ -621,6 +621,12 @@ public partial class CameraPage : ContentPage
                     }
                 }
                 bv.ResetRequested += OnBoneReset;
+                bv.ResetRotationXRequested += OnBoneRotationXReset;
+                bv.ResetRotationYRequested += OnBoneRotationYReset;
+                bv.ResetRotationZRequested += OnBoneRotationZReset;
+                bv.ResetTranslationXRequested += OnBoneTranslationXReset;
+                bv.ResetTranslationYRequested += OnBoneTranslationYReset;
+                bv.ResetTranslationZRequested += OnBoneTranslationZReset;
                 bv.BoneSelected += idx =>
                 {
                     if (idx >= 0 && idx < _humanoidBoneIndices.Count)
@@ -1194,7 +1200,7 @@ public partial class CameraPage : ContentPage
         if (_selectedBoneIndex < 0 || _selectedBoneIndex >= _currentModel.Bones.Count)
             return;
 
-        var eulerTk = new OpenTK.Mathematics.Vector3(bv.RotationX, bv.RotationY, bv.RotationZ);
+        var eulerTk = new OpenTK.Mathematics.Vector3(bv.BoneRotationX, bv.BoneRotationY, bv.RotationZ);
         _renderer.SetBoneRotation(_selectedBoneIndex, eulerTk);
         SavePoseState();
         Viewer?.InvalidateSurface();
@@ -1206,7 +1212,7 @@ public partial class CameraPage : ContentPage
         if (_selectedBoneIndex < 0 || _selectedBoneIndex >= _currentModel.Bones.Count)
             return;
 
-        var t = new OpenTK.Mathematics.Vector3(bv.TranslationX, bv.TranslationY, bv.TranslationZ);
+        var t = new OpenTK.Mathematics.Vector3(bv.BoneTranslationX, bv.BoneTranslationY, bv.TranslationZ);
         _renderer.SetBoneTranslation(_selectedBoneIndex, t);
         SavePoseState();
         Viewer?.InvalidateSurface();
@@ -1303,5 +1309,77 @@ public partial class CameraPage : ContentPage
         {
             bv.SetTranslationRange(-range, range);
         }
+    }
+
+    private void OnBoneRotationXReset()
+    {
+        if (_currentModel == null) return;
+        if (_selectedBoneIndex < 0 || _selectedBoneIndex >= _currentModel.Bones.Count)
+            return;
+        var rot = _renderer.GetBoneRotation(_selectedBoneIndex);
+        rot.X = 0f;
+        _renderer.SetBoneRotation(_selectedBoneIndex, rot);
+        SavePoseState();
+        UpdateBoneViewValues();
+    }
+
+    private void OnBoneRotationYReset()
+    {
+        if (_currentModel == null) return;
+        if (_selectedBoneIndex < 0 || _selectedBoneIndex >= _currentModel.Bones.Count)
+            return;
+        var rot = _renderer.GetBoneRotation(_selectedBoneIndex);
+        rot.Y = 0f;
+        _renderer.SetBoneRotation(_selectedBoneIndex, rot);
+        SavePoseState();
+        UpdateBoneViewValues();
+    }
+
+    private void OnBoneRotationZReset()
+    {
+        if (_currentModel == null) return;
+        if (_selectedBoneIndex < 0 || _selectedBoneIndex >= _currentModel.Bones.Count)
+            return;
+        var rot = _renderer.GetBoneRotation(_selectedBoneIndex);
+        rot.Z = 0f;
+        _renderer.SetBoneRotation(_selectedBoneIndex, rot);
+        SavePoseState();
+        UpdateBoneViewValues();
+    }
+
+    private void OnBoneTranslationXReset()
+    {
+        if (_currentModel == null) return;
+        if (_selectedBoneIndex < 0 || _selectedBoneIndex >= _currentModel.Bones.Count)
+            return;
+        var t = _renderer.GetBoneTranslation(_selectedBoneIndex);
+        t.X = 0f;
+        _renderer.SetBoneTranslation(_selectedBoneIndex, t);
+        SavePoseState();
+        UpdateBoneViewValues();
+    }
+
+    private void OnBoneTranslationYReset()
+    {
+        if (_currentModel == null) return;
+        if (_selectedBoneIndex < 0 || _selectedBoneIndex >= _currentModel.Bones.Count)
+            return;
+        var t = _renderer.GetBoneTranslation(_selectedBoneIndex);
+        t.Y = 0f;
+        _renderer.SetBoneTranslation(_selectedBoneIndex, t);
+        SavePoseState();
+        UpdateBoneViewValues();
+    }
+
+    private void OnBoneTranslationZReset()
+    {
+        if (_currentModel == null) return;
+        if (_selectedBoneIndex < 0 || _selectedBoneIndex >= _currentModel.Bones.Count)
+            return;
+        var t = _renderer.GetBoneTranslation(_selectedBoneIndex);
+        t.Z = 0f;
+        _renderer.SetBoneTranslation(_selectedBoneIndex, t);
+        SavePoseState();
+        UpdateBoneViewValues();
     }
 }
