@@ -28,3 +28,7 @@ MiniMikuDance は、スマートフォン上で MMD 互換モデルを再生・�
 ```csharp
 using Microsoft.Maui.Graphics.Skia;
 ```
+
+## 操作のポイント
+
+- キー入力パネルと削除パネルでは、ボーンとフレームを選択するまで操作ボタンが無効のままです。

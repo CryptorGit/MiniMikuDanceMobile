@@ -5,7 +5,7 @@
              BackgroundColor="{StaticResource OverlayBackgroundColor}">
     <VerticalStackLayout Spacing="6" Padding="8">
         <Picker x:Name="BonePicker" Title="Bone" SelectedIndexChanged="OnBoneChanged" />
-        <Picker x:Name="FramePicker" Title="Frame" />
+        <Picker x:Name="FramePicker" Title="Frame" SelectedIndexChanged="OnFrameChanged" />
         <HorizontalStackLayout HorizontalOptions="End" Spacing="10">
             <Button Text="delete" x:Name="DeleteButton" Clicked="OnDeleteClicked" />
             <Button Text="cancel" x:Name="CancelButton" Clicked="OnCancelClicked" />
