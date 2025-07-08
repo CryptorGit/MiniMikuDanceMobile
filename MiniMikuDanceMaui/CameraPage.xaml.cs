@@ -417,7 +417,11 @@ public partial class CameraPage : ContentPage
         AbsoluteLayout.SetLayoutBounds(Viewer, new Rect(0, 0, W, H));
         AbsoluteLayout.SetLayoutFlags(Viewer, AbsoluteLayoutFlags.None);
         double bottomWidth = W * _bottomWidthRatio;
-        AbsoluteLayout.SetLayoutBounds(BottomRegion, new Rect((W - bottomWidth) / 2, H - bottomHeight, bottomWidth, bottomHeight));
+        AbsoluteLayout.SetLayoutBounds(BottomRegion,
+            new Rect((W - bottomWidth) / 2,
+                H - bottomHeight - safe.Bottom,
+                bottomWidth,
+                bottomHeight));
         AbsoluteLayout.SetLayoutFlags(BottomRegion, AbsoluteLayoutFlags.None);
     }
 
