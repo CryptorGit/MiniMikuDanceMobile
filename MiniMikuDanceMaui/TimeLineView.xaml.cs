@@ -23,6 +23,8 @@ public partial class TimeLineView : ContentView
     private readonly Dictionary<string, SKBitmap> _cache = new();
     private readonly Dictionary<string, (int Start, int End)> _cacheRange = new();
     private readonly Dictionary<string, SKCanvasView> _cursorLayers = new();
+    private readonly Dictionary<string, SKCanvasView> _gridLayers = new();
+    private SKBitmap? _gridBitmap;
     private IList<string> _availableBones = new List<string>();
     private string? _editingBone;
     private int _editingFrame;
@@ -77,6 +79,8 @@ public partial class TimeLineView : ContentView
             {
                 _player.OnFramePlayed += OnFramePlayed;
                 _frameCount = _editor?.Motion.Frames.Length ?? App.Initializer.Motion?.Frames.Length ?? 0;
+                BuildGridBitmap();
+                InvalidateGridLayers();
             }
             TimeSlider.InvalidateSurface();
         }
@@ -85,6 +89,7 @@ public partial class TimeLineView : ContentView
     {
         InitializeComponent();
         MotionPlayer = App.Initializer.MotionPlayer;
+        Scroll.Scrolled += (s, e) => InvalidateGridLayers();
     }
 
     private void InitializeTimeline()
@@ -93,7 +98,11 @@ public partial class TimeLineView : ContentView
         TimeGrid.Children.Clear();
         _bones.Clear();
         _cursorLayers.Clear();
+        _gridLayers.Clear();
         _cache.Clear();
+
+        _gridBitmap?.Dispose();
+        _gridBitmap = null;
 
         foreach (var bmp in _cache.Values)
             bmp.Dispose();
@@ -107,6 +116,8 @@ public partial class TimeLineView : ContentView
                 AddBoneRow(bone);
             }
         }
+        BuildGridBitmap();
+        InvalidateGridLayers();
         UpdateBonePickers();
         TimeSlider.InvalidateSurface();
     }
@@ -136,16 +147,26 @@ public partial class TimeLineView : ContentView
         TimeGrid.Add(label, 0, row);
 
         var rowGrid = new Grid();
-        var canvas = new SKCanvasView
+        var gridCanvas = new SKCanvasView
+        {
+            InputTransparent = true,
+            WidthRequest = _frameCount * FrameWidth,
+            HeightRequest = 30
+        };
+        gridCanvas.BindingContext = bone;
+        gridCanvas.PaintSurface += OnGridPaintSurface;
+        rowGrid.Add(gridCanvas);
+
+        var keyCanvas = new SKCanvasView
         {
             EnableTouchEvents = true,
             WidthRequest = _frameCount * FrameWidth,
             HeightRequest = 30
         };
-        canvas.BindingContext = bone;
-        canvas.PaintSurface += OnKeyCanvasPaintSurface;
-        canvas.Touch += OnKeyCanvasTouched;
-        rowGrid.Add(canvas);
+        keyCanvas.BindingContext = bone;
+        keyCanvas.PaintSurface += OnKeyCanvasPaintSurface;
+        keyCanvas.Touch += OnKeyCanvasTouched;
+        rowGrid.Add(keyCanvas);
 
         var cursor = new SKCanvasView
         {
@@ -160,6 +181,7 @@ public partial class TimeLineView : ContentView
 
         _bones.Add(bone);
         _cursorLayers[bone] = cursor;
+        _gridLayers[bone] = gridCanvas;
         BuildCache(bone, 0, _frameCount - 1);
     }
 
@@ -185,9 +207,30 @@ public partial class TimeLineView : ContentView
         _cacheRange[bone] = (start, end);
     }
 
+    private void BuildGridBitmap()
+    {
+        int width = _frameCount * FrameWidth;
+        _gridBitmap?.Dispose();
+        _gridBitmap = new SKBitmap(width, 30);
+        using var canvas = new SKCanvas(_gridBitmap);
+        canvas.Clear();
+        using var paint = new SKPaint { Color = SKColors.DarkGray, StrokeWidth = 1 };
+        for (int f = 0; f <= _frameCount; f++)
+        {
+            float x = f * FrameWidth + FrameWidth / 2f;
+            canvas.DrawLine(x, 0, x, _gridBitmap.Height, paint);
+        }
+    }
+
     private void InvalidateCursorLayers()
     {
         foreach (var cv in _cursorLayers.Values)
+            cv.InvalidateSurface();
+    }
+
+    private void InvalidateGridLayers()
+    {
+        foreach (var cv in _gridLayers.Values)
             cv.InvalidateSurface();
     }
 
@@ -373,6 +416,18 @@ public partial class TimeLineView : ContentView
             float x = _currentFrame * FrameWidth + FrameWidth / 2f;
             using var paint = new SKPaint { Color = SKColors.Red, StrokeWidth = 2 };
             canvas.DrawLine(x, 0, x, e.Info.Height, paint);
+        }
+    }
+
+    private void OnGridPaintSurface(object? sender, SKPaintSurfaceEventArgs e)
+    {
+        var canvas = e.Surface.Canvas;
+        canvas.Clear();
+
+        if (_gridBitmap != null)
+        {
+            float offset = (float)Scroll.ScrollX;
+            canvas.DrawBitmap(_gridBitmap, -offset, 0);
         }
     }
 
