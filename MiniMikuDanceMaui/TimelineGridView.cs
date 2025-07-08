@@ -109,7 +109,7 @@ public class TimelineGridView : GraphicsView, IDrawable
             }
         }
 
-        canvas.StrokeColor = Colors.Cyan;
+        canvas.StrokeColor = Color.FromArgb("#006680");
         foreach (var (row, frame) in _selection)
         {
             canvas.DrawRectangle(frame * FrameScale, row * RowHeight, FrameScale, RowHeight);
