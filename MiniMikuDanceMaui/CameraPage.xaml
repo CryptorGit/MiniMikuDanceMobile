@@ -20,85 +20,85 @@
     </ContentPage.MenuBarItems>
     <AbsoluteLayout x:Name="Root">
         <!-- TopMenu を Overlay より前面に表示するため ZIndex を上げる -->
-        <HorizontalStackLayout x:Name="TopMenu" BackgroundColor="#2A2A2A" Spacing="20" Padding="10,0" HeightRequest="36" ZIndex="10">
-            <Label Text="File" TextColor="White">
+        <HorizontalStackLayout x:Name="TopMenu" BackgroundColor="{StaticResource MenuBackgroundColor}" Spacing="20" Padding="10,0" HeightRequest="36" ZIndex="10">
+            <Label Text="File" TextColor="{StaticResource TextColor}">
                 <Label.GestureRecognizers>
                     <TapGestureRecognizer Tapped="OnFileMenuTapped" />
                 </Label.GestureRecognizers>
             </Label>
-            <Label Text="Edit" TextColor="White"/>
-            <Label Text="Selection" TextColor="White"/>
-            <Label Text="View" TextColor="White">
+            <Label Text="Edit" TextColor="{StaticResource TextColor}"/>
+            <Label Text="Selection" TextColor="{StaticResource TextColor}"/>
+            <Label Text="View" TextColor="{StaticResource TextColor}">
                 <Label.GestureRecognizers>
                     <TapGestureRecognizer Tapped="OnViewMenuTapped" />
                 </Label.GestureRecognizers>
             </Label>
-            <Label Text="Setting" TextColor="White">
+            <Label Text="Setting" TextColor="{StaticResource TextColor}">
                 <Label.GestureRecognizers>
                     <TapGestureRecognizer Tapped="OnSettingMenuTapped" />
                 </Label.GestureRecognizers>
             </Label>
-            <Label Text="Help" TextColor="White"/>
+            <Label Text="Help" TextColor="{StaticResource TextColor}"/>
         </HorizontalStackLayout>
-        <Frame x:Name="ViewMenu" IsVisible="False" BackgroundColor="#1E1E1E" Padding="0" ZIndex="20">
+        <Frame x:Name="ViewMenu" IsVisible="False" BackgroundColor="{StaticResource BackgroundColor}" Padding="0" ZIndex="20">
             <VerticalStackLayout Spacing="4" Padding="8">
-                <Label Text="Home" TextColor="White">
+                <Label Text="Home" TextColor="{StaticResource TextColor}">
                     <Label.GestureRecognizers>
                         <TapGestureRecognizer Tapped="OnHomeClicked" />
                     </Label.GestureRecognizers>
                 </Label>
-                <Label Text="Explorer" TextColor="White">
+                <Label Text="Explorer" TextColor="{StaticResource TextColor}">
                     <Label.GestureRecognizers>
                         <TapGestureRecognizer Tapped="OnExplorerClicked" />
                     </Label.GestureRecognizers>
                 </Label>
-                <Label Text="Bone" TextColor="White">
+                <Label Text="Bone" TextColor="{StaticResource TextColor}">
                     <Label.GestureRecognizers>
                         <TapGestureRecognizer Tapped="OnBoneClicked" />
                     </Label.GestureRecognizers>
                 </Label>
-                <Label Text="Lighting" TextColor="White">
+                <Label Text="Lighting" TextColor="{StaticResource TextColor}">
                     <Label.GestureRecognizers>
                         <TapGestureRecognizer Tapped="OnLightingClicked" />
                     </Label.GestureRecognizers>
                 </Label>
-                <Label Text="Camera" TextColor="White">
+                <Label Text="Camera" TextColor="{StaticResource TextColor}">
                     <Label.GestureRecognizers>
                         <TapGestureRecognizer Tapped="OnCameraClicked" />
                     </Label.GestureRecognizers>
                 </Label>
-                <Label Text="Terminal" TextColor="White">
+                <Label Text="Terminal" TextColor="{StaticResource TextColor}">
                     <Label.GestureRecognizers>
                         <TapGestureRecognizer Tapped="OnTerminalClicked" />
                     </Label.GestureRecognizers>
                 </Label>
-                <Label Text="Timeline" TextColor="White">
+                <Label Text="Timeline" TextColor="{StaticResource TextColor}">
                     <Label.GestureRecognizers>
                         <TapGestureRecognizer Tapped="OnTimelineClicked" />
                     </Label.GestureRecognizers>
                 </Label>
             </VerticalStackLayout>
         </Frame>
-        <Frame x:Name="FileMenu" IsVisible="False" BackgroundColor="#1E1E1E" Padding="0" ZIndex="20">
+        <Frame x:Name="FileMenu" IsVisible="False" BackgroundColor="{StaticResource BackgroundColor}" Padding="0" ZIndex="20">
             <VerticalStackLayout Spacing="4" Padding="8">
-                <Label Text="Import VRM" TextColor="White">
+                <Label Text="Import VRM" TextColor="{StaticResource TextColor}">
                     <Label.GestureRecognizers>
                         <TapGestureRecognizer Tapped="OnOpenInViewerClicked" />
                     </Label.GestureRecognizers>
                 </Label>
-                <Label Text="Estimate Pose" TextColor="White">
+                <Label Text="Estimate Pose" TextColor="{StaticResource TextColor}">
                     <Label.GestureRecognizers>
                         <TapGestureRecognizer Tapped="OnEstimatePoseClicked" />
                     </Label.GestureRecognizers>
                 </Label>
-                <Label Text="Adapt Pose" TextColor="White">
+                <Label Text="Adapt Pose" TextColor="{StaticResource TextColor}">
                     <Label.GestureRecognizers>
                         <TapGestureRecognizer Tapped="OnAdaptPoseClicked" />
                     </Label.GestureRecognizers>
                 </Label>
             </VerticalStackLayout>
         </Frame>
-        <Frame x:Name="SettingMenu" IsVisible="False" BackgroundColor="#1E1E1E" Padding="8" ZIndex="20">
+        <Frame x:Name="SettingMenu" IsVisible="False" BackgroundColor="{StaticResource BackgroundColor}" Padding="8" ZIndex="20">
             <VerticalStackLayout Spacing="10">
                 <mmd:SettingView x:Name="SettingContent" />
             </VerticalStackLayout>
@@ -109,30 +109,30 @@
                 <TapGestureRecognizer Tapped="OnOverlayTapped" />
             </BoxView.GestureRecognizers>
         </BoxView>
-        <Frame x:Name="FileSelectMessage" IsVisible="False" BackgroundColor="#1E1E1E" Padding="8" ZIndex="30">
+        <Frame x:Name="FileSelectMessage" IsVisible="False" BackgroundColor="{StaticResource BackgroundColor}" Padding="8" ZIndex="30">
             <VerticalStackLayout Spacing="6">
-                <Label Text="VRMファイルを以下から選択してください" TextColor="White" />
-                <Label x:Name="SelectedFilePath" TextColor="White" FontSize="12" />
+                <Label Text="VRMファイルを以下から選択してください" TextColor="{StaticResource TextColor}" />
+                <Label x:Name="SelectedFilePath" TextColor="{StaticResource TextColor}" FontSize="12" />
                 <HorizontalStackLayout HorizontalOptions="Center" Spacing="20">
                     <Button Text="インポート" Clicked="OnImportClicked" />
                     <Button Text="キャンセル" Clicked="OnCancelImportClicked" />
                 </HorizontalStackLayout>
             </VerticalStackLayout>
         </Frame>
-        <Frame x:Name="PoseSelectMessage" IsVisible="False" BackgroundColor="#1E1E1E" Padding="8" ZIndex="30">
+        <Frame x:Name="PoseSelectMessage" IsVisible="False" BackgroundColor="{StaticResource BackgroundColor}" Padding="8" ZIndex="30">
             <VerticalStackLayout Spacing="6">
-                <Label Text="動画ファイルを以下から選択してください" TextColor="White" />
-                <Label x:Name="SelectedVideoPath" TextColor="White" FontSize="12" />
+                <Label Text="動画ファイルを以下から選択してください" TextColor="{StaticResource TextColor}" />
+                <Label x:Name="SelectedVideoPath" TextColor="{StaticResource TextColor}" FontSize="12" />
                 <HorizontalStackLayout HorizontalOptions="Center" Spacing="20">
                     <Button Text="Start" Clicked="OnStartEstimateClicked" />
                     <Button Text="キャンセル" Clicked="OnCancelEstimateClicked" />
                 </HorizontalStackLayout>
             </VerticalStackLayout>
         </Frame>
-        <Frame x:Name="AdaptSelectMessage" IsVisible="False" BackgroundColor="#1E1E1E" Padding="8" ZIndex="30">
+        <Frame x:Name="AdaptSelectMessage" IsVisible="False" BackgroundColor="{StaticResource BackgroundColor}" Padding="8" ZIndex="30">
             <VerticalStackLayout Spacing="6">
-                <Label Text="ポーズファイルを以下から選択してください" TextColor="White" />
-                <Label x:Name="SelectedPosePath" TextColor="White" FontSize="12" />
+                <Label Text="ポーズファイルを以下から選択してください" TextColor="{StaticResource TextColor}" />
+                <Label x:Name="SelectedPosePath" TextColor="{StaticResource TextColor}" FontSize="12" />
                 <HorizontalStackLayout HorizontalOptions="Center" Spacing="20">
                     <Button Text="適用" Clicked="OnStartAdaptClicked" />
                     <Button Text="キャンセル" Clicked="OnCancelAdaptClicked" />
@@ -140,9 +140,9 @@
             </VerticalStackLayout>
         </Frame>
         <mmd:KeyInputPanel x:Name="KeyPanel" IsVisible="False" ZIndex="30" />
-        <ActivityIndicator x:Name="LoadingIndicator" IsRunning="True" IsVisible="False" Color="Blue" ZIndex="30" />
+        <ActivityIndicator x:Name="LoadingIndicator" IsRunning="True" IsVisible="False" Color="{StaticResource IndicatorColor}" ZIndex="30" />
         <skia:SKGLView x:Name="Viewer" HasRenderLoop="True" EnableTouchEvents="True" />
-        <Grid x:Name="BottomRegion" BackgroundColor="#1E1E1E" IsVisible="False" ZIndex="2">
+        <Grid x:Name="BottomRegion" BackgroundColor="{StaticResource BackgroundColor}" IsVisible="False" ZIndex="2">
             <Grid.GestureRecognizers>
                 <TapGestureRecognizer Tapped="OnBottomRegionTapped" />
             </Grid.GestureRecognizers>
@@ -156,9 +156,9 @@
                     <ColumnDefinition Width="40" />
                 </Grid.ColumnDefinitions>
                 <ScrollView Orientation="Horizontal">
-                    <HorizontalStackLayout x:Name="BottomTabBar" Spacing="8" Padding="8" BackgroundColor="#2A2A2A" />
+                    <HorizontalStackLayout x:Name="BottomTabBar" Spacing="8" Padding="8" BackgroundColor="{StaticResource MenuBackgroundColor}" />
                 </ScrollView>
-                <Label Text="×" Grid.Column="1" TextColor="White" HorizontalTextAlignment="Center" VerticalTextAlignment="Center">
+                <Label Text="×" Grid.Column="1" TextColor="{StaticResource TextColor}" HorizontalTextAlignment="Center" VerticalTextAlignment="Center">
                     <Label.GestureRecognizers>
                         <TapGestureRecognizer Tapped="OnCloseBottomTapped" />
                     </Label.GestureRecognizers>

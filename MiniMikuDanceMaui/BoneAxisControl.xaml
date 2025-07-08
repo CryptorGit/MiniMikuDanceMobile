@@ -6,16 +6,16 @@
         <!-- 列幅を可変にして小さい画面でも見切れないよう調整 -->
         <Grid ColumnDefinitions="*,Auto,Auto,Auto" RowSpacing="0">
             <HorizontalStackLayout Grid.Column="0" Spacing="2" VerticalOptions="Center">
-                <Label x:Name="TypeLabel" Text="Rot" TextColor="White" />
-                <Label x:Name="AxisLabel" Text="X" TextColor="White" />
-                <Label x:Name="ValueLabel" Text="0" TextColor="White" WidthRequest="40" />
+                <Label x:Name="TypeLabel" Text="Rot" TextColor="{StaticResource TextColor}" />
+                <Label x:Name="AxisLabel" Text="X" TextColor="{StaticResource TextColor}" />
+                <Label x:Name="ValueLabel" Text="0" TextColor="{StaticResource TextColor}" WidthRequest="40" />
             </HorizontalStackLayout>
             <HorizontalStackLayout Grid.Column="1" Spacing="2" VerticalOptions="Center">
-                <Label Text="Ctr:" TextColor="White" VerticalOptions="Center" />
+                <Label Text="Ctr:" TextColor="{StaticResource TextColor}" VerticalOptions="Center" />
                 <Picker x:Name="CenterPicker" WidthRequest="60" SelectedIndexChanged="OnCenterChanged" />
             </HorizontalStackLayout>
             <HorizontalStackLayout Grid.Column="2" Spacing="2" VerticalOptions="Center">
-                <Label Text="Rng:" TextColor="White" VerticalOptions="Center" />
+                <Label Text="Rng:" TextColor="{StaticResource TextColor}" VerticalOptions="Center" />
                 <Picker x:Name="RangePicker" WidthRequest="60" SelectedIndexChanged="OnRangeChanged" />
             </HorizontalStackLayout>
             <Button x:Name="ResetButton" Text="Reset" Grid.Column="3" Clicked="OnResetClicked" VerticalOptions="Center" />
