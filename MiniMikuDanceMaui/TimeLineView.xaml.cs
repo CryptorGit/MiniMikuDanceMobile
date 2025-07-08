@@ -73,6 +73,8 @@ public partial class TimeLineView : ContentView
         TimeGrid.RowDefinitions.Clear();
         TimeGrid.Children.Clear();
         _bones.Clear();
+        _cursorLayers.Clear();
+        _cache.Clear();
 
         if (_editor != null)
         {
