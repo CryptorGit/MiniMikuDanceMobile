@@ -22,12 +22,6 @@ MiniMikuDance は、スマートフォン上で MMD 互換モデルを再生・�
 ```
 パッケージ追加後に `dotnet restore` を実行すると解決します。
 
-`SkiaCanvas` が見つからない場合は、`MiniMikuDanceMaui/TimelineGridView.cs`
-に次の using ディレクティブを追加してください。
-
-```csharp
-using Microsoft.Maui.Graphics.Skia;
-```
 
 ## 操作のポイント
 
