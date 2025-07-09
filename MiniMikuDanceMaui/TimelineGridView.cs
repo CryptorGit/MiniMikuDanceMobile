@@ -38,6 +38,8 @@ public class TimelineGridView : GraphicsView, IDrawable
 
     public event Action<int, int>? KeyLongPressed;
 
+    public event Action? SelectionChanged;
+
     public TimelineGridView()
     {
         Drawable = this;
@@ -182,7 +184,7 @@ public class TimelineGridView : GraphicsView, IDrawable
         return null;
     }
 
-    private void OnStartInteraction(object? sender, GraphicsView.TouchEventArgs e)
+    private void OnStartInteraction(object? sender, TouchEventArgs e)
     {
         _pressHit = null;
         if (e.Touches.Length == 0) return;
@@ -221,7 +223,7 @@ public class TimelineGridView : GraphicsView, IDrawable
         }
     }
 
-    private void OnEndInteraction(object? sender, GraphicsView.TouchEventArgs e)
+    private void OnEndInteraction(object? sender, TouchEventArgs e)
     {
         _pressCts?.Cancel();
         if (!_longPressTriggered && _pressHit != null)
@@ -240,7 +242,7 @@ public class TimelineGridView : GraphicsView, IDrawable
         _dragging = false;
     }
 
-    private void OnDragInteraction(object? sender, GraphicsView.TouchEventArgs e)
+    private void OnDragInteraction(object? sender, TouchEventArgs e)
     {
         if (!_dragging || e.Touches.Length == 0) return;
         var pt = e.Touches[0];
