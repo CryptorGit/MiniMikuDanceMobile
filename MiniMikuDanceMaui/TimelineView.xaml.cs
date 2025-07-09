@@ -29,7 +29,8 @@ public partial class TimelineView : ContentView
                 BackgroundColor = Colors.Gray,
                 HeightRequest = 1,
                 HorizontalOptions = LayoutOptions.Fill,
-                VerticalOptions = LayoutOptions.End
+                VerticalOptions = LayoutOptions.End,
+                InputTransparent = true
             };
             Grid.SetRow(hLine, i);
             Grid.SetColumnSpan(hLine, 2);
@@ -41,7 +42,8 @@ public partial class TimelineView : ContentView
             BackgroundColor = Colors.Gray,
             WidthRequest = 1,
             HorizontalOptions = LayoutOptions.End,
-            VerticalOptions = LayoutOptions.Fill
+            VerticalOptions = LayoutOptions.Fill,
+            InputTransparent = true
         };
         Grid.SetColumn(vLine, 0);
         Grid.SetRowSpan(vLine, RowCount);
