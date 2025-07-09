@@ -1314,9 +1314,14 @@ public partial class CameraPage : ContentPage
         UpdateLayout();
     }
 
-    private void OnTimelineEditKey(TimeLineView tl)
+    private async void OnTimelineEditKey(TimeLineView tl)
     {
         if (_currentModel == null) return;
+        if (!tl.HasSelection)
+        {
+            await DisplayAlert("Warning", "キーが選択されていません", "OK");
+            return;
+        }
         var bones = _currentModel.HumanoidBoneList.Select(b => b.Name);
         KeyPanel.SetBones(bones);
         KeyPanel.SetFrame(
