@@ -14,6 +14,7 @@ public class MotionPlayer
     public bool IsPlaying => _playing;
     public int FrameIndex => _frameIndex;
     public event Action<JointData>? OnFramePlayed;
+    public event Action? OnStopped;
 
     public void Play(MotionData data)
     {
@@ -44,6 +45,7 @@ public class MotionPlayer
         _playing = false;
         _frameIndex = 0;
         _elapsed = 0f;
+        OnStopped?.Invoke();
     }
 
     public void Restart()
@@ -73,6 +75,7 @@ public class MotionPlayer
             else
             {
                 _playing = false;
+                OnStopped?.Invoke();
             }
         }
     }
