@@ -24,10 +24,10 @@
 
     <!-- default font style -->
     <Style TargetType="Label">
-        <Setter Property="FontSize" Value="11" />
+        <Setter Property="FontSize" Value="14" />
     </Style>
     <Style TargetType="Button">
-        <Setter Property="FontSize" Value="11" />
+        <Setter Property="FontSize" Value="14" />
     </Style>
 
 </ResourceDictionary>

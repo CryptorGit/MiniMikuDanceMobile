@@ -747,7 +747,7 @@ public partial class CameraPage : ContentPage
             {
                 Text = name,
                 TextColor = (Color)Application.Current.Resources["TextColor"],
-                FontSize = 14,
+                FontSize = 16,
                 HorizontalTextAlignment = TextAlignment.Center,
                 VerticalTextAlignment = TextAlignment.Center
             };
