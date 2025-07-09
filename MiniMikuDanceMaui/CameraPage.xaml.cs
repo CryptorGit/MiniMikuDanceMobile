@@ -850,13 +850,14 @@ public partial class CameraPage : ContentPage
             {
                 BottomScroll.IsEnabled = false;
                 BottomScroll.VerticalScrollBarVisibility = ScrollBarVisibility.Never;
+                BottomScroll.InputTransparent = true;
             }
             else
             {
                 BottomScroll.IsEnabled = true;
                 BottomScroll.VerticalScrollBarVisibility = ScrollBarVisibility.Always;
+                BottomScroll.InputTransparent = false;
             }
-            BottomScroll.InputTransparent = false;
         }
     }
 
