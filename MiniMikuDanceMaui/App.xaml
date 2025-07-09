@@ -10,6 +10,7 @@
             </ResourceDictionary.MergedDictionaries>
             <!-- サイズ設定 -->
             <x:Double x:Key="RowHeight">44</x:Double>
+            <x:Double x:Key="HalfRowHeight">22</x:Double>
         </ResourceDictionary>
      </Application.Resources>
  </Application>
