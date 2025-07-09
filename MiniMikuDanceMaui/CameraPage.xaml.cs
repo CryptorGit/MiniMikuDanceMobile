@@ -279,6 +279,14 @@ public partial class CameraPage : ContentPage
         HideSettingMenu();
     }
 
+    private void OnTimelineClicked(object? sender, EventArgs e)
+    {
+        LogService.WriteLine("TIMELINE button clicked");
+        ShowBottomFeature("TIMELINE");
+        HideViewMenu();
+        HideSettingMenu();
+    }
+
 
     private void OnCloseBottomTapped(object? sender, TappedEventArgs e)
     {
@@ -675,6 +683,11 @@ public partial class CameraPage : ContentPage
                 var tv = new TerminalView();
                 view = tv;
             }
+            else if (name == "TIMELINE")
+            {
+                var tv = new TimelineView();
+                view = tv;
+            }
             else if (name == "MTOON")
             {
                 var mv = new LightingView
@@ -814,6 +827,10 @@ public partial class CameraPage : ContentPage
             // nothing to update
         }
         else if (name == "TERMINAL" && _bottomViews[name] is TerminalView)
+        {
+            // nothing to update
+        }
+        else if (name == "TIMELINE" && _bottomViews[name] is TimelineView)
         {
             // nothing to update
         }
