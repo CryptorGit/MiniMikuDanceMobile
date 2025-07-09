@@ -32,6 +32,11 @@ public class TimelineGridView : GraphicsView, IDrawable
     private (int Row, int Frame)? _pressHit;
     private bool _longPressTriggered;
 
+    /// <summary>
+    /// 選択状態が変化したときに発生するイベント。
+    /// </summary>
+    public event Action? SelectionChanged;
+
     public event Action<int, int>? KeyLongPressed;
 
     public TimelineGridView()
@@ -130,6 +135,7 @@ public class TimelineGridView : GraphicsView, IDrawable
     {
         _selection.Clear();
         Invalidate();
+        SelectionChanged?.Invoke();
     }
 
     public void Select(int row, int frame, bool append = false)
@@ -137,6 +143,7 @@ public class TimelineGridView : GraphicsView, IDrawable
         if (!append) _selection.Clear();
         _selection.Add((row, frame));
         Invalidate();
+        SelectionChanged?.Invoke();
     }
 
     public (int Row, int Frame)? HitTest(PointF point)
