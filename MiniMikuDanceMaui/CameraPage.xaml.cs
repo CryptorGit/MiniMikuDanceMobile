@@ -846,9 +846,17 @@ public partial class CameraPage : ContentPage
             BottomContent.Content = view;
             _currentFeature = name;
             UpdateTabColors();
-            BottomScroll.IsEnabled = true;
+            if (name == "TIMELINE")
+            {
+                BottomScroll.IsEnabled = false;
+                BottomScroll.VerticalScrollBarVisibility = ScrollBarVisibility.Never;
+            }
+            else
+            {
+                BottomScroll.IsEnabled = true;
+                BottomScroll.VerticalScrollBarVisibility = ScrollBarVisibility.Always;
+            }
             BottomScroll.InputTransparent = false;
-            BottomScroll.VerticalScrollBarVisibility = ScrollBarVisibility.Always;
         }
     }
 
