@@ -30,7 +30,4 @@
   <ItemGroup>
     <!-- 追加のアセットが必要な場合はここに記述します -->
   </ItemGroup>
-  <ItemGroup>
-    <MauiFont Include="Resources/Fonts/NotoSansJP-Regular.otf" Alias="NotoSansJP" />
-  </ItemGroup>
 </Project>

@@ -11,7 +11,7 @@
   "elevDock": 8,
   "elevFab": 16,
   "spacingUnit": 4,
-  "fontFamily": "Noto Sans CJK",
+  "fontFamily": "sans-serif",
   "fontWeight": "Regular",
   "fontSizeCaption": 12,
   "fontSizeDisplay": 34

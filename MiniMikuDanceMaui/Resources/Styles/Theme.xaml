@@ -24,11 +24,9 @@
 
     <!-- default font style -->
     <Style TargetType="Label">
-        <Setter Property="FontFamily" Value="NotoSansJP" />
         <Setter Property="FontSize" Value="11" />
     </Style>
     <Style TargetType="Button">
-        <Setter Property="FontFamily" Value="NotoSansJP" />
         <Setter Property="FontSize" Value="11" />
     </Style>
 
