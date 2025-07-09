@@ -32,11 +32,19 @@
                  HorizontalOptions="Fill"
                  VerticalOptions="End" />
 
-        <!-- 3段目: 縦スクロール可能領域 -->
-        <ScrollView Grid.Row="2" Orientation="Vertical">
-            <Grid x:Name="TimelineGrid" ColumnDefinitions="1*,3*" RowSpacing="0" Margin="0,-1,0,0">
+        <!-- 3段目: 縦横スクロール領域 -->
+        <ScrollView x:Name="VerticalScroll"
+                    Grid.Row="2"
+                    Orientation="Vertical"
+                    VerticalScrollBarVisibility="Always">
+            <Grid x:Name="TimelineGrid"
+                  ColumnDefinitions="1*,3*"
+                  RowSpacing="0">
                 <Grid x:Name="LeftFixedGrid" BackgroundColor="{StaticResource MenuBackgroundColor}" />
-                <ScrollView x:Name="RightScroll" Grid.Column="1" Orientation="Horizontal">
+                <ScrollView x:Name="RightScroll"
+                            Grid.Column="1"
+                            Orientation="Horizontal"
+                            HorizontalScrollBarVisibility="Always">
                     <Grid x:Name="RightContentGrid" RowSpacing="0" />
                 </ScrollView>
             </Grid>
