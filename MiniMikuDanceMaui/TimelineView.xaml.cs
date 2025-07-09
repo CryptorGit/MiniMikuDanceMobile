@@ -1,4 +1,5 @@
 using Microsoft.Maui.Controls;
+using Microsoft.Maui.Dispatching;
 
 namespace MiniMikuDanceMaui;
 
@@ -51,21 +52,27 @@ public partial class TimelineView : ContentView
         TimelineGrid.Add(vLine);
     }
 
-    async void OnLeftScrolled(object? sender, ScrolledEventArgs e)
+    void OnLeftScrolled(object? sender, ScrolledEventArgs e)
     {
         if (_suppressScroll)
             return;
         _suppressScroll = true;
-        await RightScroll.ScrollToAsync(RightScroll.ScrollX, e.ScrollY, false);
-        _suppressScroll = false;
+        MainThread.BeginInvokeOnMainThread(async () =>
+        {
+            await RightScroll.ScrollToAsync(RightScroll.ScrollX, e.ScrollY, false);
+            _suppressScroll = false;
+        });
     }
 
-    async void OnRightScrolled(object? sender, ScrolledEventArgs e)
+    void OnRightScrolled(object? sender, ScrolledEventArgs e)
     {
         if (_suppressScroll)
             return;
         _suppressScroll = true;
-        await LeftScroll.ScrollToAsync(0, e.ScrollY, false);
-        _suppressScroll = false;
+        MainThread.BeginInvokeOnMainThread(async () =>
+        {
+            await LeftScroll.ScrollToAsync(0, e.ScrollY, false);
+            _suppressScroll = false;
+        });
     }
 }
