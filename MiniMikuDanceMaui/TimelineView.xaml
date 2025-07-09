@@ -18,12 +18,12 @@
             <Button Text="DELEKEY" Grid.Column="3" />
         </Grid>
 
-        <!-- 2段目: 左右1:3の領域 -->
-        <Grid Grid.Row="1" ColumnDefinitions="1*,3*" Padding="4" ColumnSpacing="4">
+        <!-- 2段目: 左右1:3の領域 - 三段目と縦線を揃える -->
+        <Grid Grid.Row="1" ColumnDefinitions="1*,3*" ColumnSpacing="0" Padding="0">
             <!-- 左側領域 -->
-            <ContentView BackgroundColor="{StaticResource MenuBackgroundColor}" />
+            <ContentView BackgroundColor="{StaticResource MenuBackgroundColor}" HorizontalOptions="Fill" />
             <!-- 右側領域 -->
-            <ContentView Grid.Column="1" BackgroundColor="{StaticResource SurfaceDarkColor}" />
+            <ContentView Grid.Column="1" BackgroundColor="{StaticResource SurfaceDarkColor}" HorizontalOptions="Fill" />
         </Grid>
 
         <!-- 3段目: 縦スクロール可能領域 -->
