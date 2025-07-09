@@ -22,6 +22,11 @@ public partial class TimeLineView : ContentView
     private bool _syncingScroll;
     private List<string> _bones = new();
 
+    /// <summary>
+    /// タイムライン上でキーが選択されているかを示す。
+    /// </summary>
+    public bool HasSelection => GridView.Selection.Any();
+
     public TimeLineView()
     {
         LogService.WriteLine("TimeLineView constructor");
@@ -38,6 +43,7 @@ public partial class TimeLineView : ContentView
         BoneList.Scrolled += OnBoneListScrolled;
         GridView.KeyLongPressed += OnGridKeyLongPressed;
         GridView.OnSeek += f => Seeked?.Invoke(f);
+        GridView.SelectionChanged += () => UpdateButtonStates()
     }
 
     public void SetBones(IEnumerable<string> bones)
@@ -101,6 +107,7 @@ public partial class TimeLineView : ContentView
     private void OnGridKeyLongPressed(int row, int frame)
     {
         EditKeyClicked?.Invoke();
+        UpdateButtonStates();
     }
 
     public void UpdateButtonStates()
@@ -111,7 +118,7 @@ public partial class TimeLineView : ContentView
         AddBoneButton.IsEnabled = !isPlaying;
         bool enableKeyButtons = hasBone && !isPlaying;
         AddKeyButton.IsEnabled = enableKeyButtons;
-        EditKeyButton.IsEnabled = enableKeyButtons;
+        EditKeyButton.IsEnabled = enableKeyButtons && HasSelection;
         DeleteKeyButton.IsEnabled = enableKeyButtons;
     }
 }
