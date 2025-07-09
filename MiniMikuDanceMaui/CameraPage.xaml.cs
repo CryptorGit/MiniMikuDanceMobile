@@ -699,6 +699,7 @@ public partial class CameraPage : ContentPage
                 tl.PlayClicked += OnTimelinePlay;
                 tl.PauseClicked += OnTimelinePause;
                 tl.StopClicked += OnTimelineStop;
+                tl.Seeked += OnAnimationFrameChanged;
                 tl.CloseClicked += () => RemoveBottomFeature("TIMELINE");
                 view = tl;
             }
