@@ -25,6 +25,12 @@
             <!-- 右側領域 -->
             <ContentView Grid.Column="1" BackgroundColor="{StaticResource SurfaceDarkColor}" HorizontalOptions="Fill" />
         </Grid>
+        <!-- 2段目の下に表示する横線 -->
+        <BoxView Grid.Row="1"
+                 BackgroundColor="Gray"
+                 HeightRequest="1"
+                 HorizontalOptions="Fill"
+                 VerticalOptions="End" />
 
         <!-- 3段目: 縦スクロール可能領域 -->
         <ScrollView Grid.Row="2" Orientation="Vertical">
