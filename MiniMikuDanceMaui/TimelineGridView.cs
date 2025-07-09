@@ -140,8 +140,16 @@ public class TimelineGridView : GraphicsView, IDrawable
 
     public void Select(int row, int frame, bool append = false)
     {
+        var key = (row, frame);
+        if (_selection.Contains(key))
+        {
+            _selection.Remove(key);
+            Invalidate();
+            return;
+        }
+
         if (!append) _selection.Clear();
-        _selection.Add((row, frame));
+        _selection.Add(key);
         Invalidate();
         SelectionChanged?.Invoke();
     }
