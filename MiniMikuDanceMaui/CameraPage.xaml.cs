@@ -279,14 +279,6 @@ public partial class CameraPage : ContentPage
         HideSettingMenu();
     }
 
-    private void OnTimelineClicked(object? sender, EventArgs e)
-    {
-        LogService.WriteLine("TIMELINE button clicked");
-        ShowBottomFeature("TIMELINE");
-        HideViewMenu();
-        HideSettingMenu();
-    }
-
 
     private void OnCloseBottomTapped(object? sender, TappedEventArgs e)
     {
@@ -683,26 +675,6 @@ public partial class CameraPage : ContentPage
                 var tv = new TerminalView();
                 view = tv;
             }
-            else if (name == "TIMELINE")
-            {
-                var tl = new TimeLineView();
-                if (_currentModel != null)
-                {
-                    var bones = _currentModel.HumanoidBoneList.Select(b => b.Name).ToList();
-                    tl.SetBones(bones);
-                }
-                tl.SetMotion(_motionEditor, App.Initializer.MotionPlayer);
-                tl.AddBoneClicked += () => OnTimelineAddBone(tl);
-                tl.AddKeyClicked += () => OnTimelineAddKey(tl);
-                tl.EditKeyClicked += () => OnTimelineEditKey(tl);
-                tl.DeleteKeyClicked += () => OnTimelineDeleteKey(tl);
-                tl.PlayClicked += OnTimelinePlay;
-                tl.PauseClicked += OnTimelinePause;
-                tl.StopClicked += OnTimelineStop;
-                tl.Seeked += OnAnimationFrameChanged;
-                tl.CloseClicked += () => RemoveBottomFeature("TIMELINE");
-                view = tl;
-            }
             else if (name == "MTOON")
             {
                 var mv = new LightingView
@@ -844,15 +816,6 @@ public partial class CameraPage : ContentPage
         else if (name == "TERMINAL" && _bottomViews[name] is TerminalView)
         {
             // nothing to update
-        }
-        else if (name == "TIMELINE" && _bottomViews[name] is TimeLineView tl)
-        {
-            tl.SetMotion(_motionEditor, App.Initializer.MotionPlayer);
-            if (_currentModel != null)
-            {
-                var bones = _currentModel.HumanoidBoneList.Select(b => b.Name);
-                tl.SetBones(bones);
-            }
         }
         SwitchBottomFeature(name);
         BottomRegion.IsVisible = true;
@@ -1224,10 +1187,6 @@ public partial class CameraPage : ContentPage
             }
         }
         KeyPanel.IsVisible = false;
-        if (_bottomViews.TryGetValue("TIMELINE", out var tv) && tv is TimeLineView tl)
-        {
-            tl.SetMotion(_motionEditor, App.Initializer.MotionPlayer);
-        }
         LoadingIndicator.IsVisible = false;
         UpdateLayout();
     }
@@ -1244,10 +1203,6 @@ public partial class CameraPage : ContentPage
         await Task.Delay(50);
         _motionEditor?.RemoveKeyFrame(bone, frame);
         DeletePanel.IsVisible = false;
-        if (_bottomViews.TryGetValue("TIMELINE", out var tv) && tv is TimeLineView tl)
-        {
-            tl.SetMotion(_motionEditor, App.Initializer.MotionPlayer);
-        }
         LoadingIndicator.IsVisible = false;
         UpdateLayout();
     }
@@ -1285,110 +1240,6 @@ public partial class CameraPage : ContentPage
         }
     }
 
-    private async void OnTimelineAddBone(TimeLineView tl)
-    {
-        if (_currentModel == null) return;
-
-        var bones = _currentModel.Bones.Select(b => b.Name).ToArray();
-        string? bone = await DisplayActionSheet("Select Bone", "Cancel", null, bones);
-        if (string.IsNullOrEmpty(bone) || bone == "Cancel")
-            return;
-
-        int row = tl.AddBone(bone);
-        await tl.ScrollToRowAsync(row);
-    }
-
-    private void OnTimelineAddKey(TimeLineView tl)
-    {
-        if (_currentModel == null) return;
-        var bones = _currentModel.HumanoidBoneList.Select(b => b.Name);
-        KeyPanel.SetBones(bones);
-        KeyPanel.SetFrame(
-            App.Initializer.MotionPlayer?.FrameIndex ?? 0,
-            _motionEditor,
-            GetBoneTranslationAtFrame,
-            GetBoneRotationAtFrame,
-            GetCurrentBoneTranslation,
-            GetCurrentBoneRotation);
-        KeyPanel.IsEditMode = false;
-        KeyPanel.IsVisible = true;
-        UpdateLayout();
-    }
-
-    private async void OnTimelineEditKey(TimeLineView tl)
-    {
-        if (_currentModel == null) return;
-        if (!tl.HasSelection)
-        {
-            await DisplayAlert("Warning", "キーが選択されていません", "OK");
-            return;
-        }
-        var bones = _currentModel.HumanoidBoneList.Select(b => b.Name);
-        KeyPanel.SetBones(bones);
-        KeyPanel.SetFrame(
-            App.Initializer.MotionPlayer?.FrameIndex ?? 0,
-            _motionEditor,
-            GetBoneTranslationAtFrame,
-            GetBoneRotationAtFrame,
-            GetCurrentBoneTranslation,
-            GetCurrentBoneRotation);
-        KeyPanel.IsEditMode = true;
-        KeyPanel.IsVisible = true;
-        UpdateLayout();
-    }
-
-    private void OnTimelineDeleteKey(TimeLineView tl)
-    {
-        if (_currentModel == null || _motionEditor == null) return;
-
-        var selection = tl.GridView.Selection.ToList();
-        if (selection.Count == 0)
-        {
-            var bones = _currentModel.HumanoidBoneList.Select(b => b.Name);
-            DeletePanel.SetBones(bones);
-            OnDeleteBoneChanged(DeletePanel.SelectedBoneIndex);
-            DeletePanel.IsVisible = true;
-            UpdateLayout();
-            return;
-        }
-
-        foreach (var pair in selection)
-        {
-            var row = pair.Row;
-            var frame = pair.Frame;
-            if (row < 0 || row >= _currentModel.HumanoidBoneList.Count) continue;
-            var bone = _currentModel.HumanoidBoneList[row].Name;
-            _motionEditor.RemoveKeyFrame(bone, frame, false);
-        }
-        _motionEditor.SaveState();
-
-        tl.GridView.ClearSelection();
-        tl.SetMotion(_motionEditor, App.Initializer.MotionPlayer);
-    }
-
-    private void OnTimelinePlay()
-    {
-        OnPlayAnimationRequested();
-        if (_bottomViews.TryGetValue("TIMELINE", out var tv) && tv is TimeLineView tl)
-            tl.UpdateButtonStates();
-    }
-
-    private void OnTimelinePause()
-    {
-        var player = App.Initializer.MotionPlayer;
-        player?.Pause();
-        if (_bottomViews.TryGetValue("TIMELINE", out var tv) && tv is TimeLineView tl)
-            tl.UpdateButtonStates();
-    }
-
-    private void OnTimelineStop()
-    {
-        var player = App.Initializer.MotionPlayer;
-        player?.Stop();
-        Viewer?.InvalidateSurface();
-        if (_bottomViews.TryGetValue("TIMELINE", out var tv) && tv is TimeLineView tl)
-            tl.UpdateButtonStates();
-    }
 
     private void UpdateSelectedBoneRotation(BoneView bv)
     {
