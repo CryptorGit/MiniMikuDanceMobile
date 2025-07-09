@@ -1482,8 +1482,16 @@ public partial class CameraPage : ContentPage
 
     private Vector3 GetBoneRotationAtFrame(string bone, int frame)
     {
-        // TODO: calculate rotation from motion data
-        return _renderer.GetBoneRotation(_selectedBoneIndex);
+        if (_motionEditor == null)
+            return Vector3.Zero;
+        if (!_boneToJoint.TryGetValue(bone, out var joint))
+            return Vector3.Zero;
+        var frames = _motionEditor.Motion.Frames;
+        if (frame < 0 || frame >= frames.Length)
+            return Vector3.Zero;
+
+        // 現状の JointData には回転情報が無いため、ゼロ回転を返す
+        return Vector3.Zero;
     }
 
     private Vector3 GetCurrentBoneTranslation(string bone)
