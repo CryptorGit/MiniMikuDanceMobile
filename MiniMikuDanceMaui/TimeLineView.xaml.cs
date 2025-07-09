@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Threading.Tasks;
 using System.Linq;
 using MiniMikuDance.Motion;
+using Microsoft.Maui.ApplicationModel;
 
 namespace MiniMikuDanceMaui;
 
@@ -20,6 +21,7 @@ public partial class TimeLineView : ContentView
 
     private bool _syncingScroll;
     private List<string> _bones = new();
+    private MotionPlayer? _player;
 
     public TimeLineView()
     {
@@ -67,8 +69,21 @@ public partial class TimeLineView : ContentView
     public void SetMotion(MotionEditor? editor, MotionPlayer? player)
     {
         LogService.WriteLine("SetMotion called");
+        if (_player != null)
+        {
+            _player.OnFramePlayed -= OnPlayerFramePlayed;
+            _player.OnStopped -= OnPlayerStopped;
+        }
+
+        _player = player;
         GridView.MotionEditor = editor;
         GridView.MotionPlayer = player;
+
+        if (_player != null)
+        {
+            _player.OnFramePlayed += OnPlayerFramePlayed;
+            _player.OnStopped += OnPlayerStopped;
+        }
         UpdateButtonStates();
     }
 
@@ -99,6 +114,20 @@ public partial class TimeLineView : ContentView
     private void OnGridKeyLongPressed(int row, int frame)
     {
         EditKeyClicked?.Invoke();
+    }
+
+    private void OnPlayerFramePlayed(MiniMikuDance.PoseEstimation.JointData obj)
+    {
+        MainThread.BeginInvokeOnMainThread(() => GridView.Invalidate());
+    }
+
+    private void OnPlayerStopped()
+    {
+        if (_player != null)
+        {
+            _player.OnFramePlayed -= OnPlayerFramePlayed;
+            _player.OnStopped -= OnPlayerStopped;
+        }
     }
 
     public void UpdateButtonStates()
