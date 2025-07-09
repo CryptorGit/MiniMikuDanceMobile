@@ -17,6 +17,7 @@ public partial class TimeLineView : ContentView
     public event Action? PlayClicked;
     public event Action? PauseClicked;
     public event Action? StopClicked;
+    public event Action<int>? Seeked;
 
     private bool _syncingScroll;
     private List<string> _bones = new();
@@ -36,6 +37,7 @@ public partial class TimeLineView : ContentView
         GridScroll.Scrolled += OnGridScrolled;
         BoneList.Scrolled += OnBoneListScrolled;
         GridView.KeyLongPressed += OnGridKeyLongPressed;
+        GridView.OnSeek += f => Seeked?.Invoke(f);
     }
 
     public void SetBones(IEnumerable<string> bones)

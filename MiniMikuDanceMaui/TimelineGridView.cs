@@ -32,6 +32,10 @@ public class TimelineGridView : GraphicsView, IDrawable
     private (int Row, int Frame)? _pressHit;
     private bool _longPressTriggered;
 
+    private bool _dragging;
+
+    public event Action<int>? OnSeek;
+
     public event Action<int, int>? KeyLongPressed;
 
     public TimelineGridView()
@@ -39,6 +43,7 @@ public class TimelineGridView : GraphicsView, IDrawable
         Drawable = this;
         LogService.WriteLine("TimelineGridView created");
         StartInteraction += OnStartInteraction;
+        DragInteraction += OnDragInteraction;
         EndInteraction += OnEndInteraction;
         CancelInteraction += OnCancelInteraction;
     }
@@ -177,6 +182,7 @@ public class TimelineGridView : GraphicsView, IDrawable
         _pressCts?.Cancel();
         if (_pressHit != null)
         {
+            _dragging = false;
             _pressCts = new CancellationTokenSource();
             var token = _pressCts.Token;
             _ = Task.Run(async () =>
@@ -198,6 +204,11 @@ public class TimelineGridView : GraphicsView, IDrawable
                 catch (TaskCanceledException) { }
             });
         }
+        else
+        {
+            _dragging = true;
+            SeekFromPoint(pt);
+        }
     }
 
     private void OnEndInteraction(object? sender, GraphicsView.TouchEventArgs e)
@@ -209,12 +220,29 @@ public class TimelineGridView : GraphicsView, IDrawable
             Select(r, f);
         }
         _pressHit = null;
+        _dragging = false;
     }
 
     private void OnCancelInteraction(object? sender, EventArgs e)
     {
         _pressCts?.Cancel();
         _pressHit = null;
+        _dragging = false;
+    }
+
+    private void OnDragInteraction(object? sender, GraphicsView.TouchEventArgs e)
+    {
+        if (!_dragging || e.Touches.Length == 0) return;
+        var pt = e.Touches[0];
+        SeekFromPoint(pt);
+    }
+
+    private void SeekFromPoint(PointF pt)
+    {
+        int frame = (int)(pt.X / FrameScale);
+        MotionPlayer?.Seek(frame);
+        OnSeek?.Invoke(frame);
+        Invalidate();
     }
 
     public void Draw(ICanvas canvas, RectF dirtyRect)
