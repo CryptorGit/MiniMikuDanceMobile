@@ -21,11 +21,7 @@ public static class MauiProgram
             // ← 型パラメータで自分の App クラスを渡す
             .UseMauiApp<App>()
             .UseMaterialOutlinedMauiIcons()
-            .UseSkiaSharp()
-            .ConfigureFonts(fonts =>
-            {
-                fonts.AddFont("NotoSansJP-Regular.otf", "NotoSansJP");
-            });
+            .UseSkiaSharp();
 
         return builder.Build();
     }
