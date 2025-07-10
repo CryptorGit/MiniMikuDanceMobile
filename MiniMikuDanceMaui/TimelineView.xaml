@@ -7,8 +7,8 @@
     <Grid RowDefinitions="Auto,40,*,Auto" RowSpacing="4" Padding="4">
         <!-- Frame control buttons -->
         <HorizontalStackLayout Spacing="6">
-            <Button Text="|<" Clicked="OnFrameToStartClicked" />
-            <Button Text="<"  Clicked="OnFrameMinusOneClicked" />
+            <Button Text="|&lt;" Clicked="OnFrameToStartClicked" />
+            <Button Text="&lt;"  Clicked="OnFrameMinusOneClicked" />
             <Entry x:Name="CurrentFrameEntry" WidthRequest="60" Text="0" Keyboard="Numeric" />
             <Button Text=">"  Clicked="OnFramePlusOneClicked" />
             <Button Text=">|" Clicked="OnFrameToEndClicked" />
