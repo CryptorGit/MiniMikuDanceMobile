@@ -8,8 +8,6 @@
              WidthRequest="300"
              HeightRequest="200">
     <Grid>
-        <Button Text="×" x:Name="CloseButton" Clicked="OnCancelClicked"
-                HorizontalOptions="End" VerticalOptions="Start" Margin="8" />
         <VerticalStackLayout Spacing="6" Padding="8">
         <Picker x:Name="BonePicker" Title="Bone" SelectedIndexChanged="OnBoneChanged" />
         <Picker x:Name="FramePicker" Title="Frame" SelectedIndexChanged="OnFrameChanged" />

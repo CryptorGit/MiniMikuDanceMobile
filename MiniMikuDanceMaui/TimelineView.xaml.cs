@@ -10,21 +10,24 @@ public partial class TimelineView : ContentView
 {
     const int FrameCount = 200;
     const float FrameWidth = 50f; // Increased width
-    const float HeaderHeight = 30f;
-    const float RowHeight = 40f; // Increased height
-    const float LeftPanelWidth = 180f; // Increased width
-    const float BoneNameFontSize = 24f; // Increased font size
-    const float HeaderFontSize = 18f; // Increased font size
+    const float HeaderHeight = 45f;
+    const float RowHeight = 60f; // Increased height
+    const float LeftPanelWidth = 225f; // Increased width
+    const float BoneNameFontSize = 36f; // Increased font size
+    const float HeaderFontSize = 27f; // Increased font size
 
     // Data model
     public ModelData? Model { get; set; }
+    public List<string> BoneNames => _boneNames;
     private List<string> _boneNames = new List<string>();
+    private Dictionary<string, List<int>> _keyframes = new Dictionary<string, List<int>>();
 
     // UI State
     private SKPoint _lastTouchPoint;
     private float _scrollX;
     private float _scrollY;
     private int _currentFrame = 0; // For playhead position
+    public int CurrentFrame => _currentFrame;
 
     public event EventHandler? AddKeyClicked;
     public event EventHandler? EditKeyClicked;
@@ -35,6 +38,20 @@ public partial class TimelineView : ContentView
         InitializeComponent();
         Debug.WriteLine("TimelineView initialized.");
         CurrentFrameEntry.TextChanged += CurrentFrameEntry_TextChanged;
+    }
+
+    public OpenTK.Mathematics.Vector3 GetBoneTranslationAtFrame(string boneName, int frame)
+    {
+        // TODO: Implement actual logic to get bone translation at a specific frame
+        // For now, return a dummy value
+        return OpenTK.Mathematics.Vector3.Zero;
+    }
+
+    public OpenTK.Mathematics.Vector3 GetBoneRotationAtFrame(string boneName, int frame)
+    {
+        // TODO: Implement actual logic to get bone rotation at a specific frame
+        // For now, return a dummy value
+        return OpenTK.Mathematics.Vector3.Zero;
     }
 
     private void OnPlayClicked(object? sender, EventArgs e)
@@ -113,6 +130,7 @@ public partial class TimelineView : ContentView
         if (selectedBone != null && selectedBone != "Cancel")
         {
             _boneNames.Add(selectedBone);
+            _keyframes[selectedBone] = new List<int>();
             TimelineCanvas.InvalidateSurface(); // Redraw to show the new bone
             Debug.WriteLine($"Added bone: {selectedBone}");
         }
@@ -150,18 +168,11 @@ public partial class TimelineView : ContentView
 
                 // Clamp scroll values
                 var totalContentWidth = FrameCount * FrameWidth;
-                var minRows = 1; 
-                var actualRowCount = Math.Max(minRows, _boneNames.Count);
+                var actualRowCount = Math.Max(1, _boneNames.Count);
                 var totalContentHeight = actualRowCount * RowHeight;
                 
-                if (TimelineCanvas.CanvasSize.Width > 0)
-                {
-                    _scrollX = Math.Clamp(_scrollX, 0, Math.Max(0, totalContentWidth - (TimelineCanvas.CanvasSize.Width - LeftPanelWidth)));
-                }
-                if (TimelineCanvas.CanvasSize.Height > 0)
-                {
-                    _scrollY = Math.Clamp(_scrollY, 0, Math.Max(0, totalContentHeight - TimelineCanvas.CanvasSize.Height));
-                }
+                _scrollX = Math.Clamp(_scrollX, 0, Math.Max(0, totalContentWidth - (TimelineCanvas.CanvasSize.Width - LeftPanelWidth)));
+                _scrollY = Math.Clamp(_scrollY, 0, Math.Max(0, totalContentHeight - (TimelineCanvas.CanvasSize.Height - HeaderHeight)));
 
                 _lastTouchPoint = e.Location;
                 
@@ -186,94 +197,109 @@ public partial class TimelineView : ContentView
         using var playheadPaint = new SKPaint { Color = SKColors.Red, StrokeWidth = 2 };
         using var keyPaint = new SKPaint { Color = SKColors.White, Style = SKPaintStyle.Fill, IsAntialias = true };
 
-        // === 1. Draw Right Panel (Scrollable Content) ===
-        canvas.Save();
-        canvas.Translate(LeftPanelWidth - _scrollX, 0); // Scroll only horizontally
-
         var totalContentWidth = FrameCount * FrameWidth;
-        var visibleRowCount = (int)((info.Height - HeaderHeight) / RowHeight);
-        var actualRowCount = Math.Max(visibleRowCount, _boneNames.Count);
-        var totalContentHeight = actualRowCount * RowHeight + HeaderHeight;
+        var actualRowCount = Math.Max(1, _boneNames.Count);
+        var totalContentHeight = actualRowCount * RowHeight;
 
-        // --- Draw timeline grid and keyframes ---
+        // === 1. Draw Right Panel (Horizontally scrollable) ===
         canvas.Save();
-        canvas.Translate(0, HeaderHeight - _scrollY); // Scroll only vertically for rows
-
-        // Draw alternating row backgrounds
-        for (int i = 0; i < actualRowCount; i++)
-        {
-            if (i % 2 == 1)
-            {
-                canvas.DrawRect(0, i * RowHeight, totalContentWidth, RowHeight, altRowPaint);
-            }
-        }
-
-        // Draw horizontal lines
-        for (int i = 0; i <= actualRowCount; i++)
-        {
-            var y = i * RowHeight;
-            canvas.DrawLine(0, y, totalContentWidth, y, linePaint);
-        }
-
-        // TODO: Draw actual keyframes based on data model
-
-        canvas.Restore();
+        canvas.Translate(LeftPanelWidth, 0);
+        canvas.ClipRect(new SKRect(0, 0, info.Width - LeftPanelWidth, info.Height));
+        canvas.Translate(-_scrollX, 0);
 
         // --- Draw header (time ruler) ---
         canvas.DrawRect(0, 0, totalContentWidth, HeaderHeight, headerBgPaint);
-        textPaint.TextSize = HeaderFontSize;
+        using var headerFont = new SKFont { Size = HeaderFontSize };
         for (int i = 0; i < FrameCount; i++)
         {
             var x = i * FrameWidth;
-            canvas.DrawLine(x, 0, x, totalContentHeight, linePaint); // Vertical lines through all rows
-
+            canvas.DrawLine(x, 0, x, HeaderHeight, linePaint);
             if (i % 5 == 0)
             {
-                var text = (i).ToString();
-                canvas.DrawText(text, x + 5, HeaderHeight - 10, textPaint);
+                var text = i.ToString();
+                canvas.DrawText(text, x + 5, HeaderHeight - 10, headerFont, textPaint);
             }
         }
 
-        canvas.Restore();
+        // --- Draw timeline grid and keyframes (vertically scrollable) ---
+        canvas.Save();
+        canvas.Translate(0, HeaderHeight - _scrollY);
 
-        // === 2. Draw Left Panel (Fixed Content) ===
+        // Draw alternating row backgrounds and horizontal lines
+        for (int i = 0; i < actualRowCount; i++)
+        {
+            var y = i * RowHeight;
+            if (i % 2 == 1)
+            {
+                canvas.DrawRect(0, y, totalContentWidth, RowHeight, altRowPaint);
+            }
+            canvas.DrawLine(0, y + RowHeight, totalContentWidth, y + RowHeight, linePaint);
+        }
+
+        // Draw vertical lines for the grid
+        for (int i = 0; i < FrameCount; i++)
+        {
+            var x = i * FrameWidth;
+            canvas.DrawLine(x, 0, x, totalContentHeight, linePaint);
+        }
+
+        // Draw keyframes
+        for (int i = 0; i < _boneNames.Count; i++)
+        {
+            var boneName = _boneNames[i];
+            if (_keyframes.TryGetValue(boneName, out var frames))
+            {
+                foreach (var frame in frames)
+                {
+                    DrawKeyframe(canvas, i, frame, keyPaint);
+                }
+            }
+        }
+
+        canvas.Restore(); // Restore from vertical scroll
+        canvas.Restore(); // Restore from horizontal scroll
+
+        // === 2. Draw Left Panel (Fixed Horizontally, Vertically scrollable) ===
         canvas.Save();
         canvas.ClipRect(new SKRect(0, 0, LeftPanelWidth, info.Height));
-        canvas.Clear(new SKColor(40, 40, 40)); // Background for the left panel
-
-        // --- Draw header part of the left panel ---
-        canvas.DrawRect(0, 0, LeftPanelWidth, HeaderHeight, headerBgPaint);
-        canvas.DrawLine(0, HeaderHeight, LeftPanelWidth, HeaderHeight, linePaint);
-
-        // --- Draw bone names ---
-        canvas.Translate(0, HeaderHeight - _scrollY); // Sync vertical scroll with the right panel
-        textPaint.TextSize = BoneNameFontSize;
+        // Draw alternating row backgrounds for left panel
+        canvas.Save();
+        canvas.Translate(0, HeaderHeight - _scrollY); // Sync vertical scroll
         for (int i = 0; i < _boneNames.Count; i++)
         {
             var y = i * RowHeight;
-            canvas.DrawText(_boneNames[i], 10, y + RowHeight - 10, textPaint);
+            if (i % 2 == 1)
+            {
+                canvas.DrawRect(0, y, LeftPanelWidth, RowHeight, altRowPaint);
+            }
+            else
+            {
+                canvas.DrawRect(0, y, LeftPanelWidth, RowHeight, new SKPaint { Color = new SKColor(40, 40, 40) }); // Base background for even rows
+            }
+            canvas.DrawLine(0, y + RowHeight, LeftPanelWidth, y + RowHeight, linePaint); // Horizontal line for bone names
+            canvas.DrawText(_boneNames[i], 10, y + (RowHeight / 2) + (BoneNameFontSize / 3), boneNameFont, textPaint);
         }
-
-        canvas.Restore();
+        canvas.Restore(); // Restore from vertical scroll
+        canvas.Restore(); // Restore from clip
 
         // === 3. Draw Playhead (on top of everything) ===
         var playheadX = LeftPanelWidth + _currentFrame * FrameWidth - _scrollX;
         if (playheadX >= LeftPanelWidth)
         {
-            canvas.DrawLine(playheadX, HeaderHeight, playheadX, info.Height, playheadPaint);
-            canvas.DrawLine(playheadX, 0, playheadX, HeaderHeight, playheadPaint); // Also draw on header
+            canvas.DrawLine(playheadX, 0, playheadX, info.Height, playheadPaint);
         }
     }
 
     void DrawKeyframe(SKCanvas canvas, int row, int frame, SKPaint paint)
     {
         var x = frame * FrameWidth + FrameWidth / 2;
-        var y = row * RowHeight + RowHeight / 2;
+        // Keyframe should be centered on the horizontal line at the bottom of the row
+        var y_line = (row + 1) * RowHeight + HeaderHeight; // Adjusted for header height and row bottom
         var path = new SKPath();
-        path.MoveTo(x, y - 10);
-        path.LineTo(x + 10, y);
-        path.LineTo(x, y + 10);
-        path.LineTo(x - 10, y);
+        path.MoveTo(x, y_line - 10); // Top point of diamond
+        path.LineTo(x + 10, y_line); // Right point
+        path.LineTo(x, y_line + 10); // Bottom point
+        path.LineTo(x - 10, y_line); // Left point
         path.Close();
         canvas.DrawPath(path, paint);
     }

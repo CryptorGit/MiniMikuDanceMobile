@@ -685,9 +685,27 @@ public partial class CameraPage : ContentPage
             {
                 var tv = new TimelineView();
                 tv.Model = _currentModel;
-                tv.AddKeyClicked += (s, e) => KeyPanel.IsVisible = true;
-                tv.EditKeyClicked += (s, e) => KeyPanel.IsVisible = true;
-                tv.DeleteKeyClicked += (s, e) => DeletePanel.IsVisible = true;
+                tv.AddKeyClicked += (s, e) => {
+                    KeyPanel.IsVisible = true;
+                    if (s is TimelineView timelineView) {
+                        KeyPanel.SetBones(timelineView.BoneNames);
+                    }
+                };
+                tv.EditKeyClicked += (s, e) => {
+                    KeyPanel.IsVisible = true;
+                    if (s is TimelineView timelineView) {
+                        KeyPanel.SetBones(timelineView.BoneNames);
+                        // For EditKey, we need to pass the current frame and bone data
+                        KeyPanel.SetFrame(timelineView.CurrentFrame, true, timelineView.GetBoneTranslationAtFrame, timelineView.GetBoneRotationAtFrame);
+                    }
+                };
+                tv.DeleteKeyClicked += (s, e) => {
+                    DeletePanel.IsVisible = true;
+                    if (s is TimelineView timelineView) {
+                        DeletePanel.SetBones(timelineView.BoneNames);
+                        // When bone changes in DeletePanel, it will request keyframes
+                    }
+                };
                 view = tv;
             }
             else if (name == "MTOON")
@@ -1202,6 +1220,11 @@ public partial class CameraPage : ContentPage
         await Task.Delay(50);
         _motionEditor?.AddKeyFrame(bone, frame);
 
+        if (_currentFeature == "TIMELINE" && _bottomViews.TryGetValue("TIMELINE", out var timelineView) && timelineView is TimelineView tv)
+        {
+            tv.AddKeyframe(bone, frame);
+        }
+
         if (_currentModel != null)
         {
             int index = _currentModel.HumanoidBoneList.FindIndex(h => h.Name == bone);
@@ -1258,13 +1281,17 @@ public partial class CameraPage : ContentPage
     private void OnDeleteBoneChanged(int index)
     {
         if (_currentModel == null) return;
-        if (index >= 0 && index < _currentModel.HumanoidBoneList.Count)
+        if (_bottomViews.TryGetValue("TIMELINE", out var timelineView) && timelineView is TimelineView tv)
         {
-            var bone = _currentModel.HumanoidBoneList[index].Name;
-            if (_motionEditor != null && _motionEditor.Motion.KeyFrames.TryGetValue(bone, out var set))
-                DeletePanel.SetFrames(set);
+            if (index >= 0 && index < tv.BoneNames.Count)
+            {
+                var bone = tv.BoneNames[index];
+                DeletePanel.SetFrames(tv.GetKeyframesForBone(bone));
+            }
             else
+            {
                 DeletePanel.SetFrames(Array.Empty<int>());
+            }
         }
     }
 
