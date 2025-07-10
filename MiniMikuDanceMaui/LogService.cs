@@ -1,5 +1,6 @@
 using System;
 using System.IO;
+using Microsoft.Maui.Storage;
 
 namespace MiniMikuDanceMaui;
 
@@ -11,12 +12,16 @@ public static class LogService
     private static readonly object _historyLock = new();
     private static readonly string _logFilePath;
     private static readonly string _logDirectory;
+    private static readonly string _terminalLogFilePath;
 
     static LogService()
     {
         _logDirectory = Path.Combine(FileSystem.AppDataDirectory, "Log");
         Directory.CreateDirectory(_logDirectory);
         _logFilePath = Path.Combine(_logDirectory, "DebugLog.txt");
+
+        var externalDir = MmdFileSystem.Ensure("log");
+        _terminalLogFilePath = Path.Combine(externalDir, "tarminalLog.txt");
     }
 
     public static IReadOnlyList<string> History
@@ -42,6 +47,14 @@ public static class LogService
             catch (Exception ex)
             {
                 System.Diagnostics.Debug.WriteLine($"Error writing to log file: {ex.Message}");
+            }
+            try
+            {
+                File.AppendAllText(_terminalLogFilePath, line + Environment.NewLine);
+            }
+            catch
+            {
+                // ignore logging failures to external file
             }
         }
         LineLogged?.Invoke(line);
