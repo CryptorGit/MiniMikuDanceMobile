@@ -236,9 +236,9 @@ public partial class TimelineView : ContentView
                 maxBoneNameWidth = Math.Max(maxBoneNameWidth, _boneNameFont.MeasureText(boneName));
             }
         }
-        BoneNameContentGrid.WidthRequest = Math.Max(LeftPanelWidth, maxBoneNameWidth + 20); // Add some padding
+                BoneNameContentGrid.WidthRequest = Math.Max(LeftPanelWidth, maxBoneNameWidth + 20); // Add some padding
 
-        Debug.WriteLine($"[TimelineView] UpdateCanvasSizes: actualRowCount={actualRowCount}, totalContentHeight={totalContentHeight}, maxBoneNameWidth={maxBoneNameWidth}, BoneNameCanvas.WidthRequest={BoneNameCanvas.WidthRequest}, TimelineContentCanvas.HeightRequest={TimelineContentCanvas.HeightRequest}, TimelineContentCanvas.WidthRequest={TimelineContentCanvas.WidthRequest}");
+        Debug.WriteLine($"[TimelineView] UpdateCanvasSizes: actualRowCount={actualRowCount}, totalContentHeight={totalContentHeight}, maxBoneNameWidth={maxBoneNameWidth}, BoneNameContentGrid.WidthRequest={BoneNameContentGrid.WidthRequest}, TimelineContentGrid.HeightRequest={TimelineContentGrid.HeightRequest}, TimelineContentGrid.WidthRequest={TimelineContentGrid.WidthRequest}");
     }
 
     
@@ -254,13 +254,16 @@ public partial class TimelineView : ContentView
         using var headerBgPaint = new SKPaint { Color = new SKColor(30, 30, 30) };
         using var textPaint = new SKPaint { Color = SKColors.White, IsAntialias = true };
 
-        var actualRowCount = Math.Max(1, _boneNames.Count);
+        canvas.Save();
+        canvas.Translate(0, -_scrollY);
+        canvas.ClipRect(info.Rect);
 
         // --- Draw header part of the left panel ---
         canvas.DrawRect(0, 0, info.Width, HeaderHeight, headerBgPaint);
         canvas.DrawLine(0, HeaderHeight, info.Width, HeaderHeight, linePaint);
 
         // --- Draw bone names ---
+        using var boneNameFont = new SKFont { Size = BoneNameFontSize };
         if (_boneNames.Count > 0)
         {
             var startRow = (int)(_scrollY / RowHeight);
@@ -282,6 +285,7 @@ public partial class TimelineView : ContentView
                 canvas.DrawText(_boneNames[i], 10, y + (RowHeight / 2) + (BoneNameFontSize / 3), _boneNameFont, textPaint);
             }
         }
+        canvas.Restore();
     }
 
     void OnTimelineContentPaintSurface(object? sender, SKPaintSurfaceEventArgs e)
@@ -301,6 +305,10 @@ public partial class TimelineView : ContentView
         var totalContentWidth = FrameCount * FrameWidth;
         var actualRowCount = Math.Max(1, _boneNames.Count);
         var totalContentHeight = actualRowCount * RowHeight;
+
+        canvas.Save();
+        canvas.Translate(-_scrollX, -_scrollY);
+        canvas.ClipRect(info.Rect);
 
         // --- Draw header (time ruler) ---
         canvas.DrawRect(0, 0, totalContentWidth, HeaderHeight, headerBgPaint);
@@ -360,6 +368,7 @@ public partial class TimelineView : ContentView
         // === Draw Playhead (on top of everything) ===
         var playheadX = _currentFrame * FrameWidth;
         canvas.DrawLine(playheadX, 0, playheadX, info.Height, playheadPaint);
+        canvas.Restore();
     }
 
     public void AddKeyframe(string boneName, int frame)

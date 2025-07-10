@@ -16,11 +16,11 @@ public static class LogService
 
     static LogService()
     {
-        _logDirectory = Path.Combine(FileSystem.AppDataDirectory, "Log");
+        _logDirectory = Path.Combine(FileSystem.AppDataDirectory, "MikuMikuDance", "data", "Log");
         Directory.CreateDirectory(_logDirectory);
-        _logFilePath = Path.Combine(_logDirectory, "DebugLog.txt");
+        _logFilePath = Path.Combine(_logDirectory, "log.txt");
 
-        var externalDir = MmdFileSystem.Ensure("log");
+        var externalDir = MmdFileSystem.Ensure("Log");
         _terminalLogFilePath = Path.Combine(externalDir, "tarminalLog.txt");
     }
 
