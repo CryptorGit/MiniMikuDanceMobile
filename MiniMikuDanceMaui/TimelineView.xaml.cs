@@ -23,9 +23,7 @@ public partial class TimelineView : ContentView
     private Dictionary<string, List<int>> _keyframes = new Dictionary<string, List<int>>();
 
     // UI State
-    private SKPoint _lastTouchPoint;
-    private float _scrollX;
-    private float _scrollY;
+    
     private int _currentFrame = 0; // For playhead position
     public int CurrentFrame => _currentFrame;
 
@@ -38,6 +36,7 @@ public partial class TimelineView : ContentView
         InitializeComponent();
         Debug.WriteLine("TimelineView initialized.");
         CurrentFrameEntry.TextChanged += CurrentFrameEntry_TextChanged;
+        this.Loaded += OnTimelineViewLoaded;
     }
 
     public OpenTK.Mathematics.Vector3 GetBoneTranslationAtFrame(string boneName, int frame)
@@ -68,7 +67,8 @@ public partial class TimelineView : ContentView
     {
         _currentFrame = 0;
         CurrentFrameEntry.Text = _currentFrame.ToString();
-        TimelineCanvas.InvalidateSurface();
+        TimelineContentCanvas.InvalidateSurface();
+        BoneNameCanvas.InvalidateSurface();
     }
 
     private void CurrentFrameEntry_TextChanged(object? sender, TextChangedEventArgs e)
@@ -76,7 +76,8 @@ public partial class TimelineView : ContentView
         if (int.TryParse(e.NewTextValue, out int frame))
         {
             _currentFrame = frame;
-            TimelineCanvas.InvalidateSurface();
+            TimelineContentCanvas.InvalidateSurface();
+            BoneNameCanvas.InvalidateSurface();
         }
     }
 
@@ -84,28 +85,32 @@ public partial class TimelineView : ContentView
     {
         _currentFrame = Math.Max(0, _currentFrame - 1);
         CurrentFrameEntry.Text = _currentFrame.ToString();
-        TimelineCanvas.InvalidateSurface();
+        TimelineContentCanvas.InvalidateSurface();
+        BoneNameCanvas.InvalidateSurface();
     }
 
     private void OnFramePlusOneClicked(object? sender, EventArgs e)
     {
         _currentFrame = Math.Min(FrameCount - 1, _currentFrame + 1);
         CurrentFrameEntry.Text = _currentFrame.ToString();
-        TimelineCanvas.InvalidateSurface();
+        TimelineContentCanvas.InvalidateSurface();
+        BoneNameCanvas.InvalidateSurface();
     }
 
     private void OnFrameToStartClicked(object? sender, EventArgs e)
     {
         _currentFrame = 0;
         CurrentFrameEntry.Text = _currentFrame.ToString();
-        TimelineCanvas.InvalidateSurface();
+        TimelineContentCanvas.InvalidateSurface();
+        BoneNameCanvas.InvalidateSurface();
     }
 
     private void OnFrameToEndClicked(object? sender, EventArgs e)
     {
         _currentFrame = FrameCount - 1;
         CurrentFrameEntry.Text = _currentFrame.ToString();
-        TimelineCanvas.InvalidateSurface();
+        TimelineContentCanvas.InvalidateSurface();
+        BoneNameCanvas.InvalidateSurface();
     }
 
     async void OnAddBoneClicked(object? sender, EventArgs e)
@@ -131,7 +136,9 @@ public partial class TimelineView : ContentView
         {
             _boneNames.Add(selectedBone);
             _keyframes[selectedBone] = new List<int>();
-            TimelineCanvas.InvalidateSurface(); // Redraw to show the new bone
+            UpdateCanvasSizes(); // Update canvas sizes after adding a bone
+            TimelineContentCanvas.InvalidateSurface(); // Redraw to show the new bone
+            BoneNameCanvas.InvalidateSurface();
             Debug.WriteLine($"Added bone: {selectedBone}");
         }
     }
@@ -151,39 +158,84 @@ public partial class TimelineView : ContentView
         DeleteKeyClicked?.Invoke(this, EventArgs.Empty);
     }
 
-    void OnCanvasTouch(object? sender, SKTouchEventArgs e)
+    private void OnTimelineViewLoaded(object? sender, EventArgs e)
     {
-        Debug.WriteLine($"OnCanvasTouch: {e.ActionType}, Location: {e.Location}");
-        switch (e.ActionType)
-        {
-            case SKTouchAction.Pressed:
-                _lastTouchPoint = e.Location;
-                break;
-            case SKTouchAction.Moved:
-                var deltaX = e.Location.X - _lastTouchPoint.X;
-                var deltaY = e.Location.Y - _lastTouchPoint.Y;
-
-                _scrollX -= deltaX;
-                _scrollY -= deltaY;
-
-                // Clamp scroll values
-                var totalContentWidth = FrameCount * FrameWidth;
-                var actualRowCount = Math.Max(1, _boneNames.Count);
-                var totalContentHeight = actualRowCount * RowHeight;
-                
-                _scrollX = Math.Clamp(_scrollX, 0, Math.Max(0, totalContentWidth - (TimelineCanvas.CanvasSize.Width - LeftPanelWidth)));
-                _scrollY = Math.Clamp(_scrollY, 0, Math.Max(0, totalContentHeight - (TimelineCanvas.CanvasSize.Height - HeaderHeight)));
-
-                _lastTouchPoint = e.Location;
-                
-                TimelineCanvas.InvalidateSurface();
-                Debug.WriteLine($"ScrollX: {_scrollX}, ScrollY: {_scrollY}");
-                break;
-        }
-        // e.Handled = true; // Temporarily remove to see if it affects propagation
+        BoneNameScrollView.Scrolled += OnBoneNameScrollViewScrolled;
+        TimelineContentScrollView.Scrolled += OnTimelineContentScrollViewScrolled;
+        UpdateCanvasSizes();
     }
 
-    void OnTimelinePaintSurface(object? sender, SKPaintSurfaceEventArgs e)
+    private void OnBoneNameScrollViewScrolled(object? sender, ScrolledEventArgs e)
+    {
+        // Sync vertical scroll of TimelineContentScrollView
+        TimelineContentScrollView.ScrollToAsync(TimelineContentScrollView.ScrollX, e.ScrollY, false);
+    }
+
+    private void OnTimelineContentScrollViewScrolled(object? sender, ScrolledEventArgs e)
+    {
+        // Sync vertical scroll of BoneNameScrollView
+        BoneNameScrollView.ScrollToAsync(BoneNameScrollView.ScrollX, e.ScrollY, false);
+    }
+
+    private void UpdateCanvasSizes()
+    {
+        var actualRowCount = Math.Max(1, _boneNames.Count);
+        var totalContentHeight = actualRowCount * RowHeight + HeaderHeight; // Add HeaderHeight for the top ruler
+
+        BoneNameCanvas.HeightRequest = totalContentHeight;
+        TimelineContentCanvas.HeightRequest = totalContentHeight;
+        TimelineContentCanvas.WidthRequest = FrameCount * FrameWidth;
+
+        // Calculate max bone name width for BoneNameCanvas
+        float maxBoneNameWidth = 0;
+        using (var boneNameFont = new SKFont { Size = BoneNameFontSize })
+        {
+            foreach (var boneName in _boneNames)
+            {
+                maxBoneNameWidth = Math.Max(maxBoneNameWidth, boneNameFont.MeasureText(boneName));
+            }
+        }
+        BoneNameCanvas.WidthRequest = maxBoneNameWidth + 20; // Add some padding
+    }
+
+    
+
+    void OnBoneNamePaintSurface(object? sender, SKPaintSurfaceEventArgs e)
+    {
+        var canvas = e.Surface.Canvas;
+        var info = e.Info;
+        canvas.Clear(new SKColor(40, 40, 40)); // Background for the left panel
+
+        using var linePaint = new SKPaint { Color = SKColors.Gray, StrokeWidth = 1 };
+        using var altRowPaint = new SKPaint { Color = new SKColor(50, 50, 50) };
+        using var headerBgPaint = new SKPaint { Color = new SKColor(30, 30, 30) };
+        using var textPaint = new SKPaint { Color = SKColors.White, IsAntialias = true };
+
+        var actualRowCount = Math.Max(1, _boneNames.Count);
+
+        // --- Draw header part of the left panel ---
+        canvas.DrawRect(0, 0, info.Width, HeaderHeight, headerBgPaint);
+        canvas.DrawLine(0, HeaderHeight, info.Width, HeaderHeight, linePaint);
+
+        // --- Draw bone names ---
+        using var boneNameFont = new SKFont { Size = BoneNameFontSize };
+        for (int i = 0; i < _boneNames.Count; i++)
+        {
+            var y = i * RowHeight + HeaderHeight;
+            if (i % 2 == 1)
+            {
+                canvas.DrawRect(0, y, info.Width, RowHeight, altRowPaint);
+            }
+            else
+            {
+                canvas.DrawRect(0, y, info.Width, RowHeight, new SKPaint { Color = new SKColor(40, 40, 40) }); // Base background for even rows
+            }
+            canvas.DrawLine(0, y + RowHeight, info.Width, y + RowHeight, linePaint); // Horizontal line for bone names
+            canvas.DrawText(_boneNames[i], 10, y + (RowHeight / 2) + (BoneNameFontSize / 3), boneNameFont, textPaint);
+        }
+    }
+
+    void OnTimelineContentPaintSurface(object? sender, SKPaintSurfaceEventArgs e)
     {
         var canvas = e.Surface.Canvas;
         var info = e.Info;
@@ -201,12 +253,6 @@ public partial class TimelineView : ContentView
         var actualRowCount = Math.Max(1, _boneNames.Count);
         var totalContentHeight = actualRowCount * RowHeight;
 
-        // === 1. Draw Right Panel (Horizontally scrollable) ===
-        canvas.Save();
-        canvas.Translate(LeftPanelWidth, 0);
-        canvas.ClipRect(new SKRect(0, 0, info.Width - LeftPanelWidth, info.Height));
-        canvas.Translate(-_scrollX, 0);
-
         // --- Draw header (time ruler) ---
         canvas.DrawRect(0, 0, totalContentWidth, HeaderHeight, headerBgPaint);
         using var headerFont = new SKFont { Size = HeaderFontSize };
@@ -221,14 +267,10 @@ public partial class TimelineView : ContentView
             }
         }
 
-        // --- Draw timeline grid and keyframes (vertically scrollable) ---
-        canvas.Save();
-        canvas.Translate(0, HeaderHeight - _scrollY);
-
-        // Draw alternating row backgrounds and horizontal lines
+        // --- Draw alternating row backgrounds and horizontal lines
         for (int i = 0; i < actualRowCount; i++)
         {
-            var y = i * RowHeight;
+            var y = i * RowHeight + HeaderHeight;
             if (i % 2 == 1)
             {
                 canvas.DrawRect(0, y, totalContentWidth, RowHeight, altRowPaint);
@@ -240,7 +282,7 @@ public partial class TimelineView : ContentView
         for (int i = 0; i < FrameCount; i++)
         {
             var x = i * FrameWidth;
-            canvas.DrawLine(x, 0, x, totalContentHeight, linePaint);
+            canvas.DrawLine(x, HeaderHeight, x, totalContentHeight + HeaderHeight, linePaint);
         }
 
         // Draw keyframes
@@ -256,45 +298,9 @@ public partial class TimelineView : ContentView
             }
         }
 
-        canvas.Restore(); // Restore from vertical scroll
-        canvas.Restore(); // Restore from horizontal scroll
-
-        // === 2. Draw Left Panel (Fixed Horizontally, Vertically scrollable) ===
-        canvas.Save();
-        canvas.ClipRect(new SKRect(0, 0, LeftPanelWidth, info.Height));
-        canvas.Clear(new SKColor(40, 40, 40)); // Background for the left panel
-
-        // --- Draw header part of the left panel ---
-        canvas.DrawRect(0, 0, LeftPanelWidth, HeaderHeight, headerBgPaint);
-        canvas.DrawLine(0, HeaderHeight, LeftPanelWidth, HeaderHeight, linePaint);
-
-        // --- Draw bone names ---
-        canvas.Save();
-        canvas.Translate(0, HeaderHeight - _scrollY); // Sync vertical scroll
-        using var boneNameFont = new SKFont { Size = BoneNameFontSize };
-        for (int i = 0; i < _boneNames.Count; i++)
-        {
-            var y = i * RowHeight;
-            if (i % 2 == 1)
-            {
-                canvas.DrawRect(0, y, LeftPanelWidth, RowHeight, altRowPaint);
-            }
-            else
-            {
-                canvas.DrawRect(0, y, LeftPanelWidth, RowHeight, new SKPaint { Color = new SKColor(40, 40, 40) }); // Base background for even rows
-            }
-            canvas.DrawLine(0, y + RowHeight, LeftPanelWidth, y + RowHeight, linePaint); // Horizontal line for bone names
-            canvas.DrawText(_boneNames[i], 10, y + (RowHeight / 2) + (BoneNameFontSize / 3), boneNameFont, textPaint);
-        }
-        canvas.Restore(); // Restore from vertical scroll
-        canvas.Restore(); // Restore from clip
-
-        // === 3. Draw Playhead (on top of everything) ===
-        var playheadX = LeftPanelWidth + _currentFrame * FrameWidth - _scrollX;
-        if (playheadX >= LeftPanelWidth)
-        {
-            canvas.DrawLine(playheadX, 0, playheadX, info.Height, playheadPaint);
-        }
+        // === Draw Playhead (on top of everything) ===
+        var playheadX = _currentFrame * FrameWidth;
+        canvas.DrawLine(playheadX, 0, playheadX, info.Height, playheadPaint);
     }
 
     public void AddKeyframe(string boneName, int frame)
@@ -305,7 +311,7 @@ public partial class TimelineView : ContentView
             {
                 frames.Add(frame);
                 frames.Sort();
-                TimelineCanvas.InvalidateSurface();
+                TimelineContentCanvas.InvalidateSurface();
             }
         }
     }
@@ -323,7 +329,7 @@ public partial class TimelineView : ContentView
     {
         var x = frame * FrameWidth + FrameWidth / 2;
         // Keyframe should be centered on the horizontal line at the bottom of the row
-        var y_line = (row + 1) * RowHeight + HeaderHeight; // Adjusted for header height and row bottom
+        var y_line = (row + 1) * RowHeight + HeaderHeight;
         var path = new SKPath();
         path.MoveTo(x, y_line - 10); // Top point of diamond
         path.LineTo(x + 10, y_line); // Right point

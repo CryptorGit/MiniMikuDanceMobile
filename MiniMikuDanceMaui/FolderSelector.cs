@@ -8,7 +8,7 @@ public static class FolderSelector
 {
     public static async Task<string?> PickFolderAsync()
     {
-#if ANDROID
+#if ANDROID || IOS
         var result = await FilePicker.Default.PickAsync(new PickOptions
         {
             PickerTitle = "Select any file inside the folder"

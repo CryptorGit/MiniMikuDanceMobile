@@ -30,11 +30,19 @@
             </HorizontalStackLayout>
         </Grid>
 
-        <!-- Unified Timeline Canvas -->
-        <skia:SKCanvasView x:Name="TimelineCanvas"
-                           Grid.Row="2"
-                           EnableTouchEvents="True"
-                           Touch="OnCanvasTouch"
-                           PaintSurface="OnTimelinePaintSurface" />
+        <!-- Timeline Area -->
+        <Grid Grid.Row="2" ColumnDefinitions="Auto,*">
+            <!-- Left Panel (Bone Names) -->
+            <ScrollView Grid.Column="0" VerticalOptions="FillAndExpand" VerticalScrollBarVisibility="Always" x:Name="BoneNameScrollView">
+                <skia:SKCanvasView x:Name="BoneNameCanvas"
+                                   PaintSurface="OnBoneNamePaintSurface" />
+            </ScrollView>
+
+            <!-- Right Panel (Timeline Grid and Keyframes) -->
+            <ScrollView Grid.Column="1" Orientation="Both" VerticalScrollBarVisibility="Always" HorizontalScrollBarVisibility="Always" x:Name="TimelineContentScrollView">
+                <skia:SKCanvasView x:Name="TimelineContentCanvas"
+                                   PaintSurface="OnTimelineContentPaintSurface" />
+            </ScrollView>
+        </Grid>
     </Grid>
 </ContentView>
