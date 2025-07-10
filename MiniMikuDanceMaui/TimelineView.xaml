@@ -34,14 +34,20 @@
         <Grid Grid.Row="2" ColumnDefinitions="Auto,*">
             <!-- Left Panel (Bone Names) -->
             <ScrollView Grid.Column="0" VerticalOptions="FillAndExpand" VerticalScrollBarVisibility="Always" x:Name="BoneNameScrollView">
-                <skia:SKCanvasView x:Name="BoneNameCanvas"
-                                   PaintSurface="OnBoneNamePaintSurface" />
+                <Grid x:Name="BoneNameContentGrid">
+                    <skia:SKCanvasView x:Name="BoneNameCanvas"
+                                       PaintSurface="OnBoneNamePaintSurface"
+                                       HorizontalOptions="FillAndExpand" VerticalOptions="FillAndExpand" />
+                </Grid>
             </ScrollView>
 
             <!-- Right Panel (Timeline Grid and Keyframes) -->
             <ScrollView Grid.Column="1" Orientation="Both" VerticalScrollBarVisibility="Always" HorizontalScrollBarVisibility="Always" x:Name="TimelineContentScrollView">
-                <skia:SKCanvasView x:Name="TimelineContentCanvas"
-                                   PaintSurface="OnTimelineContentPaintSurface" />
+                <Grid x:Name="TimelineContentGrid">
+                    <skia:SKCanvasView x:Name="TimelineContentCanvas"
+                                       PaintSurface="OnTimelineContentPaintSurface"
+                                       HorizontalOptions="FillAndExpand" VerticalOptions="FillAndExpand" />
+                </Grid>
             </ScrollView>
         </Grid>
     </Grid>
