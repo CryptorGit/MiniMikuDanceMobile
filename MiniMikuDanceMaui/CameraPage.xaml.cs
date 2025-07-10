@@ -24,6 +24,7 @@ namespace MiniMikuDanceMaui;
 
 public partial class CameraPage : ContentPage
 {
+
     // 下部領域1 : 上部領域2 の比率となるよう初期値を設定
     private double _bottomHeightRatio = 1.0 / 3.0;
     private double _bottomWidthRatio = 1.0;
@@ -689,13 +690,13 @@ public partial class CameraPage : ContentPage
                     KeyPanel.IsVisible = true;
                     if (s is TimelineView timelineView) {
                         KeyPanel.SetBones(timelineView.BoneNames);
+                        KeyPanel.SetFrame(timelineView.CurrentFrame);
                     }
                 };
                 tv.EditKeyClicked += (s, e) => {
                     KeyPanel.IsVisible = true;
                     if (s is TimelineView timelineView) {
                         KeyPanel.SetBones(timelineView.BoneNames);
-                        // For EditKey, we need to pass the current frame and bone data
                         KeyPanel.SetFrame(timelineView.CurrentFrame, true, timelineView.GetBoneTranslationAtFrame, timelineView.GetBoneRotationAtFrame);
                     }
                 };
@@ -703,7 +704,7 @@ public partial class CameraPage : ContentPage
                     DeletePanel.IsVisible = true;
                     if (s is TimelineView timelineView) {
                         DeletePanel.SetBones(timelineView.BoneNames);
-                        // When bone changes in DeletePanel, it will request keyframes
+                        DeletePanel.SetFrames(timelineView.GetKeyframesForBone(timelineView.BoneNames[DeletePanel.SelectedBoneIndex]));
                     }
                 };
                 view = tv;

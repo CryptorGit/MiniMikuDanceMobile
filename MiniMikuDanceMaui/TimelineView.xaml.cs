@@ -262,9 +262,16 @@ public partial class TimelineView : ContentView
         // === 2. Draw Left Panel (Fixed Horizontally, Vertically scrollable) ===
         canvas.Save();
         canvas.ClipRect(new SKRect(0, 0, LeftPanelWidth, info.Height));
-        // Draw alternating row backgrounds for left panel
+        canvas.Clear(new SKColor(40, 40, 40)); // Background for the left panel
+
+        // --- Draw header part of the left panel ---
+        canvas.DrawRect(0, 0, LeftPanelWidth, HeaderHeight, headerBgPaint);
+        canvas.DrawLine(0, HeaderHeight, LeftPanelWidth, HeaderHeight, linePaint);
+
+        // --- Draw bone names ---
         canvas.Save();
         canvas.Translate(0, HeaderHeight - _scrollY); // Sync vertical scroll
+        using var boneNameFont = new SKFont { Size = BoneNameFontSize };
         for (int i = 0; i < _boneNames.Count; i++)
         {
             var y = i * RowHeight;
@@ -288,6 +295,28 @@ public partial class TimelineView : ContentView
         {
             canvas.DrawLine(playheadX, 0, playheadX, info.Height, playheadPaint);
         }
+    }
+
+    public void AddKeyframe(string boneName, int frame)
+    {
+        if (_keyframes.TryGetValue(boneName, out var frames))
+        {
+            if (!frames.Contains(frame))
+            {
+                frames.Add(frame);
+                frames.Sort();
+                TimelineCanvas.InvalidateSurface();
+            }
+        }
+    }
+
+    public List<int> GetKeyframesForBone(string boneName)
+    {
+        if (_keyframes.TryGetValue(boneName, out var frames))
+        {
+            return frames;
+        }
+        return new List<int>();
     }
 
     void DrawKeyframe(SKCanvas canvas, int row, int frame, SKPaint paint)
