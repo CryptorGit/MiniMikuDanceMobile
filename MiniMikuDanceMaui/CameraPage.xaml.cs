@@ -686,6 +686,7 @@ public partial class CameraPage : ContentPage
             else if (name == "TIMELINE")
             {
                 var tv = new TimelineView();
+                tv.Model = _currentModel;
                 view = tv;
             }
             else if (name == "MTOON")
@@ -848,9 +849,9 @@ public partial class CameraPage : ContentPage
             UpdateTabColors();
             if (name == "TIMELINE")
             {
-                BottomScroll.IsEnabled = false;
+                BottomScroll.IsEnabled = true;
                 BottomScroll.VerticalScrollBarVisibility = ScrollBarVisibility.Never;
-                BottomScroll.InputTransparent = true;
+                BottomScroll.InputTransparent = false;
             }
             else
             {

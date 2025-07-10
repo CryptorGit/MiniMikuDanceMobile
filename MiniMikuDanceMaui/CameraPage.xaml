@@ -144,9 +144,9 @@
         <ActivityIndicator x:Name="LoadingIndicator" IsRunning="True" IsVisible="False" Color="{StaticResource IndicatorColor}" ZIndex="30" />
         <skia:SKGLView x:Name="Viewer" HasRenderLoop="True" EnableTouchEvents="True" />
         <Grid x:Name="BottomRegion" BackgroundColor="{StaticResource BackgroundColor}" IsVisible="False" ZIndex="2">
-            <Grid.GestureRecognizers>
+            <!-- <Grid.GestureRecognizers>
                 <TapGestureRecognizer Tapped="OnBottomRegionTapped" />
-            </Grid.GestureRecognizers>
+            </Grid.GestureRecognizers> -->
             <Grid.RowDefinitions>
                 <RowDefinition Height="40" />
                 <RowDefinition Height="*" />
@@ -166,9 +166,9 @@
                 </Label>
             </Grid>
             <ScrollView x:Name="BottomScroll" Grid.Row="1" Orientation="Vertical" VerticalScrollBarVisibility="Always">
-                <ScrollView.GestureRecognizers>
+                <!-- <ScrollView.GestureRecognizers>
                     <TapGestureRecognizer Tapped="OnBottomRegionTapped" />
-                </ScrollView.GestureRecognizers>
+                </ScrollView.GestureRecognizers> -->
                 <ContentView x:Name="BottomContent" />
             </ScrollView>
         </Grid>
