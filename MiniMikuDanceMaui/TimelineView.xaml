@@ -4,38 +4,37 @@
              xmlns:skia="clr-namespace:SkiaSharp.Views.Maui.Controls;assembly=SkiaSharp.Views.Maui.Controls"
              x:Class="MiniMikuDanceMaui.TimelineView"
              BackgroundColor="{StaticResource BackgroundColor}">
-    <Grid RowDefinitions="Auto,40,*,Auto" RowSpacing="4" Padding="4">
-        <!-- Frame control buttons -->
-        <HorizontalStackLayout Spacing="6">
-            <Button Text="|&lt;" Clicked="OnFrameToStartClicked" />
-            <Button Text="&lt;"  Clicked="OnFrameMinusOneClicked" />
-            <Entry x:Name="CurrentFrameEntry" WidthRequest="60" Text="0" Keyboard="Numeric" />
-            <Button Text=">"  Clicked="OnFramePlusOneClicked" />
-            <Button Text=">|" Clicked="OnFrameToEndClicked" />
-        </HorizontalStackLayout>
-
-        <!-- Timeline header -->
-        <skia:SKCanvasView x:Name="TimelineHeaderCanvas"
-                           Grid.Row="1"
-                           HeightRequest="40"
-                           EnableTouchEvents="True"
-                           Touch="OnCanvasTouch"
-                           PaintSurface="OnTimelineHeaderPaintSurface" />
-
-        <!-- Timeline body -->
-        <skia:SKCanvasView x:Name="TimelineCanvas"
-                           Grid.Row="2"
-                           VerticalOptions="FillAndExpand"
-                           EnableTouchEvents="True"
-                           Touch="OnCanvasTouch"
-                           PaintSurface="OnTimelinePaintSurface" />
-
+    <Grid RowDefinitions="Auto,Auto,*" RowSpacing="4" Padding="4">
         <!-- Operation buttons -->
-        <HorizontalStackLayout Grid.Row="3" Spacing="6" HorizontalOptions="Start">
+        <HorizontalStackLayout Grid.Row="0" Spacing="6" HorizontalOptions="Start">
             <Button Text="Add Bone"   Clicked="OnAddBoneClicked" />
             <Button Text="Add Key"    Clicked="OnAddKeyClicked" />
             <Button Text="Edit Key"   Clicked="OnEditKeyClicked" />
             <Button Text="Delete Key" Clicked="OnDeleteKeyClicked" />
         </HorizontalStackLayout>
+
+        <!-- Playback and Frame controls -->
+        <Grid Grid.Row="1" ColumnDefinitions="Auto,*,Auto">
+            <HorizontalStackLayout Grid.Column="0" Spacing="6">
+                <Button Text="▶" Clicked="OnPlayClicked" />
+                <Button Text="❚❚" Clicked="OnPauseClicked" />
+                <Button Text="■" Clicked="OnStopClicked" />
+            </HorizontalStackLayout>
+
+            <HorizontalStackLayout Grid.Column="2" Spacing="6">
+                <Button Text="|&lt;" Clicked="OnFrameToStartClicked" />
+                <Button Text="&lt;"  Clicked="OnFrameMinusOneClicked" />
+                <Entry x:Name="CurrentFrameEntry" WidthRequest="60" Text="0" Keyboard="Numeric" />
+                <Button Text=">"  Clicked="OnFramePlusOneClicked" />
+                <Button Text=">|" Clicked="OnFrameToEndClicked" />
+            </HorizontalStackLayout>
+        </Grid>
+
+        <!-- Unified Timeline Canvas -->
+        <skia:SKCanvasView x:Name="TimelineCanvas"
+                           Grid.Row="2"
+                           EnableTouchEvents="True"
+                           Touch="OnCanvasTouch"
+                           PaintSurface="OnTimelinePaintSurface" />
     </Grid>
 </ContentView>

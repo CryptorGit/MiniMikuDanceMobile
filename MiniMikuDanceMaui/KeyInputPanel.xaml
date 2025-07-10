@@ -2,89 +2,95 @@
 <ContentView xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
              x:Class="MiniMikuDanceMaui.KeyInputPanel"
-             BackgroundColor="{StaticResource OverlayBackgroundColor}">
-    <Grid>
-        <Button Text="×" x:Name="CloseButton" Clicked="OnCancelClicked"
-                HorizontalOptions="End" VerticalOptions="Start" Margin="8" />
-        <VerticalStackLayout Spacing="6" Padding="8">
-        <Picker x:Name="BonePicker" Title="Bone" SelectedIndexChanged="OnBoneChanged" />
-        <HorizontalStackLayout Spacing="4" VerticalOptions="Center">
-            <Button Text="-1" Clicked="OnFrameMinusClicked" />
-            <Entry x:Name="FrameEntry" Placeholder="Frame" WidthRequest="60" Keyboard="Numeric" TextChanged="OnFrameTextChanged" />
-            <Button Text="+1" Clicked="OnFramePlusClicked" />
-        </HorizontalStackLayout>
-        <HorizontalStackLayout Spacing="10" VerticalOptions="Center">
-            <Label Text="Pos Range" TextColor="{StaticResource TextColor}" VerticalOptions="Center" />
-            <Picker x:Name="PosRangePicker" SelectedIndexChanged="OnPosRangeChanged" />
-        </HorizontalStackLayout>
-        <HorizontalStackLayout Spacing="10" VerticalOptions="Center">
-            <Label Text="Rot Range" TextColor="{StaticResource TextColor}" VerticalOptions="Center" />
-            <Picker x:Name="RotRangePicker" SelectedIndexChanged="OnRotRangeChanged" />
-        </HorizontalStackLayout>
-        <Grid ColumnDefinitions="80,*" RowSpacing="2">
-            <Label Text="Pos X" TextColor="{StaticResource TextColor}" Grid.Column="0" />
-            <Label x:Name="PosXLabel" Text="0" TextColor="{StaticResource TextColor}" HorizontalTextAlignment="End" Grid.Column="1" />
+             BackgroundColor="{StaticResource OverlayBackgroundColor}"
+             HorizontalOptions="End"
+             VerticalOptions="Start"
+             WidthRequest="300"
+             HeightRequest="500">
+    <ScrollView>
+        <Grid>
+            <Button Text="×" x:Name="CloseButton" Clicked="OnCancelClicked"
+                    HorizontalOptions="End" VerticalOptions="Start" Margin="8" />
+            <VerticalStackLayout Spacing="6" Padding="8">
+            <Picker x:Name="BonePicker" Title="Bone" SelectedIndexChanged="OnBoneChanged" />
+            <HorizontalStackLayout Spacing="4" VerticalOptions="Center">
+                <Button Text="-1" Clicked="OnFrameMinusClicked" />
+                <Entry x:Name="FrameEntry" Placeholder="Frame" WidthRequest="60" Keyboard="Numeric" TextChanged="OnFrameTextChanged" />
+                <Button Text="+1" Clicked="OnFramePlusClicked" />
+            </HorizontalStackLayout>
+            <HorizontalStackLayout Spacing="10" VerticalOptions="Center">
+                <Label Text="Pos Range" TextColor="{StaticResource TextColor}" VerticalOptions="Center" />
+                <Picker x:Name="PosRangePicker" SelectedIndexChanged="OnPosRangeChanged" />
+            </HorizontalStackLayout>
+            <HorizontalStackLayout Spacing="10" VerticalOptions="Center">
+                <Label Text="Rot Range" TextColor="{StaticResource TextColor}" VerticalOptions="Center" />
+                <Picker x:Name="RotRangePicker" SelectedIndexChanged="OnRotRangeChanged" />
+            </HorizontalStackLayout>
+            <Grid ColumnDefinitions="80,*" RowSpacing="2">
+                <Label Text="Pos X" TextColor="{StaticResource TextColor}" Grid.Column="0" />
+                <Label x:Name="PosXLabel" Text="0" TextColor="{StaticResource TextColor}" HorizontalTextAlignment="End" Grid.Column="1" />
+            </Grid>
+            <HorizontalStackLayout Spacing="4" HorizontalOptions="Center">
+                <Button Text="-1" Clicked="OnPosXSetClicked" />
+                <Button Text="0" Clicked="OnPosXSetClicked" />
+                <Button Text="+1" Clicked="OnPosXSetClicked" />
+            </HorizontalStackLayout>
+            <Slider x:Name="PosXSlider" Minimum="-1" Maximum="1" ValueChanged="OnPosXChanged" />
+            <Grid ColumnDefinitions="80,*" RowSpacing="2">
+                <Label Text="Pos Y" TextColor="{StaticResource TextColor}" Grid.Column="0" />
+                <Label x:Name="PosYLabel" Text="0" TextColor="{StaticResource TextColor}" HorizontalTextAlignment="End" Grid.Column="1" />
+            </Grid>
+            <HorizontalStackLayout Spacing="4" HorizontalOptions="Center">
+                <Button Text="-1" Clicked="OnPosYSetClicked" />
+                <Button Text="0" Clicked="OnPosYSetClicked" />
+                <Button Text="+1" Clicked="OnPosYSetClicked" />
+            </HorizontalStackLayout>
+            <Slider x:Name="PosYSlider" Minimum="-1" Maximum="1" ValueChanged="OnPosYChanged" />
+            <Grid ColumnDefinitions="80,*" RowSpacing="2">
+                <Label Text="Pos Z" TextColor="{StaticResource TextColor}" Grid.Column="0" />
+                <Label x:Name="PosZLabel" Text="0" TextColor="{StaticResource TextColor}" HorizontalTextAlignment="End" Grid.Column="1" />
+            </Grid>
+            <HorizontalStackLayout Spacing="4" HorizontalOptions="Center">
+                <Button Text="-1" Clicked="OnPosZSetClicked" />
+                <Button Text="0" Clicked="OnPosZSetClicked" />
+                <Button Text="+1" Clicked="OnPosZSetClicked" />
+            </HorizontalStackLayout>
+            <Slider x:Name="PosZSlider" Minimum="-1" Maximum="1" ValueChanged="OnPosZChanged" />
+            <Grid ColumnDefinitions="80,*" RowSpacing="2">
+                <Label Text="Rot X" TextColor="{StaticResource TextColor}" Grid.Column="0" />
+                <Label x:Name="RotXLabel" Text="0" TextColor="{StaticResource TextColor}" HorizontalTextAlignment="End" Grid.Column="1" />
+            </Grid>
+            <HorizontalStackLayout Spacing="4" HorizontalOptions="Center">
+                <Button Text="-1" Clicked="OnRotXSetClicked" />
+                <Button Text="0" Clicked="OnRotXSetClicked" />
+                <Button Text="+1" Clicked="OnRotXSetClicked" />
+            </HorizontalStackLayout>
+            <Slider x:Name="RotXSlider" Minimum="-180" Maximum="180" ValueChanged="OnRotXChanged" />
+            <Grid ColumnDefinitions="80,*" RowSpacing="2">
+                <Label Text="Rot Y" TextColor="{StaticResource TextColor}" Grid.Column="0" />
+                <Label x:Name="RotYLabel" Text="0" TextColor="{StaticResource TextColor}" HorizontalTextAlignment="End" Grid.Column="1" />
+            </Grid>
+            <HorizontalStackLayout Spacing="4" HorizontalOptions="Center">
+                <Button Text="-1" Clicked="OnRotYSetClicked" />
+                <Button Text="0" Clicked="OnRotYSetClicked" />
+                <Button Text="+1" Clicked="OnRotYSetClicked" />
+            </HorizontalStackLayout>
+            <Slider x:Name="RotYSlider" Minimum="-180" Maximum="180" ValueChanged="OnRotYChanged" />
+            <Grid ColumnDefinitions="80,*" RowSpacing="2">
+                <Label Text="Rot Z" TextColor="{StaticResource TextColor}" Grid.Column="0" />
+                <Label x:Name="RotZLabel" Text="0" TextColor="{StaticResource TextColor}" HorizontalTextAlignment="End" Grid.Column="1" />
+            </Grid>
+            <HorizontalStackLayout Spacing="4" HorizontalOptions="Center">
+                <Button Text="-1" Clicked="OnRotZSetClicked" />
+                <Button Text="0" Clicked="OnRotZSetClicked" />
+                <Button Text="+1" Clicked="OnRotZSetClicked" />
+            </HorizontalStackLayout>
+            <Slider x:Name="RotZSlider" Minimum="-180" Maximum="180" ValueChanged="OnRotZChanged" />
+            <HorizontalStackLayout Spacing="10" HorizontalOptions="End">
+                <Button x:Name="ConfirmButton" Text="select" Clicked="OnConfirmClicked" />
+                <Button x:Name="CancelButton" Text="cancel" Clicked="OnCancelClicked" />
+            </HorizontalStackLayout>
+        </VerticalStackLayout>
         </Grid>
-        <HorizontalStackLayout Spacing="4" HorizontalOptions="Center">
-            <Button Text="-1" Clicked="OnPosXSetClicked" />
-            <Button Text="0" Clicked="OnPosXSetClicked" />
-            <Button Text="+1" Clicked="OnPosXSetClicked" />
-        </HorizontalStackLayout>
-        <Slider x:Name="PosXSlider" Minimum="-1" Maximum="1" ValueChanged="OnPosXChanged" />
-        <Grid ColumnDefinitions="80,*" RowSpacing="2">
-            <Label Text="Pos Y" TextColor="{StaticResource TextColor}" Grid.Column="0" />
-            <Label x:Name="PosYLabel" Text="0" TextColor="{StaticResource TextColor}" HorizontalTextAlignment="End" Grid.Column="1" />
-        </Grid>
-        <HorizontalStackLayout Spacing="4" HorizontalOptions="Center">
-            <Button Text="-1" Clicked="OnPosYSetClicked" />
-            <Button Text="0" Clicked="OnPosYSetClicked" />
-            <Button Text="+1" Clicked="OnPosYSetClicked" />
-        </HorizontalStackLayout>
-        <Slider x:Name="PosYSlider" Minimum="-1" Maximum="1" ValueChanged="OnPosYChanged" />
-        <Grid ColumnDefinitions="80,*" RowSpacing="2">
-            <Label Text="Pos Z" TextColor="{StaticResource TextColor}" Grid.Column="0" />
-            <Label x:Name="PosZLabel" Text="0" TextColor="{StaticResource TextColor}" HorizontalTextAlignment="End" Grid.Column="1" />
-        </Grid>
-        <HorizontalStackLayout Spacing="4" HorizontalOptions="Center">
-            <Button Text="-1" Clicked="OnPosZSetClicked" />
-            <Button Text="0" Clicked="OnPosZSetClicked" />
-            <Button Text="+1" Clicked="OnPosZSetClicked" />
-        </HorizontalStackLayout>
-        <Slider x:Name="PosZSlider" Minimum="-1" Maximum="1" ValueChanged="OnPosZChanged" />
-        <Grid ColumnDefinitions="80,*" RowSpacing="2">
-            <Label Text="Rot X" TextColor="{StaticResource TextColor}" Grid.Column="0" />
-            <Label x:Name="RotXLabel" Text="0" TextColor="{StaticResource TextColor}" HorizontalTextAlignment="End" Grid.Column="1" />
-        </Grid>
-        <HorizontalStackLayout Spacing="4" HorizontalOptions="Center">
-            <Button Text="-1" Clicked="OnRotXSetClicked" />
-            <Button Text="0" Clicked="OnRotXSetClicked" />
-            <Button Text="+1" Clicked="OnRotXSetClicked" />
-        </HorizontalStackLayout>
-        <Slider x:Name="RotXSlider" Minimum="-180" Maximum="180" ValueChanged="OnRotXChanged" />
-        <Grid ColumnDefinitions="80,*" RowSpacing="2">
-            <Label Text="Rot Y" TextColor="{StaticResource TextColor}" Grid.Column="0" />
-            <Label x:Name="RotYLabel" Text="0" TextColor="{StaticResource TextColor}" HorizontalTextAlignment="End" Grid.Column="1" />
-        </Grid>
-        <HorizontalStackLayout Spacing="4" HorizontalOptions="Center">
-            <Button Text="-1" Clicked="OnRotYSetClicked" />
-            <Button Text="0" Clicked="OnRotYSetClicked" />
-            <Button Text="+1" Clicked="OnRotYSetClicked" />
-        </HorizontalStackLayout>
-        <Slider x:Name="RotYSlider" Minimum="-180" Maximum="180" ValueChanged="OnRotYChanged" />
-        <Grid ColumnDefinitions="80,*" RowSpacing="2">
-            <Label Text="Rot Z" TextColor="{StaticResource TextColor}" Grid.Column="0" />
-            <Label x:Name="RotZLabel" Text="0" TextColor="{StaticResource TextColor}" HorizontalTextAlignment="End" Grid.Column="1" />
-        </Grid>
-        <HorizontalStackLayout Spacing="4" HorizontalOptions="Center">
-            <Button Text="-1" Clicked="OnRotZSetClicked" />
-            <Button Text="0" Clicked="OnRotZSetClicked" />
-            <Button Text="+1" Clicked="OnRotZSetClicked" />
-        </HorizontalStackLayout>
-        <Slider x:Name="RotZSlider" Minimum="-180" Maximum="180" ValueChanged="OnRotZChanged" />
-        <HorizontalStackLayout Spacing="10" HorizontalOptions="End">
-            <Button x:Name="ConfirmButton" Text="select" Clicked="OnConfirmClicked" />
-            <Button x:Name="CancelButton" Text="cancel" Clicked="OnCancelClicked" />
-        </HorizontalStackLayout>
-    </VerticalStackLayout>
-    </Grid>
+    </ScrollView>
 </ContentView>

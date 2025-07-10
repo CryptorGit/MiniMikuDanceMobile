@@ -423,11 +423,9 @@ public partial class CameraPage : ContentPage
             AdaptSelectMessage.IsVisible ? AbsoluteLayout.AutoSize : 0));
         AbsoluteLayout.SetLayoutFlags(AdaptSelectMessage,
             AbsoluteLayoutFlags.XProportional | AbsoluteLayoutFlags.WidthProportional);
-        AbsoluteLayout.SetLayoutBounds(KeyPanel, new Rect(W - 200 - 8, TopMenuHeight + 8,
-            200, KeyPanel.IsVisible ? AbsoluteLayout.AutoSize : 0));
+        AbsoluteLayout.SetLayoutBounds(KeyPanel, new Rect(W - 300 - 20, TopMenuHeight + 20, 300, 500));
         AbsoluteLayout.SetLayoutFlags(KeyPanel, AbsoluteLayoutFlags.None);
-        AbsoluteLayout.SetLayoutBounds(DeletePanel, new Rect(W - 200 - 8, TopMenuHeight + 8,
-            200, DeletePanel.IsVisible ? AbsoluteLayout.AutoSize : 0));
+        AbsoluteLayout.SetLayoutBounds(DeletePanel, new Rect(W - 300 - 20, TopMenuHeight + 20, 300, 200));
         AbsoluteLayout.SetLayoutFlags(DeletePanel, AbsoluteLayoutFlags.None);
 
         AbsoluteLayout.SetLayoutBounds(LoadingIndicator, new Rect(0.5, 0.5, 40, 40));
@@ -687,6 +685,9 @@ public partial class CameraPage : ContentPage
             {
                 var tv = new TimelineView();
                 tv.Model = _currentModel;
+                tv.AddKeyClicked += (s, e) => KeyPanel.IsVisible = true;
+                tv.EditKeyClicked += (s, e) => KeyPanel.IsVisible = true;
+                tv.DeleteKeyClicked += (s, e) => DeletePanel.IsVisible = true;
                 view = tv;
             }
             else if (name == "MTOON")

@@ -2,7 +2,11 @@
 <ContentView xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
              x:Class="MiniMikuDanceMaui.KeyDeletePanel"
-             BackgroundColor="{StaticResource OverlayBackgroundColor}">
+             BackgroundColor="{StaticResource OverlayBackgroundColor}"
+             HorizontalOptions="End"
+             VerticalOptions="Start"
+             WidthRequest="300"
+             HeightRequest="200">
     <Grid>
         <Button Text="×" x:Name="CloseButton" Clicked="OnCancelClicked"
                 HorizontalOptions="End" VerticalOptions="Start" Margin="8" />

@@ -9,9 +9,12 @@ namespace MiniMikuDanceMaui;
 public partial class TimelineView : ContentView
 {
     const int FrameCount = 200;
-    const float FrameWidth = 40f;
-    const float RowHeight = 30f;
-    const float LeftPanelWidth = 150f;
+    const float FrameWidth = 50f; // Increased width
+    const float HeaderHeight = 30f;
+    const float RowHeight = 40f; // Increased height
+    const float LeftPanelWidth = 180f; // Increased width
+    const float BoneNameFontSize = 24f; // Increased font size
+    const float HeaderFontSize = 18f; // Increased font size
 
     // Data model
     public ModelData? Model { get; set; }
@@ -23,6 +26,10 @@ public partial class TimelineView : ContentView
     private float _scrollY;
     private int _currentFrame = 0; // For playhead position
 
+    public event EventHandler? AddKeyClicked;
+    public event EventHandler? EditKeyClicked;
+    public event EventHandler? DeleteKeyClicked;
+
     public TimelineView()
     {
         InitializeComponent();
@@ -30,12 +37,28 @@ public partial class TimelineView : ContentView
         CurrentFrameEntry.TextChanged += CurrentFrameEntry_TextChanged;
     }
 
+    private void OnPlayClicked(object? sender, EventArgs e)
+    {
+        // TODO: Implement play logic
+    }
+
+    private void OnPauseClicked(object? sender, EventArgs e)
+    {
+        // TODO: Implement pause logic
+    }
+
+    private void OnStopClicked(object? sender, EventArgs e)
+    {
+        _currentFrame = 0;
+        CurrentFrameEntry.Text = _currentFrame.ToString();
+        TimelineCanvas.InvalidateSurface();
+    }
+
     private void CurrentFrameEntry_TextChanged(object? sender, TextChangedEventArgs e)
     {
         if (int.TryParse(e.NewTextValue, out int frame))
         {
             _currentFrame = frame;
-            TimelineHeaderCanvas.InvalidateSurface();
             TimelineCanvas.InvalidateSurface();
         }
     }
@@ -44,7 +67,6 @@ public partial class TimelineView : ContentView
     {
         _currentFrame = Math.Max(0, _currentFrame - 1);
         CurrentFrameEntry.Text = _currentFrame.ToString();
-        TimelineHeaderCanvas.InvalidateSurface();
         TimelineCanvas.InvalidateSurface();
     }
 
@@ -52,7 +74,6 @@ public partial class TimelineView : ContentView
     {
         _currentFrame = Math.Min(FrameCount - 1, _currentFrame + 1);
         CurrentFrameEntry.Text = _currentFrame.ToString();
-        TimelineHeaderCanvas.InvalidateSurface();
         TimelineCanvas.InvalidateSurface();
     }
 
@@ -60,7 +81,6 @@ public partial class TimelineView : ContentView
     {
         _currentFrame = 0;
         CurrentFrameEntry.Text = _currentFrame.ToString();
-        TimelineHeaderCanvas.InvalidateSurface();
         TimelineCanvas.InvalidateSurface();
     }
 
@@ -68,7 +88,6 @@ public partial class TimelineView : ContentView
     {
         _currentFrame = FrameCount - 1;
         CurrentFrameEntry.Text = _currentFrame.ToString();
-        TimelineHeaderCanvas.InvalidateSurface();
         TimelineCanvas.InvalidateSurface();
     }
 
@@ -101,29 +120,17 @@ public partial class TimelineView : ContentView
 
     void OnAddKeyClicked(object? sender, EventArgs e)
     {
-        Debug.WriteLine("Add Key clicked.");
-        if (Application.Current?.MainPage != null)
-        {
-            Application.Current.MainPage.DisplayAlert("Add Key", "Add Key window would appear here.", "OK");
-        }
+        AddKeyClicked?.Invoke(this, EventArgs.Empty);
     }
 
     void OnEditKeyClicked(object? sender, EventArgs e)
     {
-        Debug.WriteLine("Edit Key clicked.");
-        if (Application.Current?.MainPage != null)
-        {
-            Application.Current.MainPage.DisplayAlert("Edit Key", "Edit Key window would appear here.", "OK");
-        }
+        EditKeyClicked?.Invoke(this, EventArgs.Empty);
     }
 
     void OnDeleteKeyClicked(object? sender, EventArgs e)
     {
-        Debug.WriteLine("Delete Key clicked.");
-        if (Application.Current?.MainPage != null)
-        {
-            Application.Current.MainPage.DisplayAlert("Delete Key", "Delete Key window would appear here.", "OK");
-        }
+        DeleteKeyClicked?.Invoke(this, EventArgs.Empty);
     }
 
     void OnCanvasTouch(object? sender, SKTouchEventArgs e)
@@ -158,7 +165,6 @@ public partial class TimelineView : ContentView
 
                 _lastTouchPoint = e.Location;
                 
-                TimelineHeaderCanvas.InvalidateSurface();
                 TimelineCanvas.InvalidateSurface();
                 Debug.WriteLine($"ScrollX: {_scrollX}, ScrollY: {_scrollY}");
                 break;
@@ -166,112 +172,97 @@ public partial class TimelineView : ContentView
         // e.Handled = true; // Temporarily remove to see if it affects propagation
     }
 
-    void OnTimelineHeaderPaintSurface(object? sender, SKPaintSurfaceEventArgs e)
-    {
-        Debug.WriteLine("OnTimelineHeaderPaintSurface called.");
-        var canvas = e.Surface.Canvas;
-        var info = e.Info;
-
-        canvas.Clear(SKColors.Transparent);
-
-        using var linePaint = new SKPaint { Color = SKColors.Gray, StrokeWidth = 1 };
-        using var textFont = new SKFont { Size = 20 }; // Increased font size
-        using var textPaint = new SKPaint { Color = SKColors.White };
-        using var playheadPaint = new SKPaint { Color = SKColors.Red, StrokeWidth = 2 };
-
-        canvas.Save();
-        canvas.Translate(-_scrollX, 0);
-
-        for (int i = 0; i < FrameCount; i++)
-        {
-            var x = i * FrameWidth;
-            canvas.DrawLine(x, 0, x, info.Height, linePaint);
-
-            if (i % 5 == 0)
-            {
-                var text = (i + 1).ToString();
-                canvas.DrawText(text, x + 5, info.Height - 5, textFont, textPaint);
-            }
-        }
-        
-        canvas.Restore();
-
-        var playheadX = _currentFrame * FrameWidth - _scrollX; 
-        canvas.DrawLine(playheadX, 0, playheadX, info.Height, playheadPaint);
-        
-        // Temporary: Draw a solid rectangle to confirm playhead position
-        canvas.DrawRect(new SKRect(playheadX - 5, 0, playheadX + 5, info.Height), new SKPaint { Color = SKColors.Blue, Style = SKPaintStyle.Fill });
-
-        using var separatorPaint = new SKPaint { Color = new SKColor(60, 60, 60), Style = SKPaintStyle.Fill };
-        canvas.DrawRect(new SKRect(0, 0, LeftPanelWidth, info.Height), separatorPaint);
-    }
-
     void OnTimelinePaintSurface(object? sender, SKPaintSurfaceEventArgs e)
     {
-        Debug.WriteLine("OnTimelinePaintSurface called.");
         var canvas = e.Surface.Canvas;
         var info = e.Info;
-        var rowCount = _boneNames.Count;
-
         canvas.Clear(SKColors.Transparent);
 
-        // === Draw Right Panel (Scrollable Content) ===
-        canvas.Save();
-        canvas.Translate(LeftPanelWidth - _scrollX, -_scrollY);
-
+        // Define paints
         using var linePaint = new SKPaint { Color = SKColors.Gray, StrokeWidth = 1 };
-        using var altRowPaint = new SKPaint { Color = new SKColor(60, 60, 60) };
-        using var keyPaint = new SKPaint { Color = SKColors.White, Style = SKPaintStyle.Fill };
+        using var altRowPaint = new SKPaint { Color = new SKColor(50, 50, 50) };
+        using var headerBgPaint = new SKPaint { Color = new SKColor(30, 30, 30) };
+        using var textPaint = new SKPaint { Color = SKColors.White, IsAntialias = true };
+        using var playheadPaint = new SKPaint { Color = SKColors.Red, StrokeWidth = 2 };
+        using var keyPaint = new SKPaint { Color = SKColors.White, Style = SKPaintStyle.Fill, IsAntialias = true };
 
-        var minRows = 1; 
-        var actualRowCount = Math.Max(minRows, rowCount);
+        // === 1. Draw Right Panel (Scrollable Content) ===
+        canvas.Save();
+        canvas.Translate(LeftPanelWidth - _scrollX, 0); // Scroll only horizontally
 
+        var totalContentWidth = FrameCount * FrameWidth;
+        var visibleRowCount = (int)((info.Height - HeaderHeight) / RowHeight);
+        var actualRowCount = Math.Max(visibleRowCount, _boneNames.Count);
+        var totalContentHeight = actualRowCount * RowHeight + HeaderHeight;
+
+        // --- Draw timeline grid and keyframes ---
+        canvas.Save();
+        canvas.Translate(0, HeaderHeight - _scrollY); // Scroll only vertically for rows
+
+        // Draw alternating row backgrounds
         for (int i = 0; i < actualRowCount; i++)
         {
-            var y = i * RowHeight;
             if (i % 2 == 1)
             {
-                canvas.DrawRect(0, y, FrameCount * FrameWidth, RowHeight, altRowPaint);
+                canvas.DrawRect(0, i * RowHeight, totalContentWidth, RowHeight, altRowPaint);
             }
         }
 
-        for (int i = 0; i < FrameCount; i++)
-        {
-            var x = i * FrameWidth;
-            canvas.DrawLine(x, 0, x, actualRowCount * RowHeight, linePaint);
-        }
-        
-        for (int i = 0; i < actualRowCount; i++)
+        // Draw horizontal lines
+        for (int i = 0; i <= actualRowCount; i++)
         {
             var y = i * RowHeight;
-            canvas.DrawLine(0, y + RowHeight, FrameCount * FrameWidth, y + RowHeight, linePaint);
+            canvas.DrawLine(0, y, totalContentWidth, y, linePaint);
         }
 
         // TODO: Draw actual keyframes based on data model
-        
+
         canvas.Restore();
 
-        // === Draw Left Panel (Fixed Content) ===
+        // --- Draw header (time ruler) ---
+        canvas.DrawRect(0, 0, totalContentWidth, HeaderHeight, headerBgPaint);
+        textPaint.TextSize = HeaderFontSize;
+        for (int i = 0; i < FrameCount; i++)
+        {
+            var x = i * FrameWidth;
+            canvas.DrawLine(x, 0, x, totalContentHeight, linePaint); // Vertical lines through all rows
+
+            if (i % 5 == 0)
+            {
+                var text = (i).ToString();
+                canvas.DrawText(text, x + 5, HeaderHeight - 10, textPaint);
+            }
+        }
+
+        canvas.Restore();
+
+        // === 2. Draw Left Panel (Fixed Content) ===
         canvas.Save();
         canvas.ClipRect(new SKRect(0, 0, LeftPanelWidth, info.Height));
-        canvas.Clear(new SKColor(40, 40, 40));
-        
-        canvas.Translate(0, -_scrollY);
+        canvas.Clear(new SKColor(40, 40, 40)); // Background for the left panel
 
-        using var boneFont = new SKFont { Size = 20 }; // Increased font size
-        using var boneTextPaint = new SKPaint { Color = SKColors.White };
-        using var buttonPaint = new SKPaint { Color = SKColors.DarkGray };
-        using var buttonFont = new SKFont { Size = 20 }; // Increased font size
-        using var buttonTextPaint = new SKPaint { Color = SKColors.White };
+        // --- Draw header part of the left panel ---
+        canvas.DrawRect(0, 0, LeftPanelWidth, HeaderHeight, headerBgPaint);
+        canvas.DrawLine(0, HeaderHeight, LeftPanelWidth, HeaderHeight, linePaint);
 
-        for (int i = 0; i < rowCount; i++)
+        // --- Draw bone names ---
+        canvas.Translate(0, HeaderHeight - _scrollY); // Sync vertical scroll with the right panel
+        textPaint.TextSize = BoneNameFontSize;
+        for (int i = 0; i < _boneNames.Count; i++)
         {
             var y = i * RowHeight;
-            canvas.DrawLine(0, y + RowHeight, LeftPanelWidth, y + RowHeight, linePaint);
-            canvas.DrawText(_boneNames[i], 10, y + 20, boneFont, boneTextPaint);
+            canvas.DrawText(_boneNames[i], 10, y + RowHeight - 10, textPaint);
         }
-        
+
         canvas.Restore();
+
+        // === 3. Draw Playhead (on top of everything) ===
+        var playheadX = LeftPanelWidth + _currentFrame * FrameWidth - _scrollX;
+        if (playheadX >= LeftPanelWidth)
+        {
+            canvas.DrawLine(playheadX, HeaderHeight, playheadX, info.Height, playheadPaint);
+            canvas.DrawLine(playheadX, 0, playheadX, HeaderHeight, playheadPaint); // Also draw on header
+        }
     }
 
     void DrawKeyframe(SKCanvas canvas, int row, int frame, SKPaint paint)
