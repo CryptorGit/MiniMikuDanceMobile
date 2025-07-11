@@ -236,7 +236,7 @@ public partial class TimelineView : ContentView
                 maxBoneNameWidth = Math.Max(maxBoneNameWidth, _boneNameFont.MeasureText(boneName));
             }
         }
-                BoneNameContentGrid.WidthRequest = Math.Max(LeftPanelWidth, maxBoneNameWidth + 20); // Add some padding
+        BoneNameContentGrid.WidthRequest = Math.Max(LeftPanelWidth, maxBoneNameWidth + 20); // Add some padding
 
         Debug.WriteLine($"[TimelineView] UpdateCanvasSizes: actualRowCount={actualRowCount}, totalContentHeight={totalContentHeight}, maxBoneNameWidth={maxBoneNameWidth}, BoneNameContentGrid.WidthRequest={BoneNameContentGrid.WidthRequest}, TimelineContentGrid.HeightRequest={TimelineContentGrid.HeightRequest}, TimelineContentGrid.WidthRequest={TimelineContentGrid.WidthRequest}");
     }

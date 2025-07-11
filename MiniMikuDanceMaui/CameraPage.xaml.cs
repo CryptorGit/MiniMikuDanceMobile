@@ -280,8 +280,14 @@ public partial class CameraPage : ContentPage
         HideSettingMenu();
     }
 
-    private void OnTimelineClicked(object? sender, EventArgs e)
+    private async void OnTimelineClicked(object? sender, EventArgs e)
     {
+        if (_currentModel == null)
+        {
+            await DisplayAlert("Error", "VRMモデルが読み込まれていません。先にモデルをインポートしてください。", "OK");
+            LogService.WriteLine("TIMELINE button clicked but no model loaded.");
+            return;
+        }
         LogService.WriteLine("TIMELINE button clicked");
         ShowBottomFeature("TIMELINE");
         HideViewMenu();
@@ -1031,6 +1037,14 @@ public partial class CameraPage : ContentPage
             var data = await Task.Run(() => importer.ImportModel(_selectedPath));
             _pendingModel = data;
             LogService.WriteLine($"Imported VRM: {Path.GetFileName(_selectedPath!)}");
+            if (_pendingModel != null)
+            {
+                LogService.WriteLine($"_pendingModel is not null. Bone count: {_pendingModel.Bones.Count}");
+            }
+            else
+            {
+                LogService.WriteLine($"_pendingModel is null after import.");
+            }
             LogService.WriteLine($"Spec: {data.Info.SpecVersion}");
             LogService.WriteLine($"Title: {data.Info.Title}");
             LogService.WriteLine($"Author: {data.Info.Author}");
