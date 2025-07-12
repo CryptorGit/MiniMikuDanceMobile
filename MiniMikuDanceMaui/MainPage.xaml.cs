@@ -46,7 +46,8 @@ public partial class MainPage : ContentPage
     private float _shadeShift = -0.1f;
     private float _shadeToony = 0.9f;
     private float _rimIntensity = 0.5f;
-    private double bottomWidth = 0;
+    // bottomWidth is no longer used; bottom region spans full screen width
+    // private double bottomWidth = 0;
     private bool _glInitialized;
     private ModelData? _pendingModel;
     private ModelData? _currentModel;
@@ -483,10 +484,11 @@ private void UpdateLayout()
     AbsoluteLayout.SetLayoutBounds(Viewer, new Rect(0, 0, viewerWidth, viewerHeight));
     AbsoluteLayout.SetLayoutFlags(Viewer, AbsoluteLayoutFlags.None);
 
+    // Position bottom region to span full width of the page
     AbsoluteLayout.SetLayoutBounds(BottomRegion,
-        new Rect((W - bottomWidth) / 2,
+        new Rect(0,
             H - bottomHeight - safe.Bottom,
-            bottomWidth,
+            W,
             bottomHeight));
     AbsoluteLayout.SetLayoutFlags(BottomRegion, AbsoluteLayoutFlags.None);
 }
