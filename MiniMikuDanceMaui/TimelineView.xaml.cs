@@ -194,6 +194,8 @@ public partial class TimelineView : ContentView
     {
         BoneNameScrollView.Scrolled += OnBoneNameScrollViewScrolled;
         TimelineContentScrollView.Scrolled += OnTimelineContentScrollViewScrolled;
+        BoneNameScrollView.SizeChanged += OnScrollViewSizeChanged;
+        TimelineContentScrollView.SizeChanged += OnScrollViewSizeChanged;
         UpdateCanvasSizes();
     }
 
@@ -218,6 +220,11 @@ public partial class TimelineView : ContentView
         TimelineContentCanvas.InvalidateSurface(); // Redraw timeline content with new scroll
     }
 
+    private void OnScrollViewSizeChanged(object? sender, EventArgs e)
+    {
+        UpdateCanvasSizes();
+    }
+
     private void UpdateCanvasSizes()
     {
         var actualRowCount = Math.Max(1, _boneNames.Count);
@@ -237,6 +244,14 @@ public partial class TimelineView : ContentView
             }
         }
         BoneNameContentGrid.WidthRequest = Math.Max(LeftPanelWidth, maxBoneNameWidth + 20); // Add some padding
+
+        // Limit canvas size to the visible viewport to avoid huge bitmap allocation
+        var viewportWidth = TimelineContentScrollView.Width > 0 ? TimelineContentScrollView.Width : 1;
+        var viewportHeight = TimelineContentScrollView.Height > 0 ? TimelineContentScrollView.Height : 1;
+        TimelineContentCanvas.WidthRequest = viewportWidth;
+        TimelineContentCanvas.HeightRequest = viewportHeight;
+        BoneNameCanvas.WidthRequest = BoneNameContentGrid.WidthRequest;
+        BoneNameCanvas.HeightRequest = viewportHeight;
 
         Debug.WriteLine($"[TimelineView] UpdateCanvasSizes: actualRowCount={actualRowCount}, totalContentHeight={totalContentHeight}, maxBoneNameWidth={maxBoneNameWidth}, BoneNameContentGrid.WidthRequest={BoneNameContentGrid.WidthRequest}, TimelineContentGrid.HeightRequest={TimelineContentGrid.HeightRequest}, TimelineContentGrid.WidthRequest={TimelineContentGrid.WidthRequest}");
     }
