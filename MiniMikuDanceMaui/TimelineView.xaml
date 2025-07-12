@@ -43,12 +43,10 @@
 
             <!-- Right Panel (Timeline Grid and Keyframes) -->
             <ScrollView Grid.Column="1" Orientation="Both" VerticalScrollBarVisibility="Always" HorizontalScrollBarVisibility="Always" x:Name="TimelineContentScrollView">
-                <Grid x:Name="TimelineContentGrid">
-                    <skia:SKCanvasView x:Name="TimelineContentCanvas"
-                                       PaintSurface="OnTimelineContentPaintSurface"
-                                       HorizontalOptions="Start"
-                                       VerticalOptions="Start" />
-                </Grid>
+                <skia:SKCanvasView x:Name="TimelineContentCanvas"
+                                   PaintSurface="OnTimelineContentPaintSurface"
+                                   HorizontalOptions="Start"
+                                   VerticalOptions="Start" />
             </ScrollView>
         </Grid>
     </Grid>
