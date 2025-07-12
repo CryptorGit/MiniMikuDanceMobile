@@ -12,7 +12,7 @@ public partial class TimelineView : ContentView
     const float FrameWidth = 50f; // Increased width
     const float HeaderHeight = 45f;
     const float RowHeight = 60f; // Increased height
-    const float LeftPanelWidth = 100f; // Adjusted width for bone name panel to match XAML
+    const float LeftPanelWidth = 110f; // Adjusted width for bone name panel to match XAML
     const string RightFootBoneName = "rightFoot";
     private float _maxScrollY = 0;
     const float BoneNameFontSize = 36f; // Increased font size
@@ -220,38 +220,35 @@ public partial class TimelineView : ContentView
     private void UpdateCanvasSizes()
     {
         var actualRowCount = Math.Max(1, _boneNames.Count);
-        var rightFootIndex = _boneNames.IndexOf(RightFootBoneName);
-        var effectiveRowCount = (rightFootIndex != -1) ? (rightFootIndex + 1) : actualRowCount;
-        var totalContentHeight = effectiveRowCount * RowHeight + HeaderHeight; // Add HeaderHeight for the top ruler
+        var totalContentHeight = HeaderHeight + actualRowCount * RowHeight;
 
+        // Set the size of the content grids to define the scrollable area
         BoneNameContentGrid.HeightRequest = totalContentHeight;
         TimelineContentGrid.HeightRequest = totalContentHeight;
         TimelineContentGrid.WidthRequest = FrameCount * FrameWidth;
 
-        var scrollableContentHeight = effectiveRowCount * RowHeight;
-        var visibleScrollableAreaHeight = TimelineContentScrollView.Height - HeaderHeight;
+        var scrollableContentHeight = totalContentHeight;
+        var visibleScrollableAreaHeight = TimelineContentScrollView.Height;
         _maxScrollY = Math.Max(0, scrollableContentHeight - (float)(visibleScrollableAreaHeight > 0 ? visibleScrollableAreaHeight : 1));
 
-        // Calculate max bone name width for BoneNameCanvas
-        float maxBoneNameWidth = 0;
-        if (_boneNames.Any())
+        BoneNameContentGrid.WidthRequest = LeftPanelWidth;
+
+        // Set the canvas size to the visible area of the ScrollView to avoid creating a huge bitmap.
+        // The canvas will be redrawn with the correct portion of the timeline based on scroll offsets.
+        BoneNameCanvas.WidthRequest = LeftPanelWidth;
+        if (BoneNameScrollView.Height > 1)
         {
-            foreach (var boneName in _boneNames)
-            {
-                maxBoneNameWidth = Math.Max(maxBoneNameWidth, _boneNameFont.MeasureText(boneName));
-            }
+            BoneNameCanvas.HeightRequest = BoneNameScrollView.Height;
         }
-        BoneNameContentGrid.WidthRequest = LeftPanelWidth; // Use fixed LeftPanelWidth
+        if (TimelineContentScrollView.Width > 1 && TimelineContentScrollView.Height > 1)
+        {
+            TimelineContentCanvas.WidthRequest = TimelineContentScrollView.Width;
+            TimelineContentCanvas.HeightRequest = TimelineContentScrollView.Height;
+        }
 
-        // Set canvas sizes to the visible viewport to avoid huge bitmap allocation
-        BoneNameCanvas.HeightRequest = (float)TimelineContentScrollView.Height;
-        TimelineContentCanvas.WidthRequest = (float)TimelineContentScrollView.Width;
-        TimelineContentCanvas.HeightRequest = (float)TimelineContentScrollView.Height;
-
-        Debug.WriteLine($"[TimelineView] UpdateCanvasSizes: actualRowCount={actualRowCount}, rightFootIndex={rightFootIndex}, effectiveRowCount={effectiveRowCount}, totalContentHeight={totalContentHeight}, visibleScrollableAreaHeight={visibleScrollableAreaHeight}, _maxScrollY={_maxScrollY}, BoneNameContentGrid.WidthRequest={BoneNameContentGrid.WidthRequest}, TimelineContentGrid.HeightRequest={TimelineContentGrid.HeightRequest}, TimelineContentGrid.WidthRequest={TimelineContentGrid.WidthRequest}");
+        Debug.WriteLine($"[TimelineView] UpdateCanvasSizes: TimelineContentCanvas.WidthRequest={TimelineContentCanvas.WidthRequest}, TimelineContentCanvas.HeightRequest={TimelineContentCanvas.HeightRequest}");
     }
 
-    
 
     void OnBoneNamePaintSurface(object? sender, SKPaintSurfaceEventArgs e)
     {
@@ -261,44 +258,42 @@ public partial class TimelineView : ContentView
 
         using var linePaint = new SKPaint { Color = SKColors.Gray, StrokeWidth = 1 };
         using var altRowPaint = new SKPaint { Color = new SKColor(50, 50, 50) };
-        using var headerBgPaint = new SKPaint { Color = new SKColor(30, 30, 30) };
-        using var textPaint = new SKPaint { Color = SKColors.White, IsAntialias = true };
+        using var textPaint = new SKPaint(_boneNameFont) { Color = SKColors.White, IsAntialias = true };
+
+        // --- Draw Header Background (non-scrollable) ---
+        using (var headerBgPaint = new SKPaint { Color = new SKColor(60, 60, 60) })
+        {
+            canvas.DrawRect(0, 0, info.Width, HeaderHeight, headerBgPaint);
+        }
+        canvas.DrawLine(0, HeaderHeight, info.Width, HeaderHeight, linePaint);
 
         canvas.Save();
-        // Clip to the scrollable area (below the header)
-        canvas.ClipRect(SKRect.Create(0, HeaderHeight, info.Width, info.Height - HeaderHeight));
         // Translate the canvas for the scrollable content
         canvas.Translate(0, -_scrollY);
 
         // --- Draw bone names (scrollable) ---
-        using var boneNameFont = new SKFont { Size = BoneNameFontSize };
         if (_boneNames.Count > 0)
         {
             // Calculate visible rows based on current scroll and viewport
             var startRow = (int)((_scrollY) / RowHeight);
-            var endRow = (int)((_scrollY + info.Height) / RowHeight) + 1;
+            var endRow = (int)((_scrollY + info.Height - HeaderHeight) / RowHeight) + 1;
             endRow = Math.Min(endRow, _boneNames.Count);
 
             for (int i = startRow; i < endRow; i++)
             {
-                var y = i * RowHeight; // Y position relative to the translated canvas
+                var y = HeaderHeight + i * RowHeight; // Y position relative to the translated canvas, offset by header
                 if (i % 2 == 1)
                 {
                     canvas.DrawRect(0, y, info.Width, RowHeight, altRowPaint);
                 }
-                else
-                {
-                    canvas.DrawRect(0, y, info.Width, RowHeight, new SKPaint { Color = new SKColor(40, 40, 40) }); // Base background for even rows
-                }
+                // No need to draw even row background as it's the cleared color
+                
                 canvas.DrawLine(0, y + RowHeight, info.Width, y + RowHeight, linePaint); // Horizontal line for bone names
-                canvas.DrawText(_boneNames[i], 10, y + (RowHeight / 2) + (BoneNameFontSize / 3), _boneNameFont, textPaint);
+                // Center text vertically in the row
+                canvas.DrawText(_boneNames[i], 10, y + (RowHeight + textPaint.TextSize) / 2, textPaint);
             }
         }
         canvas.Restore();
-
-        // --- Draw header part of the left panel (fixed) ---
-        canvas.DrawRect(0, 0, info.Width, HeaderHeight, headerBgPaint);
-        canvas.DrawLine(0, HeaderHeight, info.Width, HeaderHeight, linePaint);
     }
 
     void OnTimelineContentPaintSurface(object? sender, SKPaintSurfaceEventArgs e)
@@ -310,29 +305,46 @@ public partial class TimelineView : ContentView
         // Define paints
         using var linePaint = new SKPaint { Color = SKColors.Gray, StrokeWidth = 1 };
         using var altRowPaint = new SKPaint { Color = new SKColor(50, 50, 50) };
-        using var headerBgPaint = new SKPaint { Color = new SKColor(30, 30, 30) };
-        using var textPaint = new SKPaint { Color = SKColors.White, IsAntialias = true };
-        using var playheadPaint = new SKPaint { Color = SKColors.Red, StrokeWidth = 2 };
         using var keyPaint = new SKPaint { Color = SKColors.White, Style = SKPaintStyle.Fill, IsAntialias = true };
+        using var headerTextPaint = new SKPaint(_headerFont) { Color = SKColors.White, TextAlign = SKTextAlign.Center, IsAntialias = true };
 
         var totalContentWidth = FrameCount * FrameWidth;
         var actualRowCount = Math.Max(1, _boneNames.Count);
-        var totalContentHeight = actualRowCount * RowHeight;
+        var totalContentHeightWithHeader = HeaderHeight + actualRowCount * RowHeight;
 
+        // --- Draw Header (non-scrollable vertically, scrollable horizontally) ---
         canvas.Save();
-        // Clip to the scrollable area (below the header)
-        canvas.ClipRect(SKRect.Create(0, HeaderHeight, info.Width, info.Height - HeaderHeight));
-        // Translate the canvas for the scrollable content
+        canvas.Translate(-_scrollX, 0); // Only apply horizontal scroll
+        // Header background
+        using (var headerBgPaint = new SKPaint { Color = new SKColor(60, 60, 60) })
+        {
+            canvas.DrawRect(0, 0, totalContentWidth, HeaderHeight, headerBgPaint);
+        }
+        // Header text (frame numbers) and vertical lines
+        for (int i = 0; i < FrameCount; i++)
+        {
+            var x = i * FrameWidth;
+            canvas.DrawLine(x, 0, x, HeaderHeight, linePaint); // Vertical lines in header
+            if (i % 5 == 0) // Draw label every 5 frames
+            {
+                canvas.DrawText(i.ToString(), x + FrameWidth / 2, (HeaderHeight + headerTextPaint.TextSize) / 2, headerTextPaint);
+            }
+        }
+        canvas.DrawLine(0, HeaderHeight, totalContentWidth, HeaderHeight, linePaint); // Bottom line of header
+        canvas.Restore();
+
+        // --- Draw Timeline Grid and Keyframes (scrollable) ---
+        canvas.Save();
         canvas.Translate(-_scrollX, -_scrollY);
 
         // --- Draw alternating row backgrounds and horizontal lines
         var startRow = (int)((_scrollY) / RowHeight);
-        var endRow = (int)((_scrollY + info.Height) / RowHeight) + 1;
+        var endRow = (int)((_scrollY + info.Height - HeaderHeight) / RowHeight) + 1;
         endRow = Math.Min(endRow, actualRowCount);
 
         for (int i = startRow; i < endRow; i++)
         {
-            var y = i * RowHeight; // Y position relative to the translated canvas
+            var y = HeaderHeight + i * RowHeight; // Y position relative to the translated canvas, offset by header
             if (i % 2 == 1)
             {
                 canvas.DrawRect(0, y, totalContentWidth, RowHeight, altRowPaint);
@@ -340,11 +352,11 @@ public partial class TimelineView : ContentView
             canvas.DrawLine(0, y + RowHeight, totalContentWidth, y + RowHeight, linePaint);
         }
 
-        // Draw vertical lines for the grid
+        // Draw vertical lines for the grid content
         for (int i = 0; i < FrameCount; i++)
         {
             var x = i * FrameWidth;
-            canvas.DrawLine(x, HeaderHeight, x, totalContentHeight + HeaderHeight, linePaint);
+            canvas.DrawLine(x, HeaderHeight, x, totalContentHeightWithHeader, linePaint);
         }
 
         // Draw keyframes
@@ -352,7 +364,8 @@ public partial class TimelineView : ContentView
         {
             for (int i = 0; i < _boneNames.Count; i++)
             {
-                var boneRowY = i * RowHeight + HeaderHeight;
+                var boneRowY = HeaderHeight + (i * RowHeight);
+                // Simple check if the row is visible
                 if (boneRowY + RowHeight > _scrollY && boneRowY < _scrollY + info.Height)
                 {
                     var boneName = _boneNames[i];
@@ -368,23 +381,6 @@ public partial class TimelineView : ContentView
         }
 
         canvas.Restore();
-
-        // --- Draw header (time ruler) ---
-        canvas.DrawRect(0, 0, totalContentWidth, HeaderHeight, headerBgPaint);
-        for (int i = 0; i < FrameCount; i++)
-        {
-            var x = i * FrameWidth;
-            canvas.DrawLine(x, 0, x, HeaderHeight, linePaint);
-            if (i % 5 == 0)
-            {
-                var text = i.ToString();
-                canvas.DrawText(text, x + 5, HeaderHeight - 10, _headerFont, textPaint);
-            }
-        }
-
-        // === Draw Playhead (on top of everything) ===
-        var playheadX = _currentFrame * FrameWidth;
-        canvas.DrawLine(playheadX - _scrollX, 0, playheadX - _scrollX, info.Height, playheadPaint);
     }
 
     public void AddKeyframe(string boneName, int frame)
@@ -412,8 +408,8 @@ public partial class TimelineView : ContentView
     void DrawKeyframe(SKCanvas canvas, int row, int frame, SKPaint paint)
     {
         var x = frame * FrameWidth + FrameWidth / 2;
-        // Keyframe should be centered on the horizontal line at the bottom of the row
-        var y_line = (row + 1) * RowHeight + HeaderHeight; // Corrected to include HeaderHeight
+        // Keyframe should be centered on the horizontal line at the bottom of the row, considering the header
+        var y_line = HeaderHeight + (row + 1) * RowHeight;
         var path = new SKPath();
         path.MoveTo(x, y_line - 10); // Top point of diamond
         path.LineTo(x + 10, y_line); // Right point
