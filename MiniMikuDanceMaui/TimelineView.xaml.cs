@@ -26,11 +26,27 @@ public partial class TimelineView : ContentView
             if (_model != null)
             {
                 Debug.WriteLine($"[TimelineView] Model set. Bone count: {_model.Bones.Count}");
-                // Initialize bone names from the model
-                _boneNames = _model.Bones.Select(b => b.Name).ToList();
-                foreach (var boneName in _boneNames)
+                // Define the set of required Humanoid bones for VRM 0.x
+                var requiredHumanoidBones = new List<string>
                 {
-                    _keyframes[boneName] = new List<int>();
+                    "hips", "spine", "chest", "neck", "head",
+                    "leftUpperArm", "leftLowerArm", "leftHand",
+                    "rightUpperArm", "rightLowerArm", "rightHand",
+                    "leftUpperLeg", "leftLowerLeg", "leftFoot",
+                    "rightUpperLeg", "rightLowerLeg", "rightFoot"
+                };
+
+                // Initialize bone names from the model, prioritizing VRM 0.x bones if present
+                _boneNames.Clear();
+                _keyframes.Clear();
+
+                foreach (var requiredBone in requiredHumanoidBones)
+                {
+                    if (_model.HumanoidBoneList.Any(b => b.Name == requiredBone))
+                    {
+                        _boneNames.Add(requiredBone);
+                        _keyframes[requiredBone] = new List<int>();
+                    }
                 }
             }
             else
