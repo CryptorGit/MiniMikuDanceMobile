@@ -6,6 +6,7 @@ using System.Numerics;
 using System.Collections.Generic;
 using SixLabors.ImageSharp;
 using SixLabors.ImageSharp.PixelFormats;
+using SixLabors.ImageSharp.Processing;
 using Vector3D = Assimp.Vector3D;
 using SharpGLTF.Schema2;
 using SNode = SharpGLTF.Schema2.Node;
@@ -217,7 +218,19 @@ public class ModelImporter
                     var imgSeg = tex.PrimaryImage?.GetImageContent();
                     if (imgSeg.HasValue)
                     {
-                        using var image = SixLabors.ImageSharp.Image.Load<Rgba32>(imgSeg.Value.ToArray());
+                        using var image = SixLabors.ImageSharp.Image.Load<Rgba32>(imgSeg.Value);
+                        System.Diagnostics.Debug.WriteLine($"[ModelImporter] Original texture dimensions: {image.Width}x{image.Height}");
+                        int maxWidth = 2048;
+                        int maxHeight = 2048;
+                        if (image.Width > maxWidth || image.Height > maxHeight)
+                        {
+                            image.Mutate(x => x.Resize(new ResizeOptions
+                            {
+                                Size = new SixLabors.ImageSharp.Size(maxWidth, maxHeight),
+                                Mode = ResizeMode.Max
+                            }));
+                            System.Diagnostics.Debug.WriteLine($"[ModelImporter] Resized texture dimensions: {image.Width}x{image.Height}");
+                        }
                         smd.TextureWidth = image.Width;
                         smd.TextureHeight = image.Height;
                         smd.TextureBytes = new byte[image.Width * image.Height * 4];

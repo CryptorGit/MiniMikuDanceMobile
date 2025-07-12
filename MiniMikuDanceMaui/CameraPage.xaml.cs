@@ -272,13 +272,7 @@ public partial class CameraPage : ContentPage
     }
 
 
-    private void OnTerminalClicked(object? sender, EventArgs e)
-    {
-        LogService.WriteLine("TERMINAL button clicked");
-        ShowBottomFeature("TERMINAL");
-        HideViewMenu();
-        HideSettingMenu();
-    }
+    
 
     private async void OnTimelineClicked(object? sender, EventArgs e)
     {
@@ -456,6 +450,7 @@ public partial class CameraPage : ContentPage
 
     private void OnPaintSurface(object? sender, SKPaintGLSurfaceEventArgs e)
     {
+        System.Diagnostics.Debug.WriteLine($"[CameraPage] OnPaintSurface - BackendRenderTarget dimensions: {e.BackendRenderTarget.Width}x{e.BackendRenderTarget.Height}");
         if (!_glInitialized)
         {
             GL.LoadBindings(new SKGLViewBindingsContext());
@@ -683,11 +678,7 @@ public partial class CameraPage : ContentPage
                 var cv = new CameraView();
                 view = cv;
             }
-            else if (name == "TERMINAL")
-            {
-                var tv = new TerminalView();
-                view = tv;
-            }
+            
             else if (name == "TIMELINE")
             {
                 var tv = new TimelineView();
@@ -853,10 +844,7 @@ public partial class CameraPage : ContentPage
         {
             // nothing to update
         }
-        else if (name == "TERMINAL" && _bottomViews[name] is TerminalView)
-        {
-            // nothing to update
-        }
+        
         else if (name == "TIMELINE" && _bottomViews[name] is TimelineView)
         {
             // nothing to update
