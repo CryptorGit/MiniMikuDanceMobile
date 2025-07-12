@@ -40,6 +40,6 @@ public partial class App : Application
 
         Initializer.Initialize(uiConfig, null, poseModel, MmdFileSystem.BaseDir);
 
-        MainPage = new NavigationPage(new CameraPage());
+        MainPage = new NavigationPage(new MainPage());
     }
 }

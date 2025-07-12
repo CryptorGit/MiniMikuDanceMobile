@@ -22,7 +22,7 @@ using MiniMikuDance.Motion;
 
 namespace MiniMikuDanceMaui;
 
-public partial class CameraPage : ContentPage
+public partial class MainPage : ContentPage
 {
 
     // 下部領域1 : 上部領域2 の比率となるよう初期値を設定
@@ -47,7 +47,7 @@ public partial class CameraPage : ContentPage
     private string? _selectedVideoPath;
     private string? _selectedPosePath;
 
-    private readonly SimpleCubeRenderer _renderer = new();
+    private readonly VrmRenderer _renderer = new();
     private bool _glInitialized;
     private ModelData? _pendingModel;
     private ModelData? _currentModel;
@@ -84,7 +84,7 @@ public partial class CameraPage : ContentPage
 
     private static readonly Dictionary<string, BlazePoseJoint> _boneToJoint = _jointBonePairs.ToDictionary(p => p.Bone, p => p.Joint);
 
-    public CameraPage()
+    public MainPage()
     {
         InitializeComponent();
         NavigationPage.SetHasNavigationBar(this, false);
