@@ -335,8 +335,7 @@ public partial class MainPage : ContentPage
         BottomRegion.IsVisible = false;
         _currentFeature = null;
         UpdateTabColors();
-        BottomScroll.IsEnabled = true;
-        BottomScroll.VerticalScrollBarVisibility = ScrollBarVisibility.Always;
+        
     }
 
     private void HideSettingMenu()
@@ -856,18 +855,7 @@ public partial class MainPage : ContentPage
             BottomContent.Content = view;
             _currentFeature = name;
             UpdateTabColors();
-            if (name == "TIMELINE")
-            {
-                BottomScroll.IsEnabled = true;
-                BottomScroll.VerticalScrollBarVisibility = ScrollBarVisibility.Never;
-                BottomScroll.InputTransparent = false;
-            }
-            else
-            {
-                BottomScroll.IsEnabled = true;
-                BottomScroll.VerticalScrollBarVisibility = ScrollBarVisibility.Always;
-                BottomScroll.InputTransparent = false;
-            }
+            
         }
     }
 

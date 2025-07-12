@@ -151,8 +151,7 @@ public partial class TimelineView : ContentView
         TimelineContentScrollView.Scrolled += OnTimelineContentScrollViewScrolled;
         BoneNameScrollView.SizeChanged += OnScrollViewSizeChanged;
         TimelineContentScrollView.SizeChanged += OnScrollViewSizeChanged;
-        // 初期レイアウト完了後にサイズ計算を行う
-        Dispatcher.Dispatch(UpdateCanvasSizes);
+        
     }
 
     private void OnBoneNameScrollViewScrolled(object? sender, ScrolledEventArgs e)
@@ -181,7 +180,7 @@ public partial class TimelineView : ContentView
 
     private void UpdateCanvasSizes()
     {
-        Debug.WriteLine($"[TimelineView] UpdateCanvasSizes: TimelineContentScrollView.Height (initial) = {TimelineContentScrollView.Height}");
+        Debug.WriteLine($"[TimelineView] UpdateCanvasSizes: BoneNameScrollView.Height = {BoneNameScrollView.Height}, TimelineContentScrollView.Height = {TimelineContentScrollView.Height}");
 
         var actualRowCount = Math.Max(1, _boneNames.Count);
         var totalContentWidth = FrameCount * FrameWidth;
