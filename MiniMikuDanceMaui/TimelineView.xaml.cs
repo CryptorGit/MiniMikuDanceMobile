@@ -151,7 +151,8 @@ public partial class TimelineView : ContentView
         TimelineContentScrollView.Scrolled += OnTimelineContentScrollViewScrolled;
         BoneNameScrollView.SizeChanged += OnScrollViewSizeChanged;
         TimelineContentScrollView.SizeChanged += OnScrollViewSizeChanged;
-        UpdateCanvasSizes();
+        // 初期レイアウト完了後にサイズ計算を行う
+        Dispatcher.Dispatch(UpdateCanvasSizes);
     }
 
     private void OnBoneNameScrollViewScrolled(object? sender, ScrolledEventArgs e)
@@ -196,22 +197,13 @@ public partial class TimelineView : ContentView
         TimelineContentGrid.HeightRequest = scrollableContentHeight;
         TimelineContentGrid.WidthRequest = totalContentWidth;
 
-        // Set ScrollView's HeightRequest to match the content height
-        BoneNameScrollView.HeightRequest = scrollableContentHeight;
-        TimelineContentScrollView.HeightRequest = scrollableContentHeight;
 
         // Set the canvas size to the visible area of the ScrollView to avoid creating a huge bitmap
-        if (BoneNameScrollView.Height > 1)
-        {
-            BoneNameCanvas.HeightRequest = BoneNameScrollView.Height;
-        }
-        if (TimelineContentScrollView.Width > 1 && TimelineContentScrollView.Height > 1)
-        {
-            TimelineContentCanvas.WidthRequest = TimelineContentScrollView.Width;
-            TimelineContentCanvas.HeightRequest = TimelineContentScrollView.Height;
-        }
+        BoneNameCanvas.HeightRequest = Math.Max(1, BoneNameScrollView.Height);
+        TimelineContentCanvas.WidthRequest = Math.Max(1, TimelineContentScrollView.Width);
+        TimelineContentCanvas.HeightRequest = Math.Max(1, TimelineContentScrollView.Height);
 
-        _maxScrollY = (float)Math.Max(0, scrollableContentHeight - TimelineContentScrollView.Height);
+        _maxScrollY = (float)Math.Max(0, scrollableContentHeight - Math.Max(1, TimelineContentScrollView.Height));
 
         Debug.WriteLine($"[TimelineView] UpdateCanvasSizes: GridHeight={scrollableContentHeight}, CanvasWidth={TimelineContentCanvas.WidthRequest}, CanvasHeight={TimelineContentCanvas.HeightRequest}, MaxScrollY={_maxScrollY}");
 
