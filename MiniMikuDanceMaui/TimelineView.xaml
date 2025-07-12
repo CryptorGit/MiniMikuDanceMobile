@@ -37,7 +37,8 @@
                 <Grid x:Name="BoneNameContentGrid">
                     <skia:SKCanvasView x:Name="BoneNameCanvas"
                                        PaintSurface="OnBoneNamePaintSurface"
-                                       HorizontalOptions="FillAndExpand" VerticalOptions="FillAndExpand" />
+                                       HorizontalOptions="Start"
+                                       VerticalOptions="Start" />
                 </Grid>
             </ScrollView>
 
@@ -46,7 +47,8 @@
                 <Grid x:Name="TimelineContentGrid">
                     <skia:SKCanvasView x:Name="TimelineContentCanvas"
                                        PaintSurface="OnTimelineContentPaintSurface"
-                                       HorizontalOptions="FillAndExpand" VerticalOptions="FillAndExpand" />
+                                       HorizontalOptions="Start"
+                                       VerticalOptions="Start" />
                 </Grid>
             </ScrollView>
         </Grid>
