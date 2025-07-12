@@ -151,7 +151,10 @@ public partial class TimelineView : ContentView
         TimelineContentScrollView.Scrolled += OnTimelineContentScrollViewScrolled;
         BoneNameScrollView.SizeChanged += OnScrollViewSizeChanged;
         TimelineContentScrollView.SizeChanged += OnScrollViewSizeChanged;
-        
+
+        // Ensure the drawing area is configured when the view first appears
+        UpdateCanvasSizes();
+
     }
 
     private void OnBoneNameScrollViewScrolled(object? sender, ScrolledEventArgs e)
