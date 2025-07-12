@@ -197,9 +197,6 @@ public partial class TimelineView : ContentView
         TimelineContentGrid.HeightRequest = scrollableContentHeight;
         TimelineContentGrid.WidthRequest = totalContentWidth;
 
-        // Set ScrollView's HeightRequest to match the content height
-        BoneNameScrollView.HeightRequest = scrollableContentHeight;
-        TimelineContentScrollView.HeightRequest = scrollableContentHeight;
 
         // Set the canvas size to the visible area of the ScrollView to avoid creating a huge bitmap
         BoneNameCanvas.HeightRequest = Math.Max(1, BoneNameScrollView.Height);
