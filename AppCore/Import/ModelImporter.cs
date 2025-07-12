@@ -34,7 +34,7 @@ public class ModelImporter
 
     public ModelData ImportModel(Stream stream)
     {
-        Debug.WriteLine("[ModelImporter] Loading model from stream");
+
         using var ms = new MemoryStream();
         stream.CopyTo(ms);
         var bytes = ms.ToArray();
@@ -51,11 +51,11 @@ public class ModelImporter
 
     public ModelData ImportModel(string path)
     {
-        Debug.WriteLine($"[ModelImporter] Loading model: {path}");
+
 
         if (!File.Exists(path))
         {
-            Debug.WriteLine($"[ModelImporter] File not found: {path}");
+
             throw new FileNotFoundException("Model file not found", path);
         }
 
@@ -66,13 +66,13 @@ public class ModelImporter
         }
 
         var scene = _context.ImportFile(path, PostProcessSteps.Triangulate | PostProcessSteps.GenerateNormals);
-        Debug.WriteLine($"[ModelImporter] Imported generic model: {scene.Meshes[0].VertexCount} vertices");
+
         return new ModelData { Mesh = scene.Meshes[0] };
     }
 
     private ModelData ImportVrm(string path)
     {
-        Debug.WriteLine($"[ModelImporter] Importing VRM: {path}");
+
         var bytes = File.ReadAllBytes(path);
         using var ms = new MemoryStream(bytes);
         var info = ReadVrmInfo(bytes);
@@ -219,7 +219,7 @@ public class ModelImporter
                     if (imgSeg.HasValue)
                     {
                         using var image = SixLabors.ImageSharp.Image.Load<Rgba32>(imgSeg.Value);
-                        System.Diagnostics.Debug.WriteLine($"[ModelImporter] Original texture dimensions: {image.Width}x{image.Height}");
+
                         int maxWidth = 2048;
                         int maxHeight = 2048;
                         if (image.Width > maxWidth || image.Height > maxHeight)
@@ -229,7 +229,7 @@ public class ModelImporter
                                 Size = new SixLabors.ImageSharp.Size(maxWidth, maxHeight),
                                 Mode = ResizeMode.Max
                             }));
-                            System.Diagnostics.Debug.WriteLine($"[ModelImporter] Resized texture dimensions: {image.Width}x{image.Height}");
+
                         }
                         smd.TextureWidth = image.Width;
                         smd.TextureHeight = image.Height;
@@ -251,7 +251,7 @@ public class ModelImporter
             transform = flip * transform * flip;
         }
 
-        Debug.WriteLine($"[ModelImporter] VRM loaded: {combined.VertexCount} vertices");
+
 
         data.Mesh = combined;
         data.Transform = transform;

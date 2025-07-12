@@ -14,7 +14,7 @@
             
         </MenuBarItem>
         <MenuBarItem Text="Setting">
-            <MenuFlyoutItem Text="Open" Clicked="OnSettingClicked" />
+            <MenuFlyoutItem Text="Open" Clicked="OnSettingMenuTapped" />
         </MenuBarItem>
         <MenuBarItem Text="Help" />
     </ContentPage.MenuBarItems>
@@ -136,9 +136,7 @@
         <ActivityIndicator x:Name="LoadingIndicator" IsRunning="True" IsVisible="False" Color="{StaticResource IndicatorColor}" ZIndex="30" />
         <skia:SKGLView x:Name="Viewer" HasRenderLoop="True" EnableTouchEvents="True" MaximumWidthRequest="2048" MaximumHeightRequest="2048" />
         <Grid x:Name="BottomRegion" BackgroundColor="{StaticResource BackgroundColor}" IsVisible="False" ZIndex="2">
-            <!-- <Grid.GestureRecognizers>
-                <TapGestureRecognizer Tapped="OnBottomRegionTapped" />
-            </Grid.GestureRecognizers> -->
+            
             <Grid.RowDefinitions>
                 <RowDefinition Height="40" />
                 <RowDefinition Height="*" />

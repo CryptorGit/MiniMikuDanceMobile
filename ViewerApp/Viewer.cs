@@ -124,11 +124,11 @@ public class Viewer : IDisposable
             GL.BindVertexArray(rm.Vao);
             GL.BindBuffer(BufferTarget.ArrayBuffer, rm.Vbo);
             GL.BufferData(BufferTarget.ArrayBuffer, verts.Length * sizeof(float), verts, BufferUsageHint.StaticDraw);
-        int stride = 5 * sizeof(float);
-        GL.VertexAttribPointer(0, 3, VertexAttribPointerType.Float, false, stride, 0);
-        GL.EnableVertexAttribArray(0);
-        GL.VertexAttribPointer(1, 2, VertexAttribPointerType.Float, false, stride, 3 * sizeof(float));
-        GL.EnableVertexAttribArray(1);
+            int stride = 5 * sizeof(float);
+            GL.VertexAttribPointer(0, 3, VertexAttribPointerType.Float, false, stride, 0);
+            GL.EnableVertexAttribArray(0);
+            GL.VertexAttribPointer(1, 2, VertexAttribPointerType.Float, false, stride, 3 * sizeof(float));
+            GL.EnableVertexAttribArray(1);
             GL.BindBuffer(BufferTarget.ElementArrayBuffer, rm.Ebo);
             GL.BufferData(BufferTarget.ElementArrayBuffer, sm.Indices.Length * sizeof(uint), sm.Indices, BufferUsageHint.StaticDraw);
             GL.BindVertexArray(0);
@@ -173,7 +173,7 @@ public class Viewer : IDisposable
 
         GL.Enable(EnableCap.CullFace);
         GL.FrontFace(FrontFaceDirection.Ccw);
-        Debug.WriteLine("[Viewer] Initialized");
+
         _timer.Start();
     }
 

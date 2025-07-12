@@ -1,5 +1,5 @@
 using System;
-using System.Linq;
+
 
 namespace MiniMikuDance.PoseEstimation;
 
@@ -30,12 +30,12 @@ public class PoseDebugVisualizer
             return;
 
         var frame = _frames[_index];
-        Console.WriteLine($"Frame {_index} t={frame.Timestamp:F3}");
+
         for (int i = 0; i < frame.Positions.Length; i++)
         {
             var p = frame.Positions[i];
             float c = i < frame.Confidences.Length ? frame.Confidences[i] : 0f;
-            Console.WriteLine($"  {i:D2}: ({p.X:F2}, {p.Y:F2}, {p.Z:F2}) conf={c:F2}");
+
         }
         _index++;
     }

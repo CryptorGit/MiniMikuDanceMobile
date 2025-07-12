@@ -49,6 +49,7 @@ public partial class KeyInputPanel : ContentView
     }
 
     public int FrameNumber => int.TryParse(FrameEntry.Text, out var f) ? f : 0;
+    public int SelectedBoneIndex => BonePicker.SelectedIndex;
     public string SelectedBone => BonePicker.SelectedItem as string ?? string.Empty;
 
     public Vector3 Translation => new((float)PosXSlider.Value, (float)PosYSlider.Value, (float)PosZSlider.Value);

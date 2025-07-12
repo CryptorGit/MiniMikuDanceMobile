@@ -4,7 +4,7 @@
              xmlns:skia="clr-namespace:SkiaSharp.Views.Maui.Controls;assembly=SkiaSharp.Views.Maui.Controls"
              x:Class="MiniMikuDanceMaui.TimelineView"
              BackgroundColor="{StaticResource BackgroundColor}">
-    <Grid RowDefinitions="Auto,Auto,*" RowSpacing="4" Padding="4">
+    <Grid RowDefinitions="Auto,Auto,*,Auto" RowSpacing="4" Padding="4">
         <!-- Operation buttons -->
         <HorizontalStackLayout Grid.Row="0" Spacing="6" HorizontalOptions="Start">
             <Button Text="Add Key"    Clicked="OnAddKeyClicked" />
@@ -30,9 +30,9 @@
         </Grid>
 
         <!-- Timeline Area -->
-        <Grid Grid.Row="2" ColumnDefinitions="90,*">
+        <Grid Grid.Row="2" ColumnDefinitions="90,*" RowDefinitions="*">
             <!-- Left Panel (Bone Names) -->
-            <ScrollView Grid.Column="0" VerticalOptions="Start" VerticalScrollBarVisibility="Never" x:Name="BoneNameScrollView">
+            <ScrollView Grid.Column="0" Grid.Row="0" VerticalOptions="FillAndExpand" VerticalScrollBarVisibility="Never" x:Name="BoneNameScrollView">
                 <Grid x:Name="BoneNameContentGrid">
                     <skia:SKCanvasView x:Name="BoneNameCanvas"
                                        PaintSurface="OnBoneNamePaintSurface"
@@ -42,14 +42,19 @@
             </ScrollView>
 
             <!-- Right Panel (Timeline Grid and Keyframes) -->
-            <ScrollView Grid.Column="1" Orientation="Both" VerticalScrollBarVisibility="Always" HorizontalScrollBarVisibility="Always" x:Name="TimelineContentScrollView">
+            <ScrollView Grid.Column="1" Grid.Row="0" Orientation="Both" VerticalScrollBarVisibility="Always" HorizontalScrollBarVisibility="Always" VerticalOptions="FillAndExpand" x:Name="TimelineContentScrollView">
                 <Grid x:Name="TimelineContentGrid">
                     <skia:SKCanvasView x:Name="TimelineContentCanvas"
                                        PaintSurface="OnTimelineContentPaintSurface"
-                                       HorizontalOptions="Start"
-                                       VerticalOptions="Start" />
+                                       HorizontalOptions="Start" />
                 </Grid>
             </ScrollView>
+        </Grid>
+
+        <!-- Bone Name and Key Input Area -->
+        <Grid Grid.Row="3" ColumnSpan="2" x:Name="BoneKeyInputAreaGrid" BackgroundColor="{StaticResource BackgroundColor}" ColumnDefinitions="90,*" HeightRequest="50">
+            <skia:SKCanvasView Grid.Column="0" x:Name="BoneKeyInputBoneNameCanvas" PaintSurface="OnBoneKeyInputBoneNamePaintSurface" HeightRequest="50" />
+            <skia:SKCanvasView Grid.Column="1" x:Name="BoneKeyInputKeyCanvas" PaintSurface="OnBoneKeyInputKeyPaintSurface" HeightRequest="50" />
         </Grid>
     </Grid>
 </ContentView>

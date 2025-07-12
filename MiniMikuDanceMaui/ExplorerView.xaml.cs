@@ -28,7 +28,7 @@ public partial class ExplorerView : ContentView
         _currentPath = path;
         LogService.WriteLine($"Load directory: {path}");
         UpdatePathDisplay();
-        
+
         IEnumerable<string> entries = Directory.EnumerateFileSystemEntries(path);
         if (_allowedExtensions != null)
         {

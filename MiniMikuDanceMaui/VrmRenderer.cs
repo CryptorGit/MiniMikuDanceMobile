@@ -179,7 +179,7 @@ void main(){
             grid[idx++] = i; grid[idx++] = 0; grid[idx++] = -10;
             grid[idx++] = i; grid[idx++] = 0; grid[idx++] = 10;
             grid[idx++] = -10; grid[idx++] = 0; grid[idx++] = i;
-            grid[idx++] = 10;  grid[idx++] = 0; grid[idx++] = i;
+            grid[idx++] = 10; grid[idx++] = 0; grid[idx++] = i;
         }
         _gridVao = GL.GenVertexArray();
         _gridVbo = GL.GenBuffer();
@@ -601,5 +601,5 @@ void main(){
         GL.DeleteVertexArray(_groundVao);
         GL.DeleteProgram(_program);
         GL.DeleteProgram(_modelProgram);
-   }
+    }
 }

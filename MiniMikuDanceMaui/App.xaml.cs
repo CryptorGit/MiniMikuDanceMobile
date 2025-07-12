@@ -32,10 +32,12 @@ public partial class App : Application
                     File.Copy(src, poseModel);
                 }
             }
-            catch (Exception e)
+            catch (Exception ex)
             {
-                Console.WriteLine($"[App] Failed to copy pose model: {e.Message}");
+                // Log the exception or handle it appropriately
+                Console.WriteLine($"Error copying pose model: {ex.Message}");
             }
+
         }
 
         Initializer.Initialize(uiConfig, null, poseModel, MmdFileSystem.BaseDir);

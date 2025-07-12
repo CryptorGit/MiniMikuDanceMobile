@@ -4,14 +4,14 @@ using System.Text.Json;
 
 if (args.Length == 0)
 {
-    Console.WriteLine("Usage: VrmAnalyzer <vrm_or_json>");
+
     return;
 }
 
 var path = args[0];
 if (!File.Exists(path))
 {
-    Console.WriteLine($"File not found: {path}");
+
     return;
 }
 
@@ -22,7 +22,7 @@ if (Path.GetExtension(path).Equals(".vrm", StringComparison.OrdinalIgnoreCase))
     using var br = new BinaryReader(fs);
     if (br.ReadUInt32() != 0x46546C67)
     {
-        Console.WriteLine("Invalid VRM file.");
+
         return;
     }
     br.ReadUInt32();
@@ -30,7 +30,7 @@ if (Path.GetExtension(path).Equals(".vrm", StringComparison.OrdinalIgnoreCase))
     uint jsonLen = br.ReadUInt32();
     if (br.ReadUInt32() != 0x4E4F534A)
     {
-        Console.WriteLine("JSON chunk not found.");
+
         return;
     }
     var jsonBytes = br.ReadBytes((int)jsonLen);
@@ -49,16 +49,16 @@ if (root.TryGetProperty("extensions", out var ext) &&
     if (vrm.TryGetProperty("materialProperties", out var matProps) &&
         matProps.ValueKind == JsonValueKind.Array)
     {
-        Console.WriteLine("Materials:");
+
         foreach (var m in matProps.EnumerateArray())
         {
             var name = m.GetProperty("name").GetString();
             var shader = m.GetProperty("shader").GetString();
-            Console.WriteLine($"  {name} (shader: {shader})");
+
         }
     }
 }
 else
 {
-    Console.WriteLine("VRM extension not found.");
+
 }
