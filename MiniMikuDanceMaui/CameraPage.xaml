@@ -11,7 +11,7 @@
         <MenuBarItem Text="Edit" />
         <MenuBarItem Text="Selection" />
         <MenuBarItem Text="View">
-            <MenuFlyoutItem Text="HOME" Clicked="OnHomeClicked" />
+            
         </MenuBarItem>
         <MenuBarItem Text="Setting">
             <MenuFlyoutItem Text="Open" Clicked="OnSettingClicked" />
@@ -42,11 +42,7 @@
         </HorizontalStackLayout>
         <Frame x:Name="ViewMenu" IsVisible="False" BackgroundColor="{StaticResource BackgroundColor}" Padding="0" ZIndex="20">
             <VerticalStackLayout Spacing="4" Padding="8">
-                <Label Text="Home" TextColor="{StaticResource TextColor}">
-                    <Label.GestureRecognizers>
-                        <TapGestureRecognizer Tapped="OnHomeClicked" />
-                    </Label.GestureRecognizers>
-                </Label>
+                
                 <Label Text="Explorer" TextColor="{StaticResource TextColor}">
                     <Label.GestureRecognizers>
                         <TapGestureRecognizer Tapped="OnExplorerClicked" />

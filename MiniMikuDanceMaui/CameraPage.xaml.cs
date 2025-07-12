@@ -161,14 +161,7 @@ public partial class CameraPage : ContentPage
         LogService.WriteLine($"View menu {(_viewMenuOpen ? "opened" : "closed")}");
     }
 
-    private async void OnHomeClicked(object? sender, EventArgs e)
-    {
-        HideViewMenu();
-        HideSettingMenu();
-        HideFileMenu();
-        LogService.WriteLine("Home clicked");
-        await Navigation.PopToRootAsync();
-    }
+    
 
 
     private void OnSettingClicked(object? sender, EventArgs e)
@@ -432,7 +425,9 @@ public partial class CameraPage : ContentPage
         AbsoluteLayout.SetLayoutBounds(LoadingIndicator, new Rect(0.5, 0.5, 40, 40));
         AbsoluteLayout.SetLayoutFlags(LoadingIndicator, AbsoluteLayoutFlags.PositionProportional);
 
-        AbsoluteLayout.SetLayoutBounds(Viewer, new Rect(0, 0, W, H));
+        double viewerWidth = Math.Min(W, 2048);
+        double viewerHeight = Math.Min(H, 2048);
+        AbsoluteLayout.SetLayoutBounds(Viewer, new Rect(0, 0, viewerWidth, viewerHeight));
         AbsoluteLayout.SetLayoutFlags(Viewer, AbsoluteLayoutFlags.None);
         double bottomWidth = W * _bottomWidthRatio;
         AbsoluteLayout.SetLayoutBounds(BottomRegion,
