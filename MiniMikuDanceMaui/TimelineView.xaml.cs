@@ -15,8 +15,8 @@ public partial class TimelineView : ContentView
     const float LeftPanelWidth = 110f; // Adjusted width for bone name panel to match XAML
     const string RightFootBoneName = "rightFoot";
     private float _maxScrollY = 0;
-    const float BoneNameFontSize = 16f; // Font size for bone names
-    const float HeaderFontSize = 14f; // Font size for header
+    const float BoneNameFontSize = 24f; // Font size for bone names
+    const float HeaderFontSize = 20f; // Font size for header
 
     // Data model
     public ModelData? Model
@@ -181,31 +181,51 @@ public partial class TimelineView : ContentView
 
     private void UpdateCanvasSizes()
     {
+        Debug.WriteLine($"[TimelineView] UpdateCanvasSizes: TimelineContentScrollView.Height (initial) = {TimelineContentScrollView.Height}");
+
         var actualRowCount = Math.Max(1, _boneNames.Count);
         var totalContentWidth = FrameCount * FrameWidth;
 
-        var rightFootIndex = _boneNames.IndexOf(RightFootBoneName);
-        var scrollableContentHeight = HeaderHeight + actualRowCount * RowHeight;
-        if (rightFootIndex >= 0)
+        // 1. Calculate the full scrollable height based on bone count or rightFoot
+        // var rightFootIndex = _boneNames.IndexOf(RightFootBoneName);
+        // var fullScrollableContentHeight = HeaderHeight + actualRowCount * RowHeight;
+        // if (rightFootIndex >= 0)
+        // {
+        //     fullScrollableContentHeight = HeaderHeight + (rightFootIndex + 1) * RowHeight;
+        // }
+        // 変更後: 17行固定
+        var fullScrollableContentHeight = HeaderHeight + 17 * RowHeight;
+
+        // Ensure ScrollView.Height is available before calculating max scroll
+        if (TimelineContentScrollView.Height <= 0 || BoneNameScrollView.Height <= 0)
         {
-            scrollableContentHeight = HeaderHeight + (rightFootIndex + 1) * RowHeight;
+            // If ScrollView hasn't been measured yet, defer calculation
+            Debug.WriteLine("[TimelineView] UpdateCanvasSizes: ScrollView height not yet available, returning.");
+            return;
         }
 
-        // Set the size of the Grid to define the scrollable area for the ScrollView
-        BoneNameContentGrid.HeightRequest = scrollableContentHeight;
-        BoneNameContentGrid.WidthRequest = LeftPanelWidth;
-        TimelineContentGrid.HeightRequest = scrollableContentHeight;
-        TimelineContentGrid.WidthRequest = totalContentWidth;
+        // 2. Calculate the full maximum scroll offset
+        var fullMaxScrollOffset = Math.Max(0, fullScrollableContentHeight - TimelineContentScrollView.Height);
+
+        // 3. Calculate the new (half) maximum scroll offset
+        var newMaxScrollOffset = fullMaxScrollOffset / 2.0f;
+
+        // 4. Set _maxScrollY to the new (half) maximum scroll offset
+        _maxScrollY = (float)newMaxScrollOffset;
+
+        // 5. Set the HeightRequest of the Grids to reflect the new scrollable range
+        BoneNameContentGrid.HeightRequest = fullScrollableContentHeight;
+        TimelineContentGrid.HeightRequest = fullScrollableContentHeight;
+        TimelineContentGrid.WidthRequest = totalContentWidth; // Keep full width for horizontal scroll
+
+        // Set the canvas size to the full scrollable content height
+        BoneNameCanvas.HeightRequest = fullScrollableContentHeight;
+        BoneNameCanvas.WidthRequest = LeftPanelWidth; // Keep fixed width for bone name canvas
+        TimelineContentCanvas.WidthRequest = totalContentWidth;
+        TimelineContentCanvas.HeightRequest = fullScrollableContentHeight;
 
 
-        // Set the canvas size to the visible area of the ScrollView to avoid creating a huge bitmap
-        BoneNameCanvas.HeightRequest = Math.Max(1, BoneNameScrollView.Height);
-        TimelineContentCanvas.WidthRequest = Math.Max(1, TimelineContentScrollView.Width);
-        TimelineContentCanvas.HeightRequest = Math.Max(1, TimelineContentScrollView.Height);
-
-        _maxScrollY = (float)Math.Max(0, scrollableContentHeight - Math.Max(1, TimelineContentScrollView.Height));
-
-        Debug.WriteLine($"[TimelineView] UpdateCanvasSizes: GridHeight={scrollableContentHeight}, CanvasWidth={TimelineContentCanvas.WidthRequest}, CanvasHeight={TimelineContentCanvas.HeightRequest}, MaxScrollY={_maxScrollY}");
+        Debug.WriteLine($"[TimelineView] UpdateCanvasSizes: FullScrollableHeight={fullScrollableContentHeight}, FullMaxScrollOffset={fullMaxScrollOffset}, NewMaxScrollOffset={newMaxScrollOffset}, GridHeight={TimelineContentGrid.HeightRequest}, CanvasWidth={TimelineContentCanvas.WidthRequest}, CanvasHeight={TimelineContentCanvas.HeightRequest}, MaxScrollY={_maxScrollY}");
 
         BoneNameCanvas.InvalidateSurface();
         TimelineContentCanvas.InvalidateSurface();

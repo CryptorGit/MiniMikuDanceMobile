@@ -32,7 +32,7 @@
         <!-- Timeline Area -->
         <Grid Grid.Row="2" ColumnDefinitions="90,*">
             <!-- Left Panel (Bone Names) -->
-            <ScrollView Grid.Column="0" VerticalOptions="FillAndExpand" VerticalScrollBarVisibility="Never" x:Name="BoneNameScrollView">
+            <ScrollView Grid.Column="0" VerticalOptions="Start" VerticalScrollBarVisibility="Never" x:Name="BoneNameScrollView">
                 <Grid x:Name="BoneNameContentGrid">
                     <skia:SKCanvasView x:Name="BoneNameCanvas"
                                        PaintSurface="OnBoneNamePaintSurface"
@@ -42,7 +42,7 @@
             </ScrollView>
 
             <!-- Right Panel (Timeline Grid and Keyframes) -->
-            <ScrollView Grid.Column="1" Orientation="Both" VerticalScrollBarVisibility="Always" HorizontalScrollBarVisibility="Always" x:Name="TimelineContentScrollView">
+            <ScrollView Grid.Column="1" Orientation="Both" VerticalOptions="Start" VerticalScrollBarVisibility="Always" HorizontalScrollBarVisibility="Always" x:Name="TimelineContentScrollView">
                 <Grid x:Name="TimelineContentGrid">
                     <skia:SKCanvasView x:Name="TimelineContentCanvas"
                                        PaintSurface="OnTimelineContentPaintSurface"
