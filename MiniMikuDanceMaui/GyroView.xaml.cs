@@ -8,12 +8,12 @@ public partial class GyroView : ContentView
     private readonly GyroService? _gyroService;
     private bool _gyroRunning;
 
-    public GyroView()
+    public GyroView(VrmRenderer renderer)
     {
         InitializeComponent();
         if (App.Initializer.Camera != null)
         {
-            _gyroService = new GyroService(App.Initializer.Camera);
+            _gyroService = new GyroService(App.Initializer.Camera, renderer);
         }
     }
 

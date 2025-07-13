@@ -62,6 +62,7 @@ public class VrmRenderer : IDisposable
     private readonly List<Vector3> _boneRotations = new();
     private readonly List<Vector3> _boneTranslations = new();
     private List<MiniMikuDance.Import.BoneData> _bones = new();
+    private Quaternion _externalRotation = Quaternion.Identity;
     // デフォルトのカメラ感度をスライダーの最小値に合わせる
     public float RotateSensitivity { get; set; } = 0.1f;
     public float PanSensitivity { get; set; } = 0.1f;
@@ -228,7 +229,9 @@ void main(){
     public void Pan(float dx, float dy)
     {
         if (CameraLocked) return;
-        Matrix4 rot = Matrix4.CreateRotationX(_orbitX) * Matrix4.CreateRotationY(_orbitY);
+        Matrix4 rot = Matrix4.CreateFromQuaternion(_externalRotation) *
+                      Matrix4.CreateRotationX(_orbitX) *
+                      Matrix4.CreateRotationY(_orbitY);
         Vector3 right = Vector3.TransformNormal(Vector3.UnitX, rot);
         Vector3 up = Vector3.TransformNormal(Vector3.UnitY, rot);
         _target += (-right * dx + up * dy) * 0.01f * PanSensitivity;
@@ -250,6 +253,12 @@ void main(){
         _distance = 4f;
         // デフォルトターゲットを少し上にずらしてモデル全体を見やすくする
         _target = new Vector3(0f, 0.5f, 0f);
+        _externalRotation = Quaternion.Identity;
+    }
+
+    public void SetExternalRotation(Quaternion q)
+    {
+        _externalRotation = q;
     }
 
     public void ClearBoneRotations()
@@ -440,7 +449,9 @@ void main(){
         GL.ClearColor(1f, 1f, 1f, 1f);
         GL.Clear(ClearBufferMask.ColorBufferBit | ClearBufferMask.DepthBufferBit);
 
-        Matrix4 rot = Matrix4.CreateRotationX(_orbitX) * Matrix4.CreateRotationY(_orbitY);
+        Matrix4 rot = Matrix4.CreateFromQuaternion(_externalRotation) *
+                      Matrix4.CreateRotationX(_orbitX) *
+                      Matrix4.CreateRotationY(_orbitY);
         Vector3 cam = Vector3.TransformPosition(new Vector3(0, 0, _distance), rot) + _target;
         Matrix4 view = Matrix4.LookAt(cam, _target, Vector3.UnitY);
         float aspect = _width == 0 || _height == 0 ? 1f : _width / (float)_height;
