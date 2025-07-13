@@ -132,14 +132,32 @@ public partial class TimelineView : ContentView
         if (FrameHeaderScroll.Handler?.PlatformView is UIKit.UIScrollView frameHeader)
         {
             frameHeader.Bounces = false;
+            frameHeader.AlwaysBounceHorizontal = false;
         }
         if (BoneNameScrollView.Handler?.PlatformView is UIKit.UIScrollView boneName)
         {
             boneName.Bounces = false;
+            boneName.AlwaysBounceVertical = false;
         }
         if (TimelineContentScrollView.Handler?.PlatformView is UIKit.UIScrollView timelineContent)
         {
             timelineContent.Bounces = false;
+            timelineContent.AlwaysBounceHorizontal = false;
+            timelineContent.AlwaysBounceVertical = false;
+        }
+#elif WINDOWS
+        if (FrameHeaderScroll.Handler?.PlatformView is Microsoft.UI.Xaml.Controls.ScrollViewer frameHeader)
+        {
+            frameHeader.IsHorizontalScrollInertiaEnabled = false;
+        }
+        if (BoneNameScrollView.Handler?.PlatformView is Microsoft.UI.Xaml.Controls.ScrollViewer boneName)
+        {
+            boneName.IsVerticalScrollInertiaEnabled = false;
+        }
+        if (TimelineContentScrollView.Handler?.PlatformView is Microsoft.UI.Xaml.Controls.ScrollViewer timelineContent)
+        {
+            timelineContent.IsHorizontalScrollInertiaEnabled = false;
+            timelineContent.IsVerticalScrollInertiaEnabled = false;
         }
 #endif
     }
