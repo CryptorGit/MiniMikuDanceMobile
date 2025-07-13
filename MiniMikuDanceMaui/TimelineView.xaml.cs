@@ -124,10 +124,19 @@ public partial class TimelineView : ContentView
         {
             boneName.OverScrollMode = Android.Views.OverScrollMode.Never;
         }
-        if (TimelineContentScrollView.Handler?.PlatformView is Android.Views.View timelineContent)
+        #if ANDROID
+        if (TimelineContentScrollView.Handler?.PlatformView is Android.Views.View outer)
         {
-            timelineContent.OverScrollMode = Android.Views.OverScrollMode.Never;
+            outer.OverScrollMode = Android.Views.OverScrollMode.Never;      // 既存
+            // 内側の HorizontalScrollView も探して止める
+            if (outer is Android.Views.ViewGroup vg &&
+                vg.ChildCount > 0 &&
+                vg.GetChildAt(0) is Android.Widget.HorizontalScrollView inner)
+            {
+                inner.OverScrollMode = Android.Views.OverScrollMode.Never;
+            }
         }
+#endif
 #elif IOS
         if (FrameHeaderScroll.Handler?.PlatformView is UIKit.UIScrollView frameHeader)
         {
@@ -139,11 +148,12 @@ public partial class TimelineView : ContentView
             boneName.Bounces = false;
             boneName.AlwaysBounceVertical = false;
         }
-        if (TimelineContentScrollView.Handler?.PlatformView is UIKit.UIScrollView timelineContent)
+        if (TimelineContentScrollView.Handler?.PlatformView is UIKit.UIScrollView outer)
         {
-            timelineContent.Bounces = false;
-            timelineContent.AlwaysBounceHorizontal = false;
-            timelineContent.AlwaysBounceVertical = false;
+            outer.Bounces = false;
+            foreach (var sub in outer.Subviews)
+                if (sub is UIKit.UIScrollView inner)
+                    inner.Bounces = false;
         }
 #elif WINDOWS
         if (FrameHeaderScroll.Handler?.PlatformView is Microsoft.UI.Xaml.Controls.ScrollViewer frameHeader)
@@ -158,6 +168,10 @@ public partial class TimelineView : ContentView
         {
             timelineContent.IsHorizontalScrollInertiaEnabled = false;
             timelineContent.IsVerticalScrollInertiaEnabled = false;
+            if (timelineContent.Content is Microsoft.UI.Xaml.FrameworkElement content && content is Microsoft.UI.Xaml.Controls.ScrollViewer innerScrollViewer)
+            {
+                innerScrollViewer.IsHorizontalScrollInertiaEnabled = false;
+            }
         }
 #endif
     }
