@@ -678,12 +678,12 @@ private void ShowBottomFeature(string name)
         }
         else if (name == "CAMERA")
         {
-            var cv = new CameraView();
+            var cv = new CameraView(_renderer);
             view = cv;
         }
         else if (name == "GYRO")
         {
-            var gv = new GyroView();
+            var gv = new GyroView(_renderer);
             view = gv;
         }
 
@@ -1281,7 +1281,7 @@ private void OnPlayAnimationRequested()
     }
     catch (Exception ex)
     {
-        // Handle exception
+        LogService.WriteLine($"Animation play error: {ex.Message}");
     }
 }
 
