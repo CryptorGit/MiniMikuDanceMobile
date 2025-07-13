@@ -32,10 +32,10 @@ public partial class App : Application
                     File.Copy(src, poseModel);
                 }
             }
-            catch (Exception ex)
+            catch (Exception)
             {
                 // Log the exception or handle it appropriately
-                Console.WriteLine($"Error copying pose model: {ex.Message}");
+                Console.WriteLine($"Error copying pose model.");
             }
 
         }

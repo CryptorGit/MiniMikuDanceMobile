@@ -11,13 +11,13 @@ public partial class CameraView : ContentView
     private readonly GyroService? _gyroService;
     private bool _gyroRunning;
 
-    public CameraView()
+    public CameraView(VrmRenderer renderer)
     {
         InitializeComponent();
         _movieDir = MmdFileSystem.Ensure("Movie");
         if (App.Initializer.Camera != null)
         {
-            _gyroService = new GyroService(App.Initializer.Camera);
+            _gyroService = new GyroService(App.Initializer.Camera, renderer);
         }
     }
 

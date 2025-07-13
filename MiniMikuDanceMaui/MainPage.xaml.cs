@@ -19,6 +19,7 @@ using OpenTK.Mathematics;
 using MiniMikuDance.Util;
 using MiniMikuDance.PoseEstimation;
 using MiniMikuDance.Motion;
+using MiniMikuDance.Camera;
 
 namespace MiniMikuDanceMaui;
 
@@ -41,6 +42,7 @@ public partial class MainPage : ContentPage
     private string? _selectedPosePath;
 
     private readonly VrmRenderer _renderer = new();
+    private readonly CameraController _cameraController = new();
     private float _rotateSensitivity = 0.1f;
     private float _panSensitivity = 0.1f;
     private float _shadeShift = -0.1f;
@@ -678,12 +680,12 @@ private void ShowBottomFeature(string name)
         }
         else if (name == "CAMERA")
         {
-            var cv = new CameraView();
+            var cv = new CameraView(_renderer);
             view = cv;
         }
         else if (name == "GYRO")
         {
-            var gv = new GyroView(_renderer);
+            var gv = new GyroView(_cameraController, _renderer);
             view = gv;
         }
 
@@ -1279,7 +1281,7 @@ private void OnPlayAnimationRequested()
                 player.Resume();
         }
     }
-    catch (Exception ex)
+    catch (Exception)
     {
         // Handle exception
     }

@@ -1,5 +1,6 @@
 using Microsoft.Maui.Controls;
 using System;
+using MiniMikuDance.Camera;
 
 namespace MiniMikuDanceMaui;
 
@@ -8,13 +9,10 @@ public partial class GyroView : ContentView
     private readonly GyroService? _gyroService;
     private bool _gyroRunning;
 
-    public GyroView(VrmRenderer renderer)
+    public GyroView(CameraController cameraController, VrmRenderer renderer)
     {
         InitializeComponent();
-        if (App.Initializer.Camera != null)
-        {
-            _gyroService = new GyroService(App.Initializer.Camera, renderer);
-        }
+        _gyroService = new GyroService(cameraController, renderer);
     }
 
     private void OnGyroClicked(object? sender, EventArgs e)
