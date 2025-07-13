@@ -11,12 +11,12 @@ public partial class TimelineView : ContentView
 {
     const int MaxFrame = 60;
     const int MaxRows = 17;
-    const float FrameWidth = 40f;
+    const float FrameWidth = 80f;
     public const float HeaderHeight = 30f;
-    const float RowHeight = 30f;
+    const float RowHeight = 90f;
     const float LeftPanelWidth = 90f;
-    const float BoneNameFontSize = 16f;
-    const float HeaderFontSize = 14f;
+    const float BoneNameFontSize = 24f;
+    const float HeaderFontSize = 20f;
 
     private ModelData? _model;
     private readonly List<string> _boneNames = new List<string>();
@@ -181,8 +181,11 @@ public partial class TimelineView : ContentView
         if (_isScrolling) return;
         _isScrolling = true;
 
-        _scrollX = (float)e.ScrollX;
-        _scrollY = (float)e.ScrollY;
+        var maxScrollX = Math.Max(0, MaxFrame * FrameWidth - TimelineContentScrollView.Width);
+        var maxScrollY = Math.Max(0, _boneNames.Count * RowHeight - TimelineContentScrollView.Height);
+
+        _scrollX = Math.Clamp((float)e.ScrollX, 0, (float)maxScrollX);
+        _scrollY = Math.Clamp((float)e.ScrollY, 0, (float)maxScrollY);
 
         FrameHeaderScroll.ScrollToAsync(_scrollX, 0, false);
         BoneNameScrollView.ScrollToAsync(0, _scrollY, false);
@@ -196,7 +199,9 @@ public partial class TimelineView : ContentView
         if (_isScrolling) return;
         _isScrolling = true;
 
-        _scrollY = (float)e.ScrollY;
+        var maxScrollY = Math.Max(0, _boneNames.Count * RowHeight - TimelineContentScrollView.Height);
+
+        _scrollY = Math.Clamp((float)e.ScrollY, 0, (float)maxScrollY);
         TimelineContentScrollView.ScrollToAsync(_scrollX, _scrollY, false);
 
         InvalidateAll();
@@ -208,7 +213,9 @@ public partial class TimelineView : ContentView
         if (_isScrolling) return;
         _isScrolling = true;
 
-        _scrollX = (float)e.ScrollX;
+        var maxScrollX = Math.Max(0, MaxFrame * FrameWidth - TimelineContentScrollView.Width);
+
+        _scrollX = Math.Clamp((float)e.ScrollX, 0, (float)maxScrollX);
         TimelineContentScrollView.ScrollToAsync(_scrollX, _scrollY, false);
 
         InvalidateAll();

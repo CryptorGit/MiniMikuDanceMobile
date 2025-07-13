@@ -3,3 +3,4 @@
 - [x] エミュレーターまたは実機でタイムラインを開きクラッシュログを取得する (不要)
 - [x] KeyInputPanel.SetFrame でキーフレームから回転値を取得するロジックを実装する
 - [ ] 新設した \u2715 ボタンのUI重なりを実機で確認する
+- [x] TimelineView の FrameWidth/RowHeight 変更とスクロール制限を実装する
