@@ -114,6 +114,34 @@ public partial class TimelineView : ContentView
         FrameHeaderScroll.Scrolled += OnFrameHeaderScrolled;
         UpdateCanvasSizes();
         InvalidateAll();
+
+#if ANDROID
+        if (FrameHeaderScroll.Handler?.PlatformView is Android.Views.View frameHeader)
+        {
+            frameHeader.OverScrollMode = Android.Views.OverScrollMode.Never;
+        }
+        if (BoneNameScrollView.Handler?.PlatformView is Android.Views.View boneName)
+        {
+            boneName.OverScrollMode = Android.Views.OverScrollMode.Never;
+        }
+        if (TimelineContentScrollView.Handler?.PlatformView is Android.Views.View timelineContent)
+        {
+            timelineContent.OverScrollMode = Android.Views.OverScrollMode.Never;
+        }
+#elif IOS
+        if (FrameHeaderScroll.Handler?.PlatformView is UIKit.UIScrollView frameHeader)
+        {
+            frameHeader.Bounces = false;
+        }
+        if (BoneNameScrollView.Handler?.PlatformView is UIKit.UIScrollView boneName)
+        {
+            boneName.Bounces = false;
+        }
+        if (TimelineContentScrollView.Handler?.PlatformView is UIKit.UIScrollView timelineContent)
+        {
+            timelineContent.Bounces = false;
+        }
+#endif
     }
 
     private void OnTimelineContentScrolled(object? sender, ScrolledEventArgs e)
