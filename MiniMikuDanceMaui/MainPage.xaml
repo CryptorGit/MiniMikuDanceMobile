@@ -63,7 +63,12 @@
                         <TapGestureRecognizer Tapped="OnCameraClicked" />
                     </Label.GestureRecognizers>
                 </Label>
-                
+                <Label Text="Gyro" TextColor="{StaticResource TextColor}">
+                    <Label.GestureRecognizers>
+                        <TapGestureRecognizer Tapped="OnGyroClicked" />
+                    </Label.GestureRecognizers>
+                </Label>
+
                 <Label Text="Timeline" TextColor="{StaticResource TextColor}">
                     <Label.GestureRecognizers>
                         <TapGestureRecognizer Tapped="OnTimelineClicked" />

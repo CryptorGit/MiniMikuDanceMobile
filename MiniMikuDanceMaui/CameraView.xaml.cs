@@ -36,4 +36,5 @@ public partial class CameraView : ContentView
             await Application.Current!.MainPage!.DisplayAlert("Error", ex.Message, "OK");
         }
     }
+
 }
