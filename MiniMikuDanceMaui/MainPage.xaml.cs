@@ -234,6 +234,12 @@ private void OnCameraClicked(object? sender, EventArgs e)
     HideAllMenusAndLayout();
 }
 
+private void OnGyroMenuClicked(object? sender, EventArgs e)
+{
+    ShowBottomFeature("GYRO");
+    HideAllMenusAndLayout();
+}
+
 
 
 
@@ -674,6 +680,11 @@ private void ShowBottomFeature(string name)
         {
             var cv = new CameraView();
             view = cv;
+        }
+        else if (name == "GYRO")
+        {
+            var gv = new GyroView();
+            view = gv;
         }
 
         else if (name == "TIMELINE")
