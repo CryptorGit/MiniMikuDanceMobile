@@ -2,6 +2,7 @@ using Microsoft.Maui.Controls;
 using MiniMikuDance.Import;
 using SkiaSharp;
 using SkiaSharp.Views.Maui;
+using SkiaSharp.Views.Maui.Controls;
 
 
 namespace MiniMikuDanceMaui;
@@ -10,7 +11,7 @@ public partial class TimelineView : ContentView
 {
     const int FrameCount = 200;
     const float FrameWidth = 40f; // Adjusted width
-    const float HeaderHeight = 30f;
+        public const float HeaderHeight = 30f;
     const float RowHeight = 30f; // Adjusted height
     const float LeftPanelWidth = 90f; // Adjusted width for bone name panel to match XAML
     const string RightFootBoneName = "rightFoot";
@@ -57,7 +58,6 @@ public partial class TimelineView : ContentView
             UpdateCanvasSizes();
             TimelineContentCanvas.InvalidateSurface();
             BoneNameCanvas.InvalidateSurface();
-            BoneKeyInputBoneNameCanvas.InvalidateSurface();
             BoneKeyInputKeyCanvas.InvalidateSurface();
         }
     }
@@ -69,6 +69,7 @@ public partial class TimelineView : ContentView
     // UI State
     private SKFont _keyframeFont;
     private SKFont _boneNameFont;
+        private SKFont _headerFont;
     public int CurrentFrame
     {
         get => _currentFrame;
@@ -79,7 +80,6 @@ public partial class TimelineView : ContentView
                 _currentFrame = value;
                 TimelineContentCanvas.InvalidateSurface();
                 BoneNameCanvas.InvalidateSurface();
-                BoneKeyInputBoneNameCanvas.InvalidateSurface();
                 BoneKeyInputKeyCanvas.InvalidateSurface();
             }
         }
@@ -102,7 +102,6 @@ public partial class TimelineView : ContentView
             if (_selectedKeyInputBoneIndex != value)
             {
                 _selectedKeyInputBoneIndex = value;
-                BoneKeyInputBoneNameCanvas.InvalidateSurface();
                 BoneKeyInputKeyCanvas.InvalidateSurface();
             }
         }
@@ -113,6 +112,8 @@ public partial class TimelineView : ContentView
         InitializeComponent();
         _keyframeFont = new SKFont(SKTypeface.Default, 12);
         _boneNameFont = new SKFont(SKTypeface.Default, BoneNameFontSize);
+        _headerFont = new SKFont(SKTypeface.Default, HeaderFontSize);
+        this.Loaded += OnTimelineViewLoaded;
     }
 
     public List<int> GetKeyframesForBone(string boneName)
@@ -177,7 +178,6 @@ public partial class TimelineView : ContentView
         CurrentFrameEntry.Text = CurrentFrame.ToString();
         TimelineContentCanvas.InvalidateSurface();
         BoneNameCanvas.InvalidateSurface();
-        BoneKeyInputBoneNameCanvas.InvalidateSurface();
         BoneKeyInputKeyCanvas.InvalidateSurface();
     }
 
@@ -188,7 +188,6 @@ public partial class TimelineView : ContentView
             CurrentFrame = frame;
             TimelineContentCanvas.InvalidateSurface();
             BoneNameCanvas.InvalidateSurface();
-            BoneKeyInputBoneNameCanvas.InvalidateSurface();
             BoneKeyInputKeyCanvas.InvalidateSurface();
         }
     }
@@ -225,8 +224,13 @@ public partial class TimelineView : ContentView
     {
         BoneNameScrollView.Scrolled += OnBoneNameScrollViewScrolled;
         TimelineContentScrollView.Scrolled += OnTimelineContentScrollViewScrolled;
+        FrameHeaderScroll.Scrolled += OnFrameHeaderScrollViewScrolled;
         BoneNameScrollView.SizeChanged += OnScrollViewSizeChanged;
         TimelineContentScrollView.SizeChanged += OnScrollViewSizeChanged;
+        FrameHeaderScroll.SizeChanged += OnScrollViewSizeChanged;
+        
+        HeaderCanvas.EnableTouchEvents = true;
+        HeaderCanvas.Touch += OnHeaderTouch;
 
         // Ensure the drawing area is configured when the view first appears
         UpdateCanvasSizes();
@@ -249,8 +253,18 @@ public partial class TimelineView : ContentView
         _scrollX = (float)e.ScrollX;
         _scrollY = (float)Math.Min(e.ScrollY, _maxScrollY);
         BoneNameScrollView.ScrollToAsync(BoneNameScrollView.ScrollX, _scrollY, false).ContinueWith((t) => _isScrolling = false);
+        FrameHeaderScroll.ScrollToAsync(_scrollX, 0, false);
         TimelineContentCanvas.InvalidateSurface();
         BoneKeyInputKeyCanvas.InvalidateSurface(); // Invalidate key input canvas on scroll
+    }
+
+    private void OnFrameHeaderScrollViewScrolled(object? sender, ScrolledEventArgs e)
+    {
+        if (_isScrolling) return;
+        _isScrolling = true;
+        _scrollX = (float)e.ScrollX;
+        TimelineContentScrollView.ScrollToAsync(_scrollX, TimelineContentScrollView.ScrollY, false)
+            .ContinueWith((t) => _isScrolling = false);
     }
 
     private void OnScrollViewSizeChanged(object? sender, EventArgs e)
@@ -297,7 +311,6 @@ public partial class TimelineView : ContentView
         TimelineContentCanvas.HeightRequest = fullScrollableContentHeight;
 
         // Set sizes for the new bone key input canvases
-        BoneKeyInputBoneNameCanvas.WidthRequest = LeftPanelWidth;
         BoneKeyInputKeyCanvas.WidthRequest = totalContentWidth;
 
 
@@ -305,7 +318,6 @@ public partial class TimelineView : ContentView
 
         BoneNameCanvas.InvalidateSurface();
         TimelineContentCanvas.InvalidateSurface();
-        BoneKeyInputBoneNameCanvas.InvalidateSurface();
         BoneKeyInputKeyCanvas.InvalidateSurface();
     }
 
@@ -319,6 +331,7 @@ public partial class TimelineView : ContentView
 
         using var linePaint = new SKPaint { Color = SKColors.Gray, StrokeWidth = 1 };
         using var altRowPaint = new SKPaint { Color = new SKColor(50, 50, 50) };
+        using var selectedRowPaint = new SKPaint { Color = new SKColor(80, 80, 80) };
         using var textPaint = new SKPaint { Color = SKColors.White, IsAntialias = true };
 
         // --- Draw Header Background (non-scrollable) ---
@@ -342,52 +355,126 @@ public partial class TimelineView : ContentView
             for (int i = startRow; i < endRow; i++)
             {
                 var y = HeaderHeight + i * RowHeight;
-                if (i % 2 == 1)
+                // Highlight selected bone row
+                if (i == _selectedKeyInputBoneIndex)
+                {
+                    canvas.DrawRect(0, y, info.Width, RowHeight, selectedRowPaint);
+                }
+                else if (i % 2 == 1)
                 {
                     canvas.DrawRect(0, y, info.Width, RowHeight, altRowPaint);
                 }
 
-                canvas.DrawLine(0, y + RowHeight, info.Width, y + RowHeight, linePaint); // Horizontal line for bone names
+                canvas.DrawLine(0, y + RowHeight, info.Width, y + RowHeight, linePaint);
                 float textY = y + (RowHeight - _boneNameFont.Size) / 2 + _boneNameFont.Size;
-                canvas.DrawText(_boneNames[i], 10, textY, _boneNameFont, textPaint);
+                canvas.DrawText(_boneNames[i], 10, textY, SKTextAlign.Left, _boneNameFont, textPaint);
             }
         }
         canvas.Restore();
+    }
+
+        private void OnHeaderPaintSurface(object sender, SKPaintSurfaceEventArgs e)
+        {
+            var canvas = e.Surface.Canvas;
+            var info = e.Info;
+            canvas.Clear(SKColors.Transparent);
+            using var minorPaint = new SKPaint { Color = SKColors.LightGray, StrokeWidth = 1 };
+            using var majorPaint = new SKPaint { Color = SKColors.Gray, StrokeWidth = 2 };
+            using var numberPaint = new SKPaint { Color = SKColors.Gray, IsAntialias = true };
+            using var markerPaint = new SKPaint { Color = SKColors.Red, StrokeWidth = 2 };
+            for (int f = 0; f < FrameCount; f++)
+            {
+                float x = f * FrameWidth - _scrollX;
+                canvas.DrawLine(x, 0, x, info.Height, f % 10 == 0 ? majorPaint : minorPaint);
+                if (f % 10 == 0)
+                {
+                    var text = f.ToString();
+                    canvas.DrawText(text, x + 2, info.Height - 2, SKTextAlign.Left, _headerFont, numberPaint);
+                }
+            }
+            float markerX = CurrentFrame * FrameWidth - _scrollX + FrameWidth / 2;
+            canvas.DrawLine(markerX, 0, markerX, info.Height, markerPaint);
+        }
+
+    private void OnHeaderTouch(object? sender, SKTouchEventArgs e)
+    {
+        if (e.ActionType == SKTouchAction.Released)
+        {
+            int frame = (int)((e.Location.X + _scrollX) / FrameWidth);
+            frame = Math.Clamp(frame, 0, FrameCount - 1);
+            CurrentFrame = frame;
+            CurrentFrameEntry.Text = CurrentFrame.ToString();
+        }
+        e.Handled = true;
     }
 
     void OnTimelineContentPaintSurface(object? sender, SKPaintSurfaceEventArgs e)
     {
         var canvas = e.Surface.Canvas;
         var info = e.Info;
+        // Main timeline content (bone tracks)
         canvas.Clear(SKColors.Transparent);
 
-
-    }
-
-    void OnBoneKeyInputBoneNamePaintSurface(object? sender, SKPaintSurfaceEventArgs e)
-    {
-        var canvas = e.Surface.Canvas;
-        var info = e.Info;
-        canvas.Clear(new SKColor(40, 40, 40)); // Background for the left panel
-
+        using var altRowPaint = new SKPaint { Color = new SKColor(50, 50, 50) };
         using var linePaint = new SKPaint { Color = SKColors.Gray, StrokeWidth = 1 };
-        using var textPaint = new SKPaint { Color = SKColors.White, IsAntialias = true };
+        using var minorPaint = new SKPaint { Color = SKColors.LightGray, StrokeWidth = 1 };
+        using var majorPaint = new SKPaint { Color = SKColors.Gray, StrokeWidth = 2 };
+        using var keyframePaint = new SKPaint { Color = SKColors.Yellow, Style = SKPaintStyle.Fill };
+        using var playheadPaint = new SKPaint { Color = SKColors.Red, StrokeWidth = 2 };
 
-        if (_boneNames.Count > _selectedKeyInputBoneIndex)
+        canvas.Save();
+        // Align with header and vertical scroll
+        canvas.Translate(-_scrollX, -_scrollY);
+
+        // Draw alternating row backgrounds and horizontal lines
+        var totalWidth = FrameCount * FrameWidth;
+        for (int i = 0; i < _boneNames.Count; i++)
         {
-            var boneName = _boneNames[_selectedKeyInputBoneIndex];
-            // Center the text vertically within the canvas height
-            float textY = (info.Height / 2f) + (_keyframeFont.Size / 2f) - _keyframeFont.Metrics.Descent;
-            canvas.DrawText(boneName, 10, textY, _keyframeFont, textPaint);
+            var y = HeaderHeight + i * RowHeight;
+            if (i % 2 == 1)
+                canvas.DrawRect(0, y, totalWidth, RowHeight, altRowPaint);
+            canvas.DrawLine(0, y + RowHeight, totalWidth, y + RowHeight, linePaint);
         }
-        canvas.DrawLine(info.Width - 1, 0, info.Width - 1, info.Height, linePaint); // Right border
+
+        // Draw vertical grid lines
+        for (int f = 0; f < FrameCount; f++)
+        {
+            var x = f * FrameWidth;
+            canvas.DrawLine(x, HeaderHeight, x, HeaderHeight + _boneNames.Count * RowHeight,
+                f % 10 == 0 ? majorPaint : minorPaint);
+        }
+
+        // Draw keyframes for all bones
+        foreach (var bone in _boneNames)
+        {
+            if (!_keyframes.TryGetValue(bone, out var frames))
+                continue;
+            var row = _boneNames.IndexOf(bone);
+            foreach (var frame in frames)
+            {
+                var x = frame * FrameWidth + FrameWidth / 2 - _scrollX;
+                var y = HeaderHeight + row * RowHeight + RowHeight / 2 - _scrollY;
+                canvas.DrawCircle(x, y, 5, keyframePaint);
+            }
+        }
+
+        // Draw current frame playhead
+        var playX = CurrentFrame * FrameWidth + FrameWidth / 2 - _scrollX;
+        canvas.DrawLine(playX, HeaderHeight, playX, HeaderHeight + _boneNames.Count * RowHeight, playheadPaint);
+        canvas.Restore();
     }
+
 
     void OnBoneKeyInputKeyPaintSurface(object? sender, SKPaintSurfaceEventArgs e)
     {
         var canvas = e.Surface.Canvas;
         var info = e.Info;
-        canvas.Clear(SKColors.Transparent);
+        // Background for key input area
+        canvas.Clear(new SKColor(40, 40, 40));
+        // Top and bottom borders
+        using var borderPaint = new SKPaint { Color = SKColors.Gray, StrokeWidth = 1 };
+        canvas.DrawLine(0, 0, info.Width, 0, borderPaint);
+        canvas.DrawLine(0, info.Height - 1, info.Width, info.Height - 1, borderPaint);
 
         using var linePaint = new SKPaint { Color = SKColors.Gray, StrokeWidth = 1 };
         using var keyframePaint = new SKPaint { Color = SKColors.Yellow, Style = SKPaintStyle.Fill };
@@ -411,7 +498,7 @@ public partial class TimelineView : ContentView
                     var x = frame * FrameWidth - _scrollX + FrameWidth / 2;
                     var y = info.Height / 2; // Center of the canvas
                     canvas.DrawCircle(x, y, 5, keyframePaint);
-                    canvas.DrawText(frame.ToString(), x + 7, y + 5, _keyframeFont, textPaint);
+                    canvas.DrawText(frame.ToString(), x + 7, y + 5, SKTextAlign.Left, _keyframeFont, textPaint);
                 }
             }
         }
@@ -423,4 +510,3 @@ public partial class TimelineView : ContentView
     }
 
 }
-
