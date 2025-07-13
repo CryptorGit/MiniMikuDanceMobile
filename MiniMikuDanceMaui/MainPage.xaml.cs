@@ -683,7 +683,7 @@ private void ShowBottomFeature(string name)
         }
         else if (name == "GYRO")
         {
-            var gv = new GyroView();
+            var gv = new GyroView(_renderer);
             view = gv;
         }
 
