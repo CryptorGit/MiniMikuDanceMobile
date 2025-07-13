@@ -41,6 +41,10 @@ public class GyroService : IDisposable
     {
         var q = e.Reading.Orientation;
         var quat = new System.Numerics.Quaternion((float)q.X, (float)q.Y, (float)q.Z, (float)q.W);
+
+        // 端末の向きとカメラ・レンダラの向きが一致するよう反転させる
+        quat = System.Numerics.Quaternion.Inverse(quat);
+
         _camera.SetGyroRotation(quat);
         _renderer.SetExternalRotation(new OpenTK.Mathematics.Quaternion(quat.X, quat.Y, quat.Z, quat.W));
     }
