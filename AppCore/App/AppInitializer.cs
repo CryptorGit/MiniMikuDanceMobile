@@ -23,6 +23,7 @@ public class AppInitializer
     public RecorderController? Recorder { get; private set; }
     public CameraController? Camera { get; private set; }
     public PoseEstimator? PoseEstimator { get; private set; }
+    public DepthEstimator? DepthEstimator { get; private set; }
     public MotionGenerator? MotionGenerator { get; private set; }
     public JointData[]? Joints { get; private set; }
     public MotionData? Motion { get; set; }
@@ -35,6 +36,7 @@ public class AppInitializer
         UIManager.Instance.LoadConfig(uiConfig);
         _poseModelPath = poseModelPath;
         PoseEstimator = new PoseEstimator(poseModelPath);
+        DepthEstimator = new DepthEstimator();
         MotionGenerator = new MotionGenerator();
 
         _poseOutputDir = Path.Combine(baseDir, "Poses");
@@ -104,6 +106,10 @@ public class AppInitializer
             return null;
         UIManager.Instance.SetMessage("Analyzing video...");
         Joints = await PoseEstimator.EstimateAsync(videoPath, p => UIManager.Instance.Progress = p);
+        if (DepthEstimator != null && Joints != null)
+        {
+            Joints = DepthEstimator.Reconstruct(Joints);
+        }
         string outPath = Path.Combine(_poseOutputDir,
             Path.GetFileNameWithoutExtension(videoPath) + ".json");
         JSONUtil.Save(outPath, Joints);
