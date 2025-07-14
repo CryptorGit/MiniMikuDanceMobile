@@ -4,7 +4,7 @@ using System.Numerics;
 using System.Collections.Generic;
 using Microsoft.ML.OnnxRuntime;
 using Microsoft.ML.OnnxRuntime.Tensors;
-// OpenCV を使用しない実装へ移行したため依存関係を削除
+using OpenCvSharp;
 
 namespace MiniMikuDance.PoseEstimation;
 
@@ -35,75 +35,72 @@ public class PoseEstimator
     {
         return Task.Run(() =>
         {
+            if (_session == null || !File.Exists(videoPath))
+                return Array.Empty<JointData>();
+
             const int jointCount = 33;
-            const int frameCount = 30;
-            const float fps = 30f;
+            using var capture = new VideoCapture(videoPath);
+            int totalFrames = (int)capture.Get(VideoCaptureProperties.FrameCount);
+            if (totalFrames <= 0)
+                totalFrames = int.MaxValue; // fallback when unknown
+            double fps = capture.Get(VideoCaptureProperties.Fps);
+            if (fps <= 0)
+                fps = 30.0;
 
-            // OpenCV 依存を排除したため、現状はダミーフレームのみ返す
-            if (_session == null)
-            {
-                var rand = new Random(0);
-                var dummy = new JointData[frameCount];
-                for (int i = 0; i < frameCount; i++)
-                {
-                    var jd = new JointData
-                    {
-                        Timestamp = i / fps,
-                        Positions = new Vector3[jointCount],
-                        Confidences = new float[jointCount]
-                    };
-                    for (int j = 0; j < jointCount; j++)
-                    {
-                        jd.Positions[j] = new Vector3(
-                            (float)rand.NextDouble(),
-                            (float)rand.NextDouble(),
-                            (float)rand.NextDouble());
-                        jd.Confidences[j] = 1f;
-                    }
-                    dummy[i] = jd;
-                    onProgress?.Invoke((i + 1) / (float)frameCount);
-                }
-                return dummy;
-            }
-
-            var results = new List<JointData>(frameCount);
             var meta = _session.InputMetadata.First();
             var dims = meta.Value.Dimensions.Select(d => d <= 0 ? 1 : d).ToArray();
-            for (int i = 0; i < frameCount; i++)
+            int height = dims[1];
+            int width = dims[2];
+
+            var results = new List<JointData>(totalFrames);
+            using var frame = new Mat();
+            int frameIndex = 0;
+            while (capture.Read(frame) && !frame.Empty())
             {
-                // 入力画像なしでゼロテンソルを与える簡易推論
+                using var resized = new Mat();
+                Cv2.Resize(frame, resized, new Size(width, height));
+                Cv2.CvtColor(resized, resized, ColorConversionCodes.BGR2RGB);
+                resized.ConvertTo(resized, MatType.CV_32FC3, 1.0 / 255.0);
+
+                resized.GetArray(out Vec3f[] pixels);
                 var tensor = new DenseTensor<float>(dims);
+                int idx = 0;
+                for (int y = 0; y < height; y++)
+                {
+                    for (int x = 0; x < width; x++)
+                    {
+                        var v = pixels[idx++];
+                        tensor[0, y, x, 0] = v.Item0;
+                        tensor[0, y, x, 1] = v.Item1;
+                        tensor[0, y, x, 2] = v.Item2;
+                    }
+                }
+
                 using var output = _session.Run(new[] { NamedOnnxValue.CreateFromTensor(meta.Key, tensor) });
                 var jd = new JointData
                 {
-                    Timestamp = i / fps,
+                    Timestamp = (float)(frameIndex / fps),
                     Positions = new Vector3[jointCount],
                     Confidences = new float[jointCount]
                 };
 
                 var outTensor = output.First().AsTensor<float>();
                 var data = outTensor.ToArray();
-                int stride;
-
-                if (outTensor.Dimensions.Length >= 3 && outTensor.Dimensions[^2] == jointCount)
+                int stride = 5; // x,y,z,visibility,presence
+                int landmarkCount = data.Length / stride;
+                for (int j = 0; j < jointCount && j < landmarkCount; j++)
                 {
-                    stride = outTensor.Dimensions[^1];
-                }
-                else
-                {
-                    stride = data.Length / jointCount;
-                }
-
-                for (int j = 0; j < jointCount && j * stride + 2 < data.Length; j++)
-                {
-                    int idx = j * stride;
-                    jd.Positions[j] = new Vector3(data[idx], data[idx + 1], data[idx + 2]);
-                    jd.Confidences[j] = stride > 3 && idx + 3 < data.Length ? data[idx + 3] : 1f;
+                    int di = j * stride;
+                    jd.Positions[j] = new Vector3(data[di], data[di + 1], data[di + 2]);
+                    jd.Confidences[j] = data[di + 4];
                 }
 
                 results.Add(jd);
-                onProgress?.Invoke((i + 1) / (float)frameCount);
+                frameIndex++;
+                if (totalFrames != int.MaxValue)
+                    onProgress?.Invoke(frameIndex / (float)totalFrames);
             }
+            onProgress?.Invoke(1f);
             return results.ToArray();
         });
     }
