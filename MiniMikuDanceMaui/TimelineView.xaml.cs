@@ -13,9 +13,9 @@ public partial class TimelineView : ContentView
     const int MaxRows = 17;
     const float FrameWidth = 40f;
     public const float HeaderHeight = 30f;
-    const float RowHeight = 30f;
+    const float RowHeight = 90f;
     const float LeftPanelWidth = 90f;
-    const float BoneNameFontSize = 16f;
+    const float BoneNameFontSize = 48f;
     const float HeaderFontSize = 14f;
 
     private ModelData? _model;
@@ -287,7 +287,7 @@ public partial class TimelineView : ContentView
             }
 
             canvas.DrawLine(0, y + RowHeight, info.Width, y + RowHeight, linePaint);
-            float textY = y + (RowHeight - _boneNameFont.Size) / 2 + _boneNameFont.Size;
+            float textY = y + RowHeight / 2 + _boneNameFont.Size / 2;
             canvas.DrawText(_boneNames[i], 10, textY, _boneNameFont, textPaint);
         }
     }
