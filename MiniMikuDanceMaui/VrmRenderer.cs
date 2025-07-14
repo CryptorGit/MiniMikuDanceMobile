@@ -63,6 +63,7 @@ public class VrmRenderer : IDisposable
     private readonly List<Vector3> _boneTranslations = new();
     private List<MiniMikuDance.Import.BoneData> _bones = new();
     private Quaternion _externalRotation = Quaternion.Identity;
+    public MiniMikuDance.BoneConstraints? Constraints { get; set; }
     // デフォルトのカメラ感度をスライダーの最小値に合わせる
     public float RotateSensitivity { get; set; } = 0.1f;
     public float PanSensitivity { get; set; } = 0.1f;
@@ -271,6 +272,11 @@ void main(){
     {
         if (index < 0)
             return;
+        if (index < _bones.Count && Constraints != null)
+        {
+            var name = _bones[index].Name;
+            degrees = Constraints.Clip(name, degrees);
+        }
         while (_boneRotations.Count <= index)
             _boneRotations.Add(Vector3.Zero);
         _boneRotations[index] = degrees;
@@ -306,7 +312,16 @@ void main(){
     public void SetAllBoneRotations(IList<Vector3> list)
     {
         _boneRotations.Clear();
-        _boneRotations.AddRange(list);
+        for (int i = 0; i < list.Count; i++)
+        {
+            var rot = list[i];
+            if (i < _bones.Count && Constraints != null)
+            {
+                var name = _bones[i].Name;
+                rot = Constraints.Clip(name, rot);
+            }
+            _boneRotations.Add(rot);
+        }
     }
 
     public void SetAllBoneTranslations(IList<Vector3> list)

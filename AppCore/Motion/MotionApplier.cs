@@ -2,6 +2,7 @@ using System.Numerics;
 using System.Collections.Generic;
 using MiniMikuDance.Import;
 using MiniMikuDance.PoseEstimation;
+using MiniMikuDance;
 
 namespace MiniMikuDance.Motion;
 
@@ -9,11 +10,13 @@ public class MotionApplier
 {
     private readonly ModelData _model;
     private readonly Dictionary<BlazePoseJoint, int> _boneMap = new();
+    public BoneConstraints? Constraints { get; set; }
     private readonly IkSolver _solver;
 
-    public MotionApplier(ModelData model)
+    public MotionApplier(ModelData model, BoneConstraints? constraints = null)
     {
         _model = model;
+        Constraints = constraints;
         MapBones();
         _solver = new IkSolver(_model.Bones);
     }
