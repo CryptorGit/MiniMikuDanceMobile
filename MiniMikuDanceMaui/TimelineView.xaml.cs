@@ -11,12 +11,11 @@ public partial class TimelineView : ContentView
 {
     const int MaxFrame = 60;
     const int MaxRows = 17;
-    const float FrameWidth = 40f;
-    public const float HeaderHeight = 30f;
-    const float RowHeight = 30f;
-    const float LeftPanelWidth = 90f;
-    const float BoneNameFontSize = 16f;
-    const float HeaderFontSize = 14f;
+    const float FrameWidth = 60f;
+    const float RowHeight = 60f;
+    const float LeftPanelWidth = 100f;
+    const float BoneNameFontSize = 32f;
+    const float HeaderFontSize = 24f;
 
     private ModelData? _model;
     private readonly List<string> _boneNames = new List<string>();
@@ -105,6 +104,7 @@ public partial class TimelineView : ContentView
         InitializeComponent();
         _boneNameFont = new SKFont(SKTypeface.Default, BoneNameFontSize);
         _headerFont = new SKFont(SKTypeface.Default, HeaderFontSize);
+        BindingContext = this;
     }
 
     private void OnTimelineViewLoaded(object? sender, EventArgs e)
@@ -215,15 +215,20 @@ public partial class TimelineView : ContentView
         _isScrolling = false;
     }
 
+    public float TimelinePixelWidth { get; private set; }
+    public float TimelinePixelHeight { get; private set; }
     private void UpdateCanvasSizes()
     {
-        var totalContentWidth = MaxFrame * FrameWidth;
-        var totalContentHeight = _boneNames.Count * RowHeight;
+        TimelinePixelWidth  = MaxFrame * FrameWidth / 3;
+        TimelinePixelHeight = _boneNames.Count * RowHeight / 3;
 
-        HeaderCanvas.WidthRequest = totalContentWidth;
-        BoneNameCanvas.HeightRequest = totalContentHeight;
-        TimelineContentCanvas.WidthRequest = totalContentWidth;
-        TimelineContentCanvas.HeightRequest = totalContentHeight;
+        OnPropertyChanged(nameof(TimelinePixelWidth));
+        OnPropertyChanged(nameof(TimelinePixelHeight));
+
+        HeaderCanvas.WidthRequest    = TimelinePixelWidth;
+        BoneNameCanvas.HeightRequest = TimelinePixelHeight;
+        TimelineContentCanvas.WidthRequest = TimelinePixelWidth;
+        TimelineContentCanvas.HeightRequest = TimelinePixelHeight;
     }
 
     private void InvalidateAll()

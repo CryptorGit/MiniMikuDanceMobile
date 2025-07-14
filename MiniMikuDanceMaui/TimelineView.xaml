@@ -43,6 +43,7 @@
                         VerticalOptions="Start">
                 <skia:SKCanvasView x:Name="HeaderCanvas"
                                    HeightRequest="30"
+                                   WidthRequest="{Binding TimelinePixelWidth}"
                                    PaintSurface="OnHeaderPaintSurface" />
             </ScrollView>
 
@@ -52,9 +53,10 @@
                         Orientation="Vertical"
                         VerticalScrollBarVisibility="Never">
                 <skia:SKCanvasView x:Name="BoneNameCanvas"
+                                   HeightRequest="{Binding TimelinePixelHeight}"
                                    PaintSurface="OnBoneNamePaintSurface"
-                                   HorizontalOptions="FillAndExpand"
-                                   VerticalOptions="FillAndExpand" />
+                                   HorizontalOptions="Start"
+                                   VerticalOptions="Start" />
             </ScrollView>
 
             <!-- Right Panel (Timeline Grid) -->
@@ -64,7 +66,10 @@
                         VerticalScrollBarVisibility="Always"
                         HorizontalScrollBarVisibility="Always">
                 <skia:SKCanvasView x:Name="TimelineContentCanvas"
-                                   PaintSurface="OnTimelineContentPaintSurface" />
+                                   WidthRequest="{Binding TimelinePixelWidth}"
+                                   HeightRequest="{Binding TimelinePixelHeight}"
+                                   PaintSurface="OnTimelineContentPaintSurface"
+                                   VerticalOptions="Start" />
             </ScrollView>
         </Grid>
     </Grid>
