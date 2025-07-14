@@ -9,6 +9,7 @@ public class CameraController
     private System.Numerics.Vector3 _position;
     private System.Numerics.Quaternion _rotation = System.Numerics.Quaternion.Identity;
     private System.Numerics.Quaternion _gyroRotation = System.Numerics.Quaternion.Identity;
+    private System.Numerics.Quaternion _gyroBaseRotation = System.Numerics.Quaternion.Identity;
 
     public System.Numerics.Vector3 Position => _position;
     public System.Numerics.Quaternion Rotation => _rotation;
@@ -20,10 +21,17 @@ public class CameraController
         _gyroRotation = rotation;
     }
 
+    public void ResetGyroBase()
+    {
+        _gyroBaseRotation = _gyroRotation;
+    }
+
     public void SyncGyro()
     {
         if (!_gyroEnabled) return;
-        _rotation = _gyroRotation;
+        var invBase = System.Numerics.Quaternion.Inverse(_gyroBaseRotation);
+        var delta = System.Numerics.Quaternion.Concatenate(_gyroRotation, invBase);
+        _rotation = delta;
     }
 
     public void Update()
