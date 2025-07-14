@@ -18,8 +18,9 @@ public class JointData
 public class PoseEstimator
 {
     private readonly InferenceSession? _session;
+    private readonly PosePostProcessor _postProcessor;
 
-    public PoseEstimator(string modelPath)
+    public PoseEstimator(string modelPath, string? constraintPath = null)
     {
         if (File.Exists(modelPath))
         {
@@ -29,6 +30,7 @@ public class PoseEstimator
         {
             _session = null;
         }
+        _postProcessor = new PosePostProcessor(constraintPath);
     }
 
     public Task<JointData[]> EstimateAsync(string videoPath, Action<float>? onProgress = null)
@@ -63,6 +65,7 @@ public class PoseEstimator
                     dummy[i] = jd;
                     onProgress?.Invoke((i + 1) / (float)frameCount);
                 }
+                _postProcessor.ApplyConstraints(dummy);
                 return dummy;
             }
 
@@ -104,7 +107,9 @@ public class PoseEstimator
                 results.Add(jd);
                 onProgress?.Invoke((i + 1) / (float)frameCount);
             }
-            return results.ToArray();
+            var array = results.ToArray();
+            _postProcessor.ApplyConstraints(array);
+            return array;
         });
     }
 }

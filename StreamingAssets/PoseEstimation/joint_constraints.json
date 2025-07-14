@@ -1,0 +1,30 @@
+[
+  {
+    "Parent": "LeftShoulder",
+    "Joint": "LeftElbow",
+    "Child": "LeftWrist",
+    "MinAngle": 0,
+    "MaxAngle": 150
+  },
+  {
+    "Parent": "RightShoulder",
+    "Joint": "RightElbow",
+    "Child": "RightWrist",
+    "MinAngle": 0,
+    "MaxAngle": 150
+  },
+  {
+    "Parent": "LeftHip",
+    "Joint": "LeftKnee",
+    "Child": "LeftAnkle",
+    "MinAngle": 0,
+    "MaxAngle": 150
+  },
+  {
+    "Parent": "RightHip",
+    "Joint": "RightKnee",
+    "Child": "RightAnkle",
+    "MinAngle": 0,
+    "MaxAngle": 150
+  }
+]

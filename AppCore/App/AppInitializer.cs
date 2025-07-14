@@ -34,7 +34,9 @@ public class AppInitializer
 
         UIManager.Instance.LoadConfig(uiConfig);
         _poseModelPath = poseModelPath;
-        PoseEstimator = new PoseEstimator(poseModelPath);
+        var constraintPath = Path.Combine(Path.GetDirectoryName(poseModelPath) ?? string.Empty,
+            "joint_constraints.json");
+        PoseEstimator = new PoseEstimator(poseModelPath, constraintPath);
         MotionGenerator = new MotionGenerator();
 
         _poseOutputDir = Path.Combine(baseDir, "Poses");
