@@ -6,5 +6,7 @@
     <VerticalStackLayout Padding="10" Spacing="10">
         <Button x:Name="GyroButton" Text="Gyro" Clicked="OnGyroClicked"
                 TextColor="{StaticResource TextColor}" />
+        <Button Text="Reset" Clicked="OnResetClicked"
+                TextColor="{StaticResource TextColor}" />
     </VerticalStackLayout>
 </ContentView>

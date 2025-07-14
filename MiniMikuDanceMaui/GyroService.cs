@@ -41,6 +41,13 @@ public class GyroService : IDisposable
     {
         var q = e.Reading.Orientation;
         var quat = new System.Numerics.Quaternion((float)q.X, (float)q.Y, (float)q.Z, (float)q.W);
+
+        // Convert from the sensor's coordinate system (East-North-Up) to the
+        // renderer's right-handed system. The sensor quaternion represents the
+        // world-to-device rotation, so invert it and flip the Z axis.
+        quat = System.Numerics.Quaternion.Conjugate(quat);
+        quat = new System.Numerics.Quaternion(-quat.X, -quat.Z, -quat.Y, quat.W);
+
         _camera.SetGyroRotation(quat);
         _renderer.SetExternalRotation(new OpenTK.Mathematics.Quaternion(quat.X, quat.Y, quat.Z, quat.W));
     }
