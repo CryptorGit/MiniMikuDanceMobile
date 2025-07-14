@@ -275,7 +275,8 @@ void main(){
         if (index < _bones.Count && Constraints != null)
         {
             var name = _bones[index].Name;
-            degrees = Constraints.Clip(name, degrees);
+            // BoneConstraints は System.Numerics.Vector3 を使用するため変換する
+            degrees = Constraints.Clip(name, degrees.ToNumerics()).ToOpenTK();
         }
         while (_boneRotations.Count <= index)
             _boneRotations.Add(Vector3.Zero);
@@ -318,7 +319,8 @@ void main(){
             if (i < _bones.Count && Constraints != null)
             {
                 var name = _bones[i].Name;
-                rot = Constraints.Clip(name, rot);
+                // 制約計算用に System.Numerics.Vector3 へ変換
+                rot = Constraints.Clip(name, rot.ToNumerics()).ToOpenTK();
             }
             _boneRotations.Add(rot);
         }
