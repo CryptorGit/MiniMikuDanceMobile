@@ -4,7 +4,7 @@ using MiniMikuDance.Camera;
 
 namespace MiniMikuDanceMaui;
 
-public partial class GyroView : ContentView
+public partial class GyroView : ContentView, IDisposable
 {
     private readonly GyroService? _gyroService;
     private bool _gyroRunning;
@@ -32,5 +32,16 @@ public partial class GyroView : ContentView
             _gyroRunning = true;
             GyroButton.Text = "Gyro On";
         }
+    }
+
+    protected override void OnDisappearing()
+    {
+        base.OnDisappearing();
+        _gyroService?.Stop();
+    }
+
+    public void Dispose()
+    {
+        _gyroService?.Dispose();
     }
 }
