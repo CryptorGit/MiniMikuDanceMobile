@@ -11,6 +11,7 @@
     <PackageReference Include="SharpGLTF.Core" Version="1.0.0-alpha0015" />
     <PackageReference Include="SixLabors.ImageSharp" Version="3.1.10" />
     <PackageReference Include="ImGui.NET" Version="1.90.5.1" />
+    <PackageReference Include="OpenCvSharp4" Version="4.6.0.20220608" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\ViewerApp\ViewerApp.csproj" />
