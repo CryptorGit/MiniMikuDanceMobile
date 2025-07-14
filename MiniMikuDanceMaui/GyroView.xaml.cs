@@ -36,16 +36,10 @@ public partial class GyroView : ContentView, IDisposable
         }
     }
 
-    protected override void OnDisappearing()
-    {
-        base.OnDisappearing();
-        _gyroService?.Stop();
-    }
-
     public void Dispose()
     {
         _gyroService?.Dispose();
-    
+    }
 
     private void OnResetClicked(object? sender, EventArgs e)
     {

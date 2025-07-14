@@ -62,11 +62,7 @@ public partial class CameraView : ContentView, IDisposable
         }
     }
 
-    protected override void OnDisappearing()
-    {
-        base.OnDisappearing();
-        _gyroService?.Stop();
-    }
+
 
     public void Dispose()
     {
