@@ -13,9 +13,9 @@ public partial class TimelineView : ContentView
     const int MaxRows = 17;
     const float FrameWidth = 40f;
     public const float HeaderHeight = 30f;
-    const float RowHeight = 30f;
+    const float RowHeight = 90f;
     const float LeftPanelWidth = 90f;
-    const float BoneNameFontSize = 16f;
+    const float BoneNameFontSize = 48f;
     const float HeaderFontSize = 14f;
 
     private ModelData? _model;
@@ -215,15 +215,36 @@ public partial class TimelineView : ContentView
         _isScrolling = false;
     }
 
+    private int GetMaxFrameIndex()
+    {
+        if (_keyframes.Count == 0) return 0;
+
+        var max = 0;
+        foreach (var list in _keyframes.Values)
+        {
+            foreach (var f in list)
+            {
+                if (f > max) max = f;
+            }
+        }
+        return max;
+    }
+
     private void UpdateCanvasSizes()
     {
-        var totalContentWidth = MaxFrame * FrameWidth;
+        var maxFrameIndex = GetMaxFrameIndex();
+
+        var totalContentWidth = (maxFrameIndex + 1) * FrameWidth;
         var totalContentHeight = _boneNames.Count * RowHeight;
 
         HeaderCanvas.WidthRequest = totalContentWidth;
         BoneNameCanvas.HeightRequest = totalContentHeight;
         TimelineContentCanvas.WidthRequest = totalContentWidth;
         TimelineContentCanvas.HeightRequest = totalContentHeight;
+
+        FrameHeaderScroll.ScrollToAsync(Math.Min(_scrollX, totalContentWidth - FrameHeaderScroll.Width), 0, false);
+        BoneNameScrollView.ScrollToAsync(0, Math.Min(_scrollY, totalContentHeight - BoneNameScrollView.Height), false);
+        TimelineContentScrollView.ScrollToAsync(_scrollX, _scrollY, false);
     }
 
     private void InvalidateAll()
@@ -287,7 +308,7 @@ public partial class TimelineView : ContentView
             }
 
             canvas.DrawLine(0, y + RowHeight, info.Width, y + RowHeight, linePaint);
-            float textY = y + (RowHeight - _boneNameFont.Size) / 2 + _boneNameFont.Size;
+            float textY = y + RowHeight / 2 + _boneNameFont.Size / 2;
             canvas.DrawText(_boneNames[i], 10, textY, _boneNameFont, textPaint);
         }
     }
