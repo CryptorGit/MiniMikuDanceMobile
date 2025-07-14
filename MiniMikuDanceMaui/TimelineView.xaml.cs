@@ -181,8 +181,13 @@ public partial class TimelineView : ContentView
         if (_isScrolling) return;
         _isScrolling = true;
 
-        _scrollX = (float)e.ScrollX;
-        _scrollY = (float)e.ScrollY;
+        var totalWidth = MaxFrame * FrameWidth;
+        var totalHeight = _boneNames.Count * RowHeight;
+        var maxScrollX = Math.Max(0, totalWidth - TimelineContentScrollView.Width);
+        var maxScrollY = Math.Max(0, totalHeight - TimelineContentScrollView.Height);
+
+        _scrollX = Math.Max(0, Math.Min((float)e.ScrollX, maxScrollX));
+        _scrollY = Math.Max(0, Math.Min((float)e.ScrollY, maxScrollY));
 
         FrameHeaderScroll.ScrollToAsync(_scrollX, 0, false);
         BoneNameScrollView.ScrollToAsync(0, _scrollY, false);
@@ -196,7 +201,9 @@ public partial class TimelineView : ContentView
         if (_isScrolling) return;
         _isScrolling = true;
 
-        _scrollY = (float)e.ScrollY;
+        var totalHeight = _boneNames.Count * RowHeight;
+        var maxScrollY = Math.Max(0, totalHeight - BoneNameScrollView.Height);
+        _scrollY = Math.Max(0, Math.Min((float)e.ScrollY, maxScrollY));
         TimelineContentScrollView.ScrollToAsync(_scrollX, _scrollY, false);
 
         InvalidateAll();
@@ -208,33 +215,18 @@ public partial class TimelineView : ContentView
         if (_isScrolling) return;
         _isScrolling = true;
 
-        _scrollX = (float)e.ScrollX;
+        var totalWidth = MaxFrame * FrameWidth;
+        var maxScrollX = Math.Max(0, totalWidth - FrameHeaderScroll.Width);
+        _scrollX = Math.Max(0, Math.Min((float)e.ScrollX, maxScrollX));
         TimelineContentScrollView.ScrollToAsync(_scrollX, _scrollY, false);
 
         InvalidateAll();
         _isScrolling = false;
     }
 
-    private int GetMaxFrameIndex()
-    {
-        if (_keyframes.Count == 0) return 0;
-
-        var max = 0;
-        foreach (var list in _keyframes.Values)
-        {
-            foreach (var f in list)
-            {
-                if (f > max) max = f;
-            }
-        }
-        return max;
-    }
-
     private void UpdateCanvasSizes()
     {
-        var maxFrameIndex = GetMaxFrameIndex();
-
-        var totalContentWidth = (maxFrameIndex + 1) * FrameWidth;
+        var totalContentWidth = MaxFrame * FrameWidth;
         var totalContentHeight = _boneNames.Count * RowHeight;
 
         HeaderCanvas.WidthRequest = totalContentWidth;
@@ -242,8 +234,14 @@ public partial class TimelineView : ContentView
         TimelineContentCanvas.WidthRequest = totalContentWidth;
         TimelineContentCanvas.HeightRequest = totalContentHeight;
 
-        FrameHeaderScroll.ScrollToAsync(Math.Min(_scrollX, totalContentWidth - FrameHeaderScroll.Width), 0, false);
-        BoneNameScrollView.ScrollToAsync(0, Math.Min(_scrollY, totalContentHeight - BoneNameScrollView.Height), false);
+        var maxScrollX = Math.Max(0, totalContentWidth - FrameHeaderScroll.Width);
+        var maxScrollY = Math.Max(0, totalContentHeight - BoneNameScrollView.Height);
+
+        _scrollX = Math.Max(0, Math.Min(_scrollX, maxScrollX));
+        _scrollY = Math.Max(0, Math.Min(_scrollY, maxScrollY));
+
+        FrameHeaderScroll.ScrollToAsync(_scrollX, 0, false);
+        BoneNameScrollView.ScrollToAsync(0, _scrollY, false);
         TimelineContentScrollView.ScrollToAsync(_scrollX, _scrollY, false);
     }
 
