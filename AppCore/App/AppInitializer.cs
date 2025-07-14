@@ -6,6 +6,7 @@ using MiniMikuDance.UI;
 using MiniMikuDance.Data;
 using MiniMikuDance.Util;
 using MiniMikuDance.PoseEstimation;
+using MiniMikuDance;
 using System.IO;
 using System.Numerics;
 using System.Threading.Tasks;
@@ -69,7 +70,8 @@ public class AppInitializer
         var importer = new ModelImporter();
         var model = importer.ImportModel(modelPath);
 
-        Applier = new MotionApplier(model);
+        var constraints = BoneConstraints.CreateDefault();
+        Applier = new MotionApplier(model, constraints);
         MotionPlayer ??= new MotionPlayer();
         MotionPlayer.OnFramePlayed += Applier.Apply;
         Viewer = new Viewer(modelPath);

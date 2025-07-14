@@ -18,6 +18,7 @@ using MiniMikuDance.Import;
 using OpenTK.Mathematics;
 using MiniMikuDance.Util;
 using MiniMikuDance.PoseEstimation;
+using MiniMikuDance;
 using MiniMikuDance.Motion;
 using MiniMikuDance.Camera;
 
@@ -42,6 +43,7 @@ public partial class MainPage : ContentPage
     private string? _selectedPosePath;
 
     private readonly VrmRenderer _renderer = new();
+    private readonly BoneConstraints _constraints = BoneConstraints.CreateDefault();
     private readonly CameraController _cameraController = new();
     private float _rotateSensitivity = 0.1f;
     private float _panSensitivity = 0.1f;
@@ -95,6 +97,7 @@ public partial class MainPage : ContentPage
     _renderer.ShadeShift = -0.1f;
     _renderer.ShadeToony = 0.9f;
     _renderer.RimIntensity = 0.5f;
+    _renderer.Constraints = _constraints;
 
     if (Viewer is SKGLView glView)
     {
@@ -519,6 +522,7 @@ private void OnPaintSurface(object? sender, SKPaintGLSurfaceEventArgs e)
     {
         GL.LoadBindings(new SKGLViewBindingsContext());
         _renderer.Initialize();
+        _renderer.Constraints = _constraints;
         _glInitialized = true;
     }
 

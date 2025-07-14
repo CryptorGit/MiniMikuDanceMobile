@@ -2,6 +2,7 @@ using System.Numerics;
 using System.Collections.Generic;
 using MiniMikuDance.Import;
 using MiniMikuDance.PoseEstimation;
+using MiniMikuDance;
 
 namespace MiniMikuDance.Motion;
 
@@ -9,11 +10,15 @@ public class MotionApplier
 {
     private readonly ModelData _model;
     private readonly Dictionary<BlazePoseJoint, int> _boneMap = new();
+    public BoneConstraints? Constraints { get; set; }
+    private readonly IkSolver _solver;
 
-    public MotionApplier(ModelData model)
+    public MotionApplier(ModelData model, BoneConstraints? constraints = null)
     {
         _model = model;
+        Constraints = constraints;
         MapBones();
+        _solver = new IkSolver(_model.Bones);
     }
 
     private void MapBones()
@@ -54,6 +59,25 @@ public class MotionApplier
                 _model.Bones[bIndex].Translation = joint.Positions[jIndex];
             }
         }
+
+        void SolveIk(BlazePoseJoint rootJ, BlazePoseJoint midJ, BlazePoseJoint endJ)
+        {
+            if (!_boneMap.TryGetValue(rootJ, out int br) ||
+                !_boneMap.TryGetValue(midJ, out int bm) ||
+                !_boneMap.TryGetValue(endJ, out int be))
+                return;
+            if ((int)endJ >= joint.Positions.Length || (int)rootJ >= joint.Positions.Length)
+                return;
+            Vector3 target = joint.Positions[(int)endJ];
+            var mid = _solver.Solve(br, bm, be, target);
+            if (bm >= 0 && bm < _model.Bones.Count)
+                _model.Bones[bm].Translation = mid;
+        }
+
+        SolveIk(BlazePoseJoint.LeftShoulder, BlazePoseJoint.LeftElbow, BlazePoseJoint.LeftWrist);
+        SolveIk(BlazePoseJoint.RightShoulder, BlazePoseJoint.RightElbow, BlazePoseJoint.RightWrist);
+        SolveIk(BlazePoseJoint.LeftHip, BlazePoseJoint.LeftKnee, BlazePoseJoint.LeftAnkle);
+        SolveIk(BlazePoseJoint.RightHip, BlazePoseJoint.RightKnee, BlazePoseJoint.RightAnkle);
 
         if (joint.Positions.Length > (int)BlazePoseJoint.RightHip)
         {
