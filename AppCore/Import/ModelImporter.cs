@@ -306,6 +306,16 @@ public class ModelImporter
         {
             data.HumanoidBones[kv.Key] = kv.Value;
             data.HumanoidBoneList.Add((kv.Key, kv.Value));
+            if (DefaultRotationRanges.TryGetValue(kv.Key, out var range))
+            {
+                int idx = kv.Value;
+                if (idx >= 0 && idx < data.Bones.Count)
+                {
+                    data.Bones[idx].RotationXRange = range.X;
+                    data.Bones[idx].RotationYRange = range.Y;
+                    data.Bones[idx].RotationZRange = range.Z;
+                }
+            }
         }
 
         data.IkChains.Clear();
@@ -399,12 +409,6 @@ public class ModelImporter
                 Translation = node.LocalTransform.Translation,
                 BindMatrix = node.WorldMatrix,
             };
-            if (DefaultRotationRanges.TryGetValue(bd.Name, out var range))
-            {
-                bd.RotationXRange = range.X;
-                bd.RotationYRange = range.Y;
-                bd.RotationZRange = range.Z;
-            }
             System.Numerics.Matrix4x4.Invert(bd.BindMatrix, out var inv);
             bd.InverseBindMatrix = inv;
             list.Add(bd);
