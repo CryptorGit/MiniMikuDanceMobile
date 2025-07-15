@@ -173,7 +173,7 @@ public partial class BoneView : ContentView
         set => RotYControl.Value = value;
     }
 
-    public float RotationZ
+    public float BoneRotationZ
     {
         get => (float)RotZControl.Value;
         set => RotZControl.Value = value;
@@ -191,7 +191,7 @@ public partial class BoneView : ContentView
         set => PosYControl.Value = value;
     }
 
-    public float TranslationZ
+    public float BoneTranslationZ
     {
         get => (float)PosZControl.Value;
         set => PosZControl.Value = value;
