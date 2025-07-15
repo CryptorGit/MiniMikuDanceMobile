@@ -395,9 +395,6 @@ private void SetupBoneView(BoneView bv)
     bv.TranslationYChanged += v => UpdateSelectedBoneTranslation(bv);
     bv.TranslationZChanged += v => UpdateSelectedBoneTranslation(bv);
     bv.SolveIkRequested += OnSolveIkRequested;
-    bv.RotationXLimitChanged += OnRotationXLimitChanged;
-    bv.RotationYLimitChanged += OnRotationYLimitChanged;
-    bv.RotationZLimitChanged += OnRotationZLimitChanged;
     bv.SetRotationRange(-180, 180);
     if (_poseHistory.Count == 0)
         SavePoseState();
@@ -1453,23 +1450,6 @@ private void OnSolveIkRequested(Vector3 target)
     }
 }
 
-private void OnRotationXLimitChanged((float Min, float Max) range)
-{
-    if (!IsValidBoneSelection()) return;
-    _renderer.SetBoneRotationLimit(_selectedBoneIndex, range, _renderer.GetBoneRotationLimit(_selectedBoneIndex).Y, _renderer.GetBoneRotationLimit(_selectedBoneIndex).Z);
-}
-
-private void OnRotationYLimitChanged((float Min, float Max) range)
-{
-    if (!IsValidBoneSelection()) return;
-    _renderer.SetBoneRotationLimit(_selectedBoneIndex, _renderer.GetBoneRotationLimit(_selectedBoneIndex).X, range, _renderer.GetBoneRotationLimit(_selectedBoneIndex).Z);
-}
-
-private void OnRotationZLimitChanged((float Min, float Max) range)
-{
-    if (!IsValidBoneSelection()) return;
-    _renderer.SetBoneRotationLimit(_selectedBoneIndex, _renderer.GetBoneRotationLimit(_selectedBoneIndex).X, _renderer.GetBoneRotationLimit(_selectedBoneIndex).Y, range);
-}
 
 private void SetLoadingIndicatorVisibilityAndLayout(bool isVisible)
 {
