@@ -18,3 +18,9 @@ MiniMikuDance は、スマートフォン上で MMD 互換モデルを再生・�
 *   **現状のファイル名**: `MiniMikuDanceMaui/CameraPage.xaml` および `MiniMikuDanceMaui/CameraPage.xaml.cs`
     *   **内容**: カメラ機能だけでなく、モデルのロード、3Dビュー操作、ボーン操作、ライティング設定、ポーズ推定と適用、タイムライン編集、ファイルエクスプローラー、各種設定など、アプリケーションの主要な機能のほとんどを担っています。
     *   **修正案**: `ViewerPage.xaml`/`ViewerPage.xaml.cs`、`WorkspacePage.xaml`/`WorkspacePage.xaml.cs`、または `MainPage.xaml`/`MainPage.xaml.cs`
+
+## JointLimits.json のフォーマット
+
+Configs/JointLimits.json では各ボーンの回転制限を次の形式で記述します。
+`"x": {"min": -25, "max": 25}` のように、軸ごとに min と max を含むオブジェクトを指定してください。
+
