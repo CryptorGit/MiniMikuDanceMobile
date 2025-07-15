@@ -22,7 +22,6 @@ public partial class BoneView : ContentView
     public event Action? ResetTranslationXRequested;
     public event Action? ResetTranslationYRequested;
     public event Action? ResetTranslationZRequested;
-    public event Action<Vector3>? SolveIkRequested;
 
     public BoneView()
     {
@@ -51,10 +50,6 @@ public partial class BoneView : ContentView
         PosYControl.ResetClicked += () => ResetTranslationYRequested?.Invoke();
         PosZControl.ResetClicked += () => ResetTranslationZRequested?.Invoke();
 
-        IkBonePicker.SelectedIndexChanged += OnIkBoneChanged;
-        IkXEntry.Text = "0";
-        IkYEntry.Text = "0";
-        IkZEntry.Text = "0";
     }
 
     public void SetBones(IEnumerable<string> bones)
@@ -62,9 +57,6 @@ public partial class BoneView : ContentView
         BonePicker.ItemsSource = bones.ToList();
         if (BonePicker.ItemsSource.Cast<object>().Any())
             BonePicker.SelectedIndex = 0;
-        IkBonePicker.ItemsSource = bones.ToList();
-        if (IkBonePicker.ItemsSource.Cast<object>().Any())
-            IkBonePicker.SelectedIndex = 0;
     }
 
     public void SetRotation(Vector3 degrees)
@@ -93,22 +85,6 @@ public partial class BoneView : ContentView
     private void OnTXChanged(double v) => TranslationXChanged?.Invoke((float)v);
     private void OnTYChanged(double v) => TranslationYChanged?.Invoke((float)v);
     private void OnTZChanged(double v) => TranslationZChanged?.Invoke((float)v);
-
-    private void OnIkBoneChanged(object? sender, EventArgs e)
-    {
-        // no action required currently
-    }
-
-    private void OnSolveIkClicked(object? sender, EventArgs e)
-    {
-        if (float.TryParse(IkXEntry.Text, out var x) &&
-            float.TryParse(IkYEntry.Text, out var y) &&
-            float.TryParse(IkZEntry.Text, out var z))
-        {
-            SolveIkRequested?.Invoke(new Vector3(x, y, z));
-        }
-    }
-
 
     private void OnResetClicked()
     {
@@ -177,15 +153,5 @@ public partial class BoneView : ContentView
         PosZControl.SetRange(min, max);
     }
 
-    public int SelectedIkTargetBoneIndex => IkBonePicker.SelectedIndex;
 
-    public void SetRotationLimits((float Min, float Max) x, (float Min, float Max) y, (float Min, float Max) z)
-    {
-        RotXMinLabel.Text = x.Min.ToString();
-        RotXMaxLabel.Text = x.Max.ToString();
-        RotYMinLabel.Text = y.Min.ToString();
-        RotYMaxLabel.Text = y.Max.ToString();
-        RotZMinLabel.Text = z.Min.ToString();
-        RotZMaxLabel.Text = z.Max.ToString();
-    }
 }

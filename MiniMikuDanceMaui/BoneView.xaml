@@ -23,33 +23,6 @@
         <local:BoneAxisControl x:Name="PosZControl" ValueFormat="F2"
                                ValueChanged="OnTZChanged" />
 
-        <!-- IK Target Input -->
-        <Label Text="IK Target" FontAttributes="Bold" />
-        <Picker x:Name="IkBonePicker" Title="Target Bone" />
-        <Grid ColumnDefinitions="Auto,Auto,Auto" ColumnSpacing="6">
-            <Entry x:Name="IkXEntry" Placeholder="X" Keyboard="Numeric" WidthRequest="60" />
-            <Entry x:Name="IkYEntry" Placeholder="Y" Keyboard="Numeric" WidthRequest="60" Grid.Column="1" />
-            <Entry x:Name="IkZEntry" Placeholder="Z" Keyboard="Numeric" WidthRequest="60" Grid.Column="2" />
-        </Grid>
-        <Button Text="Solve IK" Clicked="OnSolveIkClicked" />
-
-        <!-- Rotation Limits -->
-        <Label Text="Rotation Limits" FontAttributes="Bold" />
-        <Grid ColumnDefinitions="Auto,Auto,Auto" ColumnSpacing="4">
-            <Label Text="X" VerticalOptions="Center" />
-            <Label x:Name="RotXMinLabel" Text="0" WidthRequest="60" TextColor="{StaticResource TextColor}" Grid.Column="1" />
-            <Label x:Name="RotXMaxLabel" Text="0" WidthRequest="60" TextColor="{StaticResource TextColor}" Grid.Column="2" />
-        </Grid>
-        <Grid ColumnDefinitions="Auto,Auto,Auto" ColumnSpacing="4">
-            <Label Text="Y" VerticalOptions="Center" />
-            <Label x:Name="RotYMinLabel" Text="0" WidthRequest="60" TextColor="{StaticResource TextColor}" Grid.Column="1" />
-            <Label x:Name="RotYMaxLabel" Text="0" WidthRequest="60" TextColor="{StaticResource TextColor}" Grid.Column="2" />
-        </Grid>
-        <Grid ColumnDefinitions="Auto,Auto,Auto" ColumnSpacing="4">
-            <Label Text="Z" VerticalOptions="Center" />
-            <Label x:Name="RotZMinLabel" Text="0" WidthRequest="60" TextColor="{StaticResource TextColor}" Grid.Column="1" />
-            <Label x:Name="RotZMaxLabel" Text="0" WidthRequest="60" TextColor="{StaticResource TextColor}" Grid.Column="2" />
-        </Grid>
     </VerticalStackLayout>
     </ScrollView>
 </ContentView>
