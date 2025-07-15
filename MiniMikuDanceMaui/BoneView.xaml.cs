@@ -32,43 +32,35 @@ public partial class BoneView : ContentView
         InitializeComponent();
 
         var rangeValues = Enumerable.Range(0, 37).Select(i => (object)(i * 5)).ToList();
-        var centerValues = Enumerable.Range(0, 37).Select(i => (object)(-180 + i * 10)).ToList();
         RotXControl.SetLabels("Rot", "X");
         RotYControl.SetLabels("Rot", "Y");
         RotZControl.SetLabels("Rot", "Z");
-        RotXControl.SetPickers(centerValues, rangeValues, 0, 180);
-        RotYControl.SetPickers(centerValues, rangeValues, 0, 180);
-        RotZControl.SetPickers(centerValues, rangeValues, 0, 180);
+        RotXControl.SetPickers(rangeValues, 180);
+        RotYControl.SetPickers(rangeValues, 180);
+        RotZControl.SetPickers(rangeValues, 180);
         RotXControl.SetRange(-180, 180);
         RotYControl.SetRange(-180, 180);
         RotZControl.SetRange(-180, 180);
         RotXControl.ValueChanged += OnXChanged;
         RotYControl.ValueChanged += OnYChanged;
         RotZControl.ValueChanged += OnZChanged;
-        RotXControl.CenterChanged += OnCenterXChanged;
-        RotYControl.CenterChanged += OnCenterYChanged;
-        RotZControl.CenterChanged += OnCenterZChanged;
         RotXControl.ResetClicked += () => ResetRotationXRequested?.Invoke();
         RotYControl.ResetClicked += () => ResetRotationYRequested?.Invoke();
         RotZControl.ResetClicked += () => ResetRotationZRequested?.Invoke();
 
         var posRangeValues = Enumerable.Range(0, 11).Select(i => (object)(i / 10f)).ToList();
-        var posCenterValues = Enumerable.Range(0, 21).Select(i => (object)(-1f + i * 0.1f)).ToList();
         PosXControl.SetLabels("Pos", "X");
         PosYControl.SetLabels("Pos", "Y");
         PosZControl.SetLabels("Pos", "Z");
-        PosXControl.SetPickers(posCenterValues, posRangeValues, 0f, 1f);
-        PosYControl.SetPickers(posCenterValues, posRangeValues, 0f, 1f);
-        PosZControl.SetPickers(posCenterValues, posRangeValues, 0f, 1f);
+        PosXControl.SetPickers(posRangeValues, 1f);
+        PosYControl.SetPickers(posRangeValues, 1f);
+        PosZControl.SetPickers(posRangeValues, 1f);
         PosXControl.SetRange(-1, 1);
         PosYControl.SetRange(-1, 1);
         PosZControl.SetRange(-1, 1);
         PosXControl.ValueChanged += OnTXChanged;
         PosYControl.ValueChanged += OnTYChanged;
         PosZControl.ValueChanged += OnTZChanged;
-        PosXControl.CenterChanged += OnCenterTXChanged;
-        PosYControl.CenterChanged += OnCenterTYChanged;
-        PosZControl.CenterChanged += OnCenterTZChanged;
         PosXControl.ResetClicked += () => ResetTranslationXRequested?.Invoke();
         PosYControl.ResetClicked += () => ResetTranslationYRequested?.Invoke();
         PosZControl.ResetClicked += () => ResetTranslationZRequested?.Invoke();
@@ -168,12 +160,6 @@ public partial class BoneView : ContentView
 
     private void OnResetClicked(object? sender, EventArgs e) => OnResetClicked();
 
-    private void OnCenterXChanged(double _) => RotationXChanged?.Invoke((float)RotXControl.Value);
-    private void OnCenterYChanged(double _) => RotationYChanged?.Invoke((float)RotYControl.Value);
-    private void OnCenterZChanged(double _) => RotationZChanged?.Invoke((float)RotZControl.Value);
-    private void OnCenterTXChanged(double _) => TranslationXChanged?.Invoke((float)PosXControl.Value);
-    private void OnCenterTYChanged(double _) => TranslationYChanged?.Invoke((float)PosYControl.Value);
-    private void OnCenterTZChanged(double _) => TranslationZChanged?.Invoke((float)PosZControl.Value);
 
     public float BoneRotationX
     {
