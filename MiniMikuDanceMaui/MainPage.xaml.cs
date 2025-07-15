@@ -20,7 +20,6 @@ using MiniMikuDance.Util;
 using MiniMikuDance.PoseEstimation;
 using MiniMikuDance.Motion;
 using MiniMikuDance.Camera;
-using MiniMikuDance.IK;
 
 namespace MiniMikuDanceMaui;
 
@@ -359,7 +358,6 @@ private void UpdateBoneViewProperties(BoneView bv)
             bv.SetTranslation(trans);
             var limits = _renderer.GetBoneRotationLimit(idx0);
             bv.SetRotationRange(limits.X, limits.Y, limits.Z);
-            bv.SetRotationLimits(limits.X, limits.Y, limits.Z);
             _selectedBoneIndex = idx0;
         }
     }
@@ -387,7 +385,6 @@ private void SetupBoneView(BoneView bv)
             bv.SetTranslation(trans);
             var limits = _renderer.GetBoneRotationLimit(_selectedBoneIndex);
             bv.SetRotationRange(limits.X, limits.Y, limits.Z);
-            bv.SetRotationLimits(limits.X, limits.Y, limits.Z);
         }
     };
     bv.RotationXChanged += v => UpdateSelectedBoneRotation(bv);
@@ -396,7 +393,6 @@ private void SetupBoneView(BoneView bv)
     bv.TranslationXChanged += v => UpdateSelectedBoneTranslation(bv);
     bv.TranslationYChanged += v => UpdateSelectedBoneTranslation(bv);
     bv.TranslationZChanged += v => UpdateSelectedBoneTranslation(bv);
-    bv.SolveIkRequested += OnSolveIkRequested;
     if (_poseHistory.Count == 0)
         SavePoseState();
 }
@@ -1421,35 +1417,6 @@ private void ResetBoneComponent(Func<OpenTK.Mathematics.Vector3> getCurrentValue
     setValue(val);
     SavePoseState();
     UpdateBoneViewValues();
-}
-
-private void OnSolveIkRequested(Vector3 target)
-{
-    if (_currentModel == null) return;
-    if (_bottomViews.TryGetValue("BONE", out var v) && v is BoneView bv)
-    {
-        int idx = bv.SelectedIkTargetBoneIndex;
-        if (idx >= 0 && idx < _currentModel.HumanoidBoneList.Count)
-        {
-            string boneName = _currentModel.HumanoidBoneList[idx].Name;
-            var chain = _currentModel.IkChains.FirstOrDefault(c => c.EndBoneName == boneName);
-            if (chain != null)
-            {
-                var bones = chain.Indices.Select(j => _currentModel.Bones[j]).ToList();
-                IkSolver.Solve(target.ToNumerics(), bones);
-                for (int c = 0; c < chain.Indices.Count; c++)
-                {
-                    int bi = chain.Indices[c];
-                    var rot = bones[c].Rotation.ToEulerDegrees().ToOpenTK();
-                    var trans = bones[c].Translation.ToOpenTK();
-                    _renderer.SetBoneRotation(bi, rot);
-                    _renderer.SetBoneTranslation(bi, trans);
-                }
-                SavePoseState();
-                UpdateBoneViewValues();
-            }
-        }
-    }
 }
 
 
