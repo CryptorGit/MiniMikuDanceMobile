@@ -1251,7 +1251,7 @@ private void UpdateSelectedBoneRotation(BoneView bv)
 {
     if (!IsValidBoneSelection()) return;
 
-    var eulerTk = new OpenTK.Mathematics.Vector3(bv.BoneRotationX, bv.BoneRotationY, bv.RotationZ);
+    var eulerTk = new OpenTK.Mathematics.Vector3(bv.BoneRotationX, bv.BoneRotationY, bv.BoneRotationZ);
     _renderer.SetBoneRotation(_selectedBoneIndex, eulerTk);
     SavePoseState();
     Viewer?.InvalidateSurface();
@@ -1261,7 +1261,7 @@ private void UpdateSelectedBoneTranslation(BoneView bv)
 {
     if (!IsValidBoneSelection()) return;
 
-    var t = new OpenTK.Mathematics.Vector3(bv.BoneTranslationX, bv.BoneTranslationY, bv.TranslationZ);
+    var t = new OpenTK.Mathematics.Vector3(bv.BoneTranslationX, bv.BoneTranslationY, bv.BoneTranslationZ);
     _renderer.SetBoneTranslation(_selectedBoneIndex, t);
     SavePoseState();
     Viewer?.InvalidateSurface();
