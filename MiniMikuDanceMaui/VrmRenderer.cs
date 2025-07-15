@@ -339,9 +339,11 @@ void main(){
     public ((float Min, float Max) X, (float Min, float Max) Y, (float Min, float Max) Z) GetBoneRotationLimit(int index)
     {
         if (index < 0 || index >= _bones.Count)
-            return ((0f, 0f), (0f, 0f), (0f, 0f));
+            return ((-180f, 180f), (-180f, 180f), (-180f, 180f));
         var b = _bones[index];
-        return (b.RotationXRange, b.RotationYRange, b.RotationZRange);
+        static (float Min, float Max) Fix((float Min, float Max) r) =>
+            (r.Min == 0f && r.Max == 0f) ? (-180f, 180f) : r;
+        return (Fix(b.RotationXRange), Fix(b.RotationYRange), Fix(b.RotationZRange));
     }
 
     public void LoadModel(MiniMikuDance.Import.ModelData data)

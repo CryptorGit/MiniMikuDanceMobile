@@ -33,6 +33,24 @@ public class ModelData
 public class ModelImporter
 {
     private readonly AssimpContext _context = new();
+    private static readonly System.Numerics.Matrix4x4 FlipZ = System.Numerics.Matrix4x4.CreateScale(1f, 1f, -1f);
+
+    private static string NormalizeLimitName(string name)
+    {
+        if (name.StartsWith("left"))
+        {
+            var rest = name.Substring(4);
+            rest = char.ToLowerInvariant(rest[0]) + rest.Substring(1);
+            return rest + ".L";
+        }
+        if (name.StartsWith("right"))
+        {
+            var rest = name.Substring(5);
+            rest = char.ToLowerInvariant(rest[0]) + rest.Substring(1);
+            return rest + ".R";
+        }
+        return name;
+    }
 
     private static readonly Dictionary<string,
         ((float Min, float Max) X, (float Min, float Max) Y, (float Min, float Max) Z)> DefaultRotationRanges;
@@ -306,7 +324,8 @@ public class ModelImporter
         {
             data.HumanoidBones[kv.Key] = kv.Value;
             data.HumanoidBoneList.Add((kv.Key, kv.Value));
-            if (DefaultRotationRanges.TryGetValue(kv.Key, out var range))
+            var limitName = NormalizeLimitName(kv.Key);
+            if (DefaultRotationRanges.TryGetValue(limitName, out var range))
             {
                 int idx = kv.Value;
                 if (idx >= 0 && idx < data.Bones.Count)
@@ -401,16 +420,27 @@ public class ModelImporter
         for (int i = 0; i < model.LogicalNodes.Count; i++)
         {
             var node = model.LogicalNodes[i];
+
+            var trans = node.LocalTransform.Translation;
+            trans.Z = -trans.Z;
+
+            var rot = node.LocalTransform.Rotation;
+            var m = System.Numerics.Matrix4x4.CreateFromQuaternion(rot);
+            m = FlipZ * m * FlipZ;
+            System.Numerics.Matrix4x4.Decompose(m, out var _, out var rotF, out var _);
+
+            var bind = FlipZ * node.WorldMatrix * FlipZ;
+            System.Numerics.Matrix4x4.Invert(bind, out var inv);
+
             var bd = new BoneData
             {
                 Name = node.Name ?? $"node{i}",
                 Parent = node.VisualParent?.LogicalIndex ?? -1,
-                Rotation = node.LocalTransform.Rotation,
-                Translation = node.LocalTransform.Translation,
-                BindMatrix = node.WorldMatrix,
+                Rotation = rotF,
+                Translation = trans,
+                BindMatrix = bind,
+                InverseBindMatrix = inv,
             };
-            System.Numerics.Matrix4x4.Invert(bd.BindMatrix, out var inv);
-            bd.InverseBindMatrix = inv;
             list.Add(bd);
         }
         return list;
