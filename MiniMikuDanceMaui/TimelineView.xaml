@@ -42,6 +42,7 @@
                         HorizontalScrollBarVisibility="Never"
                         VerticalOptions="Start">
                 <skia:SKCanvasView x:Name="HeaderCanvas"
+                                   IgnorePixelScaling="True"
                                    HeightRequest="30"
                                    WidthRequest="{Binding TimelinePixelWidth}"
                                    PaintSurface="OnHeaderPaintSurface" />
@@ -53,6 +54,7 @@
                         Orientation="Vertical"
                         VerticalScrollBarVisibility="Never">
                 <skia:SKCanvasView x:Name="BoneNameCanvas"
+                                   IgnorePixelScaling="True"
                                    HeightRequest="{Binding TimelinePixelHeight}"
                                    PaintSurface="OnBoneNamePaintSurface"
                                    HorizontalOptions="Start"
@@ -66,6 +68,7 @@
                         VerticalScrollBarVisibility="Always"
                         HorizontalScrollBarVisibility="Always">
                 <skia:SKCanvasView x:Name="TimelineContentCanvas"
+                                   IgnorePixelScaling="True"
                                    WidthRequest="{Binding TimelinePixelWidth}"
                                    HeightRequest="{Binding TimelinePixelHeight}"
                                    PaintSurface="OnTimelineContentPaintSurface"
