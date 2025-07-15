@@ -32,6 +32,13 @@ public class ModelImporter
 {
     private readonly AssimpContext _context = new();
 
+    private static readonly Dictionary<string,
+        ((float Min, float Max) X, (float Min, float Max) Y, (float Min, float Max) Z)> DefaultRotationRanges
+        = new()
+    {
+        // TODO: populate with actual bone rotation ranges
+    };
+
     public ModelData ImportModel(Stream stream)
     {
 
@@ -362,6 +369,12 @@ public class ModelImporter
                 Translation = node.LocalTransform.Translation,
                 BindMatrix = node.WorldMatrix,
             };
+            if (DefaultRotationRanges.TryGetValue(bd.Name, out var range))
+            {
+                bd.RotationXRange = range.X;
+                bd.RotationYRange = range.Y;
+                bd.RotationZRange = range.Z;
+            }
             System.Numerics.Matrix4x4.Invert(bd.BindMatrix, out var inv);
             bd.InverseBindMatrix = inv;
             list.Add(bd);
