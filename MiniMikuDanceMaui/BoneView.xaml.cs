@@ -31,9 +31,6 @@ public partial class BoneView : ContentView
         RotXControl.SetLabels("Rot", "X");
         RotYControl.SetLabels("Rot", "Y");
         RotZControl.SetLabels("Rot", "Z");
-        RotXControl.SetRange(-180, 180);
-        RotYControl.SetRange(-180, 180);
-        RotZControl.SetRange(-180, 180);
         RotXControl.ValueChanged += OnXChanged;
         RotYControl.ValueChanged += OnYChanged;
         RotZControl.ValueChanged += OnZChanged;
@@ -163,11 +160,14 @@ public partial class BoneView : ContentView
         set => PosZControl.Value = value;
     }
 
-    public void SetRotationRange(int min, int max)
+    public void SetRotationRange(
+        (float Min, float Max) x,
+        (float Min, float Max) y,
+        (float Min, float Max) z)
     {
-        RotXControl.SetRange(min, max);
-        RotYControl.SetRange(min, max);
-        RotZControl.SetRange(min, max);
+        RotXControl.SetRange(x.Min, x.Max);
+        RotYControl.SetRange(y.Min, y.Max);
+        RotZControl.SetRange(z.Min, z.Max);
     }
 
     public void SetTranslationRange(int min, int max)

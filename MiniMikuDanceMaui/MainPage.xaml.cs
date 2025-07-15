@@ -358,6 +358,7 @@ private void UpdateBoneViewProperties(BoneView bv)
             var trans = _renderer.GetBoneTranslation(idx0);
             bv.SetTranslation(trans);
             var limits = _renderer.GetBoneRotationLimit(idx0);
+            bv.SetRotationRange(limits.X, limits.Y, limits.Z);
             bv.SetRotationLimits(limits.X, limits.Y, limits.Z);
             _selectedBoneIndex = idx0;
         }
@@ -385,6 +386,7 @@ private void SetupBoneView(BoneView bv)
             var trans = _renderer.GetBoneTranslation(_selectedBoneIndex);
             bv.SetTranslation(trans);
             var limits = _renderer.GetBoneRotationLimit(_selectedBoneIndex);
+            bv.SetRotationRange(limits.X, limits.Y, limits.Z);
             bv.SetRotationLimits(limits.X, limits.Y, limits.Z);
         }
     };
@@ -395,7 +397,6 @@ private void SetupBoneView(BoneView bv)
     bv.TranslationYChanged += v => UpdateSelectedBoneTranslation(bv);
     bv.TranslationZChanged += v => UpdateSelectedBoneTranslation(bv);
     bv.SolveIkRequested += OnSolveIkRequested;
-    bv.SetRotationRange(-180, 180);
     if (_poseHistory.Count == 0)
         SavePoseState();
 }
@@ -1357,7 +1358,8 @@ private void OnBoneRangeChanged(int range)
 {
     if (_bottomViews.TryGetValue("BONE", out var v) && v is BoneView bv)
     {
-        bv.SetRotationRange(-range, range);
+        var limit = ((float)-range, (float)range);
+        bv.SetRotationRange(limit, limit, limit);
     }
 }
 
