@@ -273,6 +273,16 @@ void main(){
             return;
         while (_boneRotations.Count <= index)
             _boneRotations.Add(Vector3.Zero);
+        if (index < _bones.Count)
+        {
+            var bone = _bones[index];
+            if (bone.RotationXRange.Min != 0f || bone.RotationXRange.Max != 0f)
+                degrees.X = Math.Clamp(degrees.X, bone.RotationXRange.Min, bone.RotationXRange.Max);
+            if (bone.RotationYRange.Min != 0f || bone.RotationYRange.Max != 0f)
+                degrees.Y = Math.Clamp(degrees.Y, bone.RotationYRange.Min, bone.RotationYRange.Max);
+            if (bone.RotationZRange.Min != 0f || bone.RotationZRange.Max != 0f)
+                degrees.Z = Math.Clamp(degrees.Z, bone.RotationZRange.Min, bone.RotationZRange.Max);
+        }
         _boneRotations[index] = degrees;
     }
 
