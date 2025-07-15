@@ -10,10 +10,12 @@
                 <Label x:Name="AxisLabel" Text="X" TextColor="{StaticResource TextColor}" />
                 <Label x:Name="ValueLabel" Text="0" TextColor="{StaticResource TextColor}" WidthRequest="40" />
             </HorizontalStackLayout>
-            <HorizontalStackLayout Grid.Column="1" Spacing="2" VerticalOptions="Center">
-                <Label Text="Rng:" TextColor="{StaticResource TextColor}" VerticalOptions="Center" />
-                <Picker x:Name="RangePicker" WidthRequest="60" SelectedIndexChanged="OnRangeChanged" />
-            </HorizontalStackLayout>
+        <HorizontalStackLayout Grid.Column="1" Spacing="2" VerticalOptions="Center">
+            <Label Text="Min:" TextColor="{StaticResource TextColor}" VerticalOptions="Center" />
+            <Label x:Name="MinLabel" Text="0" TextColor="{StaticResource TextColor}" WidthRequest="40" />
+            <Label Text="Max:" TextColor="{StaticResource TextColor}" VerticalOptions="Center" />
+            <Label x:Name="MaxLabel" Text="0" TextColor="{StaticResource TextColor}" WidthRequest="40" />
+        </HorizontalStackLayout>
             <Button x:Name="ResetButton" Text="Reset" Grid.Column="2" Clicked="OnResetClicked" VerticalOptions="Center" />
         </Grid>
         <Slider x:Name="Slider" Minimum="-180" Maximum="180" ValueChanged="OnSliderChanged" />

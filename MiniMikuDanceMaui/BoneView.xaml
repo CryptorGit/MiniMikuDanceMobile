@@ -37,18 +37,18 @@
         <Label Text="Rotation Limits" FontAttributes="Bold" />
         <Grid ColumnDefinitions="Auto,Auto,Auto" ColumnSpacing="4">
             <Label Text="X" VerticalOptions="Center" />
-            <Entry x:Name="RotXMinEntry" Placeholder="Min" WidthRequest="60" Keyboard="Numeric" Grid.Column="1" />
-            <Entry x:Name="RotXMaxEntry" Placeholder="Max" WidthRequest="60" Keyboard="Numeric" Grid.Column="2" />
+            <Label x:Name="RotXMinLabel" Text="0" WidthRequest="60" TextColor="{StaticResource TextColor}" Grid.Column="1" />
+            <Label x:Name="RotXMaxLabel" Text="0" WidthRequest="60" TextColor="{StaticResource TextColor}" Grid.Column="2" />
         </Grid>
         <Grid ColumnDefinitions="Auto,Auto,Auto" ColumnSpacing="4">
             <Label Text="Y" VerticalOptions="Center" />
-            <Entry x:Name="RotYMinEntry" Placeholder="Min" WidthRequest="60" Keyboard="Numeric" Grid.Column="1" />
-            <Entry x:Name="RotYMaxEntry" Placeholder="Max" WidthRequest="60" Keyboard="Numeric" Grid.Column="2" />
+            <Label x:Name="RotYMinLabel" Text="0" WidthRequest="60" TextColor="{StaticResource TextColor}" Grid.Column="1" />
+            <Label x:Name="RotYMaxLabel" Text="0" WidthRequest="60" TextColor="{StaticResource TextColor}" Grid.Column="2" />
         </Grid>
         <Grid ColumnDefinitions="Auto,Auto,Auto" ColumnSpacing="4">
             <Label Text="Z" VerticalOptions="Center" />
-            <Entry x:Name="RotZMinEntry" Placeholder="Min" WidthRequest="60" Keyboard="Numeric" Grid.Column="1" />
-            <Entry x:Name="RotZMaxEntry" Placeholder="Max" WidthRequest="60" Keyboard="Numeric" Grid.Column="2" />
+            <Label x:Name="RotZMinLabel" Text="0" WidthRequest="60" TextColor="{StaticResource TextColor}" Grid.Column="1" />
+            <Label x:Name="RotZMaxLabel" Text="0" WidthRequest="60" TextColor="{StaticResource TextColor}" Grid.Column="2" />
         </Grid>
     </VerticalStackLayout>
     </ScrollView>

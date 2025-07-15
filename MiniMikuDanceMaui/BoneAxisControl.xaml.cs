@@ -1,17 +1,12 @@
 using Microsoft.Maui.Controls;
 using System;
-using System.Collections.Generic;
-using System.Linq;
 
 namespace MiniMikuDanceMaui;
 
 public partial class BoneAxisControl : ContentView
 {
     public event Action<double>? ValueChanged;
-    public event Action<double>? RangeChanged;
     public event Action? ResetClicked;
-
-    private object? _defaultRange;
 
     public string ValueFormat { get; set; } = "F0";
 
@@ -20,12 +15,6 @@ public partial class BoneAxisControl : ContentView
         InitializeComponent();
     }
 
-    public void SetPickers(IEnumerable<object> ranges, object defaultRange)
-    {
-        RangePicker.ItemsSource = ranges.ToList();
-        RangePicker.SelectedItem = defaultRange;
-        _defaultRange = defaultRange;
-    }
 
     public double Value
     {
@@ -42,12 +31,8 @@ public partial class BoneAxisControl : ContentView
     {
         Slider.Minimum = min;
         Slider.Maximum = max;
-    }
-
-    public object? SelectedRange
-    {
-        get => RangePicker.SelectedItem;
-        set => RangePicker.SelectedItem = value;
+        MinLabel.Text = min.ToString(ValueFormat);
+        MaxLabel.Text = max.ToString(ValueFormat);
     }
 
     public void SetLabels(string type, string axis)
@@ -62,20 +47,8 @@ public partial class BoneAxisControl : ContentView
         ValueChanged?.Invoke(e.NewValue);
     }
 
-    private void OnRangeChanged(object? sender, EventArgs e)
-    {
-        if (RangePicker.SelectedItem != null && double.TryParse(RangePicker.SelectedItem.ToString(), out var range))
-        {
-            Slider.Minimum = -range;
-            Slider.Maximum = range;
-            RangeChanged?.Invoke(range);
-        }
-    }
-
     public void Reset()
     {
-        if (_defaultRange != null)
-            RangePicker.SelectedItem = _defaultRange;
         Slider.Value = 0;
         ResetClicked?.Invoke();
     }
