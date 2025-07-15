@@ -325,6 +325,25 @@ void main(){
         _boneTranslations.AddRange(list);
     }
 
+    public void SetBoneRotationLimit(int index,
+        (float Min, float Max) x,
+        (float Min, float Max) y,
+        (float Min, float Max) z)
+    {
+        if (index < 0 || index >= _bones.Count) return;
+        _bones[index].RotationXRange = x;
+        _bones[index].RotationYRange = y;
+        _bones[index].RotationZRange = z;
+    }
+
+    public ((float Min, float Max) X, (float Min, float Max) Y, (float Min, float Max) Z) GetBoneRotationLimit(int index)
+    {
+        if (index < 0 || index >= _bones.Count)
+            return ((0f, 0f), (0f, 0f), (0f, 0f));
+        var b = _bones[index];
+        return (b.RotationXRange, b.RotationYRange, b.RotationZRange);
+    }
+
     public void LoadModel(MiniMikuDance.Import.ModelData data)
     {
         foreach (var rm in _meshes)

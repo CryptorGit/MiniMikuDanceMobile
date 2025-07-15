@@ -22,6 +22,10 @@ public partial class BoneView : ContentView
     public event Action? ResetTranslationXRequested;
     public event Action? ResetTranslationYRequested;
     public event Action? ResetTranslationZRequested;
+    public event Action<Vector3>? SolveIkRequested;
+    public event Action<(float Min, float Max)>? RotationXLimitChanged;
+    public event Action<(float Min, float Max)>? RotationYLimitChanged;
+    public event Action<(float Min, float Max)>? RotationZLimitChanged;
 
     public BoneView()
     {
@@ -68,6 +72,17 @@ public partial class BoneView : ContentView
         PosXControl.ResetClicked += () => ResetTranslationXRequested?.Invoke();
         PosYControl.ResetClicked += () => ResetTranslationYRequested?.Invoke();
         PosZControl.ResetClicked += () => ResetTranslationZRequested?.Invoke();
+
+        IkBonePicker.SelectedIndexChanged += OnIkBoneChanged;
+        IkXEntry.Text = "0";
+        IkYEntry.Text = "0";
+        IkZEntry.Text = "0";
+        RotXMinEntry.TextChanged += OnRotXLimitChanged;
+        RotXMaxEntry.TextChanged += OnRotXLimitChanged;
+        RotYMinEntry.TextChanged += OnRotYLimitChanged;
+        RotYMaxEntry.TextChanged += OnRotYLimitChanged;
+        RotZMinEntry.TextChanged += OnRotZLimitChanged;
+        RotZMaxEntry.TextChanged += OnRotZLimitChanged;
     }
 
     public void SetBones(IEnumerable<string> bones)
@@ -75,6 +90,9 @@ public partial class BoneView : ContentView
         BonePicker.ItemsSource = bones.ToList();
         if (BonePicker.ItemsSource.Cast<object>().Any())
             BonePicker.SelectedIndex = 0;
+        IkBonePicker.ItemsSource = bones.ToList();
+        if (IkBonePicker.ItemsSource.Cast<object>().Any())
+            IkBonePicker.SelectedIndex = 0;
     }
 
     public void SetRotation(Vector3 degrees)
@@ -103,6 +121,39 @@ public partial class BoneView : ContentView
     private void OnTXChanged(double v) => TranslationXChanged?.Invoke((float)v);
     private void OnTYChanged(double v) => TranslationYChanged?.Invoke((float)v);
     private void OnTZChanged(double v) => TranslationZChanged?.Invoke((float)v);
+
+    private void OnIkBoneChanged(object? sender, EventArgs e)
+    {
+        // no action required currently
+    }
+
+    private void OnSolveIkClicked(object? sender, EventArgs e)
+    {
+        if (float.TryParse(IkXEntry.Text, out var x) &&
+            float.TryParse(IkYEntry.Text, out var y) &&
+            float.TryParse(IkZEntry.Text, out var z))
+        {
+            SolveIkRequested?.Invoke(new Vector3(x, y, z));
+        }
+    }
+
+    private void OnRotXLimitChanged(object? sender, TextChangedEventArgs e)
+    {
+        if (float.TryParse(RotXMinEntry.Text, out var min) && float.TryParse(RotXMaxEntry.Text, out var max))
+            RotationXLimitChanged?.Invoke((min, max));
+    }
+
+    private void OnRotYLimitChanged(object? sender, TextChangedEventArgs e)
+    {
+        if (float.TryParse(RotYMinEntry.Text, out var min) && float.TryParse(RotYMaxEntry.Text, out var max))
+            RotationYLimitChanged?.Invoke((min, max));
+    }
+
+    private void OnRotZLimitChanged(object? sender, TextChangedEventArgs e)
+    {
+        if (float.TryParse(RotZMinEntry.Text, out var min) && float.TryParse(RotZMaxEntry.Text, out var max))
+            RotationZLimitChanged?.Invoke((min, max));
+    }
 
     private void OnResetClicked()
     {
@@ -178,5 +229,17 @@ public partial class BoneView : ContentView
         PosXControl.SelectedRange = Math.Min(Math.Abs(max), 1f);
         PosYControl.SelectedRange = Math.Min(Math.Abs(max), 1f);
         PosZControl.SelectedRange = Math.Min(Math.Abs(max), 1f);
+    }
+
+    public int SelectedIkTargetBoneIndex => IkBonePicker.SelectedIndex;
+
+    public void SetRotationLimits((float Min, float Max) x, (float Min, float Max) y, (float Min, float Max) z)
+    {
+        RotXMinEntry.Text = x.Min.ToString();
+        RotXMaxEntry.Text = x.Max.ToString();
+        RotYMinEntry.Text = y.Min.ToString();
+        RotYMaxEntry.Text = y.Max.ToString();
+        RotZMinEntry.Text = z.Min.ToString();
+        RotZMaxEntry.Text = z.Max.ToString();
     }
 }

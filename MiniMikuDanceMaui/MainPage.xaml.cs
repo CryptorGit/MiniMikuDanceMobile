@@ -20,6 +20,7 @@ using MiniMikuDance.Util;
 using MiniMikuDance.PoseEstimation;
 using MiniMikuDance.Motion;
 using MiniMikuDance.Camera;
+using MiniMikuDance.IK;
 
 namespace MiniMikuDanceMaui;
 
@@ -356,6 +357,8 @@ private void UpdateBoneViewProperties(BoneView bv)
             bv.SetRotation(euler);
             var trans = _renderer.GetBoneTranslation(idx0);
             bv.SetTranslation(trans);
+            var limits = _renderer.GetBoneRotationLimit(idx0);
+            bv.SetRotationLimits(limits.X, limits.Y, limits.Z);
             _selectedBoneIndex = idx0;
         }
     }
@@ -381,6 +384,8 @@ private void SetupBoneView(BoneView bv)
             bv.SetRotation(euler);
             var trans = _renderer.GetBoneTranslation(_selectedBoneIndex);
             bv.SetTranslation(trans);
+            var limits = _renderer.GetBoneRotationLimit(_selectedBoneIndex);
+            bv.SetRotationLimits(limits.X, limits.Y, limits.Z);
         }
     };
     bv.RotationXChanged += v => UpdateSelectedBoneRotation(bv);
@@ -389,6 +394,10 @@ private void SetupBoneView(BoneView bv)
     bv.TranslationXChanged += v => UpdateSelectedBoneTranslation(bv);
     bv.TranslationYChanged += v => UpdateSelectedBoneTranslation(bv);
     bv.TranslationZChanged += v => UpdateSelectedBoneTranslation(bv);
+    bv.SolveIkRequested += OnSolveIkRequested;
+    bv.RotationXLimitChanged += OnRotationXLimitChanged;
+    bv.RotationYLimitChanged += OnRotationYLimitChanged;
+    bv.RotationZLimitChanged += OnRotationZLimitChanged;
     bv.SetRotationRange(-180, 180);
     if (_poseHistory.Count == 0)
         SavePoseState();
@@ -1413,6 +1422,56 @@ private void ResetBoneComponent(Func<OpenTK.Mathematics.Vector3> getCurrentValue
     setValue(val);
     SavePoseState();
     UpdateBoneViewValues();
+}
+
+private void OnSolveIkRequested(Vector3 target)
+{
+    if (_currentModel == null) return;
+    if (_bottomViews.TryGetValue("BONE", out var v) && v is BoneView bv)
+    {
+        int idx = bv.SelectedIkTargetBoneIndex;
+        if (idx >= 0 && idx < _humanoidBoneIndices.Count)
+        {
+            int boneIndex = _humanoidBoneIndices[idx];
+            var chainIndices = new List<int>();
+            int i = boneIndex;
+            while (i >= 0)
+            {
+                chainIndices.Insert(0, i);
+                i = _currentModel.Bones[i].Parent;
+            }
+            var bones = chainIndices.Select(j => _currentModel.Bones[j]).ToList();
+            IkSolver.Solve(target.ToNumerics(), bones);
+            for (int c = 0; c < chainIndices.Count; c++)
+            {
+                int bi = chainIndices[c];
+                var rot = bones[c].Rotation.ToEulerDegrees().ToOpenTK();
+                var trans = bones[c].Translation.ToOpenTK();
+                _renderer.SetBoneRotation(bi, rot);
+                _renderer.SetBoneTranslation(bi, trans);
+            }
+            SavePoseState();
+            UpdateBoneViewValues();
+        }
+    }
+}
+
+private void OnRotationXLimitChanged((float Min, float Max) range)
+{
+    if (!IsValidBoneSelection()) return;
+    _renderer.SetBoneRotationLimit(_selectedBoneIndex, range, _renderer.GetBoneRotationLimit(_selectedBoneIndex).Y, _renderer.GetBoneRotationLimit(_selectedBoneIndex).Z);
+}
+
+private void OnRotationYLimitChanged((float Min, float Max) range)
+{
+    if (!IsValidBoneSelection()) return;
+    _renderer.SetBoneRotationLimit(_selectedBoneIndex, _renderer.GetBoneRotationLimit(_selectedBoneIndex).X, range, _renderer.GetBoneRotationLimit(_selectedBoneIndex).Z);
+}
+
+private void OnRotationZLimitChanged((float Min, float Max) range)
+{
+    if (!IsValidBoneSelection()) return;
+    _renderer.SetBoneRotationLimit(_selectedBoneIndex, _renderer.GetBoneRotationLimit(_selectedBoneIndex).X, _renderer.GetBoneRotationLimit(_selectedBoneIndex).Y, range);
 }
 
 private void SetLoadingIndicatorVisibilityAndLayout(bool isVisible)
