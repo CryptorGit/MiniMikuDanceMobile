@@ -11,6 +11,7 @@ using Vector3D = Assimp.Vector3D;
 using SharpGLTF.Schema2;
 using SNode = SharpGLTF.Schema2.Node;
 using ViewerApp;
+using MiniMikuDance.Util;
 
 namespace MiniMikuDance.Import;
 
@@ -33,11 +34,24 @@ public class ModelImporter
     private readonly AssimpContext _context = new();
 
     private static readonly Dictionary<string,
-        ((float Min, float Max) X, (float Min, float Max) Y, (float Min, float Max) Z)> DefaultRotationRanges
-        = new()
+        ((float Min, float Max) X, (float Min, float Max) Y, (float Min, float Max) Z)> DefaultRotationRanges;
+
+    static ModelImporter()
     {
-        // TODO: populate with actual bone rotation ranges
-    };
+        try
+        {
+            var config = Util.JSONUtil.Load<JointLimitConfig>("Configs/JointLimits.json");
+            DefaultRotationRanges = config.Limits.ToDictionary(
+                kv => kv.Key,
+                kv => ((kv.Value.X.Min, kv.Value.X.Max),
+                        (kv.Value.Y.Min, kv.Value.Y.Max),
+                        (kv.Value.Z.Min, kv.Value.Z.Max)));
+        }
+        catch
+        {
+            DefaultRotationRanges = new();
+        }
+    }
 
     public ModelData ImportModel(Stream stream)
     {
