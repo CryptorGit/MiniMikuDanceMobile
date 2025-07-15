@@ -1430,28 +1430,25 @@ private void OnSolveIkRequested(Vector3 target)
     if (_bottomViews.TryGetValue("BONE", out var v) && v is BoneView bv)
     {
         int idx = bv.SelectedIkTargetBoneIndex;
-        if (idx >= 0 && idx < _humanoidBoneIndices.Count)
+        if (idx >= 0 && idx < _currentModel.HumanoidBoneList.Count)
         {
-            int boneIndex = _humanoidBoneIndices[idx];
-            var chainIndices = new List<int>();
-            int i = boneIndex;
-            while (i >= 0)
+            string boneName = _currentModel.HumanoidBoneList[idx].Name;
+            var chain = _currentModel.IkChains.FirstOrDefault(c => c.EndBoneName == boneName);
+            if (chain != null)
             {
-                chainIndices.Insert(0, i);
-                i = _currentModel.Bones[i].Parent;
+                var bones = chain.Indices.Select(j => _currentModel.Bones[j]).ToList();
+                IkSolver.Solve(target.ToNumerics(), bones);
+                for (int c = 0; c < chain.Indices.Count; c++)
+                {
+                    int bi = chain.Indices[c];
+                    var rot = bones[c].Rotation.ToEulerDegrees().ToOpenTK();
+                    var trans = bones[c].Translation.ToOpenTK();
+                    _renderer.SetBoneRotation(bi, rot);
+                    _renderer.SetBoneTranslation(bi, trans);
+                }
+                SavePoseState();
+                UpdateBoneViewValues();
             }
-            var bones = chainIndices.Select(j => _currentModel.Bones[j]).ToList();
-            IkSolver.Solve(target.ToNumerics(), bones);
-            for (int c = 0; c < chainIndices.Count; c++)
-            {
-                int bi = chainIndices[c];
-                var rot = bones[c].Rotation.ToEulerDegrees().ToOpenTK();
-                var trans = bones[c].Translation.ToOpenTK();
-                _renderer.SetBoneRotation(bi, rot);
-                _renderer.SetBoneTranslation(bi, trans);
-            }
-            SavePoseState();
-            UpdateBoneViewValues();
         }
     }
 }

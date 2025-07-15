@@ -23,6 +23,7 @@ public class ModelData
     public List<BoneData> Bones { get; } = new();
     public Dictionary<string, int> HumanoidBones { get; } = new();
     public List<(string Name, int Index)> HumanoidBoneList { get; } = new();
+    public List<MiniMikuDance.IK.IkChain> IkChains { get; } = new();
     public float ShadeShift { get; set; } = -0.1f;
     public float ShadeToony { get; set; } = 0.9f;
     public float RimIntensity { get; set; } = 0.5f;
@@ -305,6 +306,21 @@ public class ModelImporter
         {
             data.HumanoidBones[kv.Key] = kv.Value;
             data.HumanoidBoneList.Add((kv.Key, kv.Value));
+        }
+
+        data.IkChains.Clear();
+        foreach (var hb in data.HumanoidBoneList)
+        {
+            var chainIndices = new List<int>();
+            int i = hb.Index;
+            while (i >= 0 && i < data.Bones.Count)
+            {
+                chainIndices.Insert(0, i);
+                i = data.Bones[i].Parent;
+            }
+            var chain = new MiniMikuDance.IK.IkChain { EndBoneName = hb.Name };
+            chain.Indices.AddRange(chainIndices);
+            data.IkChains.Add(chain);
         }
 
         data.ShadeShift = mtoon.shadeShift;
