@@ -14,7 +14,7 @@ public partial class TimelineView : ContentView
     const int VisibleColumns = 7;
     const float FrameWidth = 60f;
     const float RowHeight = 60f;
-    const float LeftPanelWidth = 100f;
+    const float LeftPanelWidth = 90f;
     const float BoneNameFontSize = 32f;
     const float HeaderFontSize = 24f;
 
