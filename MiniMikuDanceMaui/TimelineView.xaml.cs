@@ -13,7 +13,7 @@ public partial class TimelineView : ContentView
     const int MaxRows = 17;
     const float FrameWidth = 60f;
     const float RowHeight = 60f;
-    const float LeftPanelWidth = 100f;
+    const float LeftPanelWidth = 90f;
     const float BoneNameFontSize = 32f;
     const float HeaderFontSize = 24f;
 
@@ -111,20 +111,14 @@ public partial class TimelineView : ContentView
     {
         TimelineContentScrollView.Scrolled += OnTimelineContentScrolled;
         BoneNameScrollView.Scrolled += OnBoneNameScrolled;
-        FrameHeaderScroll.Scrolled += OnFrameHeaderScrolled;
         UpdateCanvasSizes();
         InvalidateAll();
 
 #if ANDROID
-        if (FrameHeaderScroll.Handler?.PlatformView is Android.Views.View frameHeader)
-        {
-            frameHeader.OverScrollMode = Android.Views.OverScrollMode.Never;
-        }
         if (BoneNameScrollView.Handler?.PlatformView is Android.Views.View boneName)
         {
             boneName.OverScrollMode = Android.Views.OverScrollMode.Never;
         }
-        #if ANDROID
         if (TimelineContentScrollView.Handler?.PlatformView is Android.Views.View outer)
         {
             outer.OverScrollMode = Android.Views.OverScrollMode.Never;      // 既存
@@ -135,14 +129,8 @@ public partial class TimelineView : ContentView
             {
                 inner.OverScrollMode = Android.Views.OverScrollMode.Never;
             }
-        }
 #endif
 #elif IOS
-        if (FrameHeaderScroll.Handler?.PlatformView is UIKit.UIScrollView frameHeader)
-        {
-            frameHeader.Bounces = false;
-            frameHeader.AlwaysBounceHorizontal = false;
-        }
         if (BoneNameScrollView.Handler?.PlatformView is UIKit.UIScrollView boneName)
         {
             boneName.Bounces = false;
@@ -156,10 +144,6 @@ public partial class TimelineView : ContentView
                     inner.Bounces = false;
         }
 #elif WINDOWS
-        if (FrameHeaderScroll.Handler?.PlatformView is Microsoft.UI.Xaml.Controls.ScrollViewer frameHeader)
-        {
-            frameHeader.IsHorizontalScrollInertiaEnabled = false;
-        }
         if (BoneNameScrollView.Handler?.PlatformView is Microsoft.UI.Xaml.Controls.ScrollViewer boneName)
         {
             boneName.IsVerticalScrollInertiaEnabled = false;
@@ -181,12 +165,9 @@ public partial class TimelineView : ContentView
         if (_isScrolling) return;
         _isScrolling = true;
 
-        _scrollX = (float)e.ScrollX;
         _scrollY = (float)e.ScrollY;
-
-        FrameHeaderScroll.ScrollToAsync(_scrollX, 0, false);
         BoneNameScrollView.ScrollToAsync(0, _scrollY, false);
-
+        
         InvalidateAll();
         _isScrolling = false;
     }
@@ -197,20 +178,8 @@ public partial class TimelineView : ContentView
         _isScrolling = true;
 
         _scrollY = (float)e.ScrollY;
-        TimelineContentScrollView.ScrollToAsync(_scrollX, _scrollY, false);
-
-        InvalidateAll();
-        _isScrolling = false;
-    }
-
-    private void OnFrameHeaderScrolled(object? sender, ScrolledEventArgs e)
-    {
-        if (_isScrolling) return;
-        _isScrolling = true;
-
-        _scrollX = (float)e.ScrollX;
-        TimelineContentScrollView.ScrollToAsync(_scrollX, _scrollY, false);
-
+        TimelineContentScrollView.ScrollToAsync(0, _scrollY, false);
+        
         InvalidateAll();
         _isScrolling = false;
     }

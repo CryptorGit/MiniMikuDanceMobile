@@ -5,7 +5,7 @@
              x:Class="MiniMikuDanceMaui.TimelineView"
              Loaded="OnTimelineViewLoaded"
              BackgroundColor="{StaticResource BackgroundColor}">
-    <Grid RowDefinitions="Auto,Auto,*" RowSpacing="4" Padding="4">
+    <Grid RowDefinitions="Auto,Auto,Auto,*" RowSpacing="4" Padding="4">
         <!-- Operation buttons -->
         <HorizontalStackLayout Grid.Row="0" Spacing="6" HorizontalOptions="Start">
             <Button Text="Add Key"    Clicked="OnAddKeyClicked" />
@@ -30,27 +30,21 @@
             </HorizontalStackLayout>
         </Grid>
 
+        <!-- Frame number header -->
+        <Grid Grid.Row="2" ColumnDefinitions="90,*">
+            <BoxView Grid.Column="0" BackgroundColor="{StaticResource BackgroundColor}" />
+            <skia:SKCanvasView x:Name="HeaderCanvas"
+                               Grid.Column="1"
+                               IgnorePixelScaling="True"
+                               HeightRequest="30"
+                               PaintSurface="OnHeaderPaintSurface" />
+        </Grid>
+
         <!-- Timeline Area -->
-        <Grid Grid.Row="2" ColumnDefinitions="90,*" RowDefinitions="Auto,*">
-            <!-- Top-left corner -->
-            <BoxView Grid.Row="0" Grid.Column="0" BackgroundColor="{StaticResource BackgroundColor}" />
-
-            <!-- Frame number header -->
-            <ScrollView x:Name="FrameHeaderScroll"
-                        Grid.Row="0" Grid.Column="1"
-                        Orientation="Horizontal"
-                        HorizontalScrollBarVisibility="Never"
-                        VerticalOptions="Start">
-                <skia:SKCanvasView x:Name="HeaderCanvas"
-                                   IgnorePixelScaling="True"
-                                   HeightRequest="30"
-                                   WidthRequest="{Binding TimelinePixelWidth}"
-                                   PaintSurface="OnHeaderPaintSurface" />
-            </ScrollView>
-
+        <Grid Grid.Row="3" ColumnDefinitions="90,*">
             <!-- Left Panel (Bone Names) -->
             <ScrollView x:Name="BoneNameScrollView"
-                        Grid.Row="1" Grid.Column="0"
+                        Grid.Column="0"
                         Orientation="Vertical"
                         VerticalScrollBarVisibility="Never">
                 <skia:SKCanvasView x:Name="BoneNameCanvas"
@@ -63,10 +57,10 @@
 
             <!-- Right Panel (Timeline Grid) -->
             <ScrollView x:Name="TimelineContentScrollView"
-                        Grid.Row="1" Grid.Column="1"
-                        Orientation="Both"
+                        Grid.Column="1"
+                        Orientation="Vertical"
                         VerticalScrollBarVisibility="Always"
-                        HorizontalScrollBarVisibility="Always">
+                        HorizontalScrollBarVisibility="Never">
                 <skia:SKCanvasView x:Name="TimelineContentCanvas"
                                    IgnorePixelScaling="True"
                                    WidthRequest="{Binding TimelinePixelWidth}"
