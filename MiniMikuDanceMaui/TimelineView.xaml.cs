@@ -95,6 +95,7 @@ public partial class TimelineView : ContentView
             if (_currentFrame != value)
             {
                 _currentFrame = value;
+                UpdateFrameShift();
                 InvalidateAll();
             }
         }
@@ -186,7 +187,6 @@ public partial class TimelineView : ContentView
         _isScrolling = false;
     }
 
-
     public float TimelinePixelWidth { get; private set; }
     public float TimelinePixelHeight { get; private set; }
     private void UpdateCanvasSizes()
@@ -208,6 +208,14 @@ public partial class TimelineView : ContentView
         HeaderCanvas.InvalidateSurface();
         BoneNameCanvas.InvalidateSurface();
         TimelineContentCanvas.InvalidateSurface();
+    }
+
+    private void UpdateFrameShift()
+    {
+        if (_currentFrame >= VisibleColumns)
+            _scrollX = (_currentFrame - VisibleColumns + 1) * FrameWidth;
+        else
+            _scrollX = 0;
     }
 
     void OnHeaderPaintSurface(object? sender, SKPaintSurfaceEventArgs e)
