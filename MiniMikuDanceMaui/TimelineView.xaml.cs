@@ -1,4 +1,5 @@
 using Microsoft.Maui.Controls;
+using Microsoft.Maui.Devices;
 using MiniMikuDance.Import;
 using SkiaSharp;
 using SkiaSharp.Views.Maui;
@@ -24,6 +25,7 @@ public partial class TimelineView : ContentView
 
     private readonly SKFont _boneNameFont;
     private readonly SKFont _headerFont;
+    private readonly float _density = (float)DeviceDisplay.Current.MainDisplayInfo.Density;
     private int _currentFrame = 0;
     private bool _isScrolling = false;
     private float _scrollX = 0;
@@ -232,28 +234,30 @@ public partial class TimelineView : ContentView
         using var markerPaint = new SKPaint { Color = SKColors.Red, StrokeWidth = 2 };
 
         canvas.Translate(-_scrollX, 0);
+        canvas.Scale(_density);
 
         for (int f = 0; f < MaxFrame; f++)
         {
             float x = f * FrameWidth;
             if (f % 5 == 0)
-                canvas.DrawLine(x, 0, x, info.Height, fivePaint);
-            canvas.DrawLine(x, 0, x, info.Height, f % 10 == 0 ? majorPaint : minorPaint);
+                canvas.DrawLine(x, 0, x, height, fivePaint);
+            canvas.DrawLine(x, 0, x, height, f % 10 == 0 ? majorPaint : minorPaint);
             if (f % 10 == 0)
             {
                 var text = f.ToString();
-                canvas.DrawText(text, x + 2, info.Height - 2, _headerFont, numberPaint);
+                canvas.DrawText(text, x + 2, height - 2, _headerFont, numberPaint);
             }
         }
 
         float markerX = CurrentFrame * FrameWidth + FrameWidth / 2;
-        canvas.DrawLine(markerX, 0, markerX, info.Height, markerPaint);
+        canvas.DrawLine(markerX, 0, markerX, height, markerPaint);
     }
 
     void OnBoneNamePaintSurface(object? sender, SKPaintSurfaceEventArgs e)
     {
         var canvas = e.Surface.Canvas;
         var info = e.Info;
+        var width = info.Width / _density;
         canvas.Clear(new SKColor(40, 40, 40));
 
         using var linePaint = new SKPaint { Color = SKColors.Gray, StrokeWidth = 1 };
@@ -262,20 +266,21 @@ public partial class TimelineView : ContentView
         using var textPaint = new SKPaint { Color = SKColors.White, IsAntialias = true };
 
         canvas.Translate(0, -_scrollY);
+        canvas.Scale(_density);
 
         for (int i = 0; i < _boneNames.Count; i++)
         {
             var y = i * RowHeight;
             if (i == _selectedKeyInputBoneIndex)
             {
-                canvas.DrawRect(0, y, info.Width, RowHeight, selectedRowPaint);
+                canvas.DrawRect(0, y, width, RowHeight, selectedRowPaint);
             }
             else if (i % 2 == 1)
             {
-                canvas.DrawRect(0, y, info.Width, RowHeight, altRowPaint);
+                canvas.DrawRect(0, y, width, RowHeight, altRowPaint);
             }
 
-            canvas.DrawLine(0, y + RowHeight, info.Width, y + RowHeight, linePaint);
+            canvas.DrawLine(0, y + RowHeight, width, y + RowHeight, linePaint);
             float textY = y + (RowHeight - _boneNameFont.Size) / 2 + _boneNameFont.Size;
             canvas.DrawText(_boneNames[i], 10, textY, _boneNameFont, textPaint);
         }
@@ -296,6 +301,7 @@ public partial class TimelineView : ContentView
         using var playheadPaint = new SKPaint { Color = SKColors.Red, StrokeWidth = 2 };
 
         canvas.Translate(-_scrollX, -_scrollY);
+        canvas.Scale(_density);
 
         var totalWidth = MaxFrame * FrameWidth;
         for (int i = 0; i < _boneNames.Count; i++)
