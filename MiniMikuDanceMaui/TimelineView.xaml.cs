@@ -13,9 +13,9 @@ public partial class TimelineView : ContentView
     const int MaxFrame = 60;
     const int MaxRows = 17;
     const int VisibleColumns = 7;
-    public const float FrameWidth = 40f;
-    public const float RowHeight = 40f;
-    public const float LeftPanelWidth = 70f;
+    public const double FrameWidth = 40.0;
+    public const double RowHeight = 40.0;
+    public const double LeftPanelWidth = 70.0;
     const float BoneNameFontSize = 20f;
     const float HeaderFontSize = 18f;
 
@@ -190,8 +190,8 @@ public partial class TimelineView : ContentView
         _isScrolling = false;
     }
 
-    public float TimelinePixelWidth { get; private set; }
-    public float TimelinePixelHeight { get; private set; }
+    public double TimelinePixelWidth { get; private set; }
+    public double TimelinePixelHeight { get; private set; }
     private void UpdateCanvasSizes()
     {
         TimelinePixelWidth  = MaxFrame * FrameWidth;
@@ -216,7 +216,7 @@ public partial class TimelineView : ContentView
     private void UpdateFrameShift()
     {
         if (_currentFrame >= VisibleColumns)
-            _scrollX = (_currentFrame - VisibleColumns + 1) * FrameWidth;
+            _scrollX = (float)((_currentFrame - VisibleColumns + 1) * FrameWidth);
         else
             _scrollX = 0;
     }
@@ -240,7 +240,7 @@ public partial class TimelineView : ContentView
 
         for (int f = 0; f < MaxFrame; f++)
         {
-            float x = f * FrameWidth;
+            float x = (float)(f * FrameWidth);
             if (f % 5 == 0)
                 canvas.DrawLine(x, 0, x, height, fivePaint);
             canvas.DrawLine(x, 0, x, height, f % 10 == 0 ? majorPaint : minorPaint);
@@ -251,7 +251,7 @@ public partial class TimelineView : ContentView
             }
         }
 
-        float markerX = CurrentFrame * FrameWidth + FrameWidth / 2;
+        float markerX = (float)(CurrentFrame * FrameWidth + FrameWidth / 2);
         canvas.DrawLine(markerX, 0, markerX, height, markerPaint);
     }
 
@@ -272,18 +272,18 @@ public partial class TimelineView : ContentView
 
         for (int i = 0; i < _boneNames.Count; i++)
         {
-            var y = i * RowHeight;
+            float y = (float)(i * RowHeight);
             if (i == _selectedKeyInputBoneIndex)
             {
-                canvas.DrawRect(0, y, width, RowHeight, selectedRowPaint);
+                canvas.DrawRect(0, y, width, (float)RowHeight, selectedRowPaint);
             }
             else if (i % 2 == 1)
             {
-                canvas.DrawRect(0, y, width, RowHeight, altRowPaint);
+                canvas.DrawRect(0, y, width, (float)RowHeight, altRowPaint);
             }
 
-            canvas.DrawLine(0, y + RowHeight, width, y + RowHeight, linePaint);
-            float textY = y + (RowHeight - _boneNameFont.Size) / 2 + _boneNameFont.Size;
+            canvas.DrawLine(0, y + (float)RowHeight, width, y + (float)RowHeight, linePaint);
+            float textY = y + ((float)RowHeight - _boneNameFont.Size) / 2 + _boneNameFont.Size;
             canvas.DrawText(_boneNames[i], 10, textY, _boneNameFont, textPaint);
         }
     }
@@ -305,21 +305,21 @@ public partial class TimelineView : ContentView
         canvas.Translate(-_scrollX, -_scrollY);
         canvas.Scale(_density);
 
-        var totalWidth = MaxFrame * FrameWidth;
+        var totalWidth = (float)(MaxFrame * FrameWidth);
         for (int i = 0; i < _boneNames.Count; i++)
         {
-            var y = i * RowHeight;
+            float y = (float)(i * RowHeight);
             if (i % 2 == 1)
-                canvas.DrawRect(0, y, totalWidth, RowHeight, altRowPaint);
-            canvas.DrawLine(0, y + RowHeight, totalWidth, y + RowHeight, linePaint);
+                canvas.DrawRect(0, y, totalWidth, (float)RowHeight, altRowPaint);
+            canvas.DrawLine(0, y + (float)RowHeight, totalWidth, y + (float)RowHeight, linePaint);
         }
 
         for (int f = 0; f < MaxFrame; f++)
         {
-            var x = f * FrameWidth;
+            float x = (float)(f * FrameWidth);
             if (f % 5 == 0)
-                canvas.DrawLine(x, 0, x, _boneNames.Count * RowHeight, fivePaint);
-            canvas.DrawLine(x, 0, x, _boneNames.Count * RowHeight, f % 10 == 0 ? majorPaint : minorPaint);
+                canvas.DrawLine(x, 0, x, _boneNames.Count * (float)RowHeight, fivePaint);
+            canvas.DrawLine(x, 0, x, _boneNames.Count * (float)RowHeight, f % 10 == 0 ? majorPaint : minorPaint);
         }
 
         foreach (var boneName in _boneNames)
@@ -329,8 +329,8 @@ public partial class TimelineView : ContentView
             var row = _boneNames.IndexOf(boneName);
             foreach (var frame in frames)
             {
-                var x = frame * FrameWidth + FrameWidth / 2;
-                var y = row * RowHeight + RowHeight / 2;
+                float x = (float)(frame * FrameWidth + FrameWidth / 2);
+                float y = (float)(row * RowHeight + RowHeight / 2);
                 using var diamondPath = new SKPath();
                 diamondPath.MoveTo(x, y - 6);
                 diamondPath.LineTo(x + 6, y);
@@ -341,8 +341,8 @@ public partial class TimelineView : ContentView
             }
         }
 
-        var playX = CurrentFrame * FrameWidth + FrameWidth / 2;
-        canvas.DrawLine(playX, 0, playX, _boneNames.Count * RowHeight, playheadPaint);
+        float playX = (float)(CurrentFrame * FrameWidth + FrameWidth / 2);
+        canvas.DrawLine(playX, 0, playX, _boneNames.Count * (float)RowHeight, playheadPaint);
     }
 
     public List<int> GetKeyframesForBone(string boneName) => _keyframes.TryGetValue(boneName, out var frames) ? frames : new List<int>();
