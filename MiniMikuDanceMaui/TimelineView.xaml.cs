@@ -11,6 +11,7 @@ public partial class TimelineView : ContentView
 {
     const int MaxFrame = 60;
     const int MaxRows = 17;
+    const int VisibleFrames = 10;
     const float FrameWidth = 60f;
     const float RowHeight = 60f;
     const float LeftPanelWidth = 100f;
@@ -25,9 +26,9 @@ public partial class TimelineView : ContentView
     private readonly SKFont _headerFont;
     private int _currentFrame = 0;
     private bool _isScrolling = false;
-    private float _scrollX = 0;
     private float _scrollY = 0;
     private int _selectedKeyInputBoneIndex = 0;
+    private int FirstVisibleFrame => Math.Max(0, _currentFrame - 6);
 
     public event EventHandler? AddKeyClicked;
     public event EventHandler? EditKeyClicked;
@@ -111,20 +112,14 @@ public partial class TimelineView : ContentView
     {
         TimelineContentScrollView.Scrolled += OnTimelineContentScrolled;
         BoneNameScrollView.Scrolled += OnBoneNameScrolled;
-        FrameHeaderScroll.Scrolled += OnFrameHeaderScrolled;
         UpdateCanvasSizes();
         InvalidateAll();
 
 #if ANDROID
-        if (FrameHeaderScroll.Handler?.PlatformView is Android.Views.View frameHeader)
-        {
-            frameHeader.OverScrollMode = Android.Views.OverScrollMode.Never;
-        }
         if (BoneNameScrollView.Handler?.PlatformView is Android.Views.View boneName)
         {
             boneName.OverScrollMode = Android.Views.OverScrollMode.Never;
         }
-        #if ANDROID
         if (TimelineContentScrollView.Handler?.PlatformView is Android.Views.View outer)
         {
             outer.OverScrollMode = Android.Views.OverScrollMode.Never;      // 既存
@@ -138,11 +133,6 @@ public partial class TimelineView : ContentView
         }
 #endif
 #elif IOS
-        if (FrameHeaderScroll.Handler?.PlatformView is UIKit.UIScrollView frameHeader)
-        {
-            frameHeader.Bounces = false;
-            frameHeader.AlwaysBounceHorizontal = false;
-        }
         if (BoneNameScrollView.Handler?.PlatformView is UIKit.UIScrollView boneName)
         {
             boneName.Bounces = false;
@@ -156,10 +146,6 @@ public partial class TimelineView : ContentView
                     inner.Bounces = false;
         }
 #elif WINDOWS
-        if (FrameHeaderScroll.Handler?.PlatformView is Microsoft.UI.Xaml.Controls.ScrollViewer frameHeader)
-        {
-            frameHeader.IsHorizontalScrollInertiaEnabled = false;
-        }
         if (BoneNameScrollView.Handler?.PlatformView is Microsoft.UI.Xaml.Controls.ScrollViewer boneName)
         {
             boneName.IsVerticalScrollInertiaEnabled = false;
@@ -181,10 +167,7 @@ public partial class TimelineView : ContentView
         if (_isScrolling) return;
         _isScrolling = true;
 
-        _scrollX = (float)e.ScrollX;
         _scrollY = (float)e.ScrollY;
-
-        FrameHeaderScroll.ScrollToAsync(_scrollX, 0, false);
         BoneNameScrollView.ScrollToAsync(0, _scrollY, false);
 
         InvalidateAll();
@@ -197,29 +180,18 @@ public partial class TimelineView : ContentView
         _isScrolling = true;
 
         _scrollY = (float)e.ScrollY;
-        TimelineContentScrollView.ScrollToAsync(_scrollX, _scrollY, false);
+        TimelineContentScrollView.ScrollToAsync(0, _scrollY, false);
 
         InvalidateAll();
         _isScrolling = false;
     }
 
-    private void OnFrameHeaderScrolled(object? sender, ScrolledEventArgs e)
-    {
-        if (_isScrolling) return;
-        _isScrolling = true;
-
-        _scrollX = (float)e.ScrollX;
-        TimelineContentScrollView.ScrollToAsync(_scrollX, _scrollY, false);
-
-        InvalidateAll();
-        _isScrolling = false;
-    }
 
     public float TimelinePixelWidth { get; private set; }
     public float TimelinePixelHeight { get; private set; }
     private void UpdateCanvasSizes()
     {
-        TimelinePixelWidth  = MaxFrame * FrameWidth / 3;
+        TimelinePixelWidth  = VisibleFrames * FrameWidth / 3;
         TimelinePixelHeight = _boneNames.Count * RowHeight / 3;
 
         OnPropertyChanged(nameof(TimelinePixelWidth));
@@ -244,25 +216,29 @@ public partial class TimelineView : ContentView
         var info = e.Info;
         canvas.Clear(SKColors.Transparent);
 
-        using var minorPaint = new SKPaint { Color = SKColors.LightGray, StrokeWidth = 1 };
-        using var majorPaint = new SKPaint { Color = SKColors.Gray, StrokeWidth = 2 };
         using var numberPaint = new SKPaint { Color = SKColors.Gray, IsAntialias = true };
         using var markerPaint = new SKPaint { Color = SKColors.Red, StrokeWidth = 2 };
 
-        canvas.Translate(-_scrollX, 0);
-
-        for (int f = 0; f < MaxFrame; f++)
+        int first = FirstVisibleFrame;
+        for (int i = 0; i < VisibleFrames; i++)
         {
-            float x = f * FrameWidth;
-            canvas.DrawLine(x, 0, x, info.Height, f % 10 == 0 ? majorPaint : minorPaint);
-            if (f % 10 == 0)
+            int frame = first + i;
+            float x = i * FrameWidth;
+            bool major = frame % 5 == 0;
+            using var paint = new SKPaint
             {
-                var text = f.ToString();
+                Color = major ? SKColors.Green : SKColors.LightGray,
+                StrokeWidth = major ? 2 : 1
+            };
+            canvas.DrawLine(x, 0, x, info.Height, paint);
+            if (major)
+            {
+                var text = frame.ToString();
                 canvas.DrawText(text, x + 2, info.Height - 2, _headerFont, numberPaint);
             }
         }
 
-        float markerX = CurrentFrame * FrameWidth + FrameWidth / 2;
+        float markerX = (CurrentFrame - first) * FrameWidth + FrameWidth / 2;
         canvas.DrawLine(markerX, 0, markerX, info.Height, markerPaint);
     }
 
@@ -305,14 +281,12 @@ public partial class TimelineView : ContentView
 
         using var altRowPaint = new SKPaint { Color = new SKColor(50, 50, 50) };
         using var linePaint = new SKPaint { Color = SKColors.Gray, StrokeWidth = 1 };
-        using var minorPaint = new SKPaint { Color = SKColors.LightGray, StrokeWidth = 1 };
-        using var majorPaint = new SKPaint { Color = SKColors.Gray, StrokeWidth = 2 };
         using var keyframePaint = new SKPaint { Color = SKColors.Yellow, Style = SKPaintStyle.Fill };
         using var playheadPaint = new SKPaint { Color = SKColors.Red, StrokeWidth = 2 };
 
-        canvas.Translate(-_scrollX, -_scrollY);
+        canvas.Translate(0, -_scrollY);
 
-        var totalWidth = MaxFrame * FrameWidth;
+        var totalWidth = VisibleFrames * FrameWidth;
         for (int i = 0; i < _boneNames.Count; i++)
         {
             var y = i * RowHeight;
@@ -321,10 +295,17 @@ public partial class TimelineView : ContentView
             canvas.DrawLine(0, y + RowHeight, totalWidth, y + RowHeight, linePaint);
         }
 
-        for (int f = 0; f < MaxFrame; f++)
+        int first = FirstVisibleFrame;
+        for (int i = 0; i < VisibleFrames; i++)
         {
-            var x = f * FrameWidth;
-            canvas.DrawLine(x, 0, x, _boneNames.Count * RowHeight, f % 10 == 0 ? majorPaint : minorPaint);
+            int frame = first + i;
+            var x = i * FrameWidth;
+            using var paint = new SKPaint
+            {
+                Color = frame % 5 == 0 ? SKColors.Green : SKColors.LightGray,
+                StrokeWidth = frame % 5 == 0 ? 2 : 1
+            };
+            canvas.DrawLine(x, 0, x, _boneNames.Count * RowHeight, paint);
         }
 
         foreach (var boneName in _boneNames)
@@ -334,7 +315,9 @@ public partial class TimelineView : ContentView
             var row = _boneNames.IndexOf(boneName);
             foreach (var frame in frames)
             {
-                var x = frame * FrameWidth + FrameWidth / 2;
+                if (frame < first || frame >= first + VisibleFrames)
+                    continue;
+                var x = (frame - first) * FrameWidth + FrameWidth / 2;
                 var y = row * RowHeight + RowHeight / 2;
                 using var diamondPath = new SKPath();
                 diamondPath.MoveTo(x, y - 6);
@@ -346,7 +329,7 @@ public partial class TimelineView : ContentView
             }
         }
 
-        var playX = CurrentFrame * FrameWidth + FrameWidth / 2;
+        var playX = (CurrentFrame - first) * FrameWidth + FrameWidth / 2;
         canvas.DrawLine(playX, 0, playX, _boneNames.Count * RowHeight, playheadPaint);
     }
 
