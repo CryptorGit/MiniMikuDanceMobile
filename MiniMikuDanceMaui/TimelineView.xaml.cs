@@ -13,11 +13,11 @@ public partial class TimelineView : ContentView
     const int MaxFrame = 60;
     const int MaxRows = 17;
     const int VisibleColumns = 7;
-    const float FrameWidth = 60f;
-    const float RowHeight = 60f;
-    const float LeftPanelWidth = 90f;
-    const float BoneNameFontSize = 32f;
-    const float HeaderFontSize = 24f;
+    public const float FrameWidth = 40f;
+    public const float RowHeight = 40f;
+    public const float LeftPanelWidth = 70f;
+    const float BoneNameFontSize = 20f;
+    const float HeaderFontSize = 18f;
 
     private ModelData? _model;
     private readonly List<string> _boneNames = new List<string>();
