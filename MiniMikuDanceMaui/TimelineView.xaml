@@ -2,6 +2,7 @@
 <ContentView xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
              xmlns:skia="clr-namespace:SkiaSharp.Views.Maui.Controls;assembly=SkiaSharp.Views.Maui.Controls"
+             xmlns:local="clr-namespace:MiniMikuDanceMaui"
              x:Class="MiniMikuDanceMaui.TimelineView"
              Loaded="OnTimelineViewLoaded"
              BackgroundColor="{StaticResource BackgroundColor}">
@@ -31,20 +32,23 @@
         </Grid>
 
         <!-- Frame number header -->
-        <Grid Grid.Row="2" ColumnDefinitions="90,*">
-            <BoxView Grid.Column="0" BackgroundColor="{StaticResource BackgroundColor}" />
+        <Grid Grid.Row="2" ColumnDefinitions="Auto,*">
+            <BoxView Grid.Column="0"
+                     WidthRequest="{x:Static local:TimelineView.LeftPanelWidth}"
+                     BackgroundColor="{StaticResource BackgroundColor}" />
             <skia:SKCanvasView x:Name="HeaderCanvas"
                                Grid.Column="1"
-                               HeightRequest="30"
+                               HeightRequest="{x:Static local:TimelineView.RowHeight}"
                                WidthRequest="{Binding TimelinePixelWidth}"
                                PaintSurface="OnHeaderPaintSurface" />
         </Grid>
 
         <!-- Timeline Area -->
-        <Grid Grid.Row="3" ColumnDefinitions="90,*">
+        <Grid Grid.Row="3" ColumnDefinitions="Auto,*">
             <!-- Left Panel (Bone Names) -->
             <ScrollView x:Name="BoneNameScrollView"
                         Grid.Column="0"
+                        WidthRequest="{x:Static local:TimelineView.LeftPanelWidth}"
                         Orientation="Vertical"
                         VerticalScrollBarVisibility="Never"
                         HeightRequest="{Binding TimelinePixelHeight}"
