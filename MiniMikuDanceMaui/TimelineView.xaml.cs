@@ -192,8 +192,8 @@ public partial class TimelineView : ContentView
     public float TimelinePixelHeight { get; private set; }
     private void UpdateCanvasSizes()
     {
-        TimelinePixelWidth  = MaxFrame * FrameWidth / 3;
-        TimelinePixelHeight = _boneNames.Count * RowHeight / 3;
+        TimelinePixelWidth  = MaxFrame * FrameWidth;
+        TimelinePixelHeight = _boneNames.Count * RowHeight;
 
         OnPropertyChanged(nameof(TimelinePixelWidth));
         OnPropertyChanged(nameof(TimelinePixelHeight));
