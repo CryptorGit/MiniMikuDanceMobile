@@ -225,6 +225,8 @@ public partial class TimelineView : ContentView
     {
         var canvas = e.Surface.Canvas;
         var info = e.Info;
+        var width  = info.Width / _density;
+        var height = info.Height / _density;
         canvas.Clear(SKColors.Transparent);
 
         using var minorPaint = new SKPaint { Color = SKColors.LightGray, StrokeWidth = 1 };
