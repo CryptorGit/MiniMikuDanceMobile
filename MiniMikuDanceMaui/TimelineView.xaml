@@ -32,7 +32,7 @@
         </Grid>
 
         <!-- Frame number header -->
-        <Grid Grid.Row="2" ColumnDefinitions="Auto,*">
+        <Grid Grid.Row="2" ColumnDefinitions="Auto,Auto">
             <BoxView Grid.Column="0"
                      WidthRequest="{x:Static local:TimelineView.LeftPanelWidth}"
                      BackgroundColor="{StaticResource BackgroundColor}" />
@@ -44,7 +44,7 @@
         </Grid>
 
         <!-- Timeline Area -->
-        <Grid Grid.Row="3" ColumnDefinitions="Auto,*">
+        <Grid Grid.Row="3" ColumnDefinitions="Auto,Auto">
             <!-- Left Panel (Bone Names) -->
             <ScrollView x:Name="BoneNameScrollView"
                         Grid.Column="0"
