@@ -75,7 +75,8 @@ private Func<string, int, Vector3>? _getRotation;
         {
             FrameEntryGrid.IsVisible = true;
             FramePickerGrid.IsVisible = false;
-            FrameEntry.Text = frame.ToString();
+            FrameEntryPicker.ItemsSource = Enumerable.Range(0, TimelineView.MaxFrame).ToList();
+            FrameEntryPicker.SelectedItem = frame;
         }
 
         if (isEditMode && getTranslation != null && getRotation != null)
@@ -103,7 +104,7 @@ private Func<string, int, Vector3>? _getRotation;
     public int FrameNumber
         => FramePickerGrid.IsVisible && FramePicker.SelectedItem is int f1
             ? f1
-            : (int.TryParse(FrameEntry.Text, out var f2) ? f2 : 0);
+            : (FrameEntryPicker.SelectedItem is int f2 ? f2 : 0);
     public int SelectedBoneIndex => BonePicker.SelectedIndex;
     public string SelectedBone => BonePicker.SelectedItem as string ?? string.Empty;
 
@@ -138,13 +139,10 @@ private Func<string, int, Vector3>? _getRotation;
         {
             bool frameValid = FramePickerGrid.IsVisible
                 ? FramePicker.SelectedIndex >= 0
-                : int.TryParse(FrameEntry.Text, out _);
+                : FrameEntryPicker.SelectedIndex >= 0;
             applyButton.IsEnabled = BonePicker.SelectedIndex >= 0 && frameValid;
         }
     }
-
-    private void OnFrameTextChanged(object? sender, TextChangedEventArgs e)
-        => UpdateConfirmEnabled();
 
     private void OnFramePickerChanged(object? sender, EventArgs e)
     {

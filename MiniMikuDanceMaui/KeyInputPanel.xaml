@@ -17,7 +17,7 @@
 
             <Grid x:Name="FrameEntryGrid" ColumnDefinitions="Auto,*,Auto" VerticalOptions="Center">
                 <Label Text="Frame:" VerticalOptions="Center" />
-                <Entry x:Name="FrameEntry" Placeholder="Frame" WidthRequest="80" Keyboard="Numeric" TextChanged="OnFrameTextChanged" Grid.Column="1" HorizontalTextAlignment="Center"/>
+                <Picker x:Name="FrameEntryPicker" WidthRequest="80" SelectedIndexChanged="OnFramePickerChanged" Grid.Column="1" />
             </Grid>
             <Grid x:Name="FramePickerGrid" ColumnDefinitions="Auto,*,Auto" VerticalOptions="Center" IsVisible="False">
                 <Label Text="Frame:" VerticalOptions="Center" />

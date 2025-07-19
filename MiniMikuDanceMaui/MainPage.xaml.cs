@@ -1225,9 +1225,11 @@ private void OnKeyBoneChanged(int index)
         if (index >= 0 && index < tv.BoneNames.Count)
         {
             var boneName = tv.BoneNames[index];
-
-            KeyPanel.SetTranslation(tv.GetBoneTranslationAtFrame(boneName, frame));
-            KeyPanel.SetRotation(tv.GetBoneRotationAtFrame(boneName, frame));
+            if (tv.HasAnyKeyframe(boneName))
+            {
+                KeyPanel.SetTranslation(tv.GetNearestTranslation(boneName, frame));
+                KeyPanel.SetRotation(tv.GetNearestRotation(boneName, frame));
+            }
 
             KeyPanel.SetFrameOptions(tv.GetKeyframesForBone(boneName));
         }
@@ -1271,8 +1273,19 @@ private void OnKeyFrameChanged(int frame)
         if (boneIndex >= 0 && boneIndex < tv.BoneNames.Count)
         {
             var bone = tv.BoneNames[boneIndex];
-            KeyPanel.SetTranslation(tv.GetBoneTranslationAtFrame(bone, frame));
-            KeyPanel.SetRotation(tv.GetBoneRotationAtFrame(bone, frame));
+            if (tv.HasAnyKeyframe(bone))
+            {
+                if (tv.HasKeyframe(bone, frame))
+                {
+                    KeyPanel.SetTranslation(tv.GetBoneTranslationAtFrame(bone, frame));
+                    KeyPanel.SetRotation(tv.GetBoneRotationAtFrame(bone, frame));
+                }
+                else
+                {
+                    KeyPanel.SetTranslation(tv.GetNearestTranslation(bone, frame));
+                    KeyPanel.SetRotation(tv.GetNearestRotation(bone, frame));
+                }
+            }
         }
         return;
     }

@@ -25,7 +25,7 @@
             <HorizontalStackLayout Grid.Column="2" Spacing="6">
                 <Button Text="|&lt;" Clicked="OnFrameToStartClicked" />
                 <Button Text="&lt;"  Clicked="OnFrameMinusOneClicked" />
-                <Entry x:Name="CurrentFrameEntry" WidthRequest="60" Text="0" Keyboard="Numeric" />
+                <Picker x:Name="CurrentFramePicker" WidthRequest="60" SelectedIndexChanged="OnCurrentFrameChanged" />
                 <Button Text=">"  Clicked="OnFramePlusOneClicked" />
                 <Button Text=">|" Clicked="OnFrameToEndClicked" />
             </HorizontalStackLayout>
