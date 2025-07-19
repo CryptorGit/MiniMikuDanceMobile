@@ -15,7 +15,7 @@ public partial class TimelineView : ContentView
     const int VisibleColumns = 7;
     public const double FrameWidth = 40.0;
     public const double RowHeight = 40.0;
-    public const double LeftPanelWidth = 70.0;
+    public const double LeftPanelWidth = 90.0;
     const float BoneNameFontSize = 20f;
     const float HeaderFontSize = 18f;
 
@@ -194,7 +194,7 @@ public partial class TimelineView : ContentView
     public double TimelinePixelHeight { get; private set; }
     private void UpdateCanvasSizes()
     {
-        TimelinePixelWidth  = MaxFrame * FrameWidth;
+        TimelinePixelWidth  = VisibleColumns * FrameWidth;
         TimelinePixelHeight = _boneNames.Count * RowHeight;
 
         OnPropertyChanged(nameof(TimelinePixelWidth));
