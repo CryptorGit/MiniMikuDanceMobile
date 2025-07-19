@@ -1196,6 +1196,10 @@ private async void OnKeyDeleteConfirmClicked(string bone, int frame)
     SetLoadingIndicatorVisibilityAndLayout(true);
     await Task.Delay(50);
     _motionEditor?.RemoveKeyFrame(bone, frame);
+    if (_currentFeature == "TIMELINE" && _bottomViews.TryGetValue("TIMELINE", out var timelineView) && timelineView is TimelineView tv)
+    {
+        tv.RemoveKeyframe(bone, frame);
+    }
     DeletePanel.IsVisible = false;
     SetLoadingIndicatorVisibilityAndLayout(false);
 }
