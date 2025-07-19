@@ -251,7 +251,7 @@ public partial class TimelineView : ContentView
         using var numberPaint = new SKPaint { Color = SKColors.White, IsAntialias = true };
         using var markerPaint = new SKPaint { Color = SKColors.Red, StrokeWidth = 2 };
 
-        canvas.Translate(-_scrollX, 0);
+        canvas.Translate(-_scrollX * _density, 0);
         canvas.Scale(_density);
 
         for (int f = 0; f < MaxFrame; f++)
@@ -280,7 +280,7 @@ public partial class TimelineView : ContentView
         using var selectedRowPaint = new SKPaint { Color = new SKColor(80, 80, 80) };
         using var textPaint = new SKPaint { Color = SKColors.White, IsAntialias = true };
 
-        canvas.Translate(0, -_scrollY);
+        canvas.Translate(0, -_scrollY * _density);
         canvas.Scale(_density);
 
         for (int i = 0; i < _boneNames.Count; i++)
@@ -314,7 +314,7 @@ public partial class TimelineView : ContentView
         using var keyframePaint = new SKPaint { Color = SKColors.Yellow, Style = SKPaintStyle.Fill };
         using var playheadPaint = new SKPaint { Color = SKColors.Red, StrokeWidth = 2 };
 
-        canvas.Translate(-_scrollX, -_scrollY);
+        canvas.Translate(-_scrollX * _density, -_scrollY * _density);
         canvas.Scale(_density);
 
         var totalWidth = (float)(MaxFrame * FrameWidth);
