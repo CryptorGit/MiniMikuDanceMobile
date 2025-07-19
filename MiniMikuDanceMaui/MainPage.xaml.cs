@@ -453,7 +453,8 @@ private void UpdateLayout()
     AbsoluteLayout.SetLayoutBounds(TopMenu, new Rect(0, 0, W, TopMenuHeight));
     AbsoluteLayout.SetLayoutFlags(TopMenu, AbsoluteLayoutFlags.None);
 
-    double bottomHeight = BottomRegion.IsVisible ? H * _bottomHeightRatio : 0;
+    double availableHeight = H - TopMenuHeight - safe.Top - safe.Bottom;
+    double bottomHeight = BottomRegion.IsVisible ? availableHeight * _bottomHeightRatio : 0;
     AbsoluteLayout.SetLayoutBounds(ViewMenu, new Rect(0, TopMenuHeight, 200,
         ViewMenu.IsVisible ? AbsoluteLayout.AutoSize : 0));
     AbsoluteLayout.SetLayoutFlags(ViewMenu, AbsoluteLayoutFlags.None);
