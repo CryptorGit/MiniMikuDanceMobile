@@ -499,6 +499,11 @@ private void UpdateLayout()
             W,
             bottomHeight));
     AbsoluteLayout.SetLayoutFlags(BottomRegion, AbsoluteLayoutFlags.None);
+
+    if (_bottomViews.TryGetValue("TIMELINE", out var timelineView) && timelineView is TimelineView tv)
+    {
+        tv.RefreshScrollViews();
+    }
 }
 
 

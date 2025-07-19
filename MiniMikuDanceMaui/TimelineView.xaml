@@ -46,32 +46,32 @@
         <!-- Timeline Area -->
         <Grid Grid.Row="3" ColumnDefinitions="Auto,Auto">
             <!-- Left Panel (Bone Names) -->
-            <ScrollView x:Name="BoneNameScrollView"
-                        Grid.Column="0"
-                        WidthRequest="{x:Static local:TimelineView.LeftPanelWidth}"
-                        Orientation="Vertical"
-                        VerticalScrollBarVisibility="Never"
-                        VerticalOptions="FillAndExpand">
+            <local:RefreshableScrollView x:Name="BoneNameScrollView"
+                          Grid.Column="0"
+                          WidthRequest="{x:Static local:TimelineView.LeftPanelWidth}"
+                          Orientation="Vertical"
+                          VerticalScrollBarVisibility="Never"
+                          VerticalOptions="FillAndExpand">
                 <skia:SKCanvasView x:Name="BoneNameCanvas"
                                    HeightRequest="{Binding TimelinePixelHeight}"
                                    PaintSurface="OnBoneNamePaintSurface"
                                    HorizontalOptions="Start"
                                    VerticalOptions="Start" />
-            </ScrollView>
+            </local:RefreshableScrollView>
 
             <!-- Right Panel (Timeline Grid) -->
-            <ScrollView x:Name="TimelineContentScrollView"
-                        Grid.Column="1"
-                        Orientation="Vertical"
-                        VerticalScrollBarVisibility="Always"
-                        HorizontalScrollBarVisibility="Never"
-                        VerticalOptions="FillAndExpand">
+            <local:RefreshableScrollView x:Name="TimelineContentScrollView"
+                          Grid.Column="1"
+                          Orientation="Vertical"
+                          VerticalScrollBarVisibility="Always"
+                          HorizontalScrollBarVisibility="Never"
+                          VerticalOptions="FillAndExpand">
                 <skia:SKCanvasView x:Name="TimelineContentCanvas"
                                    WidthRequest="{Binding TimelinePixelWidth}"
                                    HeightRequest="{Binding TimelinePixelHeight}"
                                    PaintSurface="OnTimelineContentPaintSurface"
                                    VerticalOptions="Start" />
-            </ScrollView>
+            </local:RefreshableScrollView>
         </Grid>
     </Grid>
 </ContentView>

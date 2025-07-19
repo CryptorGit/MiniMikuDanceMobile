@@ -379,4 +379,10 @@ public partial class TimelineView : ContentView
     void OnAddKeyClicked(object? sender, EventArgs e) => AddKeyClicked?.Invoke(this, EventArgs.Empty);
     void OnEditKeyClicked(object? sender, EventArgs e) => EditKeyClicked?.Invoke(this, EventArgs.Empty);
     void OnDeleteKeyClicked(object? sender, EventArgs e) => DeleteKeyClicked?.Invoke(this, EventArgs.Empty);
+
+    public void RefreshScrollViews()
+    {
+        BoneNameScrollView.RefreshLayout();
+        TimelineContentScrollView.RefreshLayout();
+    }
 }
