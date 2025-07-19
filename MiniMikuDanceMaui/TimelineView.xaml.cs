@@ -222,10 +222,10 @@ public partial class TimelineView : ContentView
         TimelineContentCanvas.WidthRequest = TimelinePixelWidth;
         TimelineContentCanvas.HeightRequest = TimelinePixelHeight;
 
-        // ScrollViewのコンテンツサイズ変更に伴い、
-        // 再レイアウトを呼び出してスクロール範囲を正しく再計算させる
-        BoneNameScrollView.InvalidateMeasure();
-        TimelineContentScrollView.InvalidateMeasure();
+        // ScrollViewのコンテンツサイズが変わった際に
+        // レイアウトを強制更新してスクロール範囲を再計算させる
+        BoneNameScrollView.ForceLayout();
+        TimelineContentScrollView.ForceLayout();
     }
 
     private void InvalidateAll()
