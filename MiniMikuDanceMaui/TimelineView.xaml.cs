@@ -12,7 +12,8 @@ public partial class TimelineView : ContentView
 {
     const int MaxFrame = 60;
     const int MaxRows = 17;
-    const int VisibleColumns = 7;
+    // 表示されるセル数を倍増させるため 14 列に拡張
+    const int VisibleColumns = 14;
     const double TimelineWidthScale = 0.5;
     public static double FrameWidth { get; private set; } = 5.0;
     public static double RowHeight { get; private set; } = 30.0;
