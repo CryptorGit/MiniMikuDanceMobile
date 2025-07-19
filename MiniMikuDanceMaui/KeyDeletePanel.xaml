@@ -9,6 +9,7 @@
              HeightRequest="200">
     <Grid>
         <VerticalStackLayout Spacing="6" Padding="8">
+        <Label Text="Delete Keyframe" FontSize="20" FontAttributes="Bold" />
         <Picker x:Name="BonePicker" Title="Bone" SelectedIndexChanged="OnBoneChanged" />
         <Picker x:Name="FramePicker" Title="Frame" SelectedIndexChanged="OnFrameChanged" />
         <HorizontalStackLayout HorizontalOptions="End" Spacing="10">

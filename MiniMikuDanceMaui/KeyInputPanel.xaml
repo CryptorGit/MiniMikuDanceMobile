@@ -10,7 +10,7 @@
     <ScrollView>
         <VerticalStackLayout Spacing="10" Padding="10">
             <Grid ColumnDefinitions="*,Auto">
-                <Label Text="Edit Keyframe" FontSize="20" FontAttributes="Bold" VerticalOptions="Center" />
+                <Label x:Name="TitleLabel" Text="Edit Keyframe" FontSize="20" FontAttributes="Bold" VerticalOptions="Center" />
             </Grid>
 
             <Picker x:Name="BonePicker" Title="Select Bone" SelectedIndexChanged="OnBoneChanged" />
