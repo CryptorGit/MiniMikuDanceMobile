@@ -5,6 +5,7 @@ using SkiaSharp;
 using SkiaSharp.Views.Maui;
 using SkiaSharp.Views.Maui.Controls;
 using OpenTK.Mathematics;
+using System;
 
 namespace MiniMikuDanceMaui;
 
@@ -13,6 +14,7 @@ public partial class TimelineView : ContentView
     const int MaxFrame = 60;
     const int MaxRows = 17;
     const int VisibleColumns = 14;
+    const int PlayheadStopColumn = 7; // 7より後はグリッドをスクロールさせる
     public static double FrameWidth { get; private set; } = 10.0;
     public static double RowHeight { get; private set; } = 30.0;
     public const double LeftPanelWidth = 90.0;
@@ -231,10 +233,9 @@ public partial class TimelineView : ContentView
 
     private void UpdateFrameShift()
     {
-        if (_currentFrame >= VisibleColumns)
-            _scrollX = (float)((_currentFrame - VisibleColumns + 1) * FrameWidth);
-        else
-            _scrollX = 0;
+        int shiftFrame = Math.Max(0, _currentFrame - PlayheadStopColumn);
+        shiftFrame = Math.Min(shiftFrame, MaxFrame - VisibleColumns);
+        _scrollX = (float)(shiftFrame * FrameWidth);
     }
 
     void OnHeaderPaintSurface(object? sender, SKPaintSurfaceEventArgs e)
@@ -262,7 +263,8 @@ public partial class TimelineView : ContentView
             canvas.DrawText(text, x + 2, height - 2, _headerFont, numberPaint);
         }
 
-        float markerX = (float)(CurrentFrame * FrameWidth + FrameWidth / 2);
+        int displayFrame = Math.Min(CurrentFrame, PlayheadStopColumn);
+        float markerX = (float)(displayFrame * FrameWidth + FrameWidth / 2);
         canvas.DrawLine(markerX, 0, markerX, height, markerPaint);
     }
 
@@ -350,7 +352,8 @@ public partial class TimelineView : ContentView
             }
         }
 
-        float playX = (float)(CurrentFrame * FrameWidth + FrameWidth / 2);
+        int displayFrame = Math.Min(CurrentFrame, PlayheadStopColumn);
+        float playX = (float)(displayFrame * FrameWidth + FrameWidth / 2);
         canvas.DrawLine(playX, 0, playX, _boneNames.Count * (float)RowHeight, playheadPaint);
     }
 
