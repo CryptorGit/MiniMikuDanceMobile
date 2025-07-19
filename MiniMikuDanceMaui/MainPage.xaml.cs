@@ -705,6 +705,7 @@ private void ShowBottomFeature(string name)
                 if (s is TimelineView timelineView)
                 {
                     KeyPanel.SetBones(timelineView.BoneNames);
+                    KeyPanel.SelectedBoneIndex = timelineView.SelectedKeyInputBoneIndex;
                     KeyPanel.SetFrame(timelineView.CurrentFrame);
                     timelineView.SelectedKeyInputBoneIndex = KeyPanel.SelectedBoneIndex;
                 }
@@ -715,6 +716,7 @@ private void ShowBottomFeature(string name)
                 if (s is TimelineView timelineView)
                 {
                     KeyPanel.SetBones(timelineView.BoneNames);
+                    KeyPanel.SelectedBoneIndex = timelineView.SelectedKeyInputBoneIndex;
                     var boneName = timelineView.BoneNames[KeyPanel.SelectedBoneIndex];
                     var frames = timelineView.GetKeyframesForBone(boneName);
                     KeyPanel.SetFrame(timelineView.CurrentFrame, true, frames,
@@ -735,8 +737,9 @@ private void ShowBottomFeature(string name)
                if (s is TimelineView timelineView)
                {
                     DeletePanel.SetBones(timelineView.BoneNames);
-                    var defaultBone = timelineView.BoneNames.First();
-                    DeletePanel.SetFrames(timelineView.GetKeyframesForBone(defaultBone));
+                    DeletePanel.SelectedBoneIndex = timelineView.SelectedKeyInputBoneIndex;
+                    var bone = timelineView.BoneNames[DeletePanel.SelectedBoneIndex];
+                    DeletePanel.SetFrames(timelineView.GetKeyframesForBone(bone));
                     timelineView.SelectedKeyInputBoneIndex = DeletePanel.SelectedBoneIndex;
                }
            };
