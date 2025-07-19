@@ -13,6 +13,7 @@ public partial class TimelineView : ContentView
     const int MaxFrame = 60;
     const int MaxRows = 17;
     const int VisibleColumns = 7;
+    const double TimelineWidthScale = 0.5;
     public static double FrameWidth { get; private set; } = 5.0;
     public static double RowHeight { get; private set; } = 30.0;
     public const double LeftPanelWidth = 90.0;
@@ -115,7 +116,7 @@ public partial class TimelineView : ContentView
     private void OnTimelineViewLoaded(object? sender, EventArgs e)
     {
         var displayWidth = DeviceDisplay.Current.MainDisplayInfo.Width / _density;
-        FrameWidth = (displayWidth - LeftPanelWidth) / VisibleColumns;
+        FrameWidth = (displayWidth - LeftPanelWidth) * TimelineWidthScale / VisibleColumns;
 
         TimelineContentScrollView.Scrolled += OnTimelineContentScrolled;
         BoneNameScrollView.Scrolled += OnBoneNameScrolled;
@@ -177,7 +178,7 @@ public partial class TimelineView : ContentView
             return;
 
         _lastWidth = width;
-        FrameWidth = (width - LeftPanelWidth) / VisibleColumns;
+        FrameWidth = (width - LeftPanelWidth) * TimelineWidthScale / VisibleColumns;
         UpdateCanvasSizes();
         InvalidateAll();
     }
@@ -245,10 +246,9 @@ public partial class TimelineView : ContentView
         var height = info.Height / _density;
         canvas.Clear(SKColors.Transparent);
 
-        using var minorPaint = new SKPaint { Color = SKColors.LightGray, StrokeWidth = 1 };
-        using var majorPaint = new SKPaint { Color = SKColors.Gray, StrokeWidth = 2 };
+        using var minorPaint = new SKPaint { Color = SKColors.White, StrokeWidth = 1 };
         using var fivePaint  = new SKPaint { Color = SKColors.Green, StrokeWidth = 1 };
-        using var numberPaint = new SKPaint { Color = SKColors.Gray, IsAntialias = true };
+        using var numberPaint = new SKPaint { Color = SKColors.White, IsAntialias = true };
         using var markerPaint = new SKPaint { Color = SKColors.Red, StrokeWidth = 2 };
 
         canvas.Translate(-_scrollX, 0);
@@ -257,14 +257,10 @@ public partial class TimelineView : ContentView
         for (int f = 0; f < MaxFrame; f++)
         {
             float x = (float)(f * FrameWidth);
-            if (f % 5 == 0)
-                canvas.DrawLine(x, 0, x, height, fivePaint);
-            canvas.DrawLine(x, 0, x, height, f % 10 == 0 ? majorPaint : minorPaint);
-            if (f % 10 == 0)
-            {
-                var text = f.ToString();
-                canvas.DrawText(text, x + 2, height - 2, _headerFont, numberPaint);
-            }
+            var paint = f % 5 == 0 ? fivePaint : minorPaint;
+            canvas.DrawLine(x, 0, x, height, paint);
+            var text = f.ToString();
+            canvas.DrawText(text, x + 2, height - 2, _headerFont, numberPaint);
         }
 
         float markerX = (float)(CurrentFrame * FrameWidth + FrameWidth / 2);
@@ -308,12 +304,11 @@ public partial class TimelineView : ContentView
     {
         var canvas = e.Surface.Canvas;
         var info = e.Info;
-        canvas.Clear(SKColors.Transparent);
+        canvas.Clear(new SKColor(40, 40, 40));
 
         using var altRowPaint = new SKPaint { Color = new SKColor(50, 50, 50) };
         using var linePaint = new SKPaint { Color = SKColors.Gray, StrokeWidth = 1 };
-        using var minorPaint = new SKPaint { Color = SKColors.LightGray, StrokeWidth = 1 };
-        using var majorPaint = new SKPaint { Color = SKColors.Gray, StrokeWidth = 2 };
+        using var minorPaint = new SKPaint { Color = SKColors.White, StrokeWidth = 1 };
         using var fivePaint  = new SKPaint { Color = SKColors.Green, StrokeWidth = 1 };
         using var keyframePaint = new SKPaint { Color = SKColors.Yellow, Style = SKPaintStyle.Fill };
         using var playheadPaint = new SKPaint { Color = SKColors.Red, StrokeWidth = 2 };
@@ -333,9 +328,8 @@ public partial class TimelineView : ContentView
         for (int f = 0; f < MaxFrame; f++)
         {
             float x = (float)(f * FrameWidth);
-            if (f % 5 == 0)
-                canvas.DrawLine(x, 0, x, _boneNames.Count * (float)RowHeight, fivePaint);
-            canvas.DrawLine(x, 0, x, _boneNames.Count * (float)RowHeight, f % 10 == 0 ? majorPaint : minorPaint);
+            var paint = f % 5 == 0 ? fivePaint : minorPaint;
+            canvas.DrawLine(x, 0, x, _boneNames.Count * (float)RowHeight, paint);
         }
 
         foreach (var boneName in _boneNames)
