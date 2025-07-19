@@ -103,6 +103,11 @@ public partial class TimelineView : ContentView
         }
     }
 
+    public string SelectedBoneName =>
+        SelectedKeyInputBoneIndex >= 0 && SelectedKeyInputBoneIndex < _boneNames.Count
+            ? _boneNames[SelectedKeyInputBoneIndex]
+            : string.Empty;
+
     public int CurrentFrame
     {
         get => _currentFrame;
