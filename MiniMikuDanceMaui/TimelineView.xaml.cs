@@ -13,8 +13,8 @@ public partial class TimelineView : ContentView
     const int MaxFrame = 60;
     const int MaxRows = 17;
     const int VisibleColumns = 7;
-    public static double FrameWidth { get; private set; } = 20.0;
-    public static double RowHeight { get; private set; } = 14.0;
+    public static double FrameWidth { get; private set; } = 5.0;
+    public static double RowHeight { get; private set; } = 30.0;
     public const double LeftPanelWidth = 90.0;
     const float BoneNameFontSize = 14f;
     const float HeaderFontSize = 18f;
