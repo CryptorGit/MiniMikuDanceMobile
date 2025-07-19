@@ -704,8 +704,9 @@ private void ShowBottomFeature(string name)
                 KeyPanel.IsVisible = true;
                 if (s is TimelineView timelineView)
                 {
+                    int boneIndex = timelineView.SelectedKeyInputBoneIndex;
                     KeyPanel.SetBones(timelineView.BoneNames);
-                    KeyPanel.SelectedBoneIndex = timelineView.SelectedKeyInputBoneIndex;
+                    KeyPanel.SelectedBoneIndex = boneIndex;
                     KeyPanel.SetFrame(timelineView.CurrentFrame);
                     timelineView.SelectedKeyInputBoneIndex = KeyPanel.SelectedBoneIndex;
                 }
@@ -715,9 +716,12 @@ private void ShowBottomFeature(string name)
                 KeyPanel.IsVisible = true;
                 if (s is TimelineView timelineView)
                 {
+                    int boneIndex = timelineView.SelectedKeyInputBoneIndex;
                     KeyPanel.SetBones(timelineView.BoneNames);
-                    KeyPanel.SelectedBoneIndex = timelineView.SelectedKeyInputBoneIndex;
-                    var boneName = timelineView.SelectedBoneName;
+                    KeyPanel.SelectedBoneIndex = boneIndex;
+                    var boneName = timelineView.BoneNames.Count > boneIndex && boneIndex >= 0
+                        ? timelineView.BoneNames[boneIndex]
+                        : timelineView.SelectedBoneName;
                     var frames = timelineView.GetKeyframesForBone(boneName);
                     KeyPanel.SetFrame(timelineView.CurrentFrame, true, frames,
                         timelineView.GetBoneTranslationAtFrame,
@@ -736,9 +740,12 @@ private void ShowBottomFeature(string name)
                DeletePanel.IsVisible = true;
                if (s is TimelineView timelineView)
                {
+                    int boneIndex = timelineView.SelectedKeyInputBoneIndex;
                     DeletePanel.SetBones(timelineView.BoneNames);
-                    DeletePanel.SelectedBoneIndex = timelineView.SelectedKeyInputBoneIndex;
-                    var bone = timelineView.SelectedBoneName;
+                    DeletePanel.SelectedBoneIndex = boneIndex;
+                    var bone = timelineView.BoneNames.Count > boneIndex && boneIndex >= 0
+                        ? timelineView.BoneNames[boneIndex]
+                        : timelineView.SelectedBoneName;
                     DeletePanel.SetFrames(timelineView.GetKeyframesForBone(bone));
                     timelineView.SelectedKeyInputBoneIndex = DeletePanel.SelectedBoneIndex;
                }
