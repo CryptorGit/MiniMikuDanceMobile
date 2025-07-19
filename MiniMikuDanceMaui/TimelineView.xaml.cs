@@ -314,6 +314,7 @@ public partial class TimelineView : ContentView
         canvas.Clear(new SKColor(40, 40, 40));
 
         using var altRowPaint = new SKPaint { Color = new SKColor(50, 50, 50) };
+        using var selectedRowPaint = new SKPaint { Color = new SKColor(80, 80, 80) };
         using var linePaint = new SKPaint { Color = SKColors.Gray, StrokeWidth = 1 };
         using var minorPaint = new SKPaint { Color = SKColors.White, StrokeWidth = 1 };
         using var fivePaint  = new SKPaint { Color = SKColors.Green, StrokeWidth = 1 };
@@ -327,8 +328,14 @@ public partial class TimelineView : ContentView
         for (int i = 0; i < _boneNames.Count; i++)
         {
             float y = (float)(i * RowHeight);
-            if (i % 2 == 0)
+            if (i == _selectedKeyInputBoneIndex)
+            {
+                canvas.DrawRect(0, y, totalWidth, (float)RowHeight, selectedRowPaint);
+            }
+            else if (i % 2 == 0)
+            {
                 canvas.DrawRect(0, y, totalWidth, (float)RowHeight, altRowPaint);
+            }
             canvas.DrawLine(0, y + (float)RowHeight, totalWidth, y + (float)RowHeight, linePaint);
         }
 
