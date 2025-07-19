@@ -12,7 +12,7 @@ namespace MiniMikuDanceMaui;
 public partial class TimelineView : ContentView
 {
     const int MaxFrame = 60;
-    const int MaxRows = 17;
+    const int MaxRows = 18;
     const int VisibleColumns = 14;
     const int PlayheadStopColumn = 7; // 7より後はグリッドをスクロールさせる
     public static double FrameWidth { get; private set; } = 10.0;
@@ -48,6 +48,8 @@ public partial class TimelineView : ContentView
             _boneNames.Clear();
             if (_model != null)
             {
+                _boneNames.Add("camera");
+
                 var requiredHumanoidBones = new List<string>
                 {
                     "hips", "spine", "chest", "neck", "head",
@@ -60,7 +62,7 @@ public partial class TimelineView : ContentView
                 _boneNames.AddRange(_model.HumanoidBoneList
                     .Select(b => b.Name)
                     .Where(name => requiredHumanoidBones.Contains(name))
-                    .Take(MaxRows));
+                    .Take(MaxRows - 1));
 
                 _keyframes.Clear();
                 foreach (var boneName in _boneNames)
