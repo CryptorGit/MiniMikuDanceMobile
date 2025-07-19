@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="utf-8" ?>
 <ContentView xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:local="clr-namespace:MiniMikuDanceMaui"
              x:Class="MiniMikuDanceMaui.KeyInputPanel"
              BackgroundColor="{StaticResource OverlayBackgroundColor}"
              HorizontalOptions="End"
@@ -14,61 +15,23 @@
 
             <Picker x:Name="BonePicker" Title="Select Bone" SelectedIndexChanged="OnBoneChanged" />
 
-            <Grid ColumnDefinitions="Auto,*,Auto" VerticalOptions="Center">
+            <Grid x:Name="FrameEntryGrid" ColumnDefinitions="Auto,*,Auto" VerticalOptions="Center">
                 <Label Text="Frame:" VerticalOptions="Center" />
                 <Entry x:Name="FrameEntry" Placeholder="Frame" WidthRequest="80" Keyboard="Numeric" TextChanged="OnFrameTextChanged" Grid.Column="1" HorizontalTextAlignment="Center"/>
             </Grid>
-
-            <HorizontalStackLayout Spacing="10" VerticalOptions="Center">
-                <Label Text="Pos Range" TextColor="{StaticResource TextColor}" VerticalOptions="Center" />
-                <Picker x:Name="PosRangePicker" SelectedIndexChanged="OnPosRangeChanged" />
-            </HorizontalStackLayout>
-            <HorizontalStackLayout Spacing="10" VerticalOptions="Center">
-                <Label Text="Rot Range" TextColor="{StaticResource TextColor}" VerticalOptions="Center" />
-                <Picker x:Name="RotRangePicker" SelectedIndexChanged="OnRotRangeChanged" />
-            </HorizontalStackLayout>
-
-            <!-- Rotation Controls -->
-            <Label Text="Rotation" FontAttributes="Bold" />
-            <Grid ColumnDefinitions="Auto,*,Auto,Auto">
-                <Label Text="Rot X" VerticalOptions="Center"/>
-                <Slider x:Name="RotXSlider" Minimum="-180" Maximum="180" ValueChanged="OnRotXChanged" Grid.Column="1" />
-                <Label x:Name="RotXLabel" Text="0" VerticalOptions="Center" Grid.Column="2" WidthRequest="40" HorizontalTextAlignment="End"/>
-                <Button Text="R" Clicked="OnResetRotXClicked" Grid.Column="3" />
-            </Grid>
-            <Grid ColumnDefinitions="Auto,*,Auto,Auto">
-                <Label Text="Rot Y" VerticalOptions="Center"/>
-                <Slider x:Name="RotYSlider" Minimum="-180" Maximum="180" ValueChanged="OnRotYChanged" Grid.Column="1" />
-                <Label x:Name="RotYLabel" Text="0" VerticalOptions="Center" Grid.Column="2" WidthRequest="40" HorizontalTextAlignment="End"/>
-                <Button Text="R" Clicked="OnResetRotYClicked" Grid.Column="3" />
-            </Grid>
-            <Grid ColumnDefinitions="Auto,*,Auto,Auto">
-                <Label Text="Rot Z" VerticalOptions="Center"/>
-                <Slider x:Name="RotZSlider" Minimum="-180" Maximum="180" ValueChanged="OnRotZChanged" Grid.Column="1" />
-                <Label x:Name="RotZLabel" Text="0" VerticalOptions="Center" Grid.Column="2" WidthRequest="40" HorizontalTextAlignment="End"/>
-                <Button Text="R" Clicked="OnResetRotZClicked" Grid.Column="3" />
+            <Grid x:Name="FramePickerGrid" ColumnDefinitions="Auto,*,Auto" VerticalOptions="Center" IsVisible="False">
+                <Label Text="Frame:" VerticalOptions="Center" />
+                <Picker x:Name="FramePicker" WidthRequest="80" SelectedIndexChanged="OnFramePickerChanged" Grid.Column="1" />
             </Grid>
 
-            <!-- Position Controls -->
-            <Label Text="Position" FontAttributes="Bold" />
-            <Grid ColumnDefinitions="Auto,*,Auto,Auto">
-                <Label Text="Pos X" VerticalOptions="Center"/>
-                <Slider x:Name="PosXSlider" Minimum="-5" Maximum="5" ValueChanged="OnPosXChanged" Grid.Column="1" />
-                <Label x:Name="PosXLabel" Text="0.0" VerticalOptions="Center" Grid.Column="2" WidthRequest="40" HorizontalTextAlignment="End"/>
-                <Button Text="R" Clicked="OnResetPosXClicked" Grid.Column="3" />
-            </Grid>
-            <Grid ColumnDefinitions="Auto,*,Auto,Auto">
-                <Label Text="Pos Y" VerticalOptions="Center"/>
-                <Slider x:Name="PosYSlider" Minimum="-5" Maximum="5" ValueChanged="OnPosYChanged" Grid.Column="1" />
-                <Label x:Name="PosYLabel" Text="0.0" VerticalOptions="Center" Grid.Column="2" WidthRequest="40" HorizontalTextAlignment="End"/>
-                <Button Text="R" Clicked="OnResetPosYClicked" Grid.Column="3" />
-            </Grid>
-            <Grid ColumnDefinitions="Auto,*,Auto,Auto">
-                <Label Text="Pos Z" VerticalOptions="Center"/>
-                <Slider x:Name="PosZSlider" Minimum="-5" Maximum="5" ValueChanged="OnPosZChanged" Grid.Column="1" />
-                <Label x:Name="PosZLabel" Text="0.0" VerticalOptions="Center" Grid.Column="2" WidthRequest="40" HorizontalTextAlignment="End"/>
-                <Button Text="R" Clicked="OnResetPosZClicked" Grid.Column="3" />
-            </Grid>
+            <local:BoneAxisControl x:Name="RotXControl" ValueFormat="F0" />
+            <local:BoneAxisControl x:Name="RotYControl" ValueFormat="F0" />
+            <local:BoneAxisControl x:Name="RotZControl" ValueFormat="F0" />
+
+            <local:BoneAxisControl x:Name="PosXControl" ValueFormat="F2" />
+            <local:BoneAxisControl x:Name="PosYControl" ValueFormat="F2" />
+            <local:BoneAxisControl x:Name="PosZControl" ValueFormat="F2" />
+
 
             <HorizontalStackLayout Spacing="10" HorizontalOptions="End">
                 <Button Text="Apply" Clicked="OnConfirmClicked" />
