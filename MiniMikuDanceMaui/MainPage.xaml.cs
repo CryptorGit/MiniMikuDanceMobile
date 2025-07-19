@@ -714,9 +714,12 @@ private void ShowBottomFeature(string name)
                 if (s is TimelineView timelineView)
                 {
                     KeyPanel.SetBones(timelineView.BoneNames);
-                    KeyPanel.SetFrame(timelineView.CurrentFrame, true, timelineView.GetBoneTranslationAtFrame, timelineView.GetBoneRotationAtFrame);
-                    // Populate KeyPanel with existing keyframe data if available
                     var boneName = timelineView.BoneNames[KeyPanel.SelectedBoneIndex];
+                    var frames = timelineView.GetKeyframesForBone(boneName);
+                    KeyPanel.SetFrame(timelineView.CurrentFrame, true, frames,
+                        timelineView.GetBoneTranslationAtFrame,
+                        timelineView.GetBoneRotationAtFrame);
+                    // Populate KeyPanel with existing keyframe data if available
                     if (timelineView.HasKeyframe(boneName, timelineView.CurrentFrame))
                     {
                         KeyPanel.SetTranslation(timelineView.GetBoneTranslationAtFrame(boneName, timelineView.CurrentFrame));
