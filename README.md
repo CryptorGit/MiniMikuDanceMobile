@@ -10,15 +10,37 @@ MiniMikuDance は、スマートフォン上で MMD 互換モデルを再生・�
 
 ## テストの実行方法
 
-```
+### AppCore.Tests
+
+```bash
 dotnet test AppCore.Tests/AppCore.Tests.csproj --collect:"XPlat Code Coverage"
 ```
+
+### MiniMikuDanceMaui.Tests
+
+```bash
+dotnet test MiniMikuDanceMaui.Tests/MiniMikuDanceMaui.Tests.csproj
+```
+
+このテストを実行するには MAUI ワークロードが必要です。未導入の場合は以下を実行してください。
+
+```bash
+dotnet workload install maui
+```
+
+インストールでエラーが出る場合は [公式ドキュメント](https://learn.microsoft.com/dotnet/maui/faq#install-workload-error) を参照し、`dotnet workload repair` を試みてください。
 
 実行後、`AppCore.Tests/TestResults/coverage.xml` が生成されます。
 この XML を HTML レポートに変換するには、reportgenerator を使用して次のコマンドを実行します。
 
-```
+```bash
 reportgenerator "-reports:AppCore.Tests/TestResults/coverage.xml" "-targetdir:coveragereport"
 ```
 
 `coveragereport` ディレクトリに `index.html` が作成され、ブラウザから確認できます。
+レポートを更新する場合は既存のフォルダを削除してから再生成してください。
+
+```bash
+rm -rf coveragereport
+reportgenerator "-reports:AppCore.Tests/TestResults/coverage.xml" "-targetdir:coveragereport"
+```

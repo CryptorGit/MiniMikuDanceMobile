@@ -24,6 +24,8 @@ public partial class TimelineView : ContentView
     private ModelData? _model;
     private readonly List<string> _boneNames = new List<string>();
     private readonly Dictionary<string, List<int>> _keyframes = new Dictionary<string, List<int>>();
+    private readonly Dictionary<string, Dictionary<int, Vector3>> _translations = new();
+    private readonly Dictionary<string, Dictionary<int, Vector3>> _rotations = new();
 
     private readonly SKFont _boneNameFont;
     private readonly SKFont _headerFont;
@@ -373,7 +375,7 @@ public partial class TimelineView : ContentView
     public List<int> GetKeyframesForBone(string boneName)
         => _keyframes.TryGetValue(boneName, out var frames) ? frames : new List<int>();
 
-    public void AddKeyframe(string boneName, int frame)
+    public void AddKeyframe(string boneName, int frame, Vector3 translation, Vector3 rotation)
     {
         if (!_keyframes.TryGetValue(boneName, out var list))
         {
@@ -384,14 +386,33 @@ public partial class TimelineView : ContentView
         {
             list.Add(frame);
             list.Sort();
-            InvalidateAll();
         }
+
+        if (!_translations.TryGetValue(boneName, out var tdict))
+        {
+            tdict = new Dictionary<int, Vector3>();
+            _translations[boneName] = tdict;
+        }
+        tdict[frame] = translation;
+
+        if (!_rotations.TryGetValue(boneName, out var rdict))
+        {
+            rdict = new Dictionary<int, Vector3>();
+            _rotations[boneName] = rdict;
+        }
+        rdict[frame] = rotation;
+
+        InvalidateAll();
     }
 
     public void RemoveKeyframe(string boneName, int frame)
     {
         if (_keyframes.TryGetValue(boneName, out var list) && list.Remove(frame))
         {
+            if (_translations.TryGetValue(boneName, out var tdict))
+                tdict.Remove(frame);
+            if (_rotations.TryGetValue(boneName, out var rdict))
+                rdict.Remove(frame);
             InvalidateAll();
         }
     }
@@ -403,10 +424,23 @@ public partial class TimelineView : ContentView
     {
         foreach (var key in _keyframes.Keys.ToList())
             _keyframes[key].Clear();
+        _translations.Clear();
+        _rotations.Clear();
         InvalidateAll();
     }
-    public Vector3 GetBoneTranslationAtFrame(string boneName, int frame) => Vector3.Zero;
-    public Vector3 GetBoneRotationAtFrame(string boneName, int frame) => Vector3.Zero;
+    public Vector3 GetBoneTranslationAtFrame(string boneName, int frame)
+    {
+        if (_translations.TryGetValue(boneName, out var tdict) && tdict.TryGetValue(frame, out var v))
+            return v;
+        return Vector3.Zero;
+    }
+
+    public Vector3 GetBoneRotationAtFrame(string boneName, int frame)
+    {
+        if (_rotations.TryGetValue(boneName, out var rdict) && rdict.TryGetValue(frame, out var v))
+            return v;
+        return Vector3.Zero;
+    }
 
     private void OnPlayClicked(object? sender, EventArgs e) { /* ... */ }
     private void OnPauseClicked(object? sender, EventArgs e) { /* ... */ }
