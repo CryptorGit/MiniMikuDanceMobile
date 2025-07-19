@@ -6,12 +6,13 @@ using SkiaSharp.Views.Maui;
 using SkiaSharp.Views.Maui.Controls;
 using OpenTK.Mathematics;
 using System;
+using System.Linq;
 
 namespace MiniMikuDanceMaui;
 
 public partial class TimelineView : ContentView
 {
-    const int MaxFrame = 60;
+    public const int MaxFrame = 60;
     const int MaxRows = 18;
     const int VisibleColumns = 14;
     const int PlayheadStopColumn = 7; // 7より後はグリッドをスクロールさせる
@@ -116,6 +117,8 @@ public partial class TimelineView : ContentView
         _boneNameFont = new SKFont(SKTypeface.Default, BoneNameFontSize);
         _headerFont = new SKFont(SKTypeface.Default, HeaderFontSize);
         BindingContext = this;
+        CurrentFramePicker.ItemsSource = Enumerable.Range(0, MaxFrame).ToList();
+        CurrentFramePicker.SelectedItem = 0;
     }
 
     private void OnTimelineViewLoaded(object? sender, EventArgs e)
@@ -442,13 +445,38 @@ public partial class TimelineView : ContentView
         return Vector3.Zero;
     }
 
+    public bool HasAnyKeyframe(string boneName)
+        => _keyframes.TryGetValue(boneName, out var list) && list.Count > 0;
+
+    public Vector3 GetNearestTranslation(string boneName, int frame)
+    {
+        if (!_keyframes.TryGetValue(boneName, out var list) || list.Count == 0)
+            return Vector3.Zero;
+        var nearest = list.OrderBy(f => Math.Abs(f - frame)).First();
+        return GetBoneTranslationAtFrame(boneName, nearest);
+    }
+
+    public Vector3 GetNearestRotation(string boneName, int frame)
+    {
+        if (!_keyframes.TryGetValue(boneName, out var list) || list.Count == 0)
+            return Vector3.Zero;
+        var nearest = list.OrderBy(f => Math.Abs(f - frame)).First();
+        return GetBoneRotationAtFrame(boneName, nearest);
+    }
+
     private void OnPlayClicked(object? sender, EventArgs e) { /* ... */ }
     private void OnPauseClicked(object? sender, EventArgs e) { /* ... */ }
-    private void OnStopClicked(object? sender, EventArgs e) { CurrentFrame = 0; CurrentFrameEntry.Text = "0"; }
-    private void OnFrameToStartClicked(object? sender, EventArgs e) { CurrentFrame = 0; CurrentFrameEntry.Text = "0"; }
-    private void OnFrameToEndClicked(object? sender, EventArgs e) { CurrentFrame = MaxFrame - 1; CurrentFrameEntry.Text = CurrentFrame.ToString(); }
-    private void OnFrameMinusOneClicked(object? sender, EventArgs e) { CurrentFrame = Math.Max(0, CurrentFrame - 1); CurrentFrameEntry.Text = CurrentFrame.ToString(); }
-    private void OnFramePlusOneClicked(object? sender, EventArgs e) { CurrentFrame = Math.Min(MaxFrame - 1, CurrentFrame + 1); CurrentFrameEntry.Text = CurrentFrame.ToString(); }
+    private void OnStopClicked(object? sender, EventArgs e) { CurrentFrame = 0; CurrentFramePicker.SelectedItem = 0; }
+    private void OnFrameToStartClicked(object? sender, EventArgs e) { CurrentFrame = 0; CurrentFramePicker.SelectedItem = 0; }
+    private void OnFrameToEndClicked(object? sender, EventArgs e) { CurrentFrame = MaxFrame - 1; CurrentFramePicker.SelectedItem = CurrentFrame; }
+    private void OnFrameMinusOneClicked(object? sender, EventArgs e) { CurrentFrame = Math.Max(0, CurrentFrame - 1); CurrentFramePicker.SelectedItem = CurrentFrame; }
+    private void OnFramePlusOneClicked(object? sender, EventArgs e) { CurrentFrame = Math.Min(MaxFrame - 1, CurrentFrame + 1); CurrentFramePicker.SelectedItem = CurrentFrame; }
+
+    private void OnCurrentFrameChanged(object? sender, EventArgs e)
+    {
+        if (CurrentFramePicker.SelectedItem is int f)
+            CurrentFrame = f;
+    }
     void OnAddKeyClicked(object? sender, EventArgs e) => AddKeyClicked?.Invoke(this, EventArgs.Empty);
     void OnEditKeyClicked(object? sender, EventArgs e) => EditKeyClicked?.Invoke(this, EventArgs.Empty);
     void OnDeleteKeyClicked(object? sender, EventArgs e) => DeleteKeyClicked?.Invoke(this, EventArgs.Empty);
