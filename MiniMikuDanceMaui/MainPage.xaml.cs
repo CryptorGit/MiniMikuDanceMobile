@@ -717,7 +717,7 @@ private void ShowBottomFeature(string name)
                 {
                     KeyPanel.SetBones(timelineView.BoneNames);
                     KeyPanel.SelectedBoneIndex = timelineView.SelectedKeyInputBoneIndex;
-                    var boneName = timelineView.BoneNames[KeyPanel.SelectedBoneIndex];
+                    var boneName = timelineView.SelectedBoneName;
                     var frames = timelineView.GetKeyframesForBone(boneName);
                     KeyPanel.SetFrame(timelineView.CurrentFrame, true, frames,
                         timelineView.GetBoneTranslationAtFrame,
@@ -738,7 +738,7 @@ private void ShowBottomFeature(string name)
                {
                     DeletePanel.SetBones(timelineView.BoneNames);
                     DeletePanel.SelectedBoneIndex = timelineView.SelectedKeyInputBoneIndex;
-                    var bone = timelineView.BoneNames[DeletePanel.SelectedBoneIndex];
+                    var bone = timelineView.SelectedBoneName;
                     DeletePanel.SetFrames(timelineView.GetKeyframesForBone(bone));
                     timelineView.SelectedKeyInputBoneIndex = DeletePanel.SelectedBoneIndex;
                }
