@@ -1170,7 +1170,7 @@ private async void OnKeyConfirmClicked(string bone, int frame, Vector3 trans, Ve
 
     if (_currentFeature == "TIMELINE" && _bottomViews.TryGetValue("TIMELINE", out var timelineView) && timelineView is TimelineView tv)
     {
-        tv.AddKeyframe(bone, frame);
+        tv.AddKeyframe(bone, frame, trans, rot);
     }
 
     if (_currentModel != null)
