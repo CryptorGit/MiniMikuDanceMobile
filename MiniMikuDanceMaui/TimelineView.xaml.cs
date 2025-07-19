@@ -13,7 +13,6 @@ public partial class TimelineView : ContentView
     const int MaxFrame = 60;
     const int MaxRows = 17;
     const int VisibleColumns = 7;
-    const double TimelineWidthScale = 0.5;
     public static double FrameWidth { get; private set; } = 5.0;
     public static double RowHeight { get; private set; } = 30.0;
     public const double LeftPanelWidth = 90.0;
@@ -116,7 +115,7 @@ public partial class TimelineView : ContentView
     private void OnTimelineViewLoaded(object? sender, EventArgs e)
     {
         var displayWidth = DeviceDisplay.Current.MainDisplayInfo.Width / _density;
-        FrameWidth = (displayWidth - LeftPanelWidth) * TimelineWidthScale / VisibleColumns;
+        FrameWidth = (displayWidth - LeftPanelWidth) / VisibleColumns;
 
         TimelineContentScrollView.Scrolled += OnTimelineContentScrolled;
         BoneNameScrollView.Scrolled += OnBoneNameScrolled;
@@ -178,7 +177,7 @@ public partial class TimelineView : ContentView
             return;
 
         _lastWidth = width;
-        FrameWidth = (width - LeftPanelWidth) * TimelineWidthScale / VisibleColumns;
+        FrameWidth = (width - LeftPanelWidth) / VisibleColumns;
         UpdateCanvasSizes();
         InvalidateAll();
     }
