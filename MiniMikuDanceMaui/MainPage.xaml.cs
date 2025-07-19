@@ -449,7 +449,6 @@ private void UpdateLayout()
 {
     double W = this.Width;
     double H = this.Height;
-    Thickness safe = this.Padding;
     AbsoluteLayout.SetLayoutBounds(TopMenu, new Rect(0, 0, W, TopMenuHeight));
     AbsoluteLayout.SetLayoutFlags(TopMenu, AbsoluteLayoutFlags.None);
 
@@ -492,10 +491,10 @@ private void UpdateLayout()
     AbsoluteLayout.SetLayoutBounds(Viewer, new Rect(0, 0, viewerWidth, viewerHeight));
     AbsoluteLayout.SetLayoutFlags(Viewer, AbsoluteLayoutFlags.None);
 
-    // Position bottom region to span full width of the page
+    // Position bottom region at the bottom of the page
     AbsoluteLayout.SetLayoutBounds(BottomRegion,
         new Rect(0,
-            H - bottomHeight - safe.Bottom,
+            H - bottomHeight,
             W,
             bottomHeight));
     AbsoluteLayout.SetLayoutFlags(BottomRegion, AbsoluteLayoutFlags.None);
