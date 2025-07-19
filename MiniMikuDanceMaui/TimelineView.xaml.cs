@@ -19,7 +19,7 @@ public partial class TimelineView : ContentView
     public static double RowHeight { get; private set; } = 30.0;
     public const double LeftPanelWidth = 90.0;
     const float BoneNameFontSize = 14f;
-    const float HeaderFontSize = 18f;
+    const float HeaderFontSize = 12f;
 
     private ModelData? _model;
     private readonly List<string> _boneNames = new List<string>();
