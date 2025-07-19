@@ -14,5 +14,11 @@ MiniMikuDance は、スマートフォン上で MMD 互換モデルを再生・�
 dotnet test AppCore.Tests/AppCore.Tests.csproj --collect:"XPlat Code Coverage"
 ```
 
-実行後、`coverage` ディレクトリに Cobertura 形式のカバレッジ結果が出力されます。
+実行後、`AppCore.Tests/TestResults/coverage.xml` が生成されます。
+この XML を HTML レポートに変換するには、reportgenerator を使用して次のコマンドを実行します。
 
+```
+reportgenerator "-reports:AppCore.Tests/TestResults/coverage.xml" "-targetdir:coveragereport"
+```
+
+`coveragereport` ディレクトリに `index.html` が作成され、ブラウザから確認できます。
