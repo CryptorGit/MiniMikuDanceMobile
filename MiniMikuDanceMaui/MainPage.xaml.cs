@@ -382,6 +382,7 @@ private void SetupBoneView(BoneView bv)
             bv.SetRotation(euler);
             var trans = _renderer.GetBoneTranslation(_selectedBoneIndex);
             bv.SetTranslation(trans);
+            UpdateTimelineSelectedBone();
         }
     };
     bv.RotationXChanged += v => UpdateSelectedBoneRotation(bv);
@@ -804,6 +805,10 @@ private void ShowBottomFeature(string name)
             view = new Label { Text = $"{name} view", TextColor = textColor, HorizontalTextAlignment = TextAlignment.Center, VerticalTextAlignment = TextAlignment.Center };
         }
         _bottomViews[name] = view;
+        if (name == "TIMELINE")
+        {
+            UpdateTimelineSelectedBone();
+        }
 
         var tabBgColor = (Color)Application.Current.Resources["TabBackgroundColor"];
         var border = new Border
@@ -1496,6 +1501,21 @@ private bool IsValidBoneSelection()
     if (_currentModel == null) return false;
     if (_selectedBoneIndex < 0 || _selectedBoneIndex >= _currentModel.Bones.Count) return false;
     return true;
+}
+
+private void UpdateTimelineSelectedBone()
+{
+    if (_currentModel == null) return;
+    if (_bottomViews.TryGetValue("TIMELINE", out var timelineView) && timelineView is TimelineView tv)
+    {
+        var entry = _currentModel.HumanoidBoneList.FirstOrDefault(h => h.Index == _selectedBoneIndex);
+        if (!string.IsNullOrEmpty(entry.Name))
+        {
+            int idx = tv.BoneNames.IndexOf(entry.Name);
+            if (idx >= 0)
+                tv.SelectedKeyInputBoneIndex = idx;
+        }
+    }
 }
 
 private void ShowExplorer(string featureName, Frame messageFrame, Label pathLabel, ref string? selectedPath)
