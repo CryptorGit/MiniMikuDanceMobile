@@ -105,7 +105,11 @@ private Func<string, int, Vector3>? _getRotation;
         => FramePickerGrid.IsVisible && FramePicker.SelectedItem is int f1
             ? f1
             : (FrameEntryPicker.SelectedItem is int f2 ? f2 : 0);
-    public int SelectedBoneIndex => BonePicker.SelectedIndex;
+    public int SelectedBoneIndex
+    {
+        get => BonePicker.SelectedIndex;
+        set => BonePicker.SelectedIndex = value;
+    }
     public string SelectedBone => BonePicker.SelectedItem as string ?? string.Empty;
 
     public Vector3 Translation => new((float)PosXControl.Value, (float)PosYControl.Value, (float)PosZControl.Value);

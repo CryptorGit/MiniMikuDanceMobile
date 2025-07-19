@@ -34,7 +34,11 @@ public partial class KeyDeletePanel : ContentView
     }
 
     public string SelectedBone => BonePicker.SelectedItem as string ?? string.Empty;
-    public int SelectedBoneIndex => BonePicker.SelectedIndex;
+    public int SelectedBoneIndex
+    {
+        get => BonePicker.SelectedIndex;
+        set => BonePicker.SelectedIndex = value;
+    }
     public int SelectedFrame => FramePicker.SelectedItem is int f ? f : 0;
 
     private void UpdateDeleteEnabled()
