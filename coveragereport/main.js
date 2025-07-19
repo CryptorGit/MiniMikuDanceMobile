@@ -215,9 +215,9 @@ var assemblies = [
     "classes": [
       { "name": "MiniMikuDance.App.AppInitializer", "rp": "AppCore_AppInitializer.html", "cl": 0, "ucl": 110, "cal": 110, "tl": 159, "cb": 0, "tb": 30, "cm": 0, "fcm": 0, "tm": 0, "lch": [], "bch": [], "mch": [], "mfch": [], "hc": [], "metrics": { } },
       { "name": "MiniMikuDance.App.AppSettings", "rp": "AppCore_AppSettings.html", "cl": 0, "ucl": 10, "cal": 10, "tl": 40, "cb": 0, "tb": 0, "cm": 0, "fcm": 0, "tm": 0, "lch": [], "bch": [], "mch": [], "mfch": [], "hc": [], "metrics": { } },
-      { "name": "MiniMikuDance.Camera.ARPoseManager", "rp": "AppCore_ARPoseManager.html", "cl": 0, "ucl": 10, "cal": 10, "tl": 30, "cb": 0, "tb": 0, "cm": 0, "fcm": 0, "tm": 0, "lch": [], "bch": [], "mch": [], "mfch": [], "hc": [], "metrics": { } },
-      { "name": "MiniMikuDance.Camera.CameraController", "rp": "AppCore_CameraController.html", "cl": 0, "ucl": 22, "cal": 22, "tl": 42, "cb": 0, "tb": 2, "cm": 0, "fcm": 0, "tm": 0, "lch": [], "bch": [], "mch": [], "mfch": [], "hc": [], "metrics": { } },
-      { "name": "MiniMikuDance.Data.DataManager", "rp": "AppCore_DataManager.html", "cl": 0, "ucl": 14, "cal": 14, "tl": 27, "cb": 0, "tb": 2, "cm": 0, "fcm": 0, "tm": 0, "lch": [], "bch": [], "mch": [], "mfch": [], "hc": [], "metrics": { } },
+      { "name": "MiniMikuDance.Camera.ARPoseManager", "rp": "AppCore_ARPoseManager.html", "cl": 10, "ucl": 0, "cal": 10, "tl": 30, "cb": 0, "tb": 0, "cm": 0, "fcm": 0, "tm": 0, "lch": [], "bch": [], "mch": [], "mfch": [], "hc": [], "metrics": { } },
+      { "name": "MiniMikuDance.Camera.CameraController", "rp": "AppCore_CameraController.html", "cl": 22, "ucl": 0, "cal": 22, "tl": 42, "cb": 2, "tb": 2, "cm": 0, "fcm": 0, "tm": 0, "lch": [], "bch": [], "mch": [], "mfch": [], "hc": [], "metrics": { } },
+      { "name": "MiniMikuDance.Data.DataManager", "rp": "AppCore_DataManager.html", "cl": 14, "ucl": 0, "cal": 14, "tl": 27, "cb": 2, "tb": 2, "cm": 0, "fcm": 0, "tm": 0, "lch": [], "bch": [], "mch": [], "mfch": [], "hc": [], "metrics": { } },
       { "name": "MiniMikuDance.Import.BoneData", "rp": "AppCore_BoneData.html", "cl": 0, "ucl": 6, "cal": 6, "tl": 13, "cb": 0, "tb": 0, "cm": 0, "fcm": 0, "tm": 0, "lch": [], "bch": [], "mch": [], "mfch": [], "hc": [], "metrics": { } },
       { "name": "MiniMikuDance.Import.ModelData", "rp": "AppCore_ModelData.html", "cl": 0, "ucl": 10, "cal": 10, "tl": 517, "cb": 0, "tb": 0, "cm": 0, "fcm": 0, "tm": 0, "lch": [], "bch": [], "mch": [], "mfch": [], "hc": [], "metrics": { } },
       { "name": "MiniMikuDance.Import.ModelExporter", "rp": "AppCore_ModelExporter.html", "cl": 0, "ucl": 11, "cal": 11, "tl": 20, "cb": 0, "tb": 2, "cm": 0, "fcm": 0, "tm": 0, "lch": [], "bch": [], "mch": [], "mfch": [], "hc": [], "metrics": { } },
@@ -226,22 +226,22 @@ var assemblies = [
       { "name": "MiniMikuDance.Import.VrmInfo", "rp": "AppCore_VrmInfo.html", "cl": 0, "ucl": 12, "cal": 12, "tl": 17, "cb": 0, "tb": 0, "cm": 0, "fcm": 0, "tm": 0, "lch": [], "bch": [], "mch": [], "mfch": [], "hc": [], "metrics": { } },
       { "name": "MiniMikuDance.Motion.BvhExporter", "rp": "AppCore_BvhExporter.html", "cl": 0, "ucl": 21, "cal": 21, "tl": 32, "cb": 0, "tb": 4, "cm": 0, "fcm": 0, "tm": 0, "lch": [], "bch": [], "mch": [], "mfch": [], "hc": [], "metrics": { } },
       { "name": "MiniMikuDance.Motion.MotionApplier", "rp": "AppCore_MotionApplier.html", "cl": 0, "ucl": 48, "cal": 48, "tl": 67, "cb": 0, "tb": 12, "cm": 0, "fcm": 0, "tm": 0, "lch": [], "bch": [], "mch": [], "mfch": [], "hc": [], "metrics": { } },
-      { "name": "MiniMikuDance.Motion.MotionData", "rp": "AppCore_MotionData.html", "cl": 0, "ucl": 3, "cal": 3, "tl": 106, "cb": 0, "tb": 0, "cm": 0, "fcm": 0, "tm": 0, "lch": [], "bch": [], "mch": [], "mfch": [], "hc": [], "metrics": { } },
-      { "name": "MiniMikuDance.Motion.MotionEditor", "rp": "AppCore_MotionEditor.html", "cl": 0, "ucl": 155, "cal": 155, "tl": 209, "cb": 0, "tb": 74, "cm": 0, "fcm": 0, "tm": 0, "lch": [], "bch": [], "mch": [], "mfch": [], "hc": [], "metrics": { } },
+      { "name": "MiniMikuDance.Motion.MotionData", "rp": "AppCore_MotionData.html", "cl": 3, "ucl": 0, "cal": 3, "tl": 106, "cb": 0, "tb": 0, "cm": 0, "fcm": 0, "tm": 0, "lch": [], "bch": [], "mch": [], "mfch": [], "hc": [], "metrics": { } },
+      { "name": "MiniMikuDance.Motion.MotionEditor", "rp": "AppCore_MotionEditor.html", "cl": 136, "ucl": 19, "cal": 155, "tl": 209, "cb": 56, "tb": 74, "cm": 0, "fcm": 0, "tm": 0, "lch": [], "bch": [], "mch": [], "mfch": [], "hc": [], "metrics": { } },
       { "name": "MiniMikuDance.Motion.MotionGenerator", "rp": "AppCore_MotionGenerator.html", "cl": 0, "ucl": 73, "cal": 73, "tl": 106, "cb": 0, "tb": 20, "cm": 0, "fcm": 0, "tm": 0, "lch": [], "bch": [], "mch": [], "mfch": [], "hc": [], "metrics": { } },
       { "name": "MiniMikuDance.Motion.MotionPlayer", "rp": "AppCore_MotionPlayer.html", "cl": 0, "ucl": 51, "cal": 51, "tl": 82, "cb": 0, "tb": 24, "cm": 0, "fcm": 0, "tm": 0, "lch": [], "bch": [], "mch": [], "mfch": [], "hc": [], "metrics": { } },
-      { "name": "MiniMikuDance.PoseEstimation.JointData", "rp": "AppCore_JointData.html", "cl": 0, "ucl": 3, "cal": 3, "tl": 110, "cb": 0, "tb": 0, "cm": 0, "fcm": 0, "tm": 0, "lch": [], "bch": [], "mch": [], "mfch": [], "hc": [], "metrics": { } },
+      { "name": "MiniMikuDance.PoseEstimation.JointData", "rp": "AppCore_JointData.html", "cl": 3, "ucl": 0, "cal": 3, "tl": 110, "cb": 0, "tb": 0, "cm": 0, "fcm": 0, "tm": 0, "lch": [], "bch": [], "mch": [], "mfch": [], "hc": [], "metrics": { } },
       { "name": "MiniMikuDance.PoseEstimation.PoseDebugVisualizer", "rp": "AppCore_PoseDebugVisualizer.html", "cl": 0, "ucl": 16, "cal": 16, "tl": 42, "cb": 0, "tb": 10, "cm": 0, "fcm": 0, "tm": 0, "lch": [], "bch": [], "mch": [], "mfch": [], "hc": [], "metrics": { } },
       { "name": "MiniMikuDance.PoseEstimation.PoseEstimator", "rp": "AppCore_PoseEstimator.html", "cl": 0, "ucl": 85, "cal": 85, "tl": 110, "cb": 0, "tb": 28, "cm": 0, "fcm": 0, "tm": 0, "lch": [], "bch": [], "mch": [], "mfch": [], "hc": [], "metrics": { } },
-      { "name": "MiniMikuDance.Recording.RecorderController", "rp": "AppCore_RecorderController.html", "cl": 0, "ucl": 41, "cal": 41, "tl": 68, "cb": 0, "tb": 6, "cm": 0, "fcm": 0, "tm": 0, "lch": [], "bch": [], "mch": [], "mfch": [], "hc": [], "metrics": { } },
+      { "name": "MiniMikuDance.Recording.RecorderController", "rp": "AppCore_RecorderController.html", "cl": 38, "ucl": 3, "cal": 41, "tl": 68, "cb": 5, "tb": 6, "cm": 0, "fcm": 0, "tm": 0, "lch": [], "bch": [], "mch": [], "mfch": [], "hc": [], "metrics": { } },
       { "name": "MiniMikuDance.UI.UIButton", "rp": "AppCore_UIButton.html", "cl": 0, "ucl": 2, "cal": 2, "tl": 24, "cb": 0, "tb": 0, "cm": 0, "fcm": 0, "tm": 0, "lch": [], "bch": [], "mch": [], "mfch": [], "hc": [], "metrics": { } },
-      { "name": "MiniMikuDance.UI.UIConfig", "rp": "AppCore_UIConfig.html", "cl": 0, "ucl": 6, "cal": 6, "tl": 24, "cb": 0, "tb": 0, "cm": 0, "fcm": 0, "tm": 0, "lch": [], "bch": [], "mch": [], "mfch": [], "hc": [], "metrics": { } },
-      { "name": "MiniMikuDance.UI.UIManager", "rp": "AppCore_UIManager.html", "cl": 0, "ucl": 79, "cal": 79, "tl": 127, "cb": 0, "tb": 34, "cm": 0, "fcm": 0, "tm": 0, "lch": [], "bch": [], "mch": [], "mfch": [], "hc": [], "metrics": { } },
-      { "name": "MiniMikuDance.UI.UIToggle", "rp": "AppCore_UIToggle.html", "cl": 0, "ucl": 3, "cal": 3, "tl": 24, "cb": 0, "tb": 0, "cm": 0, "fcm": 0, "tm": 0, "lch": [], "bch": [], "mch": [], "mfch": [], "hc": [], "metrics": { } },
-      { "name": "MiniMikuDance.Util.JSONUtil", "rp": "AppCore_JSONUtil.html", "cl": 0, "ucl": 40, "cal": 40, "tl": 61, "cb": 0, "tb": 10, "cm": 0, "fcm": 0, "tm": 0, "lch": [], "bch": [], "mch": [], "mfch": [], "hc": [], "metrics": { } },
-      { "name": "MiniMikuDance.Util.NumericsExtensions", "rp": "AppCore_NumericsExtensions.html", "cl": 11, "ucl": 30, "cal": 41, "tl": 65, "cb": 0, "tb": 2, "cm": 0, "fcm": 0, "tm": 0, "lch": [], "bch": [], "mch": [], "mfch": [], "hc": [], "metrics": { } },
-      { "name": "MiniMikuDance.Util.Singleton<T>", "rp": "AppCore_Singleton_1.html", "cl": 0, "ucl": 2, "cal": 2, "tl": 8, "cb": 0, "tb": 0, "cm": 0, "fcm": 0, "tm": 0, "lch": [], "bch": [], "mch": [], "mfch": [], "hc": [], "metrics": { } },
-      { "name": "MiniMikuDance.Util.Vector3JsonConverter", "rp": "AppCore_Vector3JsonConverter.html", "cl": 0, "ucl": 33, "cal": 33, "tl": 60, "cb": 0, "tb": 16, "cm": 0, "fcm": 0, "tm": 0, "lch": [], "bch": [], "mch": [], "mfch": [], "hc": [], "metrics": { } },
+      { "name": "MiniMikuDance.UI.UIConfig", "rp": "AppCore_UIConfig.html", "cl": 6, "ucl": 0, "cal": 6, "tl": 24, "cb": 0, "tb": 0, "cm": 0, "fcm": 0, "tm": 0, "lch": [], "bch": [], "mch": [], "mfch": [], "hc": [], "metrics": { } },
+      { "name": "MiniMikuDance.UI.UIManager", "rp": "AppCore_UIManager.html", "cl": 34, "ucl": 45, "cal": 79, "tl": 127, "cb": 5, "tb": 34, "cm": 0, "fcm": 0, "tm": 0, "lch": [], "bch": [], "mch": [], "mfch": [], "hc": [], "metrics": { } },
+      { "name": "MiniMikuDance.UI.UIToggle", "rp": "AppCore_UIToggle.html", "cl": 3, "ucl": 0, "cal": 3, "tl": 24, "cb": 0, "tb": 0, "cm": 0, "fcm": 0, "tm": 0, "lch": [], "bch": [], "mch": [], "mfch": [], "hc": [], "metrics": { } },
+      { "name": "MiniMikuDance.Util.JSONUtil", "rp": "AppCore_JSONUtil.html", "cl": 36, "ucl": 4, "cal": 40, "tl": 61, "cb": 6, "tb": 10, "cm": 0, "fcm": 0, "tm": 0, "lch": [], "bch": [], "mch": [], "mfch": [], "hc": [], "metrics": { } },
+      { "name": "MiniMikuDance.Util.NumericsExtensions", "rp": "AppCore_NumericsExtensions.html", "cl": 36, "ucl": 5, "cal": 41, "tl": 65, "cb": 1, "tb": 2, "cm": 0, "fcm": 0, "tm": 0, "lch": [], "bch": [], "mch": [], "mfch": [], "hc": [], "metrics": { } },
+      { "name": "MiniMikuDance.Util.Singleton<T>", "rp": "AppCore_Singleton_1.html", "cl": 2, "ucl": 0, "cal": 2, "tl": 8, "cb": 0, "tb": 0, "cm": 0, "fcm": 0, "tm": 0, "lch": [], "bch": [], "mch": [], "mfch": [], "hc": [], "metrics": { } },
+      { "name": "MiniMikuDance.Util.Vector3JsonConverter", "rp": "AppCore_Vector3JsonConverter.html", "cl": 28, "ucl": 5, "cal": 33, "tl": 60, "cb": 12, "tb": 16, "cm": 0, "fcm": 0, "tm": 0, "lch": [], "bch": [], "mch": [], "mfch": [], "hc": [], "metrics": { } },
     ]},
   {
     "name": "ViewerApp",
@@ -325,19 +325,7 @@ var riskHotspots = [
       { "value": 16, "exceeded": true },
     ]},
   {
-    "assembly": "AppCore", "class": "MiniMikuDance.Util.Vector3JsonConverter", "reportPath": "AppCore_Vector3JsonConverter.html", "methodName": "Read(System.Text.Json.Utf8JsonReader&,System.Type,System.Text.Json.JsonSerializerOptions)", "methodShortName": "Read(...)", "fileIndex": 0, "line": 14,
-    "metrics": [
-      { "value": 272, "exceeded": true },
-      { "value": 16, "exceeded": true },
-    ]},
-  {
     "assembly": "AppCore", "class": "MiniMikuDance.Motion.MotionApplier", "reportPath": "AppCore_MotionApplier.html", "methodName": "Apply(MiniMikuDance.PoseEstimation.JointData)", "methodShortName": "Apply(...)", "fileIndex": 0, "line": 45,
-    "metrics": [
-      { "value": 110, "exceeded": true },
-      { "value": 10, "exceeded": false },
-    ]},
-  {
-    "assembly": "AppCore", "class": "MiniMikuDance.Motion.MotionEditor", "reportPath": "AppCore_MotionEditor.html", "methodName": "GetNeighborKeyFrames(System.String,System.Int32)", "methodShortName": "GetNeighborKeyFrames(...)", "fileIndex": 0, "line": 129,
     "metrics": [
       { "value": 110, "exceeded": true },
       { "value": 10, "exceeded": false },
@@ -356,18 +344,6 @@ var riskHotspots = [
     ]},
   {
     "assembly": "AppCore", "class": "MiniMikuDance.Import.ModelImporter", "reportPath": "AppCore_ModelImporter.html", "methodName": "ImportModel(System.String)", "methodShortName": "ImportModel(...)", "fileIndex": 0, "line": 53,
-    "metrics": [
-      { "value": 72, "exceeded": true },
-      { "value": 8, "exceeded": false },
-    ]},
-  {
-    "assembly": "AppCore", "class": "MiniMikuDance.Motion.MotionEditor", "reportPath": "AppCore_MotionEditor.html", "methodName": "GetKeyFramesInRange(System.Collections.Generic.IEnumerable`1<System.String>,System.Int32,System.Int32)", "methodShortName": "GetKeyFramesInRange(...)", "fileIndex": 0, "line": 139,
-    "metrics": [
-      { "value": 72, "exceeded": true },
-      { "value": 8, "exceeded": false },
-    ]},
-  {
-    "assembly": "AppCore", "class": "MiniMikuDance.Motion.MotionEditor", "reportPath": "AppCore_MotionEditor.html", "methodName": "RemoveRange(System.Collections.Generic.IEnumerable`1<System.String>,System.Int32,System.Int32)", "methodShortName": "RemoveRange(...)", "fileIndex": 0, "line": 175,
     "metrics": [
       { "value": 72, "exceeded": true },
       { "value": 8, "exceeded": false },
@@ -397,36 +373,6 @@ var riskHotspots = [
       { "value": 6, "exceeded": false },
     ]},
   {
-    "assembly": "AppCore", "class": "MiniMikuDance.Motion.MotionEditor", "reportPath": "AppCore_MotionEditor.html", "methodName": "SaveState()", "methodShortName": "SaveState()", "fileIndex": 0, "line": 53,
-    "metrics": [
-      { "value": 42, "exceeded": true },
-      { "value": 6, "exceeded": false },
-    ]},
-  {
-    "assembly": "AppCore", "class": "MiniMikuDance.Motion.MotionEditor", "reportPath": "AppCore_MotionEditor.html", "methodName": "AddKeyFrame(System.String,System.Int32,System.Boolean)", "methodShortName": "AddKeyFrame(...)", "fileIndex": 0, "line": 94,
-    "metrics": [
-      { "value": 42, "exceeded": true },
-      { "value": 6, "exceeded": false },
-    ]},
-  {
-    "assembly": "AppCore", "class": "MiniMikuDance.Motion.MotionEditor", "reportPath": "AppCore_MotionEditor.html", "methodName": "RemoveKeyFrame(System.String,System.Int32,System.Boolean)", "methodShortName": "RemoveKeyFrame(...)", "fileIndex": 0, "line": 112,
-    "metrics": [
-      { "value": 42, "exceeded": true },
-      { "value": 6, "exceeded": false },
-    ]},
-  {
-    "assembly": "AppCore", "class": "MiniMikuDance.Motion.MotionEditor", "reportPath": "AppCore_MotionEditor.html", "methodName": "HasKeyFrame(System.String,System.Int32)", "methodShortName": "HasKeyFrame(...)", "fileIndex": 0, "line": 123,
-    "metrics": [
-      { "value": 42, "exceeded": true },
-      { "value": 6, "exceeded": false },
-    ]},
-  {
-    "assembly": "AppCore", "class": "MiniMikuDance.Motion.MotionEditor", "reportPath": "AppCore_MotionEditor.html", "methodName": "PasteRange(System.Int32)", "methodShortName": "PasteRange(...)", "fileIndex": 0, "line": 164,
-    "metrics": [
-      { "value": 42, "exceeded": true },
-      { "value": 6, "exceeded": false },
-    ]},
-  {
     "assembly": "AppCore", "class": "MiniMikuDance.Motion.MotionEditor", "reportPath": "AppCore_MotionEditor.html", "methodName": "EnsureFrameCount(System.Int32)", "methodShortName": "EnsureFrameCount(...)", "fileIndex": 0, "line": 191,
     "metrics": [
       { "value": 42, "exceeded": true },
@@ -437,6 +383,12 @@ var riskHotspots = [
     "metrics": [
       { "value": 42, "exceeded": true },
       { "value": 6, "exceeded": false },
+    ]},
+  {
+    "assembly": "AppCore", "class": "MiniMikuDance.Util.Vector3JsonConverter", "reportPath": "AppCore_Vector3JsonConverter.html", "methodName": "Read(System.Text.Json.Utf8JsonReader&,System.Type,System.Text.Json.JsonSerializerOptions)", "methodShortName": "Read(...)", "fileIndex": 0, "line": 14,
+    "metrics": [
+      { "value": 18, "exceeded": false },
+      { "value": 16, "exceeded": true },
     ]},
 ];
 

@@ -33,7 +33,7 @@
 </tr>
 <tr>
 <th>Coverage date:</th>
-<td class="limit-width " title="2025/07/20 - 0:11:39">2025/07/20 - 0:11:39</td>
+<td class="limit-width " title="2025/07/20 - 1:01:25">2025/07/20 - 1:01:25</td>
 </tr>
 </table>
 </div>
@@ -42,16 +42,16 @@
 <div class="card">
 <div class="card-header">Line coverage</div>
 <div class="card-body">
-<div class="large cardpercentagebar cardpercentagebar99">0%</div>
+<div class="large cardpercentagebar cardpercentagebar78">22%</div>
 <div class="table">
 <table>
 <tr>
 <th>Covered lines:</th>
-<td class="limit-width right" title="11">11</td>
+<td class="limit-width right" title="371">371</td>
 </tr>
 <tr>
 <th>Uncovered lines:</th>
-<td class="limit-width right" title="1656">1656</td>
+<td class="limit-width right" title="1296">1296</td>
 </tr>
 <tr>
 <th>Coverable lines:</th>
@@ -63,7 +63,7 @@
 </tr>
 <tr>
 <th>Line coverage:</th>
-<td class="limit-width right" title="11 of 1667">0.6%</td>
+<td class="limit-width right" title="371 of 1667">22.2%</td>
 </tr>
 </table>
 </div>
@@ -72,12 +72,12 @@
 <div class="card">
 <div class="card-header">Branch coverage</div>
 <div class="card-body">
-<div class="large cardpercentagebar cardpercentagebar100">0%</div>
+<div class="large cardpercentagebar cardpercentagebar86">14%</div>
 <div class="table">
 <table>
 <tr>
 <th>Covered branches:</th>
-<td class="limit-width right" title="0">0</td>
+<td class="limit-width right" title="89">89</td>
 </tr>
 <tr>
 <th>Total branches:</th>
@@ -85,7 +85,7 @@
 </tr>
 <tr>
 <th>Branch coverage:</th>
-<td class="limit-width right" title="0 of 622">0%</td>
+<td class="limit-width right" title="89 of 622">14.3%</td>
 </tr>
 </table>
 </div>
@@ -181,20 +181,8 @@
 </tr>
 <tr>
 <td>AppCore</td>
-<td><a href="AppCore_Vector3JsonConverter.html">MiniMikuDance.Util.Vector3JsonConverter</a></td>
-<td title="Read(System.Text.Json.Utf8JsonReader&amp;,System.Type,System.Text.Json.JsonSerializerOptions)"><a href="AppCore_Vector3JsonConverter.html#file0_line14">Read(...)</a></td><td class="lightred right">272</td>
-<td class="lightred right">16</td>
-</tr>
-<tr>
-<td>AppCore</td>
 <td><a href="AppCore_MotionApplier.html">MiniMikuDance.Motion.MotionApplier</a></td>
 <td title="Apply(MiniMikuDance.PoseEstimation.JointData)"><a href="AppCore_MotionApplier.html#file0_line45">Apply(...)</a></td><td class="lightred right">110</td>
-<td class="lightgreen right">10</td>
-</tr>
-<tr>
-<td>AppCore</td>
-<td><a href="AppCore_MotionEditor.html">MiniMikuDance.Motion.MotionEditor</a></td>
-<td title="GetNeighborKeyFrames(System.String,System.Int32)"><a href="AppCore_MotionEditor.html#file0_line129">GetNeighborKeyFrames(...)</a></td><td class="lightred right">110</td>
 <td class="lightgreen right">10</td>
 </tr>
 <tr>
@@ -217,18 +205,6 @@
 </tr>
 <tr>
 <td>AppCore</td>
-<td><a href="AppCore_MotionEditor.html">MiniMikuDance.Motion.MotionEditor</a></td>
-<td title="GetKeyFramesInRange(System.Collections.Generic.IEnumerable`1&lt;System.String&gt;,System.Int32,System.Int32)"><a href="AppCore_MotionEditor.html#file0_line139">GetKeyFramesInRange(...)</a></td><td class="lightred right">72</td>
-<td class="lightgreen right">8</td>
-</tr>
-<tr>
-<td>AppCore</td>
-<td><a href="AppCore_MotionEditor.html">MiniMikuDance.Motion.MotionEditor</a></td>
-<td title="RemoveRange(System.Collections.Generic.IEnumerable`1&lt;System.String&gt;,System.Int32,System.Int32)"><a href="AppCore_MotionEditor.html#file0_line175">RemoveRange(...)</a></td><td class="lightred right">72</td>
-<td class="lightgreen right">8</td>
-</tr>
-<tr>
-<td>AppCore</td>
 <td><a href="AppCore_PoseDebugVisualizer.html">MiniMikuDance.PoseEstimation.PoseDebugVisualizer</a></td>
 <td title="PrintNextFrame()"><a href="AppCore_PoseDebugVisualizer.html#file0_line28">PrintNextFrame()</a></td><td class="lightred right">72</td>
 <td class="lightgreen right">8</td>
@@ -238,6 +214,30 @@
 <td><a href="ViewerApp_Viewer.html">ViewerApp.Viewer</a></td>
 <td title=".ctor(System.String)"><a href="ViewerApp_Viewer.html#file0_line28">.ctor(...)</a></td><td class="lightred right">72</td>
 <td class="lightgreen right">8</td>
+</tr>
+<tr>
+<td>AppCore</td>
+<td><a href="AppCore_AppInitializer.html">MiniMikuDance.App.AppInitializer</a></td>
+<td title="LoadModel(System.String)"><a href="AppCore_AppInitializer.html#file0_line58">LoadModel(...)</a></td><td class="lightred right">42</td>
+<td class="lightgreen right">6</td>
+</tr>
+<tr>
+<td>AppCore</td>
+<td><a href="AppCore_ModelImporter.html">MiniMikuDance.Import.ModelImporter</a></td>
+<td title="ReadBones(SharpGLTF.Schema2.ModelRoot)"><a href="AppCore_ModelImporter.html#file0_line352">ReadBones(...)</a></td><td class="lightred right">42</td>
+<td class="lightgreen right">6</td>
+</tr>
+<tr>
+<td>AppCore</td>
+<td><a href="AppCore_MotionEditor.html">MiniMikuDance.Motion.MotionEditor</a></td>
+<td title="EnsureFrameCount(System.Int32)"><a href="AppCore_MotionEditor.html#file0_line191">EnsureFrameCount(...)</a></td><td class="lightred right">42</td>
+<td class="lightgreen right">6</td>
+</tr>
+<tr>
+<td>ViewerApp</td>
+<td><a href="ViewerApp_Viewer.html">ViewerApp.Viewer</a></td>
+<td title="Render()"><a href="ViewerApp_Viewer.html#file0_line186">Render()</a></td><td class="lightred right">42</td>
+<td class="lightgreen right">6</td>
 </tr>
 </tbody>
 </table>
@@ -264,12 +264,12 @@
 <tr class="header"><th></th><th colspan="6" class="center">Line coverage</th><th colspan="4" class="center">Branch coverage</th></tr>
 <tr><th>Name</th><th class="right">Covered</th><th class="right">Uncovered</th><th class="right">Coverable</th><th class="right">Total</th><th class="center" colspan="2">Percentage</th><th class="right">Covered</th><th class="right">Total</th><th class="center" colspan="2">Percentage</th></tr></thead>
 <tbody>
-<tr><th>AppCore</th><th class="right">11</th><th class="right">1312</th><th class="right">1323</th><th class="right">2722</th><th title="11/1323" class="right">0.8%</th><th><table class="coverage"><tr><td class="green covered1">&nbsp;</td><td class="red covered99">&nbsp;</td></tr></table></th><th class="right">0</th><th class="right">498</th><th class="right" title="0/498">0%</th><th><table class="coverage"><tr><td class="red covered100">&nbsp;</td></tr></table></th></tr>
+<tr><th>AppCore</th><th class="right">371</th><th class="right">952</th><th class="right">1323</th><th class="right">2722</th><th title="371/1323" class="right">28%</th><th><table class="coverage"><tr><td class="green covered28">&nbsp;</td><td class="red covered72">&nbsp;</td></tr></table></th><th class="right">89</th><th class="right">498</th><th class="right" title="89/498">17.8%</th><th><table class="coverage"><tr><td class="green covered18">&nbsp;</td><td class="red covered82">&nbsp;</td></tr></table></th></tr>
 <tr><td><a href="AppCore_AppInitializer.html">MiniMikuDance.App.AppInitializer</a></td><td class="right">0</td><td class="right">110</td><td class="right">110</td><td class="right">159</td><td title="0/110" class="right">0%</td><td><table class="coverage"><tr><td class="red covered100">&nbsp;</td></tr></table></td><td class="right">0</td><td class="right">30</td><td class="right" title="0/30">0%</td><td><table class="coverage"><tr><td class="red covered100">&nbsp;</td></tr></table></td></tr>
 <tr><td><a href="AppCore_AppSettings.html">MiniMikuDance.App.AppSettings</a></td><td class="right">0</td><td class="right">10</td><td class="right">10</td><td class="right">40</td><td title="0/10" class="right">0%</td><td><table class="coverage"><tr><td class="red covered100">&nbsp;</td></tr></table></td><td class="right">0</td><td class="right">0</td><td class="right" title="-"></td><td><table class="coverage"><tr><td class="gray covered100">&nbsp;</td></tr></table></td></tr>
-<tr><td><a href="AppCore_ARPoseManager.html">MiniMikuDance.Camera.ARPoseManager</a></td><td class="right">0</td><td class="right">10</td><td class="right">10</td><td class="right">30</td><td title="0/10" class="right">0%</td><td><table class="coverage"><tr><td class="red covered100">&nbsp;</td></tr></table></td><td class="right">0</td><td class="right">0</td><td class="right" title="-"></td><td><table class="coverage"><tr><td class="gray covered100">&nbsp;</td></tr></table></td></tr>
-<tr><td><a href="AppCore_CameraController.html">MiniMikuDance.Camera.CameraController</a></td><td class="right">0</td><td class="right">22</td><td class="right">22</td><td class="right">42</td><td title="0/22" class="right">0%</td><td><table class="coverage"><tr><td class="red covered100">&nbsp;</td></tr></table></td><td class="right">0</td><td class="right">2</td><td class="right" title="0/2">0%</td><td><table class="coverage"><tr><td class="red covered100">&nbsp;</td></tr></table></td></tr>
-<tr><td><a href="AppCore_DataManager.html">MiniMikuDance.Data.DataManager</a></td><td class="right">0</td><td class="right">14</td><td class="right">14</td><td class="right">27</td><td title="0/14" class="right">0%</td><td><table class="coverage"><tr><td class="red covered100">&nbsp;</td></tr></table></td><td class="right">0</td><td class="right">2</td><td class="right" title="0/2">0%</td><td><table class="coverage"><tr><td class="red covered100">&nbsp;</td></tr></table></td></tr>
+<tr><td><a href="AppCore_ARPoseManager.html">MiniMikuDance.Camera.ARPoseManager</a></td><td class="right">10</td><td class="right">0</td><td class="right">10</td><td class="right">30</td><td title="10/10" class="right">100%</td><td><table class="coverage"><tr><td class="green covered100">&nbsp;</td></tr></table></td><td class="right">0</td><td class="right">0</td><td class="right" title="-"></td><td><table class="coverage"><tr><td class="gray covered100">&nbsp;</td></tr></table></td></tr>
+<tr><td><a href="AppCore_CameraController.html">MiniMikuDance.Camera.CameraController</a></td><td class="right">22</td><td class="right">0</td><td class="right">22</td><td class="right">42</td><td title="22/22" class="right">100%</td><td><table class="coverage"><tr><td class="green covered100">&nbsp;</td></tr></table></td><td class="right">2</td><td class="right">2</td><td class="right" title="2/2">100%</td><td><table class="coverage"><tr><td class="green covered100">&nbsp;</td></tr></table></td></tr>
+<tr><td><a href="AppCore_DataManager.html">MiniMikuDance.Data.DataManager</a></td><td class="right">14</td><td class="right">0</td><td class="right">14</td><td class="right">27</td><td title="14/14" class="right">100%</td><td><table class="coverage"><tr><td class="green covered100">&nbsp;</td></tr></table></td><td class="right">2</td><td class="right">2</td><td class="right" title="2/2">100%</td><td><table class="coverage"><tr><td class="green covered100">&nbsp;</td></tr></table></td></tr>
 <tr><td><a href="AppCore_BoneData.html">MiniMikuDance.Import.BoneData</a></td><td class="right">0</td><td class="right">6</td><td class="right">6</td><td class="right">13</td><td title="0/6" class="right">0%</td><td><table class="coverage"><tr><td class="red covered100">&nbsp;</td></tr></table></td><td class="right">0</td><td class="right">0</td><td class="right" title="-"></td><td><table class="coverage"><tr><td class="gray covered100">&nbsp;</td></tr></table></td></tr>
 <tr><td><a href="AppCore_ModelData.html">MiniMikuDance.Import.ModelData</a></td><td class="right">0</td><td class="right">10</td><td class="right">10</td><td class="right">517</td><td title="0/10" class="right">0%</td><td><table class="coverage"><tr><td class="red covered100">&nbsp;</td></tr></table></td><td class="right">0</td><td class="right">0</td><td class="right" title="-"></td><td><table class="coverage"><tr><td class="gray covered100">&nbsp;</td></tr></table></td></tr>
 <tr><td><a href="AppCore_ModelExporter.html">MiniMikuDance.Import.ModelExporter</a></td><td class="right">0</td><td class="right">11</td><td class="right">11</td><td class="right">20</td><td title="0/11" class="right">0%</td><td><table class="coverage"><tr><td class="red covered100">&nbsp;</td></tr></table></td><td class="right">0</td><td class="right">2</td><td class="right" title="0/2">0%</td><td><table class="coverage"><tr><td class="red covered100">&nbsp;</td></tr></table></td></tr>
@@ -278,22 +278,22 @@
 <tr><td><a href="AppCore_VrmInfo.html">MiniMikuDance.Import.VrmInfo</a></td><td class="right">0</td><td class="right">12</td><td class="right">12</td><td class="right">17</td><td title="0/12" class="right">0%</td><td><table class="coverage"><tr><td class="red covered100">&nbsp;</td></tr></table></td><td class="right">0</td><td class="right">0</td><td class="right" title="-"></td><td><table class="coverage"><tr><td class="gray covered100">&nbsp;</td></tr></table></td></tr>
 <tr><td><a href="AppCore_BvhExporter.html">MiniMikuDance.Motion.BvhExporter</a></td><td class="right">0</td><td class="right">21</td><td class="right">21</td><td class="right">32</td><td title="0/21" class="right">0%</td><td><table class="coverage"><tr><td class="red covered100">&nbsp;</td></tr></table></td><td class="right">0</td><td class="right">4</td><td class="right" title="0/4">0%</td><td><table class="coverage"><tr><td class="red covered100">&nbsp;</td></tr></table></td></tr>
 <tr><td><a href="AppCore_MotionApplier.html">MiniMikuDance.Motion.MotionApplier</a></td><td class="right">0</td><td class="right">48</td><td class="right">48</td><td class="right">67</td><td title="0/48" class="right">0%</td><td><table class="coverage"><tr><td class="red covered100">&nbsp;</td></tr></table></td><td class="right">0</td><td class="right">12</td><td class="right" title="0/12">0%</td><td><table class="coverage"><tr><td class="red covered100">&nbsp;</td></tr></table></td></tr>
-<tr><td><a href="AppCore_MotionData.html">MiniMikuDance.Motion.MotionData</a></td><td class="right">0</td><td class="right">3</td><td class="right">3</td><td class="right">106</td><td title="0/3" class="right">0%</td><td><table class="coverage"><tr><td class="red covered100">&nbsp;</td></tr></table></td><td class="right">0</td><td class="right">0</td><td class="right" title="-"></td><td><table class="coverage"><tr><td class="gray covered100">&nbsp;</td></tr></table></td></tr>
-<tr><td><a href="AppCore_MotionEditor.html">MiniMikuDance.Motion.MotionEditor</a></td><td class="right">0</td><td class="right">155</td><td class="right">155</td><td class="right">209</td><td title="0/155" class="right">0%</td><td><table class="coverage"><tr><td class="red covered100">&nbsp;</td></tr></table></td><td class="right">0</td><td class="right">74</td><td class="right" title="0/74">0%</td><td><table class="coverage"><tr><td class="red covered100">&nbsp;</td></tr></table></td></tr>
+<tr><td><a href="AppCore_MotionData.html">MiniMikuDance.Motion.MotionData</a></td><td class="right">3</td><td class="right">0</td><td class="right">3</td><td class="right">106</td><td title="3/3" class="right">100%</td><td><table class="coverage"><tr><td class="green covered100">&nbsp;</td></tr></table></td><td class="right">0</td><td class="right">0</td><td class="right" title="-"></td><td><table class="coverage"><tr><td class="gray covered100">&nbsp;</td></tr></table></td></tr>
+<tr><td><a href="AppCore_MotionEditor.html">MiniMikuDance.Motion.MotionEditor</a></td><td class="right">136</td><td class="right">19</td><td class="right">155</td><td class="right">209</td><td title="136/155" class="right">87.7%</td><td><table class="coverage"><tr><td class="green covered88">&nbsp;</td><td class="red covered12">&nbsp;</td></tr></table></td><td class="right">56</td><td class="right">74</td><td class="right" title="56/74">75.6%</td><td><table class="coverage"><tr><td class="green covered76">&nbsp;</td><td class="red covered24">&nbsp;</td></tr></table></td></tr>
 <tr><td><a href="AppCore_MotionGenerator.html">MiniMikuDance.Motion.MotionGenerator</a></td><td class="right">0</td><td class="right">73</td><td class="right">73</td><td class="right">106</td><td title="0/73" class="right">0%</td><td><table class="coverage"><tr><td class="red covered100">&nbsp;</td></tr></table></td><td class="right">0</td><td class="right">20</td><td class="right" title="0/20">0%</td><td><table class="coverage"><tr><td class="red covered100">&nbsp;</td></tr></table></td></tr>
 <tr><td><a href="AppCore_MotionPlayer.html">MiniMikuDance.Motion.MotionPlayer</a></td><td class="right">0</td><td class="right">51</td><td class="right">51</td><td class="right">82</td><td title="0/51" class="right">0%</td><td><table class="coverage"><tr><td class="red covered100">&nbsp;</td></tr></table></td><td class="right">0</td><td class="right">24</td><td class="right" title="0/24">0%</td><td><table class="coverage"><tr><td class="red covered100">&nbsp;</td></tr></table></td></tr>
-<tr><td><a href="AppCore_JointData.html">MiniMikuDance.PoseEstimation.JointData</a></td><td class="right">0</td><td class="right">3</td><td class="right">3</td><td class="right">110</td><td title="0/3" class="right">0%</td><td><table class="coverage"><tr><td class="red covered100">&nbsp;</td></tr></table></td><td class="right">0</td><td class="right">0</td><td class="right" title="-"></td><td><table class="coverage"><tr><td class="gray covered100">&nbsp;</td></tr></table></td></tr>
+<tr><td><a href="AppCore_JointData.html">MiniMikuDance.PoseEstimation.JointData</a></td><td class="right">3</td><td class="right">0</td><td class="right">3</td><td class="right">110</td><td title="3/3" class="right">100%</td><td><table class="coverage"><tr><td class="green covered100">&nbsp;</td></tr></table></td><td class="right">0</td><td class="right">0</td><td class="right" title="-"></td><td><table class="coverage"><tr><td class="gray covered100">&nbsp;</td></tr></table></td></tr>
 <tr><td><a href="AppCore_PoseDebugVisualizer.html">MiniMikuDance.PoseEstimation.PoseDebugVisualizer</a></td><td class="right">0</td><td class="right">16</td><td class="right">16</td><td class="right">42</td><td title="0/16" class="right">0%</td><td><table class="coverage"><tr><td class="red covered100">&nbsp;</td></tr></table></td><td class="right">0</td><td class="right">10</td><td class="right" title="0/10">0%</td><td><table class="coverage"><tr><td class="red covered100">&nbsp;</td></tr></table></td></tr>
 <tr><td><a href="AppCore_PoseEstimator.html">MiniMikuDance.PoseEstimation.PoseEstimator</a></td><td class="right">0</td><td class="right">85</td><td class="right">85</td><td class="right">110</td><td title="0/85" class="right">0%</td><td><table class="coverage"><tr><td class="red covered100">&nbsp;</td></tr></table></td><td class="right">0</td><td class="right">28</td><td class="right" title="0/28">0%</td><td><table class="coverage"><tr><td class="red covered100">&nbsp;</td></tr></table></td></tr>
-<tr><td><a href="AppCore_RecorderController.html">MiniMikuDance.Recording.RecorderController</a></td><td class="right">0</td><td class="right">41</td><td class="right">41</td><td class="right">68</td><td title="0/41" class="right">0%</td><td><table class="coverage"><tr><td class="red covered100">&nbsp;</td></tr></table></td><td class="right">0</td><td class="right">6</td><td class="right" title="0/6">0%</td><td><table class="coverage"><tr><td class="red covered100">&nbsp;</td></tr></table></td></tr>
+<tr><td><a href="AppCore_RecorderController.html">MiniMikuDance.Recording.RecorderController</a></td><td class="right">38</td><td class="right">3</td><td class="right">41</td><td class="right">68</td><td title="38/41" class="right">92.6%</td><td><table class="coverage"><tr><td class="green covered93">&nbsp;</td><td class="red covered7">&nbsp;</td></tr></table></td><td class="right">5</td><td class="right">6</td><td class="right" title="5/6">83.3%</td><td><table class="coverage"><tr><td class="green covered83">&nbsp;</td><td class="red covered17">&nbsp;</td></tr></table></td></tr>
 <tr><td><a href="AppCore_UIButton.html">MiniMikuDance.UI.UIButton</a></td><td class="right">0</td><td class="right">2</td><td class="right">2</td><td class="right">24</td><td title="0/2" class="right">0%</td><td><table class="coverage"><tr><td class="red covered100">&nbsp;</td></tr></table></td><td class="right">0</td><td class="right">0</td><td class="right" title="-"></td><td><table class="coverage"><tr><td class="gray covered100">&nbsp;</td></tr></table></td></tr>
-<tr><td><a href="AppCore_UIConfig.html">MiniMikuDance.UI.UIConfig</a></td><td class="right">0</td><td class="right">6</td><td class="right">6</td><td class="right">24</td><td title="0/6" class="right">0%</td><td><table class="coverage"><tr><td class="red covered100">&nbsp;</td></tr></table></td><td class="right">0</td><td class="right">0</td><td class="right" title="-"></td><td><table class="coverage"><tr><td class="gray covered100">&nbsp;</td></tr></table></td></tr>
-<tr><td><a href="AppCore_UIManager.html">MiniMikuDance.UI.UIManager</a></td><td class="right">0</td><td class="right">79</td><td class="right">79</td><td class="right">127</td><td title="0/79" class="right">0%</td><td><table class="coverage"><tr><td class="red covered100">&nbsp;</td></tr></table></td><td class="right">0</td><td class="right">34</td><td class="right" title="0/34">0%</td><td><table class="coverage"><tr><td class="red covered100">&nbsp;</td></tr></table></td></tr>
-<tr><td><a href="AppCore_UIToggle.html">MiniMikuDance.UI.UIToggle</a></td><td class="right">0</td><td class="right">3</td><td class="right">3</td><td class="right">24</td><td title="0/3" class="right">0%</td><td><table class="coverage"><tr><td class="red covered100">&nbsp;</td></tr></table></td><td class="right">0</td><td class="right">0</td><td class="right" title="-"></td><td><table class="coverage"><tr><td class="gray covered100">&nbsp;</td></tr></table></td></tr>
-<tr><td><a href="AppCore_JSONUtil.html">MiniMikuDance.Util.JSONUtil</a></td><td class="right">0</td><td class="right">40</td><td class="right">40</td><td class="right">61</td><td title="0/40" class="right">0%</td><td><table class="coverage"><tr><td class="red covered100">&nbsp;</td></tr></table></td><td class="right">0</td><td class="right">10</td><td class="right" title="0/10">0%</td><td><table class="coverage"><tr><td class="red covered100">&nbsp;</td></tr></table></td></tr>
-<tr><td><a href="AppCore_NumericsExtensions.html">MiniMikuDance.Util.NumericsExtensions</a></td><td class="right">11</td><td class="right">30</td><td class="right">41</td><td class="right">65</td><td title="11/41" class="right">26.8%</td><td><table class="coverage"><tr><td class="green covered27">&nbsp;</td><td class="red covered73">&nbsp;</td></tr></table></td><td class="right">0</td><td class="right">2</td><td class="right" title="0/2">0%</td><td><table class="coverage"><tr><td class="red covered100">&nbsp;</td></tr></table></td></tr>
-<tr><td><a href="AppCore_Singleton_1.html">MiniMikuDance.Util.Singleton&lt;T&gt;</a></td><td class="right">0</td><td class="right">2</td><td class="right">2</td><td class="right">8</td><td title="0/2" class="right">0%</td><td><table class="coverage"><tr><td class="red covered100">&nbsp;</td></tr></table></td><td class="right">0</td><td class="right">0</td><td class="right" title="-"></td><td><table class="coverage"><tr><td class="gray covered100">&nbsp;</td></tr></table></td></tr>
-<tr><td><a href="AppCore_Vector3JsonConverter.html">MiniMikuDance.Util.Vector3JsonConverter</a></td><td class="right">0</td><td class="right">33</td><td class="right">33</td><td class="right">60</td><td title="0/33" class="right">0%</td><td><table class="coverage"><tr><td class="red covered100">&nbsp;</td></tr></table></td><td class="right">0</td><td class="right">16</td><td class="right" title="0/16">0%</td><td><table class="coverage"><tr><td class="red covered100">&nbsp;</td></tr></table></td></tr>
+<tr><td><a href="AppCore_UIConfig.html">MiniMikuDance.UI.UIConfig</a></td><td class="right">6</td><td class="right">0</td><td class="right">6</td><td class="right">24</td><td title="6/6" class="right">100%</td><td><table class="coverage"><tr><td class="green covered100">&nbsp;</td></tr></table></td><td class="right">0</td><td class="right">0</td><td class="right" title="-"></td><td><table class="coverage"><tr><td class="gray covered100">&nbsp;</td></tr></table></td></tr>
+<tr><td><a href="AppCore_UIManager.html">MiniMikuDance.UI.UIManager</a></td><td class="right">34</td><td class="right">45</td><td class="right">79</td><td class="right">127</td><td title="34/79" class="right">43%</td><td><table class="coverage"><tr><td class="green covered43">&nbsp;</td><td class="red covered57">&nbsp;</td></tr></table></td><td class="right">5</td><td class="right">34</td><td class="right" title="5/34">14.7%</td><td><table class="coverage"><tr><td class="green covered15">&nbsp;</td><td class="red covered85">&nbsp;</td></tr></table></td></tr>
+<tr><td><a href="AppCore_UIToggle.html">MiniMikuDance.UI.UIToggle</a></td><td class="right">3</td><td class="right">0</td><td class="right">3</td><td class="right">24</td><td title="3/3" class="right">100%</td><td><table class="coverage"><tr><td class="green covered100">&nbsp;</td></tr></table></td><td class="right">0</td><td class="right">0</td><td class="right" title="-"></td><td><table class="coverage"><tr><td class="gray covered100">&nbsp;</td></tr></table></td></tr>
+<tr><td><a href="AppCore_JSONUtil.html">MiniMikuDance.Util.JSONUtil</a></td><td class="right">36</td><td class="right">4</td><td class="right">40</td><td class="right">61</td><td title="36/40" class="right">90%</td><td><table class="coverage"><tr><td class="green covered90">&nbsp;</td><td class="red covered10">&nbsp;</td></tr></table></td><td class="right">6</td><td class="right">10</td><td class="right" title="6/10">60%</td><td><table class="coverage"><tr><td class="green covered60">&nbsp;</td><td class="red covered40">&nbsp;</td></tr></table></td></tr>
+<tr><td><a href="AppCore_NumericsExtensions.html">MiniMikuDance.Util.NumericsExtensions</a></td><td class="right">36</td><td class="right">5</td><td class="right">41</td><td class="right">65</td><td title="36/41" class="right">87.8%</td><td><table class="coverage"><tr><td class="green covered88">&nbsp;</td><td class="red covered12">&nbsp;</td></tr></table></td><td class="right">1</td><td class="right">2</td><td class="right" title="1/2">50%</td><td><table class="coverage"><tr><td class="green covered50">&nbsp;</td><td class="red covered50">&nbsp;</td></tr></table></td></tr>
+<tr><td><a href="AppCore_Singleton_1.html">MiniMikuDance.Util.Singleton&lt;T&gt;</a></td><td class="right">2</td><td class="right">0</td><td class="right">2</td><td class="right">8</td><td title="2/2" class="right">100%</td><td><table class="coverage"><tr><td class="green covered100">&nbsp;</td></tr></table></td><td class="right">0</td><td class="right">0</td><td class="right" title="-"></td><td><table class="coverage"><tr><td class="gray covered100">&nbsp;</td></tr></table></td></tr>
+<tr><td><a href="AppCore_Vector3JsonConverter.html">MiniMikuDance.Util.Vector3JsonConverter</a></td><td class="right">28</td><td class="right">5</td><td class="right">33</td><td class="right">60</td><td title="28/33" class="right">84.8%</td><td><table class="coverage"><tr><td class="green covered85">&nbsp;</td><td class="red covered15">&nbsp;</td></tr></table></td><td class="right">12</td><td class="right">16</td><td class="right" title="12/16">75%</td><td><table class="coverage"><tr><td class="green covered75">&nbsp;</td><td class="red covered25">&nbsp;</td></tr></table></td></tr>
 <tr><th>ViewerApp</th><th class="right">0</th><th class="right">344</th><th class="right">344</th><th class="right">769</th><th title="0/344" class="right">0%</th><th><table class="coverage"><tr><td class="red covered100">&nbsp;</td></tr></table></th><th class="right">0</th><th class="right">124</th><th class="right" title="0/124">0%</th><th><table class="coverage"><tr><td class="red covered100">&nbsp;</td></tr></table></th></tr>
 <tr><td><a href="ViewerApp_Viewer.html">ViewerApp.Viewer</a></td><td class="right">0</td><td class="right">168</td><td class="right">168</td><td class="right">254</td><td title="0/168" class="right">0%</td><td><table class="coverage"><tr><td class="red covered100">&nbsp;</td></tr></table></td><td class="right">0</td><td class="right">26</td><td class="right" title="0/26">0%</td><td><table class="coverage"><tr><td class="red covered100">&nbsp;</td></tr></table></td></tr>
 <tr><td><a href="ViewerApp_VrmLoader.html">ViewerApp.VrmLoader</a></td><td class="right">0</td><td class="right">91</td><td class="right">91</td><td class="right">140</td><td title="0/91" class="right">0%</td><td><table class="coverage"><tr><td class="red covered100">&nbsp;</td></tr></table></td><td class="right">0</td><td class="right">42</td><td class="right" title="0/42">0%</td><td><table class="coverage"><tr><td class="red covered100">&nbsp;</td></tr></table></td></tr>
@@ -304,7 +304,7 @@
 </table>
 </div>
 </coverage-info>
-<div class="footer">Generated by: ReportGenerator 5.4.9.0<br />2025/07/20 - 0:17:43<br /><a href="https://github.com/danielpalme/ReportGenerator">GitHub</a> | <a href="https://reportgenerator.io">reportgenerator.io</a></div></div></div>
+<div class="footer">Generated by: ReportGenerator 5.4.9.0<br />2025/07/20 - 1:01:43<br /><a href="https://github.com/danielpalme/ReportGenerator">GitHub</a> | <a href="https://reportgenerator.io">reportgenerator.io</a></div></div></div>
 <script type="text/javascript">
 /* <![CDATA[ */
 (function() {
