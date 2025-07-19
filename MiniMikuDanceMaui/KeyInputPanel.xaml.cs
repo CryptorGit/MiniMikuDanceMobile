@@ -61,6 +61,9 @@ private Func<string, int, Vector3>? _getRotation;
         _isEditMode = isEditMode;
         _getTranslation = getTranslation;
         _getRotation = getRotation;
+
+        // Update title based on mode
+        TitleLabel.Text = isEditMode ? "Edit Keyframe" : "Add Keyframe";
         if (isEditMode)
         {
             FrameEntryGrid.IsVisible = false;
