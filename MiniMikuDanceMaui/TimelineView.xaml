@@ -51,8 +51,7 @@
                         WidthRequest="{x:Static local:TimelineView.LeftPanelWidth}"
                         Orientation="Vertical"
                         VerticalScrollBarVisibility="Never"
-                        HeightRequest="{Binding TimelinePixelHeight}"
-                        VerticalOptions="Start">
+                        VerticalOptions="FillAndExpand">
                 <skia:SKCanvasView x:Name="BoneNameCanvas"
                                    HeightRequest="{Binding TimelinePixelHeight}"
                                    PaintSurface="OnBoneNamePaintSurface"
@@ -66,8 +65,7 @@
                         Orientation="Vertical"
                         VerticalScrollBarVisibility="Always"
                         HorizontalScrollBarVisibility="Never"
-                        HeightRequest="{Binding TimelinePixelHeight}"
-                        VerticalOptions="Start">
+                        VerticalOptions="FillAndExpand">
                 <skia:SKCanvasView x:Name="TimelineContentCanvas"
                                    WidthRequest="{Binding TimelinePixelWidth}"
                                    HeightRequest="{Binding TimelinePixelHeight}"
