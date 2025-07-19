@@ -26,6 +26,7 @@ public partial class TimelineView : ContentView
     private readonly SKFont _boneNameFont;
     private readonly SKFont _headerFont;
     private readonly float _density = (float)DeviceDisplay.Current.MainDisplayInfo.Density;
+    private double _lastWidth = -1;
     private int _currentFrame = 0;
     private bool _isScrolling = false;
     private float _scrollX = 0;
@@ -167,6 +168,18 @@ public partial class TimelineView : ContentView
             }
         }
 #endif
+    }
+
+    protected override void OnSizeAllocated(double width, double height)
+    {
+        base.OnSizeAllocated(width, height);
+        if (width <= 0 || Math.Abs(width - _lastWidth) < 0.1)
+            return;
+
+        _lastWidth = width;
+        FrameWidth = (width - LeftPanelWidth) / VisibleColumns;
+        UpdateCanvasSizes();
+        InvalidateAll();
     }
 
     private void OnTimelineContentScrolled(object? sender, ScrolledEventArgs e)
