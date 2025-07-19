@@ -263,7 +263,7 @@ public partial class TimelineView : ContentView
             canvas.DrawText(text, x + 2, height - 2, _headerFont, numberPaint);
         }
 
-        int displayFrame = Math.Min(CurrentFrame, PlayheadStopColumn);
+        int displayFrame = CurrentFrame;
         float markerX = (float)(displayFrame * FrameWidth + FrameWidth / 2);
         canvas.DrawLine(markerX, 0, markerX, height, markerPaint);
     }
@@ -352,7 +352,7 @@ public partial class TimelineView : ContentView
             }
         }
 
-        int displayFrame = Math.Min(CurrentFrame, PlayheadStopColumn);
+        int displayFrame = CurrentFrame;
         float playX = (float)(displayFrame * FrameWidth + FrameWidth / 2);
         canvas.DrawLine(playX, 0, playX, _boneNames.Count * (float)RowHeight, playheadPaint);
     }
