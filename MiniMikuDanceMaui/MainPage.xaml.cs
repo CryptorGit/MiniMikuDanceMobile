@@ -1230,6 +1230,11 @@ private void OnKeyBoneChanged(int index)
                 KeyPanel.SetTranslation(tv.GetNearestTranslation(boneName, frame));
                 KeyPanel.SetRotation(tv.GetNearestRotation(boneName, frame));
             }
+            else
+            {
+                KeyPanel.SetTranslation(Vector3.Zero);
+                KeyPanel.SetRotation(Vector3.Zero);
+            }
 
             KeyPanel.SetFrameOptions(tv.GetKeyframesForBone(boneName));
         }
@@ -1285,6 +1290,11 @@ private void OnKeyFrameChanged(int frame)
                     KeyPanel.SetTranslation(tv.GetNearestTranslation(bone, frame));
                     KeyPanel.SetRotation(tv.GetNearestRotation(bone, frame));
                 }
+            }
+            else
+            {
+                KeyPanel.SetTranslation(Vector3.Zero);
+                KeyPanel.SetRotation(Vector3.Zero);
             }
         }
         return;
