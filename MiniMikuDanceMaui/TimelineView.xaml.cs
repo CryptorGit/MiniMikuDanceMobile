@@ -296,7 +296,7 @@ public partial class TimelineView : ContentView
             {
                 canvas.DrawRect(0, y, width, (float)RowHeight, selectedRowPaint);
             }
-            else if (i % 2 == 1)
+            else if (i % 2 == 0)
             {
                 canvas.DrawRect(0, y, width, (float)RowHeight, altRowPaint);
             }
@@ -327,7 +327,7 @@ public partial class TimelineView : ContentView
         for (int i = 0; i < _boneNames.Count; i++)
         {
             float y = (float)(i * RowHeight);
-            if (i % 2 == 1)
+            if (i % 2 == 0)
                 canvas.DrawRect(0, y, totalWidth, (float)RowHeight, altRowPaint);
             canvas.DrawLine(0, y + (float)RowHeight, totalWidth, y + (float)RowHeight, linePaint);
         }
