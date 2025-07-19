@@ -729,15 +729,17 @@ private void ShowBottomFeature(string name)
                     timelineView.SelectedKeyInputBoneIndex = KeyPanel.SelectedBoneIndex;
                 }
             };
-            tv.DeleteKeyClicked += (s, e) =>
-            {
-                DeletePanel.IsVisible = true;
-                if (s is TimelineView timelineView)
-                {
+           tv.DeleteKeyClicked += (s, e) =>
+           {
+               DeletePanel.IsVisible = true;
+               if (s is TimelineView timelineView)
+               {
                     DeletePanel.SetBones(timelineView.BoneNames);
-                    DeletePanel.SetFrames(timelineView.GetKeyframesForBone(timelineView.BoneNames[KeyPanel.SelectedBoneIndex]));
-                }
-            };
+                    var defaultBone = timelineView.BoneNames.First();
+                    DeletePanel.SetFrames(timelineView.GetKeyframesForBone(defaultBone));
+                    timelineView.SelectedKeyInputBoneIndex = DeletePanel.SelectedBoneIndex;
+               }
+           };
             view = tv;
         }
         else if (name == "MTOON")
@@ -1258,6 +1260,7 @@ private void OnDeleteBoneChanged(int index)
     if (_currentModel == null) return;
     if (_bottomViews.TryGetValue("TIMELINE", out var timelineView) && timelineView is TimelineView tv)
     {
+        tv.SelectedKeyInputBoneIndex = index;
         if (index >= 0 && index < tv.BoneNames.Count)
         {
             var bone = tv.BoneNames[index];
