@@ -491,8 +491,6 @@ private void UpdateLayout()
     AbsoluteLayout.SetLayoutBounds(Viewer, new Rect(0, 0, viewerWidth, viewerHeight));
     AbsoluteLayout.SetLayoutFlags(Viewer, AbsoluteLayoutFlags.None);
 
-    // Position BottomRegion at the bottom of the page and account for safe area
-    // padding by extending its height instead of offsetting its position.
     Thickness safe = this.Padding;
     AbsoluteLayout.SetLayoutBounds(BottomRegion,
         new Rect(0,
