@@ -77,6 +77,10 @@ public partial class TimelineView : ContentView
             {
                 _keyframes.Clear();
             }
+            BoneSelectPicker.ItemsSource = _boneNames;
+            BoneSelectPicker.SelectedIndex = _boneNames.Count > 0
+                ? Math.Min(_selectedKeyInputBoneIndex, _boneNames.Count - 1)
+                : -1;
             UpdateCanvasSizes();
             InvalidateAll();
         }
@@ -92,6 +96,8 @@ public partial class TimelineView : ContentView
             if (_selectedKeyInputBoneIndex != value)
             {
                 _selectedKeyInputBoneIndex = value;
+                if (BoneSelectPicker.SelectedIndex != value)
+                    BoneSelectPicker.SelectedIndex = value;
                 InvalidateAll();
             }
         }
@@ -476,6 +482,11 @@ public partial class TimelineView : ContentView
     {
         if (CurrentFramePicker.SelectedItem is int f)
             CurrentFrame = f;
+    }
+    private void OnBoneSelectChanged(object? sender, EventArgs e)
+    {
+        if (BoneSelectPicker.SelectedIndex >= 0)
+            SelectedKeyInputBoneIndex = BoneSelectPicker.SelectedIndex;
     }
     void OnAddKeyClicked(object? sender, EventArgs e) => AddKeyClicked?.Invoke(this, EventArgs.Empty);
     void OnEditKeyClicked(object? sender, EventArgs e) => EditKeyClicked?.Invoke(this, EventArgs.Empty);

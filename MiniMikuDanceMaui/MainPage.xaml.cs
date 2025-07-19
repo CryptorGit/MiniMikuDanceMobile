@@ -705,6 +705,7 @@ private void ShowBottomFeature(string name)
                 if (s is TimelineView timelineView)
                 {
                     KeyPanel.SetBones(timelineView.BoneNames);
+                    KeyPanel.SelectedBoneIndex = timelineView.SelectedKeyInputBoneIndex;
                     KeyPanel.SetFrame(timelineView.CurrentFrame);
                     timelineView.SelectedKeyInputBoneIndex = KeyPanel.SelectedBoneIndex;
                 }
@@ -715,6 +716,7 @@ private void ShowBottomFeature(string name)
                 if (s is TimelineView timelineView)
                 {
                     KeyPanel.SetBones(timelineView.BoneNames);
+                    KeyPanel.SelectedBoneIndex = timelineView.SelectedKeyInputBoneIndex;
                     var boneName = timelineView.BoneNames[KeyPanel.SelectedBoneIndex];
                     var frames = timelineView.GetKeyframesForBone(boneName);
                     KeyPanel.SetFrame(timelineView.CurrentFrame, true, frames,
@@ -729,15 +731,18 @@ private void ShowBottomFeature(string name)
                     timelineView.SelectedKeyInputBoneIndex = KeyPanel.SelectedBoneIndex;
                 }
             };
-            tv.DeleteKeyClicked += (s, e) =>
-            {
-                DeletePanel.IsVisible = true;
-                if (s is TimelineView timelineView)
-                {
+           tv.DeleteKeyClicked += (s, e) =>
+           {
+               DeletePanel.IsVisible = true;
+               if (s is TimelineView timelineView)
+               {
                     DeletePanel.SetBones(timelineView.BoneNames);
-                    DeletePanel.SetFrames(timelineView.GetKeyframesForBone(timelineView.BoneNames[KeyPanel.SelectedBoneIndex]));
-                }
-            };
+                    DeletePanel.SelectedBoneIndex = timelineView.SelectedKeyInputBoneIndex;
+                    var bone = timelineView.BoneNames[DeletePanel.SelectedBoneIndex];
+                    DeletePanel.SetFrames(timelineView.GetKeyframesForBone(bone));
+                    timelineView.SelectedKeyInputBoneIndex = DeletePanel.SelectedBoneIndex;
+               }
+           };
             view = tv;
         }
         else if (name == "MTOON")
@@ -1258,6 +1263,7 @@ private void OnDeleteBoneChanged(int index)
     if (_currentModel == null) return;
     if (_bottomViews.TryGetValue("TIMELINE", out var timelineView) && timelineView is TimelineView tv)
     {
+        tv.SelectedKeyInputBoneIndex = index;
         if (index >= 0 && index < tv.BoneNames.Count)
         {
             var bone = tv.BoneNames[index];

@@ -9,6 +9,9 @@
     <Grid RowDefinitions="Auto,Auto,Auto,*" RowSpacing="4" Padding="4">
         <!-- Operation buttons -->
         <HorizontalStackLayout Grid.Row="0" Spacing="6" HorizontalOptions="Start">
+            <Picker x:Name="BoneSelectPicker"
+                    WidthRequest="120"
+                    SelectedIndexChanged="OnBoneSelectChanged" />
             <Button Text="Add Key"    Clicked="OnAddKeyClicked" />
             <Button Text="Edit Key"   Clicked="OnEditKeyClicked" />
             <Button Text="Delete Key" Clicked="OnDeleteKeyClicked" />
