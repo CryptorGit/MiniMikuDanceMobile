@@ -54,11 +54,7 @@ if (root.TryGetProperty("extensions", out var ext) &&
         {
             var name = m.GetProperty("name").GetString();
             var shader = m.GetProperty("shader").GetString();
-
+            Console.WriteLine($"{name}: {shader}");
         }
     }
-}
-else
-{
-
 }
