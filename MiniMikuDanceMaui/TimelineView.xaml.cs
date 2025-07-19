@@ -17,7 +17,7 @@ public partial class TimelineView : ContentView
     const int PlayheadStopColumn = 7; // 7より後はグリッドをスクロールさせる
     public static double FrameWidth { get; private set; } = 10.0;
     public static double RowHeight { get; private set; } = 30.0;
-    public const double LeftPanelWidth = 90.0;
+    public const double LeftPanelWidth = 100.0;
     const float BoneNameFontSize = 14f;
     const float HeaderFontSize = 12f;
 
@@ -303,7 +303,7 @@ public partial class TimelineView : ContentView
 
             canvas.DrawLine(0, y + (float)RowHeight, width, y + (float)RowHeight, linePaint);
             float textY = y + ((float)RowHeight - _boneNameFont.Size) / 2 + _boneNameFont.Size;
-            canvas.DrawText(_boneNames[i], 10, textY, _boneNameFont, textPaint);
+            canvas.DrawText(_boneNames[i], 4, textY, _boneNameFont, textPaint);
         }
     }
 
