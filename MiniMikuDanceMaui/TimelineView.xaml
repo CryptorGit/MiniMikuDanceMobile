@@ -32,10 +32,10 @@
         </Grid>
 
         <!-- Frame number header -->
-        <Grid Grid.Row="2" ColumnDefinitions="Auto,Auto">
+        <Grid Grid.Row="2" ColumnDefinitions="Auto,Auto" BackgroundColor="#282828">
             <BoxView Grid.Column="0"
                      WidthRequest="{x:Static local:TimelineView.LeftPanelWidth}"
-                     BackgroundColor="{StaticResource BackgroundColor}" />
+                     BackgroundColor="#282828" />
             <skia:SKCanvasView x:Name="HeaderCanvas"
                                Grid.Column="1"
                                HeightRequest="{x:Static local:TimelineView.RowHeight}"
