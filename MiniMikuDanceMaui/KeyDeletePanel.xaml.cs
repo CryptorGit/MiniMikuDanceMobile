@@ -19,17 +19,17 @@ public partial class KeyDeletePanel : ContentView
 
     public void SetBones(IEnumerable<string> bones)
     {
-        BonePicker.ItemsSource = bones.ToList();
-        if (BonePicker.ItemsSource.Cast<object>().Any())
-            BonePicker.SelectedIndex = 0;
+        var list = bones.ToList();
+        BonePicker.ItemsSource = list;
+        BonePicker.SelectedIndex = list.Any() ? 0 : -1;
         UpdateDeleteEnabled();
     }
 
     public void SetFrames(IEnumerable<int> frames)
     {
-        FramePicker.ItemsSource = frames.ToList();
-        if (FramePicker.ItemsSource.Cast<object>().Any())
-            FramePicker.SelectedIndex = 0;
+        var list = frames.ToList();
+        FramePicker.ItemsSource = list;
+        FramePicker.SelectedIndex = list.Any() ? 0 : -1;
         UpdateDeleteEnabled();
     }
 

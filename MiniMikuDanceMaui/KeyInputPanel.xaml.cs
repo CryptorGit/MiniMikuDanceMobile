@@ -15,12 +15,29 @@ public partial class KeyInputPanel : ContentView
     public KeyInputPanel()
     {
         InitializeComponent();
-        PosRangePicker.ItemsSource = new List<int> { 1, 2, 5, 10 };
-        PosRangePicker.SelectedItem = 1;
-        RotRangePicker.ItemsSource = new List<int> { 30, 45, 90, 180, 360 };
-        RotRangePicker.SelectedItem = 180;
-        OnPosRangeChanged(null, EventArgs.Empty);
-        OnRotRangeChanged(null, EventArgs.Empty);
+        var rangeValues = Enumerable.Range(0, 37).Select(i => (object)(i * 5)).ToList();
+        var centerValues = Enumerable.Range(0, 37).Select(i => (object)(-180 + i * 10)).ToList();
+        RotXControl.SetLabels("Rot", "X");
+        RotYControl.SetLabels("Rot", "Y");
+        RotZControl.SetLabels("Rot", "Z");
+        RotXControl.SetPickers(centerValues, rangeValues, 0, 180);
+        RotYControl.SetPickers(centerValues, rangeValues, 0, 180);
+        RotZControl.SetPickers(centerValues, rangeValues, 0, 180);
+        RotXControl.SetRange(-180, 180);
+        RotYControl.SetRange(-180, 180);
+        RotZControl.SetRange(-180, 180);
+
+        var posRangeValues = Enumerable.Range(0, 11).Select(i => (object)(i / 10f)).ToList();
+        var posCenterValues = Enumerable.Range(0, 21).Select(i => (object)(-1f + i * 0.1f)).ToList();
+        PosXControl.SetLabels("Pos", "X");
+        PosYControl.SetLabels("Pos", "Y");
+        PosZControl.SetLabels("Pos", "Z");
+        PosXControl.SetPickers(posCenterValues, posRangeValues, 0f, 1f);
+        PosYControl.SetPickers(posCenterValues, posRangeValues, 0f, 1f);
+        PosZControl.SetPickers(posCenterValues, posRangeValues, 0f, 1f);
+        PosXControl.SetRange(-1, 1);
+        PosYControl.SetRange(-1, 1);
+        PosZControl.SetRange(-1, 1);
         UpdateConfirmEnabled();
     }
 
@@ -33,9 +50,25 @@ public partial class KeyInputPanel : ContentView
         UpdateConfirmEnabled();
     }
 
-    public void SetFrame(int frame, bool isEditMode = false, Func<string, int, Vector3>? getTranslation = null, Func<string, int, Vector3>? getRotation = null)
+    public void SetFrame(int frame, bool isEditMode = false, IEnumerable<int>? frames = null,
+                         Func<string, int, Vector3>? getTranslation = null, Func<string, int, Vector3>? getRotation = null)
     {
-        FrameEntry.Text = frame.ToString();
+        if (isEditMode)
+        {
+            FrameEntryGrid.IsVisible = false;
+            FramePickerGrid.IsVisible = true;
+            if (frames != null)
+            {
+                FramePicker.ItemsSource = frames.ToList();
+                FramePicker.SelectedItem = frame;
+            }
+        }
+        else
+        {
+            FrameEntryGrid.IsVisible = true;
+            FramePickerGrid.IsVisible = false;
+            FrameEntry.Text = frame.ToString();
+        }
 
         if (isEditMode && getTranslation != null && getRotation != null)
         {
@@ -48,31 +81,28 @@ public partial class KeyInputPanel : ContentView
         }
     }
 
-    public int FrameNumber => int.TryParse(FrameEntry.Text, out var f) ? f : 0;
+    public int FrameNumber
+        => FramePickerGrid.IsVisible && FramePicker.SelectedItem is int f1
+            ? f1
+            : (int.TryParse(FrameEntry.Text, out var f2) ? f2 : 0);
     public int SelectedBoneIndex => BonePicker.SelectedIndex;
     public string SelectedBone => BonePicker.SelectedItem as string ?? string.Empty;
 
-    public Vector3 Translation => new((float)PosXSlider.Value, (float)PosYSlider.Value, (float)PosZSlider.Value);
-    public Vector3 EulerRotation => new((float)RotXSlider.Value, (float)RotYSlider.Value, (float)RotZSlider.Value);
+    public Vector3 Translation => new((float)PosXControl.Value, (float)PosYControl.Value, (float)PosZControl.Value);
+    public Vector3 EulerRotation => new((float)RotXControl.Value, (float)RotYControl.Value, (float)RotZControl.Value);
 
     public void SetTranslation(Vector3 t)
     {
-        PosXSlider.Value = t.X;
-        PosYSlider.Value = t.Y;
-        PosZSlider.Value = t.Z;
-        PosXLabel.Text = $"{t.X:F2}";
-        PosYLabel.Text = $"{t.Y:F2}";
-        PosZLabel.Text = $"{t.Z:F2}";
+        PosXControl.Value = t.X;
+        PosYControl.Value = t.Y;
+        PosZControl.Value = t.Z;
     }
 
     public void SetRotation(Vector3 r)
     {
-        RotXSlider.Value = r.X;
-        RotYSlider.Value = r.Y;
-        RotZSlider.Value = r.Z;
-        RotXLabel.Text = $"{r.X:F0}";
-        RotYLabel.Text = $"{r.Y:F0}";
-        RotZLabel.Text = $"{r.Z:F0}";
+        RotXControl.Value = r.X;
+        RotYControl.Value = r.Y;
+        RotZControl.Value = r.Z;
     }
 
     private void OnConfirmClicked(object? sender, EventArgs e)
@@ -87,11 +117,17 @@ public partial class KeyInputPanel : ContentView
         var applyButton = this.FindByName<Button>("ApplyButton");
         if (applyButton != null)
         {
-            applyButton.IsEnabled = BonePicker.SelectedIndex >= 0 && int.TryParse(FrameEntry.Text, out _);
+            bool frameValid = FramePickerGrid.IsVisible
+                ? FramePicker.SelectedIndex >= 0
+                : int.TryParse(FrameEntry.Text, out _);
+            applyButton.IsEnabled = BonePicker.SelectedIndex >= 0 && frameValid;
         }
     }
 
     private void OnFrameTextChanged(object? sender, TextChangedEventArgs e)
+        => UpdateConfirmEnabled();
+
+    private void OnFramePickerChanged(object? sender, EventArgs e)
         => UpdateConfirmEnabled();
 
     private void OnBoneChanged(object? sender, EventArgs e)
@@ -100,39 +136,4 @@ public partial class KeyInputPanel : ContentView
         UpdateConfirmEnabled();
     }
 
-    private void OnRotRangeChanged(object? sender, EventArgs e)
-    {
-        if (RotRangePicker.SelectedItem is int range)
-        {
-            RotXSlider.Minimum = -range; RotXSlider.Maximum = range;
-            RotYSlider.Minimum = -range; RotYSlider.Maximum = range;
-            RotZSlider.Minimum = -range; RotZSlider.Maximum = range;
-        }
-    }
-
-    private void OnPosRangeChanged(object? sender, EventArgs e)
-    {
-        if (PosRangePicker.SelectedItem is int range)
-        {
-            PosXSlider.Minimum = -range; PosXSlider.Maximum = range;
-            PosYSlider.Minimum = -range; PosYSlider.Maximum = range;
-            PosZSlider.Minimum = -range; PosZSlider.Maximum = range;
-        }
-    }
-
-    // Slider ValueChanged handlers
-    private void OnPosXChanged(object? sender, ValueChangedEventArgs e) => PosXLabel.Text = $"{e.NewValue:F2}";
-    private void OnPosYChanged(object? sender, ValueChangedEventArgs e) => PosYLabel.Text = $"{e.NewValue:F2}";
-    private void OnPosZChanged(object? sender, ValueChangedEventArgs e) => PosZLabel.Text = $"{e.NewValue:F2}";
-    private void OnRotXChanged(object? sender, ValueChangedEventArgs e) => RotXLabel.Text = $"{e.NewValue:F0}";
-    private void OnRotYChanged(object? sender, ValueChangedEventArgs e) => RotYLabel.Text = $"{e.NewValue:F0}";
-    private void OnRotZChanged(object? sender, ValueChangedEventArgs e) => RotZLabel.Text = $"{e.NewValue:F0}";
-
-    // Reset Button Clicked handlers
-    private void OnResetRotXClicked(object? sender, EventArgs e) => RotXSlider.Value = 0;
-    private void OnResetRotYClicked(object? sender, EventArgs e) => RotYSlider.Value = 0;
-    private void OnResetRotZClicked(object? sender, EventArgs e) => RotZSlider.Value = 0;
-    private void OnResetPosXClicked(object? sender, EventArgs e) => PosXSlider.Value = 0;
-    private void OnResetPosYClicked(object? sender, EventArgs e) => PosYSlider.Value = 0;
-    private void OnResetPosZClicked(object? sender, EventArgs e) => PosZSlider.Value = 0;
 }
