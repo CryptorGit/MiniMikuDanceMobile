@@ -1217,6 +1217,24 @@ private void OnKeyDeleteCancelClicked()
 private void OnKeyBoneChanged(int index)
 {
     int frame = KeyPanel.FrameNumber;
+
+    if (_bottomViews.TryGetValue("TIMELINE", out var timelineView) && timelineView is TimelineView tv)
+    {
+        tv.SelectedKeyInputBoneIndex = index;
+
+        if (index >= 0 && index < tv.BoneNames.Count)
+        {
+            var boneName = tv.BoneNames[index];
+
+            KeyPanel.SetTranslation(tv.GetBoneTranslationAtFrame(boneName, frame));
+            KeyPanel.SetRotation(tv.GetBoneRotationAtFrame(boneName, frame));
+
+            KeyPanel.SetFrameOptions(tv.GetKeyframesForBone(boneName));
+        }
+
+        return;
+    }
+
     if (_currentModel == null) return;
     if (index >= 0 && index < _currentModel.HumanoidBoneList.Count)
     {
@@ -1225,16 +1243,6 @@ private void OnKeyBoneChanged(int index)
         var r = GetBoneRotationAtFrame(boneName, frame);
         KeyPanel.SetTranslation(t);
         KeyPanel.SetRotation(r);
-    }
-
-    if (_currentFeature == "TIMELINE" && _bottomViews.TryGetValue("TIMELINE", out var timelineView) && timelineView is TimelineView tv)
-    {
-        tv.SelectedKeyInputBoneIndex = index;
-        if (index >= 0 && index < tv.BoneNames.Count)
-        {
-            var bone = tv.BoneNames[index];
-            KeyPanel.SetFrameOptions(tv.GetKeyframesForBone(bone));
-        }
     }
 }
 
@@ -1263,9 +1271,10 @@ private void OnKeyFrameChanged(int frame)
         if (boneIndex >= 0 && boneIndex < tv.BoneNames.Count)
         {
             var bone = tv.BoneNames[boneIndex];
-            KeyPanel.SetTranslation(GetBoneTranslationAtFrame(bone, frame));
-            KeyPanel.SetRotation(GetBoneRotationAtFrame(bone, frame));
+            KeyPanel.SetTranslation(tv.GetBoneTranslationAtFrame(bone, frame));
+            KeyPanel.SetRotation(tv.GetBoneRotationAtFrame(bone, frame));
         }
+        return;
     }
 }
 
