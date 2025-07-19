@@ -108,6 +108,7 @@ public partial class MainPage : ContentPage
         {
             _bottomHeightRatio = ratio;
             UpdateLayout();
+            ScrollBottomContentToTop();
         };
         setting.RotateSensitivityChanged += v =>
         {
@@ -501,6 +502,40 @@ private void UpdateLayout()
     AbsoluteLayout.SetLayoutFlags(BottomRegion, AbsoluteLayoutFlags.None);
 }
 
+private void ScrollBottomContentToTop()
+{
+    if (BottomContent.Content is Element element)
+    {
+        var sv = FindScrollView(element);
+        sv?.ScrollToAsync(0, 0, false);
+    }
+}
+
+private ScrollView? FindScrollView(Element element)
+{
+    if (element is ScrollView scroll)
+        return scroll;
+    if (element is Layout layout)
+    {
+        foreach (var child in layout.Children)
+        {
+            if (child is Element childElement)
+            {
+                var found = FindScrollView(childElement);
+                if (found != null)
+                    return found;
+            }
+        }
+    }
+    if (element is ContentView cv && cv.Content is Element content)
+    {
+        var found = FindScrollView(content);
+        if (found != null)
+            return found;
+    }
+    return null;
+}
+
 
 
 
@@ -764,6 +799,7 @@ private void ShowBottomFeature(string name)
             {
                 _bottomHeightRatio = ratio;
                 UpdateLayout();
+                ScrollBottomContentToTop();
             };
             sv.RotateSensitivityChanged += v =>
             {
