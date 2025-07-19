@@ -213,7 +213,9 @@ public partial class TimelineView : ContentView
     private void UpdateCanvasSizes()
     {
         TimelinePixelWidth  = VisibleColumns * FrameWidth;
-        TimelinePixelHeight = _boneNames.Count * RowHeight;
+        // 1行分の不可視領域を追加して、
+        // タイムライン終了ポイントで空白が表示されないようにする
+        TimelinePixelHeight = (_boneNames.Count + 1) * RowHeight;
 
         OnPropertyChanged(nameof(TimelinePixelWidth));
         OnPropertyChanged(nameof(TimelinePixelHeight));
