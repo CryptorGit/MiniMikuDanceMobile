@@ -16,9 +16,16 @@ public class ViewTests
     }
 
     [Fact]
-    public void KeyInputPanel_Initialize()
+    public void AddKeyPanel_Initialize()
     {
-        var panel = new KeyInputPanel();
+        var panel = new AddKeyPanel();
+        Assert.NotNull(panel);
+    }
+
+    [Fact]
+    public void EditKeyPanel_Initialize()
+    {
+        var panel = new EditKeyPanel();
         Assert.NotNull(panel);
     }
 

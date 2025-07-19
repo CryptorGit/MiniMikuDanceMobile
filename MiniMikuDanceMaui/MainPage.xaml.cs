@@ -128,10 +128,15 @@ public partial class MainPage : ContentPage
         };
     }
 
-    KeyPanel.Confirmed += OnKeyConfirmClicked;
-    KeyPanel.Canceled += OnKeyCancelClicked;
-    KeyPanel.BoneChanged += OnKeyBoneChanged;
-    KeyPanel.FrameChanged += OnKeyFrameChanged;
+    AddKeyPanel.Confirmed += OnAddKeyConfirmClicked;
+    AddKeyPanel.Canceled += OnAddKeyCancelClicked;
+    AddKeyPanel.BoneChanged += OnAddKeyBoneChanged;
+    AddKeyPanel.FrameChanged += OnAddKeyFrameChanged;
+
+    EditKeyPanel.Confirmed += OnEditKeyConfirmClicked;
+    EditKeyPanel.Canceled += OnEditKeyCancelClicked;
+    EditKeyPanel.BoneChanged += OnEditKeyBoneChanged;
+    EditKeyPanel.FrameChanged += OnEditKeyFrameChanged;
     DeletePanel.Confirmed += OnKeyDeleteConfirmClicked;
     DeletePanel.Canceled += OnKeyDeleteCancelClicked;
     DeletePanel.BoneChanged += OnDeleteBoneChanged;
@@ -480,8 +485,10 @@ private void UpdateLayout()
         AdaptSelectMessage.IsVisible ? AbsoluteLayout.AutoSize : 0));
     AbsoluteLayout.SetLayoutFlags(AdaptSelectMessage,
         AbsoluteLayoutFlags.XProportional | AbsoluteLayoutFlags.WidthProportional);
-    AbsoluteLayout.SetLayoutBounds(KeyPanel, new Rect(W - 300 - 20, TopMenuHeight + 20, 300, 500));
-    AbsoluteLayout.SetLayoutFlags(KeyPanel, AbsoluteLayoutFlags.None);
+    AbsoluteLayout.SetLayoutBounds(AddKeyPanel, new Rect(W - 300 - 20, TopMenuHeight + 20, 300, 500));
+    AbsoluteLayout.SetLayoutFlags(AddKeyPanel, AbsoluteLayoutFlags.None);
+    AbsoluteLayout.SetLayoutBounds(EditKeyPanel, new Rect(W - 300 - 20, TopMenuHeight + 20, 300, 500));
+    AbsoluteLayout.SetLayoutFlags(EditKeyPanel, AbsoluteLayoutFlags.None);
     AbsoluteLayout.SetLayoutBounds(DeletePanel, new Rect(W - 300 - 20, TopMenuHeight + 20, 300, 200));
     AbsoluteLayout.SetLayoutFlags(DeletePanel, AbsoluteLayoutFlags.None);
 
@@ -701,38 +708,40 @@ private void ShowBottomFeature(string name)
             tv.Model = _currentModel;
             tv.AddKeyClicked += (s, e) =>
             {
-                KeyPanel.IsVisible = true;
+                AddKeyPanel.IsVisible = true;
                 if (s is TimelineView timelineView)
                 {
                     int boneIndex = timelineView.SelectedKeyInputBoneIndex;
-                    KeyPanel.SetBones(timelineView.BoneNames);
-                    KeyPanel.SelectedBoneIndex = boneIndex;
-                    KeyPanel.SetFrame(timelineView.CurrentFrame);
-                    timelineView.SelectedKeyInputBoneIndex = KeyPanel.SelectedBoneIndex;
+                    AddKeyPanel.SetBones(timelineView.BoneNames);
+                    AddKeyPanel.SelectedBoneIndex = boneIndex;
+                    var boneName = timelineView.BoneNames.Count > boneIndex && boneIndex >= 0
+                        ? timelineView.BoneNames[boneIndex]
+                        : timelineView.SelectedBoneName;
+                    AddKeyPanel.SetFrame(timelineView.CurrentFrame, timelineView.GetKeyframesForBone(boneName));
+                    timelineView.SelectedKeyInputBoneIndex = AddKeyPanel.SelectedBoneIndex;
                 }
             };
             tv.EditKeyClicked += (s, e) =>
             {
-                KeyPanel.IsVisible = true;
+                EditKeyPanel.IsVisible = true;
                 if (s is TimelineView timelineView)
                 {
                     int boneIndex = timelineView.SelectedKeyInputBoneIndex;
-                    KeyPanel.SetBones(timelineView.BoneNames);
-                    KeyPanel.SelectedBoneIndex = boneIndex;
+                    EditKeyPanel.SetBones(timelineView.BoneNames);
+                    EditKeyPanel.SelectedBoneIndex = boneIndex;
                     var boneName = timelineView.BoneNames.Count > boneIndex && boneIndex >= 0
                         ? timelineView.BoneNames[boneIndex]
                         : timelineView.SelectedBoneName;
                     var frames = timelineView.GetKeyframesForBone(boneName);
-                    KeyPanel.SetFrame(timelineView.CurrentFrame, true, frames,
+                    EditKeyPanel.SetFrame(timelineView.CurrentFrame, frames,
                         timelineView.GetBoneTranslationAtFrame,
                         timelineView.GetBoneRotationAtFrame);
-                    // Populate KeyPanel with existing keyframe data if available
                     if (timelineView.HasKeyframe(boneName, timelineView.CurrentFrame))
                     {
-                        KeyPanel.SetTranslation(timelineView.GetBoneTranslationAtFrame(boneName, timelineView.CurrentFrame));
-                        KeyPanel.SetRotation(timelineView.GetBoneRotationAtFrame(boneName, timelineView.CurrentFrame));
+                        EditKeyPanel.SetTranslation(timelineView.GetBoneTranslationAtFrame(boneName, timelineView.CurrentFrame));
+                        EditKeyPanel.SetRotation(timelineView.GetBoneRotationAtFrame(boneName, timelineView.CurrentFrame));
                     }
-                    timelineView.SelectedKeyInputBoneIndex = KeyPanel.SelectedBoneIndex;
+                    timelineView.SelectedKeyInputBoneIndex = EditKeyPanel.SelectedBoneIndex;
                 }
             };
            tv.DeleteKeyClicked += (s, e) =>
@@ -1197,15 +1206,29 @@ private async void OnKeyConfirmClicked(string bone, int frame, Vector3 trans, Ve
             Viewer?.InvalidateSurface();
         }
     }
-    KeyPanel.IsVisible = false;
+    AddKeyPanel.IsVisible = false;
+    EditKeyPanel.IsVisible = false;
     SetLoadingIndicatorVisibilityAndLayout(false);
 }
 
 private void OnKeyCancelClicked()
 {
-    KeyPanel.IsVisible = false;
+    AddKeyPanel.IsVisible = false;
+    EditKeyPanel.IsVisible = false;
     SetLoadingIndicatorVisibilityAndLayout(false);
 }
+
+private void OnAddKeyConfirmClicked(string bone, int frame, Vector3 trans, Vector3 rot)
+    => OnKeyConfirmClicked(bone, frame, trans, rot);
+
+private void OnEditKeyConfirmClicked(string bone, int frame, Vector3 trans, Vector3 rot)
+    => OnKeyConfirmClicked(bone, frame, trans, rot);
+
+private void OnAddKeyCancelClicked()
+    => OnKeyCancelClicked();
+
+private void OnEditKeyCancelClicked()
+    => OnKeyCancelClicked();
 
 private async void OnKeyDeleteConfirmClicked(string bone, int frame)
 {
@@ -1226,9 +1249,9 @@ private void OnKeyDeleteCancelClicked()
     SetLoadingIndicatorVisibilityAndLayout(false);
 }
 
-private void OnKeyBoneChanged(int index)
+private void OnAddKeyBoneChanged(int index)
 {
-    int frame = KeyPanel.FrameNumber;
+    int frame = AddKeyPanel.FrameNumber;
 
     if (_bottomViews.TryGetValue("TIMELINE", out var timelineView) && timelineView is TimelineView tv)
     {
@@ -1239,16 +1262,14 @@ private void OnKeyBoneChanged(int index)
             var boneName = tv.BoneNames[index];
             if (tv.HasAnyKeyframe(boneName))
             {
-                KeyPanel.SetTranslation(tv.GetNearestTranslation(boneName, frame));
-                KeyPanel.SetRotation(tv.GetNearestRotation(boneName, frame));
+                AddKeyPanel.SetTranslation(tv.GetNearestTranslation(boneName, frame));
+                AddKeyPanel.SetRotation(tv.GetNearestRotation(boneName, frame));
             }
             else
             {
-                KeyPanel.SetTranslation(Vector3.Zero);
-                KeyPanel.SetRotation(Vector3.Zero);
+                AddKeyPanel.SetTranslation(Vector3.Zero);
+                AddKeyPanel.SetRotation(Vector3.Zero);
             }
-
-            KeyPanel.SetFrameOptions(tv.GetKeyframesForBone(boneName));
         }
 
         return;
@@ -1260,8 +1281,47 @@ private void OnKeyBoneChanged(int index)
         var boneName = _currentModel.HumanoidBoneList[index].Name;
         var t = GetBoneTranslationAtFrame(boneName, frame);
         var r = GetBoneRotationAtFrame(boneName, frame);
-        KeyPanel.SetTranslation(t);
-        KeyPanel.SetRotation(r);
+        AddKeyPanel.SetTranslation(t);
+        AddKeyPanel.SetRotation(r);
+    }
+}
+
+private void OnEditKeyBoneChanged(int index)
+{
+    int frame = EditKeyPanel.FrameNumber;
+
+    if (_bottomViews.TryGetValue("TIMELINE", out var timelineView) && timelineView is TimelineView tv)
+    {
+        tv.SelectedKeyInputBoneIndex = index;
+
+        if (index >= 0 && index < tv.BoneNames.Count)
+        {
+            var boneName = tv.BoneNames[index];
+            if (tv.HasAnyKeyframe(boneName))
+            {
+                EditKeyPanel.SetTranslation(tv.GetNearestTranslation(boneName, frame));
+                EditKeyPanel.SetRotation(tv.GetNearestRotation(boneName, frame));
+            }
+            else
+            {
+                EditKeyPanel.SetTranslation(Vector3.Zero);
+                EditKeyPanel.SetRotation(Vector3.Zero);
+            }
+
+            EditKeyPanel.SetFrameOptions(tv.GetKeyframesForBone(boneName));
+        }
+
+        return;
+    }
+
+    if (_currentModel == null) return;
+    if (index >= 0 && index < _currentModel.HumanoidBoneList.Count)
+    {
+        var boneName = _currentModel.HumanoidBoneList[index].Name;
+        var t = GetBoneTranslationAtFrame(boneName, frame);
+        var r = GetBoneRotationAtFrame(boneName, frame);
+        EditKeyPanel.SetTranslation(t);
+        EditKeyPanel.SetRotation(r);
     }
 }
 
@@ -1283,11 +1343,11 @@ private void OnDeleteBoneChanged(int index)
     }
 }
 
-private void OnKeyFrameChanged(int frame)
+private void OnAddKeyFrameChanged(int frame)
 {
     if (_bottomViews.TryGetValue("TIMELINE", out var timelineView) && timelineView is TimelineView tv)
     {
-        int boneIndex = KeyPanel.SelectedBoneIndex;
+        int boneIndex = AddKeyPanel.SelectedBoneIndex;
         if (boneIndex >= 0 && boneIndex < tv.BoneNames.Count)
         {
             var bone = tv.BoneNames[boneIndex];
@@ -1295,19 +1355,50 @@ private void OnKeyFrameChanged(int frame)
             {
                 if (tv.HasKeyframe(bone, frame))
                 {
-                    KeyPanel.SetTranslation(tv.GetBoneTranslationAtFrame(bone, frame));
-                    KeyPanel.SetRotation(tv.GetBoneRotationAtFrame(bone, frame));
+                    AddKeyPanel.SetTranslation(tv.GetBoneTranslationAtFrame(bone, frame));
+                    AddKeyPanel.SetRotation(tv.GetBoneRotationAtFrame(bone, frame));
                 }
                 else
                 {
-                    KeyPanel.SetTranslation(tv.GetNearestTranslation(bone, frame));
-                    KeyPanel.SetRotation(tv.GetNearestRotation(bone, frame));
+                    AddKeyPanel.SetTranslation(tv.GetNearestTranslation(bone, frame));
+                    AddKeyPanel.SetRotation(tv.GetNearestRotation(bone, frame));
                 }
             }
             else
             {
-                KeyPanel.SetTranslation(Vector3.Zero);
-                KeyPanel.SetRotation(Vector3.Zero);
+                AddKeyPanel.SetTranslation(Vector3.Zero);
+                AddKeyPanel.SetRotation(Vector3.Zero);
+            }
+        }
+        return;
+    }
+}
+
+private void OnEditKeyFrameChanged(int frame)
+{
+    if (_bottomViews.TryGetValue("TIMELINE", out var timelineView) && timelineView is TimelineView tv)
+    {
+        int boneIndex = EditKeyPanel.SelectedBoneIndex;
+        if (boneIndex >= 0 && boneIndex < tv.BoneNames.Count)
+        {
+            var bone = tv.BoneNames[boneIndex];
+            if (tv.HasAnyKeyframe(bone))
+            {
+                if (tv.HasKeyframe(bone, frame))
+                {
+                    EditKeyPanel.SetTranslation(tv.GetBoneTranslationAtFrame(bone, frame));
+                    EditKeyPanel.SetRotation(tv.GetBoneRotationAtFrame(bone, frame));
+                }
+                else
+                {
+                    EditKeyPanel.SetTranslation(tv.GetNearestTranslation(bone, frame));
+                    EditKeyPanel.SetRotation(tv.GetNearestRotation(bone, frame));
+                }
+            }
+            else
+            {
+                EditKeyPanel.SetTranslation(Vector3.Zero);
+                EditKeyPanel.SetRotation(Vector3.Zero);
             }
         }
         return;

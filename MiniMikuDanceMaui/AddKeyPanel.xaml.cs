@@ -6,18 +6,17 @@ using OpenTK.Mathematics;
 
 namespace MiniMikuDanceMaui;
 
-public partial class KeyInputPanel : ContentView
+public partial class AddKeyPanel : ContentView
 {
 public event Action<string, int, Vector3, Vector3>? Confirmed;
 public event Action? Canceled;
 public event Action<int>? BoneChanged;
 public event Action<int>? FrameChanged;
 
-private bool _isEditMode;
 private Func<string, int, Vector3>? _getTranslation;
 private Func<string, int, Vector3>? _getRotation;
 
-    public KeyInputPanel()
+    public AddKeyPanel()
     {
         InitializeComponent();
         var rangeValues = Enumerable.Range(0, 37).Select(i => (object)(i * 5)).ToList();
@@ -55,59 +54,24 @@ private Func<string, int, Vector3>? _getRotation;
         UpdateConfirmEnabled();
     }
 
-    public void SetFrame(int frame, bool isEditMode = false, IEnumerable<int>? frames = null,
-                         Func<string, int, Vector3>? getTranslation = null, Func<string, int, Vector3>? getRotation = null)
+    public void SetFrame(int frame, IEnumerable<int> usedFrames,
+                         Func<string, int, Vector3>? getTranslation = null,
+                         Func<string, int, Vector3>? getRotation = null)
     {
-        _isEditMode = isEditMode;
         _getTranslation = getTranslation;
         _getRotation = getRotation;
 
-        // Update title based on mode
-        TitleLabel.Text = isEditMode ? "Edit Keyframe" : "Add Keyframe";
-        if (isEditMode)
-        {
-            FrameEntryGrid.IsVisible = false;
-            FramePickerGrid.IsVisible = true;
-            if (frames != null)
-            {
-                FramePicker.ItemsSource = frames.ToList();
-                FramePicker.SelectedItem = frame;
-            }
-        }
-        else
-        {
-            FrameEntryGrid.IsVisible = true;
-            FramePickerGrid.IsVisible = false;
-            FrameEntryPicker.ItemsSource = Enumerable.Range(0, TimelineView.MaxFrame).ToList();
-            FrameEntryPicker.SelectedItem = frame;
-        }
-
-        if (isEditMode && getTranslation != null && getRotation != null)
-        {
-            var boneName = SelectedBone;
-            if (!string.IsNullOrEmpty(boneName))
-            {
-                SetTranslation(getTranslation(boneName, frame));
-                SetRotation(getRotation(boneName, frame));
-            }
-        }
-    }
-
-    public void SetFrameOptions(IEnumerable<int> frames)
-    {
-        if (!FramePickerGrid.IsVisible)
-            return;
-        var list = frames.ToList();
-        FramePicker.ItemsSource = list;
-        if (list.Count > 0)
-            FramePicker.SelectedIndex = 0;
-        UpdateConfirmEnabled();
+        TitleLabel.Text = "Add Keyframe";
+        FrameEntryGrid.IsVisible = true;
+        var list = Enumerable.Range(0, TimelineView.MaxFrame)
+            .Where(f => !usedFrames.Contains(f))
+            .ToList();
+        FrameEntryPicker.ItemsSource = list;
+        FrameEntryPicker.SelectedItem = list.Contains(frame) ? frame : (list.Count > 0 ? list[0] : 0);
     }
 
     public int FrameNumber
-        => FramePickerGrid.IsVisible && FramePicker.SelectedItem is int f1
-            ? f1
-            : (FrameEntryPicker.SelectedItem is int f2 ? f2 : 0);
+        => FrameEntryPicker.SelectedItem is int f ? f : 0;
     public int SelectedBoneIndex
     {
         get => BonePicker.SelectedIndex;
@@ -140,13 +104,10 @@ private Func<string, int, Vector3>? _getRotation;
 
     private void UpdateConfirmEnabled()
     {
-        // Assuming the Apply button is named ApplyButton in XAML
         var applyButton = this.FindByName<Button>("ApplyButton");
         if (applyButton != null)
         {
-            bool frameValid = FramePickerGrid.IsVisible
-                ? FramePicker.SelectedIndex >= 0
-                : FrameEntryPicker.SelectedIndex >= 0;
+            bool frameValid = FrameEntryPicker.SelectedIndex >= 0;
             applyButton.IsEnabled = BonePicker.SelectedIndex >= 0 && frameValid;
         }
     }
@@ -154,15 +115,6 @@ private Func<string, int, Vector3>? _getRotation;
     private void OnFramePickerChanged(object? sender, EventArgs e)
     {
         UpdateConfirmEnabled();
-        if (_isEditMode && _getTranslation != null && _getRotation != null && FramePicker.SelectedItem is int f)
-        {
-            var boneName = SelectedBone;
-            if (!string.IsNullOrEmpty(boneName))
-            {
-                SetTranslation(_getTranslation(boneName, f));
-                SetRotation(_getRotation(boneName, f));
-            }
-        }
         FrameChanged?.Invoke(FrameNumber);
     }
 
@@ -171,7 +123,7 @@ private Func<string, int, Vector3>? _getRotation;
         BoneChanged?.Invoke(BonePicker.SelectedIndex);
         UpdateConfirmEnabled();
 
-        if (_isEditMode && _getTranslation != null && _getRotation != null)
+        if (_getTranslation != null && _getRotation != null)
         {
             var boneName = SelectedBone;
             int frame = FrameNumber;
