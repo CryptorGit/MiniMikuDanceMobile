@@ -32,9 +32,12 @@
         </Grid>
 
         <!-- Frame number header -->
-        <Grid Grid.Row="2" ColumnDefinitions="Auto,*">
+        <Grid Grid.Row="2">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="{x:Static local:TimelineView.LeftPanelWidth}" />
+                <ColumnDefinition Width="*" />
+            </Grid.ColumnDefinitions>
             <BoxView Grid.Column="0"
-                     WidthRequest="{x:Static local:TimelineView.LeftPanelWidth}"
                      BackgroundColor="{StaticResource BackgroundColor}" />
             <skia:SKCanvasView x:Name="HeaderCanvas"
                                Grid.Column="1"
@@ -44,11 +47,14 @@
         </Grid>
 
         <!-- Timeline Area -->
-        <Grid Grid.Row="3" ColumnDefinitions="Auto,*">
+        <Grid Grid.Row="3">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="{x:Static local:TimelineView.LeftPanelWidth}" />
+                <ColumnDefinition Width="*" />
+            </Grid.ColumnDefinitions>
             <!-- Left Panel (Bone Names) -->
             <ScrollView x:Name="BoneNameScrollView"
                         Grid.Column="0"
-                        WidthRequest="{x:Static local:TimelineView.LeftPanelWidth}"
                         Orientation="Vertical"
                         VerticalScrollBarVisibility="Never"
                         HeightRequest="{Binding TimelinePixelHeight}"
