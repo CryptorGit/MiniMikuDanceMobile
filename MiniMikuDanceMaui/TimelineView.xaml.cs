@@ -363,11 +363,41 @@ public partial class TimelineView : ContentView
         canvas.DrawLine(playX, 0, playX, _boneNames.Count * (float)RowHeight, playheadPaint);
     }
 
-    public List<int> GetKeyframesForBone(string boneName) => _keyframes.TryGetValue(boneName, out var frames) ? frames : new List<int>();
-    public void AddKeyframe(string boneName, int frame) { /* ... */ }
-    public void RemoveKeyframe(string boneName, int frame) { /* ... */ }
-    public bool HasKeyframe(string boneName, int frame) => _keyframes.ContainsKey(boneName) && _keyframes[boneName].Contains(frame);
-    public void ClearKeyframes() { /* ... */ }
+    public List<int> GetKeyframesForBone(string boneName)
+        => _keyframes.TryGetValue(boneName, out var frames) ? frames : new List<int>();
+
+    public void AddKeyframe(string boneName, int frame)
+    {
+        if (!_keyframes.TryGetValue(boneName, out var list))
+        {
+            list = new List<int>();
+            _keyframes[boneName] = list;
+        }
+        if (!list.Contains(frame))
+        {
+            list.Add(frame);
+            list.Sort();
+            InvalidateAll();
+        }
+    }
+
+    public void RemoveKeyframe(string boneName, int frame)
+    {
+        if (_keyframes.TryGetValue(boneName, out var list) && list.Remove(frame))
+        {
+            InvalidateAll();
+        }
+    }
+
+    public bool HasKeyframe(string boneName, int frame)
+        => _keyframes.ContainsKey(boneName) && _keyframes[boneName].Contains(frame);
+
+    public void ClearKeyframes()
+    {
+        foreach (var key in _keyframes.Keys.ToList())
+            _keyframes[key].Clear();
+        InvalidateAll();
+    }
     public Vector3 GetBoneTranslationAtFrame(string boneName, int frame) => Vector3.Zero;
     public Vector3 GetBoneRotationAtFrame(string boneName, int frame) => Vector3.Zero;
 
