@@ -129,7 +129,6 @@ public partial class TimelineView : ContentView
         {
             boneName.OverScrollMode = Android.Views.OverScrollMode.Never;
         }
-        #if ANDROID
         if (TimelineContentScrollView.Handler?.PlatformView is Android.Views.View outer)
         {
             outer.OverScrollMode = Android.Views.OverScrollMode.Never;      // 既存
@@ -141,7 +140,6 @@ public partial class TimelineView : ContentView
                 inner.OverScrollMode = Android.Views.OverScrollMode.Never;
             }
         }
-#endif
 #elif IOS
         if (BoneNameScrollView.Handler?.PlatformView is UIKit.UIScrollView boneName)
         {
