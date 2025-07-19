@@ -221,6 +221,11 @@ public partial class TimelineView : ContentView
         BoneNameCanvas.HeightRequest = TimelinePixelHeight;
         TimelineContentCanvas.WidthRequest = TimelinePixelWidth;
         TimelineContentCanvas.HeightRequest = TimelinePixelHeight;
+
+        // ScrollViewのコンテンツサイズ変更に伴い、
+        // 再レイアウトを呼び出してスクロール範囲を正しく再計算させる
+        BoneNameScrollView.InvalidateMeasure();
+        TimelineContentScrollView.InvalidateMeasure();
     }
 
     private void InvalidateAll()
