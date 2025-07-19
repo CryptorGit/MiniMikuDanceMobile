@@ -13,10 +13,10 @@ public partial class TimelineView : ContentView
     const int MaxFrame = 60;
     const int MaxRows = 17;
     const int VisibleColumns = 7;
-    public const double FrameWidth = 40.0;
-    public const double RowHeight = 40.0;
+    public static double FrameWidth { get; private set; } = 20.0;
+    public static double RowHeight { get; private set; } = 14.0;
     public const double LeftPanelWidth = 90.0;
-    const float BoneNameFontSize = 20f;
+    const float BoneNameFontSize = 14f;
     const float HeaderFontSize = 18f;
 
     private ModelData? _model;
@@ -26,6 +26,7 @@ public partial class TimelineView : ContentView
     private readonly SKFont _boneNameFont;
     private readonly SKFont _headerFont;
     private readonly float _density = (float)DeviceDisplay.Current.MainDisplayInfo.Density;
+    private double _lastWidth = -1;
     private int _currentFrame = 0;
     private bool _isScrolling = false;
     private float _scrollX = 0;
@@ -113,6 +114,9 @@ public partial class TimelineView : ContentView
 
     private void OnTimelineViewLoaded(object? sender, EventArgs e)
     {
+        var displayWidth = DeviceDisplay.Current.MainDisplayInfo.Width / _density;
+        FrameWidth = (displayWidth - LeftPanelWidth) / VisibleColumns;
+
         TimelineContentScrollView.Scrolled += OnTimelineContentScrolled;
         BoneNameScrollView.Scrolled += OnBoneNameScrolled;
         UpdateCanvasSizes();
@@ -164,6 +168,18 @@ public partial class TimelineView : ContentView
             }
         }
 #endif
+    }
+
+    protected override void OnSizeAllocated(double width, double height)
+    {
+        base.OnSizeAllocated(width, height);
+        if (width <= 0 || Math.Abs(width - _lastWidth) < 0.1)
+            return;
+
+        _lastWidth = width;
+        FrameWidth = (width - LeftPanelWidth) / VisibleColumns;
+        UpdateCanvasSizes();
+        InvalidateAll();
     }
 
     private void OnTimelineContentScrolled(object? sender, ScrolledEventArgs e)
