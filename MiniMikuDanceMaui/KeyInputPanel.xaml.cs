@@ -8,9 +8,14 @@ namespace MiniMikuDanceMaui;
 
 public partial class KeyInputPanel : ContentView
 {
-    public event Action<string, int, Vector3, Vector3>? Confirmed;
-    public event Action? Canceled;
-    public event Action<int>? BoneChanged;
+public event Action<string, int, Vector3, Vector3>? Confirmed;
+public event Action? Canceled;
+public event Action<int>? BoneChanged;
+public event Action<int>? FrameChanged;
+
+private bool _isEditMode;
+private Func<string, int, Vector3>? _getTranslation;
+private Func<string, int, Vector3>? _getRotation;
 
     public KeyInputPanel()
     {
@@ -53,6 +58,9 @@ public partial class KeyInputPanel : ContentView
     public void SetFrame(int frame, bool isEditMode = false, IEnumerable<int>? frames = null,
                          Func<string, int, Vector3>? getTranslation = null, Func<string, int, Vector3>? getRotation = null)
     {
+        _isEditMode = isEditMode;
+        _getTranslation = getTranslation;
+        _getRotation = getRotation;
         if (isEditMode)
         {
             FrameEntryGrid.IsVisible = false;
@@ -79,6 +87,17 @@ public partial class KeyInputPanel : ContentView
                 SetRotation(getRotation(boneName, frame));
             }
         }
+    }
+
+    public void SetFrameOptions(IEnumerable<int> frames)
+    {
+        if (!FramePickerGrid.IsVisible)
+            return;
+        var list = frames.ToList();
+        FramePicker.ItemsSource = list;
+        if (list.Count > 0)
+            FramePicker.SelectedIndex = 0;
+        UpdateConfirmEnabled();
     }
 
     public int FrameNumber
@@ -128,12 +147,35 @@ public partial class KeyInputPanel : ContentView
         => UpdateConfirmEnabled();
 
     private void OnFramePickerChanged(object? sender, EventArgs e)
-        => UpdateConfirmEnabled();
+    {
+        UpdateConfirmEnabled();
+        if (_isEditMode && _getTranslation != null && _getRotation != null && FramePicker.SelectedItem is int f)
+        {
+            var boneName = SelectedBone;
+            if (!string.IsNullOrEmpty(boneName))
+            {
+                SetTranslation(_getTranslation(boneName, f));
+                SetRotation(_getRotation(boneName, f));
+            }
+        }
+        FrameChanged?.Invoke(FrameNumber);
+    }
 
     private void OnBoneChanged(object? sender, EventArgs e)
     {
         BoneChanged?.Invoke(BonePicker.SelectedIndex);
         UpdateConfirmEnabled();
+
+        if (_isEditMode && _getTranslation != null && _getRotation != null)
+        {
+            var boneName = SelectedBone;
+            int frame = FrameNumber;
+            if (!string.IsNullOrEmpty(boneName))
+            {
+                SetTranslation(_getTranslation(boneName, frame));
+                SetRotation(_getRotation(boneName, frame));
+            }
+        }
     }
 
 }

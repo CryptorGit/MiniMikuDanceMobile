@@ -131,6 +131,7 @@ public partial class MainPage : ContentPage
     KeyPanel.Confirmed += OnKeyConfirmClicked;
     KeyPanel.Canceled += OnKeyCancelClicked;
     KeyPanel.BoneChanged += OnKeyBoneChanged;
+    KeyPanel.FrameChanged += OnKeyFrameChanged;
     DeletePanel.Confirmed += OnKeyDeleteConfirmClicked;
     DeletePanel.Canceled += OnKeyDeleteCancelClicked;
     DeletePanel.BoneChanged += OnDeleteBoneChanged;
@@ -1219,9 +1220,9 @@ private void OnKeyBoneChanged(int index)
     if (_currentModel == null) return;
     if (index >= 0 && index < _currentModel.HumanoidBoneList.Count)
     {
-        int boneIndex = _currentModel.HumanoidBoneList[index].Index;
-        var t = _renderer.GetBoneTranslation(boneIndex);
-        var r = _renderer.GetBoneRotation(boneIndex);
+        var boneName = _currentModel.HumanoidBoneList[index].Name;
+        var t = GetBoneTranslationAtFrame(boneName, frame);
+        var r = GetBoneRotationAtFrame(boneName, frame);
         KeyPanel.SetTranslation(t);
         KeyPanel.SetRotation(r);
     }
@@ -1229,6 +1230,11 @@ private void OnKeyBoneChanged(int index)
     if (_currentFeature == "TIMELINE" && _bottomViews.TryGetValue("TIMELINE", out var timelineView) && timelineView is TimelineView tv)
     {
         tv.SelectedKeyInputBoneIndex = index;
+        if (index >= 0 && index < tv.BoneNames.Count)
+        {
+            var bone = tv.BoneNames[index];
+            KeyPanel.SetFrameOptions(tv.GetKeyframesForBone(bone));
+        }
     }
 }
 
@@ -1245,6 +1251,20 @@ private void OnDeleteBoneChanged(int index)
         else
         {
             DeletePanel.SetFrames(Array.Empty<int>());
+        }
+    }
+}
+
+private void OnKeyFrameChanged(int frame)
+{
+    if (_bottomViews.TryGetValue("TIMELINE", out var timelineView) && timelineView is TimelineView tv)
+    {
+        int boneIndex = KeyPanel.SelectedBoneIndex;
+        if (boneIndex >= 0 && boneIndex < tv.BoneNames.Count)
+        {
+            var bone = tv.BoneNames[boneIndex];
+            KeyPanel.SetTranslation(GetBoneTranslationAtFrame(bone, frame));
+            KeyPanel.SetRotation(GetBoneRotationAtFrame(bone, frame));
         }
     }
 }

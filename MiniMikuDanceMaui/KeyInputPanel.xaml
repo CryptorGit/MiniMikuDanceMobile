@@ -34,7 +34,7 @@
 
 
             <HorizontalStackLayout Spacing="10" HorizontalOptions="End">
-                <Button Text="Apply" Clicked="OnConfirmClicked" />
+                <Button x:Name="ApplyButton" Text="Apply" Clicked="OnConfirmClicked" />
                 <Button Text="Cancel" Clicked="OnCancelClicked" />
             </HorizontalStackLayout>
         </VerticalStackLayout>
