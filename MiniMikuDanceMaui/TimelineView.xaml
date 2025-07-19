@@ -38,6 +38,7 @@
                 <ColumnDefinition Width="*" />
             </Grid.ColumnDefinitions>
             <BoxView Grid.Column="0"
+                     WidthRequest="{x:Static local:TimelineView.LeftPanelWidth}"
                      BackgroundColor="{StaticResource BackgroundColor}" />
             <skia:SKCanvasView x:Name="HeaderCanvas"
                                Grid.Column="1"
@@ -55,6 +56,7 @@
             <!-- Left Panel (Bone Names) -->
             <ScrollView x:Name="BoneNameScrollView"
                         Grid.Column="0"
+                        WidthRequest="{x:Static local:TimelineView.LeftPanelWidth}"
                         Orientation="Vertical"
                         VerticalScrollBarVisibility="Never"
                         HeightRequest="{Binding TimelinePixelHeight}"
