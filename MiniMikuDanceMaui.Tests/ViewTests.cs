@@ -57,6 +57,16 @@ public class ViewTests
     }
 
     [Fact]
+    public void TimelineView_CurrentFrameChanged_Event()
+    {
+        var view = new TimelineView();
+        int changed = -1;
+        view.CurrentFrameChanged += f => changed = f;
+        view.CurrentFrame = 5;
+        Assert.Equal(5, changed);
+    }
+
+    [Fact]
     public void MainPage_Initialize()
     {
         var page = new MainPage();

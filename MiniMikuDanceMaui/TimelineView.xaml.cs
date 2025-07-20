@@ -118,9 +118,12 @@ public partial class TimelineView : ContentView
                 _currentFrame = value;
                 UpdateFrameShift();
                 InvalidateAll();
+                CurrentFrameChanged?.Invoke(_currentFrame);
             }
         }
     }
+
+    public event Action<int>? CurrentFrameChanged;
 
     public TimelineView()
     {

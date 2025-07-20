@@ -706,6 +706,7 @@ private void ShowBottomFeature(string name)
         {
             var tv = new TimelineView();
             tv.Model = _currentModel;
+            tv.CurrentFrameChanged += OnTimelineFrameChanged;
             tv.AddKeyClicked += (s, e) =>
             {
                 AddKeyPanel.IsVisible = true;
@@ -1461,6 +1462,27 @@ private void OnAnimationFrameChanged(int frame)
     if (player == null)
         return;
     player.Seek(frame);
+    Viewer?.InvalidateSurface();
+}
+
+private void OnTimelineFrameChanged(int frame)
+{
+    if (_currentModel == null)
+        return;
+    if (!_bottomViews.TryGetValue("TIMELINE", out var view) || view is not TimelineView tv)
+        return;
+
+    foreach (var bone in tv.BoneNames)
+    {
+        int index = _currentModel.HumanoidBoneList.FindIndex(h => h.Name == bone);
+        if (index < 0)
+            continue;
+        var t = tv.GetBoneTranslationAtFrame(bone, frame);
+        var r = tv.GetBoneRotationAtFrame(bone, frame);
+        _renderer.SetBoneTranslation(index, t);
+        _renderer.SetBoneRotation(index, r);
+    }
+
     Viewer?.InvalidateSurface();
 }
 
