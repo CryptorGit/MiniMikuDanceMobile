@@ -29,6 +29,7 @@ public partial class TimelineView : ContentView
     private readonly Dictionary<string, List<int>> _keyframes = new Dictionary<string, List<int>>();
     private readonly Dictionary<string, Dictionary<int, Vector3>> _translations = new();
     private readonly Dictionary<string, Dictionary<int, Vector3>> _rotations = new();
+    private readonly Dictionary<string, HashSet<int>> _autoKeyframes = new();
 
     private readonly SKFont _boneNameFont;
     private readonly SKFont _headerFont;
@@ -342,6 +343,7 @@ public partial class TimelineView : ContentView
         using var minorPaint = new SKPaint { Color = SKColors.White, StrokeWidth = 1 };
         using var fivePaint  = new SKPaint { Color = SKColors.Green, StrokeWidth = 1 };
         using var keyframePaint = new SKPaint { Color = SKColors.Yellow, Style = SKPaintStyle.Fill };
+        using var autoKeyframePaint = new SKPaint { Color = SKColors.LightGray, Style = SKPaintStyle.Fill };
         using var playheadPaint = new SKPaint { Color = SKColors.Red, StrokeWidth = 2 };
 
         canvas.Translate(-_scrollX * _density, -_scrollY * _density);
@@ -371,20 +373,38 @@ public partial class TimelineView : ContentView
 
         foreach (var boneName in _boneNames)
         {
-            if (!_keyframes.TryGetValue(boneName, out var frames))
-                continue;
             var row = _boneNames.IndexOf(boneName);
-            foreach (var frame in frames)
+
+            if (_autoKeyframes.TryGetValue(boneName, out var aFrames))
             {
-                float x = (float)(frame * FrameWidth + FrameWidth / 2);
-                float y = (float)(row * RowHeight + RowHeight / 2);
-                using var diamondPath = new SKPath();
-                diamondPath.MoveTo(x, y - 6);
-                diamondPath.LineTo(x + 6, y);
-                diamondPath.LineTo(x, y + 6);
-                diamondPath.LineTo(x - 6, y);
-                diamondPath.Close();
-                canvas.DrawPath(diamondPath, keyframePaint);
+                foreach (var frame in aFrames)
+                {
+                    float x = (float)(frame * FrameWidth + FrameWidth / 2);
+                    float y = (float)(row * RowHeight + RowHeight / 2);
+                    using var diamondPath = new SKPath();
+                    diamondPath.MoveTo(x, y - 6);
+                    diamondPath.LineTo(x + 6, y);
+                    diamondPath.LineTo(x, y + 6);
+                    diamondPath.LineTo(x - 6, y);
+                    diamondPath.Close();
+                    canvas.DrawPath(diamondPath, autoKeyframePaint);
+                }
+            }
+
+            if (_keyframes.TryGetValue(boneName, out var frames))
+            {
+                foreach (var frame in frames)
+                {
+                    float x = (float)(frame * FrameWidth + FrameWidth / 2);
+                    float y = (float)(row * RowHeight + RowHeight / 2);
+                    using var diamondPath = new SKPath();
+                    diamondPath.MoveTo(x, y - 6);
+                    diamondPath.LineTo(x + 6, y);
+                    diamondPath.LineTo(x, y + 6);
+                    diamondPath.LineTo(x - 6, y);
+                    diamondPath.Close();
+                    canvas.DrawPath(diamondPath, keyframePaint);
+                }
             }
         }
 
@@ -423,6 +443,10 @@ public partial class TimelineView : ContentView
         }
         rdict[frame] = rotation;
 
+        if (_autoKeyframes.TryGetValue(boneName, out var autoSet))
+            autoSet.Remove(frame);
+
+        RecalculateAutoKeyframes(boneName);
         InvalidateAll();
     }
 
@@ -434,6 +458,9 @@ public partial class TimelineView : ContentView
                 tdict.Remove(frame);
             if (_rotations.TryGetValue(boneName, out var rdict))
                 rdict.Remove(frame);
+            if (_autoKeyframes.TryGetValue(boneName, out var autoSet))
+                autoSet.Remove(frame);
+            RecalculateAutoKeyframes(boneName);
             InvalidateAll();
         }
     }
@@ -447,6 +474,7 @@ public partial class TimelineView : ContentView
             _keyframes[key].Clear();
         _translations.Clear();
         _rotations.Clear();
+        _autoKeyframes.Clear();
         InvalidateAll();
     }
     public Vector3 GetBoneTranslationAtFrame(string boneName, int frame)
@@ -465,6 +493,53 @@ public partial class TimelineView : ContentView
 
     public bool HasAnyKeyframe(string boneName)
         => _keyframes.TryGetValue(boneName, out var list) && list.Count > 0;
+
+    private void RecalculateAutoKeyframes(string boneName)
+    {
+        if (!_autoKeyframes.TryGetValue(boneName, out var autos))
+        {
+            autos = new HashSet<int>();
+            _autoKeyframes[boneName] = autos;
+        }
+
+        if (_translations.TryGetValue(boneName, out var tdict))
+        {
+            foreach (var f in autos)
+                tdict.Remove(f);
+        }
+        if (_rotations.TryGetValue(boneName, out var rdict))
+        {
+            foreach (var f in autos)
+                rdict.Remove(f);
+        }
+        autos.Clear();
+
+        if (!_keyframes.TryGetValue(boneName, out var list) || list.Count < 2)
+            return;
+
+        list.Sort();
+        for (int i = 0; i < list.Count - 1; i++)
+        {
+            int start = list[i];
+            int end = list[i + 1];
+            if (end - start <= 1)
+                continue;
+
+            var t1 = _translations[boneName][start];
+            var t2 = _translations[boneName][end];
+            var r1 = _rotations[boneName][start];
+            var r2 = _rotations[boneName][end];
+            for (int f = start + 1; f < end; f++)
+            {
+                float ratio = (float)(f - start) / (end - start);
+                var t = Vector3.Lerp(t1, t2, ratio);
+                var r = Vector3.Lerp(r1, r2, ratio);
+                tdict[f] = t;
+                rdict[f] = r;
+                autos.Add(f);
+            }
+        }
+    }
 
     public Vector3 GetNearestTranslation(string boneName, int frame)
     {
