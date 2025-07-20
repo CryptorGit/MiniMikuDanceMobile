@@ -20,13 +20,13 @@
                 <Picker x:Name="FrameEntryPicker" WidthRequest="80" SelectedIndexChanged="OnFramePickerChanged" Grid.Column="1" />
             </Grid>
 
-            <local:BoneAxisControl x:Name="RotXControl" ValueFormat="F0" />
-            <local:BoneAxisControl x:Name="RotYControl" ValueFormat="F0" />
-            <local:BoneAxisControl x:Name="RotZControl" ValueFormat="F0" />
+            <local:BoneAxisControl x:Name="RotXControl" x:FieldModifier="public" ValueFormat="F0" />
+            <local:BoneAxisControl x:Name="RotYControl" x:FieldModifier="public" ValueFormat="F0" />
+            <local:BoneAxisControl x:Name="RotZControl" x:FieldModifier="public" ValueFormat="F0" />
 
-            <local:BoneAxisControl x:Name="PosXControl" ValueFormat="F2" />
-            <local:BoneAxisControl x:Name="PosYControl" ValueFormat="F2" />
-            <local:BoneAxisControl x:Name="PosZControl" ValueFormat="F2" />
+            <local:BoneAxisControl x:Name="PosXControl" x:FieldModifier="public" ValueFormat="F2" />
+            <local:BoneAxisControl x:Name="PosYControl" x:FieldModifier="public" ValueFormat="F2" />
+            <local:BoneAxisControl x:Name="PosZControl" x:FieldModifier="public" ValueFormat="F2" />
 
 
             <HorizontalStackLayout Spacing="10" HorizontalOptions="End">
