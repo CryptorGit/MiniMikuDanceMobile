@@ -735,7 +735,9 @@ private void ShowBottomFeature(string name)
                     var bone = timelineView.BoneNames.Count > boneIndex && boneIndex >= 0
                         ? timelineView.BoneNames[boneIndex]
                         : timelineView.SelectedBoneName;
-                    DeletePanel.SetFrames(timelineView.GetKeyframesForBone(bone));
+                    var frames = timelineView.GetKeyframesForBone(bone);
+                    DeletePanel.SetFrames(frames);
+                    DeletePanel.SelectedFrameIndex = frames.IndexOf(timelineView.CurrentFrame);
                     timelineView.SelectedKeyInputBoneIndex = DeletePanel.SelectedBoneIndex;
                }
            };
