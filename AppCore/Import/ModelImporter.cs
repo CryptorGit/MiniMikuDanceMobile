@@ -283,7 +283,13 @@ public class ModelImporter
         foreach (var kv in humanMap)
         {
             data.HumanoidBones[kv.Key] = kv.Value;
-            data.HumanoidBoneList.Add((kv.Key, kv.Value));
+        }
+        foreach (var name in HumanoidBones.StandardOrder)
+        {
+            if (data.HumanoidBones.TryGetValue(name, out int idx))
+            {
+                data.HumanoidBoneList.Add((name, idx));
+            }
         }
 
         data.ShadeShift = mtoon.shadeShift;

@@ -22,14 +22,7 @@ public partial class TimelineView : ContentView
     const float BoneNameFontSize = 14f;
     const float HeaderFontSize = 12f;
 
-    private static readonly string[] StandardHumanoidBones = new[]
-    {
-        "hips", "spine", "chest", "neck", "head",
-        "leftUpperArm", "leftLowerArm", "leftHand",
-        "rightUpperArm", "rightLowerArm", "rightHand",
-        "leftUpperLeg", "leftLowerLeg", "leftFoot",
-        "rightUpperLeg", "rightLowerLeg", "rightFoot"
-    };
+    private static readonly string[] StandardHumanoidBones = HumanoidBones.StandardOrder;
 
     private ModelData? _model;
     private readonly List<string> _boneNames = new List<string>();
@@ -60,6 +53,11 @@ public partial class TimelineView : ContentView
             _boneNames.Clear();
             if (_model != null)
             {
+                _model.HumanoidBoneList = HumanoidBones.StandardOrder
+                    .Where(n => _model.HumanoidBones.ContainsKey(n))
+                    .Select(n => (n, _model.HumanoidBones[n]))
+                    .ToList();
+
                 _boneNames.Add("camera");
 
                 foreach (var name in StandardHumanoidBones)
