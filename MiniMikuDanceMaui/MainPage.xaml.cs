@@ -670,7 +670,8 @@ private void ShowBottomFeature(string name)
 
                     if (timelineView.HasKeyframe(boneName, timelineView.CurrentFrame))
                     {
-                        await DisplayAlert("Info", "既にキーがあります。別のフレームまたはボーンを選択してください。", "OK");
+                        await DisplayAlert("Info", "既にキーがあります", "OK");
+                        AddKeyPanel.IsVisible = false;
                         return;
                     }
 
