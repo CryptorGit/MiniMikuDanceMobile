@@ -1499,9 +1499,9 @@ private void ApplyTimelineFrame(TimelineView tv, int frame)
     {
         if (!_currentModel.HumanoidBones.TryGetValue(bone, out int index))
             continue;
-        // キーが存在しないフレームでも直近の値を適用する
-        var t = tv.GetNearestTranslation(bone, frame);
-        var r = tv.GetNearestRotation(bone, frame);
+        // 自動補間済みの値を取得
+        var t = tv.GetBoneTranslationAtFrame(bone, frame);
+        var r = tv.GetBoneRotationAtFrame(bone, frame);
         _renderer.SetBoneTranslation(index, t);
         _renderer.SetBoneRotation(index, r);
     }
