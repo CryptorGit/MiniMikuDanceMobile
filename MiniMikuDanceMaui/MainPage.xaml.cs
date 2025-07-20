@@ -54,7 +54,6 @@ public partial class MainPage : ContentPage
     private ModelData? _pendingModel;
     private ModelData? _currentModel;
     private int _selectedBoneIndex = 0;
-    private readonly List<int> _humanoidBoneIndices = new();
     private readonly Dictionary<long, SKPoint> _touchPoints = new();
     private MotionEditor? _motionEditor;
 
@@ -347,71 +346,18 @@ private void UpdateBoneViewProperties(BoneView bv)
 {
     if (_currentModel != null)
     {
-        var list = new List<string>();
-        _humanoidBoneIndices.Clear();
-        foreach (var kv in _currentModel.HumanoidBoneList)
-        {
-            list.Add(kv.Name);
-            _humanoidBoneIndices.Add(kv.Index);
-        }
+        var list = _currentModel.Bones.Select(b => b.Name).ToList();
         bv.SetBones(list);
-        if (_humanoidBoneIndices.Count > 0)
-        {
-            var idx0 = _humanoidBoneIndices[0];
-            var euler = _renderer.GetBoneRotation(idx0);
-            bv.SetRotation(euler);
-            var trans = _renderer.GetBoneTranslation(idx0);
-            bv.SetTranslation(trans);
-            _selectedBoneIndex = idx0;
-        }
     }
 }
 
 private void SetupBoneView(BoneView bv)
 {
     UpdateBoneViewProperties(bv);
-    bv.ResetRequested += OnBoneReset;
-    bv.ResetRotationXRequested += OnBoneRotationXReset;
-    bv.ResetRotationYRequested += OnBoneRotationYReset;
-    bv.ResetRotationZRequested += OnBoneRotationZReset;
-    bv.ResetTranslationXRequested += OnBoneTranslationXReset;
-    bv.ResetTranslationYRequested += OnBoneTranslationYReset;
-    bv.ResetTranslationZRequested += OnBoneTranslationZReset;
-    bv.BoneSelected += idx =>
-    {
-        if (idx >= 0 && idx < _humanoidBoneIndices.Count)
-            _selectedBoneIndex = _humanoidBoneIndices[idx];
-        if (_selectedBoneIndex >= 0)
-        {
-            var euler = _renderer.GetBoneRotation(_selectedBoneIndex);
-            bv.SetRotation(euler);
-            var trans = _renderer.GetBoneTranslation(_selectedBoneIndex);
-            bv.SetTranslation(trans);
-        }
-    };
-    bv.RotationXChanged += v => UpdateSelectedBoneRotation(bv);
-    bv.RotationYChanged += v => UpdateSelectedBoneRotation(bv);
-    bv.RotationZChanged += v => UpdateSelectedBoneRotation(bv);
-    bv.TranslationXChanged += v => UpdateSelectedBoneTranslation(bv);
-    bv.TranslationYChanged += v => UpdateSelectedBoneTranslation(bv);
-    bv.TranslationZChanged += v => UpdateSelectedBoneTranslation(bv);
-    bv.SetRotationRange(-180, 180);
-    if (_poseHistory.Count == 0)
-        SavePoseState();
 }
 
 private void UpdateBoneViewValues()
 {
-    if (_bottomViews.TryGetValue("BONE", out var v) && v is BoneView bv)
-    {
-        if (_selectedBoneIndex >= 0)
-        {
-            var rot = _renderer.GetBoneRotation(_selectedBoneIndex);
-            var trans = _renderer.GetBoneTranslation(_selectedBoneIndex);
-            bv.SetRotation(rot);
-            bv.SetTranslation(trans);
-        }
-    }
     Viewer?.InvalidateSurface();
 }
 

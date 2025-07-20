@@ -1,33 +1,8 @@
 <?xml version="1.0" encoding="utf-8" ?>
 <ContentView xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
-             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
-             xmlns:local="clr-namespace:MiniMikuDanceMaui"
              x:Class="MiniMikuDanceMaui.BoneView"
              BackgroundColor="{StaticResource BackgroundColor}">
     <ScrollView>
-    <VerticalStackLayout Spacing="10" Padding="10">
-        <Picker x:Name="BonePicker" Title="Bone" SelectedIndexChanged="OnBoneSelected"/>
-        <HorizontalStackLayout Spacing="10">
-            <Button Text="AllReset" Clicked="OnResetClicked" />
-        </HorizontalStackLayout>
-        <local:BoneAxisControl x:Name="RotXControl" ValueFormat="F0"
-                               CenterChanged="OnCenterXChanged"
-                               ValueChanged="OnXChanged" />
-        <local:BoneAxisControl x:Name="RotYControl" ValueFormat="F0"
-                               CenterChanged="OnCenterYChanged"
-                               ValueChanged="OnYChanged" />
-        <local:BoneAxisControl x:Name="RotZControl" ValueFormat="F0"
-                               CenterChanged="OnCenterZChanged"
-                               ValueChanged="OnZChanged" />
-        <local:BoneAxisControl x:Name="PosXControl" ValueFormat="F2"
-                               CenterChanged="OnCenterTXChanged"
-                               ValueChanged="OnTXChanged" />
-        <local:BoneAxisControl x:Name="PosYControl" ValueFormat="F2"
-                               CenterChanged="OnCenterTYChanged"
-                               ValueChanged="OnTYChanged" />
-        <local:BoneAxisControl x:Name="PosZControl" ValueFormat="F2"
-                               CenterChanged="OnCenterTZChanged"
-                               ValueChanged="OnTZChanged" />
-    </VerticalStackLayout>
+        <VerticalStackLayout x:Name="BoneList" Padding="10" Spacing="5" />
     </ScrollView>
 </ContentView>
