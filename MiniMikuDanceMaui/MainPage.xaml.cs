@@ -68,19 +68,23 @@ public partial class MainPage : ContentPage
     
     private readonly Dictionary<string, BlazePoseJoint> _boneToJoint = new()
     {
-        { "leftShoulder", BlazePoseJoint.LeftShoulder },
-        { "rightShoulder", BlazePoseJoint.RightShoulder },
+        { "hips", BlazePoseJoint.LeftHip },
+        { "spine", BlazePoseJoint.LeftShoulder },
+        { "chest", BlazePoseJoint.LeftShoulder },
+        { "neck", BlazePoseJoint.LeftShoulder },
+        { "head", BlazePoseJoint.Nose },
+        { "leftUpperArm", BlazePoseJoint.LeftShoulder },
         { "leftLowerArm", BlazePoseJoint.LeftElbow },
-        { "rightLowerArm", BlazePoseJoint.RightElbow },
         { "leftHand", BlazePoseJoint.LeftWrist },
+        { "rightUpperArm", BlazePoseJoint.RightShoulder },
+        { "rightLowerArm", BlazePoseJoint.RightElbow },
         { "rightHand", BlazePoseJoint.RightWrist },
         { "leftUpperLeg", BlazePoseJoint.LeftHip },
-        { "rightUpperLeg", BlazePoseJoint.RightHip },
         { "leftLowerLeg", BlazePoseJoint.LeftKnee },
-        { "rightLowerLeg", BlazePoseJoint.RightKnee },
         { "leftFoot", BlazePoseJoint.LeftAnkle },
+        { "rightUpperLeg", BlazePoseJoint.RightHip },
+        { "rightLowerLeg", BlazePoseJoint.RightKnee },
         { "rightFoot", BlazePoseJoint.RightAnkle },
-        { "head", BlazePoseJoint.Nose },
     };
 
     public MainPage()
