@@ -390,7 +390,8 @@ protected override async void OnAppearing()
     {
         // Permissions not granted, consider showing a message to the user
     }
-    if (!Android.OS.Environment.IsExternalStorageManager)
+    if ((int)Android.OS.Build.VERSION.SdkInt >= (int)Android.OS.BuildVersionCodes.R &&
+        !Android.OS.Environment.IsExternalStorageManager)
     {
         try
         {
