@@ -75,7 +75,13 @@ private Func<string, int, Vector3>? _getRotation;
             .Where(f => !usedFrames.Contains(f))
             .ToList();
         FrameEntryPicker.ItemsSource = list;
-        FrameEntryPicker.SelectedItem = list.Contains(frame) ? frame : (list.Count > 0 ? list[0] : 0);
+
+        if (!usedFrames.Contains(frame))
+        {
+            FrameEntryPicker.SelectedItem = list.Contains(frame)
+                ? frame
+                : (list.Count > 0 ? list[0] : 0);
+        }
     }
 
     public int FrameNumber
