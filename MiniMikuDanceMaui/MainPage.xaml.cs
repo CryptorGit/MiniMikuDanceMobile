@@ -53,7 +53,6 @@ public partial class MainPage : ContentPage
     private bool _glInitialized;
     private ModelData? _pendingModel;
     private ModelData? _currentModel;
-    private int _selectedBoneIndex = 0;
     private readonly Dictionary<long, SKPoint> _touchPoints = new();
     private MotionEditor? _motionEditor;
 
@@ -1358,25 +1357,6 @@ private void OnEditKeyFrameChanged(int frame)
 }
 
 
-private void UpdateSelectedBoneRotation(BoneView bv)
-{
-    if (!IsValidBoneSelection()) return;
-
-    var eulerTk = new OpenTK.Mathematics.Vector3(bv.BoneRotationX, bv.BoneRotationY, bv.RotationZ);
-    _renderer.SetBoneRotation(_selectedBoneIndex, eulerTk);
-    SavePoseState();
-    Viewer?.InvalidateSurface();
-}
-
-private void UpdateSelectedBoneTranslation(BoneView bv)
-{
-    if (!IsValidBoneSelection()) return;
-
-    var t = new OpenTK.Mathematics.Vector3(bv.BoneTranslationX, bv.BoneTranslationY, bv.TranslationZ);
-    _renderer.SetBoneTranslation(_selectedBoneIndex, t);
-    SavePoseState();
-    Viewer?.InvalidateSurface();
-}
 
 private void OnPlayAnimationRequested()
 {
@@ -1490,92 +1470,10 @@ private Vector3 GetBoneRotationAtFrame(string bone, int frame)
 
 
 
-private void OnBoneReset()
-{
-    _renderer.ClearBoneRotations();
-    SavePoseState();
-    UpdateBoneViewValues();
-}
-
-private void OnBoneRangeChanged(int range)
-{
-    if (_bottomViews.TryGetValue("BONE", out var v) && v is BoneView bv)
-    {
-        bv.SetRotationRange(-range, range);
-    }
-}
-
-private void OnBonePositionRangeChanged(int range)
-{
-    if (_bottomViews.TryGetValue("BONE", out var v) && v is BoneView bv)
-    {
-        bv.SetTranslationRange(-range, range);
-    }
-}
-
-private void OnBoneRotationXReset()
-{
-    if (!IsValidBoneSelection()) return;
-    ResetBoneComponent(() => _renderer.GetBoneRotation(_selectedBoneIndex), (v) => _renderer.SetBoneRotation(_selectedBoneIndex, v), 'X');
-}
-
-private void OnBoneRotationYReset()
-{
-    if (!IsValidBoneSelection()) return;
-    ResetBoneComponent(() => _renderer.GetBoneRotation(_selectedBoneIndex), (v) => _renderer.SetBoneRotation(_selectedBoneIndex, v), 'Y');
-}
-
-private void OnBoneRotationZReset()
-{
-    if (!IsValidBoneSelection()) return;
-    ResetBoneComponent(() => _renderer.GetBoneRotation(_selectedBoneIndex), (v) => _renderer.SetBoneRotation(_selectedBoneIndex, v), 'Z');
-}
-
-private void OnBoneTranslationXReset()
-{
-    if (!IsValidBoneSelection()) return;
-    ResetBoneComponent(() => _renderer.GetBoneTranslation(_selectedBoneIndex), (v) => _renderer.SetBoneTranslation(_selectedBoneIndex, v), 'X');
-}
-
-private void OnBoneTranslationYReset()
-{
-    if (!IsValidBoneSelection()) return;
-    ResetBoneComponent(() => _renderer.GetBoneTranslation(_selectedBoneIndex), (v) => _renderer.SetBoneTranslation(_selectedBoneIndex, v), 'Y');
-}
-
-private void OnBoneTranslationZReset()
-{
-    if (!IsValidBoneSelection()) return;
-    ResetBoneComponent(() => _renderer.GetBoneTranslation(_selectedBoneIndex), (v) => _renderer.SetBoneTranslation(_selectedBoneIndex, v), 'Z');
-}
-
-private void ResetBoneComponent(Func<OpenTK.Mathematics.Vector3> getCurrentValue, Action<OpenTK.Mathematics.Vector3> setValue, char component)
-{
-    if (!IsValidBoneSelection()) return;
-
-    var val = getCurrentValue();
-    switch (component)
-    {
-        case 'X': val.X = 0f; break;
-        case 'Y': val.Y = 0f; break;
-        case 'Z': val.Z = 0f; break;
-    }
-    setValue(val);
-    SavePoseState();
-    UpdateBoneViewValues();
-}
-
 private void SetLoadingIndicatorVisibilityAndLayout(bool isVisible)
 {
     LoadingIndicator.IsVisible = isVisible;
     UpdateLayout();
-}
-
-private bool IsValidBoneSelection()
-{
-    if (_currentModel == null) return false;
-    if (_selectedBoneIndex < 0 || _selectedBoneIndex >= _currentModel.Bones.Count) return false;
-    return true;
 }
 
 private void ShowExplorer(string featureName, Frame messageFrame, Label pathLabel, ref string? selectedPath)
