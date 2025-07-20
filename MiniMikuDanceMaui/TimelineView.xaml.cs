@@ -72,6 +72,11 @@ public partial class TimelineView : ContentView
                 {
                     _keyframes[boneName] = new List<int>();
                 }
+                // デフォルトでフレーム0に原点姿勢のキーを追加
+                foreach (var boneName in _boneNames)
+                {
+                    AddKeyframe(boneName, 0, Vector3.Zero, Vector3.Zero);
+                }
             }
             else
             {
