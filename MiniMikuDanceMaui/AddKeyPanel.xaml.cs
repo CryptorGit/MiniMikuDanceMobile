@@ -12,6 +12,7 @@ public event Action<string, int, Vector3, Vector3>? Confirmed;
 public event Action? Canceled;
 public event Action<int>? BoneChanged;
 public event Action<int>? FrameChanged;
+public event Action<string, int, Vector3, Vector3>? ParameterChanged;
 
 private Func<string, int, Vector3>? _getTranslation;
 private Func<string, int, Vector3>? _getRotation;
@@ -43,6 +44,13 @@ private Func<string, int, Vector3>? _getRotation;
         PosYControl.SetRange(-1, 1);
         PosZControl.SetRange(-1, 1);
         UpdateConfirmEnabled();
+
+        RotXControl.ValueChanged += OnParamsChanged;
+        RotYControl.ValueChanged += OnParamsChanged;
+        RotZControl.ValueChanged += OnParamsChanged;
+        PosXControl.ValueChanged += OnParamsChanged;
+        PosYControl.ValueChanged += OnParamsChanged;
+        PosZControl.ValueChanged += OnParamsChanged;
     }
 
     public void SetBones(IEnumerable<string> bones)
@@ -116,6 +124,7 @@ private Func<string, int, Vector3>? _getRotation;
     {
         UpdateConfirmEnabled();
         FrameChanged?.Invoke(FrameNumber);
+        ParameterChanged?.Invoke(SelectedBone, FrameNumber, Translation, EulerRotation);
     }
 
     private void OnBoneChanged(object? sender, EventArgs e)
@@ -133,6 +142,10 @@ private Func<string, int, Vector3>? _getRotation;
                 SetRotation(_getRotation(boneName, frame));
             }
         }
+        ParameterChanged?.Invoke(SelectedBone, FrameNumber, Translation, EulerRotation);
     }
+
+    private void OnParamsChanged(double v)
+        => ParameterChanged?.Invoke(SelectedBone, FrameNumber, Translation, EulerRotation);
 
 }

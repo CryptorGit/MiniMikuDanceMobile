@@ -22,6 +22,15 @@ public partial class TimelineView : ContentView
     const float BoneNameFontSize = 14f;
     const float HeaderFontSize = 12f;
 
+    private static readonly string[] StandardHumanoidBones = new[]
+    {
+        "hips", "spine", "chest", "neck", "head",
+        "leftUpperArm", "leftLowerArm", "leftHand",
+        "rightUpperArm", "rightLowerArm", "rightHand",
+        "leftUpperLeg", "leftLowerLeg", "leftFoot",
+        "rightUpperLeg", "rightLowerLeg", "rightFoot"
+    };
+
     private ModelData? _model;
     private readonly List<string> _boneNames = new List<string>();
     private readonly Dictionary<string, List<int>> _keyframes = new Dictionary<string, List<int>>();
@@ -53,19 +62,11 @@ public partial class TimelineView : ContentView
             {
                 _boneNames.Add("camera");
 
-                var requiredHumanoidBones = new List<string>
+                foreach (var name in StandardHumanoidBones)
                 {
-                    "hips", "spine", "chest", "neck", "head",
-                    "leftUpperArm", "leftLowerArm", "leftHand",
-                    "rightUpperArm", "rightLowerArm", "rightHand",
-                    "leftUpperLeg", "leftLowerLeg", "leftFoot",
-                    "rightUpperLeg", "rightLowerLeg", "rightFoot"
-                };
-
-                _boneNames.AddRange(_model.HumanoidBoneList
-                    .Select(b => b.Name)
-                    .Where(name => requiredHumanoidBones.Contains(name))
-                    .Take(MaxRows - 1));
+                    if (_model.HumanoidBones.ContainsKey(name) && _boneNames.Count < MaxRows)
+                        _boneNames.Add(name);
+                }
 
                 _keyframes.Clear();
                 foreach (var boneName in _boneNames)
