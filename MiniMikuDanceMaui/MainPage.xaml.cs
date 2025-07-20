@@ -1176,8 +1176,7 @@ private async void OnKeyConfirmClicked(string bone, int frame, Vector3 trans, Ve
 
     if (_currentModel != null)
     {
-        int index = _currentModel.HumanoidBoneList.FindIndex(h => h.Name == bone);
-        if (index >= 0)
+        if (_currentModel.HumanoidBones.TryGetValue(bone, out int index))
         {
             _renderer.SetBoneTranslation(index, trans);
             _renderer.SetBoneRotation(index, rot);
@@ -1393,8 +1392,7 @@ private void OnKeyParameterChanged(string bone, int frame, Vector3 trans, Vector
     if (_currentModel == null)
         return;
 
-    int index = _currentModel.HumanoidBoneList.FindIndex(h => h.Name == bone);
-    if (index >= 0)
+    if (_currentModel.HumanoidBones.TryGetValue(bone, out int index))
     {
         _renderer.SetBoneTranslation(index, trans);
         _renderer.SetBoneRotation(index, rot);
@@ -1434,8 +1432,9 @@ private void ApplyPanelPose(int boneIndex, Vector3 translation, Vector3 rotation
     if (boneIndex < 0 || boneIndex >= _currentModel!.HumanoidBoneList.Count)
         return;
 
-    _renderer.SetBoneTranslation(boneIndex, translation);
-    _renderer.SetBoneRotation(boneIndex, rotation);
+    int actualIndex = _currentModel.HumanoidBoneList[boneIndex].Index;
+    _renderer.SetBoneTranslation(actualIndex, translation);
+    _renderer.SetBoneRotation(actualIndex, rotation);
     SavePoseState();
     Viewer?.InvalidateSurface();
 }
@@ -1499,8 +1498,7 @@ private void ApplyTimelineFrame(TimelineView tv, int frame)
 
     foreach (var bone in tv.BoneNames)
     {
-        int index = _currentModel.HumanoidBoneList.FindIndex(h => h.Name == bone);
-        if (index < 0)
+        if (!_currentModel.HumanoidBones.TryGetValue(bone, out int index))
             continue;
         // キーが存在しないフレームでも直近の値を適用する
         var t = tv.GetNearestTranslation(bone, frame);
