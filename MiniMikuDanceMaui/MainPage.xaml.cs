@@ -1492,8 +1492,9 @@ private void ApplyTimelineFrame(TimelineView tv, int frame)
         int index = _currentModel.HumanoidBoneList.FindIndex(h => h.Name == bone);
         if (index < 0)
             continue;
-        var t = tv.GetBoneTranslationAtFrame(bone, frame);
-        var r = tv.GetBoneRotationAtFrame(bone, frame);
+        // キーが存在しないフレームでも直近の値を適用する
+        var t = tv.GetNearestTranslation(bone, frame);
+        var r = tv.GetNearestRotation(bone, frame);
         _renderer.SetBoneTranslation(index, t);
         _renderer.SetBoneRotation(index, r);
     }
