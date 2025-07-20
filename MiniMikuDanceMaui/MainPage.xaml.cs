@@ -130,11 +130,13 @@ public partial class MainPage : ContentPage
     AddKeyPanel.Canceled += OnAddKeyCancelClicked;
     AddKeyPanel.BoneChanged += OnAddKeyBoneChanged;
     AddKeyPanel.FrameChanged += OnAddKeyFrameChanged;
+    AddKeyPanel.ParameterChanged += OnKeyParameterChanged;
 
     EditKeyPanel.Confirmed += OnEditKeyConfirmClicked;
     EditKeyPanel.Canceled += OnEditKeyCancelClicked;
     EditKeyPanel.BoneChanged += OnEditKeyBoneChanged;
     EditKeyPanel.FrameChanged += OnEditKeyFrameChanged;
+    EditKeyPanel.ParameterChanged += OnKeyParameterChanged;
     DeletePanel.Confirmed += OnKeyDeleteConfirmClicked;
     DeletePanel.Canceled += OnKeyDeleteCancelClicked;
     DeletePanel.BoneChanged += OnDeleteBoneChanged;
@@ -657,20 +659,27 @@ private void ShowBottomFeature(string name)
                 ApplyTimelineFrame(tv, tv.CurrentFrame);
                 Viewer?.InvalidateSurface();
             }
-            tv.AddKeyClicked += (s, e) =>
+            tv.AddKeyClicked += async (s, e) =>
             {
-                AddKeyPanel.IsVisible = true;
                 if (s is TimelineView timelineView)
                 {
                     int boneIndex = timelineView.SelectedKeyInputBoneIndex;
-                    AddKeyPanel.SetBones(timelineView.BoneNames);
-                    AddKeyPanel.SelectedBoneIndex = boneIndex;
                     var boneName = timelineView.BoneNames.Count > boneIndex && boneIndex >= 0
                         ? timelineView.BoneNames[boneIndex]
                         : timelineView.SelectedBoneName;
+
+                    if (timelineView.HasKeyframe(boneName, timelineView.CurrentFrame))
+                    {
+                        await DisplayAlert("Info", "既にキーがあります。別のフレームまたはボーンを選択してください。", "OK");
+                        return;
+                    }
+
+                    AddKeyPanel.SetBones(timelineView.BoneNames);
+                    AddKeyPanel.SelectedBoneIndex = boneIndex;
                     AddKeyPanel.SetFrame(timelineView.CurrentFrame, timelineView.GetKeyframesForBone(boneName));
                     timelineView.SelectedKeyInputBoneIndex = AddKeyPanel.SelectedBoneIndex;
                 }
+                AddKeyPanel.IsVisible = true;
             };
             tv.EditKeyClicked += (s, e) =>
             {
@@ -1356,6 +1365,20 @@ private void OnEditKeyFrameChanged(int frame)
             }
         }
         return;
+    }
+}
+
+private void OnKeyParameterChanged(string bone, int frame, Vector3 trans, Vector3 rot)
+{
+    if (_currentModel == null)
+        return;
+
+    int index = _currentModel.HumanoidBoneList.FindIndex(h => h.Name == bone);
+    if (index >= 0)
+    {
+        _renderer.SetBoneTranslation(index, trans);
+        _renderer.SetBoneRotation(index, rot);
+        Viewer?.InvalidateSurface();
     }
 }
 
