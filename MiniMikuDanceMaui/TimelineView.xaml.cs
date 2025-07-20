@@ -494,7 +494,6 @@ public partial class TimelineView : ContentView
     public bool HasAnyKeyframe(string boneName)
         => _keyframes.TryGetValue(boneName, out var list) && list.Count > 0;
 
-
     public Vector3 GetNearestTranslation(string boneName, int frame)
     {
         if (!_keyframes.TryGetValue(boneName, out var list) || list.Count == 0)
