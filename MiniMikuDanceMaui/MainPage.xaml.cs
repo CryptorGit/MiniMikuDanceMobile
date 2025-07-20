@@ -1410,37 +1410,36 @@ private void OnBoneAxisValueChanged(double v)
     if (_currentModel == null)
         return;
 
+    string boneName;
+    Vector3 translation;
+    Vector3 rotation;
+
     if (AddKeyPanel.IsVisible)
     {
-        ApplyPanelPose(AddKeyPanel.SelectedBoneIndex,
-            AddKeyPanel.Translation,
-            AddKeyPanel.EulerRotation);
+        boneName = AddKeyPanel.SelectedBone;
+        translation = AddKeyPanel.Translation;
+        rotation = AddKeyPanel.EulerRotation;
     }
     else if (EditKeyPanel.IsVisible)
     {
-        ApplyPanelPose(EditKeyPanel.SelectedBoneIndex,
-            EditKeyPanel.Translation,
-            EditKeyPanel.EulerRotation);
+        boneName = EditKeyPanel.SelectedBone;
+        translation = EditKeyPanel.Translation;
+        rotation = EditKeyPanel.EulerRotation;
     }
-}
+    else
+    {
+        return;
+    }
 
-/// <summary>
-/// 指定されたボーンインデックスに対して姿勢を適用する。
-/// </summary>
-private void ApplyPanelPose(int boneIndex, Vector3 translation, Vector3 rotation)
-{
-    if (boneIndex < 0 || boneIndex >= _currentModel!.HumanoidBoneList.Count)
+    if (string.IsNullOrEmpty(boneName) ||
+        !_currentModel.HumanoidBones.TryGetValue(boneName, out int index))
         return;
 
-    int actualIndex = _currentModel.HumanoidBoneList[boneIndex].Index;
-    _renderer.SetBoneTranslation(actualIndex, translation);
-    _renderer.SetBoneRotation(actualIndex, rotation);
+    _renderer.SetBoneTranslation(index, translation);
+    _renderer.SetBoneRotation(index, rotation);
     SavePoseState();
     Viewer?.InvalidateSurface();
 }
-
-
-
 private void OnPlayAnimationRequested()
 {
     try
