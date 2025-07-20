@@ -1342,8 +1342,8 @@ private void OnAddKeyFrameChanged(int frame)
                 }
                 else
                 {
-                    AddKeyPanel.SetTranslation(tv.GetNearestTranslation(bone, frame));
-                    AddKeyPanel.SetRotation(tv.GetNearestRotation(bone, frame));
+                    AddKeyPanel.SetTranslation(tv.GetBoneTranslationAtFrame(bone, frame));
+                    AddKeyPanel.SetRotation(tv.GetBoneRotationAtFrame(bone, frame));
                 }
             }
             else
@@ -1373,8 +1373,8 @@ private void OnEditKeyFrameChanged(int frame)
                 }
                 else
                 {
-                    EditKeyPanel.SetTranslation(tv.GetNearestTranslation(bone, frame));
-                    EditKeyPanel.SetRotation(tv.GetNearestRotation(bone, frame));
+                    EditKeyPanel.SetTranslation(tv.GetBoneTranslationAtFrame(bone, frame));
+                    EditKeyPanel.SetRotation(tv.GetBoneRotationAtFrame(bone, frame));
                 }
             }
             else
