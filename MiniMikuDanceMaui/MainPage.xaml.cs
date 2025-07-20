@@ -132,11 +132,25 @@ public partial class MainPage : ContentPage
     AddKeyPanel.FrameChanged += OnAddKeyFrameChanged;
     AddKeyPanel.ParameterChanged += OnKeyParameterChanged;
 
+    // BoneAxisControl の値変更時にモデルへ即座に反映する
+    AddKeyPanel.RotXControl.ValueChanged += OnBoneAxisValueChanged;
+    AddKeyPanel.RotYControl.ValueChanged += OnBoneAxisValueChanged;
+    AddKeyPanel.RotZControl.ValueChanged += OnBoneAxisValueChanged;
+    AddKeyPanel.PosXControl.ValueChanged += OnBoneAxisValueChanged;
+    AddKeyPanel.PosYControl.ValueChanged += OnBoneAxisValueChanged;
+    AddKeyPanel.PosZControl.ValueChanged += OnBoneAxisValueChanged;
+
     EditKeyPanel.Confirmed += OnEditKeyConfirmClicked;
     EditKeyPanel.Canceled += OnEditKeyCancelClicked;
     EditKeyPanel.BoneChanged += OnEditKeyBoneChanged;
     EditKeyPanel.FrameChanged += OnEditKeyFrameChanged;
     EditKeyPanel.ParameterChanged += OnKeyParameterChanged;
+    EditKeyPanel.RotXControl.ValueChanged += OnBoneAxisValueChanged;
+    EditKeyPanel.RotYControl.ValueChanged += OnBoneAxisValueChanged;
+    EditKeyPanel.RotZControl.ValueChanged += OnBoneAxisValueChanged;
+    EditKeyPanel.PosXControl.ValueChanged += OnBoneAxisValueChanged;
+    EditKeyPanel.PosYControl.ValueChanged += OnBoneAxisValueChanged;
+    EditKeyPanel.PosZControl.ValueChanged += OnBoneAxisValueChanged;
     DeletePanel.Confirmed += OnKeyDeleteConfirmClicked;
     DeletePanel.Canceled += OnKeyDeleteCancelClicked;
     DeletePanel.BoneChanged += OnDeleteBoneChanged;
@@ -1380,6 +1394,44 @@ private void OnKeyParameterChanged(string bone, int frame, Vector3 trans, Vector
         _renderer.SetBoneRotation(index, rot);
         Viewer?.InvalidateSurface();
     }
+}
+
+/// <summary>
+/// BoneAxisControl の値が変更された際に呼び出されるハンドラ。
+/// 現在選択中のボーンに対してモデルを更新する。
+/// </summary>
+/// <param name="v">未使用</param>
+private void OnBoneAxisValueChanged(double v)
+{
+    if (_currentModel == null)
+        return;
+
+    if (AddKeyPanel.IsVisible)
+    {
+        ApplyPanelPose(AddKeyPanel.SelectedBoneIndex,
+            AddKeyPanel.Translation,
+            AddKeyPanel.EulerRotation);
+    }
+    else if (EditKeyPanel.IsVisible)
+    {
+        ApplyPanelPose(EditKeyPanel.SelectedBoneIndex,
+            EditKeyPanel.Translation,
+            EditKeyPanel.EulerRotation);
+    }
+}
+
+/// <summary>
+/// 指定されたボーンインデックスに対して姿勢を適用する。
+/// </summary>
+private void ApplyPanelPose(int boneIndex, Vector3 translation, Vector3 rotation)
+{
+    if (boneIndex < 0 || boneIndex >= _currentModel!.HumanoidBoneList.Count)
+        return;
+
+    _renderer.SetBoneTranslation(boneIndex, translation);
+    _renderer.SetBoneRotation(boneIndex, rotation);
+    SavePoseState();
+    Viewer?.InvalidateSurface();
 }
 
 
