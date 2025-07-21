@@ -2,6 +2,8 @@ using Xunit;
 using MiniMikuDanceMaui;
 using System.Reflection;
 using MiniMikuDance.Camera;
+using OpenTK.Mathematics;
+using System.Collections.Generic;
 
 public class ViewTests
 {
@@ -71,5 +73,20 @@ public class ViewTests
     {
         var page = new MainPage();
         Assert.NotNull(page);
+    }
+
+    [Fact]
+    public void VrmRenderer_ClampsBoneRotation()
+    {
+        var renderer = new VrmRenderer();
+        renderer.SetRotationLimits(new Dictionary<int, (Vector3 Min, Vector3 Max)>
+        {
+            [0] = (new Vector3(-10, -10, -10), new Vector3(10, 10, 10))
+        });
+        renderer.SetBoneRotation(0, new Vector3(20, -20, 5));
+        var r = renderer.GetBoneRotation(0);
+        Assert.Equal(10, r.X, 3);
+        Assert.Equal(-10, r.Y, 3);
+        Assert.Equal(5, r.Z, 3);
     }
 }
