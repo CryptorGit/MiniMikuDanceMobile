@@ -2,7 +2,7 @@ using System.IO;
 
 namespace MiniMikuDance.Data;
 
-public class DataManager : Util.Singleton<DataManager>
+public partial class DataManager : Util.Singleton<DataManager>
 {
     public T LoadConfig<T>(string key) where T : new()
     {
@@ -15,11 +15,37 @@ public class DataManager : Util.Singleton<DataManager>
                 var dir = Path.GetDirectoryName(path);
                 if (!string.IsNullOrEmpty(dir) && !Directory.Exists(dir))
                     Directory.CreateDirectory(dir);
-                File.Copy(src, path);
+                try
+                {
+                    File.Copy(src, path);
+                }
+                catch
+                {
+                    // ignore copy failures
+                }
+            }
+            else
+            {
+                var stream = OpenPackageFile(path);
+                if (stream != null)
+                {
+                    using (stream)
+                    {
+                        return Util.JSONUtil.LoadFromStream<T>(stream);
+                    }
+                }
             }
         }
         return Util.JSONUtil.Load<T>(path);
     }
+
+    /// <summary>
+    /// プラットフォームのアプリパッケージからファイルを開く。
+    /// デフォルト実装は null を返す。
+    /// </summary>
+    /// <param name="path">パッケージ内の相対パス</param>
+    /// <returns>ストリーム、または null</returns>
+    partial Stream? OpenPackageFile(string path);
 
     public void SaveConfig<T>(string key, T data)
     {
@@ -36,4 +62,10 @@ public class DataManager : Util.Singleton<DataManager>
         }
         Directory.CreateDirectory(_tempDir);
     }
+}
+
+public partial class DataManager
+{
+    // Default implementation for non-MAUI platforms
+    partial Stream? OpenPackageFile(string path) => null;
 }
