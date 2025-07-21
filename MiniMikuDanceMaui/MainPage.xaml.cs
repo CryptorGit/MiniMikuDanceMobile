@@ -1521,6 +1521,7 @@ private void OnTimelineFrameChanged(int frame)
         _renderer.SetBoneTranslation(index, t);
         _renderer.SetBoneRotation(index, r);
     }
+    }
 
     private void LoadRotationLimits()
     {
@@ -1545,7 +1546,6 @@ private void OnTimelineFrameChanged(int frame)
         {
         }
     }
-}
 
 
 
