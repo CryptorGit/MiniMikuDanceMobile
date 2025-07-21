@@ -63,6 +63,7 @@ public class VrmRenderer : IDisposable
     private readonly List<Vector3> _boneRotations = new();
     private readonly List<Vector3> _boneTranslations = new();
     private List<MiniMikuDance.Import.BoneData> _bones = new();
+    private readonly Dictionary<int, string> _indexToHumanoidName = new();
     public BonesConfig? BonesConfig { get; set; }
     private readonly Dictionary<int, string> _indexToHumanoidName = new();
     private Quaternion _externalRotation = Quaternion.Identity;
@@ -336,8 +337,11 @@ void main(){
         _meshes.Clear();
         _indexToHumanoidName.Clear();
         _bones = data.Bones.ToList();
-        foreach (var hb in data.HumanoidBoneList)
-            _indexToHumanoidName[hb.Index] = hb.Name;
+        _indexToHumanoidName.Clear();
+        foreach (var (name, idx) in data.HumanoidBoneList)
+        {
+            _indexToHumanoidName[idx] = name;
+        }
 
         _modelTransform = data.Transform.ToMatrix4();
 
@@ -618,6 +622,7 @@ void main(){
             if (rm.Ebo != 0) GL.DeleteBuffer(rm.Ebo);
         }
         _meshes.Clear();
+        _indexToHumanoidName.Clear();
         GL.DeleteBuffer(_gridVbo);
         GL.DeleteBuffer(_groundVbo);
         GL.DeleteVertexArray(_gridVao);
