@@ -1548,14 +1548,7 @@ private void SavePoseState()
 
 private Vector3 ClampRotation(string bone, Vector3 rot)
 {
-    if (_bonesConfig != null && _bonesConfig.TryGetLimit(bone, out var lim) && lim != null)
-    {
-        return new Vector3(
-            Math.Clamp(rot.X, lim.Min.X, lim.Max.X),
-            Math.Clamp(rot.Y, lim.Min.Y, lim.Max.Y),
-            Math.Clamp(rot.Z, lim.Min.Z, lim.Max.Z));
-    }
-    return rot;
+    return _bonesConfig?.Clamp(bone, rot) ?? rot;
 }
 
 private Vector3 GetBoneTranslationAtFrame(string bone, int frame)

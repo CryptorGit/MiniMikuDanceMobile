@@ -21,4 +21,16 @@ public class BonesConfig
         limit = HumanoidBoneLimits.FirstOrDefault(l => string.Equals(l.Bone, bone, StringComparison.OrdinalIgnoreCase));
         return limit != null;
     }
+
+    public Vector3 Clamp(string bone, Vector3 rot)
+    {
+        if (TryGetLimit(bone, out var lim) && lim != null)
+        {
+            return new Vector3(
+                Math.Clamp(rot.X, lim.Min.X, lim.Max.X),
+                Math.Clamp(rot.Y, lim.Min.Y, lim.Max.Y),
+                Math.Clamp(rot.Z, lim.Min.Z, lim.Max.Z));
+        }
+        return rot;
+    }
 }
