@@ -7,6 +7,7 @@ using System.Collections.Generic;
 using System.Linq;
 using MiniMikuDance.Util;
 using MiniMikuDance.Import;
+using MiniMikuDance.App;
 
 namespace MiniMikuDanceMaui;
 
@@ -62,6 +63,7 @@ public class VrmRenderer : IDisposable
     private readonly List<Vector3> _boneRotations = new();
     private readonly List<Vector3> _boneTranslations = new();
     private List<MiniMikuDance.Import.BoneData> _bones = new();
+    public BonesConfig? BonesConfig { get; set; }
     private Quaternion _externalRotation = Quaternion.Identity;
     // デフォルトのカメラ感度をスライダーの最小値に合わせる
     public float RotateSensitivity { get; set; } = 0.1f;
@@ -271,6 +273,12 @@ void main(){
     {
         if (index < 0)
             return;
+        if (BonesConfig != null && index < _bones.Count)
+        {
+            var name = _bones[index].Name;
+            var clamped = BonesConfig.Clamp(name, degrees.ToNumerics());
+            degrees = clamped.ToOpenTK();
+        }
         while (_boneRotations.Count <= index)
             _boneRotations.Add(Vector3.Zero);
         _boneRotations[index] = degrees;

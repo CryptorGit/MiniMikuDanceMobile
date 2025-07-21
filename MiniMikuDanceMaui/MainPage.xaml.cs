@@ -501,6 +501,7 @@ private void OnPaintSurface(object? sender, SKPaintGLSurfaceEventArgs e)
     {
         GL.LoadBindings(new SKGLViewBindingsContext());
         _renderer.Initialize();
+        _renderer.BonesConfig = _bonesConfig;
         _glInitialized = true;
     }
 
@@ -701,6 +702,8 @@ private void ShowBottomFeature(string name)
                     AddKeyPanel.SelectedBoneIndex = boneIndex;
                     AddKeyPanel.SetFrame(timelineView.CurrentFrame, timelineView.GetKeyframesForBone(boneName));
                     timelineView.SelectedKeyInputBoneIndex = AddKeyPanel.SelectedBoneIndex;
+                    // Ensure rotation limit is applied even when the index does not change
+                    OnAddKeyBoneChanged(AddKeyPanel.SelectedBoneIndex);
                 }
                 _poseBeforeKeyInput = new PoseState
                 {
@@ -735,6 +738,8 @@ private void ShowBottomFeature(string name)
                         EditKeyPanel.SetRotation(timelineView.GetBoneRotationAtFrame(boneName, timelineView.CurrentFrame));
                     }
                     timelineView.SelectedKeyInputBoneIndex = EditKeyPanel.SelectedBoneIndex;
+                    // Ensure rotation limit is applied even when the index does not change
+                    OnEditKeyBoneChanged(EditKeyPanel.SelectedBoneIndex);
                 }
             };
            tv.DeleteKeyClicked += (s, e) =>
