@@ -71,5 +71,34 @@ public class RotationLimitTests
             .GetValue(page)!;
         var rot = renderer.GetBoneRotation(0);
         Assert.InRange(rot.X, 9.9f, 10.1f);
+        Assert.InRange(panel.EulerRotation.X, 19.9f, 20.1f);
+    }
+
+    [Fact]
+    public void OnKeyConfirmClicked_ClampsRotation()
+    {
+        var cfg = new BonesConfig();
+        cfg.HumanoidBoneLimits.Add(new BoneLimit
+        {
+            Bone = "b",
+            Min = new System.Numerics.Vector3(-10, -10, -10),
+            Max = new System.Numerics.Vector3(10, 10, 10)
+        });
+        var page = CreatePage(cfg);
+
+        var model = new ModelData();
+        model.HumanoidBones["b"] = 0;
+        typeof(MainPage).GetField("_currentModel", BindingFlags.NonPublic | BindingFlags.Instance)!
+            .SetValue(page, model);
+
+        var method = typeof(MainPage).GetMethod("OnKeyConfirmClicked", BindingFlags.NonPublic | BindingFlags.Instance)!;
+        method.Invoke(page, new object?[] { "b", 0, new Vector3(), new Vector3(20, 0, 0) });
+
+        System.Threading.Thread.Sleep(100);
+
+        var renderer = (VrmRenderer)typeof(MainPage).GetField("_renderer", BindingFlags.NonPublic | BindingFlags.Instance)!
+            .GetValue(page)!;
+        var rot = renderer.GetBoneRotation(0);
+        Assert.InRange(rot.X, 9.9f, 10.1f);
     }
 }

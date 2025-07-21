@@ -1184,9 +1184,11 @@ private async void OnKeyConfirmClicked(string bone, int frame, Vector3 trans, Ve
     await Task.Delay(50);
     _motionEditor?.AddKeyFrame(bone, frame);
 
+    var rClamped = ClampRotation(bone, rot);
+
     if (_currentFeature == "TIMELINE" && _bottomViews.TryGetValue("TIMELINE", out var timelineView) && timelineView is TimelineView tv)
     {
-        tv.AddKeyframe(bone, frame, trans, rot);
+        tv.AddKeyframe(bone, frame, trans, rClamped);
     }
 
     if (_currentModel != null)
@@ -1194,7 +1196,7 @@ private async void OnKeyConfirmClicked(string bone, int frame, Vector3 trans, Ve
         if (_currentModel.HumanoidBones.TryGetValue(bone, out int index))
         {
             _renderer.SetBoneTranslation(index, trans);
-            _renderer.SetBoneRotation(index, ClampRotation(bone, rot));
+            _renderer.SetBoneRotation(index, rClamped);
 
             SavePoseState();
             Viewer?.InvalidateSurface();
@@ -1459,8 +1461,10 @@ private void OnBoneAxisValueChanged(double v)
         !_currentModel.HumanoidBones.TryGetValue(boneName, out int index))
         return;
 
+    var rClamped = ClampRotation(boneName, rotation);
+
     _renderer.SetBoneTranslation(index, translation);
-    _renderer.SetBoneRotation(index, ClampRotation(boneName, rotation));
+    _renderer.SetBoneRotation(index, rClamped);
     SavePoseState();
     Viewer?.InvalidateSurface();
 }
