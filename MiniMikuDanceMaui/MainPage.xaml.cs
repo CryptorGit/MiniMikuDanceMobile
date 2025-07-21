@@ -20,6 +20,7 @@ using MiniMikuDance.Util;
 using MiniMikuDance.PoseEstimation;
 using MiniMikuDance.Motion;
 using MiniMikuDance.Camera;
+using MiniMikuDance.App;
 
 namespace MiniMikuDanceMaui;
 
@@ -55,6 +56,7 @@ public partial class MainPage : ContentPage
     private ModelData? _currentModel;
     private readonly Dictionary<long, SKPoint> _touchPoints = new();
     private MotionEditor? _motionEditor;
+    private readonly BonesConfig? _bonesConfig = App.Initializer.BonesConfig;
 
     private class PoseState
     {
@@ -1192,7 +1194,7 @@ private async void OnKeyConfirmClicked(string bone, int frame, Vector3 trans, Ve
         if (_currentModel.HumanoidBones.TryGetValue(bone, out int index))
         {
             _renderer.SetBoneTranslation(index, trans);
-            _renderer.SetBoneRotation(index, rot);
+            _renderer.SetBoneRotation(index, ClampRotation(bone, rot));
 
             SavePoseState();
             Viewer?.InvalidateSurface();
@@ -1417,7 +1419,7 @@ private void OnKeyParameterChanged(string bone, int frame, Vector3 trans, Vector
     if (_currentModel.HumanoidBones.TryGetValue(bone, out int index))
     {
         _renderer.SetBoneTranslation(index, trans);
-        _renderer.SetBoneRotation(index, rot);
+        _renderer.SetBoneRotation(index, ClampRotation(bone, rot));
         Viewer?.InvalidateSurface();
     }
 }
@@ -1458,7 +1460,7 @@ private void OnBoneAxisValueChanged(double v)
         return;
 
     _renderer.SetBoneTranslation(index, translation);
-    _renderer.SetBoneRotation(index, rotation);
+    _renderer.SetBoneRotation(index, ClampRotation(boneName, rotation));
     SavePoseState();
     Viewer?.InvalidateSurface();
 }
@@ -1525,7 +1527,7 @@ private void ApplyTimelineFrame(TimelineView tv, int frame)
         var t = tv.GetBoneTranslationAtFrame(bone, frame);
         var r = tv.GetBoneRotationAtFrame(bone, frame);
         _renderer.SetBoneTranslation(index, t);
-        _renderer.SetBoneRotation(index, r);
+        _renderer.SetBoneRotation(index, ClampRotation(bone, r));
     }
 }
 
@@ -1542,6 +1544,18 @@ private void SavePoseState()
         _poseHistory.RemoveRange(_poseHistoryIndex + 1, _poseHistory.Count - _poseHistoryIndex - 1);
     _poseHistory.Add(state);
     _poseHistoryIndex = _poseHistory.Count - 1;
+}
+
+private Vector3 ClampRotation(string bone, Vector3 rot)
+{
+    if (_bonesConfig != null && _bonesConfig.TryGetLimit(bone, out var lim) && lim != null)
+    {
+        return new Vector3(
+            Math.Clamp(rot.X, lim.Min.X, lim.Max.X),
+            Math.Clamp(rot.Y, lim.Min.Y, lim.Max.Y),
+            Math.Clamp(rot.Z, lim.Min.Z, lim.Max.Z));
+    }
+    return rot;
 }
 
 private Vector3 GetBoneTranslationAtFrame(string bone, int frame)

@@ -19,6 +19,8 @@ public partial class App : Application
 
         Directory.SetCurrentDirectory(MmdFileSystem.BaseDir);
         var uiConfig = DataManager.Instance.LoadConfig<UIConfig>("UIConfig");
+        var bonesConfig = DataManager.Instance.LoadConfig<BonesConfig>("BonesConfig");
+        Initializer.BonesConfig = bonesConfig;
 
         var modelName = "pose_landmark_full.onnx";
         var poseModel = Path.Combine(FileSystem.AppDataDirectory, modelName);
