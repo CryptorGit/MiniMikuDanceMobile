@@ -3,6 +3,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using OpenTK.Mathematics;
+using MiniMikuDance.App;
 
 namespace MiniMikuDanceMaui;
 
@@ -16,6 +17,7 @@ public event Action<string, int, Vector3, Vector3>? ParameterChanged;
 
 private Func<string, int, Vector3>? _getTranslation;
 private Func<string, int, Vector3>? _getRotation;
+    private MiniMikuDance.App.BoneLimit? _rotationLimit;
 
     public AddKeyPanel()
     {
@@ -51,6 +53,28 @@ private Func<string, int, Vector3>? _getRotation;
         PosXControl.ValueChanged += OnParamsChanged;
         PosYControl.ValueChanged += OnParamsChanged;
         PosZControl.ValueChanged += OnParamsChanged;
+    }
+
+    public void SetRotationLimit(MiniMikuDance.App.BoneLimit? limit)
+    {
+        _rotationLimit = limit;
+        bool enablePickers = limit == null;
+        RotXControl.SetPickersEnabled(enablePickers);
+        RotYControl.SetPickersEnabled(enablePickers);
+        RotZControl.SetPickersEnabled(enablePickers);
+
+        if (limit != null)
+        {
+            RotXControl.SetRange(limit.Min.X, limit.Max.X);
+            RotYControl.SetRange(limit.Min.Y, limit.Max.Y);
+            RotZControl.SetRange(limit.Min.Z, limit.Max.Z);
+        }
+        else
+        {
+            RotXControl.SetRange(-180, 180);
+            RotYControl.SetRange(-180, 180);
+            RotZControl.SetRange(-180, 180);
+        }
     }
 
     public void SetBones(IEnumerable<string> bones)
@@ -105,6 +129,12 @@ private Func<string, int, Vector3>? _getRotation;
 
     public void SetRotation(Vector3 r)
     {
+        if (_rotationLimit != null)
+        {
+            r.X = Math.Clamp(r.X, _rotationLimit.Min.X, _rotationLimit.Max.X);
+            r.Y = Math.Clamp(r.Y, _rotationLimit.Min.Y, _rotationLimit.Max.Y);
+            r.Z = Math.Clamp(r.Z, _rotationLimit.Min.Z, _rotationLimit.Max.Z);
+        }
         RotXControl.Value = r.X;
         RotYControl.Value = r.Y;
         RotZControl.Value = r.Z;

@@ -1276,10 +1276,15 @@ private void OnAddKeyBoneChanged(int index)
         if (index >= 0 && index < tv.BoneNames.Count)
         {
             var boneName = tv.BoneNames[index];
+            if (_bonesConfig != null && _bonesConfig.TryGetLimit(boneName, out var lim))
+                AddKeyPanel.SetRotationLimit(lim);
+            else
+                AddKeyPanel.SetRotationLimit(null);
+
             if (tv.HasAnyKeyframe(boneName))
             {
                 AddKeyPanel.SetTranslation(tv.GetNearestTranslation(boneName, frame));
-                AddKeyPanel.SetRotation(tv.GetNearestRotation(boneName, frame));
+                AddKeyPanel.SetRotation(ClampRotation(boneName, tv.GetNearestRotation(boneName, frame)));
             }
             else
             {
@@ -1295,8 +1300,13 @@ private void OnAddKeyBoneChanged(int index)
     if (index >= 0 && index < _currentModel.HumanoidBoneList.Count)
     {
         var boneName = _currentModel.HumanoidBoneList[index].Name;
+        if (_bonesConfig != null && _bonesConfig.TryGetLimit(boneName, out var lim))
+            AddKeyPanel.SetRotationLimit(lim);
+        else
+            AddKeyPanel.SetRotationLimit(null);
+
         var t = GetBoneTranslationAtFrame(boneName, frame);
-        var r = GetBoneRotationAtFrame(boneName, frame);
+        var r = ClampRotation(boneName, GetBoneRotationAtFrame(boneName, frame));
         AddKeyPanel.SetTranslation(t);
         AddKeyPanel.SetRotation(r);
     }
@@ -1313,10 +1323,14 @@ private void OnEditKeyBoneChanged(int index)
         if (index >= 0 && index < tv.BoneNames.Count)
         {
             var boneName = tv.BoneNames[index];
+            if (_bonesConfig != null && _bonesConfig.TryGetLimit(boneName, out var lim))
+                EditKeyPanel.SetRotationLimit(lim);
+            else
+                EditKeyPanel.SetRotationLimit(null);
             if (tv.HasAnyKeyframe(boneName))
             {
                 EditKeyPanel.SetTranslation(tv.GetNearestTranslation(boneName, frame));
-                EditKeyPanel.SetRotation(tv.GetNearestRotation(boneName, frame));
+                EditKeyPanel.SetRotation(ClampRotation(boneName, tv.GetNearestRotation(boneName, frame)));
             }
             else
             {
@@ -1334,8 +1348,13 @@ private void OnEditKeyBoneChanged(int index)
     if (index >= 0 && index < _currentModel.HumanoidBoneList.Count)
     {
         var boneName = _currentModel.HumanoidBoneList[index].Name;
+        if (_bonesConfig != null && _bonesConfig.TryGetLimit(boneName, out var lim))
+            EditKeyPanel.SetRotationLimit(lim);
+        else
+            EditKeyPanel.SetRotationLimit(null);
+
         var t = GetBoneTranslationAtFrame(boneName, frame);
-        var r = GetBoneRotationAtFrame(boneName, frame);
+        var r = ClampRotation(boneName, GetBoneRotationAtFrame(boneName, frame));
         EditKeyPanel.SetTranslation(t);
         EditKeyPanel.SetRotation(r);
     }
@@ -1372,12 +1391,12 @@ private void OnAddKeyFrameChanged(int frame)
                 if (tv.HasKeyframe(bone, frame))
                 {
                     AddKeyPanel.SetTranslation(tv.GetBoneTranslationAtFrame(bone, frame));
-                    AddKeyPanel.SetRotation(tv.GetBoneRotationAtFrame(bone, frame));
+                    AddKeyPanel.SetRotation(ClampRotation(bone, tv.GetBoneRotationAtFrame(bone, frame)));
                 }
                 else
                 {
                     AddKeyPanel.SetTranslation(tv.GetBoneTranslationAtFrame(bone, frame));
-                    AddKeyPanel.SetRotation(tv.GetBoneRotationAtFrame(bone, frame));
+                    AddKeyPanel.SetRotation(ClampRotation(bone, tv.GetBoneRotationAtFrame(bone, frame)));
                 }
             }
             else
@@ -1403,12 +1422,12 @@ private void OnEditKeyFrameChanged(int frame)
                 if (tv.HasKeyframe(bone, frame))
                 {
                     EditKeyPanel.SetTranslation(tv.GetBoneTranslationAtFrame(bone, frame));
-                    EditKeyPanel.SetRotation(tv.GetBoneRotationAtFrame(bone, frame));
+                    EditKeyPanel.SetRotation(ClampRotation(bone, tv.GetBoneRotationAtFrame(bone, frame)));
                 }
                 else
                 {
                     EditKeyPanel.SetTranslation(tv.GetBoneTranslationAtFrame(bone, frame));
-                    EditKeyPanel.SetRotation(tv.GetBoneRotationAtFrame(bone, frame));
+                    EditKeyPanel.SetRotation(ClampRotation(bone, tv.GetBoneRotationAtFrame(bone, frame)));
                 }
             }
             else

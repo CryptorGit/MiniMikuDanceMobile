@@ -51,6 +51,13 @@ public partial class BoneAxisControl : ContentView
         Slider.Maximum = max;
     }
 
+    public void SetPickersEnabled(bool enabled)
+    {
+        CenterPicker.IsEnabled = enabled;
+        RangePicker.IsEnabled = enabled;
+        ResetButton.IsEnabled = enabled;
+    }
+
     public object? SelectedRange
     {
         get => RangePicker.SelectedItem;
