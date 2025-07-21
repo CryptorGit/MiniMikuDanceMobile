@@ -31,4 +31,19 @@
   <ItemGroup>
     <!-- 追加のアセットが必要な場合はここに記述します -->
   </ItemGroup>
+
+  <ItemGroup>
+    <Content Include="..\Configs\BonesConfig.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="..\Configs\UIConfig.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="..\Configs\style_tokens_dark.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="..\Configs\style_tokens_light.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+  </ItemGroup>
 </Project>
