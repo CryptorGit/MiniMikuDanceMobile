@@ -30,6 +30,10 @@ dotnet workload install maui
 
 インストールでエラーが出る場合は [公式ドキュメント](https://learn.microsoft.com/dotnet/maui/faq#install-workload-error) を参照し、`dotnet workload repair` を試みてください。
 
+Android テストで必要なフレームワークが見つからないというエラーが出る場合は、
+まず `dotnet --list-runtimes` でインストール済みランタイムを確認してください。
+不足している場合は `dotnet workload repair` を実行して環境を修復します。
+
 実行後、`AppCore.Tests/TestResults/coverage.xml` が生成されます。
 この XML を HTML レポートに変換するには、reportgenerator を使用して次のコマンドを実行します。
 
