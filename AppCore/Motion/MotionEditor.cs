@@ -37,6 +37,7 @@ public class MotionEditor
         {
             Timestamp = src.Timestamp,
             Positions = src.Positions.ToArray(),
+            Rotations = src.Rotations.ToArray(),
             Confidences = src.Confidences.ToArray()
         };
 
@@ -197,6 +198,7 @@ public class MotionEditor
         {
             Timestamp = 0f,
             Positions = new System.Numerics.Vector3[0],
+            Rotations = new System.Numerics.Vector3[0],
             Confidences = new float[0]
         };
 

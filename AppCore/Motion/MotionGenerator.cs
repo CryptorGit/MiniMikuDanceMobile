@@ -27,6 +27,7 @@ public class MotionGenerator
         {
             Timestamp = timestamp,
             Positions = new Vector3[jointCount],
+            Rotations = new Vector3[jointCount],
             Confidences = new float[jointCount]
         };
 
@@ -34,6 +35,7 @@ public class MotionGenerator
         for (int i = 0; i < jointCount; i++)
         {
             result.Positions[i] = Vector3.Lerp(a.Positions[i], b.Positions[i], alpha);
+            result.Rotations[i] = Vector3.Lerp(a.Rotations[i], b.Rotations[i], alpha);
             result.Confidences[i] = a.Confidences[i] + (b.Confidences[i] - a.Confidences[i]) * alpha;
         }
         return result;
@@ -78,19 +80,23 @@ public class MotionGenerator
             {
                 Timestamp = interpolated[i].Timestamp,
                 Positions = new Vector3[jointCount],
+                Rotations = new Vector3[jointCount],
                 Confidences = new float[jointCount]
             };
 
             for (int j = 0; j < jointCount; j++)
             {
                 Vector3 posSum = Vector3.Zero;
+                Vector3 rotSum = Vector3.Zero;
                 float confSum = 0f;
                 for (int k = start; k <= end; k++)
                 {
                     posSum += interpolated[k].Positions[j];
+                    rotSum += interpolated[k].Rotations[j];
                     confSum += interpolated[k].Confidences[j];
                 }
                 jd.Positions[j] = posSum / span;
+                jd.Rotations[j] = rotSum / span;
                 jd.Confidences[j] = confSum / span;
             }
 

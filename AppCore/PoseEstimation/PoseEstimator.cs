@@ -12,6 +12,7 @@ public class JointData
 {
     public float Timestamp { get; set; }
     public Vector3[] Positions { get; set; } = Array.Empty<Vector3>();
+    public Vector3[] Rotations { get; set; } = Array.Empty<Vector3>();
     public float[] Confidences { get; set; } = Array.Empty<float>();
 }
 
@@ -50,6 +51,7 @@ public class PoseEstimator : IDisposable
                     {
                         Timestamp = i / fps,
                         Positions = new Vector3[jointCount],
+                        Rotations = new Vector3[jointCount],
                         Confidences = new float[jointCount]
                     };
                     for (int j = 0; j < jointCount; j++)
@@ -78,6 +80,7 @@ public class PoseEstimator : IDisposable
                 {
                     Timestamp = i / fps,
                     Positions = new Vector3[jointCount],
+                    Rotations = new Vector3[jointCount],
                     Confidences = new float[jointCount]
                 };
 
