@@ -64,6 +64,7 @@ public partial class MainPage : ContentPage
 
     private readonly List<PoseState> _poseHistory = new();
     private int _poseHistoryIndex = -1;
+    private PoseState? _poseBeforeKeyInput;
     public MotionPlayer? MotionPlayer => App.Initializer.MotionPlayer;
     
     private readonly Dictionary<string, BlazePoseJoint> _boneToJoint = new()
@@ -699,10 +700,20 @@ private void ShowBottomFeature(string name)
                     AddKeyPanel.SetFrame(timelineView.CurrentFrame, timelineView.GetKeyframesForBone(boneName));
                     timelineView.SelectedKeyInputBoneIndex = AddKeyPanel.SelectedBoneIndex;
                 }
+                _poseBeforeKeyInput = new PoseState
+                {
+                    Rotations = _renderer.GetAllBoneRotations(),
+                    Translations = _renderer.GetAllBoneTranslations()
+                };
                 AddKeyPanel.IsVisible = true;
             };
             tv.EditKeyClicked += (s, e) =>
             {
+                _poseBeforeKeyInput = new PoseState
+                {
+                    Rotations = _renderer.GetAllBoneRotations(),
+                    Translations = _renderer.GetAllBoneTranslations()
+                };
                 EditKeyPanel.IsVisible = true;
                 if (s is TimelineView timelineView)
                 {
@@ -1187,6 +1198,7 @@ private async void OnKeyConfirmClicked(string bone, int frame, Vector3 trans, Ve
             Viewer?.InvalidateSurface();
         }
     }
+    _poseBeforeKeyInput = null;
     AddKeyPanel.IsVisible = false;
     EditKeyPanel.IsVisible = false;
     SetLoadingIndicatorVisibilityAndLayout(false);
@@ -1196,6 +1208,14 @@ private void OnKeyCancelClicked()
 {
     AddKeyPanel.IsVisible = false;
     EditKeyPanel.IsVisible = false;
+    if (_poseBeforeKeyInput != null)
+    {
+        _renderer.SetAllBoneRotations(_poseBeforeKeyInput.Rotations);
+        _renderer.SetAllBoneTranslations(_poseBeforeKeyInput.Translations);
+        Viewer?.InvalidateSurface();
+        _poseBeforeKeyInput = null;
+        SavePoseState();
+    }
     SetLoadingIndicatorVisibilityAndLayout(false);
 }
 
