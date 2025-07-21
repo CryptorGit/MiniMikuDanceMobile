@@ -395,7 +395,7 @@ private void SetupIKView(IKView iv)
             if (_currentModel.HumanoidBones.TryGetValue(bone, out int idx))
             {
                 var rot = _renderer.GetBoneRotation(idx);
-                iv.SetBoneValue(bone, rot.Y);
+                iv.SetBoneValue(bone, rot);
             }
         }
     }
@@ -403,14 +403,19 @@ private void SetupIKView(IKView iv)
     iv.Refresh();
 }
 
-private void OnIkBoneValueChanged(string bone, double value)
+private void OnIkBoneValueChanged(string bone, string axis, double value)
 {
     if (_currentModel == null)
         return;
     if (!_currentModel.HumanoidBones.TryGetValue(bone, out int idx))
         return;
     var rot = _renderer.GetBoneRotation(idx);
-    rot.Y = (float)value;
+    switch (axis)
+    {
+        case "X": rot.X = (float)value; break;
+        case "Y": rot.Y = (float)value; break;
+        case "Z": rot.Z = (float)value; break;
+    }
     _renderer.SetBoneRotation(idx, rot);
     Viewer?.InvalidateSurface();
 }
