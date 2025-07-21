@@ -17,6 +17,8 @@ using System.Linq;
 using System.Numerics;
 using MiniMikuDance.Import;
 using OpenTK.Mathematics;
+using NVector3 = System.Numerics.Vector3;
+using OVector3 = OpenTK.Mathematics.Vector3;
 using MiniMikuDance.Util;
 using MiniMikuDance.PoseEstimation;
 using MiniMikuDance.Motion;
@@ -59,8 +61,8 @@ public partial class MainPage : ContentPage
 
     private class PoseState
     {
-        public IList<Vector3> Rotations = new List<Vector3>();
-        public IList<Vector3> Translations = new List<Vector3>();
+        public IList<OVector3> Rotations = new List<OVector3>();
+        public IList<OVector3> Translations = new List<OVector3>();
     }
 
     private readonly List<PoseState> _poseHistory = new();
@@ -1313,7 +1315,7 @@ private void OnCancelAdaptClicked(object? sender, EventArgs e)
     SetLoadingIndicatorVisibilityAndLayout(false);
 }
 
-private async void OnKeyConfirmClicked(string bone, int frame, Vector3 trans, Vector3 rot)
+private async void OnKeyConfirmClicked(string bone, int frame, OVector3 trans, OVector3 rot)
 {
     SetLoadingIndicatorVisibilityAndLayout(true);
     await Task.Delay(50);
@@ -1347,10 +1349,10 @@ private void OnKeyCancelClicked()
     SetLoadingIndicatorVisibilityAndLayout(false);
 }
 
-private void OnAddKeyConfirmClicked(string bone, int frame, Vector3 trans, Vector3 rot)
+private void OnAddKeyConfirmClicked(string bone, int frame, OVector3 trans, OVector3 rot)
     => OnKeyConfirmClicked(bone, frame, trans, rot);
 
-private void OnEditKeyConfirmClicked(string bone, int frame, Vector3 trans, Vector3 rot)
+private void OnEditKeyConfirmClicked(string bone, int frame, OVector3 trans, OVector3 rot)
     => OnKeyConfirmClicked(bone, frame, trans, rot);
 
 private void OnAddKeyCancelClicked()
@@ -1399,8 +1401,8 @@ private void OnAddKeyBoneChanged(int index)
             }
             else
             {
-                AddKeyPanel.SetTranslation(Vector3.Zero);
-                AddKeyPanel.SetRotation(Vector3.Zero);
+                AddKeyPanel.SetTranslation(OVector3.Zero);
+                AddKeyPanel.SetRotation(OVector3.Zero);
             }
         }
 
@@ -1436,8 +1438,8 @@ private void OnEditKeyBoneChanged(int index)
             }
             else
             {
-                EditKeyPanel.SetTranslation(Vector3.Zero);
-                EditKeyPanel.SetRotation(Vector3.Zero);
+                EditKeyPanel.SetTranslation(OVector3.Zero);
+                EditKeyPanel.SetRotation(OVector3.Zero);
             }
 
             EditKeyPanel.SetFrameOptions(tv.GetKeyframesForBone(boneName));
@@ -1498,8 +1500,8 @@ private void OnAddKeyFrameChanged(int frame)
             }
             else
             {
-                AddKeyPanel.SetTranslation(Vector3.Zero);
-                AddKeyPanel.SetRotation(Vector3.Zero);
+                AddKeyPanel.SetTranslation(OVector3.Zero);
+                AddKeyPanel.SetRotation(OVector3.Zero);
             }
         }
         return;
@@ -1529,15 +1531,15 @@ private void OnEditKeyFrameChanged(int frame)
             }
             else
             {
-                EditKeyPanel.SetTranslation(Vector3.Zero);
-                EditKeyPanel.SetRotation(Vector3.Zero);
+                EditKeyPanel.SetTranslation(OVector3.Zero);
+                EditKeyPanel.SetRotation(OVector3.Zero);
             }
         }
         return;
     }
 }
 
-private void OnKeyParameterChanged(string bone, int frame, Vector3 trans, Vector3 rot)
+private void OnKeyParameterChanged(string bone, int frame, OVector3 trans, OVector3 rot)
 {
     if (_currentModel == null)
         return;
@@ -1561,8 +1563,8 @@ private void OnBoneAxisValueChanged(double v)
         return;
 
     string boneName;
-    Vector3 translation;
-    Vector3 rotation;
+    OVector3 translation;
+    OVector3 rotation;
 
     if (AddKeyPanel.IsVisible)
     {
@@ -1672,31 +1674,31 @@ private void SavePoseState()
     _poseHistoryIndex = _poseHistory.Count - 1;
 }
 
-private Vector3 GetBoneTranslationAtFrame(string bone, int frame)
+private OVector3 GetBoneTranslationAtFrame(string bone, int frame)
 {
     if (_motionEditor == null)
-        return Vector3.Zero;
+        return OVector3.Zero;
     if (!_boneToJoint.TryGetValue(bone, out var joint))
-        return Vector3.Zero;
+        return OVector3.Zero;
     var frames = _motionEditor.Motion.Frames;
     if (frame < 0 || frame >= frames.Length)
-        return Vector3.Zero;
+        return OVector3.Zero;
     var pos = frames[frame].Positions[(int)joint];
-    return new Vector3(pos.X, pos.Y, pos.Z);
+    return new OVector3(pos.X, pos.Y, pos.Z);
 }
 
-private Vector3 GetBoneRotationAtFrame(string bone, int frame)
+private OVector3 GetBoneRotationAtFrame(string bone, int frame)
 {
     if (_motionEditor == null)
-        return Vector3.Zero;
+        return OVector3.Zero;
     if (!_boneToJoint.TryGetValue(bone, out var joint))
-        return Vector3.Zero;
+        return OVector3.Zero;
     var frames = _motionEditor.Motion.Frames;
     if (frame < 0 || frame >= frames.Length)
-        return Vector3.Zero;
+        return OVector3.Zero;
 
     // 現状の JointData には回転情報が無いため、ゼロ回転を返す
-    return Vector3.Zero;
+    return OVector3.Zero;
 }
 
 
