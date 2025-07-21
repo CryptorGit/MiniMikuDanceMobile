@@ -501,6 +501,7 @@ private void OnPaintSurface(object? sender, SKPaintGLSurfaceEventArgs e)
     {
         GL.LoadBindings(new SKGLViewBindingsContext());
         _renderer.Initialize();
+        _renderer.BonesConfig = _bonesConfig;
         _glInitialized = true;
     }
 
