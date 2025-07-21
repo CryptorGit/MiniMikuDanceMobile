@@ -10,8 +10,11 @@ namespace MiniMikuDanceMaui;
 public partial class IKView : ContentView
 {
 public event Action<string, string, double>? BoneValueChanged;
+public event Action<string, string, double>? PositionValueChanged;
+public event Action<string>? IkSolveRequested;
 
     private readonly Dictionary<string, Dictionary<string, BoneAxisControl>> _controls = new();
+    private readonly Dictionary<string, Dictionary<string, BoneAxisControl>> _posControls = new();
 
     public IKView()
     {
@@ -44,6 +47,34 @@ public event Action<string, string, double>? BoneValueChanged;
                 { "Z", z }
             };
         }
+
+        var posRangeValues = Enumerable.Range(0, 11).Select(i => (object)(i / 10f)).ToList();
+        var posCenterValues = Enumerable.Range(0, 21).Select(i => (object)(-1f + i * 0.1f)).ToList();
+        string[] endBones = { "leftHand", "rightHand", "leftFoot", "rightFoot" };
+        foreach (var name in endBones)
+        {
+            var px = new BoneAxisControl { ValueFormat = "F2" };
+            var py = new BoneAxisControl { ValueFormat = "F2" };
+            var pz = new BoneAxisControl { ValueFormat = "F2" };
+            px.SetLabels("Pos", "X");
+            py.SetLabels("Pos", "Y");
+            pz.SetLabels("Pos", "Z");
+            foreach (var c in new[] { px, py, pz })
+            {
+                c.SetPickers(posCenterValues, posRangeValues, 0f, 1f);
+                c.SetRange(-1, 1);
+            }
+            string captured = name;
+            px.ValueChanged += v => PositionValueChanged?.Invoke(captured, "X", v);
+            py.ValueChanged += v => PositionValueChanged?.Invoke(captured, "Y", v);
+            pz.ValueChanged += v => PositionValueChanged?.Invoke(captured, "Z", v);
+            _posControls[name] = new Dictionary<string, BoneAxisControl>
+            {
+                { "X", px },
+                { "Y", py },
+                { "Z", pz }
+            };
+        }
         if (HumanoidBones.StandardOrder.Length > 0)
             BonePicker.SelectedIndex = 0;
         ShowSelectedBone();
@@ -59,6 +90,12 @@ public event Action<string, string, double>? BoneValueChanged;
             BoneList.Children.Add(dict["X"]);
             BoneList.Children.Add(dict["Y"]);
             BoneList.Children.Add(dict["Z"]);
+            if (_posControls.TryGetValue(name, out var pdict))
+            {
+                BoneList.Children.Add(pdict["X"]);
+                BoneList.Children.Add(pdict["Y"]);
+                BoneList.Children.Add(pdict["Z"]);
+            }
         }
     }
 
@@ -84,4 +121,35 @@ public event Action<string, string, double>? BoneValueChanged;
             d["Z"].Value = value.Z;
         }
     }
+
+    public Vector3 GetPositionValue(string bone)
+    {
+        if (_posControls.TryGetValue(bone, out var d))
+        {
+            return new Vector3((float)d["X"].Value, (float)d["Y"].Value, (float)d["Z"].Value);
+        }
+        return Vector3.Zero;
+    }
+
+    public void SetPositionValue(string bone, Vector3 value)
+    {
+        if (_posControls.TryGetValue(bone, out var d))
+        {
+            d["X"].Value = value.X;
+            d["Y"].Value = value.Y;
+            d["Z"].Value = value.Z;
+        }
+    }
+
+    private void OnLeftLegIkClicked(object? sender, EventArgs e)
+        => IkSolveRequested?.Invoke("leftLeg");
+
+    private void OnRightLegIkClicked(object? sender, EventArgs e)
+        => IkSolveRequested?.Invoke("rightLeg");
+
+    private void OnLeftArmIkClicked(object? sender, EventArgs e)
+        => IkSolveRequested?.Invoke("leftArm");
+
+    private void OnRightArmIkClicked(object? sender, EventArgs e)
+        => IkSolveRequested?.Invoke("rightArm");
 }

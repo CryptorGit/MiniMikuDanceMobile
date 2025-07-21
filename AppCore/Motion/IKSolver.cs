@@ -120,4 +120,18 @@ public static class IKSolver
         world = ComputeWorldMatrices(model.Bones, rotations, translations);
         return ExtractTranslation(world[footIdx]);
     }
+
+    /// <summary>
+    /// Two-bone arm IK solver. Updates rotations in degrees.
+    /// </summary>
+    public static Vector3 SolveArm(
+        ModelData model,
+        IList<Vector3> rotations,
+        IList<Vector3> translations,
+        string upperArm,
+        string lowerArm,
+        string hand,
+        Vector3 target,
+        Vector3 pole)
+        => SolveLeg(model, rotations, translations, upperArm, lowerArm, hand, target, pole);
 }
