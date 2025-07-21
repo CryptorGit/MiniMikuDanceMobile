@@ -1357,7 +1357,12 @@ private void OnEditKeyBoneChanged(int index)
                 EditKeyPanel.SetRotationLimit(lim);
             else
                 EditKeyPanel.SetRotationLimit(null);
-            if (tv.HasAnyKeyframe(boneName))
+            if (tv.HasKeyframe(boneName, frame))
+            {
+                EditKeyPanel.SetTranslation(tv.GetBoneTranslationAtFrame(boneName, frame));
+                EditKeyPanel.SetRotation(ClampRotation(boneName, tv.GetBoneRotationAtFrame(boneName, frame)));
+            }
+            else if (tv.HasAnyKeyframe(boneName))
             {
                 EditKeyPanel.SetTranslation(tv.GetNearestTranslation(boneName, frame));
                 EditKeyPanel.SetRotation(ClampRotation(boneName, tv.GetNearestRotation(boneName, frame)));
