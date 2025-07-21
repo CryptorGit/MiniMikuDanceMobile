@@ -1309,6 +1309,13 @@ private void OnAddKeyBoneChanged(int index)
                 AddKeyPanel.SetTranslation(tv.GetNearestTranslation(boneName, frame));
                 AddKeyPanel.SetRotation(ClampRotation(boneName, tv.GetNearestRotation(boneName, frame)));
             }
+            else if (_motionEditor != null)
+            {
+                var t = GetBoneTranslationAtFrame(boneName, frame);
+                var r = ClampRotation(boneName, GetBoneRotationAtFrame(boneName, frame));
+                AddKeyPanel.SetTranslation(t);
+                AddKeyPanel.SetRotation(r);
+            }
             else
             {
                 AddKeyPanel.SetTranslation(Vector3.Zero);
@@ -1350,10 +1357,22 @@ private void OnEditKeyBoneChanged(int index)
                 EditKeyPanel.SetRotationLimit(lim);
             else
                 EditKeyPanel.SetRotationLimit(null);
-            if (tv.HasAnyKeyframe(boneName))
+            if (tv.HasKeyframe(boneName, frame))
+            {
+                EditKeyPanel.SetTranslation(tv.GetBoneTranslationAtFrame(boneName, frame));
+                EditKeyPanel.SetRotation(ClampRotation(boneName, tv.GetBoneRotationAtFrame(boneName, frame)));
+            }
+            else if (tv.HasAnyKeyframe(boneName))
             {
                 EditKeyPanel.SetTranslation(tv.GetNearestTranslation(boneName, frame));
                 EditKeyPanel.SetRotation(ClampRotation(boneName, tv.GetNearestRotation(boneName, frame)));
+            }
+            else if (_motionEditor != null)
+            {
+                var t = GetBoneTranslationAtFrame(boneName, frame);
+                var r = ClampRotation(boneName, GetBoneRotationAtFrame(boneName, frame));
+                EditKeyPanel.SetTranslation(t);
+                EditKeyPanel.SetRotation(r);
             }
             else
             {
@@ -1421,16 +1440,17 @@ private void OnAddKeyFrameChanged(int frame)
             var bone = tv.BoneNames[boneIndex];
             if (tv.HasAnyKeyframe(bone))
             {
-                if (tv.HasKeyframe(bone, frame))
-                {
-                    AddKeyPanel.SetTranslation(tv.GetBoneTranslationAtFrame(bone, frame));
-                    AddKeyPanel.SetRotation(ClampRotation(bone, tv.GetBoneRotationAtFrame(bone, frame)));
-                }
-                else
-                {
-                    AddKeyPanel.SetTranslation(tv.GetBoneTranslationAtFrame(bone, frame));
-                    AddKeyPanel.SetRotation(ClampRotation(bone, tv.GetBoneRotationAtFrame(bone, frame)));
-                }
+                var t = tv.GetBoneTranslationAtFrame(bone, frame);
+                var r = ClampRotation(bone, tv.GetBoneRotationAtFrame(bone, frame));
+                AddKeyPanel.SetTranslation(t);
+                AddKeyPanel.SetRotation(r);
+            }
+            else if (_motionEditor != null)
+            {
+                var t = GetBoneTranslationAtFrame(bone, frame);
+                var r = ClampRotation(bone, GetBoneRotationAtFrame(bone, frame));
+                AddKeyPanel.SetTranslation(t);
+                AddKeyPanel.SetRotation(r);
             }
             else
             {
@@ -1452,26 +1472,27 @@ private void OnEditKeyFrameChanged(int frame)
             var bone = tv.BoneNames[boneIndex];
             if (tv.HasAnyKeyframe(bone))
             {
-                if (tv.HasKeyframe(bone, frame))
-                {
-                    EditKeyPanel.SetTranslation(tv.GetBoneTranslationAtFrame(bone, frame));
-                    EditKeyPanel.SetRotation(ClampRotation(bone, tv.GetBoneRotationAtFrame(bone, frame)));
-                    OnKeyParameterChanged(
-                        EditKeyPanel.SelectedBone,
-                        EditKeyPanel.FrameNumber,
-                        EditKeyPanel.Translation,
-                        EditKeyPanel.EulerRotation);
-                }
-                else
-                {
-                    EditKeyPanel.SetTranslation(tv.GetBoneTranslationAtFrame(bone, frame));
-                    EditKeyPanel.SetRotation(ClampRotation(bone, tv.GetBoneRotationAtFrame(bone, frame)));
-                    OnKeyParameterChanged(
-                        EditKeyPanel.SelectedBone,
-                        EditKeyPanel.FrameNumber,
-                        EditKeyPanel.Translation,
-                        EditKeyPanel.EulerRotation);
-                }
+                var t = tv.GetBoneTranslationAtFrame(bone, frame);
+                var r = ClampRotation(bone, tv.GetBoneRotationAtFrame(bone, frame));
+                EditKeyPanel.SetTranslation(t);
+                EditKeyPanel.SetRotation(r);
+                OnKeyParameterChanged(
+                    EditKeyPanel.SelectedBone,
+                    EditKeyPanel.FrameNumber,
+                    EditKeyPanel.Translation,
+                    EditKeyPanel.EulerRotation);
+            }
+            else if (_motionEditor != null)
+            {
+                var t = GetBoneTranslationAtFrame(bone, frame);
+                var r = ClampRotation(bone, GetBoneRotationAtFrame(bone, frame));
+                EditKeyPanel.SetTranslation(t);
+                EditKeyPanel.SetRotation(r);
+                OnKeyParameterChanged(
+                    EditKeyPanel.SelectedBone,
+                    EditKeyPanel.FrameNumber,
+                    EditKeyPanel.Translation,
+                    EditKeyPanel.EulerRotation);
             }
             else
             {
