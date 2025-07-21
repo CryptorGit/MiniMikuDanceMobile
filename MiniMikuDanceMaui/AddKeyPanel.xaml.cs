@@ -58,23 +58,15 @@ private Func<string, int, Vector3>? _getRotation;
     public void SetRotationLimit(MiniMikuDance.App.BoneLimit? limit)
     {
         _rotationLimit = limit;
-        bool enablePickers = limit == null;
-        RotXControl.SetPickersEnabled(enablePickers);
-        RotYControl.SetPickersEnabled(enablePickers);
-        RotZControl.SetPickersEnabled(enablePickers);
+        // ピッカーやリセットは常に使用可能とする
+        RotXControl.SetPickersEnabled(true);
+        RotYControl.SetPickersEnabled(true);
+        RotZControl.SetPickersEnabled(true);
 
-        if (limit != null)
-        {
-            RotXControl.SetRange(limit.Min.X, limit.Max.X);
-            RotYControl.SetRange(limit.Min.Y, limit.Max.Y);
-            RotZControl.SetRange(limit.Min.Z, limit.Max.Z);
-        }
-        else
-        {
-            RotXControl.SetRange(-180, 180);
-            RotYControl.SetRange(-180, 180);
-            RotZControl.SetRange(-180, 180);
-        }
+        // スライダーは常に広い範囲を持ち、値は内部で丸め込む
+        RotXControl.SetRange(-180, 180);
+        RotYControl.SetRange(-180, 180);
+        RotZControl.SetRange(-180, 180);
     }
 
     public void SetBones(IEnumerable<string> bones)
