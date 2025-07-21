@@ -26,6 +26,7 @@ public class AppInitializer
     public MotionGenerator? MotionGenerator { get; private set; }
     public JointData[]? Joints { get; private set; }
     public MotionData? Motion { get; set; }
+    public BonesConfig? BonesConfig { get; set; }
     private string _poseModelPath = string.Empty;
     private string _poseOutputDir = string.Empty;
 

@@ -6,7 +6,19 @@ public class DataManager : Util.Singleton<DataManager>
 {
     public T LoadConfig<T>(string key) where T : new()
     {
-        return Util.JSONUtil.Load<T>($"Configs/{key}.json");
+        var path = $"Configs/{key}.json";
+        if (!File.Exists(path))
+        {
+            var src = Path.Combine(AppContext.BaseDirectory, path);
+            if (File.Exists(src))
+            {
+                var dir = Path.GetDirectoryName(path);
+                if (!string.IsNullOrEmpty(dir) && !Directory.Exists(dir))
+                    Directory.CreateDirectory(dir);
+                File.Copy(src, path);
+            }
+        }
+        return Util.JSONUtil.Load<T>(path);
     }
 
     public void SaveConfig<T>(string key, T data)
