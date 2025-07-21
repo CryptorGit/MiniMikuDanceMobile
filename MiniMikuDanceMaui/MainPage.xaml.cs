@@ -740,6 +740,11 @@ private void ShowBottomFeature(string name)
                     timelineView.SelectedKeyInputBoneIndex = EditKeyPanel.SelectedBoneIndex;
                     // Ensure rotation limit is applied even when the index does not change
                     OnEditKeyBoneChanged(EditKeyPanel.SelectedBoneIndex);
+                    OnKeyParameterChanged(
+                        EditKeyPanel.SelectedBone,
+                        EditKeyPanel.FrameNumber,
+                        EditKeyPanel.Translation,
+                        EditKeyPanel.EulerRotation);
                 }
             };
            tv.DeleteKeyClicked += (s, e) =>
@@ -1344,6 +1349,11 @@ private void OnEditKeyBoneChanged(int index)
             }
 
             EditKeyPanel.SetFrameOptions(tv.GetKeyframesForBone(boneName));
+            OnKeyParameterChanged(
+                EditKeyPanel.SelectedBone,
+                EditKeyPanel.FrameNumber,
+                EditKeyPanel.Translation,
+                EditKeyPanel.EulerRotation);
         }
 
         return;
@@ -1362,6 +1372,11 @@ private void OnEditKeyBoneChanged(int index)
         var r = ClampRotation(boneName, GetBoneRotationAtFrame(boneName, frame));
         EditKeyPanel.SetTranslation(t);
         EditKeyPanel.SetRotation(r);
+        OnKeyParameterChanged(
+            EditKeyPanel.SelectedBone,
+            EditKeyPanel.FrameNumber,
+            EditKeyPanel.Translation,
+            EditKeyPanel.EulerRotation);
     }
 }
 
@@ -1428,17 +1443,32 @@ private void OnEditKeyFrameChanged(int frame)
                 {
                     EditKeyPanel.SetTranslation(tv.GetBoneTranslationAtFrame(bone, frame));
                     EditKeyPanel.SetRotation(ClampRotation(bone, tv.GetBoneRotationAtFrame(bone, frame)));
+                    OnKeyParameterChanged(
+                        EditKeyPanel.SelectedBone,
+                        EditKeyPanel.FrameNumber,
+                        EditKeyPanel.Translation,
+                        EditKeyPanel.EulerRotation);
                 }
                 else
                 {
                     EditKeyPanel.SetTranslation(tv.GetBoneTranslationAtFrame(bone, frame));
                     EditKeyPanel.SetRotation(ClampRotation(bone, tv.GetBoneRotationAtFrame(bone, frame)));
+                    OnKeyParameterChanged(
+                        EditKeyPanel.SelectedBone,
+                        EditKeyPanel.FrameNumber,
+                        EditKeyPanel.Translation,
+                        EditKeyPanel.EulerRotation);
                 }
             }
             else
             {
                 EditKeyPanel.SetTranslation(Vector3.Zero);
                 EditKeyPanel.SetRotation(Vector3.Zero);
+                OnKeyParameterChanged(
+                    EditKeyPanel.SelectedBone,
+                    EditKeyPanel.FrameNumber,
+                    EditKeyPanel.Translation,
+                    EditKeyPanel.EulerRotation);
             }
         }
         return;
