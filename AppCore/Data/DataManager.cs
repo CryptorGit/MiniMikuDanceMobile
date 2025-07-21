@@ -45,7 +45,7 @@ public partial class DataManager : Util.Singleton<DataManager>
     /// </summary>
     /// <param name="path">パッケージ内の相対パス</param>
     /// <returns>ストリーム、または null</returns>
-    partial Stream? OpenPackageFile(string path);
+    private partial Stream? OpenPackageFile(string path);
 
     public void SaveConfig<T>(string key, T data)
     {
@@ -67,5 +67,5 @@ public partial class DataManager : Util.Singleton<DataManager>
 public partial class DataManager
 {
     // Default implementation for non-MAUI platforms
-    partial Stream? OpenPackageFile(string path) => null;
+    private partial Stream? OpenPackageFile(string path) => null;
 }
