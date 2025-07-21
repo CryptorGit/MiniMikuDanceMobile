@@ -31,12 +31,15 @@ public class Vector3JsonConverter : JsonConverter<Vector3>
                 switch (property)
                 {
                     case "X":
+                    case "x":
                         x = reader.GetSingle();
                         break;
                     case "Y":
+                    case "y":
                         y = reader.GetSingle();
                         break;
                     case "Z":
+                    case "z":
                         z = reader.GetSingle();
                         break;
                     default:
