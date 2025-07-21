@@ -29,7 +29,7 @@ public partial class IKView : ContentView
             ctrl.ValueChanged += v => BoneValueChanged?.Invoke(captured, v);
             _controls[name] = ctrl;
         }
-        if (HumanoidBones.StandardOrder.Count > 0)
+        if (HumanoidBones.StandardOrder.Length > 0)
             BonePicker.SelectedIndex = 0;
         ShowSelectedBone();
     }
