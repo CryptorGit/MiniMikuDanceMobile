@@ -1186,6 +1186,14 @@ private async void OnKeyConfirmClicked(string bone, int frame, Vector3 trans, Ve
 
     var rClamped = ClampRotation(bone, rot);
 
+    if (rClamped != rot)
+    {
+        if (AddKeyPanel.IsVisible)
+            AddKeyPanel.SetRotation(rClamped);
+        else if (EditKeyPanel.IsVisible)
+            EditKeyPanel.SetRotation(rClamped);
+    }
+
     if (_currentFeature == "TIMELINE" && _bottomViews.TryGetValue("TIMELINE", out var timelineView) && timelineView is TimelineView tv)
     {
         tv.AddKeyframe(bone, frame, trans, rClamped);
@@ -1462,6 +1470,15 @@ private void OnBoneAxisValueChanged(double v)
         return;
 
     var rClamped = ClampRotation(boneName, rotation);
+
+    if (rClamped != rotation)
+    {
+        if (AddKeyPanel.IsVisible)
+            AddKeyPanel.SetRotation(rClamped);
+        else if (EditKeyPanel.IsVisible)
+            EditKeyPanel.SetRotation(rClamped);
+        rotation = rClamped;
+    }
 
     _renderer.SetBoneTranslation(index, translation);
     _renderer.SetBoneRotation(index, rClamped);
