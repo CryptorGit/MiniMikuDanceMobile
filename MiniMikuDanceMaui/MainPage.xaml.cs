@@ -713,32 +713,42 @@ private void ShowBottomFeature(string name)
                 };
                 AddKeyPanel.IsVisible = true;
             };
-            tv.EditKeyClicked += (s, e) =>
+            tv.EditKeyClicked += async (s, e) =>
             {
-                _poseBeforeKeyInput = new PoseState
-                {
-                    Rotations = _renderer.GetAllBoneRotations(),
-                    Translations = _renderer.GetAllBoneTranslations()
-                };
-                EditKeyPanel.IsVisible = true;
                 if (s is TimelineView timelineView)
                 {
                     int boneIndex = timelineView.SelectedKeyInputBoneIndex;
-                    EditKeyPanel.SetBones(timelineView.BoneNames);
-                    EditKeyPanel.SelectedBoneIndex = boneIndex;
                     var boneName = timelineView.BoneNames.Count > boneIndex && boneIndex >= 0
                         ? timelineView.BoneNames[boneIndex]
                         : timelineView.SelectedBoneName;
+
+                    if (!timelineView.HasKeyframe(boneName, timelineView.CurrentFrame))
+                    {
+                        await DisplayAlert("Info", "キーがありません", "OK");
+                        EditKeyPanel.IsVisible = false;
+                        return;
+                    }
+
+                    _poseBeforeKeyInput = new PoseState
+                    {
+                        Rotations = _renderer.GetAllBoneRotations(),
+                        Translations = _renderer.GetAllBoneTranslations()
+                    };
+
+                    EditKeyPanel.SetBones(timelineView.BoneNames);
+                    EditKeyPanel.SelectedBoneIndex = boneIndex;
+
                     var frames = timelineView.GetKeyframesForBone(boneName);
                     EditKeyPanel.SetFrame(timelineView.CurrentFrame, frames,
                         timelineView.GetBoneTranslationAtFrame,
                         timelineView.GetBoneRotationAtFrame);
-                    if (timelineView.HasKeyframe(boneName, timelineView.CurrentFrame))
-                    {
-                        EditKeyPanel.SetTranslation(timelineView.GetBoneTranslationAtFrame(boneName, timelineView.CurrentFrame));
-                        EditKeyPanel.SetRotation(timelineView.GetBoneRotationAtFrame(boneName, timelineView.CurrentFrame));
-                    }
+
+                    // 既存キーの値で初期化
+                    EditKeyPanel.SetTranslation(timelineView.GetBoneTranslationAtFrame(boneName, timelineView.CurrentFrame));
+                    EditKeyPanel.SetRotation(timelineView.GetBoneRotationAtFrame(boneName, timelineView.CurrentFrame));
+
                     timelineView.SelectedKeyInputBoneIndex = EditKeyPanel.SelectedBoneIndex;
+
                     // Ensure rotation limit is applied even when the index does not change
                     OnEditKeyBoneChanged(EditKeyPanel.SelectedBoneIndex);
                     OnKeyParameterChanged(
@@ -746,6 +756,8 @@ private void ShowBottomFeature(string name)
                         EditKeyPanel.FrameNumber,
                         EditKeyPanel.Translation,
                         EditKeyPanel.EulerRotation);
+
+                    EditKeyPanel.IsVisible = true;
                 }
             };
            tv.DeleteKeyClicked += (s, e) =>
