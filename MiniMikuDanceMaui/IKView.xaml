@@ -10,8 +10,10 @@
             <VerticalStackLayout x:Name="BoneList" Spacing="10" Padding="10" />
         </ScrollView>
         <HorizontalStackLayout Padding="10" Spacing="10">
-            <Button Text="Left Leg IK" Clicked="OnLeftIkClicked" />
-            <Button Text="Right Leg IK" Clicked="OnRightIkClicked" />
+            <Button Text="Left Leg IK" Clicked="OnLeftLegIkClicked" />
+            <Button Text="Right Leg IK" Clicked="OnRightLegIkClicked" />
+            <Button Text="Left Arm IK" Clicked="OnLeftArmIkClicked" />
+            <Button Text="Right Arm IK" Clicked="OnRightArmIkClicked" />
         </HorizontalStackLayout>
     </VerticalStackLayout>
 </ContentView>
