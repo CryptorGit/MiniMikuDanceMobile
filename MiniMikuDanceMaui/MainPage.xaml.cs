@@ -1548,7 +1548,11 @@ private void SavePoseState()
 
 private Vector3 ClampRotation(string bone, Vector3 rot)
 {
-    return _bonesConfig?.Clamp(bone, rot) ?? rot;
+    if (_bonesConfig == null)
+        return rot;
+
+    var clamped = _bonesConfig.Clamp(bone, rot.ToNumerics());
+    return clamped.ToOpenTK();
 }
 
 private Vector3 GetBoneTranslationAtFrame(string bone, int frame)
