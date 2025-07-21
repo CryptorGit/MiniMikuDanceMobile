@@ -40,12 +40,12 @@ public partial class DataManager : Util.Singleton<DataManager>
     }
 
     /// <summary>
-    /// プラットフォームのアプリパッケージからファイルを開く。
-    /// デフォルト実装は null を返す。
+    /// プラットフォーム依存のパッケージファイル読み込み関数。
     /// </summary>
-    /// <param name="path">パッケージ内の相対パス</param>
-    /// <returns>ストリーム、または null</returns>
-    private partial Stream? OpenPackageFile(string path);
+    public static Func<string, Stream?>? OpenPackageFileFunc { get; set; }
+
+    private Stream? OpenPackageFile(string path)
+        => OpenPackageFileFunc?.Invoke(path);
 
     public void SaveConfig<T>(string key, T data)
     {
@@ -66,6 +66,9 @@ public partial class DataManager : Util.Singleton<DataManager>
 
 public partial class DataManager
 {
-    // Default implementation for non-MAUI platforms
-    private partial Stream? OpenPackageFile(string path) => null;
+    // 非 MAUI 環境向け既定実装
+    static DataManager()
+    {
+        OpenPackageFileFunc = _ => null;
+    }
 }

@@ -6,6 +6,8 @@ using System.Diagnostics;
 using System;
 using System.IO;
 using MauiIcons.Material.Outlined;
+using MiniMikuDance.Data;
+using Microsoft.Maui.Storage;
 
 namespace MiniMikuDanceMaui;
 
@@ -16,6 +18,18 @@ public static class MauiProgram
         var builder = MauiApp.CreateBuilder();
         Trace.Listeners.Add(new LogTraceListener());
         Console.SetOut(new LogConsoleWriter(Console.Out));
+
+        DataManager.OpenPackageFileFunc = path =>
+        {
+            try
+            {
+                return FileSystem.OpenAppPackageFileAsync(path).GetAwaiter().GetResult();
+            }
+            catch
+            {
+                return null;
+            }
+        };
 
         builder
             // ← 型パラメータで自分の App クラスを渡す
