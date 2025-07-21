@@ -34,15 +34,19 @@
 
   <ItemGroup>
     <Content Include="..\Configs\BonesConfig.json">
+      <Link>Configs\BonesConfig.json</Link>
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
     <Content Include="..\Configs\UIConfig.json">
+      <Link>Configs\UIConfig.json</Link>
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
     <Content Include="..\Configs\style_tokens_dark.json">
+      <Link>Configs\style_tokens_dark.json</Link>
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
     <Content Include="..\Configs\style_tokens_light.json">
+      <Link>Configs\style_tokens_light.json</Link>
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
   </ItemGroup>
