@@ -9,5 +9,9 @@
         <ScrollView>
             <VerticalStackLayout x:Name="BoneList" Spacing="10" Padding="10" />
         </ScrollView>
+        <HorizontalStackLayout Padding="10" Spacing="10">
+            <Button Text="Left Leg IK" Clicked="OnLeftIkClicked" />
+            <Button Text="Right Leg IK" Clicked="OnRightIkClicked" />
+        </HorizontalStackLayout>
     </VerticalStackLayout>
 </ContentView>

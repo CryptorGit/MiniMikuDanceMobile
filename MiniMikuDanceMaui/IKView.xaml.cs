@@ -10,6 +10,7 @@ namespace MiniMikuDanceMaui;
 public partial class IKView : ContentView
 {
 public event Action<string, string, double>? BoneValueChanged;
+public event Action<string>? IkSolveRequested;
 
     private readonly Dictionary<string, Dictionary<string, BoneAxisControl>> _controls = new();
 
@@ -84,4 +85,10 @@ public event Action<string, string, double>? BoneValueChanged;
             d["Z"].Value = value.Z;
         }
     }
+
+    private void OnLeftIkClicked(object? sender, EventArgs e)
+        => IkSolveRequested?.Invoke("left");
+
+    private void OnRightIkClicked(object? sender, EventArgs e)
+        => IkSolveRequested?.Invoke("right");
 }

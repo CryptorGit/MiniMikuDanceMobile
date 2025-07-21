@@ -14,6 +14,7 @@ using Microsoft.Maui.Storage;
 using Microsoft.Maui.Devices;
 using System.IO;
 using System.Linq;
+using System.Numerics;
 using MiniMikuDance.Import;
 using OpenTK.Mathematics;
 using MiniMikuDance.Util;
@@ -400,6 +401,7 @@ private void SetupIKView(IKView iv)
         }
     }
     iv.BoneValueChanged += OnIkBoneValueChanged;
+    iv.IkSolveRequested += OnIkSolveRequested;
     iv.Refresh();
 }
 
@@ -417,6 +419,53 @@ private void OnIkBoneValueChanged(string bone, string axis, double value)
         case "Z": rot.Z = (float)value; break;
     }
     _renderer.SetBoneRotation(idx, rot);
+    Viewer?.InvalidateSurface();
+}
+
+private void OnIkSolveRequested(string side)
+{
+    if (_currentModel == null)
+        return;
+
+    var rotOtk = _renderer.GetAllBoneRotations();
+    var transOtk = _renderer.GetAllBoneTranslations();
+    var rotations = rotOtk.Select(v => v.ToNumerics()).ToList();
+    var translations = transOtk.Select(v => v.ToNumerics()).ToList();
+
+    string upper = side == "left" ? "leftUpperLeg" : "rightUpperLeg";
+    string lower = side == "left" ? "leftLowerLeg" : "rightLowerLeg";
+    string foot = side == "left" ? "leftFoot" : "rightFoot";
+
+    if (!_currentModel.HumanoidBones.TryGetValue(upper, out int upperIdx) ||
+        !_currentModel.HumanoidBones.TryGetValue(lower, out int lowerIdx) ||
+        !_currentModel.HumanoidBones.TryGetValue(foot, out int footIdx))
+        return;
+
+    var world = ComputeWorldMatrices(_currentModel.Bones, rotations, translations);
+    var hipPos = ExtractTranslation(world[upperIdx]);
+    var kneePos = ExtractTranslation(world[lowerIdx]);
+    var footPos = ExtractTranslation(world[footIdx]);
+    float lowerLen = (footPos - kneePos).Length();
+    var pole = hipPos + 0.5f * (footPos - hipPos) + System.Numerics.Vector3.UnitY * lowerLen * 0.1f;
+
+    IKSolver.SolveLeg(_currentModel, rotations, translations, upper, lower, foot, footPos, pole);
+
+    var rotResult = rotations.Select(v => v.ToOpenTK()).ToList();
+    _renderer.SetAllBoneRotations(rotResult);
+    _renderer.SetAllBoneTranslations(transOtk);
+
+    if (_bottomViews.TryGetValue("IK", out var view) && view is IKView iv)
+    {
+        foreach (var bone in HumanoidBones.StandardOrder)
+        {
+            if (_currentModel.HumanoidBones.TryGetValue(bone, out int idx))
+            {
+                iv.SetBoneValue(bone, _renderer.GetBoneRotation(idx));
+            }
+        }
+        iv.Refresh();
+    }
+
     Viewer?.InvalidateSurface();
 }
 
@@ -1617,5 +1666,28 @@ private void ShowExplorer(string featureName, Frame messageFrame, Label pathLabe
     pathLabel.Text = string.Empty;
     selectedPath = null;
     UpdateLayout();
+}
+
+private static System.Numerics.Vector3 ExtractTranslation(System.Numerics.Matrix4x4 m)
+    => new System.Numerics.Vector3(m.M41, m.M42, m.M43);
+
+private static System.Numerics.Matrix4x4[] ComputeWorldMatrices(List<BoneData> bones, IList<System.Numerics.Vector3> rotations, IList<System.Numerics.Vector3> translations)
+{
+    var world = new System.Numerics.Matrix4x4[bones.Count];
+    const float deg2rad = MathF.PI / 180f;
+    for (int i = 0; i < bones.Count; i++)
+    {
+        var bone = bones[i];
+        System.Numerics.Vector3 euler = i < rotations.Count ? rotations[i] : System.Numerics.Vector3.Zero;
+        var delta = System.Numerics.Quaternion.CreateFromYawPitchRoll(euler.Y * deg2rad, euler.X * deg2rad, euler.Z * deg2rad);
+        System.Numerics.Vector3 t = bone.Translation;
+        if (i < translations.Count) t += translations[i];
+        var local = System.Numerics.Matrix4x4.CreateFromQuaternion(bone.Rotation * delta) * System.Numerics.Matrix4x4.CreateTranslation(t);
+        if (bone.Parent >= 0)
+            world[i] = local * world[bone.Parent];
+        else
+            world[i] = local;
+    }
+    return world;
 }
 }
