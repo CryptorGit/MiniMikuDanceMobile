@@ -4,7 +4,10 @@
              xmlns:local="clr-namespace:MiniMikuDanceMaui"
              x:Class="MiniMikuDanceMaui.IKView"
              BackgroundColor="{StaticResource BackgroundColor}">
-    <ScrollView>
-        <VerticalStackLayout x:Name="BoneList" Spacing="10" Padding="10" />
-    </ScrollView>
+    <VerticalStackLayout>
+        <Picker x:Name="BonePicker" WidthRequest="140" SelectedIndexChanged="OnBoneSelected" />
+        <ScrollView>
+            <VerticalStackLayout x:Name="BoneList" Spacing="10" Padding="10" />
+        </ScrollView>
+    </VerticalStackLayout>
 </ContentView>

@@ -400,6 +400,7 @@ private void SetupIKView(IKView iv)
         }
     }
     iv.BoneValueChanged += OnIkBoneValueChanged;
+    iv.Refresh();
 }
 
 private void OnIkBoneValueChanged(string bone, double value)
