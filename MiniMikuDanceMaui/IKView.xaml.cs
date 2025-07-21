@@ -15,6 +15,8 @@ public partial class IKView : ContentView
     public IKView()
     {
         InitializeComponent();
+        BonePicker.ItemsSource = HumanoidBones.StandardOrder.ToList();
+        BonePicker.SelectedIndexChanged += OnBoneSelected;
         var rangeValues = Enumerable.Range(0, 37).Select(i => (object)(i * 5)).ToList();
         var centerValues = Enumerable.Range(0, 37).Select(i => (object)(-180 + i * 10)).ToList();
         foreach (var name in HumanoidBones.StandardOrder)
@@ -25,9 +27,25 @@ public partial class IKView : ContentView
             ctrl.SetRange(-180, 180);
             string captured = name;
             ctrl.ValueChanged += v => BoneValueChanged?.Invoke(captured, v);
-            BoneList.Children.Add(ctrl);
             _controls[name] = ctrl;
         }
+        if (HumanoidBones.StandardOrder.Count > 0)
+            BonePicker.SelectedIndex = 0;
+        ShowSelectedBone();
+    }
+
+    private void OnBoneSelected(object? sender, EventArgs e) => ShowSelectedBone();
+
+    private void ShowSelectedBone()
+    {
+        BoneList.Children.Clear();
+        if (BonePicker.SelectedItem is string name && _controls.TryGetValue(name, out var ctrl))
+            BoneList.Children.Add(ctrl);
+    }
+
+    public void Refresh()
+    {
+        ShowSelectedBone();
     }
 
     public double GetBoneValue(string bone)
