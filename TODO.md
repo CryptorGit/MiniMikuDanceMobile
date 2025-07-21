@@ -7,4 +7,4 @@
 dotnet workload install maui-android maui-ios
 ```
 
-`dotnet workload list` でインストール状況を確認できます。ワークロードを追加後、再度 `dotnet test --collect:"XPlat Code Coverage"` を実行してください。
+`dotnet workload list` でインストール状況を確認できます。
