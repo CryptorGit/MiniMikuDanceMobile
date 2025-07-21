@@ -15,7 +15,7 @@ public class JointData
     public float[] Confidences { get; set; } = Array.Empty<float>();
 }
 
-public class PoseEstimator
+public class PoseEstimator : IDisposable
 {
     private readonly InferenceSession? _session;
 
@@ -106,5 +106,10 @@ public class PoseEstimator
             }
             return results.ToArray();
         });
+    }
+
+    public void Dispose()
+    {
+        _session?.Dispose();
     }
 }

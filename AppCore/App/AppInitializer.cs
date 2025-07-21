@@ -6,6 +6,7 @@ using MiniMikuDance.UI;
 using MiniMikuDance.Data;
 using MiniMikuDance.Util;
 using MiniMikuDance.PoseEstimation;
+using System;
 using System.IO;
 using System.Numerics;
 using System.Threading.Tasks;
@@ -15,7 +16,7 @@ using OpenTK.Mathematics;
 
 namespace MiniMikuDance.App;
 
-public class AppInitializer
+public class AppInitializer : IDisposable
 {
     public Viewer? Viewer { get; private set; }
     public MotionPlayer? MotionPlayer { get; private set; }
@@ -156,5 +157,10 @@ public class AppInitializer
         if (Motion == null)
             return;
         BvhExporter.Export(Motion, path);
+    }
+
+    public void Dispose()
+    {
+        PoseEstimator?.Dispose();
     }
 }
