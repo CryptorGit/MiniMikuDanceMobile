@@ -63,6 +63,7 @@ public class VrmRenderer : IDisposable
     private readonly List<Vector3> _boneRotations = new();
     private readonly List<Vector3> _boneTranslations = new();
     private List<MiniMikuDance.Import.BoneData> _bones = new();
+    private readonly Dictionary<int, string> _indexToHumanoidName = new();
     public BonesConfig? BonesConfig { get; set; }
     private Quaternion _externalRotation = Quaternion.Identity;
     // デフォルトのカメラ感度をスライダーの最小値に合わせる
@@ -275,7 +276,7 @@ void main(){
             return;
         if (BonesConfig != null && index < _bones.Count)
         {
-            var name = _bones[index].Name;
+            var name = _indexToHumanoidName.TryGetValue(index, out var n) ? n : _bones[index].Name;
             var clamped = BonesConfig.Clamp(name, degrees.ToNumerics());
             degrees = clamped.ToOpenTK();
         }
@@ -334,6 +335,11 @@ void main(){
         }
         _meshes.Clear();
         _bones = data.Bones.ToList();
+        _indexToHumanoidName.Clear();
+        foreach (var (name, idx) in data.HumanoidBoneList)
+        {
+            _indexToHumanoidName[idx] = name;
+        }
 
         _modelTransform = data.Transform.ToMatrix4();
 
@@ -614,6 +620,7 @@ void main(){
             if (rm.Ebo != 0) GL.DeleteBuffer(rm.Ebo);
         }
         _meshes.Clear();
+        _indexToHumanoidName.Clear();
         GL.DeleteBuffer(_gridVbo);
         GL.DeleteBuffer(_groundVbo);
         GL.DeleteVertexArray(_gridVao);
