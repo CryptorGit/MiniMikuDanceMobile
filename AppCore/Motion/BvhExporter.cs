@@ -26,7 +26,8 @@ public static class BvhExporter
         foreach (var frame in motion.Frames)
         {
             var pos = frame.Positions.Length > 0 ? frame.Positions[0] : System.Numerics.Vector3.Zero;
-            writer.WriteLine($"{pos.X} {pos.Y} {pos.Z} 0 0 0");
+            var rot = frame.Rotations.Length > 0 ? frame.Rotations[0] : System.Numerics.Vector3.Zero;
+            writer.WriteLine($"{pos.X} {pos.Y} {pos.Z} {rot.Z} {rot.X} {rot.Y}");
         }
     }
 }

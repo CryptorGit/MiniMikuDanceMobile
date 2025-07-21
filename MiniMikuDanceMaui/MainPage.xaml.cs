@@ -1599,8 +1599,10 @@ private Vector3 GetBoneRotationAtFrame(string bone, int frame)
     if (frame < 0 || frame >= frames.Length)
         return Vector3.Zero;
 
-    // 現状の JointData には回転情報が無いため、ゼロ回転を返す
-    return Vector3.Zero;
+    if (frames[frame].Rotations.Length <= (int)joint)
+        return Vector3.Zero;
+    var r = frames[frame].Rotations[(int)joint];
+    return new Vector3(r.X, r.Y, r.Z);
 }
 
 

@@ -52,6 +52,16 @@ public class MotionApplier
             if (bIndex >= 0 && bIndex < _model.Bones.Count)
             {
                 _model.Bones[bIndex].Translation = joint.Positions[jIndex];
+                if (jIndex < joint.Rotations.Length)
+                {
+                    var e = joint.Rotations[jIndex];
+                    const float deg2rad = MathF.PI / 180f;
+                    var q = Quaternion.CreateFromYawPitchRoll(
+                        e.Y * deg2rad,
+                        e.X * deg2rad,
+                        e.Z * deg2rad);
+                    _model.Bones[bIndex].Rotation = q;
+                }
             }
         }
 
