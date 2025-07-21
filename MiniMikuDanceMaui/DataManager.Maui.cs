@@ -6,7 +6,7 @@ namespace MiniMikuDance.Data;
 
 public partial class DataManager
 {
-    partial Stream? OpenPackageFile(string path)
+    private partial Stream? OpenPackageFile(string path)
     {
         try
         {
