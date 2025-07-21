@@ -61,6 +61,7 @@ public class VrmRenderer : IDisposable
     private int _height;
     private readonly List<Vector3> _boneRotations = new();
     private readonly List<Vector3> _boneTranslations = new();
+    private readonly Dictionary<int, (Vector3 Min, Vector3 Max)> _rotationLimits = new();
     private List<MiniMikuDance.Import.BoneData> _bones = new();
     private Quaternion _externalRotation = Quaternion.Identity;
     // デフォルトのカメラ感度をスライダーの最小値に合わせる
@@ -267,10 +268,25 @@ void main(){
         _boneTranslations.Clear();
     }
 
+    public void SetRotationLimits(IDictionary<int, (Vector3 Min, Vector3 Max)> limits)
+    {
+        _rotationLimits.Clear();
+        foreach (var kv in limits)
+        {
+            _rotationLimits[kv.Key] = kv.Value;
+        }
+    }
+
     public void SetBoneRotation(int index, Vector3 degrees)
     {
         if (index < 0)
             return;
+        if (_rotationLimits.TryGetValue(index, out var limit))
+        {
+            degrees.X = Math.Clamp(degrees.X, limit.Min.X, limit.Max.X);
+            degrees.Y = Math.Clamp(degrees.Y, limit.Min.Y, limit.Max.Y);
+            degrees.Z = Math.Clamp(degrees.Z, limit.Min.Z, limit.Max.Z);
+        }
         while (_boneRotations.Count <= index)
             _boneRotations.Add(Vector3.Zero);
         _boneRotations[index] = degrees;

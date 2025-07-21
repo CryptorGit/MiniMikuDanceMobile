@@ -53,6 +53,7 @@ public partial class MainPage : ContentPage
     private bool _glInitialized;
     private ModelData? _pendingModel;
     private ModelData? _currentModel;
+    private Dictionary<int, (Vector3 Min, Vector3 Max)> _currentLimits = new();
     private readonly Dictionary<long, SKPoint> _touchPoints = new();
     private MotionEditor? _motionEditor;
 
@@ -520,6 +521,7 @@ private void LoadPendingModel()
         _rimIntensity = _pendingModel.RimIntensity;
         UpdateRendererLightingProperties();
         _pendingModel = null;
+        LoadRotationLimits();
         SavePoseState();
     }
 }
@@ -602,6 +604,7 @@ private async Task ShowModelSelector()
             var data = importer.ImportModel(stream);
             _renderer.LoadModel(data);
             _currentModel = data;
+            LoadRotationLimits();
             _shadeShift = data.ShadeShift;
             _shadeToony = data.ShadeToony;
             _rimIntensity = data.RimIntensity;
@@ -1171,18 +1174,19 @@ private async void OnKeyConfirmClicked(string bone, int frame, Vector3 trans, Ve
     await Task.Delay(50);
     _motionEditor?.AddKeyFrame(bone, frame);
 
-    if (_currentFeature == "TIMELINE" && _bottomViews.TryGetValue("TIMELINE", out var timelineView) && timelineView is TimelineView tv)
-    {
-        tv.AddKeyframe(bone, frame, trans, rot);
-    }
-
     if (_currentModel != null)
     {
         if (_currentModel.HumanoidBones.TryGetValue(bone, out int index))
         {
             _renderer.SetBoneTranslation(index, trans);
             _renderer.SetBoneRotation(index, rot);
+            rot = _renderer.GetBoneRotation(index);
 
+            if (_currentFeature == "TIMELINE" && _bottomViews.TryGetValue("TIMELINE", out var tv2) && tv2 is TimelineView tvView)
+            {
+                tvView.AddKeyframe(bone, frame, trans, rot);
+            }
+           
             SavePoseState();
             Viewer?.InvalidateSurface();
         }
@@ -1394,12 +1398,17 @@ private void OnKeyParameterChanged(string bone, int frame, Vector3 trans, Vector
     if (_currentModel == null)
         return;
 
-    if (_currentModel.HumanoidBones.TryGetValue(bone, out int index))
-    {
-        _renderer.SetBoneTranslation(index, trans);
-        _renderer.SetBoneRotation(index, rot);
-        Viewer?.InvalidateSurface();
-    }
+        if (_currentModel.HumanoidBones.TryGetValue(bone, out int index))
+        {
+            _renderer.SetBoneTranslation(index, trans);
+            _renderer.SetBoneRotation(index, rot);
+            var clamped = _renderer.GetBoneRotation(index);
+            if (AddKeyPanel.IsVisible)
+                AddKeyPanel.SetRotation(clamped);
+            else if (EditKeyPanel.IsVisible)
+                EditKeyPanel.SetRotation(clamped);
+            Viewer?.InvalidateSurface();
+        }
 }
 
 /// <summary>
@@ -1439,6 +1448,11 @@ private void OnBoneAxisValueChanged(double v)
 
     _renderer.SetBoneTranslation(index, translation);
     _renderer.SetBoneRotation(index, rotation);
+    var clamped = _renderer.GetBoneRotation(index);
+    if (AddKeyPanel.IsVisible)
+        AddKeyPanel.SetRotation(clamped);
+    else if (EditKeyPanel.IsVisible)
+        EditKeyPanel.SetRotation(clamped);
     SavePoseState();
     Viewer?.InvalidateSurface();
 }
@@ -1492,10 +1506,10 @@ private void OnTimelineFrameChanged(int frame)
     Viewer?.InvalidateSurface();
 }
 
-private void ApplyTimelineFrame(TimelineView tv, int frame)
-{
-    if (_currentModel == null)
-        return;
+    private void ApplyTimelineFrame(TimelineView tv, int frame)
+    {
+        if (_currentModel == null)
+            return;
 
     foreach (var bone in tv.BoneNames)
     {
@@ -1506,6 +1520,30 @@ private void ApplyTimelineFrame(TimelineView tv, int frame)
         var r = tv.GetBoneRotationAtFrame(bone, frame);
         _renderer.SetBoneTranslation(index, t);
         _renderer.SetBoneRotation(index, r);
+    }
+
+    private void LoadRotationLimits()
+    {
+        if (_currentModel == null)
+            return;
+        var path = Path.Combine("Documents", "VRM_HumanLimits.json");
+        if (!File.Exists(path))
+            return;
+        try
+        {
+            var raw = RotationLimitLoader.Load(path);
+            var dict = new Dictionary<int, (Vector3 Min, Vector3 Max)>();
+            foreach (var kv in raw)
+            {
+                if (_currentModel.HumanoidBones.TryGetValue(kv.Key, out int idx))
+                    dict[idx] = kv.Value;
+            }
+            _currentLimits = dict;
+            _renderer.SetRotationLimits(dict);
+        }
+        catch
+        {
+        }
     }
 }
 
