@@ -24,3 +24,7 @@
 
 # Data folders
 MiniMikuDance/data/
+
+# Coverage reports
+coveragereport/
+AppCore.Tests/TestResults/
