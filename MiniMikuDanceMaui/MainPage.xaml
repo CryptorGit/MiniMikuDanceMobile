@@ -69,6 +69,12 @@
                     </Label.GestureRecognizers>
                 </Label>
 
+                <Label Text="IK" TextColor="{StaticResource TextColor}">
+                    <Label.GestureRecognizers>
+                        <TapGestureRecognizer Tapped="OnIKClicked" />
+                    </Label.GestureRecognizers>
+                </Label>
+
                 <Label Text="Timeline" TextColor="{StaticResource TextColor}">
                     <Label.GestureRecognizers>
                         <TapGestureRecognizer Tapped="OnTimelineClicked" />
