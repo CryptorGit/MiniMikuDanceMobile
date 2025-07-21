@@ -490,7 +490,7 @@ private void OnIkSolveRequested(string type)
     var endPos = ExtractTranslation(world[endIdx]);
     float lowerLen = (endPos - midPos).Length();
     var iv = _bottomViews.TryGetValue("IK", out var v) && v is IKView view ? view : null;
-    var target = iv?.GetPositionValue(end) ?? endPos;
+    var target = iv != null ? iv.GetPositionValue(end).ToNumerics() : endPos;
     var pole = rootPos + 0.5f * (target - rootPos) + System.Numerics.Vector3.UnitY * lowerLen * 0.1f;
 
     if (isArm)
