@@ -7,6 +7,15 @@ public partial class DataManager : Util.Singleton<DataManager>
     public T LoadConfig<T>(string key) where T : new()
     {
         var path = $"Configs/{key}.json";
+        var stream = OpenPackageFile(path);
+        if (stream != null)
+        {
+            using (stream)
+            {
+                return Util.JSONUtil.LoadFromStream<T>(stream);
+            }
+        }
+
         if (!File.Exists(path))
         {
             var src = Path.Combine(AppContext.BaseDirectory, path);
@@ -22,17 +31,6 @@ public partial class DataManager : Util.Singleton<DataManager>
                 catch
                 {
                     // ignore copy failures
-                }
-            }
-            else
-            {
-                var stream = OpenPackageFile(path);
-                if (stream != null)
-                {
-                    using (stream)
-                    {
-                        return Util.JSONUtil.LoadFromStream<T>(stream);
-                    }
                 }
             }
         }

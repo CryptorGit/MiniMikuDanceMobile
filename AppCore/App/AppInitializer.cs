@@ -28,6 +28,7 @@ public class AppInitializer : IDisposable
     public JointData[]? Joints { get; private set; }
     public MotionData? Motion { get; set; }
     public BonesConfig? BonesConfig { get; set; }
+    public Action<(Dictionary<int, System.Numerics.Quaternion> rotations, System.Numerics.Matrix4x4 transform)>? OnMotionApplied { get; set; }
     private string _poseModelPath = string.Empty;
     private string _poseOutputDir = string.Empty;
 
@@ -71,7 +72,12 @@ public class AppInitializer : IDisposable
 
         Applier = new MotionApplier(model);
         MotionPlayer ??= new MotionPlayer();
-        MotionPlayer.OnFramePlayed += Applier.Apply;
+        MotionPlayer.OnFramePlayed += (joint) =>
+        {
+            if (Applier == null) return;
+            var result = Applier.Apply(joint);
+            OnMotionApplied?.Invoke(result);
+        };
         Viewer = new Viewer(modelPath);
 
         Viewer.FrameUpdated += dt =>

@@ -162,6 +162,7 @@ public partial class MainPage : ContentPage
     DeletePanel.Canceled += OnKeyDeleteCancelClicked;
     DeletePanel.BoneChanged += OnDeleteBoneChanged;
 
+    App.Initializer.OnMotionApplied += OnMotionApplied;
 }
 
 private void ShowViewMenu()
@@ -1674,5 +1675,41 @@ private void ShowExplorer(string featureName, Frame messageFrame, Label pathLabe
     pathLabel.Text = string.Empty;
     selectedPath = null;
     UpdateLayout();
+}
+
+private void OnMotionApplied((Dictionary<int, System.Numerics.Quaternion> rotations, System.Numerics.Matrix4x4 transform) data)
+{
+    foreach (var kv in data.rotations)
+    {
+        var euler = ToEulerAngles(kv.Value);
+        _renderer.SetBoneRotation(kv.Key, new Vector3(euler.X, euler.Y, euler.Z));
+    }
+    // _renderer.ModelTransform = data.transform; // VrmRendererにModelTransformプロパティがないため、これは機能しない
+    Viewer?.InvalidateSurface();
+}
+
+private static Vector3 ToEulerAngles(System.Numerics.Quaternion q)
+{
+    const float rad2deg = 180f / MathF.PI;
+    var angles = new Vector3();
+
+    // roll (x-axis rotation)
+    double sinr_cosp = 2 * (q.W * q.X + q.Y * q.Z);
+    double cosr_cosp = 1 - 2 * (q.X * q.X + q.Y * q.Y);
+    angles.X = (float)Math.Atan2(sinr_cosp, cosr_cosp) * rad2deg;
+
+    // pitch (y-axis rotation)
+    double sinp = 2 * (q.W * q.Y - q.Z * q.X);
+    if (Math.Abs(sinp) >= 1)
+        angles.Y = (float)Math.CopySign(Math.PI / 2, sinp) * rad2deg; // use 90 degrees if out of range
+    else
+        angles.Y = (float)Math.Asin(sinp) * rad2deg;
+
+    // yaw (z-axis rotation)
+    double siny_cosp = 2 * (q.W * q.Z + q.X * q.Y);
+    double cosy_cosp = 1 - 2 * (q.Y * q.Y + q.Z * q.Z);
+    angles.Z = (float)Math.Atan2(siny_cosp, cosy_cosp) * rad2deg;
+
+    return angles;
 }
 }

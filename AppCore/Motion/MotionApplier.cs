@@ -41,8 +41,9 @@ public class MotionApplier
         AddMap(BlazePoseJoint.Nose, "head");
     }
 
-    public void Apply(JointData joint)
+    public (Dictionary<int, Quaternion> rotations, Matrix4x4 transform) Apply(JointData joint)
     {
+        var rotations = new Dictionary<int, Quaternion>();
         foreach (var kv in _boneMap)
         {
             int jIndex = (int)kv.Key;
@@ -51,7 +52,6 @@ public class MotionApplier
             int bIndex = kv.Value;
             if (bIndex >= 0 && bIndex < _model.Bones.Count)
             {
-                _model.Bones[bIndex].Translation = joint.Positions[jIndex];
                 if (jIndex < joint.Rotations.Length)
                 {
                     var e = joint.Rotations[jIndex];
@@ -60,18 +60,19 @@ public class MotionApplier
                         e.Y * deg2rad,
                         e.X * deg2rad,
                         e.Z * deg2rad);
-                    _model.Bones[bIndex].Rotation = q;
+                    rotations[bIndex] = q;
                 }
             }
         }
 
+        var transform = _model.Transform;
         if (joint.Positions.Length > (int)BlazePoseJoint.RightHip)
         {
             var lh = joint.Positions[(int)BlazePoseJoint.LeftHip];
             var rh = joint.Positions[(int)BlazePoseJoint.RightHip];
             var hip = (lh + rh) * 0.5f;
-            var trans = Matrix4x4.CreateTranslation(hip);
-            _model.Transform = trans;
+            transform = Matrix4x4.CreateTranslation(hip);
         }
+        return (rotations, transform);
     }
 }
