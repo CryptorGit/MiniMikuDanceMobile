@@ -65,7 +65,6 @@ public class VrmRenderer : IDisposable
     private List<MiniMikuDance.Import.BoneData> _bones = new();
     private readonly Dictionary<int, string> _indexToHumanoidName = new();
     public BonesConfig? BonesConfig { get; set; }
-    private readonly Dictionary<int, string> _indexToHumanoidName = new();
     private Quaternion _externalRotation = Quaternion.Identity;
     // デフォルトのカメラ感度をスライダーの最小値に合わせる
     public float RotateSensitivity { get; set; } = 0.1f;
@@ -337,7 +336,6 @@ void main(){
         _meshes.Clear();
         _indexToHumanoidName.Clear();
         _bones = data.Bones.ToList();
-        _indexToHumanoidName.Clear();
         foreach (var (name, idx) in data.HumanoidBoneList)
         {
             _indexToHumanoidName[idx] = name;
