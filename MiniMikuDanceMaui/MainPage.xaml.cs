@@ -266,6 +266,12 @@ private void OnGyroMenuClicked(object? sender, EventArgs e)
     HideAllMenusAndLayout();
 }
 
+private void OnIKClicked(object? sender, EventArgs e)
+{
+    ShowBottomFeature("IK");
+    HideAllMenusAndLayout();
+}
+
 
 
 
@@ -377,6 +383,34 @@ private void SetupBoneView(BoneView bv)
 
 private void UpdateBoneViewValues()
 {
+    Viewer?.InvalidateSurface();
+}
+
+private void SetupIKView(IKView iv)
+{
+    if (_currentModel != null)
+    {
+        foreach (var bone in HumanoidBones.StandardOrder)
+        {
+            if (_currentModel.HumanoidBones.TryGetValue(bone, out int idx))
+            {
+                var rot = _renderer.GetBoneRotation(idx);
+                iv.SetBoneValue(bone, rot.Y);
+            }
+        }
+    }
+    iv.BoneValueChanged += OnIkBoneValueChanged;
+}
+
+private void OnIkBoneValueChanged(string bone, double value)
+{
+    if (_currentModel == null)
+        return;
+    if (!_currentModel.HumanoidBones.TryGetValue(bone, out int idx))
+        return;
+    var rot = _renderer.GetBoneRotation(idx);
+    rot.Y = (float)value;
+    _renderer.SetBoneRotation(idx, rot);
     Viewer?.InvalidateSurface();
 }
 
@@ -668,6 +702,13 @@ private void ShowBottomFeature(string name)
             view = gv;
         }
 
+        else if (name == "IK")
+        {
+            var iv = new IKView();
+            SetupIKView(iv);
+            view = iv;
+        }
+
         else if (name == "TIMELINE")
         {
             var tv = new TimelineView();
@@ -847,6 +888,10 @@ private void ShowBottomFeature(string name)
     {
         var posePath = MmdFileSystem.Ensure("Poses");
         aev2.LoadDirectory(posePath);
+    }
+    else if (name == "IK" && _bottomViews[name] is IKView iv)
+    {
+        SetupIKView(iv);
     }
     else if (name == "MTOON" && _bottomViews[name] is LightingView mv)
     {
