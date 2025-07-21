@@ -743,10 +743,6 @@ private void ShowBottomFeature(string name)
                         timelineView.GetBoneTranslationAtFrame,
                         timelineView.GetBoneRotationAtFrame);
 
-                    // 既存キーの値で初期化
-                    EditKeyPanel.SetTranslation(timelineView.GetBoneTranslationAtFrame(boneName, timelineView.CurrentFrame));
-                    EditKeyPanel.SetRotation(timelineView.GetBoneRotationAtFrame(boneName, timelineView.CurrentFrame));
-
                     timelineView.SelectedKeyInputBoneIndex = EditKeyPanel.SelectedBoneIndex;
 
                     // Ensure rotation limit is applied even when the index does not change

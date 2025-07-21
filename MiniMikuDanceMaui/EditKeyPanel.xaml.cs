@@ -105,9 +105,16 @@ private Func<string, int, Vector3>? _getRotation;
         if (!FramePickerGrid.IsVisible)
             return;
         var list = frames.ToList();
+        var currentFrame = FrameNumber;
         FramePicker.ItemsSource = list;
-        if (list.Count > 0)
+        if (list.Contains(currentFrame))
+        {
+            FramePicker.SelectedItem = currentFrame;
+        }
+        else if (list.Count > 0)
+        {
             FramePicker.SelectedIndex = 0;
+        }
         UpdateConfirmEnabled();
     }
 
