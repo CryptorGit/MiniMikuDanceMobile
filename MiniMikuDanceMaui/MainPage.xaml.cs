@@ -1635,7 +1635,6 @@ private void OnTestParameterChanged(string bone, Vector3 rot)
     Viewer?.InvalidateSurface();
 }
 
-}
 private void OnPlayAnimationRequested()
 {
     try
