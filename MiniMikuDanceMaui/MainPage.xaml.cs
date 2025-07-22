@@ -270,6 +270,13 @@ private void OnGyroMenuClicked(object? sender, EventArgs e)
     HideAllMenusAndLayout();
 }
 
+private void OnTestClicked(object? sender, EventArgs e)
+{
+    ShowBottomFeature("TEST");
+    HideAllMenusAndLayout();
+}
+
+
 
 
 
@@ -672,6 +679,19 @@ private void ShowBottomFeature(string name)
             var gv = new GyroView(_cameraController, _renderer);
             view = gv;
         }
+        else if (name == "TEST")
+        {
+            var tvw = new TestView();
+            if (_bonesConfig != null)
+            {
+                var bones = _bonesConfig.HumanoidBoneLimits.Select(b => b.Bone).ToList();
+                tvw.SetBones(bones);
+            }
+            tvw.BoneChanged += OnTestBoneChanged;
+            tvw.ParameterChanged += OnTestParameterChanged;
+            OnTestBoneChanged(tvw.SelectedBoneIndex);
+            view = tvw;
+        }
 
         else if (name == "TIMELINE")
         {
@@ -879,6 +899,15 @@ private void ShowBottomFeature(string name)
     {
         var posePath = MmdFileSystem.Ensure("Poses");
         aev2.LoadDirectory(posePath);
+    }
+    else if (name == "TEST" && _bottomViews[name] is TestView tvw)
+    {
+        if (_bonesConfig != null)
+        {
+            var bones = _bonesConfig.HumanoidBoneLimits.Select(b => b.Bone).ToList();
+            tvw.SetBones(bones);
+            OnTestBoneChanged(tvw.SelectedBoneIndex);
+        }
     }
     else if (name == "MTOON" && _bottomViews[name] is LightingView mv)
     {
@@ -1568,6 +1597,44 @@ private void OnBoneAxisValueChanged(double v)
     _renderer.SetBoneRotation(index, rClamped);
     SavePoseState();
     Viewer?.InvalidateSurface();
+}
+private void OnTestBoneChanged(int index)
+{
+    if (_bottomViews.TryGetValue("TEST", out var view) && view is TestView tv)
+    {
+        var boneName = tv.SelectedBone;
+        if (_bonesConfig != null && _bonesConfig.TryGetLimit(boneName, out var lim))
+            tv.SetRotationLimit(lim);
+        else
+            tv.SetRotationLimit(null);
+
+        if (_currentModel != null && _currentModel.HumanoidBones.TryGetValue(boneName, out int boneIndex))
+            tv.SetRotation(_renderer.GetBoneRotation(boneIndex));
+        else
+            tv.SetRotation(Vector3.Zero);
+    }
+}
+
+private void OnTestParameterChanged(string bone, Vector3 rot)
+{
+    if (_currentModel == null)
+        return;
+    if (!_currentModel.HumanoidBones.TryGetValue(bone, out int index))
+        return;
+
+    var rClamped = ClampRotation(bone, rot);
+
+    if (_bottomViews.TryGetValue("TEST", out var view) && view is TestView tv)
+    {
+        if (rClamped != rot)
+            tv.SetRotation(rClamped);
+    }
+
+    _renderer.SetBoneRotation(index, rClamped);
+    SavePoseState();
+    Viewer?.InvalidateSurface();
+}
+
 }
 private void OnPlayAnimationRequested()
 {
