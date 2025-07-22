@@ -480,11 +480,20 @@ void main(){
             {
                 var bone = _bones[i];
                 System.Numerics.Vector3 euler = i < _boneRotations.Count ? _boneRotations[i].ToNumerics() : System.Numerics.Vector3.Zero;
-                var delta = System.Numerics.Quaternion.CreateFromYawPitchRoll(euler.Y * deg2rad, euler.X * deg2rad, euler.Z * deg2rad);
+                // 回転はボーンのローカル軸に沿って適用する
+                var axisX = System.Numerics.Vector3.Transform(System.Numerics.Vector3.UnitX, bone.Rotation);
+                var axisY = System.Numerics.Vector3.Transform(System.Numerics.Vector3.UnitY, bone.Rotation);
+                var axisZ = System.Numerics.Vector3.Transform(System.Numerics.Vector3.UnitZ, bone.Rotation);
+                var qy = System.Numerics.Quaternion.CreateFromAxisAngle(axisY, euler.Y * deg2rad);
+                var qx = System.Numerics.Quaternion.CreateFromAxisAngle(axisX, euler.X * deg2rad);
+                var qz = System.Numerics.Quaternion.CreateFromAxisAngle(axisZ, euler.Z * deg2rad);
+                var delta = qy * qx * qz;
                 System.Numerics.Vector3 trans = bone.Translation;
                 if (i < _boneTranslations.Count)
                     trans += _boneTranslations[i].ToNumerics();
-                var local = System.Numerics.Matrix4x4.CreateFromQuaternion(bone.Rotation * delta) * System.Numerics.Matrix4x4.CreateTranslation(trans);
+                // デフォルト姿勢の後にローカル回転を適用する
+                var local = System.Numerics.Matrix4x4.CreateFromQuaternion(delta * bone.Rotation) *
+                             System.Numerics.Matrix4x4.CreateTranslation(trans);
                 if (bone.Parent >= 0)
                     worldMats[i] = local * worldMats[bone.Parent];
                 else
