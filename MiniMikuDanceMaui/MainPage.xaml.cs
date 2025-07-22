@@ -1603,10 +1603,8 @@ private void OnTestBoneChanged(int index)
     if (_bottomViews.TryGetValue("TEST", out var view) && view is TestView tv)
     {
         var boneName = tv.SelectedBone;
-        if (_bonesConfig != null && _bonesConfig.TryGetLimit(boneName, out var lim))
-            tv.SetRotationLimit(lim);
-        else
-            tv.SetRotationLimit(null);
+        // テストビューでは回転制約を適用しない
+        tv.SetRotationLimit(null);
 
         if (_currentModel != null && _currentModel.HumanoidBones.TryGetValue(boneName, out int boneIndex))
             tv.SetRotation(_renderer.GetBoneRotation(boneIndex));
@@ -1622,15 +1620,13 @@ private void OnTestParameterChanged(string bone, Vector3 rot)
     if (!_currentModel.HumanoidBones.TryGetValue(bone, out int index))
         return;
 
-    var rClamped = ClampRotation(bone, rot);
-
     if (_bottomViews.TryGetValue("TEST", out var view) && view is TestView tv)
     {
-        if (rClamped != rot)
-            tv.SetRotation(rClamped);
+        tv.SetRotation(rot);
     }
 
-    _renderer.SetBoneRotation(index, rClamped);
+    // 制約を無視して回転を適用
+    _renderer.SetBoneRotationRaw(index, rot);
     SavePoseState();
     Viewer?.InvalidateSurface();
 }

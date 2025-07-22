@@ -285,6 +285,15 @@ void main(){
         _boneRotations[index] = degrees;
     }
 
+    public void SetBoneRotationRaw(int index, Vector3 degrees)
+    {
+        if (index < 0)
+            return;
+        while (_boneRotations.Count <= index)
+            _boneRotations.Add(Vector3.Zero);
+        _boneRotations[index] = degrees;
+    }
+
     public void SetBoneTranslation(int index, Vector3 translation)
     {
         if (index < 0)
