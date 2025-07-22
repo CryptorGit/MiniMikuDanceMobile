@@ -2,6 +2,11 @@ using System;
 using System.Linq;
 using System.Numerics;
 using System.Collections.Generic;
+using System.Diagnostics;
+using SixLabors.ImageSharp;
+using SixLabors.ImageSharp.PixelFormats;
+using SixLabors.ImageSharp.Processing;
+using SixLabors.ImageSharp.Advanced;
 using Microsoft.ML.OnnxRuntime;
 using Microsoft.ML.OnnxRuntime.Tensors;
 // OpenCV を使用しない実装へ移行したため依存関係を削除
@@ -37,77 +42,103 @@ public class PoseEstimator : IDisposable
         return Task.Run(() =>
         {
             const int jointCount = 33;
-            const int frameCount = 30;
-            const float fps = 30f;
 
-            // OpenCV 依存を排除したため、現状はダミーフレームのみ返す
             if (_session == null)
             {
-                var rand = new Random(0);
-                var dummy = new JointData[frameCount];
-                for (int i = 0; i < frameCount; i++)
+                return Array.Empty<JointData>();
+            }
+
+            var meta = _session.InputMetadata.First();
+            var dims = meta.Value.Dimensions.Select(d => d <= 0 ? 1 : d).ToArray();
+            int height = dims.Length > 1 ? dims[1] : 256;
+            int width = dims.Length > 2 ? dims[2] : 256;
+
+            string tempDir = Path.Combine(Path.GetTempPath(), Guid.NewGuid().ToString());
+            Directory.CreateDirectory(tempDir);
+            try
+            {
+                var startInfo = new ProcessStartInfo
                 {
+                    FileName = "ffmpeg",
+                    Arguments = $"-i \"{videoPath}\" -vf fps=30 \"{Path.Combine(tempDir, "frame_%08d.png")}\" -hide_banner -loglevel error",
+                    RedirectStandardOutput = true,
+                    RedirectStandardError = true,
+                    UseShellExecute = false
+                };
+                using (var proc = Process.Start(startInfo))
+                {
+                    proc?.WaitForExit();
+                }
+
+                var files = Directory.GetFiles(tempDir, "frame_*.png");
+                Array.Sort(files);
+
+                var results = new List<JointData>(files.Length);
+                for (int i = 0; i < files.Length; i++)
+                {
+                    using var image = Image.Load<Rgb24>(files[i]);
+                    image.Mutate(x => x.Resize(width, height));
+                    var tensor = new DenseTensor<float>(dims);
+
+                    for (int y = 0; y < height; y++)
+                    {
+                        var span = image.DangerousGetPixelRowMemory(y).Span;
+                        for (int x = 0; x < width; x++)
+                        {
+                            var p = span[x];
+                            tensor[0, y, x, 0] = p.R / 255f;
+                            tensor[0, y, x, 1] = p.G / 255f;
+                            tensor[0, y, x, 2] = p.B / 255f;
+                        }
+                    }
+
+                    using var output = _session.Run(new[] { NamedOnnxValue.CreateFromTensor(meta.Key, tensor) });
+
                     var jd = new JointData
                     {
-                        Timestamp = i / fps,
+                        Timestamp = i / 30f,
                         Positions = new Vector3[jointCount],
                         Rotations = new Vector3[jointCount],
                         Confidences = new float[jointCount]
                     };
-                    for (int j = 0; j < jointCount; j++)
+
+                    var outTensor = output.First().AsTensor<float>();
+                    var data = outTensor.ToArray();
+                    int stride;
+
+                    if (outTensor.Dimensions.Length >= 3 && outTensor.Dimensions[^2] == jointCount)
                     {
-                        jd.Positions[j] = new Vector3(
-                            (float)rand.NextDouble(),
-                            (float)rand.NextDouble(),
-                            (float)rand.NextDouble());
-                        jd.Confidences[j] = 1f;
+                        stride = outTensor.Dimensions[^1];
                     }
-                    dummy[i] = jd;
-                    onProgress?.Invoke((i + 1) / (float)frameCount);
-                }
-                return dummy;
-            }
+                    else
+                    {
+                        stride = data.Length / jointCount;
+                    }
 
-            var results = new List<JointData>(frameCount);
-            var meta = _session.InputMetadata.First();
-            var dims = meta.Value.Dimensions.Select(d => d <= 0 ? 1 : d).ToArray();
-            for (int i = 0; i < frameCount; i++)
+                    for (int j = 0; j < jointCount && j * stride + 2 < data.Length; j++)
+                    {
+                        int idx = j * stride;
+                        jd.Positions[j] = new Vector3(data[idx], data[idx + 1], data[idx + 2]);
+                        jd.Confidences[j] = stride > 3 && idx + 3 < data.Length ? data[idx + 3] : 1f;
+                    }
+
+                    results.Add(jd);
+                    onProgress?.Invoke((i + 1) / (float)files.Length);
+                }
+
+                return results.ToArray();
+            }
+            finally
             {
-                // 入力画像なしでゼロテンソルを与える簡易推論
-                var tensor = new DenseTensor<float>(dims);
-                using var output = _session.Run(new[] { NamedOnnxValue.CreateFromTensor(meta.Key, tensor) });
-                var jd = new JointData
+                try
                 {
-                    Timestamp = i / fps,
-                    Positions = new Vector3[jointCount],
-                    Rotations = new Vector3[jointCount],
-                    Confidences = new float[jointCount]
-                };
-
-                var outTensor = output.First().AsTensor<float>();
-                var data = outTensor.ToArray();
-                int stride;
-
-                if (outTensor.Dimensions.Length >= 3 && outTensor.Dimensions[^2] == jointCount)
-                {
-                    stride = outTensor.Dimensions[^1];
+                    Directory.Delete(tempDir, true);
                 }
-                else
+                catch
                 {
-                    stride = data.Length / jointCount;
+                    // ignore cleanup failure
                 }
-
-                for (int j = 0; j < jointCount && j * stride + 2 < data.Length; j++)
-                {
-                    int idx = j * stride;
-                    jd.Positions[j] = new Vector3(data[idx], data[idx + 1], data[idx + 2]);
-                    jd.Confidences[j] = stride > 3 && idx + 3 < data.Length ? data[idx + 3] : 1f;
-                }
-
-                results.Add(jd);
-                onProgress?.Invoke((i + 1) / (float)frameCount);
             }
-            return results.ToArray();
         });
     }
 
