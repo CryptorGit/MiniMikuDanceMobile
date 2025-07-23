@@ -1,2 +1,2 @@
-- [ ] iOS: AVAssetImageGenerator を使用した動画フレーム抽出実装を追加する
+ - [x] iOS: AVAssetImageGenerator を使用した動画フレーム抽出実装を追加する
 - [x] Android で ffmpeg 依存を排除し、MediaMetadataRetriever 等を用いた動画フレーム抽出を実装する

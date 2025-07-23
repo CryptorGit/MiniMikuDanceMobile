@@ -12,6 +12,17 @@ public class IosFrameExtractor : IVideoFrameExtractor
 {
     public Action<float>? OnProgress { get; set; }
 
+    public Task<int> GetFrameCountAsync(string videoPath, int fps)
+    {
+        return Task.Run(() =>
+        {
+            var asset = AVAsset.FromUrl(NSUrl.FromFilename(videoPath));
+            var duration = asset.Duration;
+            var totalSeconds = CMTime.GetSeconds(duration);
+            return (int)Math.Ceiling(totalSeconds * fps);
+        });
+    }
+
     public Task<string[]> ExtractFrames(string videoPath, int fps, string outputDir, Action<float>? onProgress = null)
     {
         return Task.Run(() =>
