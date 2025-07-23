@@ -120,6 +120,7 @@ public partial class AppInitializer : IDisposable
         UIManager.Instance.SetMessage("Analyzing video...");
         Joints = await PoseEstimator.EstimateAsync(
             videoPath,
+            DataManager.Instance.TempDir,
             p => UIManager.Instance.ExtractProgress = p,
             p => UIManager.Instance.PoseProgress = p);
         string outPath = Path.Combine(_poseOutputDir,
