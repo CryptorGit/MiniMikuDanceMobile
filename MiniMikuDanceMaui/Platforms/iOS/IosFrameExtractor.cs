@@ -1,4 +1,5 @@
 #if IOS
+using System;
 using AVFoundation;
 using CoreMedia;
 using Foundation;
@@ -9,7 +10,9 @@ namespace MiniMikuDanceMaui;
 
 public class IosFrameExtractor : IVideoFrameExtractor
 {
-    public Task<string[]> ExtractFrames(string videoPath, int fps, string outputDir)
+    public Action<float>? OnProgress { get; set; }
+
+    public Task<string[]> ExtractFrames(string videoPath, int fps, string outputDir, Action<float>? onProgress = null)
     {
         return Task.Run(() =>
         {
@@ -22,6 +25,7 @@ public class IosFrameExtractor : IVideoFrameExtractor
             var duration = asset.Duration;
             var totalSeconds = duration.Seconds;
             int frameCount = (int)Math.Floor(totalSeconds * fps);
+            var progressCb = onProgress ?? OnProgress;
             var result = new List<string>(frameCount);
             for (int i = 0; i < frameCount; i++)
             {
@@ -35,6 +39,10 @@ public class IosFrameExtractor : IVideoFrameExtractor
                 using var data = image.AsPNG();
                 File.WriteAllBytes(path, data.ToArray());
                 result.Add(path);
+                if (progressCb != null && frameCount > 0)
+                {
+                    progressCb(Math.Clamp((i + 1) / (float)frameCount, 0f, 1f));
+                }
             }
             return result.ToArray();
         });

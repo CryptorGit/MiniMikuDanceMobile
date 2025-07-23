@@ -1,4 +1,5 @@
 #if ANDROID
+using System;
 using Android.Graphics;
 using Android.Media;
 using MiniMikuDance.PoseEstimation;
@@ -10,7 +11,9 @@ namespace MiniMikuDanceMaui;
 /// </summary>
 public class AndroidFrameExtractor : IVideoFrameExtractor
 {
-    public Task<string[]> ExtractFrames(string videoPath, int fps, string outputDir)
+    public Action<float>? OnProgress { get; set; }
+
+    public Task<string[]> ExtractFrames(string videoPath, int fps, string outputDir, Action<float>? onProgress = null)
     {
         return Task.Run(() =>
         {
@@ -24,6 +27,8 @@ public class AndroidFrameExtractor : IVideoFrameExtractor
             long interval = 1000 / fps;
             var list = new List<string>();
             long index = 0;
+            int frameCount = (int)(durationMs / interval);
+            var progressCb = onProgress ?? OnProgress;
             for (long t = 0; t < durationMs; t += interval)
             {
                 using var bmp = retriever.GetFrameAtTime(t * 1000, Option.ClosestSync);
@@ -33,6 +38,10 @@ public class AndroidFrameExtractor : IVideoFrameExtractor
                 bmp.Compress(Bitmap.CompressFormat.Png, 100, fs);
                 list.Add(path);
                 index++;
+                if (progressCb != null && frameCount > 0)
+                {
+                    progressCb(Math.Clamp(index / (float)frameCount, 0f, 1f));
+                }
             }
             return list.ToArray();
         });
