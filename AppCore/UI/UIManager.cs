@@ -16,6 +16,8 @@ public class UIManager : Singleton<UIManager>
     private readonly Dictionary<string, bool> _toggleStates = new();
 
     public float Progress { get; set; }
+    public float ExtractProgress { get; set; }
+    public float PoseProgress { get; set; }
     public string Message { get; private set; } = string.Empty;
     public bool IsRecording { get; set; }
     private int _thumbnailTexture;
@@ -106,7 +108,8 @@ public class UIManager : Singleton<UIManager>
 
         if (Config.ShowProgressBar)
         {
-            ImGui.ProgressBar(Progress, new Vector2(-1, 0), string.Empty);
+            ImGui.ProgressBar(ExtractProgress, new Vector2(-1, 0), string.Empty);
+            ImGui.ProgressBar(PoseProgress, new Vector2(-1, 0), string.Empty);
         }
 
         if (Config.ShowMessage && !string.IsNullOrEmpty(Message))

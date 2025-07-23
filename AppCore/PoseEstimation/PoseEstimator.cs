@@ -38,7 +38,7 @@ public class PoseEstimator : IDisposable
         _extractor = extractor ?? new FfmpegFrameExtractor();
     }
 
-    public Task<JointData[]> EstimateAsync(string videoPath, string tempDir, Action<float>? onProgress = null)
+    public Task<JointData[]> EstimateAsync(string videoPath, string tempDir, Action<float>? extractProgress = null, Action<float>? poseProgress = null)
     {
         return Task.Run(() =>
         {
@@ -55,7 +55,10 @@ public class PoseEstimator : IDisposable
             int width = dims.Length > 2 ? dims[2] : 256;
 
             Directory.CreateDirectory(tempDir);
-            var files = _extractor.ExtractFrames(videoPath, 30, tempDir).GetAwaiter().GetResult();
+
+            try
+            {
+                var files = _extractor.ExtractFrames(videoPath, 30, tempDir, extractProgress).GetAwaiter().GetResult();
 
                 var results = new List<JointData>(files.Length);
                 for (int i = 0; i < files.Length; i++)
@@ -107,7 +110,7 @@ public class PoseEstimator : IDisposable
                     }
 
                     results.Add(jd);
-                    onProgress?.Invoke((i + 1) / (float)files.Length);
+                    poseProgress?.Invoke((i + 1) / (float)files.Length);
                 }
 
             return results.ToArray();
