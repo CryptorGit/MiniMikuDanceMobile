@@ -24,6 +24,9 @@ public partial class AppInitializer : IDisposable
     public RecorderController? Recorder { get; private set; }
     public CameraController? Camera { get; private set; }
     public PoseEstimator? PoseEstimator { get; private set; }
+    /// <summary>
+    /// 動画フレームを抽出する実装。各プラットフォームで必要に応じて差し替える。
+    /// </summary>
     public IVideoFrameExtractor FrameExtractor { get; set; } = new FfmpegFrameExtractor();
     public MotionGenerator? MotionGenerator { get; private set; }
     public JointData[]? Joints { get; private set; }
@@ -33,16 +36,14 @@ public partial class AppInitializer : IDisposable
     private string _poseModelPath = string.Empty;
     private string _poseOutputDir = string.Empty;
 
-    partial void ConfigureFrameExtractor(ref IVideoFrameExtractor extractor);
 
     public void Initialize(UIConfig uiConfig, string? modelPath, string poseModelPath, string baseDir)
     {
 
         UIManager.Instance.LoadConfig(uiConfig);
         _poseModelPath = poseModelPath;
-        IVideoFrameExtractor extractor = new FfmpegFrameExtractor();
-        ConfigureFrameExtractor(ref extractor);
-        PoseEstimator = new PoseEstimator(poseModelPath, extractor);
+        // FrameExtractor はプラットフォーム側で差し替えられる
+        PoseEstimator = new PoseEstimator(poseModelPath, FrameExtractor);
         MotionGenerator = new MotionGenerator();
 
         _poseOutputDir = Path.Combine(baseDir, "Poses");
@@ -173,9 +174,5 @@ public partial class AppInitializer : IDisposable
     public void Dispose()
     {
         PoseEstimator?.Dispose();
-    }
-
-    partial void ConfigureFrameExtractor(ref IVideoFrameExtractor extractor)
-    {
     }
 }
