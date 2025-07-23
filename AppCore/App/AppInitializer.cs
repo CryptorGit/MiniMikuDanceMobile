@@ -116,8 +116,9 @@ public partial class AppInitializer : IDisposable
     {
         if (PoseEstimator == null)
             return null;
+        DataManager.Instance.CleanupTemp();
         UIManager.Instance.SetMessage("Analyzing video...");
-        Joints = await PoseEstimator.EstimateAsync(videoPath, p => UIManager.Instance.Progress = p);
+        Joints = await PoseEstimator.EstimateAsync(videoPath, DataManager.Instance.TempDir, p => UIManager.Instance.Progress = p);
         string outPath = Path.Combine(_poseOutputDir,
             Path.GetFileNameWithoutExtension(videoPath) + ".json");
         JSONUtil.Save(outPath, Joints);
