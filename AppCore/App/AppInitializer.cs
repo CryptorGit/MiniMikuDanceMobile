@@ -24,6 +24,7 @@ public partial class AppInitializer : IDisposable
     public RecorderController? Recorder { get; private set; }
     public CameraController? Camera { get; private set; }
     public PoseEstimator? PoseEstimator { get; private set; }
+    public IVideoFrameExtractor FrameExtractor { get; set; } = new FfmpegFrameExtractor();
     public MotionGenerator? MotionGenerator { get; private set; }
     public JointData[]? Joints { get; private set; }
     public MotionData? Motion { get; set; }

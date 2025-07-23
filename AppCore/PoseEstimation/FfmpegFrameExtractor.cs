@@ -1,17 +1,15 @@
 using System.Diagnostics;
 
 namespace MiniMikuDance.PoseEstimation;
-
-/// <summary>
-/// ffmpeg を利用してフレーム抽出を行う実装。
-/// </summary>
 public class FfmpegFrameExtractor : IVideoFrameExtractor
 {
     private static string? FindFfmpeg()
     {
         var env = Environment.GetEnvironmentVariable("FFMPEG_PATH");
         if (!string.IsNullOrEmpty(env) && File.Exists(env))
+        {
             return env;
+        }
 
         var paths = (Environment.GetEnvironmentVariable("PATH") ?? string.Empty)
             .Split(Path.PathSeparator);
@@ -29,7 +27,9 @@ public class FfmpegFrameExtractor : IVideoFrameExtractor
         Directory.CreateDirectory(outputDir);
         var ffmpeg = FindFfmpeg();
         if (ffmpeg == null)
+        {
             throw new FileNotFoundException("ffmpeg not found. Please install ffmpeg or bundle it with the app.");
+        }
 
         var startInfo = new ProcessStartInfo
         {
@@ -49,7 +49,6 @@ public class FfmpegFrameExtractor : IVideoFrameExtractor
             var err = await proc.StandardError.ReadToEndAsync();
             throw new InvalidOperationException($"ffmpeg failed: {err}");
         }
-
         var files = Directory.GetFiles(outputDir, "frame_*.png");
         Array.Sort(files);
         return files;

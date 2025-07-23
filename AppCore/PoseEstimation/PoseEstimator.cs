@@ -35,7 +35,6 @@ public class PoseEstimator : IDisposable
         {
             _session = null;
         }
-
         _extractor = extractor ?? new FfmpegFrameExtractor();
     }
 

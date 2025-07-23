@@ -5,6 +5,9 @@ using MiniMikuDance.Data;
 using MiniMikuDance.UI;
 using System;
 using System.IO;
+#if IOS
+using MiniMikuDanceMaui;
+#endif
 
 namespace MiniMikuDanceMaui;
 
@@ -12,9 +15,12 @@ public partial class App : Application, IDisposable
 {
     public static AppInitializer Initializer { get; } = new();
 
-    public App()
+public App()
     {
         InitializeComponent();
+#if IOS
+        Initializer.FrameExtractor = new IosFrameExtractor();
+#endif
         MmdFileSystem.Ensure("Movie");
         MmdFileSystem.Ensure("Poses");
 
