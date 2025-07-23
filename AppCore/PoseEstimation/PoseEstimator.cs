@@ -2,7 +2,6 @@ using System;
 using System.Linq;
 using System.Numerics;
 using System.Collections.Generic;
-using System.Diagnostics;
 using SixLabors.ImageSharp;
 using SixLabors.ImageSharp.PixelFormats;
 using SixLabors.ImageSharp.Processing;
@@ -24,8 +23,9 @@ public class JointData
 public class PoseEstimator : IDisposable
 {
     private readonly InferenceSession? _session;
+    private readonly IVideoFrameExtractor _frameExtractor;
 
-    public PoseEstimator(string modelPath)
+    public PoseEstimator(string modelPath, IVideoFrameExtractor? frameExtractor = null)
     {
         if (File.Exists(modelPath))
         {
@@ -35,25 +35,7 @@ public class PoseEstimator : IDisposable
         {
             _session = null;
         }
-    }
-
-    private static string? FindFfmpeg()
-    {
-        var env = Environment.GetEnvironmentVariable("FFMPEG_PATH");
-        if (!string.IsNullOrEmpty(env) && File.Exists(env))
-        {
-            return env;
-        }
-
-        var paths = (Environment.GetEnvironmentVariable("PATH") ?? string.Empty)
-            .Split(Path.PathSeparator);
-        foreach (var p in paths)
-        {
-            var exe = Path.Combine(p, OperatingSystem.IsWindows() ? "ffmpeg.exe" : "ffmpeg");
-            if (File.Exists(exe))
-                return exe;
-        }
-        return null;
+        _frameExtractor = frameExtractor ?? new FfmpegFrameExtractor();
     }
 
     public Task<JointData[]> EstimateAsync(string videoPath, Action<float>? onProgress = null)
@@ -76,35 +58,10 @@ public class PoseEstimator : IDisposable
             Directory.CreateDirectory(tempDir);
             try
             {
-                var ffmpeg = FindFfmpeg();
-                if (ffmpeg == null)
-                {
-                    throw new FileNotFoundException("ffmpeg not found. Please install ffmpeg or bundle it with the app.");
-                }
+                var files = _frameExtractor
+                    .ExtractFramesAsync(videoPath, tempDir, 30)
+                    .GetAwaiter().GetResult();
 
-                var startInfo = new ProcessStartInfo
-                {
-                    FileName = ffmpeg,
-                    Arguments = $"-i \"{videoPath}\" -vf fps=30 \"{Path.Combine(tempDir, "frame_%08d.png")}\" -hide_banner -loglevel error",
-                    RedirectStandardOutput = true,
-                    RedirectStandardError = true,
-                    UseShellExecute = false
-                };
-                using (var proc = Process.Start(startInfo))
-                {
-                    if (proc == null)
-                    {
-                        throw new InvalidOperationException("Failed to start ffmpeg process.");
-                    }
-                    proc.WaitForExit();
-                    if (proc.ExitCode != 0)
-                    {
-                        var err = proc.StandardError.ReadToEnd();
-                        throw new InvalidOperationException($"ffmpeg failed: {err}");
-                    }
-                }
-
-                var files = Directory.GetFiles(tempDir, "frame_*.png");
                 Array.Sort(files);
 
                 var results = new List<JointData>(files.Length);

@@ -24,6 +24,7 @@ public class AppInitializer : IDisposable
     public RecorderController? Recorder { get; private set; }
     public CameraController? Camera { get; private set; }
     public PoseEstimator? PoseEstimator { get; private set; }
+    public IVideoFrameExtractor FrameExtractor { get; set; } = new FfmpegFrameExtractor();
     public MotionGenerator? MotionGenerator { get; private set; }
     public JointData[]? Joints { get; private set; }
     public MotionData? Motion { get; set; }
@@ -37,7 +38,7 @@ public class AppInitializer : IDisposable
 
         UIManager.Instance.LoadConfig(uiConfig);
         _poseModelPath = poseModelPath;
-        PoseEstimator = new PoseEstimator(poseModelPath);
+        PoseEstimator = new PoseEstimator(poseModelPath, FrameExtractor);
         MotionGenerator = new MotionGenerator();
 
         _poseOutputDir = Path.Combine(baseDir, "Poses");
