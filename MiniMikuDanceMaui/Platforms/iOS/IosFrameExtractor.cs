@@ -9,7 +9,7 @@ namespace MiniMikuDanceMaui;
 
 public class IosFrameExtractor : IVideoFrameExtractor
 {
-    public Task<string[]> ExtractFramesAsync(string videoPath, string outputDir, int fps)
+    public Task<string[]> ExtractFrames(string videoPath, int fps, string outputDir)
     {
         return Task.Run(() =>
         {
