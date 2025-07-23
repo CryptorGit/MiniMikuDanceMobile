@@ -139,6 +139,12 @@
         <mmd:AddKeyPanel x:Name="AddKeyPanel" IsVisible="False" ZIndex="30" />
         <mmd:EditKeyPanel x:Name="EditKeyPanel" IsVisible="False" ZIndex="30" />
         <mmd:KeyDeletePanel x:Name="DeletePanel" IsVisible="False" ZIndex="30" />
+        <Frame x:Name="ProgressFrame" IsVisible="False" BackgroundColor="{StaticResource BackgroundColor}" Padding="8" ZIndex="30">
+            <VerticalStackLayout Spacing="4">
+                <ProgressBar x:Name="ExtractProgressBar" Progress="0" HeightRequest="4" />
+                <ProgressBar x:Name="PoseProgressBar" Progress="0" HeightRequest="4" />
+            </VerticalStackLayout>
+        </Frame>
         <ActivityIndicator x:Name="LoadingIndicator" IsRunning="True" IsVisible="False" Color="{StaticResource IndicatorColor}" ZIndex="30" />
         <skia:SKGLView x:Name="Viewer" HasRenderLoop="True" EnableTouchEvents="True" MaximumWidthRequest="2048" MaximumHeightRequest="2048" />
         <Grid x:Name="BottomRegion" BackgroundColor="{StaticResource BackgroundColor}" IsVisible="False" ZIndex="2">

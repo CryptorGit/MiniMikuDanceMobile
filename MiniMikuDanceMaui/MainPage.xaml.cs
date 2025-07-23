@@ -57,6 +57,16 @@ public partial class MainPage : ContentPage
     private readonly Dictionary<long, SKPoint> _touchPoints = new();
     private MotionEditor? _motionEditor;
     private readonly BonesConfig? _bonesConfig = App.Initializer.BonesConfig;
+    private void SetProgressVisibilityAndLayout(bool isVisible)
+    {
+        ProgressFrame.IsVisible = isVisible;
+        if (!isVisible)
+        {
+            ExtractProgressBar.Progress = 0;
+            PoseProgressBar.Progress = 0;
+        }
+        UpdateLayout();
+    }
 
     private class PoseState
     {
@@ -461,6 +471,11 @@ private void UpdateLayout()
     AbsoluteLayout.SetLayoutFlags(EditKeyPanel, AbsoluteLayoutFlags.None);
     AbsoluteLayout.SetLayoutBounds(DeletePanel, new Rect(W - 300 - 20, TopMenuHeight + 20, 300, 200));
     AbsoluteLayout.SetLayoutFlags(DeletePanel, AbsoluteLayoutFlags.None);
+
+    AbsoluteLayout.SetLayoutBounds(ProgressFrame, new Rect(0.5, TopMenuHeight, 0.8,
+        ProgressFrame.IsVisible ? AbsoluteLayout.AutoSize : 0));
+    AbsoluteLayout.SetLayoutFlags(ProgressFrame,
+        AbsoluteLayoutFlags.XProportional | AbsoluteLayoutFlags.WidthProportional);
 
     AbsoluteLayout.SetLayoutBounds(LoadingIndicator, new Rect(0.5, 0.5, 40, 40));
     AbsoluteLayout.SetLayoutFlags(LoadingIndicator, AbsoluteLayoutFlags.PositionProportional);
@@ -1119,10 +1134,14 @@ private async void OnStartEstimateClicked(object? sender, EventArgs e)
     RemoveBottomFeature("Analyze");
     PoseSelectMessage.IsVisible = false;
     SetLoadingIndicatorVisibilityAndLayout(true);
+    SetProgressVisibilityAndLayout(true);
 
     try
     {
-        string? path = await App.Initializer.AnalyzeVideoAsync(_selectedVideoPath);
+        string? path = await App.Initializer.AnalyzeVideoAsync(
+            _selectedVideoPath,
+            p => MainThread.BeginInvokeOnMainThread(() => ExtractProgressBar.Progress = p),
+            p => MainThread.BeginInvokeOnMainThread(() => PoseProgressBar.Progress = p));
         if (!string.IsNullOrEmpty(path))
         {
             await DisplayAlert("Saved", $"{Path.GetFileName(path)} を保存しました", "OK");
@@ -1135,6 +1154,7 @@ private async void OnStartEstimateClicked(object? sender, EventArgs e)
     finally
     {
         SetLoadingIndicatorVisibilityAndLayout(false);
+        SetProgressVisibilityAndLayout(false);
         _selectedVideoPath = null;
     }
 }
@@ -1145,6 +1165,7 @@ private void OnCancelEstimateClicked(object? sender, EventArgs e)
     PoseSelectMessage.IsVisible = false;
     SelectedVideoPath.Text = string.Empty;
     SetLoadingIndicatorVisibilityAndLayout(false);
+    SetProgressVisibilityAndLayout(false);
 }
 
 private async void OnStartAdaptClicked(object? sender, EventArgs e)
