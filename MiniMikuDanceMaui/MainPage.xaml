@@ -141,7 +141,9 @@
         <mmd:KeyDeletePanel x:Name="DeletePanel" IsVisible="False" ZIndex="30" />
         <Frame x:Name="ProgressFrame" IsVisible="False" BackgroundColor="{StaticResource BackgroundColor}" Padding="8" ZIndex="30">
             <VerticalStackLayout Spacing="4">
+                <Label x:Name="ExtractProgressLabel" Text="" TextColor="{StaticResource TextColor}" HorizontalTextAlignment="Center" />
                 <ProgressBar x:Name="ExtractProgressBar" Progress="0" HeightRequest="4" />
+                <Label x:Name="PoseProgressLabel" Text="" TextColor="{StaticResource TextColor}" HorizontalTextAlignment="Center" />
                 <ProgressBar x:Name="PoseProgressBar" Progress="0" HeightRequest="4" />
             </VerticalStackLayout>
         </Frame>

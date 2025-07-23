@@ -17,4 +17,12 @@ public interface IVideoFrameExtractor
     /// <param name="outputDir">出力ディレクトリ</param>
     /// <returns>保存したフレーム画像のパス配列</returns>
     Task<string[]> ExtractFrames(string videoPath, int fps, string outputDir, Action<float>? onProgress = null);
+
+    /// <summary>
+    /// 動画の総フレーム数を取得する。
+    /// </summary>
+    /// <param name="videoPath">入力動画パス</param>
+    /// <param name="fps">フレームレート</param>
+    /// <returns>フレーム数。取得できない場合は0</returns>
+    Task<int> GetFrameCountAsync(string videoPath, int fps);
 }

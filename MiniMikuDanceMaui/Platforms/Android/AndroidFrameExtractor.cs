@@ -15,6 +15,19 @@ public class AndroidFrameExtractor : IVideoFrameExtractor
 {
     public Action<float>? OnProgress { get; set; }
 
+    public Task<int> GetFrameCountAsync(string videoPath, int fps)
+    {
+        return Task.Run(() =>
+        {
+            using var retriever = new MediaMetadataRetriever();
+            retriever.SetDataSource(videoPath);
+            var durStr = retriever.ExtractMetadata(MetadataKey.Duration);
+            if (!long.TryParse(durStr, out var durationMs))
+                durationMs = 0;
+            return (int)Math.Ceiling(durationMs / 1000.0 * fps);
+        });
+    }
+
     public Task<string[]> ExtractFrames(string videoPath, int fps, string outputDir, Action<float>? onProgress = null)
     {
         return Task.Run(() =>

@@ -5,6 +5,15 @@ namespace MiniMikuDance.PoseEstimation;
 public class FfmpegFrameExtractor : IVideoFrameExtractor
 {
     public Action<float>? OnProgress { get; set; }
+
+    public async Task<int> GetFrameCountAsync(string videoPath, int fps)
+    {
+        var ffmpeg = FindFfmpeg();
+        if (ffmpeg == null)
+            return 0;
+        var duration = await GetDurationAsync(ffmpeg, videoPath);
+        return duration > TimeSpan.Zero ? (int)Math.Ceiling(duration.TotalSeconds * fps) : 0;
+    }
     private static string? FindFfmpeg()
     {
         var env = Environment.GetEnvironmentVariable("FFMPEG_PATH");
