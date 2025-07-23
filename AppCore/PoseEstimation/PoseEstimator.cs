@@ -45,7 +45,7 @@ public class PoseEstimator : IDisposable
 
             if (_session == null)
             {
-                return Array.Empty<JointData>();
+                throw new InvalidOperationException("Pose estimation model not loaded.");
             }
 
             var meta = _session.InputMetadata.First();
