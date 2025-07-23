@@ -37,6 +37,25 @@ public class PoseEstimator : IDisposable
         }
     }
 
+    private static string? FindFfmpeg()
+    {
+        var env = Environment.GetEnvironmentVariable("FFMPEG_PATH");
+        if (!string.IsNullOrEmpty(env) && File.Exists(env))
+        {
+            return env;
+        }
+
+        var paths = (Environment.GetEnvironmentVariable("PATH") ?? string.Empty)
+            .Split(Path.PathSeparator);
+        foreach (var p in paths)
+        {
+            var exe = Path.Combine(p, OperatingSystem.IsWindows() ? "ffmpeg.exe" : "ffmpeg");
+            if (File.Exists(exe))
+                return exe;
+        }
+        return null;
+    }
+
     public Task<JointData[]> EstimateAsync(string videoPath, Action<float>? onProgress = null)
     {
         return Task.Run(() =>
@@ -45,7 +64,7 @@ public class PoseEstimator : IDisposable
 
             if (_session == null)
             {
-                return Array.Empty<JointData>();
+                throw new InvalidOperationException("Pose estimation model not loaded.");
             }
 
             var meta = _session.InputMetadata.First();
@@ -57,9 +76,15 @@ public class PoseEstimator : IDisposable
             Directory.CreateDirectory(tempDir);
             try
             {
+                var ffmpeg = FindFfmpeg();
+                if (ffmpeg == null)
+                {
+                    throw new FileNotFoundException("ffmpeg not found. Please install ffmpeg or bundle it with the app.");
+                }
+
                 var startInfo = new ProcessStartInfo
                 {
-                    FileName = "ffmpeg",
+                    FileName = ffmpeg,
                     Arguments = $"-i \"{videoPath}\" -vf fps=30 \"{Path.Combine(tempDir, "frame_%08d.png")}\" -hide_banner -loglevel error",
                     RedirectStandardOutput = true,
                     RedirectStandardError = true,
@@ -67,7 +92,16 @@ public class PoseEstimator : IDisposable
                 };
                 using (var proc = Process.Start(startInfo))
                 {
-                    proc?.WaitForExit();
+                    if (proc == null)
+                    {
+                        throw new InvalidOperationException("Failed to start ffmpeg process.");
+                    }
+                    proc.WaitForExit();
+                    if (proc.ExitCode != 0)
+                    {
+                        var err = proc.StandardError.ReadToEnd();
+                        throw new InvalidOperationException($"ffmpeg failed: {err}");
+                    }
                 }
 
                 var files = Directory.GetFiles(tempDir, "frame_*.png");
