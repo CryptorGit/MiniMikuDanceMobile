@@ -23,9 +23,9 @@ public class JointData
 public class PoseEstimator : IDisposable
 {
     private readonly InferenceSession? _session;
-    private readonly IVideoFrameExtractor _frameExtractor;
+    private readonly IVideoFrameExtractor _extractor;
 
-    public PoseEstimator(string modelPath, IVideoFrameExtractor? frameExtractor = null)
+    public PoseEstimator(string modelPath, IVideoFrameExtractor? extractor = null)
     {
         if (File.Exists(modelPath))
         {
@@ -35,7 +35,7 @@ public class PoseEstimator : IDisposable
         {
             _session = null;
         }
-        _frameExtractor = frameExtractor ?? new FfmpegFrameExtractor();
+        _extractor = extractor ?? new FfmpegFrameExtractor();
     }
 
     public Task<JointData[]> EstimateAsync(string videoPath, Action<float>? onProgress = null)
@@ -58,11 +58,7 @@ public class PoseEstimator : IDisposable
             Directory.CreateDirectory(tempDir);
             try
             {
-                var files = _frameExtractor
-                    .ExtractFramesAsync(videoPath, tempDir, 30)
-                    .GetAwaiter().GetResult();
-
-                Array.Sort(files);
+                var files = _extractor.ExtractFrames(videoPath, 30, tempDir).GetAwaiter().GetResult();
 
                 var results = new List<JointData>(files.Length);
                 for (int i = 0; i < files.Length; i++)

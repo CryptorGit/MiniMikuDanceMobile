@@ -16,7 +16,7 @@ using OpenTK.Mathematics;
 
 namespace MiniMikuDance.App;
 
-public class AppInitializer : IDisposable
+public partial class AppInitializer : IDisposable
 {
     public Viewer? Viewer { get; private set; }
     public MotionPlayer? MotionPlayer { get; private set; }
@@ -33,12 +33,16 @@ public class AppInitializer : IDisposable
     private string _poseModelPath = string.Empty;
     private string _poseOutputDir = string.Empty;
 
+    partial void ConfigureFrameExtractor(ref IVideoFrameExtractor extractor);
+
     public void Initialize(UIConfig uiConfig, string? modelPath, string poseModelPath, string baseDir)
     {
 
         UIManager.Instance.LoadConfig(uiConfig);
         _poseModelPath = poseModelPath;
-        PoseEstimator = new PoseEstimator(poseModelPath, FrameExtractor);
+        IVideoFrameExtractor extractor = new FfmpegFrameExtractor();
+        ConfigureFrameExtractor(ref extractor);
+        PoseEstimator = new PoseEstimator(poseModelPath, extractor);
         MotionGenerator = new MotionGenerator();
 
         _poseOutputDir = Path.Combine(baseDir, "Poses");
@@ -169,5 +173,9 @@ public class AppInitializer : IDisposable
     public void Dispose()
     {
         PoseEstimator?.Dispose();
+    }
+
+    partial void ConfigureFrameExtractor(ref IVideoFrameExtractor extractor)
+    {
     }
 }
