@@ -28,7 +28,7 @@ public class AndroidFrameExtractor : IVideoFrameExtractor
             {
                 using var bmp = retriever.GetFrameAtTime(t * 1000, Option.ClosestSync);
                 if (bmp == null) continue;
-                string path = Path.Combine(outputDir, $"frame_{index:D08}.png");
+                string path = System.IO.Path.Combine(outputDir, $"frame_{index:D08}.png");
                 using var fs = File.OpenWrite(path);
                 bmp.Compress(Bitmap.CompressFormat.Png, 100, fs);
                 list.Add(path);
