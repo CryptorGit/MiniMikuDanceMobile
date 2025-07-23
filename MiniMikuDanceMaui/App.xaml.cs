@@ -29,18 +29,15 @@ public partial class App : Application, IDisposable
         {
             try
             {
-                var src = Path.Combine(AppContext.BaseDirectory, "StreamingAssets", "PoseEstimation", modelName);
-                if (File.Exists(src))
-                {
-                    File.Copy(src, poseModel);
-                }
+                var packagePath = Path.Combine("StreamingAssets", "PoseEstimation", modelName);
+                using var src = FileSystem.OpenAppPackageFileAsync(packagePath).GetAwaiter().GetResult();
+                using var dst = File.Create(poseModel);
+                src.CopyTo(dst);
             }
             catch (Exception)
             {
-                // Log the exception or handle it appropriately
                 Console.WriteLine($"Error copying pose model.");
             }
-
         }
 
         Initializer.Initialize(uiConfig, null, poseModel, MmdFileSystem.BaseDir);
