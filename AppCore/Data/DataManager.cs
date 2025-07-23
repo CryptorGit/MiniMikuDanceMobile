@@ -52,6 +52,8 @@ public partial class DataManager : Util.Singleton<DataManager>
 
     private readonly string _tempDir = Path.Combine(Path.GetTempPath(), "MiniMikuDance_Temp");
 
+    public string TempDir => _tempDir;
+
     public void CleanupTemp()
     {
         if (Directory.Exists(_tempDir))

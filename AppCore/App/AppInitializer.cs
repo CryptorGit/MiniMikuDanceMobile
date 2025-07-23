@@ -116,6 +116,7 @@ public partial class AppInitializer : IDisposable
     {
         if (PoseEstimator == null)
             return null;
+        DataManager.Instance.CleanupTemp();
         UIManager.Instance.SetMessage("Analyzing video...");
         Joints = await PoseEstimator.EstimateAsync(
             videoPath,
