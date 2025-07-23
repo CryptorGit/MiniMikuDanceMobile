@@ -29,18 +29,22 @@ public partial class App : Application, IDisposable
         {
             try
             {
-                var src = Path.Combine(AppContext.BaseDirectory, "StreamingAssets", "PoseEstimation", modelName);
-                if (File.Exists(src))
+                var packagePath = Path.Combine("StreamingAssets", "PoseEstimation", modelName);
+                using var src = FileSystem.OpenAppPackageFileAsync(packagePath).GetAwaiter().GetResult();
+                if (src != null)
                 {
-                    File.Copy(src, poseModel);
+                    using var dst = File.Create(poseModel);
+                    src.CopyTo(dst);
+                }
+                else
+                {
+                    throw new FileNotFoundException($"Package file not found: {packagePath}");
                 }
             }
             catch (Exception)
             {
-                // Log the exception or handle it appropriately
                 Console.WriteLine($"Error copying pose model.");
             }
-
         }
 
         Initializer.Initialize(uiConfig, null, poseModel, MmdFileSystem.BaseDir);
