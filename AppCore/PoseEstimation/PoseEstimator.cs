@@ -113,7 +113,18 @@ public class PoseEstimator : IDisposable
                     poseProgress?.Invoke((i + 1) / (float)files.Length);
                 }
 
-            return results.ToArray();
+                return results.ToArray();
+            }
+            finally
+            {
+                if (Directory.Exists(tempDir))
+                {
+                    foreach (var f in Directory.GetFiles(tempDir))
+                    {
+                        try { File.Delete(f); } catch { /* ignore */ }
+                    }
+                }
+            }
         });
     }
 

@@ -2,6 +2,8 @@
 using System;
 using Android.Graphics;
 using Android.Media;
+using System.Collections.Generic;
+using System.IO;
 using MiniMikuDance.PoseEstimation;
 
 namespace MiniMikuDanceMaui;
