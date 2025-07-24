@@ -1216,6 +1216,12 @@ private async void OnStartAdaptClicked(object? sender, EventArgs e)
             _motionEditor = new MotionEditor(motion);
             _adaptTotalFrames = motion.Frames.Length;
             UpdateAdaptProgress(0);
+
+            if (!_bottomViews.ContainsKey("TIMELINE"))
+            {
+                ShowBottomFeature("TIMELINE");
+            }
+
             if (_bottomViews.TryGetValue("TIMELINE", out var view) && view is TimelineView tv)
             {
                 tv.ClearKeyframes();
@@ -1771,7 +1777,9 @@ private void OnMotionApplied((Dictionary<int, System.Numerics.Quaternion> rotati
         _renderer.SetBoneRotation(kv.Key, new Vector3(euler.X, euler.Y, euler.Z));
     }
 
-    // モデルの位置は固定したまま回転のみ適用する
+    _renderer.ModelTransform = data.transform.ToMatrix4();
+
+    // hips の平行移動は別途管理するためゼロにリセットする
     if (_currentModel != null && _currentModel.HumanoidBones.TryGetValue("hips", out var hipsIdx))
     {
         _renderer.SetBoneTranslation(hipsIdx, Vector3.Zero);
