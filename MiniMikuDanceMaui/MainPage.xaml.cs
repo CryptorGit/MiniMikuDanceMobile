@@ -1218,10 +1218,22 @@ private async void OnStartAdaptClicked(object? sender, EventArgs e)
             _motionEditor = new MotionEditor(motion);
             if (_bottomViews.TryGetValue("TIMELINE", out var view) && view is TimelineView tv)
             {
+                tv.ClearKeyframes();
                 if (motion.Frames.Length > TimelineView.MaxFrame)
                 {
                     tv.UpdateMaxFrame(motion.Frames.Length);
                 }
+                for (int frame = 0; frame < motion.Frames.Length; frame++)
+                {
+                    foreach (var bone in tv.BoneNames)
+                    {
+                        var t = GetBoneTranslationAtFrame(bone, frame);
+                        var r = GetBoneRotationAtFrame(bone, frame);
+                        tv.AddKeyframe(bone, frame, t, r);
+                        _motionEditor?.AddKeyFrame(bone, frame, false);
+                    }
+                }
+                _motionEditor?.SaveState();
             }
             App.Initializer.MotionPlayer.Play(motion);
         }
