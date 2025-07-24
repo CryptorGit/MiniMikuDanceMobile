@@ -1216,6 +1216,13 @@ private async void OnStartAdaptClicked(object? sender, EventArgs e)
             var motion = App.Initializer.MotionGenerator.Generate(joints);
             App.Initializer.Motion = motion;
             _motionEditor = new MotionEditor(motion);
+            if (_bottomViews.TryGetValue("TIMELINE", out var view) && view is TimelineView tv)
+            {
+                if (motion.Frames.Length > TimelineView.MaxFrame)
+                {
+                    tv.UpdateMaxFrame(motion.Frames.Length);
+                }
+            }
             App.Initializer.MotionPlayer.Play(motion);
         }
     }

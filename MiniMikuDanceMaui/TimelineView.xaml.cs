@@ -12,7 +12,7 @@ namespace MiniMikuDanceMaui;
 
 public partial class TimelineView : ContentView
 {
-    public const int MaxFrame = 60;
+public static int MaxFrame { get; private set; } = 60;
     const int MaxRows = 18;
     const int VisibleColumns = 14;
     const int PlayheadStopColumn = 7; // 7より後はグリッドをスクロールさせる
@@ -112,6 +112,21 @@ public partial class TimelineView : ContentView
         SelectedKeyInputBoneIndex >= 0 && SelectedKeyInputBoneIndex < _boneNames.Count
             ? _boneNames[SelectedKeyInputBoneIndex]
             : string.Empty;
+
+    public static void SetMaxFrame(int frame)
+    {
+        MaxFrame = Math.Max(1, frame);
+    }
+
+    public void UpdateMaxFrame(int frame)
+    {
+        if (frame > MaxFrame)
+            SetMaxFrame(frame);
+        CurrentFramePicker.ItemsSource = Enumerable.Range(0, MaxFrame).ToList();
+        CurrentFrame = Math.Min(CurrentFrame, MaxFrame - 1);
+        UpdateCanvasSizes();
+        InvalidateAll();
+    }
 
     public int CurrentFrame
     {
