@@ -60,9 +60,16 @@ public partial class MainPage : ContentPage
     private readonly Dictionary<long, SKPoint> _touchPoints = new();
     private MotionEditor? _motionEditor;
     private readonly BonesConfig? _bonesConfig = App.Initializer.BonesConfig;
-    private void SetProgressVisibilityAndLayout(bool isVisible)
+    private void SetProgressVisibilityAndLayout(bool isVisible,
+        bool showExtract,
+        bool showPose)
     {
         ProgressFrame.IsVisible = isVisible;
+        ExtractProgressBar.IsVisible = showExtract;
+        ExtractProgressLabel.IsVisible = showExtract;
+        PoseProgressBar.IsVisible = showPose;
+        PoseProgressLabel.IsVisible = showPose;
+
         if (!isVisible)
         {
             ExtractProgressBar.Progress = 0;
@@ -1159,7 +1166,7 @@ private async void OnStartEstimateClicked(object? sender, EventArgs e)
 
     RemoveBottomFeature("Analyze");
     PoseSelectMessage.IsVisible = false;
-    SetProgressVisibilityAndLayout(true);
+    SetProgressVisibilityAndLayout(true, true, true);
 
     try
     {
@@ -1183,7 +1190,7 @@ private async void OnStartEstimateClicked(object? sender, EventArgs e)
     }
     finally
     {
-        SetProgressVisibilityAndLayout(false);
+        SetProgressVisibilityAndLayout(false, true, true);
         _selectedVideoPath = null;
     }
 }
@@ -1193,7 +1200,7 @@ private void OnCancelEstimateClicked(object? sender, EventArgs e)
     _selectedVideoPath = null;
     PoseSelectMessage.IsVisible = false;
     SelectedVideoPath.Text = string.Empty;
-    SetProgressVisibilityAndLayout(false);
+    SetProgressVisibilityAndLayout(false, true, true);
 }
 
 private async void OnStartAdaptClicked(object? sender, EventArgs e)
@@ -1206,7 +1213,7 @@ private async void OnStartAdaptClicked(object? sender, EventArgs e)
 
     RemoveBottomFeature("Adapt");
     AdaptSelectMessage.IsVisible = false;
-    SetProgressVisibilityAndLayout(true);
+    SetProgressVisibilityAndLayout(true, false, true);
 
     try
     {
@@ -1256,7 +1263,7 @@ private async void OnStartAdaptClicked(object? sender, EventArgs e)
     }
     finally
     {
-        SetProgressVisibilityAndLayout(false);
+        SetProgressVisibilityAndLayout(false, false, true);
         _selectedPosePath = null;
     }
 }
@@ -1266,7 +1273,7 @@ private void OnCancelAdaptClicked(object? sender, EventArgs e)
     _selectedPosePath = null;
     AdaptSelectMessage.IsVisible = false;
     SelectedPosePath.Text = string.Empty;
-    SetProgressVisibilityAndLayout(false);
+    SetProgressVisibilityAndLayout(false, false, true);
 }
 
 private async void OnKeyConfirmClicked(string bone, int frame, Vector3 trans, Vector3 rot)
