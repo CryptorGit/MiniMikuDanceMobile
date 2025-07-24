@@ -52,6 +52,7 @@ public partial class MainPage : ContentPage
     private int _extractTotalFrames;
     private int _poseTotalFrames;
     private int _adaptTotalFrames;
+    private const int AdaptFrameLimit = 60;
     // bottomWidth is no longer used; bottom region spans full screen width
     // private double bottomWidth = 0;
     private bool _glInitialized;
@@ -112,26 +113,6 @@ public partial class MainPage : ContentPage
     private PoseState? _poseBeforeKeyInput;
     public MotionPlayer? MotionPlayer => App.Initializer.MotionPlayer;
     
-    private readonly Dictionary<string, BlazePoseJoint> _boneToJoint = new()
-    {
-        { "hips", BlazePoseJoint.LeftHip },
-        { "spine", BlazePoseJoint.LeftShoulder },
-        { "chest", BlazePoseJoint.LeftShoulder },
-        { "neck", BlazePoseJoint.LeftShoulder },
-        { "head", BlazePoseJoint.Nose },
-        { "leftUpperArm", BlazePoseJoint.LeftShoulder },
-        { "leftLowerArm", BlazePoseJoint.LeftElbow },
-        { "leftHand", BlazePoseJoint.LeftWrist },
-        { "rightUpperArm", BlazePoseJoint.RightShoulder },
-        { "rightLowerArm", BlazePoseJoint.RightElbow },
-        { "rightHand", BlazePoseJoint.RightWrist },
-        { "leftUpperLeg", BlazePoseJoint.LeftHip },
-        { "leftLowerLeg", BlazePoseJoint.LeftKnee },
-        { "leftFoot", BlazePoseJoint.LeftAnkle },
-        { "rightUpperLeg", BlazePoseJoint.RightHip },
-        { "rightLowerLeg", BlazePoseJoint.RightKnee },
-        { "rightFoot", BlazePoseJoint.RightAnkle },
-    };
 
     public MainPage()
     {
@@ -1229,6 +1210,8 @@ private async void OnStartAdaptClicked(object? sender, EventArgs e)
         if (joints != null && App.Initializer.MotionGenerator != null && App.Initializer.MotionPlayer != null)
         {
             var motion = App.Initializer.MotionGenerator.Generate(joints);
+            if (motion.Frames.Length > AdaptFrameLimit)
+                motion.Frames = motion.Frames.Take(AdaptFrameLimit).ToArray();
             App.Initializer.Motion = motion;
             _motionEditor = new MotionEditor(motion);
             _adaptTotalFrames = motion.Frames.Length;
@@ -1236,11 +1219,8 @@ private async void OnStartAdaptClicked(object? sender, EventArgs e)
             if (_bottomViews.TryGetValue("TIMELINE", out var view) && view is TimelineView tv)
             {
                 tv.ClearKeyframes();
-                if (motion.Frames.Length > TimelineView.MaxFrame)
-                {
-                    tv.UpdateMaxFrame(motion.Frames.Length);
-                }
-                for (int frame = 0; frame < motion.Frames.Length; frame++)
+                tv.UpdateMaxFrame(_adaptTotalFrames);
+                for (int frame = 0; frame < _adaptTotalFrames; frame++)
                 {
                     foreach (var bone in tv.BoneNames)
                     {
@@ -1741,31 +1721,26 @@ private Vector3 ClampRotation(string bone, Vector3 rot)
 
 private Vector3 GetBoneTranslationAtFrame(string bone, int frame)
 {
-    if (_motionEditor == null)
-        return Vector3.Zero;
-    if (!_boneToJoint.TryGetValue(bone, out var joint))
-        return Vector3.Zero;
-    var frames = _motionEditor.Motion.Frames;
-    if (frame < 0 || frame >= frames.Length)
-        return Vector3.Zero;
-    var pos = frames[frame].Positions[(int)joint];
-    return new Vector3(pos.X, pos.Y, pos.Z);
+    // Adapt Pose ではボーンの位置は変更しないため常にゼロを返す
+    return Vector3.Zero;
 }
 
 private Vector3 GetBoneRotationAtFrame(string bone, int frame)
 {
-    if (_motionEditor == null)
-        return Vector3.Zero;
-    if (!_boneToJoint.TryGetValue(bone, out var joint))
+    if (_motionEditor == null || App.Initializer.Applier == null || _currentModel == null)
         return Vector3.Zero;
     var frames = _motionEditor.Motion.Frames;
     if (frame < 0 || frame >= frames.Length)
         return Vector3.Zero;
 
-    if (frames[frame].Rotations.Length <= (int)joint)
+    // JointData からモデル座標系での回転を取得する
+    var (rotations, _) = App.Initializer.Applier.Apply(frames[frame]);
+    if (!_currentModel.HumanoidBones.TryGetValue(bone, out int index))
         return Vector3.Zero;
-    var r = frames[frame].Rotations[(int)joint];
-    return new Vector3(r.X, r.Y, r.Z);
+    if (!rotations.TryGetValue(index, out var q))
+        return Vector3.Zero;
+    var euler = ToEulerAngles(q);
+    return new Vector3(euler.X, euler.Y, euler.Z);
 }
 
 
@@ -1792,7 +1767,7 @@ private void OnMotionApplied((Dictionary<int, System.Numerics.Quaternion> rotati
         var euler = ToEulerAngles(kv.Value);
         _renderer.SetBoneRotation(kv.Key, new Vector3(euler.X, euler.Y, euler.Z));
     }
-    _renderer.ModelTransform = data.transform.ToMatrix4();
+    // モデルの位置は固定したまま回転のみ適用する
     Viewer?.InvalidateSurface();
 }
 
