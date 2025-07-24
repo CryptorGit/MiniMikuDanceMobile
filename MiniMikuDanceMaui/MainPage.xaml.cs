@@ -1224,6 +1224,9 @@ private async void OnStartAdaptClicked(object? sender, EventArgs e)
                 {
                     foreach (var bone in tv.BoneNames)
                     {
+                        if (string.Equals(bone, "camera", StringComparison.OrdinalIgnoreCase))
+                            continue;
+
                         var t = GetBoneTranslationAtFrame(bone, frame);
                         var r = GetBoneRotationAtFrame(bone, frame);
                         tv.AddKeyframe(bone, frame, t, r);
@@ -1721,7 +1724,7 @@ private Vector3 ClampRotation(string bone, Vector3 rot)
 
 private Vector3 GetBoneTranslationAtFrame(string bone, int frame)
 {
-    // Adapt Pose ではボーンの位置は変更しないため常にゼロを返す
+    // Adapt Pose では hips も含めボーンの位置は変更しない
     return Vector3.Zero;
 }
 
@@ -1767,7 +1770,13 @@ private void OnMotionApplied((Dictionary<int, System.Numerics.Quaternion> rotati
         var euler = ToEulerAngles(kv.Value);
         _renderer.SetBoneRotation(kv.Key, new Vector3(euler.X, euler.Y, euler.Z));
     }
+
     // モデルの位置は固定したまま回転のみ適用する
+    if (_currentModel != null && _currentModel.HumanoidBones.TryGetValue("hips", out var hipsIdx))
+    {
+        _renderer.SetBoneTranslation(hipsIdx, Vector3.Zero);
+    }
+
     Viewer?.InvalidateSurface();
 }
 
