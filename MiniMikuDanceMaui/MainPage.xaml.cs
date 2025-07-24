@@ -1724,21 +1724,8 @@ private Vector3 ClampRotation(string bone, Vector3 rot)
 
 private Vector3 GetBoneTranslationAtFrame(string bone, int frame)
 {
-    if (!string.Equals(bone, "hips", StringComparison.OrdinalIgnoreCase))
-        return Vector3.Zero;
-    if (_motionEditor == null || App.Initializer.Applier == null)
-        return Vector3.Zero;
-
-    var frames = _motionEditor.Motion.Frames;
-    if (frame < 0 || frame >= frames.Length)
-        return Vector3.Zero;
-
-    var (_, transform) = App.Initializer.Applier.Apply(frames[frame]);
-    var t = new System.Numerics.Vector3(transform.M41, transform.M42, transform.M43);
-    if (_initialHipsPos == null)
-        _initialHipsPos = t;
-    var delta = t - _initialHipsPos.Value;
-    return delta.ToOpenTK();
+    // Adapt Pose では hips も含めボーンの位置は変更しない
+    return Vector3.Zero;
 }
 
 private Vector3 GetBoneRotationAtFrame(string bone, int frame)
@@ -1776,8 +1763,6 @@ private void ShowExplorer(string featureName, Frame messageFrame, Label pathLabe
     UpdateLayout();
 }
 
-private Vector3? _initialHipsPos = null;
-
 private void OnMotionApplied((Dictionary<int, System.Numerics.Quaternion> rotations, System.Numerics.Matrix4x4 transform) data)
 {
     foreach (var kv in data.rotations)
@@ -1786,15 +1771,10 @@ private void OnMotionApplied((Dictionary<int, System.Numerics.Quaternion> rotati
         _renderer.SetBoneRotation(kv.Key, new Vector3(euler.X, euler.Y, euler.Z));
     }
 
+    // モデルの位置は固定したまま回転のみ適用する
     if (_currentModel != null && _currentModel.HumanoidBones.TryGetValue("hips", out var hipsIdx))
     {
-        var t = new System.Numerics.Vector3(data.transform.M41, data.transform.M42, data.transform.M43);
-        if (_initialHipsPos == null)
-        {
-            _initialHipsPos = t;
-        }
-        var delta = t - _initialHipsPos.Value;
-        _renderer.SetBoneTranslation(hipsIdx, delta.ToOpenTK());
+        _renderer.SetBoneTranslation(hipsIdx, Vector3.Zero);
     }
 
     Viewer?.InvalidateSurface();
