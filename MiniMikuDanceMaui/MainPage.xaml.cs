@@ -51,6 +51,7 @@ public partial class MainPage : ContentPage
     private float _rimIntensity = 0.5f;
     private int _extractTotalFrames;
     private int _poseTotalFrames;
+    private int _adaptTotalFrames;
     // bottomWidth is no longer used; bottom region spans full screen width
     // private double bottomWidth = 0;
     private bool _glInitialized;
@@ -84,6 +85,13 @@ public partial class MainPage : ContentPage
         int current = (int)(_poseTotalFrames * p);
         PoseProgressBar.Progress = p;
         PoseProgressLabel.Text = $"姿勢推定: {current}/{_poseTotalFrames} ({p * 100:0}%)";
+    }
+
+    private void UpdateAdaptProgress(double p)
+    {
+        int current = (int)(_adaptTotalFrames * p);
+        PoseProgressBar.Progress = p;
+        PoseProgressLabel.Text = $"ポーズ適用: {current}/{_adaptTotalFrames} ({p * 100:0}%)";
     }
 
     private class PoseState
@@ -1198,7 +1206,7 @@ private async void OnStartAdaptClicked(object? sender, EventArgs e)
 
     RemoveBottomFeature("Adapt");
     AdaptSelectMessage.IsVisible = false;
-    SetLoadingIndicatorVisibilityAndLayout(true);
+    SetProgressVisibilityAndLayout(true);
 
     try
     {
@@ -1216,6 +1224,8 @@ private async void OnStartAdaptClicked(object? sender, EventArgs e)
             var motion = App.Initializer.MotionGenerator.Generate(joints);
             App.Initializer.Motion = motion;
             _motionEditor = new MotionEditor(motion);
+            _adaptTotalFrames = motion.Frames.Length;
+            UpdateAdaptProgress(0);
             if (_bottomViews.TryGetValue("TIMELINE", out var view) && view is TimelineView tv)
             {
                 tv.ClearKeyframes();
@@ -1232,6 +1242,8 @@ private async void OnStartAdaptClicked(object? sender, EventArgs e)
                         tv.AddKeyframe(bone, frame, t, r);
                         _motionEditor?.AddKeyFrame(bone, frame, false);
                     }
+                    UpdateAdaptProgress((frame + 1) / (double)_adaptTotalFrames);
+                    await Task.Delay(1);
                 }
                 _motionEditor?.SaveState();
             }
@@ -1244,7 +1256,7 @@ private async void OnStartAdaptClicked(object? sender, EventArgs e)
     }
     finally
     {
-        SetLoadingIndicatorVisibilityAndLayout(false);
+        SetProgressVisibilityAndLayout(false);
         _selectedPosePath = null;
     }
 }
@@ -1254,7 +1266,7 @@ private void OnCancelAdaptClicked(object? sender, EventArgs e)
     _selectedPosePath = null;
     AdaptSelectMessage.IsVisible = false;
     SelectedPosePath.Text = string.Empty;
-    SetLoadingIndicatorVisibilityAndLayout(false);
+    SetProgressVisibilityAndLayout(false);
 }
 
 private async void OnKeyConfirmClicked(string bone, int frame, Vector3 trans, Vector3 rot)
