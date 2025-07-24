@@ -1216,6 +1216,12 @@ private async void OnStartAdaptClicked(object? sender, EventArgs e)
             _motionEditor = new MotionEditor(motion);
             _adaptTotalFrames = motion.Frames.Length;
             UpdateAdaptProgress(0);
+
+            if (!_bottomViews.ContainsKey("TIMELINE"))
+            {
+                ShowBottomFeature("TIMELINE");
+            }
+
             if (_bottomViews.TryGetValue("TIMELINE", out var view) && view is TimelineView tv)
             {
                 tv.ClearKeyframes();
