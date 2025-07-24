@@ -2,5 +2,5 @@
 - [x] Android で ffmpeg 依存を排除し、MediaMetadataRetriever 等を用いた動画フレーム抽出を実装する
 - [x] mediapipe のランドマークを VRM 標準ボーンへ変換するマッピング処理を実装する
 - [x] MotionApplier で全ボーンの回転をポジションから計算する
-- [ ] mediapipe 座標系からモデル座標系への変換・スケール調整を追加する
+ - [x] mediapipe 座標系からモデル座標系への変換・スケール調整を追加する
 - [x] タイムラインの最大フレーム数をモーション長に合わせて更新する

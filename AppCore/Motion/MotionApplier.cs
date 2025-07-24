@@ -9,11 +9,32 @@ public class MotionApplier
 {
     private readonly ModelData _model;
     private readonly Dictionary<BlazePoseJoint, int> _boneMap = new();
+    private readonly float _modelHeight;
 
     public MotionApplier(ModelData model)
     {
         _model = model;
         MapBones();
+        _modelHeight = EstimateModelHeight();
+    }
+
+    private static Vector3 ExtractTranslation(Matrix4x4 m)
+    {
+        return new Vector3(m.M41, m.M42, m.M43);
+    }
+
+    private float EstimateModelHeight()
+    {
+        if (_model.HumanoidBones.TryGetValue("hips", out int hipsIdx) &&
+            _model.HumanoidBones.TryGetValue("head", out int headIdx) &&
+            hipsIdx >= 0 && hipsIdx < _model.Bones.Count &&
+            headIdx >= 0 && headIdx < _model.Bones.Count)
+        {
+            var hips = ExtractTranslation(_model.Bones[hipsIdx].BindMatrix);
+            var head = ExtractTranslation(_model.Bones[headIdx].BindMatrix);
+            return Vector3.Distance(hips, head);
+        }
+        return 1f;
     }
 
     private void MapBones()
@@ -72,23 +93,37 @@ public class MotionApplier
         var rotations = new Dictionary<int, Quaternion>();
         if (joint.Positions.Length < 33)
             return (rotations, _model.Transform);
+        static Vector3 MirrorFlip(Vector3 v) => new Vector3(-v.X, v.Y, -v.Z);
 
-        // key landmarks
-        var hipL = joint.Positions[(int)BlazePoseJoint.LeftHip];
-        var hipR = joint.Positions[(int)BlazePoseJoint.RightHip];
-        var shoulderL = joint.Positions[(int)BlazePoseJoint.LeftShoulder];
-        var shoulderR = joint.Positions[(int)BlazePoseJoint.RightShoulder];
-        var elbowL = joint.Positions[(int)BlazePoseJoint.LeftElbow];
-        var elbowR = joint.Positions[(int)BlazePoseJoint.RightElbow];
-        var wristL = joint.Positions[(int)BlazePoseJoint.LeftWrist];
-        var wristR = joint.Positions[(int)BlazePoseJoint.RightWrist];
-        var kneeL = joint.Positions[(int)BlazePoseJoint.LeftKnee];
-        var kneeR = joint.Positions[(int)BlazePoseJoint.RightKnee];
-        var ankleL = joint.Positions[(int)BlazePoseJoint.LeftAnkle];
-        var ankleR = joint.Positions[(int)BlazePoseJoint.RightAnkle];
-        var eyeL = joint.Positions[(int)BlazePoseJoint.LeftEye];
-        var eyeR = joint.Positions[(int)BlazePoseJoint.RightEye];
-        var nose = joint.Positions[(int)BlazePoseJoint.Nose];
+        // key landmarks (mirrored & flipped)
+        var hipLRaw = MirrorFlip(joint.Positions[(int)BlazePoseJoint.LeftHip]);
+        var hipRRaw = MirrorFlip(joint.Positions[(int)BlazePoseJoint.RightHip]);
+        var eyeLRaw = MirrorFlip(joint.Positions[(int)BlazePoseJoint.LeftEye]);
+        var eyeRRaw = MirrorFlip(joint.Positions[(int)BlazePoseJoint.RightEye]);
+        var noseRaw = MirrorFlip(joint.Positions[(int)BlazePoseJoint.Nose]);
+
+        // determine scale from hips-head distance
+        var hipsPosRaw = (hipLRaw + hipRRaw) * 0.5f;
+        var headPosRaw = (noseRaw + eyeLRaw + eyeRRaw) / 3f;
+        var mpHeight = Vector3.Distance(hipsPosRaw, headPosRaw);
+        float scale = mpHeight > 0 ? _modelHeight / mpHeight : 1f;
+        Vector3 Scale(Vector3 v) => v * scale;
+
+        var hipL = Scale(hipLRaw);
+        var hipR = Scale(hipRRaw);
+        var shoulderL = Scale(MirrorFlip(joint.Positions[(int)BlazePoseJoint.LeftShoulder]));
+        var shoulderR = Scale(MirrorFlip(joint.Positions[(int)BlazePoseJoint.RightShoulder]));
+        var elbowL = Scale(MirrorFlip(joint.Positions[(int)BlazePoseJoint.LeftElbow]));
+        var elbowR = Scale(MirrorFlip(joint.Positions[(int)BlazePoseJoint.RightElbow]));
+        var wristL = Scale(MirrorFlip(joint.Positions[(int)BlazePoseJoint.LeftWrist]));
+        var wristR = Scale(MirrorFlip(joint.Positions[(int)BlazePoseJoint.RightWrist]));
+        var kneeL = Scale(MirrorFlip(joint.Positions[(int)BlazePoseJoint.LeftKnee]));
+        var kneeR = Scale(MirrorFlip(joint.Positions[(int)BlazePoseJoint.RightKnee]));
+        var ankleL = Scale(MirrorFlip(joint.Positions[(int)BlazePoseJoint.LeftAnkle]));
+        var ankleR = Scale(MirrorFlip(joint.Positions[(int)BlazePoseJoint.RightAnkle]));
+        var eyeL = Scale(eyeLRaw);
+        var eyeR = Scale(eyeRRaw);
+        var nose = Scale(noseRaw);
 
         // intermediate points
         var hipsPos = (hipL + hipR) * 0.5f;
@@ -146,14 +181,14 @@ public class MotionApplier
             rotations[rlaIdx] = rLowerArmRot;
 
         // hands (approximation)
-        var lHandDir = joint.Positions[(int)BlazePoseJoint.LeftIndex] - wristL;
-        var lThumbDir = joint.Positions[(int)BlazePoseJoint.LeftThumb] - wristL;
+        var lHandDir = Scale(MirrorFlip(joint.Positions[(int)BlazePoseJoint.LeftIndex])) - wristL;
+        var lThumbDir = Scale(MirrorFlip(joint.Positions[(int)BlazePoseJoint.LeftThumb])) - wristL;
         var lHandRot = BasisToQuat(lHandDir, Vector3.Cross(lHandDir, lThumbDir));
         if (_model.HumanoidBones.TryGetValue("leftHand", out var lhIdx))
             rotations[lhIdx] = lHandRot;
 
-        var rHandDir = joint.Positions[(int)BlazePoseJoint.RightIndex] - wristR;
-        var rThumbDir = joint.Positions[(int)BlazePoseJoint.RightThumb] - wristR;
+        var rHandDir = Scale(MirrorFlip(joint.Positions[(int)BlazePoseJoint.RightIndex])) - wristR;
+        var rThumbDir = Scale(MirrorFlip(joint.Positions[(int)BlazePoseJoint.RightThumb])) - wristR;
         var rHandRot = BasisToQuat(rHandDir, Vector3.Cross(rHandDir, rThumbDir));
         if (_model.HumanoidBones.TryGetValue("rightHand", out var rhIdx))
             rotations[rhIdx] = rHandRot;
@@ -178,12 +213,12 @@ public class MotionApplier
             rotations[rllIdx] = rLowerLegRot;
 
         // feet
-        var lFootDir = joint.Positions[(int)BlazePoseJoint.LeftFootIndex] - ankleL;
+        var lFootDir = Scale(MirrorFlip(joint.Positions[(int)BlazePoseJoint.LeftFootIndex])) - ankleL;
         var lFootRot = LookRotation(lFootDir, hipsUpVec);
         if (_model.HumanoidBones.TryGetValue("leftFoot", out var lfIdx))
             rotations[lfIdx] = lFootRot;
 
-        var rFootDir = joint.Positions[(int)BlazePoseJoint.RightFootIndex] - ankleR;
+        var rFootDir = Scale(MirrorFlip(joint.Positions[(int)BlazePoseJoint.RightFootIndex])) - ankleR;
         var rFootRot = LookRotation(rFootDir, hipsUpVec);
         if (_model.HumanoidBones.TryGetValue("rightFoot", out var rfIdx))
             rotations[rfIdx] = rFootRot;
