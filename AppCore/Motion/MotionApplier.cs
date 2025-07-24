@@ -164,11 +164,13 @@ public class MotionApplier
         var chestUp = Vector3.Transform(Vector3.UnitY, chestRot);
 
         // shoulders
-        var lShoulderRot = LookRotation(shoulderL - neckPos, chestUp);
+        // Use chest center as origin so the rotation flows naturally from
+        // neck -> chest -> shoulder -> elbow
+        var lShoulderRot = LookRotation(shoulderL - chestPos, chestUp);
         if (_model.HumanoidBones.TryGetValue("leftShoulder", out var lshoIdx))
             rotations[lshoIdx] = lShoulderRot;
 
-        var rShoulderRot = LookRotation(shoulderR - neckPos, chestUp);
+        var rShoulderRot = LookRotation(shoulderR - chestPos, chestUp);
         if (_model.HumanoidBones.TryGetValue("rightShoulder", out var rshoIdx))
             rotations[rshoIdx] = rShoulderRot;
 
