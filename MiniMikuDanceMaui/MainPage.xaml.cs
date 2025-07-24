@@ -1761,7 +1761,7 @@ private void OnMotionApplied((Dictionary<int, System.Numerics.Quaternion> rotati
         var euler = ToEulerAngles(kv.Value);
         _renderer.SetBoneRotation(kv.Key, new Vector3(euler.X, euler.Y, euler.Z));
     }
-    // _renderer.ModelTransform = data.transform; // VrmRendererにModelTransformプロパティがないため、これは機能しない
+    _renderer.ModelTransform = data.transform.ToMatrix4();
     Viewer?.InvalidateSurface();
 }
 

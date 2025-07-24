@@ -58,6 +58,11 @@ public class VrmRenderer : IDisposable
     private int _modelRimIntensityLoc;
     private int _modelAmbientLoc;
     private Matrix4 _modelTransform = Matrix4.Identity;
+    public Matrix4 ModelTransform
+    {
+        get => _modelTransform;
+        set => _modelTransform = value;
+    }
     private int _width;
     private int _height;
     private readonly List<Vector3> _boneRotations = new();
@@ -565,7 +570,8 @@ void main(){
         GL.Uniform1(_modelAmbientLoc, Ambient);
         // テクスチャのアルファを利用するためブレンドを有効化
         GL.Enable(EnableCap.Blend);
-        GL.UniformMatrix4(_modelMatrixLoc, false, ref _modelTransform);
+        var modelMat = ModelTransform;
+        GL.UniformMatrix4(_modelMatrixLoc, false, ref modelMat);
         foreach (var rm in _meshes)
         {
             GL.Uniform4(_modelColorLoc, rm.Color);
