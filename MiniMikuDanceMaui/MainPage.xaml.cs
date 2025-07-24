@@ -1224,6 +1224,9 @@ private async void OnStartAdaptClicked(object? sender, EventArgs e)
                 {
                     foreach (var bone in tv.BoneNames)
                     {
+                        if (string.Equals(bone, "camera", StringComparison.OrdinalIgnoreCase))
+                            continue;
+
                         var t = GetBoneTranslationAtFrame(bone, frame);
                         var r = GetBoneRotationAtFrame(bone, frame);
                         tv.AddKeyframe(bone, frame, t, r);
@@ -1721,8 +1724,21 @@ private Vector3 ClampRotation(string bone, Vector3 rot)
 
 private Vector3 GetBoneTranslationAtFrame(string bone, int frame)
 {
-    // Adapt Pose ではボーンの位置は変更しないため常にゼロを返す
-    return Vector3.Zero;
+    if (!string.Equals(bone, "hips", StringComparison.OrdinalIgnoreCase))
+        return Vector3.Zero;
+    if (_motionEditor == null || App.Initializer.Applier == null)
+        return Vector3.Zero;
+
+    var frames = _motionEditor.Motion.Frames;
+    if (frame < 0 || frame >= frames.Length)
+        return Vector3.Zero;
+
+    var (_, transform) = App.Initializer.Applier.Apply(frames[frame]);
+    var t = new System.Numerics.Vector3(transform.M41, transform.M42, transform.M43);
+    if (_initialHipsPos == null)
+        _initialHipsPos = t;
+    var delta = t - _initialHipsPos.Value;
+    return delta.ToOpenTK();
 }
 
 private Vector3 GetBoneRotationAtFrame(string bone, int frame)
@@ -1760,6 +1776,8 @@ private void ShowExplorer(string featureName, Frame messageFrame, Label pathLabe
     UpdateLayout();
 }
 
+private Vector3? _initialHipsPos = null;
+
 private void OnMotionApplied((Dictionary<int, System.Numerics.Quaternion> rotations, System.Numerics.Matrix4x4 transform) data)
 {
     foreach (var kv in data.rotations)
@@ -1767,7 +1785,18 @@ private void OnMotionApplied((Dictionary<int, System.Numerics.Quaternion> rotati
         var euler = ToEulerAngles(kv.Value);
         _renderer.SetBoneRotation(kv.Key, new Vector3(euler.X, euler.Y, euler.Z));
     }
-    // モデルの位置は固定したまま回転のみ適用する
+
+    if (_currentModel != null && _currentModel.HumanoidBones.TryGetValue("hips", out var hipsIdx))
+    {
+        var t = new System.Numerics.Vector3(data.transform.M41, data.transform.M42, data.transform.M43);
+        if (_initialHipsPos == null)
+        {
+            _initialHipsPos = t;
+        }
+        var delta = t - _initialHipsPos.Value;
+        _renderer.SetBoneTranslation(hipsIdx, delta.ToOpenTK());
+    }
+
     Viewer?.InvalidateSurface();
 }
 
