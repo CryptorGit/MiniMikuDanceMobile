@@ -72,6 +72,24 @@ public class MotionApplier
             var rh = joint.Positions[(int)BlazePoseJoint.RightHip];
             var hip = (lh + rh) * 0.5f;
             transform = Matrix4x4.CreateTranslation(hip);
+
+            if (joint.Positions.Length > (int)BlazePoseJoint.RightShoulder &&
+                _model.HumanoidBones.TryGetValue("hips", out var hipIndex))
+            {
+                var sl = joint.Positions[(int)BlazePoseJoint.LeftShoulder];
+                var sr = joint.Positions[(int)BlazePoseJoint.RightShoulder];
+                var shoulderMid = (sl + sr) * 0.5f;
+                var right = Vector3.Normalize(rh - lh);
+                var up = Vector3.Normalize(shoulderMid - hip);
+                var forward = Vector3.Cross(right, up);
+                var mat = new Matrix4x4(
+                    right.X, right.Y, right.Z, 0,
+                    up.X, up.Y, up.Z, 0,
+                    forward.X, forward.Y, forward.Z, 0,
+                    0,0,0,1);
+                var q = Quaternion.CreateFromRotationMatrix(mat);
+                rotations[hipIndex] = q;
+            }
         }
         return (rotations, transform);
     }
