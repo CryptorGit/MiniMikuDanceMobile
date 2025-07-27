@@ -8,13 +8,11 @@ namespace MiniMikuDance.Motion;
 public class MotionApplier
 {
     private readonly ModelData _model;
-    private readonly Dictionary<BlazePoseJoint, int> _boneMap = new();
     private readonly float _modelHeight;
 
     public MotionApplier(ModelData model)
     {
         _model = model;
-        MapBones();
         _modelHeight = EstimateModelHeight();
     }
 
@@ -37,30 +35,6 @@ public class MotionApplier
         return 1f;
     }
 
-    private void MapBones()
-    {
-        void AddMap(BlazePoseJoint joint, string boneName)
-        {
-            if (_model.HumanoidBones.TryGetValue(boneName, out int idx))
-            {
-                _boneMap[joint] = idx;
-            }
-        }
-
-        AddMap(BlazePoseJoint.LeftShoulder, "leftShoulder");
-        AddMap(BlazePoseJoint.RightShoulder, "rightShoulder");
-        AddMap(BlazePoseJoint.LeftElbow, "leftLowerArm");
-        AddMap(BlazePoseJoint.RightElbow, "rightLowerArm");
-        AddMap(BlazePoseJoint.LeftWrist, "leftHand");
-        AddMap(BlazePoseJoint.RightWrist, "rightHand");
-        AddMap(BlazePoseJoint.LeftHip, "leftUpperLeg");
-        AddMap(BlazePoseJoint.RightHip, "rightUpperLeg");
-        AddMap(BlazePoseJoint.LeftKnee, "leftLowerLeg");
-        AddMap(BlazePoseJoint.RightKnee, "rightLowerLeg");
-        AddMap(BlazePoseJoint.LeftAnkle, "leftFoot");
-        AddMap(BlazePoseJoint.RightAnkle, "rightFoot");
-        AddMap(BlazePoseJoint.Nose, "head");
-    }
 
     private static Quaternion BasisToQuat(Vector3 right, Vector3 up)
     {
