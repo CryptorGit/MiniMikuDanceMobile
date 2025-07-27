@@ -549,6 +549,7 @@ private void LoadPendingModel()
         _renderer.ClearBoneRotations();
         _renderer.LoadModel(_pendingModel);
         _currentModel = _pendingModel;
+        App.Initializer.UpdateApplier(_currentModel);
         _shadeShift = _pendingModel.ShadeShift;
         _shadeToony = _pendingModel.ShadeToony;
         _rimIntensity = _pendingModel.RimIntensity;
@@ -1195,6 +1196,14 @@ private async void OnStartAdaptClicked(object? sender, EventArgs e)
     RemoveBottomFeature("Adapt");
     AdaptSelectMessage.IsVisible = false;
     SetProgressVisibilityAndLayout(true, false, true);
+
+    // VRMモデルがまだ描画側で読み込み完了していない場合は適用できない
+    if (_pendingModel != null)
+    {
+        await DisplayAlert("Info", "モデルの読み込みが完了してから実行してください", "OK");
+        SetProgressVisibilityAndLayout(false, false, true);
+        return;
+    }
 
     try
     {
