@@ -1187,6 +1187,11 @@ private void OnCancelEstimateClicked(object? sender, EventArgs e)
 
 private async void OnStartAdaptClicked(object? sender, EventArgs e)
 {
+    if (_currentModel == null)
+    {
+        await DisplayAlert("Error", "VRMモデルが読み込まれていません。先にモデルをインポートしてください。", "OK");
+        return;
+    }
     if (string.IsNullOrEmpty(_selectedPosePath))
     {
         await DisplayAlert("Error", "ファイルが選択されていません", "OK");
