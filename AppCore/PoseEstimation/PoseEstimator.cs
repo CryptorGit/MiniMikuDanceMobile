@@ -6,6 +6,7 @@ using SixLabors.ImageSharp;
 using SixLabors.ImageSharp.PixelFormats;
 using SixLabors.ImageSharp.Processing;
 using SixLabors.ImageSharp.Advanced;
+using SixLabors.ImageSharp.Drawing.Processing;
 using Microsoft.ML.OnnxRuntime;
 using Microsoft.ML.OnnxRuntime.Tensors;
 // OpenCV を使用しない実装へ移行したため依存関係を削除
@@ -25,6 +26,13 @@ public class PoseEstimator : IDisposable
     private readonly InferenceSession? _session;
     private readonly IVideoFrameExtractor _extractor;
 
+    private static readonly int[] LrMap = new int[]
+    {
+        0,4,5,6,1,2,3,8,7,10,9,
+        12,11,14,13,16,15,18,17,20,19,22,21,
+        24,23,26,25,28,27,30,29,32,31
+    };
+
     public PoseEstimator(string modelPath, IVideoFrameExtractor? extractor = null)
     {
         if (File.Exists(modelPath))
@@ -36,6 +44,145 @@ public class PoseEstimator : IDisposable
             _session = null;
         }
         _extractor = extractor ?? new FfmpegFrameExtractor();
+    }
+
+    private static float AverageScore(float[] conf)
+    {
+        if (conf.Length == 0) return float.NegativeInfinity;
+        float sum = 0f; int n = 0;
+        foreach (var c in conf)
+        {
+            if (float.IsNaN(c)) continue;
+            sum += c; n++;
+        }
+        return n > 0 ? sum / n : float.NegativeInfinity;
+    }
+
+    private (Vector3[] pos, float[] conf) RunModel(Image<Rgb24> img, string inputName, int[] dims, int jointCount)
+    {
+        int h = dims.Length > 1 ? dims[1] : 256;
+        int w = dims.Length > 2 ? dims[2] : 256;
+        var tensor = new DenseTensor<float>(dims);
+
+        for (int y = 0; y < h; y++)
+        {
+            var span = img.DangerousGetPixelRowMemory(y).Span;
+            for (int x = 0; x < w; x++)
+            {
+                var p = span[x];
+                tensor[0, y, x, 0] = p.R / 255f;
+                tensor[0, y, x, 1] = p.G / 255f;
+                tensor[0, y, x, 2] = p.B / 255f;
+            }
+        }
+
+        using var output = _session!.Run(new[] { NamedOnnxValue.CreateFromTensor(inputName, tensor) });
+        var outTensor = output.First().AsTensor<float>();
+        var data = outTensor.ToArray();
+        int stride;
+
+        if (outTensor.Dimensions.Length >= 3 && outTensor.Dimensions[^2] == jointCount)
+            stride = outTensor.Dimensions[^1];
+        else
+            stride = data.Length / jointCount;
+
+        var pos = new Vector3[jointCount];
+        var conf = new float[jointCount];
+
+        for (int j = 0; j < jointCount && j * stride + 2 < data.Length; j++)
+        {
+            int idx = j * stride;
+            pos[j] = new Vector3(data[idx], data[idx + 1], data[idx + 2]);
+            conf[j] = stride > 3 && idx + 3 < data.Length ? data[idx + 3] : 1f;
+        }
+
+        return (pos, conf);
+    }
+
+    private (Vector3[] pos, float[] conf) InferPatch(Image<Rgb24> patch, string inputName, int[] dims, int jointCount, bool flipTta)
+    {
+        var (p1, c1) = RunModel(patch, inputName, dims, jointCount);
+        if (!flipTta) return (p1, c1);
+
+        using var flipped = patch.Clone(ctx => ctx.Flip(FlipMode.Horizontal));
+        var (p2orig, c2orig) = RunModel(flipped, inputName, dims, jointCount);
+        int w = dims.Length > 2 ? dims[2] : 256;
+
+        var p2 = new Vector3[jointCount];
+        var c2 = new float[jointCount];
+        for (int i = 0; i < jointCount; i++)
+        {
+            int k = LrMap[i];
+            var pp = p2orig[k];
+            p2[i] = new Vector3(w - pp.X, pp.Y, pp.Z);
+            c2[i] = c2orig[k];
+        }
+
+        var pos = new Vector3[jointCount];
+        var conf = new float[jointCount];
+        for (int i = 0; i < jointCount; i++)
+        {
+            float w1 = Math.Clamp(c1[i], 0.1f, 1f);
+            float w2 = Math.Clamp(c2[i], 0.1f, 1f);
+            pos[i] = (p1[i] * w1 + p2[i] * w2) / (w1 + w2);
+            conf[i] = (c1[i] + c2[i]) * 0.5f;
+        }
+        return (pos, conf);
+    }
+
+    private JointData SearchBest(Image<Rgb24> frame, string inputName, int[] dims, int jointCount, bool flipTta)
+    {
+        int H = frame.Height;
+        int W = frame.Width;
+        int dstH = dims.Length > 1 ? dims[1] : 256;
+        int dstW = dims.Length > 2 ? dims[2] : 256;
+
+        float[] angles = { -40f, -20f, 0f, 20f, 40f };
+        float[] scales = { 0.32f, 0.38f, 0.44f };
+
+        var centers = new List<(float cx, float cy)> { (W * 0.5f, H * 0.55f) };
+
+        float bestScore = float.NegativeInfinity;
+        Vector3[] bestPos = new Vector3[jointCount];
+        float[] bestConf = new float[jointCount];
+
+        foreach (var center in centers)
+        {
+            foreach (var s in scales)
+            {
+                float half = s * Math.Min(W, H);
+                int size = (int)(half * 2f);
+                int x0 = (int)Math.Round(center.cx - half);
+                int y0 = (int)Math.Round(center.cy - half);
+                var rect = new Rectangle(x0, y0, size, size);
+
+                using var patch = frame.Clone(ctx =>
+                {
+                    ctx.Crop(rect);
+                    ctx.Resize(dstW, dstH);
+                });
+
+                foreach (var ang in angles)
+                {
+                    using var rotated = patch.Clone(ctx => { if (Math.Abs(ang) > 0.1f) ctx.Rotate((float)ang); });
+                    var (pos, conf) = InferPatch(rotated, inputName, dims, jointCount, flipTta);
+                    float sc = AverageScore(conf);
+                    if (sc > bestScore)
+                    {
+                        bestScore = sc;
+                        Array.Copy(pos, bestPos, jointCount);
+                        Array.Copy(conf, bestConf, jointCount);
+                    }
+                }
+            }
+        }
+
+        return new JointData
+        {
+            Positions = bestPos,
+            Confidences = bestConf,
+            Rotations = new Vector3[jointCount]
+        };
     }
 
     public Task<JointData[]> EstimateAsync(string videoPath, string tempDir, Action<float>? extractProgress = null, Action<float>? poseProgress = null)
@@ -64,51 +211,8 @@ public class PoseEstimator : IDisposable
                 for (int i = 0; i < files.Length; i++)
                 {
                     using var image = Image.Load<Rgb24>(files[i]);
-                    image.Mutate(x => x.Resize(width, height));
-                    var tensor = new DenseTensor<float>(dims);
-
-                    for (int y = 0; y < height; y++)
-                    {
-                        var span = image.DangerousGetPixelRowMemory(y).Span;
-                        for (int x = 0; x < width; x++)
-                        {
-                            var p = span[x];
-                            tensor[0, y, x, 0] = p.R / 255f;
-                            tensor[0, y, x, 1] = p.G / 255f;
-                            tensor[0, y, x, 2] = p.B / 255f;
-                        }
-                    }
-
-                    using var output = _session.Run(new[] { NamedOnnxValue.CreateFromTensor(meta.Key, tensor) });
-
-                    var jd = new JointData
-                    {
-                        Timestamp = i / 30f,
-                        Positions = new Vector3[jointCount],
-                        Rotations = new Vector3[jointCount],
-                        Confidences = new float[jointCount]
-                    };
-
-                    var outTensor = output.First().AsTensor<float>();
-                    var data = outTensor.ToArray();
-                    int stride;
-
-                    if (outTensor.Dimensions.Length >= 3 && outTensor.Dimensions[^2] == jointCount)
-                    {
-                        stride = outTensor.Dimensions[^1];
-                    }
-                    else
-                    {
-                        stride = data.Length / jointCount;
-                    }
-
-                    for (int j = 0; j < jointCount && j * stride + 2 < data.Length; j++)
-                    {
-                        int idx = j * stride;
-                        jd.Positions[j] = new Vector3(data[idx], data[idx + 1], data[idx + 2]);
-                        jd.Confidences[j] = stride > 3 && idx + 3 < data.Length ? data[idx + 3] : 1f;
-                    }
-
+                    var jd = SearchBest(image, meta.Key, dims, jointCount, true);
+                    jd.Timestamp = i / 30f;
                     results.Add(jd);
                     poseProgress?.Invoke((i + 1) / (float)files.Length);
                 }
