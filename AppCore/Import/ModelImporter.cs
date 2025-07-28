@@ -1,4 +1,5 @@
 using Assimp;
+using System;
 using System.IO;
 using System.Linq;
 using System.Diagnostics;
@@ -20,7 +21,7 @@ public class ModelData
     public Assimp.Mesh Mesh { get; set; } = null!;
     public System.Numerics.Matrix4x4 Transform { get; set; } = System.Numerics.Matrix4x4.Identity;
     public List<BoneData> Bones { get; set; } = new();
-    public Dictionary<string, int> HumanoidBones { get; set; } = new();
+    public Dictionary<string, int> HumanoidBones { get; set; } = new(StringComparer.OrdinalIgnoreCase);
     public List<(string Name, int Index)> HumanoidBoneList { get; set; } = new();
     public float ShadeShift { get; set; } = -0.1f;
     public float ShadeToony { get; set; } = 0.9f;
@@ -303,7 +304,7 @@ public class ModelImporter
 
     private static Dictionary<string, int> ReadHumanoidMap(byte[] glb)
     {
-        var map = new Dictionary<string, int>();
+        var map = new Dictionary<string, int>(StringComparer.OrdinalIgnoreCase);
         try
         {
             using var ms = new MemoryStream(glb);
