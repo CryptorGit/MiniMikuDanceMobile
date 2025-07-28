@@ -53,6 +53,7 @@ public partial class MainPage : ContentPage
     private int _poseTotalFrames;
     private int _adaptTotalFrames;
     private const int AdaptFrameLimit = 60;
+    private const int AdaptFrameStep = 30;
     // bottomWidth is no longer used; bottom region spans full screen width
     // private double bottomWidth = 0;
     private bool _glInitialized;
@@ -1224,8 +1225,17 @@ private async void OnStartAdaptClicked(object? sender, EventArgs e)
         if (joints != null && App.Initializer.MotionGenerator != null && App.Initializer.MotionPlayer != null)
         {
             var motion = App.Initializer.MotionGenerator.Generate(joints);
-            if (motion.Frames.Length > AdaptFrameLimit)
-                motion.Frames = motion.Frames.Take(AdaptFrameLimit).ToArray();
+
+            int frameStep = AdaptFrameStep;
+            int sampleCount = Math.Min(AdaptFrameLimit, (motion.Frames.Length + frameStep - 1) / frameStep);
+            var sampled = new JointData[sampleCount];
+            for (int i = 0; i < sampleCount; i++)
+            {
+                int idx = Math.Min(i * frameStep, motion.Frames.Length - 1);
+                sampled[i] = motion.Frames[idx];
+            }
+            motion.Frames = sampled;
+            motion.FrameInterval *= frameStep;
             App.Initializer.Motion = motion;
             _motionEditor = new MotionEditor(motion);
             _adaptTotalFrames = motion.Frames.Length;
