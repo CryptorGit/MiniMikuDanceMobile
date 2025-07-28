@@ -35,7 +35,7 @@ public class PoseDebugVisualizer
         {
             var p = frame.Positions[i];
             float c = i < frame.Confidences.Length ? frame.Confidences[i] : 0f;
-
+            Console.WriteLine($"Joint {i}: {p} Conf={c:0.00}");
         }
         _index++;
     }
