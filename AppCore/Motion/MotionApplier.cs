@@ -92,6 +92,7 @@ public class MotionApplier
         for (int i = 0; i < pts.Length; i++)
             pts[i] *= scale;
 
+        Vector3 nose = pts[(int)BlazePoseJoint.Nose];
         Vector3 hipL = pts[(int)BlazePoseJoint.LeftHip];
         Vector3 hipR = pts[(int)BlazePoseJoint.RightHip];
         Vector3 shoulderL = pts[(int)BlazePoseJoint.LeftShoulder];
@@ -118,15 +119,14 @@ public class MotionApplier
         Vector3 hipCenter = (hipL + hipR) * 0.5f;
         Vector3 chest = (shoulderL + shoulderR) * 0.5f;
         Vector3 spine = Vector3.Lerp(hipCenter, chest, 0.5f);
-        Vector3 head = (noseRaw + leftEar + rightEar) / 3f * scale;
+        Vector3 head = (nose + leftEar + rightEar) / 3f;
         Vector3 neck = chest + 0.35f * (head - chest);
 
         worldRot["hips"] = MatrixToQuat(ComputeMatrix(chest - hipCenter, hipR - hipL));
         worldRot["spine"] = MatrixToQuat(ComputeMatrix(chest - spine, hipR - hipL));
         worldRot["chest"] = MatrixToQuat(ComputeMatrix(neck - chest, shoulderR - shoulderL));
         worldRot["neck"] = MatrixToQuat(ComputeMatrix(head - neck, shoulderR - shoulderL));
-        worldRot["head"] = MatrixToQuat(ComputeMatrix(noseRaw * scale - neck, rightEar - leftEar));
-
+        worldRot["head"] = MatrixToQuat(ComputeMatrix(nose - neck, rightEar - leftEar));
         worldRot["leftUpperArm"] = MatrixToQuat(ComputeMatrix(elbowL - shoulderL, wristL - elbowL));
         worldRot["leftLowerArm"] = MatrixToQuat(ComputeMatrix(wristL - elbowL, indexL - wristL));
         worldRot["leftHand"] = MatrixToQuat(ComputeMatrix(indexL - wristL, Vector3.Cross(indexL - wristL, thumbL - wristL)));
