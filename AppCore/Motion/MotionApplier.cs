@@ -64,9 +64,11 @@ public class MotionApplier
 
     public (Dictionary<int, Quaternion> rotations, Matrix4x4 transform) Apply(JointData joint)
     {
-        var rotations = new Dictionary<int, Quaternion>();
+        // ワールド空間で算出した回転を一旦保持し、後からローカル回転に変換する
+        var worldRot = new Dictionary<string, Quaternion>();
+        var localRot = new Dictionary<int, Quaternion>();
         if (joint.Positions.Length < 33)
-            return (rotations, _model.Transform);
+            return (localRot, _model.Transform);
 
         static Vector3 MirrorFlip(Vector3 v) => new Vector3(-v.X, v.Y, -v.Z);
 
@@ -118,29 +120,24 @@ public class MotionApplier
         var hipsRight = hipR - hipL;
         var hipsUp = chestPos - hipsPos;
         var hipsRot = BasisToQuat(hipsRight, hipsUp);
-        if (_model.HumanoidBones.TryGetValue("hips", out var hipsIdx))
-            rotations[hipsIdx] = hipsRot;
+        worldRot["hips"] = hipsRot;
 
         // spine
         var spineUp = Vector3.Transform(Vector3.UnitY, hipsRot);
         var spineRot = LookRotation(chestPos - spinePos, spineUp);
-        if (_model.HumanoidBones.TryGetValue("spine", out var spineIdx))
-            rotations[spineIdx] = spineRot;
+        worldRot["spine"] = spineRot;
 
         // chest
         var chestRot = BasisToQuat(shoulderR - shoulderL, neckPos - chestPos);
-        if (_model.HumanoidBones.TryGetValue("chest", out var chestIdx))
-            rotations[chestIdx] = chestRot;
+        worldRot["chest"] = chestRot;
 
         // neck
         var neckRot = BasisToQuat(shoulderR - shoulderL, headPos - neckPos);
-        if (_model.HumanoidBones.TryGetValue("neck", out var neckIdx))
-            rotations[neckIdx] = neckRot;
+        worldRot["neck"] = neckRot;
 
         // head
         var headRot = BasisToQuat(eyeR - eyeL, headPos - neckPos);
-        if (_model.HumanoidBones.TryGetValue("head", out var headIdx))
-            rotations[headIdx] = headRot;
+        worldRot["head"] = headRot;
 
         var chestUp = Vector3.Transform(Vector3.UnitY, chestRot);
 
@@ -148,54 +145,46 @@ public class MotionApplier
         // Use chest center as origin so the rotation flows naturally from
         // neck -> chest -> shoulder -> elbow
         var lShoulderRot = LookRotation(shoulderL - chestPos, chestUp);
-        if (_model.HumanoidBones.TryGetValue("leftShoulder", out var lshoIdx))
-            rotations[lshoIdx] = lShoulderRot;
+        worldRot["leftShoulder"] = lShoulderRot;
 
         var rShoulderRot = LookRotation(shoulderR - chestPos, chestUp);
-        if (_model.HumanoidBones.TryGetValue("rightShoulder", out var rshoIdx))
-            rotations[rshoIdx] = rShoulderRot;
+        worldRot["rightShoulder"] = rShoulderRot;
 
         // arms
         var lUpperArmY = elbowL - shoulderL;
         var lForearmVec = wristL - elbowL;
         var lUpperArmZ = Vector3.Cross(lUpperArmY, lForearmVec);
         var lUpperArmRot = BasisToQuat(lUpperArmZ, lUpperArmY);
-        if (_model.HumanoidBones.TryGetValue("leftUpperArm", out var luaIdx))
-            rotations[luaIdx] = lUpperArmRot;
+        worldRot["leftUpperArm"] = lUpperArmRot;
 
         var lLowerArmY = wristL - elbowL;
         var lPalmNorm = Vector3.Cross(points[(int)BlazePoseJoint.LeftPinky] - wristL,
                                       points[(int)BlazePoseJoint.LeftIndex] - wristL);
         var lLowerArmRot = BasisToQuat(lPalmNorm, lLowerArmY);
-        if (_model.HumanoidBones.TryGetValue("leftLowerArm", out var llaIdx))
-            rotations[llaIdx] = lLowerArmRot;
+        worldRot["leftLowerArm"] = lLowerArmRot;
 
         var rUpperArmY = elbowR - shoulderR;
         var rForearmVec = wristR - elbowR;
         var rUpperArmZ = Vector3.Cross(rUpperArmY, rForearmVec);
         var rUpperArmRot = BasisToQuat(rUpperArmZ, rUpperArmY);
-        if (_model.HumanoidBones.TryGetValue("rightUpperArm", out var ruaIdx))
-            rotations[ruaIdx] = rUpperArmRot;
+        worldRot["rightUpperArm"] = rUpperArmRot;
 
         var rLowerArmY = wristR - elbowR;
         var rPalmNorm = Vector3.Cross(points[(int)BlazePoseJoint.RightPinky] - wristR,
                                       points[(int)BlazePoseJoint.RightIndex] - wristR);
         var rLowerArmRot = BasisToQuat(rPalmNorm, rLowerArmY);
-        if (_model.HumanoidBones.TryGetValue("rightLowerArm", out var rlaIdx))
-            rotations[rlaIdx] = rLowerArmRot;
+        worldRot["rightLowerArm"] = rLowerArmRot;
 
         // hands (approximation)
         var lHandDir = points[(int)BlazePoseJoint.LeftIndex] - wristL;
         var lThumbDir = points[(int)BlazePoseJoint.LeftThumb] - wristL;
         var lHandRot = BasisToQuat(lHandDir, Vector3.Cross(lHandDir, lThumbDir));
-        if (_model.HumanoidBones.TryGetValue("leftHand", out var lhIdx))
-            rotations[lhIdx] = lHandRot;
+        worldRot["leftHand"] = lHandRot;
 
         var rHandDir = points[(int)BlazePoseJoint.RightIndex] - wristR;
         var rThumbDir = points[(int)BlazePoseJoint.RightThumb] - wristR;
         var rHandRot = BasisToQuat(rHandDir, Vector3.Cross(rHandDir, rThumbDir));
-        if (_model.HumanoidBones.TryGetValue("rightHand", out var rhIdx))
-            rotations[rhIdx] = rHandRot;
+        worldRot["rightHand"] = rHandRot;
 
         var hipsUpVec = Vector3.Transform(Vector3.UnitY, hipsRot);
 
@@ -204,44 +193,72 @@ public class MotionApplier
         var lLowerVec = ankleL - kneeL;
         var lUpperLegZ = Vector3.Cross(lUpperLegY, lLowerVec);
         var lUpperLegRot = BasisToQuat(lUpperLegZ, lUpperLegY);
-        if (_model.HumanoidBones.TryGetValue("leftUpperLeg", out var lulIdx))
-            rotations[lulIdx] = lUpperLegRot;
+        worldRot["leftUpperLeg"] = lUpperLegRot;
 
         var lLowerLegY = ankleL - kneeL;
         var lFootNorm = Vector3.Cross(points[(int)BlazePoseJoint.LeftHeel] - ankleL,
                                       points[(int)BlazePoseJoint.LeftFootIndex] - ankleL);
         var lLowerLegRot = BasisToQuat(lFootNorm, lLowerLegY);
-        if (_model.HumanoidBones.TryGetValue("leftLowerLeg", out var lllIdx))
-            rotations[lllIdx] = lLowerLegRot;
+        worldRot["leftLowerLeg"] = lLowerLegRot;
 
         var rUpperLegY = kneeR - hipR;
         var rLowerVec = ankleR - kneeR;
         var rUpperLegZ = Vector3.Cross(rUpperLegY, rLowerVec);
         var rUpperLegRot = BasisToQuat(rUpperLegZ, rUpperLegY);
-        if (_model.HumanoidBones.TryGetValue("rightUpperLeg", out var rulIdx))
-            rotations[rulIdx] = rUpperLegRot;
+        worldRot["rightUpperLeg"] = rUpperLegRot;
 
         var rLowerLegY = ankleR - kneeR;
         var rFootNorm = Vector3.Cross(points[(int)BlazePoseJoint.RightHeel] - ankleR,
                                       points[(int)BlazePoseJoint.RightFootIndex] - ankleR);
         var rLowerLegRot = BasisToQuat(rFootNorm, rLowerLegY);
-        if (_model.HumanoidBones.TryGetValue("rightLowerLeg", out var rllIdx))
-            rotations[rllIdx] = rLowerLegRot;
+        worldRot["rightLowerLeg"] = rLowerLegRot;
 
         // feet
         var lFootY = points[(int)BlazePoseJoint.LeftFootIndex] - ankleL;
         var lFootZ = Vector3.Cross(lFootY, points[(int)BlazePoseJoint.LeftHeel] - ankleL);
         var lFootRot = BasisToQuat(lFootZ, lFootY);
-        if (_model.HumanoidBones.TryGetValue("leftFoot", out var lfIdx))
-            rotations[lfIdx] = lFootRot;
+        worldRot["leftFoot"] = lFootRot;
 
         var rFootY = points[(int)BlazePoseJoint.RightFootIndex] - ankleR;
         var rFootZ = Vector3.Cross(rFootY, points[(int)BlazePoseJoint.RightHeel] - ankleR);
         var rFootRot = BasisToQuat(rFootZ, rFootY);
-        if (_model.HumanoidBones.TryGetValue("rightFoot", out var rfIdx))
-            rotations[rfIdx] = rFootRot;
+        worldRot["rightFoot"] = rFootRot;
+
+        // --- 親ボーンからのローカル回転に変換 ---
+        Quaternion GetWorld(string name)
+            => worldRot.TryGetValue(name, out var q) ? q : Quaternion.Identity;
+
+        void SetLocal(string name, string? parent)
+        {
+            if (!_model.HumanoidBones.TryGetValue(name, out var idx))
+                return;
+            var q = GetWorld(name);
+            if (parent != null)
+                q = Quaternion.Multiply(Quaternion.Inverse(GetWorld(parent)), q);
+            localRot[idx] = q;
+        }
+
+        SetLocal("hips", null);
+        SetLocal("spine", "hips");
+        SetLocal("chest", "spine");
+        SetLocal("neck", "chest");
+        SetLocal("head", "neck");
+        SetLocal("leftShoulder", "chest");
+        SetLocal("leftUpperArm", "leftShoulder");
+        SetLocal("leftLowerArm", "leftUpperArm");
+        SetLocal("leftHand", "leftLowerArm");
+        SetLocal("rightShoulder", "chest");
+        SetLocal("rightUpperArm", "rightShoulder");
+        SetLocal("rightLowerArm", "rightUpperArm");
+        SetLocal("rightHand", "rightLowerArm");
+        SetLocal("leftUpperLeg", "hips");
+        SetLocal("leftLowerLeg", "leftUpperLeg");
+        SetLocal("leftFoot", "leftLowerLeg");
+        SetLocal("rightUpperLeg", "hips");
+        SetLocal("rightLowerLeg", "rightUpperLeg");
+        SetLocal("rightFoot", "rightLowerLeg");
 
         var transform = Matrix4x4.CreateTranslation(hipsPos);
-        return (rotations, transform);
+        return (localRot, transform);
     }
 }
