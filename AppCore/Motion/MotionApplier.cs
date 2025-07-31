@@ -127,7 +127,6 @@ public class MotionApplier
         worldRot["chest"] = MatrixToQuat(ComputeMatrix(neck - chest, shoulderR - shoulderL));
         worldRot["neck"] = MatrixToQuat(ComputeMatrix(head - neck, shoulderR - shoulderL));
         worldRot["head"] = MatrixToQuat(ComputeMatrix(nose - neck, rightEar - leftEar));
-
         worldRot["leftUpperArm"] = MatrixToQuat(ComputeMatrix(elbowL - shoulderL, wristL - elbowL));
         worldRot["leftLowerArm"] = MatrixToQuat(ComputeMatrix(wristL - elbowL, indexL - wristL));
         worldRot["leftHand"] = MatrixToQuat(ComputeMatrix(indexL - wristL, Vector3.Cross(indexL - wristL, thumbL - wristL)));
