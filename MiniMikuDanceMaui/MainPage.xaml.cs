@@ -1257,6 +1257,15 @@ private async void OnStartAdaptClicked(object? sender, EventArgs e)
                         if (string.Equals(bone, "camera", StringComparison.OrdinalIgnoreCase))
                             continue;
 
+                        // Arm/Hand/Leg/Foot 系のボーン以外は無視する
+                        if (!(bone.Contains("UpperArm", StringComparison.OrdinalIgnoreCase)
+                              || bone.Contains("LowerArm", StringComparison.OrdinalIgnoreCase)
+                              || bone.Contains("Hand", StringComparison.OrdinalIgnoreCase)
+                              || bone.Contains("UpperLeg", StringComparison.OrdinalIgnoreCase)
+                              || bone.Contains("LowerLeg", StringComparison.OrdinalIgnoreCase)
+                              || bone.Contains("Foot", StringComparison.OrdinalIgnoreCase)))
+                            continue;
+
                         var t = GetBoneTranslationAtFrame(bone, frame);
                         var r = GetBoneRotationAtFrame(bone, frame);
                         tv.AddKeyframe(bone, frame, t, r);
