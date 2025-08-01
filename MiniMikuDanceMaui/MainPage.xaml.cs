@@ -1261,7 +1261,9 @@ private async void OnStartAdaptClicked(object? sender, EventArgs e)
                         float.TryParse(parts[c.Y], out float ay);
                         float.TryParse(parts[c.Z], out float az);
 
-                        q = AxisAngleToQuaternion(ax, ay, az);
+                        // 入力値は度数法で渡される
+                        const float Deg2Rad = MathF.PI / 180f;
+                        q = AxisAngleToQuaternion(ax * Deg2Rad, ay * Deg2Rad, az * Deg2Rad);
                         q = new System.Numerics.Quaternion(q.X, -q.Y, -q.Z, q.W);
 
                         if (offsets.TryGetValue(bone, out var off))
