@@ -52,8 +52,6 @@ public partial class MainPage : ContentPage
     private int _extractTotalFrames;
     private int _poseTotalFrames;
     private int _adaptTotalFrames;
-    private const int AdaptFrameLimit = 60;
-    private const int AdaptFrameStep = 30;
     // bottomWidth is no longer used; bottom region spans full screen width
     // private double bottomWidth = 0;
     private bool _glInitialized;
@@ -1232,10 +1230,8 @@ private async void OnStartAdaptClicked(object? sender, EventArgs e)
             ["rightShoulder"] = System.Numerics.Quaternion.CreateFromAxisAngle(System.Numerics.Vector3.UnitX, MathF.PI / 18f),
         };
 
-        int frameStep = AdaptFrameStep;
         int total = lines.Length - 1;
-        int sampleCount = Math.Min(AdaptFrameLimit, (total + frameStep - 1) / frameStep);
-        _adaptTotalFrames = sampleCount;
+        _adaptTotalFrames = total;
         UpdateAdaptProgress(0);
 
         if (!_bottomViews.ContainsKey("TIMELINE"))
@@ -1247,10 +1243,9 @@ private async void OnStartAdaptClicked(object? sender, EventArgs e)
             tv.UpdateMaxFrame(_adaptTotalFrames);
 
             var bones = HumanoidBones.StandardOrder;
-            for (int f = 0; f < sampleCount; f++)
+            for (int f = 0; f < total; f++)
             {
-                int idx = Math.Min(1 + f * frameStep, lines.Length - 1);
-                var parts = lines[idx].Split(',');
+                var parts = lines[1 + f].Split(',');
 
                 foreach (var bone in bones)
                 {
