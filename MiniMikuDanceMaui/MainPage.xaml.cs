@@ -14,6 +14,7 @@ using Microsoft.Maui.Storage;
 using Microsoft.Maui.Devices;
 using System.IO;
 using System.Linq;
+using System.Text.Json;
 using MiniMikuDance.Import;
 using OpenTK.Mathematics;
 using MiniMikuDance.Util;
@@ -1211,11 +1212,62 @@ private async void OnStartAdaptClicked(object? sender, EventArgs e)
         return;
     }
 
+    string ext = Path.GetExtension(_selectedPosePath).ToLowerInvariant();
+
     try
     {
-        var lines = await File.ReadAllLinesAsync(_selectedPosePath);
-        if (lines.Length <= 1)
-            throw new InvalidOperationException("CSVが空です");
+        if (ext == ".json")
+        {
+            var json = await File.ReadAllTextAsync(_selectedPosePath);
+            var opts = new JsonSerializerOptions { PropertyNameCaseInsensitive = true };
+            opts.Converters.Add(new Vector3JsonConverter());
+            var joints = JsonSerializer.Deserialize<JointData[]>(json, opts) ?? Array.Empty<JointData>();
+            if (joints.Length == 0)
+                throw new InvalidOperationException("JSONが空です");
+
+            int frameStep = AdaptFrameStep;
+            int total = joints.Length;
+            int sampleCount = Math.Min(AdaptFrameLimit, (total + frameStep - 1) / frameStep);
+            _adaptTotalFrames = sampleCount;
+            UpdateAdaptProgress(0);
+
+            if (!_bottomViews.ContainsKey("TIMELINE"))
+                ShowBottomFeature("TIMELINE");
+
+            if (_bottomViews.TryGetValue("TIMELINE", out var view) && view is TimelineView tv)
+            {
+                tv.ClearKeyframes();
+                tv.UpdateMaxFrame(_adaptTotalFrames);
+
+                var bones = HumanoidBones.StandardOrder;
+                for (int f = 0; f < sampleCount; f++)
+                {
+                    int idx = Math.Min(f * frameStep, joints.Length - 1);
+                    var (rotations, _) = App.Initializer.Applier.Apply(joints[idx]);
+
+                    foreach (var bone in bones)
+                    {
+                        if (_currentModel.HumanoidBones.TryGetValue(bone, out int index) && rotations.TryGetValue(index, out var q))
+                        {
+                            var euler = ToEulerAngles(q);
+                            if (tv.BoneNames.Contains(bone))
+                                tv.AddKeyframe(bone, f, Vector3.Zero, new Vector3(euler.X, euler.Y, euler.Z));
+                        }
+                    }
+
+                    UpdateAdaptProgress((f + 1) / (double)_adaptTotalFrames);
+                    await Task.Delay(1);
+                }
+
+                ApplyTimelineFrame(tv, 0);
+                SavePoseState();
+            }
+        }
+        else
+        {
+            var lines = await File.ReadAllLinesAsync(_selectedPosePath);
+            if (lines.Length <= 1)
+                throw new InvalidOperationException("CSVが空です");
 
         var header = lines[0].Split(',');
         var columns = new Dictionary<string, (int X, int Y, int Z)>(StringComparer.OrdinalIgnoreCase);
