@@ -1114,7 +1114,7 @@ private void ShowAdaptExplorer()
 
 private void OnAdaptExplorerFileSelected(object? sender, string path)
 {
-    if (Path.GetExtension(path).ToLowerInvariant() != ".json")
+    if (Path.GetExtension(path).ToLowerInvariant() != ".csv")
     {
         return;
     }
@@ -1203,7 +1203,6 @@ private async void OnStartAdaptClicked(object? sender, EventArgs e)
     AdaptSelectMessage.IsVisible = false;
     SetProgressVisibilityAndLayout(true, false, true);
 
-    // VRMモデルがまだ描画側で読み込み完了していない場合は適用できない
     if (_pendingModel != null)
     {
         await DisplayAlert("Info", "モデルの読み込みが完了してから実行してください", "OK");
@@ -1213,70 +1212,99 @@ private async void OnStartAdaptClicked(object? sender, EventArgs e)
 
     try
     {
-        using var stream = File.OpenRead(_selectedPosePath);
-        using var reader = new StreamReader(stream);
-        var json = await reader.ReadToEndAsync();
-        var opts = new System.Text.Json.JsonSerializerOptions
+        var lines = await File.ReadAllLinesAsync(_selectedPosePath);
+        if (lines.Length <= 1)
+            throw new InvalidOperationException("CSVが空です");
+
+        var header = lines[0].Split(',');
+        var boneColumns = new Dictionary<string, (int X, int Y, int Z)>();
+        for (int i = 3; i + 2 < header.Length; i += 3)
         {
-            PropertyNameCaseInsensitive = true
+            var name = header[i].Split('.')[0];
+            boneColumns[name] = (i, i + 1, i + 2);
+        }
+
+        // SMPL -> VRM 変換マップ
+        var smplToVrm = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase)
+        {
+            ["pelvis"] = "hips",
+            ["left_hip"] = "leftUpperLeg",
+            ["right_hip"] = "rightUpperLeg",
+            ["left_knee"] = "leftLowerLeg",
+            ["right_knee"] = "rightLowerLeg",
+            ["left_ankle"] = "leftFoot",
+            ["right_ankle"] = "rightFoot",
+            ["left_foot"] = "leftToes",
+            ["right_foot"] = "rightToes",
+            ["spine1"] = "spine",
+            ["spine3"] = "chest",
+            ["neck"] = "neck",
+            ["head"] = "head",
+            ["left_collar"] = "leftShoulder",
+            ["right_collar"] = "rightShoulder",
+            ["left_shoulder"] = "leftUpperArm",
+            ["right_shoulder"] = "rightUpperArm",
+            ["left_elbow"] = "leftLowerArm",
+            ["right_elbow"] = "rightLowerArm",
+            ["left_wrist"] = "leftHand",
+            ["right_wrist"] = "rightHand"
         };
-        opts.Converters.Add(new MiniMikuDance.Util.Vector3JsonConverter());
-        var joints = System.Text.Json.JsonSerializer.Deserialize<MiniMikuDance.PoseEstimation.JointData[]>(json, opts);
-        if (joints != null && App.Initializer.MotionGenerator != null && App.Initializer.MotionPlayer != null)
+
+        var offsets = new Dictionary<string, System.Numerics.Quaternion>(StringComparer.OrdinalIgnoreCase)
         {
-            var motion = App.Initializer.MotionGenerator.Generate(joints);
+            ["leftUpperArm"] = System.Numerics.Quaternion.CreateFromAxisAngle(System.Numerics.Vector3.UnitX, MathF.PI / 4f),
+            ["rightUpperArm"] = System.Numerics.Quaternion.CreateFromAxisAngle(System.Numerics.Vector3.UnitX, MathF.PI / 4f),
+            ["leftShoulder"] = System.Numerics.Quaternion.CreateFromAxisAngle(System.Numerics.Vector3.UnitX, MathF.PI / 18f),
+            ["rightShoulder"] = System.Numerics.Quaternion.CreateFromAxisAngle(System.Numerics.Vector3.UnitX, MathF.PI / 18f)
+        };
 
-            int frameStep = AdaptFrameStep;
-            int sampleCount = Math.Min(AdaptFrameLimit, (motion.Frames.Length + frameStep - 1) / frameStep);
-            var sampled = new JointData[sampleCount];
-            for (int i = 0; i < sampleCount; i++)
-            {
-                int idx = Math.Min(i * frameStep, motion.Frames.Length - 1);
-                sampled[i] = motion.Frames[idx];
-            }
-            motion.Frames = sampled;
-            motion.FrameInterval *= frameStep;
-            App.Initializer.Motion = motion;
-            _motionEditor = new MotionEditor(motion);
-            _adaptTotalFrames = motion.Frames.Length;
-            UpdateAdaptProgress(0);
+        int frameStep = AdaptFrameStep;
+        int total = lines.Length - 1;
+        int sampleCount = Math.Min(AdaptFrameLimit, (total + frameStep - 1) / frameStep);
+        _adaptTotalFrames = sampleCount;
+        UpdateAdaptProgress(0);
 
-            if (!_bottomViews.ContainsKey("TIMELINE"))
-            {
-                ShowBottomFeature("TIMELINE");
-            }
+        if (!_bottomViews.ContainsKey("TIMELINE"))
+            ShowBottomFeature("TIMELINE");
 
-            if (_bottomViews.TryGetValue("TIMELINE", out var view) && view is TimelineView tv)
+        if (_bottomViews.TryGetValue("TIMELINE", out var view) && view is TimelineView tv)
+        {
+            tv.ClearKeyframes();
+            tv.UpdateMaxFrame(_adaptTotalFrames);
+
+            for (int f = 0; f < sampleCount; f++)
             {
-                tv.ClearKeyframes();
-                tv.UpdateMaxFrame(_adaptTotalFrames);
-                for (int frame = 0; frame < _adaptTotalFrames; frame++)
+                int idx = Math.Min(1 + f * frameStep, lines.Length - 1);
+                var parts = lines[idx].Split(',');
+
+                foreach (var kv in boneColumns)
                 {
-                    foreach (var bone in tv.BoneNames)
-                    {
-                        if (string.Equals(bone, "camera", StringComparison.OrdinalIgnoreCase))
-                            continue;
+                    string srcName = kv.Key;
+                    var (colX, colY, colZ) = kv.Value;
+                    float.TryParse(parts[colX], out float ax);
+                    float.TryParse(parts[colY], out float ay);
+                    float.TryParse(parts[colZ], out float az);
 
-                        // Arm/Hand/Leg/Foot 系のボーン以外は無視する
-                        if (!(bone.Contains("UpperArm", StringComparison.OrdinalIgnoreCase)
-                              || bone.Contains("LowerArm", StringComparison.OrdinalIgnoreCase)
-                              || bone.Contains("Hand", StringComparison.OrdinalIgnoreCase)
-                              || bone.Contains("UpperLeg", StringComparison.OrdinalIgnoreCase)
-                              || bone.Contains("LowerLeg", StringComparison.OrdinalIgnoreCase)
-                              || bone.Contains("Foot", StringComparison.OrdinalIgnoreCase)))
-                            continue;
+                    var q = AxisAngleToQuaternion(ax, ay, az);
+                    q = new System.Numerics.Quaternion(q.X, -q.Y, -q.Z, q.W); // handedness
 
-                        var t = GetBoneTranslationAtFrame(bone, frame);
-                        var r = GetBoneRotationAtFrame(bone, frame);
-                        tv.AddKeyframe(bone, frame, t, r);
-                        _motionEditor?.AddKeyFrame(bone, frame, false);
-                    }
-                    UpdateAdaptProgress((frame + 1) / (double)_adaptTotalFrames);
-                    await Task.Delay(1);
+                    string vrmName = smplToVrm.TryGetValue(srcName, out var dst) ? dst : srcName;
+
+                    if (offsets.TryGetValue(vrmName, out var off))
+                        q = System.Numerics.Quaternion.Concatenate(System.Numerics.Quaternion.Concatenate(System.Numerics.Quaternion.Inverse(off), q), off);
+
+                    var euler = q.ToEulerDegrees();
+
+                    if (tv.BoneNames.Contains(vrmName))
+                        tv.AddKeyframe(vrmName, f, Vector3.Zero, new Vector3(euler.X, euler.Y, euler.Z));
                 }
-                _motionEditor?.SaveState();
+
+                UpdateAdaptProgress((f + 1) / (double)_adaptTotalFrames);
+                await Task.Delay(1);
             }
-            App.Initializer.MotionPlayer.Play(motion);
+
+            ApplyTimelineFrame(tv, 0);
+            SavePoseState();
         }
     }
     catch (Exception ex)
@@ -1783,6 +1811,16 @@ private Vector3 GetBoneRotationAtFrame(string bone, int frame)
         return Vector3.Zero;
     var euler = ToEulerAngles(q);
     return new Vector3(euler.X, euler.Y, euler.Z);
+}
+
+private static System.Numerics.Quaternion AxisAngleToQuaternion(float x, float y, float z)
+{
+    var axis = new System.Numerics.Vector3(x, y, z);
+    float angle = axis.Length();
+    if (angle < 1e-6f)
+        return System.Numerics.Quaternion.Identity;
+    axis /= angle;
+    return System.Numerics.Quaternion.CreateFromAxisAngle(axis, angle);
 }
 
 
