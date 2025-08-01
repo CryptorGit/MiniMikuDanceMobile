@@ -1217,45 +1217,19 @@ private async void OnStartAdaptClicked(object? sender, EventArgs e)
             throw new InvalidOperationException("CSVが空です");
 
         var header = lines[0].Split(',');
-        var boneColumns = new Dictionary<string, (int X, int Y, int Z)>();
+        var columns = new Dictionary<string, (int X, int Y, int Z)>(StringComparer.OrdinalIgnoreCase);
         for (int i = 3; i + 2 < header.Length; i += 3)
         {
             var name = header[i].Split('.')[0];
-            boneColumns[name] = (i, i + 1, i + 2);
+            columns[name] = (i, i + 1, i + 2);
         }
-
-        // SMPL -> VRM 変換マップ
-        var smplToVrm = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase)
-        {
-            ["pelvis"] = "hips",
-            ["left_hip"] = "leftUpperLeg",
-            ["right_hip"] = "rightUpperLeg",
-            ["left_knee"] = "leftLowerLeg",
-            ["right_knee"] = "rightLowerLeg",
-            ["left_ankle"] = "leftFoot",
-            ["right_ankle"] = "rightFoot",
-            ["left_foot"] = "leftToes",
-            ["right_foot"] = "rightToes",
-            ["spine1"] = "spine",
-            ["spine3"] = "chest",
-            ["neck"] = "neck",
-            ["head"] = "head",
-            ["left_collar"] = "leftShoulder",
-            ["right_collar"] = "rightShoulder",
-            ["left_shoulder"] = "leftUpperArm",
-            ["right_shoulder"] = "rightUpperArm",
-            ["left_elbow"] = "leftLowerArm",
-            ["right_elbow"] = "rightLowerArm",
-            ["left_wrist"] = "leftHand",
-            ["right_wrist"] = "rightHand"
-        };
 
         var offsets = new Dictionary<string, System.Numerics.Quaternion>(StringComparer.OrdinalIgnoreCase)
         {
-            ["leftUpperArm"] = System.Numerics.Quaternion.CreateFromAxisAngle(System.Numerics.Vector3.UnitX, MathF.PI / 4f),
+            ["leftUpperArm"]  = System.Numerics.Quaternion.CreateFromAxisAngle(System.Numerics.Vector3.UnitX, MathF.PI / 4f),
             ["rightUpperArm"] = System.Numerics.Quaternion.CreateFromAxisAngle(System.Numerics.Vector3.UnitX, MathF.PI / 4f),
-            ["leftShoulder"] = System.Numerics.Quaternion.CreateFromAxisAngle(System.Numerics.Vector3.UnitX, MathF.PI / 18f),
-            ["rightShoulder"] = System.Numerics.Quaternion.CreateFromAxisAngle(System.Numerics.Vector3.UnitX, MathF.PI / 18f)
+            ["leftShoulder"]  = System.Numerics.Quaternion.CreateFromAxisAngle(System.Numerics.Vector3.UnitX, MathF.PI / 18f),
+            ["rightShoulder"] = System.Numerics.Quaternion.CreateFromAxisAngle(System.Numerics.Vector3.UnitX, MathF.PI / 18f),
         };
 
         int frameStep = AdaptFrameStep;
@@ -1272,31 +1246,31 @@ private async void OnStartAdaptClicked(object? sender, EventArgs e)
             tv.ClearKeyframes();
             tv.UpdateMaxFrame(_adaptTotalFrames);
 
+            var bones = HumanoidBones.StandardOrder;
             for (int f = 0; f < sampleCount; f++)
             {
                 int idx = Math.Min(1 + f * frameStep, lines.Length - 1);
                 var parts = lines[idx].Split(',');
 
-                foreach (var kv in boneColumns)
+                foreach (var bone in bones)
                 {
-                    string srcName = kv.Key;
-                    var (colX, colY, colZ) = kv.Value;
-                    float.TryParse(parts[colX], out float ax);
-                    float.TryParse(parts[colY], out float ay);
-                    float.TryParse(parts[colZ], out float az);
+                    System.Numerics.Quaternion q = System.Numerics.Quaternion.Identity;
+                    if (columns.TryGetValue(bone, out var c))
+                    {
+                        float.TryParse(parts[c.X], out float ax);
+                        float.TryParse(parts[c.Y], out float ay);
+                        float.TryParse(parts[c.Z], out float az);
 
-                    var q = AxisAngleToQuaternion(ax, ay, az);
-                    q = new System.Numerics.Quaternion(q.X, -q.Y, -q.Z, q.W); // handedness
+                        q = AxisAngleToQuaternion(ax, ay, az);
+                        q = new System.Numerics.Quaternion(q.X, -q.Y, -q.Z, q.W);
 
-                    string vrmName = smplToVrm.TryGetValue(srcName, out var dst) ? dst : srcName;
-
-                    if (offsets.TryGetValue(vrmName, out var off))
-                        q = System.Numerics.Quaternion.Concatenate(System.Numerics.Quaternion.Concatenate(System.Numerics.Quaternion.Inverse(off), q), off);
+                        if (offsets.TryGetValue(bone, out var off))
+                            q = System.Numerics.Quaternion.Concatenate(System.Numerics.Quaternion.Concatenate(System.Numerics.Quaternion.Inverse(off), q), off);
+                    }
 
                     var euler = q.ToEulerDegrees();
-
-                    if (tv.BoneNames.Contains(vrmName))
-                        tv.AddKeyframe(vrmName, f, Vector3.Zero, new Vector3(euler.X, euler.Y, euler.Z));
+                    if (tv.BoneNames.Contains(bone))
+                        tv.AddKeyframe(bone, f, Vector3.Zero, new Vector3(euler.X, euler.Y, euler.Z));
                 }
 
                 UpdateAdaptProgress((f + 1) / (double)_adaptTotalFrames);
