@@ -1218,10 +1218,7 @@ private async void OnStartAdaptClicked(object? sender, EventArgs e)
     {
         if (ext == ".json")
         {
-            var json = await File.ReadAllTextAsync(_selectedPosePath);
-            var opts = new JsonSerializerOptions { PropertyNameCaseInsensitive = true };
-            opts.Converters.Add(new Vector3JsonConverter());
-            var joints = JsonSerializer.Deserialize<JointData[]>(json, opts) ?? Array.Empty<JointData>();
+            var joints = await LoadJointDataArray(_selectedPosePath);
             if (joints.Length == 0)
                 throw new InvalidOperationException("JSONが空です");
 
@@ -1867,6 +1864,14 @@ private void ShowExplorer(string featureName, Frame messageFrame, Label pathLabe
     pathLabel.Text = string.Empty;
     selectedPath = null;
     UpdateLayout();
+}
+
+private static async Task<JointData[]> LoadJointDataArray(string path)
+{
+    var text = await File.ReadAllTextAsync(path);
+    var opts = new JsonSerializerOptions { PropertyNameCaseInsensitive = true };
+    opts.Converters.Add(new Vector3JsonConverter());
+    return JsonSerializer.Deserialize<JointData[]>(text, opts) ?? Array.Empty<JointData>();
 }
 
 private void OnMotionApplied((Dictionary<int, System.Numerics.Quaternion> rotations, System.Numerics.Matrix4x4 transform) data)
