@@ -682,7 +682,7 @@ private void ShowBottomFeature(string name)
         else if (name == "Adapt")
         {
             var posePath = MmdFileSystem.Ensure("Poses");
-            var ev = new ExplorerView(posePath, new[] { ".csv" });
+            var ev = new ExplorerView(posePath, new[] { ".csv", ".json" });
             ev.FileSelected += OnAdaptExplorerFileSelected;
             ev.LoadDirectory(posePath);
             view = ev;
@@ -1114,7 +1114,8 @@ private void ShowAdaptExplorer()
 
 private void OnAdaptExplorerFileSelected(object? sender, string path)
 {
-    if (Path.GetExtension(path).ToLowerInvariant() != ".csv")
+    var ext = Path.GetExtension(path).ToLowerInvariant();
+    if (ext != ".csv" && ext != ".json")
     {
         return;
     }
