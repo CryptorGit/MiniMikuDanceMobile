@@ -485,7 +485,7 @@ void main(){
             {
                 var bone = _bones[i];
                 System.Numerics.Vector3 euler = i < _boneRotations.Count ? _boneRotations[i].ToNumerics() : System.Numerics.Vector3.Zero;
-                var delta = System.Numerics.Quaternion.CreateFromYawPitchRoll(euler.Y * deg2rad, euler.X * deg2rad, euler.Z * deg2rad);
+                var delta = euler.FromEulerDegrees();
                 System.Numerics.Vector3 trans = bone.Translation;
                 if (i < _boneTranslations.Count)
                     trans += _boneTranslations[i].ToNumerics();

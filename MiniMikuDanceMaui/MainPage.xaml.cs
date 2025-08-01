@@ -1837,26 +1837,24 @@ private void OnMotionApplied((Dictionary<int, System.Numerics.Quaternion> rotati
 
 private static Vector3 ToEulerAngles(System.Numerics.Quaternion q)
 {
+    // Z→X→Y 順を使用する
     const float rad2deg = 180f / MathF.PI;
-    var angles = new Vector3();
-
-    // roll (x-axis rotation)
-    double sinr_cosp = 2 * (q.W * q.X + q.Y * q.Z);
-    double cosr_cosp = 1 - 2 * (q.X * q.X + q.Y * q.Y);
-    angles.X = (float)Math.Atan2(sinr_cosp, cosr_cosp) * rad2deg;
-
-    // pitch (y-axis rotation)
-    double sinp = 2 * (q.W * q.Y - q.Z * q.X);
-    if (Math.Abs(sinp) >= 1)
-        angles.Y = (float)Math.CopySign(Math.PI / 2, sinp) * rad2deg; // use 90 degrees if out of range
+    var m = System.Numerics.Matrix4x4.CreateFromQuaternion(q);
+    float sx = -m.M23;
+    float cx = MathF.Sqrt(1 - sx * sx);
+    float x, y, z;
+    if (cx > 1e-6f)
+    {
+        x = MathF.Asin(sx);
+        y = MathF.Atan2(m.M13, m.M33);
+        z = MathF.Atan2(m.M21, m.M22);
+    }
     else
-        angles.Y = (float)Math.Asin(sinp) * rad2deg;
-
-    // yaw (z-axis rotation)
-    double siny_cosp = 2 * (q.W * q.Z + q.X * q.Y);
-    double cosy_cosp = 1 - 2 * (q.Y * q.Y + q.Z * q.Z);
-    angles.Z = (float)Math.Atan2(siny_cosp, cosy_cosp) * rad2deg;
-
-    return angles;
+    {
+        x = MathF.Asin(sx);
+        y = MathF.Atan2(-m.M31, m.M11);
+        z = 0f;
+    }
+    return new Vector3(x * rad2deg, y * rad2deg, z * rad2deg);
 }
 }

@@ -25,10 +25,14 @@ public static class NumericsExtensions
         return Matrix4.CreateFromQuaternion(oq);
     }
 
+    // Z→X→Y 順を使用する
     public static System.Numerics.Quaternion FromEulerDegrees(this System.Numerics.Vector3 degrees)
     {
         var rad = degrees * (MathF.PI / 180f);
-        return System.Numerics.Quaternion.CreateFromYawPitchRoll(rad.Y, rad.X, rad.Z);
+        var qz = System.Numerics.Quaternion.CreateFromAxisAngle(System.Numerics.Vector3.UnitZ, rad.Z);
+        var qx = System.Numerics.Quaternion.CreateFromAxisAngle(System.Numerics.Vector3.UnitX, rad.X);
+        var qy = System.Numerics.Quaternion.CreateFromAxisAngle(System.Numerics.Vector3.UnitY, rad.Y);
+        return qy * qx * qz;
     }
 
     public static OpenTK.Mathematics.Vector3 ToOpenTK(this System.Numerics.Vector3 v)
@@ -41,23 +45,24 @@ public static class NumericsExtensions
         return new System.Numerics.Vector3(v.X, v.Y, v.Z);
     }
 
+    // Z→X→Y 順を使用する
     public static System.Numerics.Vector3 ToEulerDegrees(this System.Numerics.Quaternion q)
     {
         var m = System.Numerics.Matrix4x4.CreateFromQuaternion(q);
-        float sy = -m.M31;
-        float cy = MathF.Sqrt(1 - sy * sy);
+        float sx = -m.M23;
+        float cx = MathF.Sqrt(1 - sx * sx);
         float x, y, z;
-        if (cy > 1e-6f)
+        if (cx > 1e-6f)
         {
-            x = MathF.Atan2(m.M32, m.M33);
-            y = MathF.Asin(sy);
-            z = MathF.Atan2(m.M21, m.M11);
+            x = MathF.Asin(sx);
+            y = MathF.Atan2(m.M13, m.M33);
+            z = MathF.Atan2(m.M21, m.M22);
         }
         else
         {
-            x = MathF.Atan2(-m.M23, m.M22);
-            y = MathF.Asin(sy);
-            z = 0;
+            x = MathF.Asin(sx);
+            y = MathF.Atan2(-m.M31, m.M11);
+            z = 0f;
         }
         const float rad2deg = 180f / MathF.PI;
         return new System.Numerics.Vector3(x * rad2deg, y * rad2deg, z * rad2deg);
