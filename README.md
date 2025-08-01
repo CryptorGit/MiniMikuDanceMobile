@@ -17,3 +17,15 @@ MiniMikuDance は、スマートフォン上で MMD 互換モデルを再生・�
 * `FindIndex` で求めたリスト上の順序をそのまま `VrmRenderer` に渡すと誤ったボーンが変化します。必ず上記のインデックス変換を挟みます。
 * `TimelineView` や各種パネルからボーンを操作する実装では、共通メソッド化してインデックス変換を行うとコードの重複を防げます。
 * 今後姿勢編集機能を拡張する際も、この仕組みを基に実装するとスムーズです。
+
+
+## ポーズ変換アルゴリズム
+
+CSV ファイルには SMPL 形式の軸回転ベクトルが度数法で保存されています。`MainPage.xaml.cs` の `OnStartAdaptClicked` では各行を読み取り、以下の手順で VRM 向けの角度へ変換します。
+
+1. `ax`, `ay`, `az` を取り出し、`MathF.PI / 180f` を乗算してラジアンへ変換【F:MiniMikuDanceMaui/MainPage.xaml.cs†L1260-L1266】。
+2. `AxisAngleToQuaternion` でクォータニオン化し、Y と Z の符号を反転して右手系から左手系へ変換。
+3. ドキュメント記載のレストポーズ差分 `R_offset` を補正するため `Quaternion.Inverse(off)` と連結。
+4. `ToEulerAngles` で Z→X→Y の順に Euler 角へ変換し、タイムラインへ登録【F:MiniMikuDanceMaui/MainPage.xaml.cs†L1840-L1858】。
+
+描画時は `VrmRenderer` が各ボーンの Euler 角を `FromEulerDegrees` でクォータニオンに戻し、スキニング行列を生成します【F:MiniMikuDanceMaui/VrmRenderer.cs†L483-L501】。回転順序も Z→X→Y に統一されているため、ドキュメントの変換手順【F:Documents/smpl_to_vrm_rotation_guide.md†L73-L78】に沿った結果が得られます。
