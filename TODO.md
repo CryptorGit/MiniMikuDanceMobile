@@ -9,3 +9,4 @@
 - [x] mediapipe_to_gltf_algorithm.md に沿ったボーン回転計算の完全実装
 - [x] Adapt Pose で hips の位置・回転を反映する
 - [ ] TimelineView からボーン位置を取得し、キーが無い場合はモーションから hips 位置を計算する実装（手動確認未完）
+- [ ] Adapt Pose で hips 以外のボーン位置キー生成を検証する

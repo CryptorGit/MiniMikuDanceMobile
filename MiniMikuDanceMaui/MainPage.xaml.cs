@@ -1254,39 +1254,9 @@ private async void OnStartAdaptClicked(object? sender, EventArgs e)
             {
                 var parts = lines[1 + f].Split(',');
 
-                var hipsTrans = Vector3.Zero;
-                if (posColumns.TryGetValue("hips", out var pc))
-                {
-                    float.TryParse(parts[pc.X], out float tx);
-                    float.TryParse(parts[pc.Y], out float ty);
-                    float.TryParse(parts[pc.Z], out float tz);
-                    hipsTrans = new Vector3(tx, -ty, -tz);
-                }
-
                 foreach (var bone in bones)
                 {
-                    System.Numerics.Quaternion q = System.Numerics.Quaternion.Identity;
-                    if (rotColumns.TryGetValue(bone, out var c))
-                    {
-                        float.TryParse(parts[c.X], out float ax);
-                        float.TryParse(parts[c.Y], out float ay);
-                        float.TryParse(parts[c.Z], out float az);
-
-                        // 入力値は度数法で渡される
-                        const float Deg2Rad = MathF.PI / 180f;
-                        q = AxisAngleToQuaternion(ax * Deg2Rad, ay * Deg2Rad, az * Deg2Rad);
-                        q = new System.Numerics.Quaternion(q.X, -q.Y, -q.Z, q.W);
-
-                        if (offsets.TryGetValue(bone, out var off))
-                            q = System.Numerics.Quaternion.Concatenate(System.Numerics.Quaternion.Concatenate(System.Numerics.Quaternion.Inverse(off), q), off);
-                    }
-
-                    var euler = q.ToEulerDegrees().ToOpenTK();
-                    if (_currentModel != null && _currentModel.HumanoidBones.TryGetValue(bone, out _))
-                    {
-                        var trans = bone.Equals("hips", StringComparison.OrdinalIgnoreCase) ? hipsTrans : Vector3.Zero;
-                        tv.AddKeyframe(bone, f, trans, euler);
-                    }
+                    AddKeyframeFromColumns(tv, bone, f, parts, rotColumns, posColumns, offsets);
                 }
 
                 UpdateAdaptProgress((f + 1) / (double)_adaptTotalFrames);
@@ -1305,6 +1275,48 @@ private async void OnStartAdaptClicked(object? sender, EventArgs e)
     {
         SetProgressVisibilityAndLayout(false, false, true);
         _selectedPosePath = null;
+    }
+
+    private void AddKeyframeFromColumns(
+        TimelineView tv,
+        string bone,
+        int frame,
+        string[] parts,
+        IDictionary<string, (int X, int Y, int Z)> rotColumns,
+        IDictionary<string, (int X, int Y, int Z)> posColumns,
+        IDictionary<string, System.Numerics.Quaternion> offsets)
+    {
+        if (_currentModel == null || !_currentModel.HumanoidBones.TryGetValue(bone, out var index))
+            return;
+        _ = index; // インデックス変換を確認
+
+        var trans = Vector3.Zero;
+        if (posColumns.TryGetValue(bone, out var pc))
+        {
+            float.TryParse(parts[pc.X], out float tx);
+            float.TryParse(parts[pc.Y], out float ty);
+            float.TryParse(parts[pc.Z], out float tz);
+            trans = new Vector3(tx, -ty, -tz);
+        }
+
+        var euler = Vector3.Zero;
+        if (rotColumns.TryGetValue(bone, out var rc))
+        {
+            float.TryParse(parts[rc.X], out float ax);
+            float.TryParse(parts[rc.Y], out float ay);
+            float.TryParse(parts[rc.Z], out float az);
+
+            const float Deg2Rad = MathF.PI / 180f;
+            var q = AxisAngleToQuaternion(ax * Deg2Rad, ay * Deg2Rad, az * Deg2Rad);
+            q = new System.Numerics.Quaternion(q.X, -q.Y, -q.Z, q.W);
+
+            if (offsets.TryGetValue(bone, out var off))
+                q = System.Numerics.Quaternion.Concatenate(System.Numerics.Quaternion.Concatenate(System.Numerics.Quaternion.Inverse(off), q), off);
+
+            euler = q.ToEulerDegrees().ToOpenTK();
+        }
+
+        tv.AddKeyframe(bone, frame, trans, euler);
     }
 }
 
