@@ -7,3 +7,4 @@
  - [x] Adapt Pose 実行時に発生するクラッシュの原因を調査する
  - [x] Adapt Pose で追加される回転キーがすべて 0 度になる問題を調査する
 - [x] mediapipe_to_gltf_algorithm.md に沿ったボーン回転計算の完全実装
+- [x] Adapt Pose で hips の位置・回転を反映する

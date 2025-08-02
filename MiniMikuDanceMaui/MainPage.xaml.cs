@@ -1281,11 +1281,11 @@ private async void OnStartAdaptClicked(object? sender, EventArgs e)
                             q = System.Numerics.Quaternion.Concatenate(System.Numerics.Quaternion.Concatenate(System.Numerics.Quaternion.Inverse(off), q), off);
                     }
 
-                    var euler = q.ToEulerDegrees();
-                    if (tv.BoneNames.Contains(bone))
+                    var euler = q.ToEulerDegrees().ToOpenTK();
+                    if (_currentModel != null && _currentModel.HumanoidBones.TryGetValue(bone, out _))
                     {
                         var trans = bone.Equals("hips", StringComparison.OrdinalIgnoreCase) ? hipsTrans : Vector3.Zero;
-                        tv.AddKeyframe(bone, f, trans, new Vector3(euler.X, euler.Y, euler.Z));
+                        tv.AddKeyframe(bone, f, trans, euler);
                     }
                 }
 
