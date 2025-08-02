@@ -1781,8 +1781,27 @@ private Vector3 ClampRotation(string bone, Vector3 rot)
 
 private Vector3 GetBoneTranslationAtFrame(string bone, int frame)
 {
-    // Adapt Pose では hips も含めボーンの位置は変更しない
-    return Vector3.Zero;
+    if (_bottomViews.TryGetValue("TIMELINE", out var view) && view is TimelineView tv)
+    {
+        if (tv.HasKeyframe(bone, frame))
+            return tv.GetBoneTranslationAtFrame(bone, frame);
+    }
+
+    if (_motionEditor == null || App.Initializer.Applier == null || _currentModel == null)
+        return Vector3.Zero;
+
+    var frames = _motionEditor.Motion.Frames;
+    if (frame < 0 || frame >= frames.Length)
+        return Vector3.Zero;
+
+    var (_, transform) = App.Initializer.Applier.Apply(frames[frame]);
+
+    if (!_currentModel.HumanoidBones.TryGetValue("hips", out int hipsIndex))
+        return Vector3.Zero;
+    if (!_currentModel.HumanoidBones.TryGetValue(bone, out int index) || index != hipsIndex)
+        return Vector3.Zero;
+
+    return new Vector3(transform.M41, transform.M42, transform.M43);
 }
 
 private Vector3 GetBoneRotationAtFrame(string bone, int frame)
