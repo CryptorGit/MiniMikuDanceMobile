@@ -1215,11 +1215,18 @@ private async void OnStartAdaptClicked(object? sender, EventArgs e)
             throw new InvalidOperationException("CSVが空です");
 
         var header = lines[0].Split(',');
-        var columns = new Dictionary<string, (int X, int Y, int Z)>(StringComparer.OrdinalIgnoreCase);
+        var posColumns = new Dictionary<string, (int X, int Y, int Z)>(StringComparer.OrdinalIgnoreCase);
+        var rotColumns = new Dictionary<string, (int X, int Y, int Z)>(StringComparer.OrdinalIgnoreCase);
         for (int i = 3; i + 2 < header.Length; i += 3)
         {
-            var name = header[i].Split('.')[0];
-            columns[name] = (i, i + 1, i + 2);
+            var parts = header[i].Split('.');
+            if (parts.Length < 2)
+                continue;
+            var name = parts[0];
+            if (parts[1].StartsWith("deg", StringComparison.OrdinalIgnoreCase))
+                rotColumns[name] = (i, i + 1, i + 2);
+            else
+                posColumns[name] = (i, i + 1, i + 2);
         }
 
         var offsets = new Dictionary<string, System.Numerics.Quaternion>(StringComparer.OrdinalIgnoreCase)
@@ -1247,10 +1254,19 @@ private async void OnStartAdaptClicked(object? sender, EventArgs e)
             {
                 var parts = lines[1 + f].Split(',');
 
+                var hipsTrans = Vector3.Zero;
+                if (posColumns.TryGetValue("hips", out var pc))
+                {
+                    float.TryParse(parts[pc.X], out float tx);
+                    float.TryParse(parts[pc.Y], out float ty);
+                    float.TryParse(parts[pc.Z], out float tz);
+                    hipsTrans = new Vector3(tx, -ty, -tz);
+                }
+
                 foreach (var bone in bones)
                 {
                     System.Numerics.Quaternion q = System.Numerics.Quaternion.Identity;
-                    if (columns.TryGetValue(bone, out var c))
+                    if (rotColumns.TryGetValue(bone, out var c))
                     {
                         float.TryParse(parts[c.X], out float ax);
                         float.TryParse(parts[c.Y], out float ay);
@@ -1267,7 +1283,10 @@ private async void OnStartAdaptClicked(object? sender, EventArgs e)
 
                     var euler = q.ToEulerDegrees();
                     if (tv.BoneNames.Contains(bone))
-                        tv.AddKeyframe(bone, f, Vector3.Zero, new Vector3(euler.X, euler.Y, euler.Z));
+                    {
+                        var trans = bone.Equals("hips", StringComparison.OrdinalIgnoreCase) ? hipsTrans : Vector3.Zero;
+                        tv.AddKeyframe(bone, f, trans, new Vector3(euler.X, euler.Y, euler.Z));
+                    }
                 }
 
                 UpdateAdaptProgress((f + 1) / (double)_adaptTotalFrames);
