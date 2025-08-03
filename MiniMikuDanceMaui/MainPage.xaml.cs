@@ -743,7 +743,7 @@ private void ShowBottomFeature(string name)
         else if (name == "Texture")
         {
             var texPath = _lastModelDir ?? MmdFileSystem.Ensure("Textures");
-            var ev = new ExplorerView(texPath, new[] { ".png", ".jpg", ".jpeg" });
+            var ev = new ExplorerView(texPath, new[] { ".png", ".jpg", ".jpeg", ".tga" });
             ev.FileSelected += OnTexExplorerFileSelected;
             ev.LoadDirectory(texPath);
             view = ev;
@@ -1310,7 +1310,7 @@ private void OnCancelImportClicked(object? sender, EventArgs e)
 private void OnTexExplorerFileSelected(object? sender, string path)
 {
     var ext = Path.GetExtension(path).ToLowerInvariant();
-    if (ext != ".png" && ext != ".jpg" && ext != ".jpeg")
+    if (ext != ".png" && ext != ".jpg" && ext != ".jpeg" && ext != ".tga")
     {
         return;
     }
