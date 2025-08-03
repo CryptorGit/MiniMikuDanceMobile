@@ -118,17 +118,8 @@
                            WidthRequest="200" />
                     <Button Text="参照" Clicked="OnSelectPmxModelClicked" />
                 </HorizontalStackLayout>
-                <HorizontalStackLayout Spacing="6">
-                    <Label Text="Texture" TextColor="{StaticResource TextColor}" WidthRequest="60" />
-                    <Label x:Name="SelectedTexturePath"
-                           TextColor="{StaticResource TextColor}"
-                           FontSize="14"
-                           HorizontalOptions="FillAndExpand"
-                           LineBreakMode="CharacterWrap"
-                           MaxLines="2"
-                           WidthRequest="200" />
-                    <Button Text="参照" Clicked="OnSelectPmxTextureClicked" />
-                </HorizontalStackLayout>
+                <VerticalStackLayout x:Name="TextureList" Spacing="6" />
+                <Button Text="追加" Clicked="OnAddTextureRowClicked" HorizontalOptions="Start" />
                 <HorizontalStackLayout Spacing="6">
                     <Label Text="Scale" TextColor="{StaticResource TextColor}" WidthRequest="60" />
                     <Entry x:Name="ScaleEntry" Text="1.0" WidthRequest="80" TextColor="{StaticResource TextColor}" Keyboard="Numeric" />

@@ -44,6 +44,9 @@ public partial class MainPage : ContentPage
     private string? _selectedVideoPath;
     private string? _selectedPosePath;
     private string? _selectedTexturePath;
+    private readonly List<string> _selectedTexturePaths = new();
+    private readonly List<Label> _texturePathLabels = new();
+    private int _currentTextureIndex = -1;
     private string? _lastModelDir;
     private int _selectedSubMeshIndex;
     private float _modelScale = 1f;
@@ -1112,10 +1115,13 @@ private void OnOpenInViewerClicked(object? sender, EventArgs e)
     HideAllMenusAndLayout();
     PmxImportDialog.IsVisible = true;
     SelectedModelPath.Text = string.Empty;
-    SelectedTexturePath.Text = string.Empty;
     ScaleEntry.Text = "1.0";
     _selectedModelPath = null;
     _selectedTexturePath = null;
+    _selectedTexturePaths.Clear();
+    _texturePathLabels.Clear();
+    TextureList.Children.Clear();
+    AddTextureRow();
     _modelScale = 1f;
     UpdateLayout();
 }
@@ -1127,7 +1133,52 @@ private void OnSelectPmxModelClicked(object? sender, EventArgs e)
 
 private void OnSelectPmxTextureClicked(object? sender, EventArgs e)
 {
-    ShowExplorer("Texture", PmxImportDialog, SelectedTexturePath, ref _selectedTexturePath);
+    if (sender is Button btn && btn.CommandParameter is int idx)
+    {
+        _currentTextureIndex = idx;
+        ShowExplorer("Texture", PmxImportDialog, _texturePathLabels[idx], ref _selectedTexturePath);
+    }
+}
+
+private void OnAddTextureRowClicked(object? sender, EventArgs e)
+{
+    AddTextureRow();
+}
+
+private void AddTextureRow()
+{
+    var textColor = (Color)Application.Current.Resources["TextColor"];
+    int index = _selectedTexturePaths.Count;
+    var row = new HorizontalStackLayout { Spacing = 6 };
+    var nameLabel = new Label
+    {
+        Text = index == 0 ? "Texture" : string.Empty,
+        TextColor = textColor,
+        WidthRequest = 60
+    };
+    var pathLabel = new Label
+    {
+        TextColor = textColor,
+        FontSize = 14,
+        HorizontalOptions = LayoutOptions.FillAndExpand,
+        LineBreakMode = LineBreakMode.CharacterWrap,
+        MaxLines = 2,
+        WidthRequest = 200
+    };
+    var button = new Button
+    {
+        Text = "参照",
+        CommandParameter = index
+    };
+    button.Clicked += OnSelectPmxTextureClicked;
+
+    row.Children.Add(nameLabel);
+    row.Children.Add(pathLabel);
+    row.Children.Add(button);
+
+    TextureList.Children.Add(row);
+    _selectedTexturePaths.Add(string.Empty);
+    _texturePathLabels.Add(pathLabel);
 }
 
 private void OnEstimatePoseClicked(object? sender, EventArgs e)
@@ -1205,11 +1256,15 @@ private async void OnImportPmxClicked(object? sender, EventArgs e)
         var importer = new ModelImporter { Scale = _modelScale };
         var data = await Task.Run(() => importer.ImportModel(_selectedModelPath));
 
-        if (!string.IsNullOrEmpty(_selectedTexturePath) && data.SubMeshes.Count > 0)
+        for (int i = 0; i < _selectedTexturePaths.Count && i < data.SubMeshes.Count; i++)
         {
-            await using var stream = File.OpenRead(_selectedTexturePath);
+            var path = _selectedTexturePaths[i];
+            if (string.IsNullOrEmpty(path))
+                continue;
+
+            await using var stream = File.OpenRead(path);
             using var image = await SixLabors.ImageSharp.Image.LoadAsync<Rgba32>(stream);
-            var sm = data.SubMeshes[0];
+            var sm = data.SubMeshes[i];
             sm.TextureBytes = new byte[image.Width * image.Height * 4];
             image.CopyPixelDataTo(sm.TextureBytes);
             sm.TextureWidth = image.Width;
@@ -1230,8 +1285,10 @@ private async void OnImportPmxClicked(object? sender, EventArgs e)
         SetLoadingIndicatorVisibilityAndLayout(false);
         _selectedModelPath = null;
         _selectedTexturePath = null;
+        _selectedTexturePaths.Clear();
+        _texturePathLabels.Clear();
+        TextureList.Children.Clear();
         SelectedModelPath.Text = string.Empty;
-        SelectedTexturePath.Text = string.Empty;
     }
 }
 
@@ -1239,9 +1296,11 @@ private void OnCancelImportClicked(object? sender, EventArgs e)
 {
     _selectedModelPath = null;
     _selectedTexturePath = null;
+    _selectedTexturePaths.Clear();
+    _texturePathLabels.Clear();
+    TextureList.Children.Clear();
     PmxImportDialog.IsVisible = false;
     SelectedModelPath.Text = string.Empty;
-    SelectedTexturePath.Text = string.Empty;
     ScaleEntry.Text = "1.0";
     _modelScale = 1f;
     SetLoadingIndicatorVisibilityAndLayout(false);
@@ -1259,7 +1318,11 @@ private void OnTexExplorerFileSelected(object? sender, string path)
     _selectedTexturePath = path;
     if (PmxImportDialog.IsVisible)
     {
-        SelectedTexturePath.Text = path;
+        if (_currentTextureIndex >= 0 && _currentTextureIndex < _texturePathLabels.Count)
+        {
+            _selectedTexturePaths[_currentTextureIndex] = path;
+            _texturePathLabels[_currentTextureIndex].Text = path;
+        }
     }
     else
     {
