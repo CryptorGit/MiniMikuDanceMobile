@@ -650,6 +650,7 @@ private async Task ShowModelSelector()
 
         if (results != null)
         {
+            bool modelAdded = false;
             foreach (var result in results)
             {
                 var ext = Path.GetExtension(result.FileName).ToLowerInvariant();
@@ -672,13 +673,27 @@ private async Task ShowModelSelector()
                     await using var stream = await result.OpenReadAsync();
                     data = importer.ImportModel(stream);
                 }
+                if (!_glInitialized)
+                {
+                    _pendingModel = data;
+                    break;
+                }
+
                 _renderer.AddModel(data);
                 _models.Add(data);
                 _currentModel = data;
+                App.Initializer.UpdateApplier(_currentModel);
                 _shadeShift = data.ShadeShift;
                 _shadeToony = data.ShadeToony;
                 _rimIntensity = data.RimIntensity;
                 UpdateRendererLightingProperties();
+                modelAdded = true;
+            }
+
+            if (_glInitialized && modelAdded)
+            {
+                _renderer.ResetCamera();
+                SavePoseState();
             }
             Viewer?.InvalidateSurface();
         }
@@ -1146,6 +1161,7 @@ private async void OnImportPmxClicked(object? sender, EventArgs e)
             _modelScale = 1f;
         }
 
+        bool modelAdded = false;
         foreach (var modelPath in _selectedModelPaths)
         {
             var importer = new ModelImporter { Scale = _modelScale };
@@ -1176,6 +1192,12 @@ private async void OnImportPmxClicked(object? sender, EventArgs e)
                 }
             }
 
+            if (!_glInitialized)
+            {
+                _pendingModel = data;
+                break;
+            }
+
             _renderer.AddModel(data);
             _models.Add(data);
             _currentModel = data;
@@ -1184,10 +1206,14 @@ private async void OnImportPmxClicked(object? sender, EventArgs e)
             _shadeToony = data.ShadeToony;
             _rimIntensity = data.RimIntensity;
             UpdateRendererLightingProperties();
+            modelAdded = true;
         }
 
-        _renderer.ResetCamera();
-        SavePoseState();
+        if (_glInitialized && modelAdded)
+        {
+            _renderer.ResetCamera();
+            SavePoseState();
+        }
         Viewer.InvalidateSurface();
     }
     catch (Exception ex)
