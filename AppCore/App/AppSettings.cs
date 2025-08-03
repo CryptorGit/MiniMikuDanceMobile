@@ -20,6 +20,12 @@ public class AppSettings
     /// <summary>モーション生成時のスムージングを有効にするか。</summary>
     public bool SmoothingEnabled { get; set; } = true;
 
+    /// <summary>PMXモデルのスケールのデフォルト値。</summary>
+    public const float DefaultModelScale = 0.1f;
+
+    /// <summary>PMXモデルに適用するスケール。</summary>
+    public float ModelScale { get; set; } = DefaultModelScale;
+
     private const string DefaultFile = "Configs/appsettings.json";
 
     /// <summary>

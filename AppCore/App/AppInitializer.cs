@@ -80,7 +80,8 @@ public partial class AppInitializer : IDisposable
 
 
 
-        var importer = new ModelImporter();
+        var settings = AppSettings.Load();
+        var importer = new ModelImporter { Scale = settings.ModelScale };
         var model = importer.ImportModel(modelPath);
 
         Applier = new MotionApplier(model);
@@ -91,7 +92,7 @@ public partial class AppInitializer : IDisposable
             var result = Applier.Apply(joint);
             OnMotionApplied?.Invoke(result);
         };
-        Viewer = new Viewer(modelPath);
+        Viewer = new Viewer(modelPath, settings.ModelScale);
 
         Viewer.FrameUpdated += dt =>
         {

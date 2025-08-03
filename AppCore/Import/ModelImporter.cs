@@ -8,6 +8,7 @@ using SixLabors.ImageSharp.PixelFormats;
 using SixLabors.ImageSharp.Processing;
 using Vector3D = Assimp.Vector3D;
 using MMDTools;
+using MiniMikuDance.App;
 
 namespace MiniMikuDance.Import;
 
@@ -27,6 +28,7 @@ public class ModelData
 public class ModelImporter
 {
     private readonly AssimpContext _context = new();
+    public float Scale { get; set; } = AppSettings.DefaultModelScale;
 
     public ModelData ImportModel(Stream stream)
     {
@@ -88,7 +90,7 @@ public class ModelImporter
                 Name = name,
                 Parent = b.ParentBone,
                 Rotation = System.Numerics.Quaternion.Identity,
-                Translation = new System.Numerics.Vector3(b.Position.X, b.Position.Y, b.Position.Z)
+                Translation = new System.Numerics.Vector3(b.Position.X, b.Position.Y, b.Position.Z) * Scale
             };
             boneDatas.Add(bd);
         }
@@ -127,7 +129,7 @@ public class ModelImporter
         for (int i = 0; i < verts.Length; i++)
         {
             var v = verts[i];
-            combined.Vertices.Add(new Vector3D(v.Position.X, v.Position.Y, v.Position.Z));
+            combined.Vertices.Add(new Vector3D(v.Position.X * Scale, v.Position.Y * Scale, v.Position.Z * Scale));
             combined.Normals.Add(new Vector3D(v.Normal.X, v.Normal.Y, v.Normal.Z));
             combined.TextureCoordinateChannels[0].Add(new Vector3D(v.UV.X, v.UV.Y, 0));
         }
@@ -161,7 +163,7 @@ public class ModelImporter
                 for (int j = 0; j < 3; j++)
                 {
                     var vv = verts[idxs[j]];
-                    sub.Vertices.Add(new Vector3D(vv.Position.X, vv.Position.Y, vv.Position.Z));
+                    sub.Vertices.Add(new Vector3D(vv.Position.X * Scale, vv.Position.Y * Scale, vv.Position.Z * Scale));
                     sub.Normals.Add(new Vector3D(vv.Normal.X, vv.Normal.Y, vv.Normal.Z));
                     sub.TextureCoordinateChannels[0].Add(new Vector3D(vv.UV.X, vv.UV.Y, 0));
                     smd.TexCoords.Add(new System.Numerics.Vector2(vv.UV.X, vv.UV.Y));
@@ -215,7 +217,7 @@ public class ModelImporter
             data.SubMeshes.Add(smd);
             faceOffset += faceCount;
         }
-
+        data.Transform = System.Numerics.Matrix4x4.CreateScale(Scale);
         return data;
     }
     // 現在は PMX モデルのみに対応しています
