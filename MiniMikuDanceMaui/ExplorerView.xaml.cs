@@ -100,6 +100,14 @@ public partial class ExplorerView : ContentView
         {
             if (item.IsDirectory)
             {
+                if (_directoryMode)
+                {
+                    LogService.WriteLine($"Directory chosen: {item.Path}");
+                    SelectLabel.Text = "選択済";
+                    DirectorySelected?.Invoke(this, item.Path);
+                    return; // keep selection to indicate choice
+                }
+
                 LogService.WriteLine($"Enter directory: {item.Path}");
                 LoadDirectory(item.Path);
             }
@@ -108,6 +116,7 @@ public partial class ExplorerView : ContentView
                 LogService.WriteLine($"File chosen: {Path.GetFileName(item.Path)}");
                 FileSelected?.Invoke(this, item.Path);
             }
+
             FileList.SelectedItem = null;
         }
     }
