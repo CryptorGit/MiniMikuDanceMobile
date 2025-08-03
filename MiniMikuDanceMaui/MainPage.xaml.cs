@@ -43,12 +43,10 @@ public partial class MainPage : ContentPage
     private string? _selectedModelPath;
     private string? _selectedVideoPath;
     private string? _selectedPosePath;
-    private string? _selectedTexturePath;
     private readonly List<string> _selectedTexturePaths = new();
     private readonly List<Label> _texturePathLabels = new();
     private int _currentTextureIndex = -1;
     private string? _lastModelDir;
-    private int _selectedSubMeshIndex;
     private float _modelScale = 1f;
 
     private readonly PmxRenderer _renderer = new();
@@ -1085,31 +1083,6 @@ private async Task AddToLibraryAsync()
     }
 }
 
-private void OnImportTexClicked(object? sender, EventArgs e)
-{
-    HideFileMenu();
-    ShowTexExplorer();
-}
-
-private async void ShowTexExplorer()
-{
-    if (_currentModel == null || _currentModel.SubMeshes.Count == 0)
-    {
-        await DisplayAlert("Error", "モデルが読み込まれていません", "OK");
-        return;
-    }
-
-    HideAllMenusAndLayout();
-    ShowExplorer("Texture", TexSelectMessage, SelectedTexPath, ref _selectedTexturePath);
-
-    var items = Enumerable.Range(0, _currentModel.SubMeshes.Count)
-        .Select(i => $"SubMesh {i}")
-        .ToList();
-    SubMeshPicker.ItemsSource = items;
-    _selectedSubMeshIndex = 0;
-    SubMeshPicker.SelectedIndex = 0;
-}
-
 private void OnOpenInViewerClicked(object? sender, EventArgs e)
 {
     HideAllMenusAndLayout();
@@ -1117,7 +1090,6 @@ private void OnOpenInViewerClicked(object? sender, EventArgs e)
     SelectedModelPath.Text = string.Empty;
     ScaleEntry.Text = "1.0";
     _selectedModelPath = null;
-    _selectedTexturePath = null;
     _selectedTexturePaths.Clear();
     _texturePathLabels.Clear();
     TextureList.Children.Clear();
@@ -1136,7 +1108,8 @@ private void OnSelectPmxTextureClicked(object? sender, EventArgs e)
     if (sender is Button btn && btn.CommandParameter is int idx)
     {
         _currentTextureIndex = idx;
-        ShowExplorer("Texture", PmxImportDialog, _texturePathLabels[idx], ref _selectedTexturePath);
+        string? tmp = null;
+        ShowExplorer("Texture", PmxImportDialog, _texturePathLabels[idx], ref tmp);
     }
 }
 
@@ -1284,7 +1257,6 @@ private async void OnImportPmxClicked(object? sender, EventArgs e)
         Viewer.HasRenderLoop = true;
         SetLoadingIndicatorVisibilityAndLayout(false);
         _selectedModelPath = null;
-        _selectedTexturePath = null;
         _selectedTexturePaths.Clear();
         _texturePathLabels.Clear();
         TextureList.Children.Clear();
@@ -1295,7 +1267,6 @@ private async void OnImportPmxClicked(object? sender, EventArgs e)
 private void OnCancelImportClicked(object? sender, EventArgs e)
 {
     _selectedModelPath = null;
-    _selectedTexturePath = null;
     _selectedTexturePaths.Clear();
     _texturePathLabels.Clear();
     TextureList.Children.Clear();
@@ -1314,8 +1285,6 @@ private void OnTexExplorerFileSelected(object? sender, string path)
     {
         return;
     }
-
-    _selectedTexturePath = path;
     if (PmxImportDialog.IsVisible)
     {
         if (_currentTextureIndex >= 0 && _currentTextureIndex < _texturePathLabels.Count)
@@ -1324,68 +1293,6 @@ private void OnTexExplorerFileSelected(object? sender, string path)
             _texturePathLabels[_currentTextureIndex].Text = path;
         }
     }
-    else
-    {
-        SelectedTexPath.Text = path;
-    }
-}
-
-private void OnSubMeshPickerChanged(object? sender, EventArgs e)
-{
-    _selectedSubMeshIndex = SubMeshPicker.SelectedIndex;
-}
-
-private async void OnImportTextureClicked(object? sender, EventArgs e)
-{
-    if (string.IsNullOrEmpty(_selectedTexturePath))
-    {
-        await DisplayAlert("Error", "ファイルが選択されていません", "OK");
-        return;
-    }
-
-    if (_currentModel == null ||
-        _selectedSubMeshIndex < 0 ||
-        _selectedSubMeshIndex >= _currentModel.SubMeshes.Count)
-    {
-        await DisplayAlert("Error", "サブメッシュが選択されていません", "OK");
-        return;
-    }
-
-    try
-    {
-        await using var stream = File.OpenRead(_selectedTexturePath);
-        using var image = await SixLabors.ImageSharp.Image.LoadAsync<Rgba32>(stream);
-
-        var sm = _currentModel.SubMeshes[_selectedSubMeshIndex];
-        sm.TextureBytes = new byte[image.Width * image.Height * 4];
-        image.CopyPixelDataTo(sm.TextureBytes);
-        sm.TextureWidth = image.Width;
-        sm.TextureHeight = image.Height;
-
-        _renderer.LoadModel(_currentModel);
-        UpdateRendererLightingProperties();
-        Viewer?.InvalidateSurface();
-    }
-    catch (Exception ex)
-    {
-        await DisplayAlert("Error", ex.Message, "OK");
-    }
-    finally
-    {
-        RemoveBottomFeature("Texture");
-        TexSelectMessage.IsVisible = false;
-        _selectedTexturePath = null;
-        SelectedTexPath.Text = string.Empty;
-        UpdateLayout();
-    }
-}
-
-private void OnCancelTextureImportClicked(object? sender, EventArgs e)
-{
-    _selectedTexturePath = null;
-    TexSelectMessage.IsVisible = false;
-    SelectedTexPath.Text = string.Empty;
-    UpdateLayout();
 }
 
 private void ShowAdaptExplorer()
