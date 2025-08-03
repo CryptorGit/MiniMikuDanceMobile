@@ -141,7 +141,7 @@ public partial class MainPage : ContentPage
         if (!string.IsNullOrEmpty(baseDir) && Directory.Exists(baseDir))
             return baseDir;
 
-        return Environment.CurrentDirectory;
+        return System.Environment.CurrentDirectory;
     }
     
 
@@ -468,7 +468,7 @@ protected override async void OnAppearing()
     }
     if (OperatingSystem.IsAndroidVersionAtLeast(30))
     {
-        if (!Environment.IsExternalStorageManager)
+        if (!Android.OS.Environment.IsExternalStorageManager)
         {
             try
             {
