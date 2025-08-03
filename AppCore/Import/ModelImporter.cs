@@ -203,7 +203,7 @@ public class ModelImporter
             if (!string.IsNullOrEmpty(dir) && mat.Texture >= 0 && mat.Texture < texList.Length)
             {
                 var texName = texList[mat.Texture]
-                    .Replace('\', Path.DirectorySeparatorChar);
+                    .Replace('\\', Path.DirectorySeparatorChar);
                 var texPath = Path.Combine(dir, texName);
                 smd.TextureFilePath = texName;
                 if (File.Exists(texPath))
