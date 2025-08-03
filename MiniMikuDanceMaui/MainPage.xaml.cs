@@ -435,16 +435,19 @@ protected override async void OnAppearing()
     {
         // Permissions not granted, consider showing a message to the user
     }
-    if ((int)Android.OS.Build.VERSION.SdkInt >= (int)Android.OS.BuildVersionCodes.R &&
+    if (OperatingSystem.IsAndroidVersionAtLeast(30) &&
         !Android.OS.Environment.IsExternalStorageManager)
     {
         try
         {
             var context = Android.App.Application.Context;
-            var uri = Android.Net.Uri.Parse($"package:{context.PackageName}");
-            var intent = new Android.Content.Intent(Android.Provider.Settings.ActionManageAppAllFilesAccessPermission, uri);
-            intent.AddFlags(Android.Content.ActivityFlags.NewTask);
-            context.StartActivity(intent);
+            if (context != null)
+            {
+                var uri = Android.Net.Uri.Parse($"package:{context.PackageName}");
+                var intent = new Android.Content.Intent(Android.Provider.Settings.ActionManageAppAllFilesAccessPermission, uri);
+                intent.AddFlags(Android.Content.ActivityFlags.NewTask);
+                context.StartActivity(intent);
+            }
         }
         catch (Exception)
         {

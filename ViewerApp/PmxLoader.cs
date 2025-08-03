@@ -1,10 +1,11 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
-using OpenTK.Mathematics;
 using MMDTools;
 using SixLabors.ImageSharp;
 using SixLabors.ImageSharp.PixelFormats;
+using OtkMatrix4 = OpenTK.Mathematics.Matrix4;
+using OtkVector4 = OpenTK.Mathematics.Vector4;
 
 namespace ViewerApp;
 
@@ -14,7 +15,7 @@ internal class PmxSubMesh
     public float[] Normals = Array.Empty<float>();
     public float[] TexCoords = Array.Empty<float>();
     public uint[] Indices = Array.Empty<uint>();
-    public Vector4 ColorFactor = Vector4.One;
+    public OtkVector4 ColorFactor = OtkVector4.One;
     public byte[]? TextureBytes;
     public int TextureWidth;
     public int TextureHeight;
@@ -23,7 +24,7 @@ internal class PmxSubMesh
 internal class PmxModel
 {
     public List<PmxSubMesh> SubMeshes { get; } = new();
-    public Matrix4 Transform = Matrix4.Identity;
+    public OtkMatrix4 Transform = OtkMatrix4.Identity;
 }
 
 internal static class PmxLoader
@@ -70,7 +71,7 @@ internal static class PmxLoader
                 Normals = norm.ToArray(),
                 TexCoords = uv.ToArray(),
                 Indices = idx.ToArray(),
-                ColorFactor = new Vector4(mat.Diffuse.R, mat.Diffuse.G, mat.Diffuse.B, mat.Diffuse.A)
+                ColorFactor = new OtkVector4(mat.Diffuse.R, mat.Diffuse.G, mat.Diffuse.B, mat.Diffuse.A)
             };
             if (mat.Texture >= 0 && mat.Texture < texList.Length)
             {
