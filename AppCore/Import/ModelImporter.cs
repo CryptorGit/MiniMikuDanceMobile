@@ -145,5 +145,5 @@ public class ModelImporter
 
         return data;
     }
-    // VRM 関連の機能は削除されました
+    // 現在は PMX モデルのみに対応しています
 }

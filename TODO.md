@@ -1,7 +1,7 @@
 - [ ] PMX ボーンおよびスキニングの対応
 - [ ] PMX マテリアルの詳細設定（スフィアマップ等）の実装
 - [ ] Android SDK をセットアップしてソリューション全体のビルドを確認
-- [ ] VRM削除の残作業
+- [ ] ドキュメントの PMX 向け整理（README などの更新）
 - [ ] PmxLoader の詳細実装
 - [ ] PmxRenderer の PMX 対応の拡充
-- [x] Tools/Program.cs と VrmAnalyzer.csproj を削除し、ソリューションから除外
+- [x] Tools/Program.cs と不要な解析プロジェクトを削除し、ソリューションから除外
