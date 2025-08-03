@@ -48,6 +48,7 @@ public partial class MainPage : ContentPage
     private int _currentTextureIndex = -1;
     private string? _modelDir;
     private float _modelScale = 1f;
+    private readonly AppSettings _settings = AppSettings.Load();
 
     private readonly PmxRenderer _renderer = new();
     private readonly CameraController _cameraController = new();
@@ -147,10 +148,9 @@ public partial class MainPage : ContentPage
     _renderer.ShadeShift = -0.1f;
     _renderer.ShadeToony = 0.9f;
     _renderer.RimIntensity = 0.5f;
-    var settings = AppSettings.Load();
-    _renderer.StageSize = settings.StageSize;
-    _renderer.DefaultCameraDistance = settings.CameraDistance;
-    _renderer.DefaultCameraTargetY = settings.CameraTargetY;
+    _renderer.StageSize = _settings.StageSize;
+    _renderer.DefaultCameraDistance = _settings.CameraDistance;
+    _renderer.DefaultCameraTargetY = _settings.CameraTargetY;
 
     if (Viewer is SKGLView glView)
     {
@@ -160,6 +160,13 @@ public partial class MainPage : ContentPage
 
     if (SettingContent is SettingView setting)
     {
+        setting.StageSize = _settings.StageSize;
+        setting.StageSizeChanged += v =>
+        {
+            _renderer.StageSize = (float)v;
+            _settings.StageSize = (float)v;
+            _settings.Save();
+        };
         setting.HeightRatioChanged += ratio =>
         {
             _bottomHeightRatio = ratio;
