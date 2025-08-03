@@ -663,7 +663,23 @@ private async Task ShowModelSelector()
             else
             {
                 await using var stream = await result.OpenReadAsync();
-                data = importer.ImportModel(stream);
+                string? dir = null;
+                try
+                {
+                    var pkgDir = GetAppPackageDirectory();
+                    var assetsDir = Path.Combine(pkgDir, "StreamingAssets");
+                    if (Directory.Exists(assetsDir))
+                    {
+                        dir = Directory.EnumerateFiles(assetsDir, result.FileName, SearchOption.AllDirectories)
+                            .Select(Path.GetDirectoryName)
+                            .FirstOrDefault(d => d != null);
+                    }
+                }
+                catch
+                {
+                    dir = null;
+                }
+                data = importer.ImportModel(stream, dir);
             }
             _renderer.LoadModel(data);
             _currentModel = data;
