@@ -74,7 +74,55 @@ public class ModelImporter
         var faces = pmx.SurfaceList.ToArray();
         var mats = pmx.MaterialList.ToArray();
         var texList = pmx.TextureList.ToArray();
+        var bones = pmx.BoneList.ToArray();
 
+        // ボーン情報を ModelData に格納する
+        var data = new ModelData();
+        var boneDatas = new List<BoneData>(bones.Length);
+        for (int i = 0; i < bones.Length; i++)
+        {
+            var b = bones[i];
+            string name = string.IsNullOrEmpty(b.NameEnglish) ? b.Name : b.NameEnglish;
+            var bd = new BoneData
+            {
+                Name = name,
+                Parent = b.ParentBone,
+                Rotation = System.Numerics.Quaternion.Identity,
+                Translation = new System.Numerics.Vector3(b.Position.X, b.Position.Y, b.Position.Z)
+            };
+            boneDatas.Add(bd);
+        }
+
+        // Bind/InverseBind 行列を計算
+        var world = new System.Numerics.Matrix4x4[boneDatas.Count];
+        for (int i = 0; i < boneDatas.Count; i++)
+        {
+            var bd = boneDatas[i];
+            var local = System.Numerics.Matrix4x4.CreateFromQuaternion(bd.Rotation) *
+                        System.Numerics.Matrix4x4.CreateTranslation(bd.Translation);
+            if (bd.Parent >= 0)
+                world[i] = local * world[bd.Parent];
+            else
+                world[i] = local;
+            bd.BindMatrix = world[i];
+            System.Numerics.Matrix4x4.Invert(world[i], out var inv);
+            bd.InverseBindMatrix = inv;
+        }
+        data.Bones = boneDatas;
+
+        // ヒューマノイドボーンのマッピング
+        foreach (var hb in MiniMikuDance.Import.HumanoidBones.StandardOrder)
+        {
+            for (int i = 0; i < boneDatas.Count; i++)
+            {
+                if (boneDatas[i].Name.Equals(hb, StringComparison.OrdinalIgnoreCase))
+                {
+                    data.HumanoidBones[hb] = i;
+                    data.HumanoidBoneList.Add((hb, i));
+                    break;
+                }
+            }
+        }
         var combined = new Assimp.Mesh("pmx", Assimp.PrimitiveType.Triangle);
         for (int i = 0; i < verts.Length; i++)
         {
@@ -92,7 +140,7 @@ public class ModelImporter
             combined.Faces.Add(face);
         }
 
-        var data = new ModelData { Mesh = combined };
+        data.Mesh = combined;
         int faceOffset = 0;
         string dir = baseDir ?? string.Empty;
         foreach (var mat in mats)
@@ -117,6 +165,31 @@ public class ModelImporter
                     sub.Normals.Add(new Vector3D(vv.Normal.X, vv.Normal.Y, vv.Normal.Z));
                     sub.TextureCoordinateChannels[0].Add(new Vector3D(vv.UV.X, vv.UV.Y, 0));
                     smd.TexCoords.Add(new System.Numerics.Vector2(vv.UV.X, vv.UV.Y));
+
+                    System.Numerics.Vector4 ji = System.Numerics.Vector4.Zero;
+                    System.Numerics.Vector4 jw = System.Numerics.Vector4.Zero;
+                    switch (vv.WeightTransformType)
+                    {
+                        case WeightTransformType.BDEF1:
+                            ji.X = vv.BoneIndex1;
+                            jw.X = 1f;
+                            break;
+                        case WeightTransformType.BDEF2:
+                        case WeightTransformType.SDEF:
+                            ji.X = vv.BoneIndex1;
+                            ji.Y = vv.BoneIndex2;
+                            jw.X = vv.Weight1;
+                            jw.Y = 1f - vv.Weight1;
+                            break;
+                        case WeightTransformType.BDEF4:
+                        case WeightTransformType.QDEF:
+                        default:
+                            ji = new System.Numerics.Vector4(vv.BoneIndex1, vv.BoneIndex2, vv.BoneIndex3, vv.BoneIndex4);
+                            jw = new System.Numerics.Vector4(vv.Weight1, vv.Weight2, vv.Weight3, vv.Weight4);
+                            break;
+                    }
+                    smd.JointIndices.Add(ji);
+                    smd.JointWeights.Add(jw);
                 }
                 var face = new Face();
                 face.Indices.Add(baseIndex);
