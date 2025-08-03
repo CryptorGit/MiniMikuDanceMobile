@@ -418,8 +418,11 @@ private void HideAllMenusAndLayout()
     UpdateLayout();
 }
 
-private void UpdateSettingViewProperties(SettingView sv)
+private void UpdateSettingViewProperties(SettingView? sv)
 {
+    if (sv == null || _renderer == null)
+        return;
+
     sv.HeightRatio = _bottomHeightRatio;
     sv.RotateSensitivity = _rotateSensitivity;
     sv.PanSensitivity = _panSensitivity;
@@ -428,13 +431,13 @@ private void UpdateSettingViewProperties(SettingView sv)
     sv.ShowBoneOutline = _renderer.ShowBoneOutline;
 }
 
-private void UpdateBoneViewProperties(BoneView bv)
+private void UpdateBoneViewProperties(BoneView? bv)
 {
-    if (_currentModel != null)
-    {
-        var list = _currentModel.Bones.Select(b => b.Name).ToList();
-        bv.SetBones(list);
-    }
+    if (bv == null || _currentModel?.Bones == null)
+        return;
+
+    var list = _currentModel.Bones.Select(b => b.Name).ToList();
+    bv.SetBones(list);
 }
 
 private void SetupBoneView(BoneView bv)
@@ -491,6 +494,13 @@ private void OnSizeChanged(object? sender, EventArgs e) => UpdateLayout();
 
 private void UpdateLayout()
 {
+    if (TopMenu == null || ViewMenu == null || FileMenu == null || SettingMenu == null ||
+        MenuOverlay == null || PmxImportDialog == null || PoseSelectMessage == null ||
+        AdaptSelectMessage == null || AddKeyPanel == null || EditKeyPanel == null ||
+        DeletePanel == null || ProgressFrame == null || LoadingIndicator == null ||
+        Viewer == null || BottomRegion == null)
+        return;
+
     double W = this.Width;
     double H = this.Height;
     Thickness safe = this.Padding;
@@ -869,13 +879,22 @@ private void ShowBottomFeature(string name)
 
                     timelineView.SelectedKeyInputBoneIndex = EditKeyPanel.SelectedBoneIndex;
 
-                    // Ensure rotation limit is applied even when the index does not change
-                    OnEditKeyBoneChanged(EditKeyPanel.SelectedBoneIndex);
-                    OnKeyParameterChanged(
-                        EditKeyPanel.SelectedBone,
-                        EditKeyPanel.FrameNumber,
-                        EditKeyPanel.Translation,
-                        EditKeyPanel.EulerRotation);
+                    var selectedIndex = EditKeyPanel.SelectedBoneIndex;
+                    if (selectedIndex >= 0)
+                    {
+                        // Ensure rotation limit is applied even when the index does not change
+                        OnEditKeyBoneChanged(selectedIndex);
+
+                        var boneName2 = EditKeyPanel.SelectedBone;
+                        if (!string.IsNullOrEmpty(boneName2))
+                        {
+                            OnKeyParameterChanged(
+                                boneName2,
+                                EditKeyPanel.FrameNumber,
+                                EditKeyPanel.Translation,
+                                EditKeyPanel.EulerRotation);
+                        }
+                    }
 
                     EditKeyPanel.IsVisible = true;
                 }
@@ -935,26 +954,34 @@ private void ShowBottomFeature(string name)
             };
             sv.RotateSensitivityChanged += v =>
             {
-                _renderer.RotateSensitivity = (float)v;
+                if (_renderer != null)
+                    _renderer.RotateSensitivity = (float)v;
             };
             sv.PanSensitivityChanged += v =>
             {
-                _renderer.PanSensitivity = (float)v;
+                if (_renderer != null)
+                    _renderer.PanSensitivity = (float)v;
             };
             sv.ZoomSensitivityChanged += v =>
             {
-                _renderer.ZoomSensitivity = (float)v;
-                _settings.ZoomSensitivity = (float)v;
-                _settings.Save();
+                if (_renderer != null)
+                    _renderer.ZoomSensitivity = (float)v;
+                if (_settings != null)
+                {
+                    _settings.ZoomSensitivity = (float)v;
+                    _settings.Save();
+                }
                 _zoomSensitivity = (float)v;
             };
             sv.CameraLockChanged += locked =>
             {
-                _renderer.CameraLocked = locked;
+                if (_renderer != null)
+                    _renderer.CameraLocked = locked;
             };
             sv.ResetCameraRequested += () =>
             {
-                _renderer.ResetCamera();
+                if (_renderer != null)
+                    _renderer.ResetCamera();
                 Viewer?.InvalidateSurface();
             };
             view = sv;
