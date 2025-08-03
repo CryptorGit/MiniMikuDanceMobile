@@ -103,7 +103,7 @@
         <Frame x:Name="PmxImportDialog" IsVisible="False" BackgroundColor="{StaticResource BackgroundColor}" Padding="8" ZIndex="30">
             <VerticalStackLayout Spacing="6">
                 <HorizontalStackLayout Spacing="6">
-                    <Label Text="Model" TextColor="{StaticResource TextColor}" WidthRequest="60" />
+                    <Label Text="Folder" TextColor="{StaticResource TextColor}" WidthRequest="60" />
                     <Label x:Name="SelectedModelPath"
                            TextColor="{StaticResource TextColor}"
                            FontSize="14"
@@ -111,10 +111,8 @@
                            LineBreakMode="CharacterWrap"
                            MaxLines="2"
                            WidthRequest="200" />
-                    <Button Text="参照" Clicked="OnSelectPmxModelClicked" />
+                    <Button Text="参照" Clicked="OnSelectModelFolderClicked" />
                 </HorizontalStackLayout>
-                <VerticalStackLayout x:Name="TextureList" Spacing="6" />
-                <Button Text="追加" Clicked="OnAddTextureRowClicked" HorizontalOptions="Start" />
                 <HorizontalStackLayout Spacing="6">
                     <Label Text="Scale" TextColor="{StaticResource TextColor}" WidthRequest="60" />
                     <Entry x:Name="ScaleEntry" Text="1.0" WidthRequest="80" TextColor="{StaticResource TextColor}" Keyboard="Numeric" />

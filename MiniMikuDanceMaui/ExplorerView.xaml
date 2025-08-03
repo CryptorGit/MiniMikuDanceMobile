@@ -4,13 +4,18 @@
              x:Class="MiniMikuDanceMaui.ExplorerView"
              BackgroundColor="{DynamicResource BackgroundColor}">
     <Grid RowDefinitions="Auto,*">
-        <Grid ColumnDefinitions="Auto,*" Padding="8" x:Name="TopBar" HeightRequest="40">
+        <Grid ColumnDefinitions="Auto,*,Auto" Padding="8" x:Name="TopBar" HeightRequest="40">
             <Label Text="↑" TextColor="{StaticResource TextColor}" Margin="0,0,16,0" VerticalTextAlignment="Center">
                 <Label.GestureRecognizers>
                     <TapGestureRecognizer Tapped="OnUpClicked" />
                 </Label.GestureRecognizers>
             </Label>
             <Label Grid.Column="1" x:Name="PathLabel" TextColor="{StaticResource TextColor}" VerticalTextAlignment="Center" LineBreakMode="TailTruncation" />
+            <Label Grid.Column="2" x:Name="SelectLabel" Text="選択" TextColor="{StaticResource TextColor}" VerticalTextAlignment="Center" IsVisible="False">
+                <Label.GestureRecognizers>
+                    <TapGestureRecognizer Tapped="OnSelectClicked" />
+                </Label.GestureRecognizers>
+            </Label>
         </Grid>
         <CollectionView x:Name="FileList" SelectionMode="Single" SelectionChanged="OnItemSelected" Grid.Row="1" VerticalOptions="FillAndExpand">
             <CollectionView.ItemTemplate>
