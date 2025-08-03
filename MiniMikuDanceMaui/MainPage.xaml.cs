@@ -44,6 +44,7 @@ public partial class MainPage : ContentPage
     private string? _selectedVideoPath;
     private string? _selectedPosePath;
     private string? _selectedTexPath;
+    private string? _lastModelDir;
 
     private readonly PmxRenderer _renderer = new();
     private readonly CameraController _cameraController = new();
@@ -736,7 +737,7 @@ private void ShowBottomFeature(string name)
         }
         else if (name == "Texture")
         {
-            var texPath = MmdFileSystem.Ensure("Textures");
+            var texPath = _lastModelDir ?? MmdFileSystem.Ensure("Textures");
             var ev = new ExplorerView(texPath, new[] { ".png", ".jpg", ".jpeg" });
             ev.FileSelected += OnTexExplorerFileSelected;
             ev.LoadDirectory(texPath);
@@ -1149,6 +1150,7 @@ private void OnOpenExplorerFileSelected(object? sender, string path)
     }
 
     _selectedPath = path;
+    _lastModelDir = Path.GetDirectoryName(path);
     SelectedFilePath.Text = path;
 }
 
