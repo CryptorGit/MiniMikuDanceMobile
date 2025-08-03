@@ -45,6 +45,7 @@ public partial class MainPage : ContentPage
     private string? _selectedPosePath;
     private string? _selectedTexPath;
     private string? _lastModelDir;
+    private int _selectedSubMeshIndex;
 
     private readonly PmxRenderer _renderer = new();
     private readonly CameraController _cameraController = new();
@@ -1096,6 +1097,13 @@ private async void ShowTexExplorer()
 
     HideAllMenusAndLayout();
     ShowExplorer("Texture", TexSelectMessage, SelectedTexPath, ref _selectedTexPath);
+
+    var items = Enumerable.Range(0, _currentModel.SubMeshes.Count)
+        .Select(i => $"SubMesh {i}")
+        .ToList();
+    SubMeshPicker.ItemsSource = items;
+    _selectedSubMeshIndex = 0;
+    SubMeshPicker.SelectedIndex = 0;
 }
 
 private void OnOpenInViewerClicked(object? sender, EventArgs e)
@@ -1208,6 +1216,11 @@ private void OnTexExplorerFileSelected(object? sender, string path)
     SelectedTexPath.Text = path;
 }
 
+private void OnSubMeshPickerChanged(object? sender, EventArgs e)
+{
+    _selectedSubMeshIndex = SubMeshPicker.SelectedIndex;
+}
+
 private async void OnImportTextureClicked(object? sender, EventArgs e)
 {
     if (string.IsNullOrEmpty(_selectedTexPath))
@@ -1216,23 +1229,28 @@ private async void OnImportTextureClicked(object? sender, EventArgs e)
         return;
     }
 
+    if (_currentModel == null ||
+        _selectedSubMeshIndex < 0 ||
+        _selectedSubMeshIndex >= _currentModel.SubMeshes.Count)
+    {
+        await DisplayAlert("Error", "サブメッシュが選択されていません", "OK");
+        return;
+    }
+
     try
     {
         await using var stream = File.OpenRead(_selectedTexPath);
         using var image = await SixLabors.ImageSharp.Image.LoadAsync<Rgba32>(stream);
 
-        if (_currentModel != null && _currentModel.SubMeshes.Count > 0)
-        {
-            var sm = _currentModel.SubMeshes[0];
-            sm.TextureBytes = new byte[image.Width * image.Height * 4];
-            image.CopyPixelDataTo(sm.TextureBytes);
-            sm.TextureWidth = image.Width;
-            sm.TextureHeight = image.Height;
+        var sm = _currentModel.SubMeshes[_selectedSubMeshIndex];
+        sm.TextureBytes = new byte[image.Width * image.Height * 4];
+        image.CopyPixelDataTo(sm.TextureBytes);
+        sm.TextureWidth = image.Width;
+        sm.TextureHeight = image.Height;
 
-            _renderer.LoadModel(_currentModel);
-            UpdateRendererLightingProperties();
-            Viewer?.InvalidateSurface();
-        }
+        _renderer.LoadModel(_currentModel);
+        UpdateRendererLightingProperties();
+        Viewer?.InvalidateSurface();
     }
     catch (Exception ex)
     {

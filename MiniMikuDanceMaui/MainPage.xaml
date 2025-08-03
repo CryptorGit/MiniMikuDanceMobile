@@ -119,6 +119,10 @@
             <VerticalStackLayout Spacing="6">
                 <Label Text="テクスチャファイルを以下から選択してください" TextColor="{StaticResource TextColor}" />
                 <Label x:Name="SelectedTexPath" TextColor="{StaticResource TextColor}" FontSize="14" />
+                <Picker x:Name="SubMeshPicker"
+                        Title="サブメッシュ"
+                        TextColor="{StaticResource TextColor}"
+                        SelectedIndexChanged="OnSubMeshPickerChanged" />
                 <HorizontalStackLayout HorizontalOptions="Center" Spacing="20">
                     <Button Text="インポート" Clicked="OnImportTextureClicked" />
                     <Button Text="キャンセル" Clicked="OnCancelTextureImportClicked" />
