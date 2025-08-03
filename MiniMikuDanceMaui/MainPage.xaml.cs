@@ -67,6 +67,7 @@ public partial class MainPage : ContentPage
     private ModelData? _pendingModel;
     private ModelData? _currentModel;
     private readonly Dictionary<long, SKPoint> _touchPoints = new();
+    private bool _boneMode;
     private MotionEditor? _motionEditor;
     private readonly BonesConfig? _bonesConfig = App.Initializer.BonesConfig;
     private void SetProgressVisibilityAndLayout(bool isVisible,
@@ -340,6 +341,12 @@ private void OnGyroMenuClicked(object? sender, EventArgs e)
     HideAllMenusAndLayout();
 }
 
+private void OnPoseEditorClicked(object? sender, EventArgs e)
+{
+    ShowBottomFeature("POSE");
+    HideAllMenusAndLayout();
+}
+
 
 private void OnCloseBottomTapped(object? sender, TappedEventArgs e)
 {
@@ -607,7 +614,11 @@ private void OnViewTouch(object? sender, SKTouchEventArgs e)
         var prevPoints = new Dictionary<long, SKPoint>(_touchPoints);
         _touchPoints[e.Id] = e.Location;
 
-        if (_touchPoints.Count == 1 && prevPoints.ContainsKey(e.Id))
+        if (_boneMode)
+        {
+            // TODO: implement bone manipulation via touch
+        }
+        else if (_touchPoints.Count == 1 && prevPoints.ContainsKey(e.Id))
         {
             var prev = prevPoints[e.Id];
             var dx = e.Location.X - prev.X;
@@ -764,6 +775,12 @@ private void ShowBottomFeature(string name)
         {
             var gv = new GyroView(_cameraController, _renderer);
             view = gv;
+        }
+        else if (name == "POSE")
+        {
+            var pv = new PoseEditorView();
+            pv.ModeChanged += mode => _boneMode = mode;
+            view = pv;
         }
 
         else if (name == "PMX")
