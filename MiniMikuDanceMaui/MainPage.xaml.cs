@@ -1201,7 +1201,16 @@ private void AddTextureRow()
 {
     var textColor = (Color)Application.Current.Resources["TextColor"];
     int index = _selectedTexturePaths.Count;
-    var row = new HorizontalStackLayout { Spacing = 6 };
+    var row = new Grid
+    {
+        ColumnSpacing = 6,
+        ColumnDefinitions =
+        {
+            new ColumnDefinition { Width = GridLength.Auto },
+            new ColumnDefinition { Width = GridLength.Star },
+            new ColumnDefinition { Width = GridLength.Auto }
+        }
+    };
     var nameLabel = new Label
     {
         Text = index == 0 ? "Texture" : string.Empty,
@@ -1212,7 +1221,7 @@ private void AddTextureRow()
     {
         TextColor = textColor,
         FontSize = 14,
-        HorizontalOptions = LayoutOptions.FillAndExpand,
+        HorizontalOptions = LayoutOptions.Fill,
         LineBreakMode = LineBreakMode.CharacterWrap,
         MaxLines = 2,
         WidthRequest = 200
@@ -1227,6 +1236,9 @@ private void AddTextureRow()
     row.Children.Add(nameLabel);
     row.Children.Add(pathLabel);
     row.Children.Add(button);
+    Grid.SetColumn(nameLabel, 0);
+    Grid.SetColumn(pathLabel, 1);
+    Grid.SetColumn(button, 2);
 
     TextureList.Children.Add(row);
     _selectedTexturePaths.Add(string.Empty);
