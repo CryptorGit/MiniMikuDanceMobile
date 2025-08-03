@@ -82,6 +82,35 @@ public class PmxRenderer : IDisposable
     public float RimIntensity { get; set; } = 0.5f;
     public float Ambient { get; set; } = 0.3f;
 
+    private float _stageSize = AppSettings.DefaultStageSize;
+    public float StageSize
+    {
+        get => _stageSize;
+        set
+        {
+            if (_stageSize != value)
+            {
+                _stageSize = value;
+                if (_program != 0)
+                    GenerateGrid();
+            }
+        }
+    }
+
+    private float _defaultCameraDistance = AppSettings.DefaultCameraDistance;
+    public float DefaultCameraDistance
+    {
+        get => _defaultCameraDistance;
+        set => _defaultCameraDistance = value;
+    }
+
+    private float _defaultCameraTargetY = AppSettings.DefaultCameraTargetY;
+    public float DefaultCameraTargetY
+    {
+        get => _defaultCameraTargetY;
+        set => _defaultCameraTargetY = value;
+    }
+
     public void Initialize()
     {
         const string vert = @"#version 300 es
@@ -186,38 +215,7 @@ void main(){
 
     private void GenerateGrid()
     {
-        float minX = 0f, maxX = 0f, minZ = 0f, maxZ = 0f;
-        bool hasVertex = false;
-        foreach (var rm in _meshes)
-        {
-            foreach (var v in rm.Vertices)
-            {
-                if (!hasVertex)
-                {
-                    minX = maxX = v.X;
-                    minZ = maxZ = v.Z;
-                    hasVertex = true;
-                }
-                else
-                {
-                    if (v.X < minX) minX = v.X;
-                    if (v.X > maxX) maxX = v.X;
-                    if (v.Z < minZ) minZ = v.Z;
-                    if (v.Z > maxZ) maxZ = v.Z;
-                }
-            }
-        }
-
-        int range = 10;
-        if (hasVertex)
-        {
-            float maxAbs = MathF.Max(MathF.Max(MathF.Abs(minX), MathF.Abs(maxX)),
-                                     MathF.Max(MathF.Abs(minZ), MathF.Abs(maxZ)));
-            range = (int)MathF.Ceiling(maxAbs) + 1;
-        }
-
-        range *= 3;
-
+        int range = (int)_stageSize;
         _gridVertexCount = (range * 2 + 1) * 4;
         float[] grid = new float[_gridVertexCount * 3];
         int idx = 0;
@@ -238,7 +236,7 @@ void main(){
         GL.BindBuffer(BufferTarget.ArrayBuffer, 0);
         GL.BindVertexArray(0);
 
-        float r = range;
+        float r = _stageSize;
         float[] plane =
         {
             -r, 0f, -r,
@@ -296,40 +294,11 @@ void main(){
     public void ResetCamera()
     {
         _orbitX = 0f;
-        // モデル読み込み時は正面から表示する
         _orbitY = 0f;
-
-        if (_meshes.Count > 0)
-        {
-            // モデルのバウンディングボックスを計算
-            Vector3 min = _meshes[0].Vertices[0];
-            Vector3 max = min;
-            foreach (var rm in _meshes)
-            {
-                foreach (var v in rm.Vertices)
-                {
-                    min = Vector3.ComponentMin(min, v);
-                    max = Vector3.ComponentMax(max, v);
-                }
-            }
-
-            Vector3 size = max - min;
-            Vector3 center = (max + min) * 0.5f;
-            // 少し上にずらしてモデル全体を見やすくする
-            _target = new Vector3(center.X, center.Y + size.Y * 0.1f, center.Z);
-
-            float radius = size.Length * 0.5f;
-            float fov = MathHelper.PiOver4;
-            _distance = radius / MathF.Sin(fov / 2f);
-            if (_distance < 1f) _distance = 1f;
-            if (_distance > 20f) _distance = 20f;
-        }
-        else
-        {
-            _distance = 4f;
-            _target = new Vector3(0f, 0.5f, 0f);
-        }
-
+        _target = new Vector3(0f, _defaultCameraTargetY, 0f);
+        _distance = _defaultCameraDistance;
+        if (_distance < 1f) _distance = 1f;
+        if (_distance > 20f) _distance = 20f;
         _externalRotation = Quaternion.Identity;
     }
 
@@ -525,7 +494,6 @@ void main(){
 
             _meshes.Add(rm);
         }
-        GenerateGrid();
     }
 
     public void Render()
