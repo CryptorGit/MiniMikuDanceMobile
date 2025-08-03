@@ -4,3 +4,4 @@
 - [ ] VRM削除の残作業
 - [ ] PmxLoader の詳細実装
 - [ ] PmxRenderer の PMX 対応の拡充
+- [x] Tools/Program.cs と VrmAnalyzer.csproj を削除し、ソリューションから除外
