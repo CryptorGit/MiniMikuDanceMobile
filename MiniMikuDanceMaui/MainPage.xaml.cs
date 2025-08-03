@@ -114,7 +114,7 @@ public partial class MainPage : ContentPage
 
     private static string GetAppPackageDirectory()
     {
-        var dir = FileSystem.Current.AppPackageDirectory;
+        var dir = FileSystem.AppPackageDirectory;
         if (!string.IsNullOrEmpty(dir) && Directory.Exists(dir))
             return dir;
 
