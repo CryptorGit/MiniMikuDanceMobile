@@ -195,6 +195,12 @@ public partial class MainPage : ContentPage
         {
             _renderer.CameraLocked = locked;
         };
+        setting.ShowBoneOutline = _renderer.ShowBoneOutline;
+        setting.BoneOutlineChanged += show =>
+        {
+            _renderer.ShowBoneOutline = show;
+            Viewer?.InvalidateSurface();
+        };
         setting.ResetCameraRequested += () =>
         {
             _renderer.ResetCamera();
@@ -407,6 +413,7 @@ private void UpdateSettingViewProperties(SettingView sv)
     sv.PanSensitivity = _panSensitivity;
     sv.ZoomSensitivity = _zoomSensitivity;
     sv.CameraLocked = _renderer.CameraLocked;
+    sv.ShowBoneOutline = _renderer.ShowBoneOutline;
 }
 
 private void UpdateBoneViewProperties(BoneView bv)

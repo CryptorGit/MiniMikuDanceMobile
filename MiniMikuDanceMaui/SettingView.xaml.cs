@@ -11,6 +11,7 @@ public partial class SettingView : ContentView
     public event Action<double>? ZoomSensitivityChanged;
     public event Action<double>? StageSizeChanged;
     public event Action<bool>? CameraLockChanged;
+    public event Action<bool>? BoneOutlineChanged;
     public event Action? ResetCameraRequested;
 
     public SettingView()
@@ -64,6 +65,12 @@ public partial class SettingView : ContentView
         CameraLockChanged?.Invoke(e.Value);
     }
 
+    private void OnBoneOutlineChanged(object? sender, CheckedChangedEventArgs e)
+    {
+        LogService.WriteLine($"Bone outline: {e.Value}");
+        BoneOutlineChanged?.Invoke(e.Value);
+    }
+
     private void OnResetCameraClicked(object? sender, EventArgs e)
     {
         ResetCameraRequested?.Invoke();
@@ -107,5 +114,11 @@ public partial class SettingView : ContentView
     {
         get => CameraLockCheck.IsChecked;
         set => CameraLockCheck.IsChecked = value;
+    }
+
+    public bool ShowBoneOutline
+    {
+        get => BoneOutlineCheck.IsChecked;
+        set => BoneOutlineCheck.IsChecked = value;
     }
 }
