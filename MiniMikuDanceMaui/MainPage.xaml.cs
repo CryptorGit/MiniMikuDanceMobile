@@ -43,6 +43,7 @@ public partial class MainPage : ContentPage
     private string? _selectedPath;
     private string? _selectedVideoPath;
     private string? _selectedPosePath;
+    private string? _selectedTexPath;
 
     private readonly PmxRenderer _renderer = new();
     private readonly CameraController _cameraController = new();
@@ -733,6 +734,14 @@ private void ShowBottomFeature(string name)
             ev.LoadDirectory(posePath);
             view = ev;
         }
+        else if (name == "Texture")
+        {
+            var texPath = MmdFileSystem.Ensure("Textures");
+            var ev = new ExplorerView(texPath, new[] { ".png", ".jpg", ".jpeg" });
+            ev.FileSelected += OnTexExplorerFileSelected;
+            ev.LoadDirectory(texPath);
+            view = ev;
+        }
         else if (name == "BONE")
         {
             var bv = new BoneView();
@@ -962,6 +971,11 @@ private void ShowBottomFeature(string name)
         var posePath = MmdFileSystem.Ensure("Poses");
         aev2.LoadDirectory(posePath);
     }
+    else if (name == "Texture" && _bottomViews[name] is ExplorerView tev)
+    {
+        var texPath = MmdFileSystem.Ensure("Textures");
+        tev.LoadDirectory(texPath);
+    }
     else if (name == "MTOON" && _bottomViews[name] is LightingView mv)
     {
         mv.ShadeShift = _renderer.ShadeShift;
@@ -1065,52 +1079,22 @@ private async Task AddToLibraryAsync()
     }
 }
 
-private async void OnImportTexClicked(object? sender, EventArgs e)
+private void OnImportTexClicked(object? sender, EventArgs e)
 {
     HideFileMenu();
+    ShowTexExplorer();
+}
 
+private async void ShowTexExplorer()
+{
     if (_currentModel == null || _currentModel.SubMeshes.Count == 0)
     {
         await DisplayAlert("Error", "モデルが読み込まれていません", "OK");
         return;
     }
 
-    try
-    {
-        var result = await FilePicker.Default.PickAsync(new PickOptions
-        {
-            PickerTitle = "Select texture image",
-            FileTypes = new FilePickerFileType(new Dictionary<DevicePlatform, IEnumerable<string>>
-            {
-                [DevicePlatform.Android] = new[] { "image/png", "image/jpeg" },
-                [DevicePlatform.WinUI] = new[] { ".png", ".jpg", ".jpeg" },
-                [DevicePlatform.iOS] = new[] { ".png", ".jpg", ".jpeg" }
-            })
-        });
-
-        if (result == null)
-        {
-            await DisplayAlert("Canceled", "ファイルが選択されませんでした", "OK");
-            return;
-        }
-
-        await using var stream = await result.OpenReadAsync();
-        using var image = await SixLabors.ImageSharp.Image.LoadAsync<Rgba32>(stream);
-
-        var sm = _currentModel.SubMeshes[0];
-        sm.TextureBytes = new byte[image.Width * image.Height * 4];
-        image.CopyPixelDataTo(sm.TextureBytes);
-        sm.TextureWidth = image.Width;
-        sm.TextureHeight = image.Height;
-
-        _renderer.LoadModel(_currentModel);
-        UpdateRendererLightingProperties();
-        Viewer?.InvalidateSurface();
-    }
-    catch (Exception ex)
-    {
-        await DisplayAlert("Error", ex.Message, "OK");
-    }
+    HideAllMenusAndLayout();
+    ShowExplorer("Texture", TexSelectMessage, SelectedTexPath, ref _selectedTexPath);
 }
 
 private void OnOpenInViewerClicked(object? sender, EventArgs e)
@@ -1208,6 +1192,66 @@ private void OnCancelImportClicked(object? sender, EventArgs e)
     FileSelectMessage.IsVisible = false;
     SelectedFilePath.Text = string.Empty;
     SetLoadingIndicatorVisibilityAndLayout(false);
+}
+
+private void OnTexExplorerFileSelected(object? sender, string path)
+{
+    var ext = Path.GetExtension(path).ToLowerInvariant();
+    if (ext != ".png" && ext != ".jpg" && ext != ".jpeg")
+    {
+        return;
+    }
+
+    _selectedTexPath = path;
+    SelectedTexPath.Text = path;
+}
+
+private async void OnImportTextureClicked(object? sender, EventArgs e)
+{
+    if (string.IsNullOrEmpty(_selectedTexPath))
+    {
+        await DisplayAlert("Error", "ファイルが選択されていません", "OK");
+        return;
+    }
+
+    try
+    {
+        await using var stream = File.OpenRead(_selectedTexPath);
+        using var image = await SixLabors.ImageSharp.Image.LoadAsync<Rgba32>(stream);
+
+        if (_currentModel != null && _currentModel.SubMeshes.Count > 0)
+        {
+            var sm = _currentModel.SubMeshes[0];
+            sm.TextureBytes = new byte[image.Width * image.Height * 4];
+            image.CopyPixelDataTo(sm.TextureBytes);
+            sm.TextureWidth = image.Width;
+            sm.TextureHeight = image.Height;
+
+            _renderer.LoadModel(_currentModel);
+            UpdateRendererLightingProperties();
+            Viewer?.InvalidateSurface();
+        }
+    }
+    catch (Exception ex)
+    {
+        await DisplayAlert("Error", ex.Message, "OK");
+    }
+    finally
+    {
+        RemoveBottomFeature("Texture");
+        TexSelectMessage.IsVisible = false;
+        _selectedTexPath = null;
+        SelectedTexPath.Text = string.Empty;
+        UpdateLayout();
+    }
+}
+
+private void OnCancelTextureImportClicked(object? sender, EventArgs e)
+{
+    _selectedTexPath = null;
+    TexSelectMessage.IsVisible = false;
+    SelectedTexPath.Text = string.Empty;
+    UpdateLayout();
 }
 
 private void ShowAdaptExplorer()
