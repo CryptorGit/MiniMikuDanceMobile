@@ -62,6 +62,7 @@ public partial class MainPage : ContentPage
     private bool _glInitialized;
     private ModelData? _pendingModel;
     private ModelData? _currentModel;
+    private readonly List<ModelData> _models = new();
     private readonly Dictionary<long, SKPoint> _touchPoints = new();
     private MotionEditor? _motionEditor;
     private readonly BonesConfig? _bonesConfig = App.Initializer.BonesConfig;
@@ -570,8 +571,8 @@ private void LoadPendingModel()
 {
     if (_pendingModel != null)
     {
-        _renderer.ClearBoneRotations();
-        _renderer.LoadModel(_pendingModel);
+        _renderer.AddModel(_pendingModel);
+        _models.Add(_pendingModel);
         _currentModel = _pendingModel;
         App.Initializer.UpdateApplier(_currentModel);
         _shadeShift = _pendingModel.ShadeShift;
@@ -636,7 +637,7 @@ private async Task ShowModelSelector()
 {
     try
     {
-        var result = await FilePicker.Default.PickAsync(new PickOptions
+        var results = await FilePicker.Default.PickMultipleAsync(new PickOptions
         {
             PickerTitle = "Select PMX file",
             FileTypes = new FilePickerFileType(new Dictionary<DevicePlatform, IEnumerable<string>>
@@ -647,50 +648,38 @@ private async Task ShowModelSelector()
             })
         });
 
-        if (result != null)
+        if (results != null)
         {
-            var ext = Path.GetExtension(result.FileName).ToLowerInvariant();
-            if (ext != ".pmx" && ext != ".pmd")
+            foreach (var result in results)
             {
-                await DisplayAlert("Invalid File", "Please select a .pmx or .pmd file.", "OK");
-                return;
-            }
-
-
-
-            var importer = new MiniMikuDance.Import.ModelImporter();
-            MiniMikuDance.Import.ModelData data;
-            if (!string.IsNullOrEmpty(result.FullPath))
-            {
-                data = importer.ImportModel(result.FullPath);
-            }
-            else
-            {
-                await using var stream = await result.OpenReadAsync();
-                string? dir = null;
-                try
+                var ext = Path.GetExtension(result.FileName).ToLowerInvariant();
+                if (ext != ".pmx" && ext != ".pmd")
                 {
-                    var pkgDir = GetAppPackageDirectory();
-                    var assetsDir = Path.Combine(pkgDir, "StreamingAssets");
-                    if (Directory.Exists(assetsDir))
-                    {
-                        dir = Directory.EnumerateFiles(assetsDir, result.FileName, SearchOption.AllDirectories)
-                            .Select(Path.GetDirectoryName)
-                            .FirstOrDefault(d => d != null);
-                    }
+                    await DisplayAlert("Invalid File", $"{result.FileName} is not a PMX/PMD file.", "OK");
+                    continue;
                 }
-                catch
+
+                var importer = new MiniMikuDance.Import.ModelImporter();
+                MiniMikuDance.Import.ModelData data;
+                if (!string.IsNullOrEmpty(result.FullPath))
                 {
-                    dir = null;
+                    await using var stream = File.OpenRead(result.FullPath);
+                    var dir = Path.GetDirectoryName(result.FullPath);
+                    data = importer.ImportModel(stream, dir);
                 }
-                data = importer.ImportModel(stream, dir);
+                else
+                {
+                    await using var stream = await result.OpenReadAsync();
+                    data = importer.ImportModel(stream);
+                }
+                _renderer.AddModel(data);
+                _models.Add(data);
+                _currentModel = data;
+                _shadeShift = data.ShadeShift;
+                _shadeToony = data.ShadeToony;
+                _rimIntensity = data.RimIntensity;
+                UpdateRendererLightingProperties();
             }
-            _renderer.LoadModel(data);
-            _currentModel = data;
-            _shadeShift = data.ShadeShift;
-            _shadeToony = data.ShadeToony;
-            _rimIntensity = data.RimIntensity;
-            UpdateRendererLightingProperties();
             Viewer?.InvalidateSurface();
         }
     }
