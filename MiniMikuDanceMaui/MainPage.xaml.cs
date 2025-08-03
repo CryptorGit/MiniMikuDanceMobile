@@ -1158,8 +1158,12 @@ private async void OnImportPmxClicked(object? sender, EventArgs e)
                     var texName = Path.GetFileName(sm.TextureFilePath ?? string.Empty);
                     if (string.IsNullOrEmpty(texName))
                         continue;
+
                     if (!_texturePathMap.TryGetValue(texName, out var rel))
+                    {
+                        LogService.WriteLine($"Warning: texture not found for {texName}");
                         continue;
+                    }
 
                     var path = Path.Combine(_modelDir, rel);
                     await using var stream = File.OpenRead(path);
