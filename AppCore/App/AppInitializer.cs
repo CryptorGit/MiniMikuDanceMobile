@@ -23,7 +23,7 @@ public partial class AppInitializer : IDisposable
     public MotionApplier? Applier { get; private set; }
 
     /// <summary>
-    /// VRMモデルを読み込んだあとに呼び出し、MotionApplier を更新する。
+    /// PMXモデルを読み込んだあとに呼び出し、MotionApplier を更新する。
     /// </summary>
     /// <param name="model">ロード済みのモデルデータ</param>
     public void UpdateApplier(ModelData model)

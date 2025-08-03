@@ -1,7 +1,7 @@
 namespace MiniMikuDance.Import;
 
 /// <summary>
-/// VRM仕様で定義される主要17ボーンの順序を提供する。
+/// PMXモデルで一般的に利用される主要17ボーンの順序を提供する。
 /// </summary>
 public static class HumanoidBones
 {
