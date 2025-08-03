@@ -14,6 +14,7 @@ using Microsoft.Maui.Storage;
 using Microsoft.Maui.Devices;
 using System.IO;
 using System.Linq;
+using System.Reflection;
 using MiniMikuDance.Import;
 using OpenTK.Mathematics;
 using MiniMikuDance.Util;
@@ -114,15 +115,16 @@ public partial class MainPage : ContentPage
 
     private static string GetAppPackageDirectory()
     {
-        var dir = FileSystem.AppPackageDirectory;
-        if (!string.IsNullOrEmpty(dir) && Directory.Exists(dir))
+        // AppPackageDirectory が利用可能な環境ではそれを優先的に使用する
+        var dirProp = typeof(FileSystem).GetProperty("AppPackageDirectory", BindingFlags.Public | BindingFlags.Static);
+        if (dirProp?.GetValue(null) is string dir && !string.IsNullOrEmpty(dir) && Directory.Exists(dir))
             return dir;
 
         if (!string.IsNullOrEmpty(FileSystem.AppDataDirectory) && Directory.Exists(FileSystem.AppDataDirectory))
             return FileSystem.AppDataDirectory;
 
         var baseDir = AppContext.BaseDirectory;
-        if (!string.IsNullOrEmpty(baseDir))
+        if (!string.IsNullOrEmpty(baseDir) && Directory.Exists(baseDir))
             return baseDir;
 
         return Environment.CurrentDirectory;
