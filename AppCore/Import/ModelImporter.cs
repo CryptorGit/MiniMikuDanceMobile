@@ -204,6 +204,7 @@ public class ModelImporter
             {
                 var texName = texList[mat.Texture];
                 var texPath = Path.Combine(dir, texName);
+                smd.TextureFilePath = texName;
                 if (File.Exists(texPath))
                 {
                     using var image = SixLabors.ImageSharp.Image.Load<Rgba32>(texPath);

@@ -46,7 +46,7 @@ public partial class MainPage : ContentPage
     private readonly List<string> _selectedTexturePaths = new();
     private readonly List<Label> _texturePathLabels = new();
     private int _currentTextureIndex = -1;
-    private string? _lastModelDir;
+    private string? _modelDir;
     private float _modelScale = 1f;
 
     private readonly PmxRenderer _renderer = new();
@@ -740,7 +740,7 @@ private void ShowBottomFeature(string name)
         }
         else if (name == "Texture")
         {
-            var texPath = _lastModelDir ?? MmdFileSystem.Ensure("Textures");
+            var texPath = _modelDir ?? MmdFileSystem.Ensure("Textures");
             var ev = new ExplorerView(texPath, new[] { ".png", ".jpg", ".jpeg", ".tga" });
             ev.FileSelected += OnTexExplorerFileSelected;
             ev.LoadDirectory(texPath);
@@ -1200,7 +1200,7 @@ private void OnOpenExplorerFileSelected(object? sender, string path)
     }
 
     _selectedModelPath = path;
-    _lastModelDir = Path.GetDirectoryName(path);
+    _modelDir = Path.GetDirectoryName(path);
     SelectedModelPath.Text = path;
 }
 
@@ -1231,10 +1231,14 @@ private async void OnImportPmxClicked(object? sender, EventArgs e)
 
         for (int i = 0; i < _selectedTexturePaths.Count && i < data.SubMeshes.Count; i++)
         {
-            var path = _selectedTexturePaths[i];
-            if (string.IsNullOrEmpty(path))
+            if (string.IsNullOrEmpty(_modelDir))
+                break;
+
+            var rel = _selectedTexturePaths[i];
+            if (string.IsNullOrEmpty(rel))
                 continue;
 
+            var path = Path.Combine(_modelDir, rel);
             await using var stream = File.OpenRead(path);
             using var image = await SixLabors.ImageSharp.Image.LoadAsync<Rgba32>(stream);
             var sm = data.SubMeshes[i];
@@ -1242,6 +1246,7 @@ private async void OnImportPmxClicked(object? sender, EventArgs e)
             image.CopyPixelDataTo(sm.TextureBytes);
             sm.TextureWidth = image.Width;
             sm.TextureHeight = image.Height;
+            sm.TextureFilePath = rel;
         }
 
         _pendingModel = data;
@@ -1285,12 +1290,22 @@ private void OnTexExplorerFileSelected(object? sender, string path)
     {
         return;
     }
-    if (PmxImportDialog.IsVisible)
+    if (PmxImportDialog.IsVisible && _modelDir != null)
     {
         if (_currentTextureIndex >= 0 && _currentTextureIndex < _texturePathLabels.Count)
         {
-            _selectedTexturePaths[_currentTextureIndex] = path;
-            _texturePathLabels[_currentTextureIndex].Text = path;
+            var dir = Path.GetDirectoryName(path);
+            if (!string.IsNullOrEmpty(dir) &&
+                !Path.GetFullPath(dir).Equals(Path.GetFullPath(_modelDir), StringComparison.OrdinalIgnoreCase))
+            {
+                Directory.CreateDirectory(_modelDir);
+                var dest = Path.Combine(_modelDir, Path.GetFileName(path));
+                File.Copy(path, dest, true);
+                path = dest;
+            }
+            var rel = Path.GetRelativePath(_modelDir, path);
+            _selectedTexturePaths[_currentTextureIndex] = rel;
+            _texturePathLabels[_currentTextureIndex].Text = Path.Combine(_modelDir, rel);
         }
     }
 }
