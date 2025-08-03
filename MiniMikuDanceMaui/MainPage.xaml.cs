@@ -22,6 +22,8 @@ using MiniMikuDance.PoseEstimation;
 using MiniMikuDance.Motion;
 using MiniMikuDance.Camera;
 using MiniMikuDance.App;
+using SixLabors.ImageSharp;
+using SixLabors.ImageSharp.PixelFormats;
 
 namespace MiniMikuDanceMaui;
 
@@ -1060,6 +1062,54 @@ private async Task AddToLibraryAsync()
     catch (Exception ex)
     {
 
+        await DisplayAlert("Error", ex.Message, "OK");
+    }
+}
+
+private async void OnImportTexClicked(object? sender, EventArgs e)
+{
+    HideFileMenu();
+
+    if (_currentModel == null || _currentModel.SubMeshes.Count == 0)
+    {
+        await DisplayAlert("Error", "モデルが読み込まれていません", "OK");
+        return;
+    }
+
+    try
+    {
+        var result = await FilePicker.Default.PickAsync(new PickOptions
+        {
+            PickerTitle = "Select texture image",
+            FileTypes = new FilePickerFileType(new Dictionary<DevicePlatform, IEnumerable<string>>
+            {
+                [DevicePlatform.Android] = new[] { "image/png", "image/jpeg" },
+                [DevicePlatform.WinUI] = new[] { ".png", ".jpg", ".jpeg" },
+                [DevicePlatform.iOS] = new[] { ".png", ".jpg", ".jpeg" }
+            })
+        });
+
+        if (result == null)
+        {
+            await DisplayAlert("Canceled", "ファイルが選択されませんでした", "OK");
+            return;
+        }
+
+        await using var stream = await result.OpenReadAsync();
+        using var image = await Image.LoadAsync<Rgba32>(stream);
+
+        var sm = _currentModel.SubMeshes[0];
+        sm.TextureBytes = new byte[image.Width * image.Height * 4];
+        image.CopyPixelDataTo(sm.TextureBytes);
+        sm.TextureWidth = image.Width;
+        sm.TextureHeight = image.Height;
+
+        _renderer.LoadModel(_currentModel);
+        UpdateRendererLightingProperties();
+        Viewer?.InvalidateSurface();
+    }
+    catch (Exception ex)
+    {
         await DisplayAlert("Error", ex.Message, "OK");
     }
 }
