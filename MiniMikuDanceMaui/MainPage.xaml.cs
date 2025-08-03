@@ -316,32 +316,9 @@ private void OnLightingClicked(object? sender, EventArgs e)
     HideAllMenusAndLayout();
 }
 
-private void OnCameraClicked(object? sender, EventArgs e)
-{
-    ShowBottomFeature("CAMERA");
-    HideAllMenusAndLayout();
-}
-
 private void OnGyroMenuClicked(object? sender, EventArgs e)
 {
     ShowBottomFeature("GYRO");
-    HideAllMenusAndLayout();
-}
-
-private void OnPmxClicked(object? sender, EventArgs e)
-{
-    ShowBottomFeature("PMX");
-    HideAllMenusAndLayout();
-}
-
-private async void OnTimelineClicked(object? sender, EventArgs e)
-{
-    if (_currentModel == null)
-    {
-        await DisplayAlert("Error", "PMXモデルが読み込まれていません。先にモデルをインポートしてください。", "OK");
-        return;
-    }
-    ShowBottomFeature("TIMELINE");
     HideAllMenusAndLayout();
 }
 
@@ -366,13 +343,6 @@ private void OnOverlayTapped(object? sender, TappedEventArgs e)
 
 private void OnBottomRegionTapped(object? sender, TappedEventArgs e)
 {
-    HideAllMenusAndLayout();
-}
-
-
-private void OnExplorerClicked(object? sender, EventArgs e)
-{
-    ShowBottomFeature("Explorer");
     HideAllMenusAndLayout();
 }
 

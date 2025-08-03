@@ -37,11 +37,6 @@
         <Frame x:Name="ViewMenu" IsVisible="False" BackgroundColor="{StaticResource BackgroundColor}" Padding="0" ZIndex="20">
             <VerticalStackLayout Spacing="4" Padding="8">
                 
-                <Label Text="Explorer" TextColor="{StaticResource TextColor}">
-                    <Label.GestureRecognizers>
-                        <TapGestureRecognizer Tapped="OnExplorerClicked" />
-                    </Label.GestureRecognizers>
-                </Label>
                 <Label Text="Bone" TextColor="{StaticResource TextColor}">
                     <Label.GestureRecognizers>
                         <TapGestureRecognizer Tapped="OnBoneClicked" />
@@ -52,26 +47,9 @@
                         <TapGestureRecognizer Tapped="OnLightingClicked" />
                     </Label.GestureRecognizers>
                 </Label>
-                <Label Text="Camera" TextColor="{StaticResource TextColor}">
-                    <Label.GestureRecognizers>
-                        <TapGestureRecognizer Tapped="OnCameraClicked" />
-                    </Label.GestureRecognizers>
-                </Label>
                 <Label Text="Gyro" TextColor="{StaticResource TextColor}">
                     <Label.GestureRecognizers>
                         <TapGestureRecognizer Tapped="OnGyroMenuClicked" />
-                    </Label.GestureRecognizers>
-                </Label>
-
-                <Label Text="Pmx" TextColor="{StaticResource TextColor}">
-                    <Label.GestureRecognizers>
-                        <TapGestureRecognizer Tapped="OnPmxClicked" />
-                    </Label.GestureRecognizers>
-                </Label>
-
-                <Label Text="Timeline" TextColor="{StaticResource TextColor}">
-                    <Label.GestureRecognizers>
-                        <TapGestureRecognizer Tapped="OnTimelineClicked" />
                     </Label.GestureRecognizers>
                 </Label>
             </VerticalStackLayout>
