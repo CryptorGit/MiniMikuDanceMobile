@@ -606,8 +606,8 @@ void main(){
                     {
                         var pp = worldMats[bone.Parent].Translation;
                         var cp = worldMats[i].Translation;
-                        var p4 = Vector4.Transform(new Vector4(pp.X, pp.Y, pp.Z, 1f), modelMat);
-                        var c4 = Vector4.Transform(new Vector4(cp.X, cp.Y, cp.Z, 1f), modelMat);
+                        var p4 = Vector4.TransformRow(new Vector4(pp.X, pp.Y, pp.Z, 1f), modelMat);
+                        var c4 = Vector4.TransformRow(new Vector4(cp.X, cp.Y, cp.Z, 1f), modelMat);
                         lines.Add(p4.X); lines.Add(p4.Y); lines.Add(p4.Z);
                         lines.Add(c4.X); lines.Add(c4.Y); lines.Add(c4.Z);
                     }
