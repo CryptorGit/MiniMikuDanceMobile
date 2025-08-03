@@ -38,8 +38,8 @@ public class PmxRenderer : IDisposable
     private int _projLoc;
     private int _colorLoc;
     private float _orbitX;
-    // 初期カメラ位置はモデル正面を向くようY軸回転を0に設定
-    private float _orbitY = 0f;
+    // 初期カメラ位置はモデルの正面が表示されるようY軸回転を180度に設定
+    private float _orbitY = MathF.PI;
     private float _distance = 4f;
     // モデル中心より少し高い位置を基準にカメラを配置する
     private Vector3 _target = new Vector3(0f, 0.5f, 0f);
@@ -294,7 +294,7 @@ void main(){
     public void ResetCamera()
     {
         _orbitX = 0f;
-        _orbitY = 0f;
+        _orbitY = MathF.PI;
         _target = new Vector3(0f, _defaultCameraTargetY, 0f);
         _distance = _defaultCameraDistance;
         if (_distance < 1f) _distance = 1f;
