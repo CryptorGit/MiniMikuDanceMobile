@@ -1093,6 +1093,7 @@ private void OnOpenInViewerClicked(object? sender, EventArgs e)
     _selectedTexturePaths.Clear();
     _texturePathLabels.Clear();
     TextureList.Children.Clear();
+    _currentTextureIndex = -1;
     AddTextureRow();
     _modelScale = 1f;
     UpdateLayout();
@@ -1229,24 +1230,25 @@ private async void OnImportPmxClicked(object? sender, EventArgs e)
         var importer = new ModelImporter { Scale = _modelScale };
         var data = await Task.Run(() => importer.ImportModel(_selectedModelPath));
 
-        for (int i = 0; i < _selectedTexturePaths.Count && i < data.SubMeshes.Count; i++)
+        if (!string.IsNullOrEmpty(_modelDir))
         {
-            if (string.IsNullOrEmpty(_modelDir))
-                break;
+            int count = Math.Min(_selectedTexturePaths.Count, data.SubMeshes.Count);
+            for (int i = 0; i < count; i++)
+            {
+                var rel = _selectedTexturePaths[i];
+                if (string.IsNullOrEmpty(rel))
+                    continue;
 
-            var rel = _selectedTexturePaths[i];
-            if (string.IsNullOrEmpty(rel))
-                continue;
-
-            var path = Path.Combine(_modelDir, rel);
-            await using var stream = File.OpenRead(path);
-            using var image = await SixLabors.ImageSharp.Image.LoadAsync<Rgba32>(stream);
-            var sm = data.SubMeshes[i];
-            sm.TextureBytes = new byte[image.Width * image.Height * 4];
-            image.CopyPixelDataTo(sm.TextureBytes);
-            sm.TextureWidth = image.Width;
-            sm.TextureHeight = image.Height;
-            sm.TextureFilePath = rel;
+                var path = Path.Combine(_modelDir, rel);
+                await using var stream = File.OpenRead(path);
+                using var image = await SixLabors.ImageSharp.Image.LoadAsync<Rgba32>(stream);
+                var sm = data.SubMeshes[i];
+                sm.TextureBytes = new byte[image.Width * image.Height * 4];
+                image.CopyPixelDataTo(sm.TextureBytes);
+                sm.TextureWidth = image.Width;
+                sm.TextureHeight = image.Height;
+                sm.TextureFilePath = rel;
+            }
         }
 
         _pendingModel = data;
@@ -1266,6 +1268,7 @@ private async void OnImportPmxClicked(object? sender, EventArgs e)
         _texturePathLabels.Clear();
         TextureList.Children.Clear();
         SelectedModelPath.Text = string.Empty;
+        _currentTextureIndex = -1;
     }
 }
 
@@ -1279,6 +1282,7 @@ private void OnCancelImportClicked(object? sender, EventArgs e)
     SelectedModelPath.Text = string.Empty;
     ScaleEntry.Text = "1.0";
     _modelScale = 1f;
+    _currentTextureIndex = -1;
     SetLoadingIndicatorVisibilityAndLayout(false);
     UpdateLayout();
 }
@@ -1292,21 +1296,26 @@ private void OnTexExplorerFileSelected(object? sender, string path)
     }
     if (PmxImportDialog.IsVisible && _modelDir != null)
     {
-        if (_currentTextureIndex >= 0 && _currentTextureIndex < _texturePathLabels.Count)
+        if (_currentTextureIndex < 0)
+            _currentTextureIndex = 0;
+
+        while (_currentTextureIndex >= _texturePathLabels.Count)
+            AddTextureRow();
+
+        var dir = Path.GetDirectoryName(path);
+        if (!string.IsNullOrEmpty(dir) &&
+            !Path.GetFullPath(dir).Equals(Path.GetFullPath(_modelDir), StringComparison.OrdinalIgnoreCase))
         {
-            var dir = Path.GetDirectoryName(path);
-            if (!string.IsNullOrEmpty(dir) &&
-                !Path.GetFullPath(dir).Equals(Path.GetFullPath(_modelDir), StringComparison.OrdinalIgnoreCase))
-            {
-                Directory.CreateDirectory(_modelDir);
-                var dest = Path.Combine(_modelDir, Path.GetFileName(path));
-                File.Copy(path, dest, true);
-                path = dest;
-            }
-            var rel = Path.GetRelativePath(_modelDir, path);
-            _selectedTexturePaths[_currentTextureIndex] = rel;
-            _texturePathLabels[_currentTextureIndex].Text = Path.Combine(_modelDir, rel);
+            Directory.CreateDirectory(_modelDir);
+            var dest = Path.Combine(_modelDir, Path.GetFileName(path));
+            File.Copy(path, dest, true);
+            path = dest;
         }
+
+        var rel = Path.GetRelativePath(_modelDir, path);
+        _selectedTexturePaths[_currentTextureIndex] = rel;
+        _texturePathLabels[_currentTextureIndex].Text = Path.Combine(_modelDir, rel);
+        _currentTextureIndex++;
     }
 }
 
