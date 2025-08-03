@@ -11,7 +11,7 @@ public partial class CameraView : ContentView
     private readonly GyroService? _gyroService;
     private bool _gyroRunning;
 
-    public CameraView(VrmRenderer renderer)
+    public CameraView(PmxRenderer renderer)
     {
         InitializeComponent();
         _movieDir = MmdFileSystem.Ensure("Movie");

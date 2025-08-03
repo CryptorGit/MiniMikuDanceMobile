@@ -43,7 +43,7 @@ public partial class MainPage : ContentPage
     private string? _selectedVideoPath;
     private string? _selectedPosePath;
 
-    private readonly VrmRenderer _renderer = new();
+    private readonly PmxRenderer _renderer = new();
     private readonly CameraController _cameraController = new();
     private float _rotateSensitivity = 0.1f;
     private float _panSensitivity = 0.1f;

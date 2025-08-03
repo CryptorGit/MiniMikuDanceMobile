@@ -54,7 +54,7 @@ public class Viewer : IDisposable
         GL.Enable(EnableCap.Blend);
         GL.BlendFunc(BlendingFactorSrc.SrcAlpha, BlendingFactorDest.OneMinusSrcAlpha);
 
-        var model = VrmLoader.Load(modelPath);
+        var model = PmxLoader.Load(modelPath);
         _modelTransform = model.Transform;
 
         const string vert = "#version 330 core\n" +
