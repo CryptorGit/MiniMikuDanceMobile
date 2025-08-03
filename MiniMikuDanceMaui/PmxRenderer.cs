@@ -522,7 +522,6 @@ void main(){
         // CPU skinning: update vertex buffers based on current bone rotations
         if (_bones.Count > 0)
         {
-            const float deg2rad = MathF.PI / 180f;
             var worldMats = new System.Numerics.Matrix4x4[_bones.Count];
             for (int i = 0; i < _bones.Count; i++)
             {
