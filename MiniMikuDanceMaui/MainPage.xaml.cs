@@ -1244,7 +1244,7 @@ private async void OnImportPmxClicked(object? sender, EventArgs e)
         var importer = new ModelImporter { Scale = _modelScale };
         var data = await Task.Run(() => importer.ImportModel(_selectedModelPath));
 
-        // PMX内のテクスチャ名とサブメッシュインデックスの対応表を作成
+        // PMX内のテクスチャ相対パスとサブメッシュインデックスの対応表を作成
         var textureMap = new Dictionary<string, List<int>>(StringComparer.OrdinalIgnoreCase);
         for (int i = 0; i < data.SubMeshes.Count; i++)
         {
@@ -1252,11 +1252,10 @@ private async void OnImportPmxClicked(object? sender, EventArgs e)
             if (string.IsNullOrEmpty(texPath))
                 continue;
 
-            var name = Path.GetFileName(texPath);
-            if (!textureMap.TryGetValue(name, out var list))
+            if (!textureMap.TryGetValue(texPath, out var list))
             {
                 list = new List<int>();
-                textureMap[name] = list;
+                textureMap[texPath] = list;
             }
             list.Add(i);
         }
@@ -1268,11 +1267,10 @@ private async void OnImportPmxClicked(object? sender, EventArgs e)
                 if (string.IsNullOrEmpty(rel))
                     continue;
 
-                var name = Path.GetFileName(rel);
-                if (!textureMap.TryGetValue(name, out var indices))
+                if (!textureMap.TryGetValue(rel, out var indices))
                     continue;
 
-                var path = Path.Combine(_modelDir, rel);
+                var path = Path.Combine(_modelDir, rel.Replace('/', Path.DirectorySeparatorChar));
                 await using var stream = File.OpenRead(path);
                 using var image = await SixLabors.ImageSharp.Image.LoadAsync<Rgba32>(stream);
 
@@ -1285,6 +1283,7 @@ private async void OnImportPmxClicked(object? sender, EventArgs e)
                     sm.TextureHeight = image.Height;
                     sm.TextureFilePath = rel;
                 }
+                LogService.WriteLine($"Texture {rel} mapped to indices: {string.Join(",", indices)}");
             }
         }
 
@@ -1339,7 +1338,8 @@ private void OnTexExplorerFileSelected(object? sender, string path)
         while (_currentTextureIndex >= _texturePathLabels.Count)
             AddTextureRow();
 
-        var rel = Path.GetRelativePath(_modelDir, path);
+        var rel = Path.GetRelativePath(_modelDir, path)
+            .Replace(Path.DirectorySeparatorChar, '/');
         _selectedTexturePaths[_currentTextureIndex] = rel;
         _texturePathLabels[_currentTextureIndex].Text = path;
         _currentTextureIndex++;
