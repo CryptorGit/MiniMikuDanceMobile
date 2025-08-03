@@ -1302,19 +1302,9 @@ private void OnTexExplorerFileSelected(object? sender, string path)
         while (_currentTextureIndex >= _texturePathLabels.Count)
             AddTextureRow();
 
-        var dir = Path.GetDirectoryName(path);
-        if (!string.IsNullOrEmpty(dir) &&
-            !Path.GetFullPath(dir).Equals(Path.GetFullPath(_modelDir), StringComparison.OrdinalIgnoreCase))
-        {
-            Directory.CreateDirectory(_modelDir);
-            var dest = Path.Combine(_modelDir, Path.GetFileName(path));
-            File.Copy(path, dest, true);
-            path = dest;
-        }
-
         var rel = Path.GetRelativePath(_modelDir, path);
         _selectedTexturePaths[_currentTextureIndex] = rel;
-        _texturePathLabels[_currentTextureIndex].Text = Path.Combine(_modelDir, rel);
+        _texturePathLabels[_currentTextureIndex].Text = path;
         _currentTextureIndex++;
     }
 }
