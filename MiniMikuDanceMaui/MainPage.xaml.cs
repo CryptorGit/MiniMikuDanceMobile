@@ -40,12 +40,13 @@ public partial class MainPage : ContentPage
     private readonly Dictionary<string, View> _bottomViews = new();
     private readonly Dictionary<string, Border> _bottomTabs = new();
     private string? _currentFeature;
-    private string? _selectedPath;
+    private string? _selectedModelPath;
     private string? _selectedVideoPath;
     private string? _selectedPosePath;
-    private string? _selectedTexPath;
+    private string? _selectedTexturePath;
     private string? _lastModelDir;
     private int _selectedSubMeshIndex;
+    private float _modelScale = 1f;
 
     private readonly PmxRenderer _renderer = new();
     private readonly CameraController _cameraController = new();
@@ -491,9 +492,9 @@ private void UpdateLayout()
     AbsoluteLayout.SetLayoutBounds(MenuOverlay, new Rect(0, 0, W, H));
     AbsoluteLayout.SetLayoutFlags(MenuOverlay, AbsoluteLayoutFlags.None);
 
-    AbsoluteLayout.SetLayoutBounds(FileSelectMessage, new Rect(0.5, TopMenuHeight + 20, 0.8,
-        FileSelectMessage.IsVisible ? AbsoluteLayout.AutoSize : 0));
-    AbsoluteLayout.SetLayoutFlags(FileSelectMessage,
+    AbsoluteLayout.SetLayoutBounds(PmxImportDialog, new Rect(0.5, TopMenuHeight + 20, 0.8,
+        PmxImportDialog.IsVisible ? AbsoluteLayout.AutoSize : 0));
+    AbsoluteLayout.SetLayoutFlags(PmxImportDialog,
         AbsoluteLayoutFlags.XProportional | AbsoluteLayoutFlags.WidthProportional);
     AbsoluteLayout.SetLayoutBounds(PoseSelectMessage, new Rect(0.5, TopMenuHeight + 20, 0.8,
         PoseSelectMessage.IsVisible ? AbsoluteLayout.AutoSize : 0));
@@ -1096,7 +1097,7 @@ private async void ShowTexExplorer()
     }
 
     HideAllMenusAndLayout();
-    ShowExplorer("Texture", TexSelectMessage, SelectedTexPath, ref _selectedTexPath);
+    ShowExplorer("Texture", TexSelectMessage, SelectedTexPath, ref _selectedTexturePath);
 
     var items = Enumerable.Range(0, _currentModel.SubMeshes.Count)
         .Select(i => $"SubMesh {i}")
@@ -1109,7 +1110,24 @@ private async void ShowTexExplorer()
 private void OnOpenInViewerClicked(object? sender, EventArgs e)
 {
     HideAllMenusAndLayout();
-    ShowOpenExplorer();
+    PmxImportDialog.IsVisible = true;
+    SelectedModelPath.Text = string.Empty;
+    SelectedTexturePath.Text = string.Empty;
+    ScaleEntry.Text = "1.0";
+    _selectedModelPath = null;
+    _selectedTexturePath = null;
+    _modelScale = 1f;
+    UpdateLayout();
+}
+
+private void OnSelectPmxModelClicked(object? sender, EventArgs e)
+{
+    ShowModelExplorer();
+}
+
+private void OnSelectPmxTextureClicked(object? sender, EventArgs e)
+{
+    ShowExplorer("Texture", PmxImportDialog, SelectedTexturePath, ref _selectedTexturePath);
 }
 
 private void OnEstimatePoseClicked(object? sender, EventArgs e)
@@ -1124,7 +1142,7 @@ private void OnAdaptPoseClicked(object? sender, EventArgs e)
     ShowAdaptExplorer();
 }
 
-private async void ShowOpenExplorer()
+private async void ShowModelExplorer()
 {
     var modelsPath = MmdFileSystem.Ensure("Models");
 
@@ -1146,7 +1164,7 @@ private async void ShowOpenExplorer()
         return;
     }
 
-    ShowExplorer("Open", FileSelectMessage, SelectedFilePath, ref _selectedPath);
+    ShowExplorer("Open", PmxImportDialog, SelectedModelPath, ref _selectedModelPath);
 }
 
 private void OnOpenExplorerFileSelected(object? sender, string path)
@@ -1157,29 +1175,47 @@ private void OnOpenExplorerFileSelected(object? sender, string path)
         return;
     }
 
-    _selectedPath = path;
+    _selectedModelPath = path;
     _lastModelDir = Path.GetDirectoryName(path);
-    SelectedFilePath.Text = path;
+    SelectedModelPath.Text = path;
 }
 
-private async void OnImportClicked(object? sender, EventArgs e)
+private async void OnImportPmxClicked(object? sender, EventArgs e)
 {
 
-    if (string.IsNullOrEmpty(_selectedPath))
+    if (string.IsNullOrEmpty(_selectedModelPath))
     {
         await DisplayAlert("Error", "ファイルが選択されていません", "OK");
         return;
     }
 
     RemoveBottomFeature("Open");
-    FileSelectMessage.IsVisible = false;
+    RemoveBottomFeature("Texture");
+    PmxImportDialog.IsVisible = false;
     SetLoadingIndicatorVisibilityAndLayout(true);
     Viewer.HasRenderLoop = false;
 
     try
     {
-        var importer = new ModelImporter();
-        var data = await Task.Run(() => importer.ImportModel(_selectedPath));
+        if (!float.TryParse(ScaleEntry.Text, out _modelScale))
+        {
+            _modelScale = 1f;
+        }
+
+        var importer = new ModelImporter { Scale = _modelScale };
+        var data = await Task.Run(() => importer.ImportModel(_selectedModelPath));
+
+        if (!string.IsNullOrEmpty(_selectedTexturePath) && data.SubMeshes.Count > 0)
+        {
+            await using var stream = File.OpenRead(_selectedTexturePath);
+            using var image = await SixLabors.ImageSharp.Image.LoadAsync<Rgba32>(stream);
+            var sm = data.SubMeshes[0];
+            sm.TextureBytes = new byte[image.Width * image.Height * 4];
+            image.CopyPixelDataTo(sm.TextureBytes);
+            sm.TextureWidth = image.Width;
+            sm.TextureHeight = image.Height;
+        }
+
         _pendingModel = data;
         Viewer.InvalidateSurface();
     }
@@ -1192,16 +1228,24 @@ private async void OnImportClicked(object? sender, EventArgs e)
     {
         Viewer.HasRenderLoop = true;
         SetLoadingIndicatorVisibilityAndLayout(false);
-        _selectedPath = null;
+        _selectedModelPath = null;
+        _selectedTexturePath = null;
+        SelectedModelPath.Text = string.Empty;
+        SelectedTexturePath.Text = string.Empty;
     }
 }
 
 private void OnCancelImportClicked(object? sender, EventArgs e)
 {
-    _selectedPath = null;
-    FileSelectMessage.IsVisible = false;
-    SelectedFilePath.Text = string.Empty;
+    _selectedModelPath = null;
+    _selectedTexturePath = null;
+    PmxImportDialog.IsVisible = false;
+    SelectedModelPath.Text = string.Empty;
+    SelectedTexturePath.Text = string.Empty;
+    ScaleEntry.Text = "1.0";
+    _modelScale = 1f;
     SetLoadingIndicatorVisibilityAndLayout(false);
+    UpdateLayout();
 }
 
 private void OnTexExplorerFileSelected(object? sender, string path)
@@ -1212,8 +1256,15 @@ private void OnTexExplorerFileSelected(object? sender, string path)
         return;
     }
 
-    _selectedTexPath = path;
-    SelectedTexPath.Text = path;
+    _selectedTexturePath = path;
+    if (PmxImportDialog.IsVisible)
+    {
+        SelectedTexturePath.Text = path;
+    }
+    else
+    {
+        SelectedTexPath.Text = path;
+    }
 }
 
 private void OnSubMeshPickerChanged(object? sender, EventArgs e)
@@ -1223,7 +1274,7 @@ private void OnSubMeshPickerChanged(object? sender, EventArgs e)
 
 private async void OnImportTextureClicked(object? sender, EventArgs e)
 {
-    if (string.IsNullOrEmpty(_selectedTexPath))
+    if (string.IsNullOrEmpty(_selectedTexturePath))
     {
         await DisplayAlert("Error", "ファイルが選択されていません", "OK");
         return;
@@ -1239,7 +1290,7 @@ private async void OnImportTextureClicked(object? sender, EventArgs e)
 
     try
     {
-        await using var stream = File.OpenRead(_selectedTexPath);
+        await using var stream = File.OpenRead(_selectedTexturePath);
         using var image = await SixLabors.ImageSharp.Image.LoadAsync<Rgba32>(stream);
 
         var sm = _currentModel.SubMeshes[_selectedSubMeshIndex];
@@ -1260,7 +1311,7 @@ private async void OnImportTextureClicked(object? sender, EventArgs e)
     {
         RemoveBottomFeature("Texture");
         TexSelectMessage.IsVisible = false;
-        _selectedTexPath = null;
+        _selectedTexturePath = null;
         SelectedTexPath.Text = string.Empty;
         UpdateLayout();
     }
@@ -1268,7 +1319,7 @@ private async void OnImportTextureClicked(object? sender, EventArgs e)
 
 private void OnCancelTextureImportClicked(object? sender, EventArgs e)
 {
-    _selectedTexPath = null;
+    _selectedTexturePath = null;
     TexSelectMessage.IsVisible = false;
     SelectedTexPath.Text = string.Empty;
     UpdateLayout();
