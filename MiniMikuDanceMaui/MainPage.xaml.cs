@@ -740,7 +740,7 @@ private void ShowBottomFeature(string name)
         }
         else if (name == "Texture")
         {
-            var texPath = _modelDir ?? MmdFileSystem.Ensure("Textures");
+            var texPath = MmdFileSystem.Ensure("Models");
             var ev = new ExplorerView(texPath, new[] { ".png", ".jpg", ".jpeg", ".tga" });
             ev.FileSelected += OnTexExplorerFileSelected;
             ev.LoadDirectory(texPath);
@@ -977,7 +977,7 @@ private void ShowBottomFeature(string name)
     }
     else if (name == "Texture" && _bottomViews[name] is ExplorerView tev)
     {
-        var texPath = MmdFileSystem.Ensure("Textures");
+        var texPath = MmdFileSystem.Ensure("Models");
         tev.LoadDirectory(texPath);
     }
     else if (name == "MTOON" && _bottomViews[name] is LightingView mv)
