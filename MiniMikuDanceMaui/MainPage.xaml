@@ -63,6 +63,12 @@
                     </Label.GestureRecognizers>
                 </Label>
 
+                <Label Text="Pmx" TextColor="{StaticResource TextColor}">
+                    <Label.GestureRecognizers>
+                        <TapGestureRecognizer Tapped="OnPmxClicked" />
+                    </Label.GestureRecognizers>
+                </Label>
+
                 <Label Text="Timeline" TextColor="{StaticResource TextColor}">
                     <Label.GestureRecognizers>
                         <TapGestureRecognizer Tapped="OnTimelineClicked" />
