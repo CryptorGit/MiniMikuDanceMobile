@@ -1230,24 +1230,47 @@ private async void OnImportPmxClicked(object? sender, EventArgs e)
         var importer = new ModelImporter { Scale = _modelScale };
         var data = await Task.Run(() => importer.ImportModel(_selectedModelPath));
 
+        // PMX内のテクスチャ名とサブメッシュインデックスの対応表を作成
+        var textureMap = new Dictionary<string, List<int>>(StringComparer.OrdinalIgnoreCase);
+        for (int i = 0; i < data.SubMeshes.Count; i++)
+        {
+            var texPath = data.SubMeshes[i].TextureFilePath;
+            if (string.IsNullOrEmpty(texPath))
+                continue;
+
+            var name = Path.GetFileName(texPath);
+            if (!textureMap.TryGetValue(name, out var list))
+            {
+                list = new List<int>();
+                textureMap[name] = list;
+            }
+            list.Add(i);
+        }
+
         if (!string.IsNullOrEmpty(_modelDir))
         {
-            int count = Math.Min(_selectedTexturePaths.Count, data.SubMeshes.Count);
-            for (int i = 0; i < count; i++)
+            foreach (var rel in _selectedTexturePaths)
             {
-                var rel = _selectedTexturePaths[i];
                 if (string.IsNullOrEmpty(rel))
+                    continue;
+
+                var name = Path.GetFileName(rel);
+                if (!textureMap.TryGetValue(name, out var indices))
                     continue;
 
                 var path = Path.Combine(_modelDir, rel);
                 await using var stream = File.OpenRead(path);
                 using var image = await SixLabors.ImageSharp.Image.LoadAsync<Rgba32>(stream);
-                var sm = data.SubMeshes[i];
-                sm.TextureBytes = new byte[image.Width * image.Height * 4];
-                image.CopyPixelDataTo(sm.TextureBytes);
-                sm.TextureWidth = image.Width;
-                sm.TextureHeight = image.Height;
-                sm.TextureFilePath = rel;
+
+                foreach (var idx in indices)
+                {
+                    var sm = data.SubMeshes[idx];
+                    sm.TextureBytes = new byte[image.Width * image.Height * 4];
+                    image.CopyPixelDataTo(sm.TextureBytes);
+                    sm.TextureWidth = image.Width;
+                    sm.TextureHeight = image.Height;
+                    sm.TextureFilePath = rel;
+                }
             }
         }
 
