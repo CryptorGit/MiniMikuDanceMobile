@@ -11,7 +11,7 @@ using MiniMikuDance.App;
 
 namespace MiniMikuDanceMaui;
 
-public class VrmRenderer : IDisposable
+public class PmxRenderer : IDisposable
 {
     private int _program;
     private class RenderMesh

@@ -15,7 +15,7 @@ hips ボーンについては `hips.tx/ty/tz` に記録された平行移動ベ�
 ## 姿勢適用実装のポイント
 
 * VRM 取り込み後、`ModelImporter` は標準ボーン名と実ノード番号の対応を `ModelData.HumanoidBones` 辞書に保持します。姿勢を適用するときはこの辞書、あるいは `HumanoidBoneList[i].Index` を用いて実際のインデックスを取得してください。
-* `FindIndex` で求めたリスト上の順序をそのまま `VrmRenderer` に渡すと誤ったボーンが変化します。必ず上記のインデックス変換を挟みます。
+* `FindIndex` で求めたリスト上の順序をそのまま `PmxRenderer` に渡すと誤ったボーンが変化します。必ず上記のインデックス変換を挟みます。
 * `TimelineView` や各種パネルからボーンを操作する実装では、共通メソッド化してインデックス変換を行うとコードの重複を防げます。
 * 今後姿勢編集機能を拡張する際も、この仕組みを基に実装するとスムーズです。
 
@@ -29,4 +29,4 @@ CSV ファイルには SMPL 形式の軸回転ベクトルが度数法で保存�
 3. ドキュメント記載のレストポーズ差分 `R_offset` を補正するため `Quaternion.Inverse(off)` と連結。
 4. `ToEulerAngles` で Z→X→Y の順に Euler 角へ変換し、タイムラインへ登録【F:MiniMikuDanceMaui/MainPage.xaml.cs†L1840-L1858】。
 
-描画時は `VrmRenderer` が各ボーンの Euler 角を `FromEulerDegrees` でクォータニオンに戻し、スキニング行列を生成します【F:MiniMikuDanceMaui/VrmRenderer.cs†L483-L501】。回転順序も Z→X→Y に統一されているため、ドキュメントの変換手順【F:Documents/smpl_to_vrm_rotation_guide.md†L73-L78】に沿った結果が得られます。
+描画時は `PmxRenderer` が各ボーンの Euler 角を `FromEulerDegrees` でクォータニオンに戻し、スキニング行列を生成します【F:MiniMikuDanceMaui/PmxRenderer.cs†L483-L501】。回転順序も Z→X→Y に統一されているため、ドキュメントの変換手順【F:Documents/smpl_to_vrm_rotation_guide.md†L73-L78】に沿った結果が得られます。

@@ -8,10 +8,10 @@ namespace MiniMikuDanceMaui;
 public class GyroService : IDisposable
 {
     private readonly CameraController _camera;
-    private readonly VrmRenderer _renderer;
+    private readonly PmxRenderer _renderer;
     private bool _running;
 
-    public GyroService(CameraController camera, VrmRenderer renderer)
+    public GyroService(CameraController camera, PmxRenderer renderer)
     {
         _camera = camera;
         _renderer = renderer;

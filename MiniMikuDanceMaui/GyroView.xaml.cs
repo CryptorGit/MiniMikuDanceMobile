@@ -9,7 +9,7 @@ public partial class GyroView : ContentView
     private readonly GyroService? _gyroService;
     private bool _gyroRunning;
 
-    public GyroView(CameraController cameraController, VrmRenderer renderer)
+    public GyroView(CameraController cameraController, PmxRenderer renderer)
     {
         InitializeComponent();
         _gyroService = new GyroService(cameraController, renderer);
