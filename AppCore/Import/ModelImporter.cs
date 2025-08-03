@@ -30,7 +30,7 @@ public class ModelImporter
     private readonly AssimpContext _context = new();
     public float Scale { get; set; } = AppSettings.DefaultModelScale;
 
-    public ModelData ImportModel(Stream stream)
+    public ModelData ImportModel(Stream stream, string? textureDir = null)
     {
         using var ms = new MemoryStream();
         stream.CopyTo(ms);
@@ -41,7 +41,7 @@ public class ModelImporter
         if (bytes.Length >= 4 &&
             bytes[0] == 'P' && bytes[1] == 'M' && bytes[2] == 'X' && bytes[3] == ' ')
         {
-            return ImportPmx(ms);
+            return ImportPmx(ms, textureDir);
         }
 
         throw new NotSupportedException("PMX 以外の形式には対応していません。");
@@ -61,7 +61,7 @@ public class ModelImporter
         if (ext == ".pmx")
         {
             using var fs = File.OpenRead(path);
-            return ImportPmx(fs, Path.GetDirectoryName(path));
+            return ImportModel(fs, Path.GetDirectoryName(path));
         }
 
         var scene = _context.ImportFile(path, PostProcessSteps.Triangulate | PostProcessSteps.GenerateNormals);
@@ -69,7 +69,7 @@ public class ModelImporter
         return new ModelData { Mesh = scene.Meshes[0] };
     }
 
-    private ModelData ImportPmx(Stream stream, string? baseDir = null)
+    private ModelData ImportPmx(Stream stream, string? textureDir = null)
     {
         var pmx = PMXParser.Parse(stream);
         var verts = pmx.VertexList.ToArray();
@@ -144,7 +144,7 @@ public class ModelImporter
 
         data.Mesh = combined;
         int faceOffset = 0;
-        string dir = baseDir ?? string.Empty;
+        string dir = textureDir ?? string.Empty;
         foreach (var mat in mats)
         {
             var sub = new Assimp.Mesh("pmx", Assimp.PrimitiveType.Triangle);
