@@ -147,6 +147,10 @@ public partial class MainPage : ContentPage
     _renderer.ShadeShift = -0.1f;
     _renderer.ShadeToony = 0.9f;
     _renderer.RimIntensity = 0.5f;
+    var settings = AppSettings.Load();
+    _renderer.StageSize = settings.StageSize;
+    _renderer.DefaultCameraDistance = settings.CameraDistance;
+    _renderer.DefaultCameraTargetY = settings.CameraTargetY;
 
     if (Viewer is SKGLView glView)
     {
@@ -583,7 +587,6 @@ private void LoadPendingModel()
         _shadeToony = _pendingModel.ShadeToony;
         _rimIntensity = _pendingModel.RimIntensity;
         UpdateRendererLightingProperties();
-        _renderer.ResetCamera();
         _pendingModel = null;
         SavePoseState();
     }

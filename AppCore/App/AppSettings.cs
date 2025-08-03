@@ -26,6 +26,24 @@ public class AppSettings
     /// <summary>PMXモデルに適用するスケール。</summary>
     public float ModelScale { get; set; } = DefaultModelScale;
 
+    /// <summary>ステージの半径のデフォルト値。</summary>
+    public const float DefaultStageSize = 30f;
+
+    /// <summary>ステージの半径。</summary>
+    public float StageSize { get; set; } = DefaultStageSize;
+
+    /// <summary>カメラ距離のデフォルト値。</summary>
+    public const float DefaultCameraDistance = 4f;
+
+    /// <summary>カメラ距離。</summary>
+    public float CameraDistance { get; set; } = DefaultCameraDistance;
+
+    /// <summary>カメラの注視点Y座標のデフォルト値。</summary>
+    public const float DefaultCameraTargetY = 0.5f;
+
+    /// <summary>カメラの注視点Y座標。</summary>
+    public float CameraTargetY { get; set; } = DefaultCameraTargetY;
+
     private const string DefaultFile = "Configs/appsettings.json";
 
     /// <summary>
