@@ -22,7 +22,6 @@ using MiniMikuDance.PoseEstimation;
 using MiniMikuDance.Motion;
 using MiniMikuDance.Camera;
 using MiniMikuDance.App;
-using SixLabors.ImageSharp;
 using SixLabors.ImageSharp.PixelFormats;
 
 namespace MiniMikuDanceMaui;
@@ -1096,7 +1095,7 @@ private async void OnImportTexClicked(object? sender, EventArgs e)
         }
 
         await using var stream = await result.OpenReadAsync();
-        using var image = await Image.LoadAsync<Rgba32>(stream);
+        using var image = await SixLabors.ImageSharp.Image.LoadAsync<Rgba32>(stream);
 
         var sm = _currentModel.SubMeshes[0];
         sm.TextureBytes = new byte[image.Width * image.Height * 4];
