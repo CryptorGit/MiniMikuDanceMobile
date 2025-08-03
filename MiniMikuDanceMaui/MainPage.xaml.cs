@@ -317,8 +317,11 @@ private void OnGyroMenuClicked(object? sender, EventArgs e)
     HideAllMenusAndLayout();
 }
 
-
-
+private void OnPmxClicked(object? sender, EventArgs e)
+{
+    ShowBottomFeature("PMX");
+    HideAllMenusAndLayout();
+}
 
 private async void OnTimelineClicked(object? sender, EventArgs e)
 {
@@ -763,6 +766,13 @@ private void ShowBottomFeature(string name)
             view = gv;
         }
 
+        else if (name == "PMX")
+        {
+            var pv = new PmxView();
+            pv.SetModel(_currentModel);
+            view = pv;
+        }
+
         else if (name == "TIMELINE")
         {
             var tv = new TimelineView();
@@ -959,6 +969,10 @@ private void ShowBottomFeature(string name)
     else if (name == "BONE" && _bottomViews[name] is BoneView bv)
     {
         UpdateBoneViewProperties(bv);
+    }
+    else if (name == "PMX" && _bottomViews[name] is PmxView pv)
+    {
+        pv.SetModel(_currentModel);
     }
     else if (name == "Open" && _bottomViews[name] is ExplorerView oev)
     {
