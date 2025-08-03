@@ -216,6 +216,8 @@ void main(){
             range = (int)MathF.Ceiling(maxAbs) + 1;
         }
 
+        range *= 3;
+
         _gridVertexCount = (range * 2 + 1) * 4;
         float[] grid = new float[_gridVertexCount * 3];
         int idx = 0;
