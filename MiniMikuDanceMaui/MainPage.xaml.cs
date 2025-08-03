@@ -156,6 +156,12 @@ public partial class MainPage : ContentPage
     _renderer.DefaultCameraDistance = _settings.CameraDistance;
     _renderer.DefaultCameraTargetY = _settings.CameraTargetY;
 
+    var motion = App.Initializer.Motion;
+    if (motion != null)
+    {
+        _motionEditor = new MotionEditor(motion);
+    }
+
     if (Viewer is SKGLView glView)
     {
         glView.PaintSurface += OnPaintSurface;
