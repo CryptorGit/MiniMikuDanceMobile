@@ -111,6 +111,22 @@ public partial class MainPage : ContentPage
     private int _poseHistoryIndex = -1;
     private PoseState? _poseBeforeKeyInput;
     public MotionPlayer? MotionPlayer => App.Initializer.MotionPlayer;
+
+    private static string GetAppPackageDirectory()
+    {
+        var dir = FileSystem.Current.AppPackageDirectory;
+        if (!string.IsNullOrEmpty(dir) && Directory.Exists(dir))
+            return dir;
+
+        if (!string.IsNullOrEmpty(FileSystem.AppDataDirectory) && Directory.Exists(FileSystem.AppDataDirectory))
+            return FileSystem.AppDataDirectory;
+
+        var baseDir = AppContext.BaseDirectory;
+        if (!string.IsNullOrEmpty(baseDir))
+            return baseDir;
+
+        return Environment.CurrentDirectory;
+    }
     
 
     public MainPage()
@@ -664,7 +680,7 @@ private void ShowBottomFeature(string name)
         }
         else if (name == "Open")
         {
-            var modelsPath = Path.Combine(FileSystem.AppPackageDirectory, "StreamingAssets", "PmxModel");
+            var modelsPath = Path.Combine(GetAppPackageDirectory(), "StreamingAssets", "PmxModel");
             var ev = new ExplorerView(modelsPath, new[] { ".pmx", ".pmd" });
             ev.FileSelected += OnOpenExplorerFileSelected;
             ev.LoadDirectory(modelsPath);
@@ -902,7 +918,7 @@ private void ShowBottomFeature(string name)
     }
     else if (name == "Open" && _bottomViews[name] is ExplorerView oev)
     {
-        var modelsPath = Path.Combine(FileSystem.AppPackageDirectory, "StreamingAssets", "PmxModel");
+        var modelsPath = Path.Combine(GetAppPackageDirectory(), "StreamingAssets", "PmxModel");
         oev.LoadDirectory(modelsPath);
     }
     else if (name == "Analyze" && _bottomViews[name] is ExplorerView aev)
@@ -1038,7 +1054,7 @@ private void OnAdaptPoseClicked(object? sender, EventArgs e)
 
 private async void ShowOpenExplorer()
 {
-    var modelsPath = Path.Combine(FileSystem.AppPackageDirectory, "StreamingAssets", "PmxModel");
+    var modelsPath = Path.Combine(GetAppPackageDirectory(), "StreamingAssets", "PmxModel");
 
 #if ANDROID
     var readStatus = await Permissions.CheckStatusAsync<Permissions.StorageRead>();
