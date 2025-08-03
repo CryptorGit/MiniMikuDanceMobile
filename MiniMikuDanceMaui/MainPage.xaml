@@ -77,6 +77,11 @@
                         <TapGestureRecognizer Tapped="OnOpenInViewerClicked" />
                     </Label.GestureRecognizers>
                 </Label>
+                <Label Text="Import Tex" TextColor="{StaticResource TextColor}">
+                    <Label.GestureRecognizers>
+                        <TapGestureRecognizer Tapped="OnImportTexClicked" />
+                    </Label.GestureRecognizers>
+                </Label>
                 <Label Text="Estimate Pose" TextColor="{StaticResource TextColor}">
                     <Label.GestureRecognizers>
                         <TapGestureRecognizer Tapped="OnEstimatePoseClicked" />
