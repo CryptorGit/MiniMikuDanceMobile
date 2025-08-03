@@ -10,6 +10,7 @@ public class SubMeshData
     public byte[]? TextureBytes { get; set; }
     public int TextureWidth { get; set; }
     public int TextureHeight { get; set; }
+    public string? TextureFilePath { get; set; }
     public List<System.Numerics.Vector4> JointIndices { get; set; } = new();
     public List<System.Numerics.Vector4> JointWeights { get; set; } = new();
 }
