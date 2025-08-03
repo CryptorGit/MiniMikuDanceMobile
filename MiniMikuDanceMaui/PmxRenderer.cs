@@ -296,9 +296,38 @@ void main(){
         _orbitX = 0f;
         // モデル読み込み時は正面から表示する
         _orbitY = 0f;
-        _distance = 4f;
-        // デフォルトターゲットを少し上にずらしてモデル全体を見やすくする
-        _target = new Vector3(0f, 0.5f, 0f);
+
+        if (_meshes.Count > 0)
+        {
+            // モデルのバウンディングボックスを計算
+            Vector3 min = _meshes[0].Vertices[0];
+            Vector3 max = min;
+            foreach (var rm in _meshes)
+            {
+                foreach (var v in rm.Vertices)
+                {
+                    min = Vector3.ComponentMin(min, v);
+                    max = Vector3.ComponentMax(max, v);
+                }
+            }
+
+            Vector3 size = max - min;
+            Vector3 center = (max + min) * 0.5f;
+            // 少し上にずらしてモデル全体を見やすくする
+            _target = new Vector3(center.X, center.Y + size.Y * 0.1f, center.Z);
+
+            float radius = size.Length * 0.5f;
+            float fov = MathHelper.PiOver4;
+            _distance = radius / MathF.Sin(fov / 2f);
+            if (_distance < 1f) _distance = 1f;
+            if (_distance > 20f) _distance = 20f;
+        }
+        else
+        {
+            _distance = 4f;
+            _target = new Vector3(0f, 0.5f, 0f);
+        }
+
         _externalRotation = Quaternion.Identity;
     }
 

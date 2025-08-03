@@ -21,7 +21,7 @@ public class AppSettings
     public bool SmoothingEnabled { get; set; } = true;
 
     /// <summary>PMXモデルのスケールのデフォルト値。</summary>
-    public const float DefaultModelScale = 0.1f;
+    public const float DefaultModelScale = 1.0f;
 
     /// <summary>PMXモデルに適用するスケール。</summary>
     public float ModelScale { get; set; } = DefaultModelScale;
