@@ -574,6 +574,7 @@ private void LoadPendingModel()
         _shadeToony = _pendingModel.ShadeToony;
         _rimIntensity = _pendingModel.RimIntensity;
         UpdateRendererLightingProperties();
+        _renderer.ResetCamera();
         _pendingModel = null;
         SavePoseState();
     }
@@ -1120,18 +1121,8 @@ private async void OnImportClicked(object? sender, EventArgs e)
     {
         var importer = new ModelImporter();
         var data = await Task.Run(() => importer.ImportModel(_selectedPath));
-
-        _renderer.ClearBoneRotations();
-        _renderer.LoadModel(data);
-        _currentModel = data;
-        App.Initializer.UpdateApplier(_currentModel);
-        _shadeShift = data.ShadeShift;
-        _shadeToony = data.ShadeToony;
-        _rimIntensity = data.RimIntensity;
-        UpdateRendererLightingProperties();
-        SavePoseState();
-
-        _renderer.ResetCamera();
+        _pendingModel = data;
+        Viewer.InvalidateSurface();
     }
     catch (Exception ex)
     {
@@ -1142,7 +1133,6 @@ private async void OnImportClicked(object? sender, EventArgs e)
     {
         Viewer.HasRenderLoop = true;
         SetLoadingIndicatorVisibilityAndLayout(false);
-        Viewer.InvalidateSurface();
         _selectedPath = null;
     }
 }
