@@ -32,6 +32,7 @@ public class PmxRenderer : IDisposable
     private readonly System.Collections.Generic.List<RenderMesh> _meshes = new();
     private int _gridVao;
     private int _gridVbo;
+    private int _gridVertexCount;
     private int _modelLoc;
     private int _viewLoc;
     private int _projLoc;
@@ -44,6 +45,7 @@ public class PmxRenderer : IDisposable
     private Vector3 _target = new Vector3(0f, 0.5f, 0f);
     private int _groundVao;
     private int _groundVbo;
+    private int _groundVertexCount;
     private int _modelProgram;
     private int _modelViewLoc;
     private int _modelProjLoc;
@@ -179,19 +181,53 @@ void main(){
         _modelRimIntensityLoc = GL.GetUniformLocation(_modelProgram, "uRimIntensity");
         _modelAmbientLoc = GL.GetUniformLocation(_modelProgram, "uAmbient");
 
-        // grid vertices (XZ plane)
-        int gridLines = (10 - (-10) + 1) * 2; // 21 lines along each axis
-        float[] grid = new float[gridLines * 2 * 3];
-        int idx = 0;
-        for (int i = -10; i <= 10; i++)
+        GenerateGrid();
+    }
+
+    private void GenerateGrid()
+    {
+        float minX = 0f, maxX = 0f, minZ = 0f, maxZ = 0f;
+        bool hasVertex = false;
+        foreach (var rm in _meshes)
         {
-            grid[idx++] = i; grid[idx++] = 0; grid[idx++] = -10;
-            grid[idx++] = i; grid[idx++] = 0; grid[idx++] = 10;
-            grid[idx++] = -10; grid[idx++] = 0; grid[idx++] = i;
-            grid[idx++] = 10; grid[idx++] = 0; grid[idx++] = i;
+            foreach (var v in rm.Vertices)
+            {
+                if (!hasVertex)
+                {
+                    minX = maxX = v.X;
+                    minZ = maxZ = v.Z;
+                    hasVertex = true;
+                }
+                else
+                {
+                    if (v.X < minX) minX = v.X;
+                    if (v.X > maxX) maxX = v.X;
+                    if (v.Z < minZ) minZ = v.Z;
+                    if (v.Z > maxZ) maxZ = v.Z;
+                }
+            }
         }
-        _gridVao = GL.GenVertexArray();
-        _gridVbo = GL.GenBuffer();
+
+        int range = 10;
+        if (hasVertex)
+        {
+            float maxAbs = MathF.Max(MathF.Max(MathF.Abs(minX), MathF.Abs(maxX)),
+                                     MathF.Max(MathF.Abs(minZ), MathF.Abs(maxZ)));
+            range = (int)MathF.Ceiling(maxAbs) + 1;
+        }
+
+        _gridVertexCount = (range * 2 + 1) * 4;
+        float[] grid = new float[_gridVertexCount * 3];
+        int idx = 0;
+        for (int i = -range; i <= range; i++)
+        {
+            grid[idx++] = i; grid[idx++] = 0f; grid[idx++] = -range;
+            grid[idx++] = i; grid[idx++] = 0f; grid[idx++] = range;
+            grid[idx++] = -range; grid[idx++] = 0f; grid[idx++] = i;
+            grid[idx++] = range; grid[idx++] = 0f; grid[idx++] = i;
+        }
+        if (_gridVao == 0) _gridVao = GL.GenVertexArray();
+        if (_gridVbo == 0) _gridVbo = GL.GenBuffer();
         GL.BindVertexArray(_gridVao);
         GL.BindBuffer(BufferTarget.ArrayBuffer, _gridVbo);
         GL.BufferData(BufferTarget.ArrayBuffer, grid.Length * sizeof(float), grid, BufferUsageHint.StaticDraw);
@@ -200,17 +236,19 @@ void main(){
         GL.BindBuffer(BufferTarget.ArrayBuffer, 0);
         GL.BindVertexArray(0);
 
-        // ground plane
-        float[] plane = {
-            -10f, 0f, -10f,
-             10f, 0f, -10f,
-            -10f, 0f,  10f,
-             10f, 0f, -10f,
-             10f, 0f,  10f,
-            -10f, 0f,  10f
+        float r = range;
+        float[] plane =
+        {
+            -r, 0f, -r,
+             r, 0f, -r,
+            -r, 0f,  r,
+             r, 0f, -r,
+             r, 0f,  r,
+            -r, 0f,  r
         };
-        _groundVao = GL.GenVertexArray();
-        _groundVbo = GL.GenBuffer();
+        _groundVertexCount = 6;
+        if (_groundVao == 0) _groundVao = GL.GenVertexArray();
+        if (_groundVbo == 0) _groundVbo = GL.GenBuffer();
         GL.BindVertexArray(_groundVao);
         GL.BindBuffer(BufferTarget.ArrayBuffer, _groundVbo);
         GL.BufferData(BufferTarget.ArrayBuffer, plane.Length * sizeof(float), plane, BufferUsageHint.StaticDraw);
@@ -458,6 +496,7 @@ void main(){
 
             _meshes.Add(rm);
         }
+        GenerateGrid();
     }
 
     public void Render()
@@ -606,13 +645,13 @@ void main(){
         GL.UniformMatrix4(_modelLoc, false, ref gridModel);
         GL.Uniform4(_colorLoc, new Vector4(1f, 1f, 1f, 0.3f));
         GL.BindVertexArray(_groundVao);
-        GL.DrawArrays(PrimitiveType.Triangles, 0, 6);
+        GL.DrawArrays(PrimitiveType.Triangles, 0, _groundVertexCount);
         GL.BindVertexArray(0);
 
         GL.UniformMatrix4(_modelLoc, false, ref gridModel);
         GL.Uniform4(_colorLoc, new Vector4(0.8f, 0.8f, 0.8f, 0.5f));
         GL.BindVertexArray(_gridVao);
-        GL.DrawArrays(PrimitiveType.Lines, 0, ((10 - (-10) + 1) * 2) * 2);
+        GL.DrawArrays(PrimitiveType.Lines, 0, _gridVertexCount);
         GL.BindVertexArray(0);
         GL.DepthMask(true);
     }
