@@ -29,7 +29,28 @@ public class PmxRenderer : IDisposable
         public Vector4[] JointIndices = Array.Empty<Vector4>();
         public Vector4[] JointWeights = Array.Empty<Vector4>();
     }
-    private readonly System.Collections.Generic.List<RenderMesh> _meshes = new();
+
+    private class RenderModel
+    {
+        public List<RenderMesh> Meshes = new();
+        public List<BoneData> Bones = new();
+        public Dictionary<int, string> IndexToHumanoidName = new();
+        public List<Vector3> BoneRotations = new();
+        public List<Vector3> BoneTranslations = new();
+        public Matrix4 Transform = Matrix4.Identity;
+    }
+
+    private readonly List<RenderModel> _models = new();
+    private int _activeModelIndex;
+    private RenderModel? ActiveModel =>
+        _models.Count > _activeModelIndex ? _models[_activeModelIndex] : null;
+
+    public int ModelCount => _models.Count;
+    public void SetActiveModel(int index)
+    {
+        if (index >= 0 && index < _models.Count)
+            _activeModelIndex = index;
+    }
     private int _gridVao;
     private int _gridVbo;
     private int _gridVertexCount;
@@ -59,18 +80,17 @@ public class PmxRenderer : IDisposable
     private int _modelShadeToonyLoc;
     private int _modelRimIntensityLoc;
     private int _modelAmbientLoc;
-    private Matrix4 _modelTransform = Matrix4.Identity;
     public Matrix4 ModelTransform
     {
-        get => _modelTransform;
-        set => _modelTransform = value;
+        get => ActiveModel?.Transform ?? Matrix4.Identity;
+        set
+        {
+            if (ActiveModel != null)
+                ActiveModel.Transform = value;
+        }
     }
     private int _width;
     private int _height;
-    private readonly List<Vector3> _boneRotations = new();
-    private readonly List<Vector3> _boneTranslations = new();
-    private List<MiniMikuDance.Import.BoneData> _bones = new();
-    private readonly Dictionary<int, string> _indexToHumanoidName = new();
     public BonesConfig? BonesConfig { get; set; }
     private Quaternion _externalRotation = Quaternion.Identity;
     // デフォルトのカメラ感度をスライダーの最小値に合わせる
@@ -188,22 +208,25 @@ void main(){
     {
         float minX = 0f, maxX = 0f, minZ = 0f, maxZ = 0f;
         bool hasVertex = false;
-        foreach (var rm in _meshes)
+        foreach (var model in _models)
         {
-            foreach (var v in rm.Vertices)
+            foreach (var rm in model.Meshes)
             {
-                if (!hasVertex)
+                foreach (var v in rm.Vertices)
                 {
-                    minX = maxX = v.X;
-                    minZ = maxZ = v.Z;
-                    hasVertex = true;
-                }
-                else
-                {
-                    if (v.X < minX) minX = v.X;
-                    if (v.X > maxX) maxX = v.X;
-                    if (v.Z < minZ) minZ = v.Z;
-                    if (v.Z > maxZ) maxZ = v.Z;
+                    if (!hasVertex)
+                    {
+                        minX = maxX = v.X;
+                        minZ = maxZ = v.Z;
+                        hasVertex = true;
+                    }
+                    else
+                    {
+                        if (v.X < minX) minX = v.X;
+                        if (v.X > maxX) maxX = v.X;
+                        if (v.Z < minZ) minZ = v.Z;
+                        if (v.Z > maxZ) maxZ = v.Z;
+                    }
                 }
             }
         }
@@ -297,19 +320,31 @@ void main(){
         // モデル読み込み時は正面から表示する
         _orbitY = 0f;
 
-        if (_meshes.Count > 0)
+        bool hasMesh = false;
+        Vector3 min = Vector3.Zero, max = Vector3.Zero;
+        foreach (var model in _models)
         {
-            // モデルのバウンディングボックスを計算
-            Vector3 min = _meshes[0].Vertices[0];
-            Vector3 max = min;
-            foreach (var rm in _meshes)
+            foreach (var rm in model.Meshes)
             {
                 foreach (var v in rm.Vertices)
                 {
-                    min = Vector3.ComponentMin(min, v);
-                    max = Vector3.ComponentMax(max, v);
+                    if (!hasMesh)
+                    {
+                        min = max = v;
+                        hasMesh = true;
+                    }
+                    else
+                    {
+                        min = Vector3.ComponentMin(min, v);
+                        max = Vector3.ComponentMax(max, v);
+                    }
                 }
             }
+        }
+
+        if (hasMesh)
+        {
+            // モデルのバウンディングボックスを計算
 
             Vector3 size = max - min;
             Vector3 center = (max + min) * 0.5f;
@@ -338,82 +373,99 @@ void main(){
 
     public void ClearBoneRotations()
     {
-        _boneRotations.Clear();
-        _boneTranslations.Clear();
+        if (ActiveModel == null)
+            return;
+        ActiveModel.BoneRotations.Clear();
+        ActiveModel.BoneTranslations.Clear();
     }
 
     public void SetBoneRotation(int index, Vector3 degrees)
     {
-        if (index < 0)
+        var model = ActiveModel;
+        if (model == null || index < 0)
             return;
-        if (BonesConfig != null && index < _bones.Count)
+        if (BonesConfig != null && index < model.Bones.Count)
         {
-            var name = _indexToHumanoidName.TryGetValue(index, out var n) ? n : _bones[index].Name;
+            var name = model.IndexToHumanoidName.TryGetValue(index, out var n) ? n : model.Bones[index].Name;
             var clamped = BonesConfig.Clamp(name, degrees.ToNumerics());
             degrees = clamped.ToOpenTK();
         }
-        while (_boneRotations.Count <= index)
-            _boneRotations.Add(Vector3.Zero);
-        _boneRotations[index] = degrees;
+        while (model.BoneRotations.Count <= index)
+            model.BoneRotations.Add(Vector3.Zero);
+        model.BoneRotations[index] = degrees;
     }
 
     public void SetBoneTranslation(int index, Vector3 translation)
     {
-        if (index < 0)
+        var model = ActiveModel;
+        if (model == null || index < 0)
             return;
-        while (_boneTranslations.Count <= index)
-            _boneTranslations.Add(Vector3.Zero);
-        _boneTranslations[index] = translation;
+        while (model.BoneTranslations.Count <= index)
+            model.BoneTranslations.Add(Vector3.Zero);
+        model.BoneTranslations[index] = translation;
     }
 
     public Vector3 GetBoneRotation(int index)
     {
-        if (index < 0 || index >= _boneRotations.Count)
+        var model = ActiveModel;
+        if (model == null || index < 0 || index >= model.BoneRotations.Count)
             return Vector3.Zero;
-        return _boneRotations[index];
+        return model.BoneRotations[index];
     }
 
     public Vector3 GetBoneTranslation(int index)
     {
-        if (index < 0 || index >= _boneTranslations.Count)
+        var model = ActiveModel;
+        if (model == null || index < 0 || index >= model.BoneTranslations.Count)
             return Vector3.Zero;
-        return _boneTranslations[index];
+        return model.BoneTranslations[index];
     }
 
-    public IList<Vector3> GetAllBoneRotations() => _boneRotations.ToList();
+    public IList<Vector3> GetAllBoneRotations() => ActiveModel?.BoneRotations.ToList() ?? new List<Vector3>();
 
-    public IList<Vector3> GetAllBoneTranslations() => _boneTranslations.ToList();
+    public IList<Vector3> GetAllBoneTranslations() => ActiveModel?.BoneTranslations.ToList() ?? new List<Vector3>();
 
     public void SetAllBoneRotations(IList<Vector3> list)
     {
-        _boneRotations.Clear();
-        _boneRotations.AddRange(list);
+        var model = ActiveModel;
+        if (model == null) return;
+        model.BoneRotations.Clear();
+        model.BoneRotations.AddRange(list);
     }
 
     public void SetAllBoneTranslations(IList<Vector3> list)
     {
-        _boneTranslations.Clear();
-        _boneTranslations.AddRange(list);
+        var model = ActiveModel;
+        if (model == null) return;
+        model.BoneTranslations.Clear();
+        model.BoneTranslations.AddRange(list);
     }
 
-    public void LoadModel(MiniMikuDance.Import.ModelData data)
+    public void ClearModels()
     {
-        foreach (var rm in _meshes)
+        foreach (var model in _models)
         {
-            if (rm.Vao != 0) GL.DeleteVertexArray(rm.Vao);
-            if (rm.Vbo != 0) GL.DeleteBuffer(rm.Vbo);
-            if (rm.Ebo != 0) GL.DeleteBuffer(rm.Ebo);
-            if (rm.Texture != 0) GL.DeleteTexture(rm.Texture);
+            foreach (var rm in model.Meshes)
+            {
+                if (rm.Vao != 0) GL.DeleteVertexArray(rm.Vao);
+                if (rm.Vbo != 0) GL.DeleteBuffer(rm.Vbo);
+                if (rm.Ebo != 0) GL.DeleteBuffer(rm.Ebo);
+                if (rm.Texture != 0) GL.DeleteTexture(rm.Texture);
+            }
         }
-        _meshes.Clear();
-        _indexToHumanoidName.Clear();
-        _bones = data.Bones.ToList();
+        _models.Clear();
+        _activeModelIndex = 0;
+    }
+
+    public void AddModel(MiniMikuDance.Import.ModelData data)
+    {
+        var model = new RenderModel();
+        model.Bones = data.Bones.ToList();
         foreach (var (name, idx) in data.HumanoidBoneList)
         {
-            _indexToHumanoidName[idx] = name;
+            model.IndexToHumanoidName[idx] = name;
         }
-
-        _modelTransform = data.Transform.ToMatrix4();
+        model.Transform = data.Transform.ToMatrix4();
 
         if (data.SubMeshes.Count == 0)
         {
@@ -521,9 +573,17 @@ void main(){
                 rm.HasTexture = true;
             }
 
-            _meshes.Add(rm);
+            model.Meshes.Add(rm);
         }
+        _models.Add(model);
+        _activeModelIndex = _models.Count - 1;
         GenerateGrid();
+    }
+
+    public void LoadModel(MiniMikuDance.Import.ModelData data)
+    {
+        ClearModels();
+        AddModel(data);
     }
 
     public void Render()
@@ -544,18 +604,20 @@ void main(){
         Matrix4 proj = Matrix4.CreatePerspectiveFieldOfView(MathHelper.PiOver4, aspect, 0.1f, 100f);
 
         // CPU skinning: update vertex buffers based on current bone rotations
-        if (_bones.Count > 0)
+        foreach (var model in _models)
         {
-            const float deg2rad = MathF.PI / 180f;
-            var worldMats = new System.Numerics.Matrix4x4[_bones.Count];
-            for (int i = 0; i < _bones.Count; i++)
+            if (model.Bones.Count == 0)
+                continue;
+
+            var worldMats = new System.Numerics.Matrix4x4[model.Bones.Count];
+            for (int i = 0; i < model.Bones.Count; i++)
             {
-                var bone = _bones[i];
-                System.Numerics.Vector3 euler = i < _boneRotations.Count ? _boneRotations[i].ToNumerics() : System.Numerics.Vector3.Zero;
+                var bone = model.Bones[i];
+                System.Numerics.Vector3 euler = i < model.BoneRotations.Count ? model.BoneRotations[i].ToNumerics() : System.Numerics.Vector3.Zero;
                 var delta = euler.FromEulerDegrees();
                 System.Numerics.Vector3 trans = bone.Translation;
-                if (i < _boneTranslations.Count)
-                    trans += _boneTranslations[i].ToNumerics();
+                if (i < model.BoneTranslations.Count)
+                    trans += model.BoneTranslations[i].ToNumerics();
                 var local = System.Numerics.Matrix4x4.CreateFromQuaternion(bone.Rotation * delta) * System.Numerics.Matrix4x4.CreateTranslation(trans);
                 if (bone.Parent >= 0)
                     worldMats[i] = local * worldMats[bone.Parent];
@@ -563,11 +625,11 @@ void main(){
                     worldMats[i] = local;
             }
 
-            var skinMats = new System.Numerics.Matrix4x4[_bones.Count];
-            for (int i = 0; i < _bones.Count; i++)
-                skinMats[i] = _bones[i].InverseBindMatrix * worldMats[i];
+            var skinMats = new System.Numerics.Matrix4x4[model.Bones.Count];
+            for (int i = 0; i < model.Bones.Count; i++)
+                skinMats[i] = model.Bones[i].InverseBindMatrix * worldMats[i];
 
-            foreach (var rm in _meshes)
+            foreach (var rm in model.Meshes)
             {
                 if (rm.JointIndices.Length != rm.Vertices.Length)
                     continue;
@@ -635,28 +697,31 @@ void main(){
         GL.Uniform1(_modelShadeToonyLoc, ShadeToony);
         GL.Uniform1(_modelRimIntensityLoc, RimIntensity);
         GL.Uniform1(_modelAmbientLoc, Ambient);
-        var modelMat = ModelTransform;
-        GL.UniformMatrix4(_modelMatrixLoc, false, ref modelMat);
-        foreach (var rm in _meshes)
+        foreach (var model in _models)
         {
-            GL.Uniform4(_modelColorLoc, rm.Color);
-            if (rm.HasTexture)
+            var modelMat = model.Transform;
+            GL.UniformMatrix4(_modelMatrixLoc, false, ref modelMat);
+            foreach (var rm in model.Meshes)
             {
-                GL.ActiveTexture(TextureUnit.Texture0);
-                GL.BindTexture(TextureTarget.Texture2D, rm.Texture);
-                GL.Uniform1(_modelTexLoc, 0);
-                GL.Uniform1(_modelUseTexLoc, 1);
-            }
-            else
-            {
-                GL.Uniform1(_modelUseTexLoc, 0);
-            }
-            GL.BindVertexArray(rm.Vao);
-            GL.DrawElements(PrimitiveType.Triangles, rm.IndexCount, DrawElementsType.UnsignedInt, IntPtr.Zero);
-            GL.BindVertexArray(0);
-            if (rm.HasTexture)
-            {
-                GL.BindTexture(TextureTarget.Texture2D, 0);
+                GL.Uniform4(_modelColorLoc, rm.Color);
+                if (rm.HasTexture)
+                {
+                    GL.ActiveTexture(TextureUnit.Texture0);
+                    GL.BindTexture(TextureTarget.Texture2D, rm.Texture);
+                    GL.Uniform1(_modelTexLoc, 0);
+                    GL.Uniform1(_modelUseTexLoc, 1);
+                }
+                else
+                {
+                    GL.Uniform1(_modelUseTexLoc, 0);
+                }
+                GL.BindVertexArray(rm.Vao);
+                GL.DrawElements(PrimitiveType.Triangles, rm.IndexCount, DrawElementsType.UnsignedInt, IntPtr.Zero);
+                GL.BindVertexArray(0);
+                if (rm.HasTexture)
+                {
+                    GL.BindTexture(TextureTarget.Texture2D, 0);
+                }
             }
         }
         GL.UseProgram(_program);
@@ -681,14 +746,17 @@ void main(){
 
     public void Dispose()
     {
-        foreach (var rm in _meshes)
+        foreach (var model in _models)
         {
-            if (rm.Vao != 0) GL.DeleteVertexArray(rm.Vao);
-            if (rm.Vbo != 0) GL.DeleteBuffer(rm.Vbo);
-            if (rm.Ebo != 0) GL.DeleteBuffer(rm.Ebo);
+            foreach (var rm in model.Meshes)
+            {
+                if (rm.Vao != 0) GL.DeleteVertexArray(rm.Vao);
+                if (rm.Vbo != 0) GL.DeleteBuffer(rm.Vbo);
+                if (rm.Ebo != 0) GL.DeleteBuffer(rm.Ebo);
+                if (rm.Texture != 0) GL.DeleteTexture(rm.Texture);
+            }
         }
-        _meshes.Clear();
-        _indexToHumanoidName.Clear();
+        _models.Clear();
         GL.DeleteBuffer(_gridVbo);
         GL.DeleteBuffer(_groundVbo);
         GL.DeleteVertexArray(_gridVao);
