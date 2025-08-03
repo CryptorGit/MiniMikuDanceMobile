@@ -46,6 +46,9 @@ public class PmxRenderer : IDisposable
     private int _groundVao;
     private int _groundVbo;
     private int _groundVertexCount;
+    private int _boneVao;
+    private int _boneVbo;
+    private int _boneVertexCount;
     private int _modelProgram;
     private int _modelViewLoc;
     private int _modelProjLoc;
@@ -82,6 +85,7 @@ public class PmxRenderer : IDisposable
     public float ShadeToony { get; set; } = 0.9f;
     public float RimIntensity { get; set; } = 0.5f;
     public float Ambient { get; set; } = 0.3f;
+    public bool ShowBoneOutline { get; set; }
 
     private float _stageSize = AppSettings.DefaultStageSize;
     public float StageSize
@@ -513,6 +517,7 @@ void main(){
         Matrix4 view = Matrix4.LookAt(cam, _target, Vector3.UnitY);
         float aspect = _width == 0 || _height == 0 ? 1f : _width / (float)_height;
         Matrix4 proj = Matrix4.CreatePerspectiveFieldOfView(MathHelper.PiOver4, aspect, 0.1f, 100f);
+        var modelMat = ModelTransform;
 
         // CPU skinning: update vertex buffers based on current bone rotations
         if (_bones.Count > 0)
@@ -591,6 +596,38 @@ void main(){
                     handle.Free();
                 }
             }
+
+            if (ShowBoneOutline)
+            {
+                var lines = new List<float>();
+                for (int i = 0; i < _bones.Count; i++)
+                {
+                    var bone = _bones[i];
+                    if (bone.Parent >= 0)
+                    {
+                        var pp = worldMats[bone.Parent].Translation;
+                        var cp = worldMats[i].Translation;
+                        var p4 = Vector4.Transform(new Vector4(pp.X, pp.Y, pp.Z, 1f), modelMat);
+                        var c4 = Vector4.Transform(new Vector4(cp.X, cp.Y, cp.Z, 1f), modelMat);
+                        lines.Add(p4.X); lines.Add(p4.Y); lines.Add(p4.Z);
+                        lines.Add(c4.X); lines.Add(c4.Y); lines.Add(c4.Z);
+                    }
+                }
+                _boneVertexCount = lines.Count / 3;
+                if (_boneVao == 0) _boneVao = GL.GenVertexArray();
+                if (_boneVbo == 0) _boneVbo = GL.GenBuffer();
+                GL.BindVertexArray(_boneVao);
+                GL.BindBuffer(BufferTarget.ArrayBuffer, _boneVbo);
+                GL.BufferData(BufferTarget.ArrayBuffer, lines.Count * sizeof(float), lines.ToArray(), BufferUsageHint.DynamicDraw);
+                GL.VertexAttribPointer(0, 3, VertexAttribPointerType.Float, false, 3 * sizeof(float), 0);
+                GL.EnableVertexAttribArray(0);
+                GL.BindBuffer(BufferTarget.ArrayBuffer, 0);
+                GL.BindVertexArray(0);
+            }
+            else
+            {
+                _boneVertexCount = 0;
+            }
         }
 
         GL.UseProgram(_modelProgram);
@@ -606,7 +643,6 @@ void main(){
         GL.Uniform1(_modelShadeToonyLoc, ShadeToony);
         GL.Uniform1(_modelRimIntensityLoc, RimIntensity);
         GL.Uniform1(_modelAmbientLoc, Ambient);
-        var modelMat = ModelTransform;
         GL.UniformMatrix4(_modelMatrixLoc, false, ref modelMat);
         foreach (var rm in _meshes)
         {
@@ -633,6 +669,17 @@ void main(){
         GL.UseProgram(_program);
         GL.UniformMatrix4(_viewLoc, false, ref view);
         GL.UniformMatrix4(_projLoc, false, ref proj);
+
+        if (ShowBoneOutline && _boneVertexCount > 0)
+        {
+            GL.DepthMask(false);
+            GL.UniformMatrix4(_modelLoc, false, ref modelMat);
+            GL.Uniform4(_colorLoc, new Vector4(1f, 0f, 0f, 1f));
+            GL.BindVertexArray(_boneVao);
+            GL.DrawArrays(PrimitiveType.Lines, 0, _boneVertexCount);
+            GL.BindVertexArray(0);
+            GL.DepthMask(true);
+        }
 
         Matrix4 gridModel = Matrix4.Identity;
         GL.DepthMask(false);
@@ -662,8 +709,10 @@ void main(){
         _indexToHumanoidName.Clear();
         GL.DeleteBuffer(_gridVbo);
         GL.DeleteBuffer(_groundVbo);
+        GL.DeleteBuffer(_boneVbo);
         GL.DeleteVertexArray(_gridVao);
         GL.DeleteVertexArray(_groundVao);
+        GL.DeleteVertexArray(_boneVao);
         GL.DeleteProgram(_program);
         GL.DeleteProgram(_modelProgram);
     }
