@@ -11,15 +11,19 @@ public partial class ExplorerView : ContentView
     private string _currentPath = string.Empty;
     private readonly string _rootPath;
     private readonly HashSet<string>? _allowedExtensions;
+    private readonly bool _directoryMode;
 
     public event EventHandler<string>? FileSelected;
+    public event EventHandler<string>? DirectorySelected;
 
-    public ExplorerView(string rootPath, IEnumerable<string>? extensions = null)
+    public ExplorerView(string rootPath, IEnumerable<string>? extensions = null, bool directoryMode = false)
     {
         _rootPath = rootPath;
         if (extensions != null)
             _allowedExtensions = extensions.Select(e => e.ToLowerInvariant()).ToHashSet();
+        _directoryMode = directoryMode;
         InitializeComponent();
+        SelectLabel.IsVisible = _directoryMode;
     }
 
     public void LoadDirectory(string path)
@@ -105,6 +109,15 @@ public partial class ExplorerView : ContentView
                 FileSelected?.Invoke(this, item.Path);
             }
             FileList.SelectedItem = null;
+        }
+    }
+
+    private void OnSelectClicked(object? sender, EventArgs e)
+    {
+        if (_directoryMode)
+        {
+            LogService.WriteLine($"Directory chosen: {_currentPath}");
+            DirectorySelected?.Invoke(this, _currentPath);
         }
     }
 
