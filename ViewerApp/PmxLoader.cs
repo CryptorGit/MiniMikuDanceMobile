@@ -29,7 +29,9 @@ internal class PmxModel
 
 internal static class PmxLoader
 {
-    public static PmxModel Load(string path)
+    public const float DefaultScale = 0.1f;
+
+    public static PmxModel Load(string path, float scale = DefaultScale)
     {
         using var fs = File.OpenRead(path);
         var pmx = PMXParser.Parse(fs);
@@ -54,9 +56,9 @@ internal static class PmxLoader
                 for (int j = 0; j < 3; j++)
                 {
                     var v = verts[ids[j]];
-                    pos.Add(v.Position.X);
-                    pos.Add(v.Position.Y);
-                    pos.Add(v.Position.Z);
+                    pos.Add(v.Position.X * scale);
+                    pos.Add(v.Position.Y * scale);
+                    pos.Add(v.Position.Z * scale);
                     norm.Add(v.Normal.X);
                     norm.Add(v.Normal.Y);
                     norm.Add(v.Normal.Z);
@@ -89,6 +91,7 @@ internal static class PmxLoader
             model.SubMeshes.Add(sm);
             faceOffset += faceCount;
         }
+        model.Transform = OtkMatrix4.CreateScale(scale);
         return model;
     }
 }

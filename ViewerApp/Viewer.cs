@@ -39,7 +39,7 @@ public class Viewer : IDisposable
 
     public event Action<float>? FrameUpdated;
 
-    public Viewer(string modelPath)
+    public Viewer(string modelPath, float scale)
     {
         var nativeSettings = new NativeWindowSettings
         {
@@ -54,7 +54,7 @@ public class Viewer : IDisposable
         GL.Enable(EnableCap.Blend);
         GL.BlendFunc(BlendingFactorSrc.SrcAlpha, BlendingFactorDest.OneMinusSrcAlpha);
 
-        var model = PmxLoader.Load(modelPath);
+        var model = PmxLoader.Load(modelPath, scale);
         _modelTransform = model.Transform;
 
         const string vert = "#version 330 core\n" +
