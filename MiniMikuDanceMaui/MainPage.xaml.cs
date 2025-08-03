@@ -300,7 +300,7 @@ private async void OnTimelineClicked(object? sender, EventArgs e)
 {
     if (_currentModel == null)
     {
-        await DisplayAlert("Error", "VRMモデルが読み込まれていません。先にモデルをインポートしてください。", "OK");
+        await DisplayAlert("Error", "PMXモデルが読み込まれていません。先にモデルをインポートしてください。", "OK");
         return;
     }
     ShowBottomFeature("TIMELINE");
@@ -612,20 +612,21 @@ private async Task ShowModelSelector()
     {
         var result = await FilePicker.Default.PickAsync(new PickOptions
         {
-            PickerTitle = "Select VRM file",
+            PickerTitle = "Select PMX file",
             FileTypes = new FilePickerFileType(new Dictionary<DevicePlatform, IEnumerable<string>>
             {
-                [DevicePlatform.Android] = new[] { "application/octet-stream", ".vrm" },
-                [DevicePlatform.WinUI] = new[] { ".vrm" },
-                [DevicePlatform.iOS] = new[] { ".vrm" }
+                [DevicePlatform.Android] = new[] { "application/octet-stream", ".pmx", ".pmd" },
+                [DevicePlatform.WinUI] = new[] { ".pmx", ".pmd" },
+                [DevicePlatform.iOS] = new[] { ".pmx", ".pmd" }
             })
         });
 
         if (result != null)
         {
-            if (Path.GetExtension(result.FileName).ToLowerInvariant() != ".vrm")
+            var ext = Path.GetExtension(result.FileName).ToLowerInvariant();
+            if (ext != ".pmx" && ext != ".pmd")
             {
-                await DisplayAlert("Invalid File", "Please select a .vrm file.", "OK");
+                await DisplayAlert("Invalid File", "Please select a .pmx or .pmd file.", "OK");
                 return;
             }
 
@@ -664,7 +665,7 @@ private void ShowBottomFeature(string name)
         else if (name == "Open")
         {
             var modelsPath = MmdFileSystem.Ensure("Models");
-            var ev = new ExplorerView(modelsPath, new[] { ".vrm" });
+            var ev = new ExplorerView(modelsPath, new[] { ".pmx", ".pmd" });
             ev.FileSelected += OnOpenExplorerFileSelected;
             ev.LoadDirectory(modelsPath);
             view = ev;
@@ -984,12 +985,12 @@ private async Task AddToLibraryAsync()
     {
         var result = await FilePicker.Default.PickAsync(new PickOptions
         {
-            PickerTitle = "Select VRM file",
+            PickerTitle = "Select PMX file",
             FileTypes = new FilePickerFileType(new Dictionary<DevicePlatform, IEnumerable<string>>
             {
-                [DevicePlatform.Android] = new[] { "application/octet-stream", ".vrm" },
-                [DevicePlatform.WinUI] = new[] { ".vrm" },
-                [DevicePlatform.iOS] = new[] { ".vrm" }
+                [DevicePlatform.Android] = new[] { "application/octet-stream", ".pmx", ".pmd" },
+                [DevicePlatform.WinUI] = new[] { ".pmx", ".pmd" },
+                [DevicePlatform.iOS] = new[] { ".pmx", ".pmd" }
             })
         });
 
@@ -1037,7 +1038,8 @@ private void ShowOpenExplorer()
 
 private void OnOpenExplorerFileSelected(object? sender, string path)
 {
-    if (Path.GetExtension(path).ToLowerInvariant() != ".vrm")
+    var ext = Path.GetExtension(path).ToLowerInvariant();
+    if (ext != ".pmx" && ext != ".pmd")
     {
         return;
     }
@@ -1188,7 +1190,7 @@ private async void OnStartAdaptClicked(object? sender, EventArgs e)
 {
     if (_currentModel == null)
     {
-        await DisplayAlert("Error", "VRMモデルが読み込まれていません。先にモデルをインポートしてください。", "OK");
+        await DisplayAlert("Error", "PMXモデルが読み込まれていません。先にモデルをインポートしてください。", "OK");
         return;
     }
     if (string.IsNullOrEmpty(_selectedPosePath))
