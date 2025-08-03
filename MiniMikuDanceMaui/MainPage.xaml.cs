@@ -40,10 +40,10 @@ public partial class MainPage : ContentPage
     private readonly Dictionary<string, View> _bottomViews = new();
     private readonly Dictionary<string, Border> _bottomTabs = new();
     private string? _currentFeature;
-    private string? _selectedModelPath;
+    private readonly List<string> _selectedModelPaths = new();
     private string? _selectedVideoPath;
     private string? _selectedPosePath;
-    private readonly List<string> _selectedTexturePaths = new();
+    private readonly Dictionary<string, string> _texturePathMap = new();
     private string? _modelDir;
     private float _modelScale = 1f;
 
@@ -1063,8 +1063,8 @@ private void OnOpenInViewerClicked(object? sender, EventArgs e)
     PmxImportDialog.IsVisible = true;
     SelectedModelPath.Text = string.Empty;
     ScaleEntry.Text = "1.0";
-    _selectedModelPath = null;
-    _selectedTexturePaths.Clear();
+    _selectedModelPaths.Clear();
+    _texturePathMap.Clear();
     _modelDir = null;
     _modelScale = 1f;
     UpdateLayout();
@@ -1115,17 +1115,20 @@ private async void ShowModelExplorer()
 private void OnModelDirectorySelected(object? sender, string path)
 {
     _modelDir = path;
-    SelectedModelPath.Text = path;
     var result = ModelFolderScanner.Scan(path);
-    _selectedModelPath = result.modelPath;
-    _selectedTexturePaths.Clear();
-    _selectedTexturePaths.AddRange(result.texturePaths);
+    _selectedModelPaths.Clear();
+    _selectedModelPaths.AddRange(result.modelPaths);
+    _texturePathMap.Clear();
+    foreach (var kv in result.texturePathMap)
+        _texturePathMap[kv.Key] = kv.Value;
+    SelectedModelPath.Text = string.Join(Environment.NewLine,
+        _selectedModelPaths.Select(p => Path.GetFileName(p)));
 }
 
 private async void OnImportPmxClicked(object? sender, EventArgs e)
 {
 
-    if (string.IsNullOrEmpty(_selectedModelPath))
+    if (_selectedModelPaths.Count == 0)
     {
         await DisplayAlert("Error", "ファイルが選択されていません", "OK");
         return;
@@ -1143,31 +1146,44 @@ private async void OnImportPmxClicked(object? sender, EventArgs e)
             _modelScale = 1f;
         }
 
-        var importer = new ModelImporter { Scale = _modelScale };
-        var data = await Task.Run(() => importer.ImportModel(_selectedModelPath));
-
-        if (!string.IsNullOrEmpty(_modelDir))
+        foreach (var modelPath in _selectedModelPaths)
         {
-            int count = Math.Min(_selectedTexturePaths.Count, data.SubMeshes.Count);
-            for (int i = 0; i < count; i++)
-            {
-                var rel = _selectedTexturePaths[i];
-                if (string.IsNullOrEmpty(rel))
-                    continue;
+            var importer = new ModelImporter { Scale = _modelScale };
+            var data = await Task.Run(() => importer.ImportModel(modelPath));
 
-                var path = Path.Combine(_modelDir, rel);
-                await using var stream = File.OpenRead(path);
-                using var image = await SixLabors.ImageSharp.Image.LoadAsync<Rgba32>(stream);
-                var sm = data.SubMeshes[i];
-                sm.TextureBytes = new byte[image.Width * image.Height * 4];
-                image.CopyPixelDataTo(sm.TextureBytes);
-                sm.TextureWidth = image.Width;
-                sm.TextureHeight = image.Height;
-                sm.TextureFilePath = rel;
+            if (!string.IsNullOrEmpty(_modelDir))
+            {
+                foreach (var sm in data.SubMeshes)
+                {
+                    var texName = Path.GetFileName(sm.TextureFilePath ?? string.Empty);
+                    if (string.IsNullOrEmpty(texName))
+                        continue;
+                    if (!_texturePathMap.TryGetValue(texName, out var rel))
+                        continue;
+
+                    var path = Path.Combine(_modelDir, rel);
+                    await using var stream = File.OpenRead(path);
+                    using var image = await SixLabors.ImageSharp.Image.LoadAsync<Rgba32>(stream);
+                    sm.TextureBytes = new byte[image.Width * image.Height * 4];
+                    image.CopyPixelDataTo(sm.TextureBytes);
+                    sm.TextureWidth = image.Width;
+                    sm.TextureHeight = image.Height;
+                    sm.TextureFilePath = rel;
+                }
             }
+
+            _renderer.AddModel(data);
+            _models.Add(data);
+            _currentModel = data;
+            App.Initializer.UpdateApplier(_currentModel);
+            _shadeShift = data.ShadeShift;
+            _shadeToony = data.ShadeToony;
+            _rimIntensity = data.RimIntensity;
+            UpdateRendererLightingProperties();
         }
 
-        _pendingModel = data;
+        _renderer.ResetCamera();
+        SavePoseState();
         Viewer.InvalidateSurface();
     }
     catch (Exception ex)
@@ -1179,8 +1195,8 @@ private async void OnImportPmxClicked(object? sender, EventArgs e)
     {
         Viewer.HasRenderLoop = true;
         SetLoadingIndicatorVisibilityAndLayout(false);
-        _selectedModelPath = null;
-        _selectedTexturePaths.Clear();
+        _selectedModelPaths.Clear();
+        _texturePathMap.Clear();
         _modelDir = null;
         SelectedModelPath.Text = string.Empty;
     }
@@ -1188,8 +1204,8 @@ private async void OnImportPmxClicked(object? sender, EventArgs e)
 
 private void OnCancelImportClicked(object? sender, EventArgs e)
 {
-    _selectedModelPath = null;
-    _selectedTexturePaths.Clear();
+    _selectedModelPaths.Clear();
+    _texturePathMap.Clear();
     _modelDir = null;
     PmxImportDialog.IsVisible = false;
     SelectedModelPath.Text = string.Empty;

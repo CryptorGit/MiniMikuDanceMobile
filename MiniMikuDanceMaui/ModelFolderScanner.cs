@@ -9,27 +9,39 @@ public static class ModelFolderScanner
 {
     private static readonly string[] TextureExtensions = { ".png", ".jpg", ".jpeg", ".tga" };
 
-    public static (string? modelPath, List<string> texturePaths) Scan(string directory)
+    public static (List<string> modelPaths, Dictionary<string, string> texturePathMap) Scan(string directory)
     {
         if (!Directory.Exists(directory))
-            return (null, new List<string>());
+            return (new List<string>(), new Dictionary<string, string>());
 
-        var model = Directory.EnumerateFiles(directory, "*.pmx").FirstOrDefault()
-                    ?? Directory.EnumerateFiles(directory, "*.pmd").FirstOrDefault();
+        var models = Directory.EnumerateFiles(directory)
+            .Where(f => f.EndsWith(".pmx", StringComparison.OrdinalIgnoreCase)
+                     || f.EndsWith(".pmd", StringComparison.OrdinalIgnoreCase))
+            .OrderBy(f => f)
+            .ToList();
 
-        var textures = new List<string>();
+        var textures = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
+
         // root textures
-        textures.AddRange(EnumerateTextures(directory));
+        AddTextures(directory, directory, textures);
         foreach (var sub in new[] { "tex", "spa", "sph" })
         {
             var subDir = Path.Combine(directory, sub);
             if (Directory.Exists(subDir))
-                textures.AddRange(EnumerateTextures(subDir));
+                AddTextures(subDir, directory, textures);
         }
 
-        // convert to relative paths
-        var rel = textures.Select(p => Path.GetRelativePath(directory, p)).ToList();
-        return (model, rel);
+        return (models, textures);
+    }
+
+    private static void AddTextures(string dir, string root, Dictionary<string, string> map)
+    {
+        foreach (var file in EnumerateTextures(dir))
+        {
+            var name = Path.GetFileName(file);
+            var rel = Path.GetRelativePath(root, file);
+            map.TryAdd(name, rel);
+        }
     }
 
     private static IEnumerable<string> EnumerateTextures(string dir)
