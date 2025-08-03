@@ -36,11 +36,18 @@ public class ModelImporter
 
     public ModelData ImportModel(Stream stream)
     {
-
         using var ms = new MemoryStream();
         stream.CopyTo(ms);
         var bytes = ms.ToArray();
         ms.Position = 0;
+
+        // ファイルヘッダを判別して PMX か VRM/GLTF かを判断する
+        if (bytes.Length >= 4 &&
+            bytes[0] == 'P' && bytes[1] == 'M' && bytes[2] == 'X' && bytes[3] == ' ')
+        {
+            return ImportPmx(ms);
+        }
+
         var textureMap = VrmUtil.ReadMainTextureIndices(bytes);
         var humanMap = ReadHumanoidMap(bytes);
         var mtoon = ReadMToonParameters(bytes);
@@ -68,7 +75,8 @@ public class ModelImporter
         }
         else if (ext == ".pmx")
         {
-            return ImportPmx(path);
+            using var fs = File.OpenRead(path);
+            return ImportPmx(fs, Path.GetDirectoryName(path));
         }
 
         var scene = _context.ImportFile(path, PostProcessSteps.Triangulate | PostProcessSteps.GenerateNormals);
@@ -76,9 +84,9 @@ public class ModelImporter
         return new ModelData { Mesh = scene.Meshes[0] };
     }
 
-    private ModelData ImportPmx(string path)
+    private ModelData ImportPmx(Stream stream, string? baseDir = null)
     {
-        var pmx = PMXParser.Parse(path);
+        var pmx = PMXParser.Parse(stream);
         var verts = pmx.VertexList.ToArray();
         var faces = pmx.SurfaceList.ToArray();
         var mats = pmx.MaterialList.ToArray();
@@ -103,7 +111,7 @@ public class ModelImporter
 
         var data = new ModelData { Mesh = combined };
         int faceOffset = 0;
-        string dir = Path.GetDirectoryName(path) ?? string.Empty;
+        string dir = baseDir ?? string.Empty;
         foreach (var mat in mats)
         {
             var sub = new Assimp.Mesh("pmx", Assimp.PrimitiveType.Triangle);
@@ -134,7 +142,7 @@ public class ModelImporter
                 sub.Faces.Add(face);
             }
 
-            if (mat.Texture >= 0 && mat.Texture < texList.Length)
+            if (!string.IsNullOrEmpty(dir) && mat.Texture >= 0 && mat.Texture < texList.Length)
             {
                 var texName = texList[mat.Texture];
                 var texPath = Path.Combine(dir, texName);

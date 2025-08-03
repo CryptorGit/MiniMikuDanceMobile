@@ -650,9 +650,17 @@ private async Task ShowModelSelector()
 
 
 
-            await using var stream = await result.OpenReadAsync();
             var importer = new MiniMikuDance.Import.ModelImporter();
-            var data = importer.ImportModel(stream);
+            MiniMikuDance.Import.ModelData data;
+            if (!string.IsNullOrEmpty(result.FullPath))
+            {
+                data = importer.ImportModel(result.FullPath);
+            }
+            else
+            {
+                await using var stream = await result.OpenReadAsync();
+                data = importer.ImportModel(stream);
+            }
             _renderer.LoadModel(data);
             _currentModel = data;
             _shadeShift = data.ShadeShift;
