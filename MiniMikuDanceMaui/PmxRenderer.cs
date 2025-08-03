@@ -447,9 +447,7 @@ void main(){
             rm.Vao = GL.GenVertexArray();
             rm.Vbo = GL.GenBuffer();
             rm.Ebo = GL.GenBuffer();
-            var cf = sm.ColorFactor.ToVector4();
-            cf.W = 1.0f; // 不透明にする
-            rm.Color = cf;
+            rm.Color = sm.ColorFactor.ToVector4();
 
             GL.BindVertexArray(rm.Vao);
             GL.BindBuffer(BufferTarget.ArrayBuffer, rm.Vbo);
@@ -503,6 +501,7 @@ void main(){
     {
         GL.Enable(EnableCap.DepthTest);
         GL.Enable(EnableCap.CullFace);
+        GL.Enable(EnableCap.Blend); // 半透明描画のためブレンドを有効化
         GL.FrontFace(FrontFaceDirection.Ccw);
         GL.ClearColor(1f, 1f, 1f, 1f);
         GL.Clear(ClearBufferMask.ColorBufferBit | ClearBufferMask.DepthBufferBit);
@@ -607,8 +606,6 @@ void main(){
         GL.Uniform1(_modelShadeToonyLoc, ShadeToony);
         GL.Uniform1(_modelRimIntensityLoc, RimIntensity);
         GL.Uniform1(_modelAmbientLoc, Ambient);
-        // テクスチャのアルファを利用するためブレンドを有効化
-        GL.Enable(EnableCap.Blend);
         var modelMat = ModelTransform;
         GL.UniformMatrix4(_modelMatrixLoc, false, ref modelMat);
         foreach (var rm in _meshes)
@@ -633,9 +630,6 @@ void main(){
                 GL.BindTexture(TextureTarget.Texture2D, 0);
             }
         }
-        // グリッド描画では透過を利用するためブレンドを再度有効化
-        GL.Enable(EnableCap.Blend);
-
         GL.UseProgram(_program);
         GL.UniformMatrix4(_viewLoc, false, ref view);
         GL.UniformMatrix4(_projLoc, false, ref proj);

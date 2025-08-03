@@ -4,4 +4,5 @@
 - [ ] ドキュメントの PMX 向け整理（README などの更新）
 - [ ] PmxLoader の詳細実装
 - [ ] PmxRenderer の PMX 対応の拡充
+- [ ] 半透明メッシュの深度ソート対応
 - [x] Tools/Program.cs と不要な解析プロジェクトを削除し、ソリューションから除外
