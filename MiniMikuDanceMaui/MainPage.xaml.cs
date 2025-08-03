@@ -682,7 +682,7 @@ private void ShowBottomFeature(string name)
         }
         else if (name == "Open")
         {
-            var modelsPath = Path.Combine(GetAppPackageDirectory(), "StreamingAssets", "PmxModel");
+            var modelsPath = MmdFileSystem.Ensure("Models");
             var ev = new ExplorerView(modelsPath, new[] { ".pmx", ".pmd" });
             ev.FileSelected += OnOpenExplorerFileSelected;
             ev.LoadDirectory(modelsPath);
@@ -920,7 +920,7 @@ private void ShowBottomFeature(string name)
     }
     else if (name == "Open" && _bottomViews[name] is ExplorerView oev)
     {
-        var modelsPath = Path.Combine(GetAppPackageDirectory(), "StreamingAssets", "PmxModel");
+        var modelsPath = MmdFileSystem.Ensure("Models");
         oev.LoadDirectory(modelsPath);
     }
     else if (name == "Analyze" && _bottomViews[name] is ExplorerView aev)
@@ -1056,7 +1056,7 @@ private void OnAdaptPoseClicked(object? sender, EventArgs e)
 
 private async void ShowOpenExplorer()
 {
-    var modelsPath = Path.Combine(GetAppPackageDirectory(), "StreamingAssets", "PmxModel");
+    var modelsPath = MmdFileSystem.Ensure("Models");
 
 #if ANDROID
     var readStatus = await Permissions.CheckStatusAsync<Permissions.StorageRead>();
