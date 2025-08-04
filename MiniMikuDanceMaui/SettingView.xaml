@@ -13,9 +13,9 @@
         <Label Text="Pan Sensitivity" TextColor="{StaticResource TextColor}"/>
         <Slider x:Name="PanSlider" Minimum="0.1" Maximum="5" Value="0.1"
                 ValueChanged="OnPanChanged"/>
-        <Label Text="Zoom Sensitivity" TextColor="{StaticResource TextColor}"/>
-        <Slider x:Name="ZoomSlider" Minimum="0.1" Maximum="5" Value="0.1"
-                ValueChanged="OnZoomChanged"/>
+        <Label Text="Camera Distance" TextColor="{StaticResource TextColor}"/>
+        <Slider x:Name="CameraDistanceSlider" Minimum="1" Maximum="20" Value="4"
+                ValueChanged="OnCameraDistanceChanged"/>
         <Label Text="Stage Size" TextColor="{StaticResource TextColor}"/>
         <HorizontalStackLayout Spacing="6">
             <Slider x:Name="StageSizeSlider" Minimum="10" Maximum="100" Value="30"

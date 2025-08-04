@@ -58,7 +58,7 @@ public partial class MainPage : ContentPage
     private readonly CameraController _cameraController = new();
     private float _rotateSensitivity = 0.1f;
     private float _panSensitivity = 0.1f;
-    private float _zoomSensitivity = 0.1f;
+    private float _cameraDistance = AppSettings.DefaultCameraDistance;
     private float _shadeShift = -0.1f;
     private float _shadeToony = 0.9f;
     private float _rimIntensity = 0.5f;
@@ -151,13 +151,13 @@ public partial class MainPage : ContentPage
     this.SizeChanged += OnSizeChanged;
     _renderer.RotateSensitivity = 0.1f;
     _renderer.PanSensitivity = 0.1f;
-    _renderer.ZoomSensitivity = _settings.ZoomSensitivity;
-    _zoomSensitivity = _settings.ZoomSensitivity;
     _renderer.ShadeShift = -0.1f;
     _renderer.ShadeToony = 0.9f;
     _renderer.RimIntensity = 0.5f;
     _renderer.StageSize = _settings.StageSize;
-    _renderer.DefaultCameraDistance = _settings.CameraDistance;
+    _cameraDistance = _settings.CameraDistance;
+    _renderer.DefaultCameraDistance = _cameraDistance;
+    _renderer.Distance = _cameraDistance;
     _renderer.DefaultCameraTargetY = _settings.CameraTargetY;
 
     var motion = App.Initializer.Motion;
@@ -181,13 +181,14 @@ public partial class MainPage : ContentPage
             _settings.StageSize = (float)v;
             _settings.Save();
         };
-        setting.ZoomSensitivity = _settings.ZoomSensitivity;
-        setting.ZoomSensitivityChanged += v =>
+        setting.CameraDistance = _settings.CameraDistance;
+        setting.CameraDistanceChanged += v =>
         {
-            _renderer.ZoomSensitivity = (float)v;
-            _settings.ZoomSensitivity = (float)v;
+            _renderer.DefaultCameraDistance = (float)v;
+            _renderer.Distance = (float)v;
+            _settings.CameraDistance = (float)v;
             _settings.Save();
-            _zoomSensitivity = (float)v;
+            _cameraDistance = (float)v;
         };
         setting.HeightRatioChanged += ratio =>
         {
@@ -285,7 +286,7 @@ private void ShowSettingMenu()
         sv.HeightRatio = _bottomHeightRatio;
         sv.RotateSensitivity = _renderer.RotateSensitivity;
         sv.PanSensitivity = _renderer.PanSensitivity;
-        sv.ZoomSensitivity = _renderer.ZoomSensitivity;
+        sv.CameraDistance = _cameraDistance;
         sv.CameraLocked = _renderer.CameraLocked;
     }
     UpdateOverlay();
@@ -431,7 +432,7 @@ private void UpdateSettingViewProperties(SettingView? sv)
     sv.HeightRatio = _bottomHeightRatio;
     sv.RotateSensitivity = _rotateSensitivity;
     sv.PanSensitivity = _panSensitivity;
-    sv.ZoomSensitivity = _zoomSensitivity;
+    sv.CameraDistance = _cameraDistance;
     sv.CameraLocked = _renderer.CameraLocked;
     sv.ShowBoneOutline = _renderer.ShowBoneOutline;
 }
@@ -971,16 +972,19 @@ private void ShowBottomFeature(string name)
                 if (_renderer != null)
                     _renderer.PanSensitivity = (float)v;
             };
-            sv.ZoomSensitivityChanged += v =>
+            sv.CameraDistanceChanged += v =>
             {
                 if (_renderer != null)
-                    _renderer.ZoomSensitivity = (float)v;
+                {
+                    _renderer.DefaultCameraDistance = (float)v;
+                    _renderer.Distance = (float)v;
+                }
                 if (_settings != null)
                 {
-                    _settings.ZoomSensitivity = (float)v;
+                    _settings.CameraDistance = (float)v;
                     _settings.Save();
                 }
-                _zoomSensitivity = (float)v;
+                _cameraDistance = (float)v;
             };
             sv.CameraLockChanged += locked =>
             {

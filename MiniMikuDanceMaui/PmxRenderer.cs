@@ -41,6 +41,11 @@ public class PmxRenderer : IDisposable
     // 初期カメラ位置はモデルの正面が表示されるようY軸回転を180度に設定
     private float _orbitY = MathF.PI;
     private float _distance = 4f;
+    public float Distance
+    {
+        get => _distance;
+        set => _distance = Math.Clamp(value, 1f, 20f);
+    }
     // モデル中心より少し高い位置を基準にカメラを配置する
     private Vector3 _target = new Vector3(0f, 0.5f, 0f);
     private int _groundVao;
@@ -79,7 +84,7 @@ public class PmxRenderer : IDisposable
     // デフォルトのカメラ感度をスライダーの最小値に合わせる
     public float RotateSensitivity { get; set; } = 0.1f;
     public float PanSensitivity { get; set; } = 0.1f;
-    public float ZoomSensitivity { get; set; } = 0.1f;
+    private const float ZoomSensitivity = 0.1f;
     public bool CameraLocked { get; set; }
     public float ShadeShift { get; set; } = -0.1f;
     public float ShadeToony { get; set; } = 0.9f;
@@ -291,9 +296,8 @@ void main(){
     public void Dolly(float delta)
     {
         if (CameraLocked) return;
-        _distance *= 1f + delta * 0.01f * ZoomSensitivity;
-        if (_distance < 1f) _distance = 1f;
-        if (_distance > 20f) _distance = 20f;
+        var newDist = _distance * (1f + delta * 0.01f * ZoomSensitivity);
+        Distance = newDist;
     }
 
     public void ResetCamera()
@@ -301,9 +305,7 @@ void main(){
         _orbitX = 0f;
         _orbitY = MathF.PI;
         _target = new Vector3(0f, _defaultCameraTargetY, 0f);
-        _distance = _defaultCameraDistance;
-        if (_distance < 1f) _distance = 1f;
-        if (_distance > 20f) _distance = 20f;
+        Distance = _defaultCameraDistance;
         _externalRotation = Quaternion.Identity;
     }
 
