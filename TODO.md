@@ -16,3 +16,4 @@
 - [ ] ModelImporter で PMX 座標系を解析しモデルの向きを正規化する
 - [ ] PoseEditorView で IK ボーンのドラッグ操作を実装する
 - [ ] PoseEditorView で生成したポーズをモーション編集機能へ連携する
+- [ ] dotnet build が TerminalLogger の内部エラーで失敗するため環境を調整してビルドを確認する
