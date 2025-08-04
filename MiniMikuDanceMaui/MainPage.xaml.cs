@@ -1311,7 +1311,7 @@ private void OnOpenExplorerFileSelected(object? sender, string path)
 
     _selectedModelPath = path;
     _modelDir = Path.GetDirectoryName(path);
-    SelectedModelPath.Text = path;
+    SelectedModelPath.Text = Path.GetFileName(path);
 }
 
 private async void OnImportPmxClicked(object? sender, EventArgs e)
@@ -1436,7 +1436,7 @@ private void OnTexExplorerFileSelected(object? sender, string path)
         var rel = Path.GetRelativePath(_modelDir, path)
             .Replace(Path.DirectorySeparatorChar, '/');
         _selectedTexturePaths[_currentTextureIndex] = rel;
-        _texturePathLabels[_currentTextureIndex].Text = path;
+        _texturePathLabels[_currentTextureIndex].Text = Path.GetFileName(path);
         _currentTextureIndex++;
     }
 }
