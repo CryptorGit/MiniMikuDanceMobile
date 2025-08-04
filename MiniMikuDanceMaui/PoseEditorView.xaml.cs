@@ -1,6 +1,9 @@
 using System;
 using Microsoft.Maui.Controls;
 using Microsoft.Maui.Graphics;
+using SkiaSharp.Views.Maui;
+using SkiaSharp.Views.Maui.Controls;
+using SkiaSharp;
 
 namespace MiniMikuDanceMaui;
 
@@ -9,6 +12,7 @@ public partial class PoseEditorView : ContentView
     public event Action<bool>? ModeChanged;
     private bool _boneMode;
     public PmxRenderer? Renderer { get; set; }
+    private int _selectedIkBone = -1;
 
     public PoseEditorView()
     {
@@ -47,5 +51,32 @@ public partial class PoseEditorView : ContentView
         var inactive = (Color)Application.Current.Resources["TabInactiveColor"];
         CameraModeButton.BackgroundColor = _boneMode ? inactive : active;
         BoneModeButton.BackgroundColor = _boneMode ? active : inactive;
+    }
+
+    /// <summary>
+    /// Viewer のタッチイベントを処理する。
+    /// Bone モード時のみ IK ボーンのヒットテストとドラッグ処理を行う。
+    /// </summary>
+    /// <param name="e">タッチイベント。</param>
+    public void HandleViewerTouch(SKTouchEventArgs e)
+    {
+        if (!_boneMode || Renderer == null)
+            return;
+
+        if (e.ActionType == SKTouchAction.Pressed)
+        {
+            // TODO: Renderer 内の IK ボーン位置を利用したヒットテストを実装する
+            _selectedIkBone = -1; // 仮: 未実装
+        }
+        else if (e.ActionType == SKTouchAction.Moved && _selectedIkBone >= 0)
+        {
+            // TODO: カメラ位置と IK ボーンを結ぶ平面へポインタを投影して新しい IK 目標座標を求める
+        }
+        else if (e.ActionType == SKTouchAction.Released || e.ActionType == SKTouchAction.Cancelled)
+        {
+            _selectedIkBone = -1;
+        }
+
+        e.Handled = true;
     }
 }
