@@ -16,6 +16,7 @@ using Microsoft.Maui.Devices;
 using System.IO;
 using System.Linq;
 using OpenTK.Mathematics;
+using System.Runtime.Versioning;
 using MiniMikuDance.Util;
 using MiniMikuDance.PoseEstimation;
 using MiniMikuDance.Motion;
@@ -468,9 +469,10 @@ private void UpdateBoneViewValues()
 }
 
 #if ANDROID
+[SupportedOSPlatform("android30.0")]
 private static void RequestManageAllFilesAccessPermission()
 {
-    if (OperatingSystem.IsAndroidVersionAtLeast(30))
+    if (Android.OS.Build.VERSION.SdkInt >= Android.OS.BuildVersionCodes.R)
     {
         if (!Android.OS.Environment.IsExternalStorageManager)
         {
@@ -504,7 +506,7 @@ protected override async void OnAppearing()
     {
         // Permissions not granted, consider showing a message to the user
     }
-    if (OperatingSystem.IsAndroidVersionAtLeast(30))
+    if (Android.OS.Build.VERSION.SdkInt >= Android.OS.BuildVersionCodes.R)
     {
         RequestManageAllFilesAccessPermission();
     }
