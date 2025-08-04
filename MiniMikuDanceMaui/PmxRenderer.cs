@@ -527,6 +527,7 @@ void main(){
                 var bone = _bones[i];
                 System.Numerics.Vector3 euler = i < _boneRotations.Count ? _boneRotations[i].ToNumerics() : System.Numerics.Vector3.Zero;
                 var delta = euler.FromEulerDegrees();
+                // Import 時に絶対座標から親ボーンへの相対座標へ変換済み
                 System.Numerics.Vector3 trans = bone.Translation;
                 if (i < _boneTranslations.Count)
                     trans += _boneTranslations[i].ToNumerics();
