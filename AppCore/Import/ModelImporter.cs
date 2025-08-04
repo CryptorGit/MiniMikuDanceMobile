@@ -147,7 +147,6 @@ public class ModelImporter
 
         // モーフ情報の解析
         var morphDatas = new List<MorphData>();
-        var morphDict = new Dictionary<string, MorphData>(StringComparer.OrdinalIgnoreCase);
         foreach (var m in morphs)
         {
             if (m.MorphType != MorphType.Vertex && m.MorphType != MorphType.Group)
@@ -155,15 +154,27 @@ public class ModelImporter
 
             string name = string.IsNullOrEmpty(m.NameEnglish) ? m.Name : m.NameEnglish;
             name = name.Trim();
-            if (!morphDict.TryGetValue(name, out var md))
+
+            // 同名モーフが存在する場合は日本語名やインデックスで一意化する
+            string uniqueName = name;
+            if (morphDatas.Any(md => md.Name.Equals(uniqueName, StringComparison.OrdinalIgnoreCase)))
             {
-                md = new MorphData
+                string jp = m.Name.Trim();
+                if (!string.IsNullOrEmpty(jp) && !jp.Equals(uniqueName, StringComparison.OrdinalIgnoreCase))
                 {
-                    Name = name,
-                    Type = m.MorphType
-                };
-                morphDict[name] = md;
-                morphDatas.Add(md);
+                    uniqueName = $"{uniqueName}_{jp}";
+                }
+                else
+                {
+                    uniqueName = $"{uniqueName}_{morphDatas.Count}";
+                }
+
+                int idx = 1;
+                while (morphDatas.Any(md => md.Name.Equals(uniqueName, StringComparison.OrdinalIgnoreCase)))
+                {
+                    uniqueName = $"{name}_{morphDatas.Count + idx}";
+                    idx++;
+                }
             }
 
             if (m.MorphType == MorphType.Vertex)
@@ -190,6 +201,8 @@ public class ModelImporter
                     }
                 }
             }
+
+            morphDatas.Add(md);
         }
         data.Morphs = morphDatas;
 
