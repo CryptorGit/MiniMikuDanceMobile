@@ -59,6 +59,22 @@ public partial class PoseEditorView : ContentView
         BoneModeButton.BackgroundColor = _boneMode ? active : inactive;
     }
 
+    private void OnIkBoneRadiusEntryCompleted(object? sender, EventArgs e)
+    {
+        if (Renderer == null)
+            return;
+
+        if (float.TryParse(IkBoneRadiusEntry.Text, out var v) && v > 0f)
+        {
+            Renderer.IkBoneRadius = v;
+            Renderer.RebuildIkBoneMesh();
+        }
+        else
+        {
+            IkBoneRadiusEntry.Text = Renderer.IkBoneRadius.ToString();
+        }
+    }
+
     /// <summary>
     /// Viewer のタッチイベントを処理する。
     /// Bone モード時のみ IK ボーンのヒットテストとドラッグ処理を行う。
