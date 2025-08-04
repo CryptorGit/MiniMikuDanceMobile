@@ -655,8 +655,7 @@ void main(){
 
             if (morph.Type == MorphType.Group)
             {
-                if (morph.GroupChildren != null)
-                    _groupMorphs[morph.Name] = morph.GroupChildren.ToList();
+                _groupMorphs[morph.Name] = morph.GroupChildren?.ToList() ?? new List<(string Name, float Weight)>();
                 if (!_morphWeights.ContainsKey(morph.Name))
                     _morphWeights[morph.Name] = 0f;
                 continue;
