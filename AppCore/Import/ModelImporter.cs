@@ -145,32 +145,26 @@ public class ModelImporter
         data.Bones = boneDatas;
 
         // モーフ情報の解析
-        var morphDatas = new List<MorphData>(morphs.Length);
-        var existingNames = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+        var morphDatas = new List<MorphData>();
+        var morphDict = new Dictionary<string, MorphData>(StringComparer.OrdinalIgnoreCase);
         foreach (var m in morphs)
         {
             // グループモーフなど、スライダー表示が不要なタイプは除外
             if (m.MorphType != MorphType.Vertex)
                 continue;
 
-            string baseName = string.IsNullOrEmpty(m.NameEnglish) ? m.Name : m.NameEnglish;
-            string uniqueName = baseName;
-            if (!existingNames.Add(uniqueName))
+            string name = string.IsNullOrEmpty(m.NameEnglish) ? m.Name : m.NameEnglish;
+            if (!morphDict.TryGetValue(name, out var md))
             {
-                string suffix = GetMorphSuffix(m);
-                int index = 1;
-                uniqueName = baseName + suffix;
-                while (!existingNames.Add(uniqueName))
+                md = new MorphData
                 {
-                    uniqueName = baseName + suffix + "_" + index++;
-                }
+                    Name = name,
+                    Type = m.MorphType
+                };
+                morphDict[name] = md;
+                morphDatas.Add(md);
             }
 
-            var md = new MorphData
-            {
-                Name = uniqueName,
-                Type = m.MorphType
-            };
             foreach (var vm in m.VertexMorphElements.ToArray())
             {
                 md.Offsets.Add(new MorphOffset
@@ -179,7 +173,6 @@ public class ModelImporter
                     Offset = new System.Numerics.Vector3(vm.PosOffset.X, vm.PosOffset.Y, vm.PosOffset.Z) * Scale
                 });
             }
-            morphDatas.Add(md);
         }
         data.Morphs = morphDatas;
 
@@ -310,19 +303,6 @@ public class ModelImporter
         }
         data.Transform = System.Numerics.Matrix4x4.CreateScale(Scale);
         return data;
-    }
-
-    private static string GetMorphSuffix(MMDTools.Morph morph)
-    {
-        string en = morph.NameEnglish ?? string.Empty;
-        string jp = morph.Name ?? string.Empty;
-        if (jp.Contains("左") || en.Contains("_L", StringComparison.OrdinalIgnoreCase) ||
-            en.EndsWith("L", StringComparison.OrdinalIgnoreCase) || en.EndsWith("Left", StringComparison.OrdinalIgnoreCase))
-            return "_L";
-        if (jp.Contains("右") || en.Contains("_R", StringComparison.OrdinalIgnoreCase) ||
-            en.EndsWith("R", StringComparison.OrdinalIgnoreCase) || en.EndsWith("Right", StringComparison.OrdinalIgnoreCase))
-            return "_R";
-        return "_1";
     }
 
     // 現在は PMX モデルのみに対応しています
