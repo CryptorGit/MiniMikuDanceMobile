@@ -24,7 +24,7 @@ public class AppSettings
     public float ModelScale { get; set; } = DefaultModelScale;
 
     /// <summary>ステージの半径のデフォルト値。</summary>
-    public const float DefaultStageSize = 30f;
+    public const float DefaultStageSize = 50f;
 
     /// <summary>ステージの半径。</summary>
     public float StageSize { get; set; } = DefaultStageSize;
