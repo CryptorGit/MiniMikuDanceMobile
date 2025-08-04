@@ -92,17 +92,17 @@
         <Frame x:Name="PmxImportDialog" IsVisible="False" BackgroundColor="{StaticResource BackgroundColor}" Padding="8" ZIndex="30">
             <ScrollView>
                 <VerticalStackLayout Spacing="6">
-                <HorizontalStackLayout Spacing="6">
-                    <Label Text="Model" TextColor="{StaticResource TextColor}" WidthRequest="60" />
+                <Grid ColumnDefinitions="60,*,Auto" ColumnSpacing="6">
+                    <Label Text="Model" TextColor="{StaticResource TextColor}" />
                     <Label x:Name="SelectedModelPath"
+                           Grid.Column="1"
                            TextColor="{StaticResource TextColor}"
                            FontSize="14"
                            HorizontalOptions="FillAndExpand"
                            LineBreakMode="CharacterWrap"
-                           MaxLines="2"
-                           WidthRequest="200" />
-                    <Button Text="参照" Clicked="OnSelectPmxModelClicked" />
-                </HorizontalStackLayout>
+                           MaxLines="2" />
+                    <Button Grid.Column="2" Text="参照" Clicked="OnSelectPmxModelClicked" />
+                </Grid>
                 <HorizontalStackLayout HorizontalOptions="Center" Spacing="20">
                     <Button Text="インポート" Clicked="OnImportPmxClicked" />
                     <Button Text="キャンセル" Clicked="OnCancelImportClicked" />
