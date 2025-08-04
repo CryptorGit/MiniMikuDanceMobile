@@ -14,13 +14,18 @@
         <Slider x:Name="PanSlider" Minimum="0.1" Maximum="5" Value="0.1"
                 ValueChanged="OnPanChanged"/>
         <Label Text="Stage Size" TextColor="{StaticResource TextColor}"/>
-        <HorizontalStackLayout Spacing="6">
-            <Slider x:Name="StageSizeSlider" Minimum="10" Maximum="100" Value="30"
-                    ValueChanged="OnStageSizeSliderChanged" />
-            <Entry x:Name="StageSizeEntry" Text="30" WidthRequest="60"
-                   TextColor="{StaticResource TextColor}" Keyboard="Numeric"
-                   Completed="OnStageSizeEntryCompleted" />
-        </HorizontalStackLayout>
+        <Picker x:Name="StageSizePicker" Title="Stage Size"
+                TextColor="{StaticResource TextColor}"
+                SelectedIndexChanged="OnStageSizePickerChanged">
+            <Picker.Items>
+                <x:String>10</x:String>
+                <x:String>20</x:String>
+                <x:String>30</x:String>
+                <x:String>40</x:String>
+                <x:String>50</x:String>
+                <x:String>100</x:String>
+            </Picker.Items>
+        </Picker>
         <HorizontalStackLayout Spacing="6" VerticalOptions="Center">
             <CheckBox x:Name="CameraLockCheck" Color="{StaticResource TextColor}"
                       CheckedChanged="OnCameraLockChanged"/>
