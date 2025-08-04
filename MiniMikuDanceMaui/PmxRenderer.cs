@@ -1,5 +1,4 @@
 using System;
-using OpenTK.Mathematics;
 using OpenTK.Graphics.ES30;
 using GL = OpenTK.Graphics.ES30.GL;
 using System.Runtime.InteropServices;
@@ -7,7 +6,12 @@ using System.Collections.Generic;
 using System.Linq;
 using MiniMikuDance.Util;
 using MiniMikuDance.App;
-using MMDTools;
+using Vector2 = OpenTK.Mathematics.Vector2;
+using Vector3 = OpenTK.Mathematics.Vector3;
+using Vector4 = OpenTK.Mathematics.Vector4;
+using Matrix4 = OpenTK.Mathematics.Matrix4;
+using Quaternion = OpenTK.Mathematics.Quaternion;
+using MathHelper = OpenTK.Mathematics.MathHelper;
 
 namespace MiniMikuDanceMaui;
 
