@@ -539,9 +539,9 @@ private void UpdateLayout()
     AbsoluteLayout.SetLayoutFlags(MenuOverlay, AbsoluteLayoutFlags.None);
 
     AbsoluteLayout.SetLayoutBounds(PmxImportDialog, new Rect(0.5, TopMenuHeight + 20, 0.8,
-        PmxImportDialog.IsVisible ? AbsoluteLayout.AutoSize : 0));
+        PmxImportDialog.IsVisible ? 0.8 : 0));
     AbsoluteLayout.SetLayoutFlags(PmxImportDialog,
-        AbsoluteLayoutFlags.XProportional | AbsoluteLayoutFlags.WidthProportional);
+        AbsoluteLayoutFlags.XProportional | AbsoluteLayoutFlags.WidthProportional | AbsoluteLayoutFlags.HeightProportional);
     AbsoluteLayout.SetLayoutBounds(PoseSelectMessage, new Rect(0.5, TopMenuHeight + 20, 0.8,
         PoseSelectMessage.IsVisible ? AbsoluteLayout.AutoSize : 0));
     AbsoluteLayout.SetLayoutFlags(PoseSelectMessage,

@@ -90,7 +90,8 @@
             </BoxView.GestureRecognizers>
         </BoxView>
         <Frame x:Name="PmxImportDialog" IsVisible="False" BackgroundColor="{StaticResource BackgroundColor}" Padding="8" ZIndex="30">
-            <VerticalStackLayout Spacing="6">
+            <ScrollView>
+                <VerticalStackLayout Spacing="6">
                 <HorizontalStackLayout Spacing="6">
                     <Label Text="Model" TextColor="{StaticResource TextColor}" WidthRequest="60" />
                     <Label x:Name="SelectedModelPath"
@@ -112,7 +113,8 @@
                     <Button Text="インポート" Clicked="OnImportPmxClicked" />
                     <Button Text="キャンセル" Clicked="OnCancelImportClicked" />
                 </HorizontalStackLayout>
-            </VerticalStackLayout>
+                </VerticalStackLayout>
+            </ScrollView>
         </Frame>
         <Frame x:Name="PoseSelectMessage" IsVisible="False" BackgroundColor="{StaticResource BackgroundColor}" Padding="8" ZIndex="30">
             <VerticalStackLayout Spacing="6">
