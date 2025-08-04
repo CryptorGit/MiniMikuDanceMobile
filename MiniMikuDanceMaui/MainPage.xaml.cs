@@ -356,6 +356,13 @@ private void OnCloseBottomTapped(object? sender, TappedEventArgs e)
 {
     if (_currentFeature != null)
     {
+        if (_currentFeature == "POSE" && _boneMode)
+        {
+            _poseEditor?.SetBoneMode(false);
+            _boneMode = false;
+            _renderer.ShowIkBones = false;
+            Viewer?.InvalidateSurface();
+        }
         RemoveBottomFeature(_currentFeature);
     }
     else
@@ -1102,6 +1109,14 @@ private void UpdateTabColors()
 
 private void RemoveBottomFeature(string name)
 {
+    if (name == "POSE" && _boneMode)
+    {
+        _poseEditor?.SetBoneMode(false);
+        _boneMode = false;
+        _renderer.ShowIkBones = false;
+        Viewer?.InvalidateSurface();
+    }
+
     if (_bottomViews.Remove(name))
     {
         if (_bottomTabs.TryGetValue(name, out var tab))
@@ -1125,6 +1140,11 @@ private void RemoveBottomFeature(string name)
         }
 
         UpdateLayout();
+    }
+
+    if (name == "POSE")
+    {
+        _poseEditor = null;
     }
 }
 
