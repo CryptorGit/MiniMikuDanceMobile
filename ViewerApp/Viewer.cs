@@ -1,6 +1,7 @@
 using System;
 using System.Diagnostics;
 using System.Collections.Generic;
+using System.Numerics;
 // Use OpenGL ES 3.0 across projects to avoid enum mismatches
 using OpenTK.Graphics.ES30;
 using GL = OpenTK.Graphics.ES30.GL;
@@ -8,6 +9,7 @@ using OpenTK.Mathematics;
 using OpenTK.Windowing.Common;
 using OpenTK.Windowing.Desktop;
 using OpenTK.Windowing.GraphicsLibraryFramework;
+using MiniMikuDance.Import;
 
 namespace ViewerApp;
 
@@ -54,8 +56,9 @@ public class Viewer : IDisposable
         GL.Enable(EnableCap.Blend);
         GL.BlendFunc(BlendingFactorSrc.SrcAlpha, BlendingFactorDest.OneMinusSrcAlpha);
 
-        var model = PmxLoader.Load(modelPath, scale);
-        _modelTransform = model.Transform;
+        var importer = new ModelImporter { Scale = scale };
+        var model = importer.ImportModel(modelPath);
+        _modelTransform = ToMatrix4(model.Transform);
 
         const string vert = "#version 330 core\n" +
                            "layout(location=0) in vec3 aPos;\n" +
@@ -95,17 +98,18 @@ public class Viewer : IDisposable
 
         foreach (var sm in model.SubMeshes)
         {
-            int vcount = sm.Positions.Length / 3;
+            var mesh = sm.Mesh;
+            int vcount = mesh.Vertices.Count;
             float[] verts = new float[vcount * 5];
             for (int i = 0; i < vcount; i++)
             {
-                verts[i * 5 + 0] = sm.Positions[i * 3 + 0];
-                verts[i * 5 + 1] = sm.Positions[i * 3 + 1];
-                verts[i * 5 + 2] = sm.Positions[i * 3 + 2];
-                if (sm.TexCoords.Length >= (i + 1) * 2)
+                verts[i * 5 + 0] = mesh.Vertices[i].X;
+                verts[i * 5 + 1] = mesh.Vertices[i].Y;
+                verts[i * 5 + 2] = mesh.Vertices[i].Z;
+                if (sm.TexCoords.Count > i)
                 {
-                    verts[i * 5 + 3] = sm.TexCoords[i * 2 + 0];
-                    verts[i * 5 + 4] = sm.TexCoords[i * 2 + 1];
+                    verts[i * 5 + 3] = sm.TexCoords[i].X;
+                    verts[i * 5 + 4] = sm.TexCoords[i].Y;
                 }
                 else
                 {
@@ -113,13 +117,21 @@ public class Viewer : IDisposable
                     verts[i * 5 + 4] = 0f;
                 }
             }
+            var indices = new uint[mesh.Faces.Count * 3];
+            for (int i = 0; i < mesh.Faces.Count; i++)
+            {
+                var f = mesh.Faces[i];
+                indices[i * 3 + 0] = (uint)f.Indices[0];
+                indices[i * 3 + 1] = (uint)f.Indices[1];
+                indices[i * 3 + 2] = (uint)f.Indices[2];
+            }
 
             var rm = new RenderMesh();
-            rm.IndexCount = sm.Indices.Length;
+            rm.IndexCount = indices.Length;
             rm.Vao = GL.GenVertexArray();
             rm.Vbo = GL.GenBuffer();
             rm.Ebo = GL.GenBuffer();
-            rm.Color = sm.ColorFactor;
+            rm.Color = new Vector4(sm.ColorFactor.X, sm.ColorFactor.Y, sm.ColorFactor.Z, sm.ColorFactor.W);
 
             GL.BindVertexArray(rm.Vao);
             GL.BindBuffer(BufferTarget.ArrayBuffer, rm.Vbo);
@@ -130,7 +142,7 @@ public class Viewer : IDisposable
             GL.VertexAttribPointer(1, 2, VertexAttribPointerType.Float, false, stride, 3 * sizeof(float));
             GL.EnableVertexAttribArray(1);
             GL.BindBuffer(BufferTarget.ElementArrayBuffer, rm.Ebo);
-            GL.BufferData(BufferTarget.ElementArrayBuffer, sm.Indices.Length * sizeof(uint), sm.Indices, BufferUsageHint.StaticDraw);
+            GL.BufferData(BufferTarget.ElementArrayBuffer, indices.Length * sizeof(uint), indices, BufferUsageHint.StaticDraw);
             GL.BindVertexArray(0);
 
             if (sm.TextureBytes != null)
@@ -180,6 +192,15 @@ public class Viewer : IDisposable
     public void SetViewMatrix(Matrix4 view)
     {
         _view = view;
+    }
+
+    private static Matrix4 ToMatrix4(Matrix4x4 m)
+    {
+        return new Matrix4(
+            m.M11, m.M12, m.M13, m.M14,
+            m.M21, m.M22, m.M23, m.M24,
+            m.M31, m.M32, m.M33, m.M34,
+            m.M41, m.M42, m.M43, m.M44);
     }
 
     private void Render()
