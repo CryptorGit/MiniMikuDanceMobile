@@ -68,6 +68,7 @@ public partial class MainPage : ContentPage
     private MiniMikuDance.Import.ModelData? _currentModel;
     private readonly Dictionary<long, SKPoint> _touchPoints = new();
     private bool _boneMode;
+    private PoseEditorView? _poseEditor;
     private MotionEditor? _motionEditor;
     private readonly BonesConfig? _bonesConfig = App.Initializer.BonesConfig;
     private void SetProgressVisibilityAndLayout(bool isVisible,
@@ -658,7 +659,7 @@ private void OnViewTouch(object? sender, SKTouchEventArgs e)
 
         if (_boneMode)
         {
-            // TODO: implement bone manipulation via touch
+            _poseEditor?.HandleViewerTouch(e);
         }
         else if (_touchPoints.Count == 1 && prevPoints.ContainsKey(e.Id))
         {
@@ -824,6 +825,7 @@ private void ShowBottomFeature(string name)
                 _renderer.ShowIkBones = mode;
                 Viewer?.InvalidateSurface();
             };
+            _poseEditor = pv;
             view = pv;
         }
         else if (name == "MORPH")
