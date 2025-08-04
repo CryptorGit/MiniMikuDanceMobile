@@ -3,6 +3,9 @@
 MiniMikuDance は、スマートフォン上で PMX 形式の MMD 互換モデルを再生・撮影できるモバイル向けアプリです。VRM などの他形式はサポートせず、PMX に特化しています。姿勢推定や録画処理も端末で完結し、Unity を使用せずに C# と OpenTK で実装されています。
 実行には `ffmpeg` コマンドが必要です。Android 環境では別途バイナリを用意し PATH に追加するかアプリに同梱してください。
 **注意: `global.json` の SDK バージョンは `9.0.301` から変更しないこと。**
+## ドキュメント
+
+詳細なガイドは [docs/Mobile_MMD_PMX_OpenTK_Guide.md](docs/Mobile_MMD_PMX_OpenTK_Guide.md) を参照してください。
 
 ## ポーズファイルの読み込み
 
