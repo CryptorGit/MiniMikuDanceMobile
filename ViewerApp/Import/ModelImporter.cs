@@ -282,6 +282,23 @@ public class ModelImporter
                 }
             }
 
+            smd.SphereMode = (SphereMapMode)mat.SphereTextureMode;
+            if (!string.IsNullOrEmpty(dir) && mat.SphereTextre >= 0 && mat.SphereTextre < texList.Length)
+            {
+                var sphereName = texList[mat.SphereTextre]
+                    .Replace('\\', Path.DirectorySeparatorChar);
+                var spherePath = Path.Combine(dir, sphereName);
+                smd.SphereTextureFilePath = sphereName;
+                if (File.Exists(spherePath))
+                {
+                    using var image = SixLabors.ImageSharp.Image.Load<Rgba32>(spherePath);
+                    smd.SphereTextureWidth = image.Width;
+                    smd.SphereTextureHeight = image.Height;
+                    smd.SphereTextureBytes = new byte[image.Width * image.Height * 4];
+                    image.CopyPixelDataTo(smd.SphereTextureBytes);
+                }
+            }
+
             data.SubMeshes.Add(smd);
             faceOffset += faceCount;
         }
