@@ -6,6 +6,8 @@ using System.Collections.Generic;
 using System.Linq;
 using MiniMikuDance.Util;
 using MiniMikuDance.App;
+using MiniMikuDance.Import;
+using MMDTools;
 using Vector2 = OpenTK.Mathematics.Vector2;
 using Vector3 = OpenTK.Mathematics.Vector3;
 using Vector4 = OpenTK.Mathematics.Vector4;
@@ -101,7 +103,7 @@ public class PmxRenderer : IDisposable
     private int _height;
     private readonly List<Vector3> _boneRotations = new();
     private readonly List<Vector3> _boneTranslations = new();
-    private List<MiniMikuDance.Import.BoneData> _bones = new();
+    private List<BoneData> _bones = new();
     private readonly Dictionary<int, string> _indexToHumanoidName = new();
     private readonly Dictionary<string, float> _morphWeights = new(StringComparer.OrdinalIgnoreCase);
     private readonly Dictionary<string, List<(int Index, Vector3 Offset)>> _morphOffsets = new(StringComparer.OrdinalIgnoreCase);
@@ -622,7 +624,7 @@ void main(){
         }
     }
 
-    public void LoadModel(MiniMikuDance.Import.ModelData data)
+    public void LoadModel(ModelData data)
     {
         foreach (var rm in _meshes)
         {
@@ -642,6 +644,9 @@ void main(){
         _morphedVertices = (Vector3[])_baseVertices.Clone();
         foreach (var morph in data.Morphs)
         {
+            if (morph == null)
+                continue;
+
             if (!_morphOrderSet.Contains(morph.Name))
             {
                 _morphOrder.Add(morph.Name);
@@ -650,7 +655,8 @@ void main(){
 
             if (morph.Type == MorphType.Group)
             {
-                _groupMorphs[morph.Name] = morph.GroupChildren.ToList();
+                if (morph.GroupChildren != null)
+                    _groupMorphs[morph.Name] = morph.GroupChildren.ToList();
                 if (!_morphWeights.ContainsKey(morph.Name))
                     _morphWeights[morph.Name] = 0f;
                 continue;
@@ -690,7 +696,7 @@ void main(){
 
         if (data.SubMeshes.Count == 0)
         {
-            data.SubMeshes.Add(new MiniMikuDance.Import.SubMeshData
+            data.SubMeshes.Add(new SubMeshData
             {
                 Mesh = data.Mesh
             });
