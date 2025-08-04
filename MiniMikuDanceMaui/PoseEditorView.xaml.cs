@@ -25,24 +25,30 @@ public partial class PoseEditorView : ContentView
         UpdateButtons();
     }
 
+    /// <summary>
+    /// Bone モードの状態を外部から切り替える。
+    /// </summary>
+    /// <param name="enable">true で Bone モード、false で Camera モード。</param>
+    public void SetBoneMode(bool enable)
+    {
+        if (_boneMode == enable)
+            return;
+
+        _boneMode = enable;
+        UpdateButtons();
+        ModeChanged?.Invoke(_boneMode);
+    }
+
     private void OnCameraClicked(object? sender, EventArgs e)
     {
         if (_boneMode)
-        {
-            _boneMode = false;
-            UpdateButtons();
-            ModeChanged?.Invoke(_boneMode);
-        }
+            SetBoneMode(false);
     }
 
     private void OnBoneClicked(object? sender, EventArgs e)
     {
         if (!_boneMode)
-        {
-            _boneMode = true;
-            UpdateButtons();
-            ModeChanged?.Invoke(_boneMode);
-        }
+            SetBoneMode(true);
     }
 
     private void UpdateButtons()
