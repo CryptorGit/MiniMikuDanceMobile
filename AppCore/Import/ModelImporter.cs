@@ -7,7 +7,6 @@ using SixLabors.ImageSharp;
 using SixLabors.ImageSharp.PixelFormats;
 using Vector3D = Assimp.Vector3D;
 using MMDTools;
-using MiniMikuDance.App;
 
 namespace MiniMikuDance.Import;
 
@@ -27,7 +26,7 @@ public class ModelData
 public class ModelImporter
 {
     private readonly AssimpContext _context = new();
-    public float Scale { get; set; } = AppSettings.DefaultModelScale;
+    public float Scale { get; set; } = 1.0f;
 
     public ModelData ImportModel(Stream stream, string? textureDir = null)
     {
