@@ -2,7 +2,7 @@
 - [ ] PMX マテリアルの詳細設定（スフィアマップ等）の実装
 - [ ] Android SDK をセットアップしてソリューション全体のビルドを確認
 - [ ] AppCore/Import/ModelImporter.cs の構文エラーを修正する
-- [ ] ドキュメントの PMX 向け整理（README などの更新）
+- [x] ドキュメントの PMX 向け整理（README などの更新）
 - [ ] PmxLoader の詳細実装
 - [ ] PmxRenderer の PMX 対応の拡充
 - [ ] 半透明メッシュの深度ソート対応
