@@ -417,6 +417,9 @@ private void HideSettingMenu()
 
 private void HideAllMenusAndLayout()
 {
+    if (ViewMenu == null || SettingMenu == null || FileMenu == null)
+        return;
+
     HideViewMenu();
     HideSettingMenu();
     HideFileMenu();
@@ -428,12 +431,12 @@ private void UpdateSettingViewProperties(SettingView? sv)
     if (sv == null || _renderer == null)
         return;
 
-    sv.HeightRatio = _bottomHeightRatio;
+    sv!.HeightRatio = _bottomHeightRatio;
     sv.RotateSensitivity = _rotateSensitivity;
     sv.PanSensitivity = _panSensitivity;
     sv.ZoomSensitivity = _zoomSensitivity;
-    sv.CameraLocked = _renderer.CameraLocked;
-    sv.ShowBoneOutline = _renderer.ShowBoneOutline;
+    sv.CameraLocked = _renderer!.CameraLocked;
+    sv.ShowBoneOutline = _renderer!.ShowBoneOutline;
 }
 
 private void UpdateBoneViewProperties(BoneView? bv)
@@ -858,55 +861,58 @@ private void ShowBottomFeature(string name)
             };
             tv.EditKeyClicked += async (s, e) =>
             {
-                if (s is TimelineView timelineView && EditKeyPanel != null)
+                if (s is not TimelineView timelineView || EditKeyPanel == null)
                 {
-                    int boneIndex = timelineView.SelectedKeyInputBoneIndex;
-                    var boneName = timelineView.BoneNames.Count > boneIndex && boneIndex >= 0
-                        ? timelineView.BoneNames[boneIndex]
-                        : timelineView.SelectedBoneName;
-
-                    if (!timelineView.HasKeyframe(boneName, timelineView.CurrentFrame))
-                    {
-                        await DisplayAlert("Info", "キーがありません", "OK");
-                        EditKeyPanel.IsVisible = false;
-                        return;
-                    }
-
-                    _poseBeforeKeyInput = new PoseState
-                    {
-                        Rotations = _renderer.GetAllBoneRotations(),
-                        Translations = _renderer.GetAllBoneTranslations()
-                    };
-
-                    EditKeyPanel.SetBones(timelineView.BoneNames);
-                    EditKeyPanel.SelectedBoneIndex = boneIndex;
-
-                    var frames = timelineView.GetKeyframesForBone(boneName);
-                    EditKeyPanel.SetFrame(timelineView.CurrentFrame, frames,
-                        timelineView.GetBoneTranslationAtFrame,
-                        timelineView.GetBoneRotationAtFrame);
-
-                    timelineView.SelectedKeyInputBoneIndex = EditKeyPanel.SelectedBoneIndex;
-
-                    var selectedIndex = EditKeyPanel.SelectedBoneIndex;
-                    if (selectedIndex >= 0)
-                    {
-                        // Ensure rotation limit is applied even when the index does not change
-                        OnEditKeyBoneChanged(selectedIndex);
-
-                        var boneName2 = EditKeyPanel.SelectedBone;
-                        if (!string.IsNullOrEmpty(boneName2))
-                        {
-                            OnKeyParameterChanged(
-                                boneName2,
-                                EditKeyPanel.FrameNumber,
-                                EditKeyPanel.Translation,
-                                EditKeyPanel.EulerRotation);
-                        }
-                    }
-
-                    EditKeyPanel.IsVisible = true;
+                    await DisplayAlert("Error", "EditKeyPanel または TimelineView が初期化されていません", "OK");
+                    return;
                 }
+
+                int boneIndex = timelineView.SelectedKeyInputBoneIndex;
+                var boneName = timelineView.BoneNames.Count > boneIndex && boneIndex >= 0
+                    ? timelineView.BoneNames[boneIndex]
+                    : timelineView.SelectedBoneName;
+
+                if (!timelineView.HasKeyframe(boneName, timelineView.CurrentFrame))
+                {
+                    await DisplayAlert("Info", "キーがありません", "OK");
+                    EditKeyPanel.IsVisible = false;
+                    return;
+                }
+
+                _poseBeforeKeyInput = new PoseState
+                {
+                    Rotations = _renderer.GetAllBoneRotations(),
+                    Translations = _renderer.GetAllBoneTranslations()
+                };
+
+                EditKeyPanel.SetBones(timelineView.BoneNames);
+                EditKeyPanel.SelectedBoneIndex = boneIndex;
+
+                var frames = timelineView.GetKeyframesForBone(boneName);
+                EditKeyPanel.SetFrame(timelineView.CurrentFrame, frames,
+                    timelineView.GetBoneTranslationAtFrame,
+                    timelineView.GetBoneRotationAtFrame);
+
+                timelineView.SelectedKeyInputBoneIndex = EditKeyPanel.SelectedBoneIndex;
+
+                var selectedIndex = EditKeyPanel.SelectedBoneIndex;
+                if (selectedIndex >= 0)
+                {
+                    // Ensure rotation limit is applied even when the index does not change
+                    OnEditKeyBoneChanged(selectedIndex);
+
+                    var boneName2 = EditKeyPanel.SelectedBone;
+                    if (!string.IsNullOrEmpty(boneName2))
+                    {
+                        OnKeyParameterChanged(
+                            boneName2,
+                            EditKeyPanel.FrameNumber,
+                            EditKeyPanel.Translation,
+                            EditKeyPanel.EulerRotation);
+                    }
+                }
+
+                EditKeyPanel.IsVisible = true;
             };
            tv.DeleteKeyClicked += (s, e) =>
            {
@@ -934,7 +940,7 @@ private void ShowBottomFeature(string name)
                 ShadeShift = _shadeShift,
                 ShadeToony = _shadeToony,
                 RimIntensity = _rimIntensity
-            };
+            } ?? throw new InvalidOperationException("LightingView の生成に失敗しました");
             mv.ShadeShiftChanged += v =>
             {
                 _shadeShift = (float)v;
