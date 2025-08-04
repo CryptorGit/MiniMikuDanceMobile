@@ -354,6 +354,12 @@ private void OnPoseEditorClicked(object? sender, EventArgs e)
     HideAllMenusAndLayout();
 }
 
+private void OnMorphClicked(object? sender, EventArgs e)
+{
+    ShowBottomFeature("MORPH");
+    HideAllMenusAndLayout();
+}
+
 
 private void OnCloseBottomTapped(object? sender, TappedEventArgs e)
 {
@@ -623,6 +629,10 @@ private void LoadPendingModel()
         _shadeToony = _pendingModel.ShadeToony;
         _rimIntensity = _pendingModel.RimIntensity;
         UpdateRendererLightingProperties();
+        if (_bottomViews.TryGetValue("MORPH", out var mv) && mv is MorphView morphView)
+        {
+            morphView.SetModel(_currentModel, _renderer);
+        }
         _pendingModel = null;
         SavePoseState();
     }
@@ -739,6 +749,10 @@ private async Task ShowModelSelector()
             _shadeToony = data.ShadeToony;
             _rimIntensity = data.RimIntensity;
             UpdateRendererLightingProperties();
+            if (_bottomViews.TryGetValue("MORPH", out var mv) && mv is MorphView morphView)
+            {
+                morphView.SetModel(_currentModel, _renderer);
+            }
             Viewer?.InvalidateSurface();
         }
     }
@@ -805,6 +819,12 @@ private void ShowBottomFeature(string name)
             var pv = new PoseEditorView();
             pv.ModeChanged += mode => _boneMode = mode;
             view = pv;
+        }
+        else if (name == "MORPH")
+        {
+            var mv = new MorphView();
+            mv.SetModel(_currentModel, _renderer);
+            view = mv;
         }
 
         else if (name == "PMX")
@@ -1040,6 +1060,10 @@ private void ShowBottomFeature(string name)
     else if (name == "BONE" && _bottomViews[name] is BoneView bv)
     {
         UpdateBoneViewProperties(bv);
+    }
+    else if (name == "MORPH" && _bottomViews[name] is MorphView mv)
+    {
+        mv.SetModel(_currentModel, _renderer);
     }
     else if (name == "PMX" && _bottomViews[name] is PmxView pv)
     {

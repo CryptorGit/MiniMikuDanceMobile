@@ -78,6 +78,7 @@ public class PmxRenderer : IDisposable
     private readonly List<Vector3> _boneTranslations = new();
     private List<MiniMikuDance.Import.BoneData> _bones = new();
     private readonly Dictionary<int, string> _indexToHumanoidName = new();
+    private readonly Dictionary<string, float> _morphWeights = new();
     public BonesConfig? BonesConfig { get; set; }
     private Quaternion _externalRotation = Quaternion.Identity;
     // デフォルトのカメラ感度をスライダーの最小値に合わせる
@@ -357,6 +358,12 @@ void main(){
         return _boneTranslations[index];
     }
 
+    public void SetMorphWeight(string name, float weight)
+    {
+        _morphWeights[name] = weight;
+        // TODO: モーフウェイトを頂点へ反映させる
+    }
+
     public IList<Vector3> GetAllBoneRotations() => _boneRotations.ToList();
 
     public IList<Vector3> GetAllBoneTranslations() => _boneTranslations.ToList();
@@ -384,6 +391,7 @@ void main(){
         }
         _meshes.Clear();
         _indexToHumanoidName.Clear();
+        _morphWeights.Clear();
         _bones = data.Bones.ToList();
         foreach (var (name, idx) in data.HumanoidBoneList)
         {
