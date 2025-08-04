@@ -21,6 +21,20 @@ public class ModelData
     public float ShadeShift { get; set; } = -0.1f;
     public float ShadeToony { get; set; } = 0.9f;
     public float RimIntensity { get; set; } = 0.5f;
+    public List<MorphData> Morphs { get; set; } = new();
+}
+
+public class MorphData
+{
+    public string Name { get; set; } = string.Empty;
+    public MorphType Type { get; set; }
+    public List<MorphOffset> Offsets { get; set; } = new();
+}
+
+public class MorphOffset
+{
+    public int Index { get; set; }
+    public System.Numerics.Vector3 Offset { get; set; }
 }
 
 public class ModelImporter
@@ -75,6 +89,7 @@ public class ModelImporter
         var mats = pmx.MaterialList.ToArray();
         var texList = pmx.TextureList.ToArray();
         var bones = pmx.BoneList.ToArray();
+        var morphs = pmx.MorphList.ToArray();
 
         // ボーン情報を ModelData に格納する
         var data = new ModelData();
@@ -109,6 +124,27 @@ public class ModelImporter
             bd.InverseBindMatrix = inv;
         }
         data.Bones = boneDatas;
+
+        // モーフ情報の解析
+        var morphDatas = new List<MorphData>(morphs.Length);
+        foreach (var m in morphs)
+        {
+            var md = new MorphData
+            {
+                Name = string.IsNullOrEmpty(m.NameEnglish) ? m.Name : m.NameEnglish,
+                Type = m.MorphType
+            };
+            foreach (var vm in m.VertexMorphElements.ToArray())
+            {
+                md.Offsets.Add(new MorphOffset
+                {
+                    Index = vm.TargetVertex,
+                    Offset = new System.Numerics.Vector3(vm.PosOffset.X, vm.PosOffset.Y, vm.PosOffset.Z) * Scale
+                });
+            }
+            morphDatas.Add(md);
+        }
+        data.Morphs = morphDatas;
 
         // ヒューマノイドボーンのマッピング
         foreach (var hb in ViewerApp.Import.HumanoidBones.StandardOrder)
