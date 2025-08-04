@@ -101,6 +101,7 @@ public class PmxRenderer : IDisposable
     private readonly Dictionary<string, float> _morphWeights = new();
     private readonly Dictionary<string, List<(int Index, Vector3 Offset)>> _morphOffsets = new();
     private readonly List<string> _morphOrder = new();
+    private readonly HashSet<string> _morphOrderSet = new();
     private Vector3[] _baseVertices = Array.Empty<Vector3>();
     private Vector3[] _morphedVertices = Array.Empty<Vector3>();
     private System.Numerics.Matrix4x4[] _worldMats = Array.Empty<System.Numerics.Matrix4x4>();
@@ -586,16 +587,40 @@ void main(){
         _morphWeights.Clear();
         _morphOffsets.Clear();
         _morphOrder.Clear();
+        _morphOrderSet.Clear();
         _baseVertices = data.Mesh.Vertices.Select(v => new Vector3(v.X, v.Y, v.Z)).ToArray();
         _morphedVertices = (Vector3[])_baseVertices.Clone();
         foreach (var morph in data.Morphs)
         {
-            _morphOrder.Add(morph.Name);
-            var list = new List<(int, Vector3)>();
-            foreach (var mo in morph.Offsets)
-                list.Add((mo.Index, new Vector3(mo.Offset.X, mo.Offset.Y, mo.Offset.Z)));
-            _morphOffsets[morph.Name] = list;
-            _morphWeights[morph.Name] = 0f;
+            if (!_morphOrderSet.Contains(morph.Name))
+            {
+                _morphOrder.Add(morph.Name);
+                _morphOrderSet.Add(morph.Name);
+            }
+
+            if (_morphOffsets.TryGetValue(morph.Name, out var existing))
+            {
+                var dict = existing.ToDictionary(e => e.Index, e => e.Offset);
+                foreach (var mo in morph.Offsets)
+                {
+                    var offset = new Vector3(mo.Offset.X, mo.Offset.Y, mo.Offset.Z);
+                    if (dict.TryGetValue(mo.Index, out var ex))
+                        dict[mo.Index] = ex + offset;
+                    else
+                        dict[mo.Index] = offset;
+                }
+                _morphOffsets[morph.Name] = dict.Select(kv => (kv.Key, kv.Value)).ToList();
+            }
+            else
+            {
+                var list = new List<(int, Vector3)>();
+                foreach (var mo in morph.Offsets)
+                    list.Add((mo.Index, new Vector3(mo.Offset.X, mo.Offset.Y, mo.Offset.Z)));
+                _morphOffsets[morph.Name] = list;
+            }
+
+            if (!_morphWeights.ContainsKey(morph.Name))
+                _morphWeights[morph.Name] = 0f;
         }
         _bones = data.Bones.ToList();
         foreach (var (name, idx) in data.HumanoidBoneList)
