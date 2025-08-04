@@ -59,8 +59,20 @@ public class PmxRenderer : IDisposable
     private readonly List<int> _ikBoneOffsets = new();
     private readonly List<int> _ikBoneCounts = new();
     private const int IkBoneSegments = 16;
-    private const float IkBoneRadius = 0.05f;
     private static readonly Vector4 IkBoneColor = new(1f, 1f, 0f, 1f);
+    private float _ikBoneRadius = 0.05f;
+    public float IkBoneRadius
+    {
+        get => _ikBoneRadius;
+        set
+        {
+            if (value > 0f && MathF.Abs(_ikBoneRadius - value) > float.Epsilon)
+            {
+                _ikBoneRadius = value;
+                RebuildIkBoneMesh();
+            }
+        }
+    }
     private int _modelProgram;
     private int _modelViewLoc;
     private int _modelProjLoc;
@@ -508,6 +520,55 @@ void main(){
         }
     }
 
+    public void RebuildIkBoneMesh()
+    {
+        if (!ShowIkBones)
+        {
+            _ikBoneOffsets.Clear();
+            _ikBoneCounts.Clear();
+            return;
+        }
+
+        var modelMat = _modelTransform;
+        var verts = new List<float>();
+        _ikBoneOffsets.Clear();
+        _ikBoneCounts.Clear();
+        float ikRadius = IkBoneRadius;
+        if (_defaultCameraDistance > 0f)
+            ikRadius *= _distance / _defaultCameraDistance;
+        for (int i = 0; i < _bones.Count; i++)
+        {
+            var bone = _bones[i];
+            if (!bone.IsIk)
+                continue;
+            var cp = _worldMats[i].Translation;
+            var c4 = Vector4.TransformRow(new Vector4(cp.X, cp.Y, cp.Z, 1f), modelMat);
+            _ikBoneOffsets.Add(verts.Count / 3);
+            verts.Add(c4.X); verts.Add(c4.Y); verts.Add(c4.Z);
+            for (int s = 0; s <= IkBoneSegments; s++)
+            {
+                float ang = 2f * MathF.PI * s / IkBoneSegments;
+                float x = c4.X + ikRadius * MathF.Cos(ang);
+                float y = c4.Y + ikRadius * MathF.Sin(ang);
+                float z = c4.Z;
+                verts.Add(x); verts.Add(y); verts.Add(z);
+            }
+            _ikBoneCounts.Add(IkBoneSegments + 2);
+        }
+        if (verts.Count > 0)
+        {
+            if (_ikBoneVao == 0) _ikBoneVao = GL.GenVertexArray();
+            if (_ikBoneVbo == 0) _ikBoneVbo = GL.GenBuffer();
+            GL.BindVertexArray(_ikBoneVao);
+            GL.BindBuffer(BufferTarget.ArrayBuffer, _ikBoneVbo);
+            GL.BufferData(BufferTarget.ArrayBuffer, verts.Count * sizeof(float), verts.ToArray(), BufferUsageHint.DynamicDraw);
+            GL.VertexAttribPointer(0, 3, VertexAttribPointerType.Float, false, 3 * sizeof(float), 0);
+            GL.EnableVertexAttribArray(0);
+            GL.BindBuffer(BufferTarget.ArrayBuffer, 0);
+            GL.BindVertexArray(0);
+        }
+    }
+
     public void LoadModel(MiniMikuDance.Import.ModelData data)
     {
         foreach (var rm in _meshes)
@@ -707,51 +768,7 @@ void main(){
                 _boneVertexCount = 0;
             }
 
-            if (ShowIkBones)
-            {
-                var verts = new List<float>();
-                _ikBoneOffsets.Clear();
-                _ikBoneCounts.Clear();
-                float ikRadius = IkBoneRadius;
-                if (_defaultCameraDistance > 0f)
-                    ikRadius *= _distance / _defaultCameraDistance;
-                for (int i = 0; i < _bones.Count; i++)
-                {
-                    var bone = _bones[i];
-                    if (!bone.IsIk)
-                        continue;
-                    var cp = _worldMats[i].Translation;
-                    var c4 = Vector4.TransformRow(new Vector4(cp.X, cp.Y, cp.Z, 1f), modelMat);
-                    _ikBoneOffsets.Add(verts.Count / 3);
-                    verts.Add(c4.X); verts.Add(c4.Y); verts.Add(c4.Z);
-                    for (int s = 0; s <= IkBoneSegments; s++)
-                    {
-                        float ang = 2f * MathF.PI * s / IkBoneSegments;
-                        float x = c4.X + ikRadius * MathF.Cos(ang);
-                        float y = c4.Y + ikRadius * MathF.Sin(ang);
-                        float z = c4.Z;
-                        verts.Add(x); verts.Add(y); verts.Add(z);
-                    }
-                    _ikBoneCounts.Add(IkBoneSegments + 2);
-                }
-                if (verts.Count > 0)
-                {
-                    if (_ikBoneVao == 0) _ikBoneVao = GL.GenVertexArray();
-                    if (_ikBoneVbo == 0) _ikBoneVbo = GL.GenBuffer();
-                    GL.BindVertexArray(_ikBoneVao);
-                    GL.BindBuffer(BufferTarget.ArrayBuffer, _ikBoneVbo);
-                    GL.BufferData(BufferTarget.ArrayBuffer, verts.Count * sizeof(float), verts.ToArray(), BufferUsageHint.DynamicDraw);
-                    GL.VertexAttribPointer(0, 3, VertexAttribPointerType.Float, false, 3 * sizeof(float), 0);
-                    GL.EnableVertexAttribArray(0);
-                    GL.BindBuffer(BufferTarget.ArrayBuffer, 0);
-                    GL.BindVertexArray(0);
-                }
-            }
-            else
-            {
-                _ikBoneOffsets.Clear();
-                _ikBoneCounts.Clear();
-            }
+            RebuildIkBoneMesh();
         }
 
         GL.UseProgram(_modelProgram);

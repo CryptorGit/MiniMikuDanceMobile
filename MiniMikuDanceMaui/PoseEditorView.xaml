@@ -10,5 +10,11 @@
             <Button x:Name="BoneModeButton" Text="Bone" Clicked="OnBoneClicked"
                     TextColor="{StaticResource TextColor}" />
         </HorizontalStackLayout>
+        <HorizontalStackLayout Spacing="6">
+            <Label Text="IKボーン半径" TextColor="{StaticResource TextColor}" VerticalOptions="Center" />
+            <Entry x:Name="IkBoneRadiusEntry" Text="0.05" WidthRequest="60"
+                   TextColor="{StaticResource TextColor}" Keyboard="Numeric"
+                   Completed="OnIkBoneRadiusEntryCompleted" />
+        </HorizontalStackLayout>
     </VerticalStackLayout>
 </ContentView>
