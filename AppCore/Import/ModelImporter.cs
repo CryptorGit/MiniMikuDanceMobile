@@ -30,6 +30,7 @@ public class MorphData
     public string Name { get; set; } = string.Empty;
     public MorphType Type { get; set; }
     public List<MorphOffset> Offsets { get; set; } = new();
+    public List<(string Name, float Weight)> GroupChildren { get; set; } = new();
 }
 
 public class MorphOffset
@@ -149,8 +150,7 @@ public class ModelImporter
         var morphDict = new Dictionary<string, MorphData>(StringComparer.OrdinalIgnoreCase);
         foreach (var m in morphs)
         {
-            // グループモーフなど、スライダー表示が不要なタイプは除外
-            if (m.MorphType != MorphType.Vertex)
+            if (m.MorphType != MorphType.Vertex && m.MorphType != MorphType.Group)
                 continue;
 
             string name = string.IsNullOrEmpty(m.NameEnglish) ? m.Name : m.NameEnglish;
@@ -166,13 +166,29 @@ public class ModelImporter
                 morphDatas.Add(md);
             }
 
-            foreach (var vm in m.VertexMorphElements.ToArray())
+            if (m.MorphType == MorphType.Vertex)
             {
-                md.Offsets.Add(new MorphOffset
+                foreach (var vm in m.VertexMorphElements.ToArray())
                 {
-                    Index = vm.TargetVertex,
-                    Offset = new System.Numerics.Vector3(vm.PosOffset.X, vm.PosOffset.Y, vm.PosOffset.Z) * Scale
-                });
+                    md.Offsets.Add(new MorphOffset
+                    {
+                        Index = vm.TargetVertex,
+                        Offset = new System.Numerics.Vector3(vm.PosOffset.X, vm.PosOffset.Y, vm.PosOffset.Z) * Scale
+                    });
+                }
+            }
+            else if (m.MorphType == MorphType.Group)
+            {
+                foreach (var gm in m.GroupMorphElements.ToArray())
+                {
+                    if (gm.TargetMorph >= 0 && gm.TargetMorph < morphs.Length)
+                    {
+                        var child = morphs[gm.TargetMorph];
+                        string childName = string.IsNullOrEmpty(child.NameEnglish) ? child.Name : child.NameEnglish;
+                        childName = childName.Trim();
+                        md.GroupChildren.Add((childName, gm.MorphRatio));
+                    }
+                }
             }
         }
         data.Morphs = morphDatas;

@@ -7,6 +7,7 @@ using System.Collections.Generic;
 using System.Linq;
 using MiniMikuDance.Util;
 using MiniMikuDance.App;
+using MMDTools;
 
 namespace MiniMikuDanceMaui;
 
@@ -100,6 +101,7 @@ public class PmxRenderer : IDisposable
     private readonly Dictionary<int, string> _indexToHumanoidName = new();
     private readonly Dictionary<string, float> _morphWeights = new(StringComparer.OrdinalIgnoreCase);
     private readonly Dictionary<string, List<(int Index, Vector3 Offset)>> _morphOffsets = new(StringComparer.OrdinalIgnoreCase);
+    private readonly Dictionary<string, List<(string Name, float Weight)>> _groupMorphs = new(StringComparer.OrdinalIgnoreCase);
     private readonly List<string> _morphOrder = new();
     private readonly HashSet<string> _morphOrderSet = new(StringComparer.OrdinalIgnoreCase);
     private Vector3[] _baseVertices = Array.Empty<Vector3>();
@@ -397,9 +399,47 @@ void main(){
             return;
 
         Array.Copy(_baseVertices, _morphedVertices, _baseVertices.Length);
+
+        var effective = new Dictionary<string, float>(StringComparer.OrdinalIgnoreCase);
+        foreach (var kv in _morphWeights)
+        {
+            if (!_groupMorphs.ContainsKey(kv.Key))
+                effective[kv.Key] = kv.Value;
+        }
+        foreach (var kv in _morphWeights)
+        {
+            if (_groupMorphs.ContainsKey(kv.Key) && MathF.Abs(kv.Value) > 1e-6f)
+                AddGroupWeight(kv.Key, kv.Value, new HashSet<string>(StringComparer.OrdinalIgnoreCase));
+        }
+
+        void AddGroupWeight(string groupName, float weight, HashSet<string> visited)
+        {
+            if (!visited.Add(groupName))
+                return;
+            if (!_groupMorphs.TryGetValue(groupName, out var children))
+            {
+                visited.Remove(groupName);
+                return;
+            }
+            foreach (var (childName, childWeight) in children)
+            {
+                float w = weight * childWeight;
+                if (_groupMorphs.ContainsKey(childName))
+                    AddGroupWeight(childName, w, visited);
+                else
+                {
+                    if (effective.TryGetValue(childName, out var ex))
+                        effective[childName] = ex + w;
+                    else
+                        effective[childName] = w;
+                }
+            }
+            visited.Remove(groupName);
+        }
+
         foreach (var morphName in _morphOrder)
         {
-            float w = _morphWeights.TryGetValue(morphName, out var val) ? val : 0f;
+            float w = effective.TryGetValue(morphName, out var val) ? val : 0f;
             if (MathF.Abs(w) < 1e-6f)
                 continue;
             if (_morphOffsets.TryGetValue(morphName, out var offsets))
@@ -591,6 +631,7 @@ void main(){
         _indexToHumanoidName.Clear();
         _morphWeights.Clear();
         _morphOffsets.Clear();
+        _groupMorphs.Clear();
         _morphOrder.Clear();
         _morphOrderSet.Clear();
         _baseVertices = data.Mesh.Vertices.Select(v => new Vector3(v.X, v.Y, v.Z)).ToArray();
@@ -601,6 +642,14 @@ void main(){
             {
                 _morphOrder.Add(morph.Name);
                 _morphOrderSet.Add(morph.Name);
+            }
+
+            if (morph.Type == MorphType.Group)
+            {
+                _groupMorphs[morph.Name] = morph.GroupChildren.ToList();
+                if (!_morphWeights.ContainsKey(morph.Name))
+                    _morphWeights[morph.Name] = 0f;
+                continue;
             }
 
             if (_morphOffsets.TryGetValue(morph.Name, out var existing))
