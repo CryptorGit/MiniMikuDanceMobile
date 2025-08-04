@@ -98,10 +98,10 @@ public class PmxRenderer : IDisposable
     private readonly List<Vector3> _boneTranslations = new();
     private List<MiniMikuDance.Import.BoneData> _bones = new();
     private readonly Dictionary<int, string> _indexToHumanoidName = new();
-    private readonly Dictionary<string, float> _morphWeights = new();
-    private readonly Dictionary<string, List<(int Index, Vector3 Offset)>> _morphOffsets = new();
+    private readonly Dictionary<string, float> _morphWeights = new(StringComparer.OrdinalIgnoreCase);
+    private readonly Dictionary<string, List<(int Index, Vector3 Offset)>> _morphOffsets = new(StringComparer.OrdinalIgnoreCase);
     private readonly List<string> _morphOrder = new();
-    private readonly HashSet<string> _morphOrderSet = new();
+    private readonly HashSet<string> _morphOrderSet = new(StringComparer.OrdinalIgnoreCase);
     private Vector3[] _baseVertices = Array.Empty<Vector3>();
     private Vector3[] _morphedVertices = Array.Empty<Vector3>();
     private System.Numerics.Matrix4x4[] _worldMats = Array.Empty<System.Numerics.Matrix4x4>();
