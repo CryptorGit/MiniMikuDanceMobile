@@ -110,6 +110,7 @@ public class PmxRenderer : IDisposable
     public float RotateSensitivity { get; set; } = 0.1f;
     public float PanSensitivity { get; set; } = 0.1f;
     private const float ZoomSensitivity = 0.1f;
+    private const float MinStageSize = 0.1f;
     public bool CameraLocked { get; set; }
     public float ShadeShift { get; set; } = -0.1f;
     public float ShadeToony { get; set; } = 0.9f;
@@ -124,6 +125,7 @@ public class PmxRenderer : IDisposable
         get => _stageSize;
         set
         {
+            value = MathF.Max(value, MinStageSize);
             if (_stageSize != value)
             {
                 _stageSize = value;
@@ -253,16 +255,19 @@ void main(){
 
     private void GenerateGrid()
     {
-        int range = (int)_stageSize;
-        _gridVertexCount = (range * 2 + 1) * 4;
+        float range = _stageSize;
+        float step = range < 1f ? range : 1f;
+        int count = Math.Max(1, (int)(range / step));
+        _gridVertexCount = (count * 2 + 1) * 4;
         float[] grid = new float[_gridVertexCount * 3];
         int idx = 0;
-        for (int i = -range; i <= range; i++)
+        for (int i = -count; i <= count; i++)
         {
-            grid[idx++] = i; grid[idx++] = 0f; grid[idx++] = -range;
-            grid[idx++] = i; grid[idx++] = 0f; grid[idx++] = range;
-            grid[idx++] = -range; grid[idx++] = 0f; grid[idx++] = i;
-            grid[idx++] = range; grid[idx++] = 0f; grid[idx++] = i;
+            float p = i * step;
+            grid[idx++] = p; grid[idx++] = 0f; grid[idx++] = -range;
+            grid[idx++] = p; grid[idx++] = 0f; grid[idx++] = range;
+            grid[idx++] = -range; grid[idx++] = 0f; grid[idx++] = p;
+            grid[idx++] = range; grid[idx++] = 0f; grid[idx++] = p;
         }
         if (_gridVao == 0) _gridVao = GL.GenVertexArray();
         if (_gridVbo == 0) _gridVbo = GL.GenBuffer();
