@@ -14,7 +14,6 @@ using Microsoft.Maui.Storage;
 using Microsoft.Maui.Devices;
 using System.IO;
 using System.Linq;
-using MiniMikuDance.Import;
 using OpenTK.Mathematics;
 using MiniMikuDance.Util;
 using MiniMikuDance.PoseEstimation;
@@ -69,8 +68,8 @@ public partial class MainPage : ContentPage
     // bottomWidth is no longer used; bottom region spans full screen width
     // private double bottomWidth = 0;
     private bool _glInitialized;
-    private ModelData? _pendingModel;
-    private ModelData? _currentModel;
+    private MiniMikuDance.Import.ModelData? _pendingModel;
+    private MiniMikuDance.Import.ModelData? _currentModel;
     private readonly Dictionary<long, SKPoint> _touchPoints = new();
     private bool _boneMode;
     private MotionEditor? _motionEditor;

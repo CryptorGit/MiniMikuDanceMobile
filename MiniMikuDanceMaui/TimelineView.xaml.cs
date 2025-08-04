@@ -1,6 +1,5 @@
 using Microsoft.Maui.Controls;
 using Microsoft.Maui.Devices;
-using MiniMikuDance.Import;
 using SkiaSharp;
 using SkiaSharp.Views.Maui;
 using SkiaSharp.Views.Maui.Controls;
@@ -22,9 +21,9 @@ public static int MaxFrame { get; private set; } = 60;
     const float BoneNameFontSize = 14f;
     const float HeaderFontSize = 12f;
 
-    private static readonly string[] StandardHumanoidBones = HumanoidBones.StandardOrder;
+    private static readonly string[] StandardHumanoidBones = MiniMikuDance.Import.HumanoidBones.StandardOrder;
 
-    private ModelData? _model;
+    private MiniMikuDance.Import.ModelData? _model;
     private readonly List<string> _boneNames = new List<string>();
     private readonly Dictionary<string, List<int>> _keyframes = new Dictionary<string, List<int>>();
     private readonly Dictionary<string, Dictionary<int, Vector3>> _translations = new();
@@ -45,7 +44,7 @@ public static int MaxFrame { get; private set; } = 60;
     public event EventHandler? EditKeyClicked;
     public event EventHandler? DeleteKeyClicked;
 
-    public ModelData? Model
+    public MiniMikuDance.Import.ModelData? Model
     {
         get => _model;
         set
@@ -54,7 +53,7 @@ public static int MaxFrame { get; private set; } = 60;
             _boneNames.Clear();
             if (_model != null)
             {
-                _model.HumanoidBoneList = HumanoidBones.StandardOrder
+                _model.HumanoidBoneList = MiniMikuDance.Import.HumanoidBones.StandardOrder
                     .Where(n => _model.HumanoidBones.ContainsKey(n))
                     .Select(n => (n, _model.HumanoidBones[n]))
                     .ToList();
