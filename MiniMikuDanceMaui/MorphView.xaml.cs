@@ -64,7 +64,8 @@ public partial class MorphView : ContentView
                 Minimum = 0,
                 Maximum = 1,
                 Value = renderer.GetMorphWeight(originalName),
-                HorizontalOptions = LayoutOptions.FillAndExpand
+                // LayoutOptions.FillAndExpand は非推奨のため Fill を使用する
+                HorizontalOptions = LayoutOptions.Fill
             };
             slider.ValueChanged += (s, e) =>
             {
