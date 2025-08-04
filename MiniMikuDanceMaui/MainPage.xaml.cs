@@ -20,6 +20,7 @@ using MiniMikuDance.PoseEstimation;
 using MiniMikuDance.Motion;
 using MiniMikuDance.Camera;
 using MiniMikuDance.App;
+using MiniMikuDance.Import;
 using SixLabors.ImageSharp.PixelFormats;
 using System.Runtime.Versioning;
 
