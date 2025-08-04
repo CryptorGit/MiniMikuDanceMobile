@@ -5,6 +5,7 @@ using Microsoft.Maui.Layouts;
 using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
+using System.Reflection;
 using SkiaSharp.Views.Maui;
 using SkiaSharp.Views.Maui.Controls;
 using SkiaSharp;
