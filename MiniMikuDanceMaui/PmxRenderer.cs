@@ -27,6 +27,7 @@ public class PmxRenderer : IDisposable
         public Vector2[] TexCoords = Array.Empty<Vector2>();
         public Vector4[] JointIndices = Array.Empty<Vector4>();
         public Vector4[] JointWeights = Array.Empty<Vector4>();
+        public int[] BaseVertexIndices = Array.Empty<int>();
     }
     private readonly System.Collections.Generic.List<RenderMesh> _meshes = new();
     private int _gridVao;
@@ -86,6 +87,11 @@ public class PmxRenderer : IDisposable
     private List<MiniMikuDance.Import.BoneData> _bones = new();
     private readonly Dictionary<int, string> _indexToHumanoidName = new();
     private readonly Dictionary<string, float> _morphWeights = new();
+    private readonly Dictionary<string, List<(int Index, Vector3 Offset)>> _morphOffsets = new();
+    private readonly List<string> _morphOrder = new();
+    private Vector3[] _baseVertices = Array.Empty<Vector3>();
+    private Vector3[] _morphedVertices = Array.Empty<Vector3>();
+    private System.Numerics.Matrix4x4[] _worldMats = Array.Empty<System.Numerics.Matrix4x4>();
     public BonesConfig? BonesConfig { get; set; }
     private Quaternion _externalRotation = Quaternion.Identity;
     // デフォルトのカメラ感度をスライダーの最小値に合わせる
@@ -369,7 +375,37 @@ void main(){
     public void SetMorphWeight(string name, float weight)
     {
         _morphWeights[name] = weight;
-        // TODO: モーフウェイトを頂点へ反映させる
+        if (_baseVertices.Length == 0)
+            return;
+
+        Array.Copy(_baseVertices, _morphedVertices, _baseVertices.Length);
+        foreach (var morphName in _morphOrder)
+        {
+            float w = _morphWeights.TryGetValue(morphName, out var val) ? val : 0f;
+            if (MathF.Abs(w) < 1e-6f)
+                continue;
+            if (_morphOffsets.TryGetValue(morphName, out var offsets))
+            {
+                foreach (var (idx, offset) in offsets)
+                {
+                    if (idx >= 0 && idx < _morphedVertices.Length)
+                        _morphedVertices[idx] += offset * w;
+                }
+            }
+        }
+
+        foreach (var rm in _meshes)
+        {
+            if (rm.BaseVertexIndices.Length != rm.Vertices.Length)
+                continue;
+            for (int i = 0; i < rm.Vertices.Length; i++)
+            {
+                int bi = rm.BaseVertexIndices[i];
+                if (bi >= 0 && bi < _morphedVertices.Length)
+                    rm.Vertices[i] = _morphedVertices[bi];
+            }
+        }
+        UpdateSkinningBuffers();
     }
 
     public IList<Vector3> GetAllBoneRotations() => _boneRotations.ToList();
@@ -388,6 +424,88 @@ void main(){
         _boneTranslations.AddRange(list);
     }
 
+    private void UpdateSkinningBuffers()
+    {
+        if (_bones.Count == 0)
+            return;
+
+        var worldMats = new System.Numerics.Matrix4x4[_bones.Count];
+        for (int i = 0; i < _bones.Count; i++)
+        {
+            var bone = _bones[i];
+            System.Numerics.Vector3 euler = i < _boneRotations.Count ? _boneRotations[i].ToNumerics() : System.Numerics.Vector3.Zero;
+            var delta = euler.FromEulerDegrees();
+            System.Numerics.Vector3 trans = bone.Translation;
+            if (i < _boneTranslations.Count)
+                trans += _boneTranslations[i].ToNumerics();
+            var local = System.Numerics.Matrix4x4.CreateFromQuaternion(bone.Rotation * delta) *
+                        System.Numerics.Matrix4x4.CreateTranslation(trans);
+            if (bone.Parent >= 0)
+                worldMats[i] = local * worldMats[bone.Parent];
+            else
+                worldMats[i] = local;
+        }
+        _worldMats = worldMats;
+
+        var skinMats = new System.Numerics.Matrix4x4[_bones.Count];
+        for (int i = 0; i < _bones.Count; i++)
+            skinMats[i] = _bones[i].InverseBindMatrix * worldMats[i];
+
+        foreach (var rm in _meshes)
+        {
+            if (rm.JointIndices.Length != rm.Vertices.Length)
+                continue;
+            float[] buf = new float[rm.Vertices.Length * 8];
+            for (int vi = 0; vi < rm.Vertices.Length; vi++)
+            {
+                var pos = System.Numerics.Vector3.Zero;
+                var norm = System.Numerics.Vector3.Zero;
+                var jp = rm.JointIndices[vi];
+                var jw = rm.JointWeights[vi];
+                for (int k = 0; k < 4; k++)
+                {
+                    int bi = (int)jp[k];
+                    float w = jw[k];
+                    if (bi >= 0 && bi < skinMats.Length && w > 0f)
+                    {
+                        var m = skinMats[bi];
+                        pos += System.Numerics.Vector3.Transform(rm.Vertices[vi].ToNumerics(), m) * w;
+                        norm += System.Numerics.Vector3.TransformNormal(rm.Normals[vi].ToNumerics(), m) * w;
+                    }
+                }
+                if (norm.LengthSquared() > 0)
+                    norm = System.Numerics.Vector3.Normalize(norm);
+
+                buf[vi * 8 + 0] = pos.X;
+                buf[vi * 8 + 1] = pos.Y;
+                buf[vi * 8 + 2] = pos.Z;
+                buf[vi * 8 + 3] = norm.X;
+                buf[vi * 8 + 4] = norm.Y;
+                buf[vi * 8 + 5] = norm.Z;
+                if (vi < rm.TexCoords.Length)
+                {
+                    buf[vi * 8 + 6] = rm.TexCoords[vi].X;
+                    buf[vi * 8 + 7] = rm.TexCoords[vi].Y;
+                }
+                else
+                {
+                    buf[vi * 8 + 6] = 0f;
+                    buf[vi * 8 + 7] = 0f;
+                }
+            }
+            GL.BindBuffer(BufferTarget.ArrayBuffer, rm.Vbo);
+            var handle = GCHandle.Alloc(buf, GCHandleType.Pinned);
+            try
+            {
+                GL.BufferSubData(BufferTarget.ArrayBuffer, IntPtr.Zero, buf.Length * sizeof(float), handle.AddrOfPinnedObject());
+            }
+            finally
+            {
+                handle.Free();
+            }
+        }
+    }
+
     public void LoadModel(MiniMikuDance.Import.ModelData data)
     {
         foreach (var rm in _meshes)
@@ -400,6 +518,19 @@ void main(){
         _meshes.Clear();
         _indexToHumanoidName.Clear();
         _morphWeights.Clear();
+        _morphOffsets.Clear();
+        _morphOrder.Clear();
+        _baseVertices = data.Mesh.Vertices.Select(v => new Vector3(v.X, v.Y, v.Z)).ToArray();
+        _morphedVertices = (Vector3[])_baseVertices.Clone();
+        foreach (var morph in data.Morphs)
+        {
+            _morphOrder.Add(morph.Name);
+            var list = new List<(int, Vector3)>();
+            foreach (var mo in morph.Offsets)
+                list.Add((mo.Index, new Vector3(mo.Offset.X, mo.Offset.Y, mo.Offset.Z)));
+            _morphOffsets[morph.Name] = list;
+            _morphWeights[morph.Name] = 0f;
+        }
         _bones = data.Bones.ToList();
         foreach (var (name, idx) in data.HumanoidBoneList)
         {
@@ -466,6 +597,7 @@ void main(){
             rm.TexCoords = sm.TexCoords.Select(t => new Vector2(t.X, t.Y)).ToArray();
             rm.JointIndices = sm.JointIndices.Select(j => new Vector4(j.X, j.Y, j.Z, j.W)).ToArray();
             rm.JointWeights = sm.JointWeights.Select(w => new Vector4(w.X, w.Y, w.Z, w.W)).ToArray();
+            rm.BaseVertexIndices = sm.BaseVertexIndices.ToArray();
             rm.Vao = GL.GenVertexArray();
             rm.Vbo = GL.GenBuffer();
             rm.Ebo = GL.GenBuffer();
@@ -539,80 +671,7 @@ void main(){
         // CPU skinning: update vertex buffers based on current bone rotations
         if (_bones.Count > 0)
         {
-            var worldMats = new System.Numerics.Matrix4x4[_bones.Count];
-            for (int i = 0; i < _bones.Count; i++)
-            {
-                var bone = _bones[i];
-                System.Numerics.Vector3 euler = i < _boneRotations.Count ? _boneRotations[i].ToNumerics() : System.Numerics.Vector3.Zero;
-                var delta = euler.FromEulerDegrees();
-                // Import 時に絶対座標から親ボーンへの相対座標へ変換済み
-                System.Numerics.Vector3 trans = bone.Translation;
-                if (i < _boneTranslations.Count)
-                    trans += _boneTranslations[i].ToNumerics();
-                var local = System.Numerics.Matrix4x4.CreateFromQuaternion(bone.Rotation * delta) * System.Numerics.Matrix4x4.CreateTranslation(trans);
-                if (bone.Parent >= 0)
-                    worldMats[i] = local * worldMats[bone.Parent];
-                else
-                    worldMats[i] = local;
-            }
-
-            var skinMats = new System.Numerics.Matrix4x4[_bones.Count];
-            for (int i = 0; i < _bones.Count; i++)
-                skinMats[i] = _bones[i].InverseBindMatrix * worldMats[i];
-
-            foreach (var rm in _meshes)
-            {
-                if (rm.JointIndices.Length != rm.Vertices.Length)
-                    continue;
-                float[] buf = new float[rm.Vertices.Length * 8];
-                for (int vi = 0; vi < rm.Vertices.Length; vi++)
-                {
-                    var pos = System.Numerics.Vector3.Zero;
-                    var norm = System.Numerics.Vector3.Zero;
-                    var jp = rm.JointIndices[vi];
-                    var jw = rm.JointWeights[vi];
-                    for (int k = 0; k < 4; k++)
-                    {
-                        int bi = (int)jp[k];
-                        float w = jw[k];
-                        if (bi >= 0 && bi < skinMats.Length && w > 0f)
-                        {
-                            var m = skinMats[bi];
-                            pos += System.Numerics.Vector3.Transform(rm.Vertices[vi].ToNumerics(), m) * w;
-                            norm += System.Numerics.Vector3.TransformNormal(rm.Normals[vi].ToNumerics(), m) * w;
-                        }
-                    }
-                    if (norm.LengthSquared() > 0)
-                        norm = System.Numerics.Vector3.Normalize(norm);
-
-                    buf[vi * 8 + 0] = pos.X;
-                    buf[vi * 8 + 1] = pos.Y;
-                    buf[vi * 8 + 2] = pos.Z;
-                    buf[vi * 8 + 3] = norm.X;
-                    buf[vi * 8 + 4] = norm.Y;
-                    buf[vi * 8 + 5] = norm.Z;
-                    if (vi < rm.TexCoords.Length)
-                    {
-                        buf[vi * 8 + 6] = rm.TexCoords[vi].X;
-                        buf[vi * 8 + 7] = rm.TexCoords[vi].Y;
-                    }
-                    else
-                    {
-                        buf[vi * 8 + 6] = 0f;
-                        buf[vi * 8 + 7] = 0f;
-                    }
-                }
-                GL.BindBuffer(BufferTarget.ArrayBuffer, rm.Vbo);
-                var handle = System.Runtime.InteropServices.GCHandle.Alloc(buf, System.Runtime.InteropServices.GCHandleType.Pinned);
-                try
-                {
-                    GL.BufferSubData(BufferTarget.ArrayBuffer, IntPtr.Zero, buf.Length * sizeof(float), handle.AddrOfPinnedObject());
-                }
-                finally
-                {
-                    handle.Free();
-                }
-            }
+            UpdateSkinningBuffers();
 
             if (ShowBoneOutline)
             {
@@ -622,8 +681,8 @@ void main(){
                     var bone = _bones[i];
                     if (bone.Parent >= 0)
                     {
-                        var pp = worldMats[bone.Parent].Translation;
-                        var cp = worldMats[i].Translation;
+                        var pp = _worldMats[bone.Parent].Translation;
+                        var cp = _worldMats[i].Translation;
                         var p4 = Vector4.TransformRow(new Vector4(pp.X, pp.Y, pp.Z, 1f), modelMat);
                         var c4 = Vector4.TransformRow(new Vector4(cp.X, cp.Y, cp.Z, 1f), modelMat);
                         lines.Add(p4.X); lines.Add(p4.Y); lines.Add(p4.Z);
@@ -656,7 +715,7 @@ void main(){
                     var bone = _bones[i];
                     if (!bone.IsIk)
                         continue;
-                    var cp = worldMats[i].Translation;
+                    var cp = _worldMats[i].Translation;
                     var c4 = Vector4.TransformRow(new Vector4(cp.X, cp.Y, cp.Z, 1f), modelMat);
                     _ikBoneOffsets.Add(verts.Count / 3);
                     verts.Add(c4.X); verts.Add(c4.Y); verts.Add(c4.Z);

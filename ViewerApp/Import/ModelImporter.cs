@@ -239,6 +239,7 @@ public class ModelImporter
                     }
                     smd.JointIndices.Add(ji);
                     smd.JointWeights.Add(jw);
+                    smd.BaseVertexIndices.Add(idxs[j]);
                 }
                 var face = new Face();
                 face.Indices.Add(baseIndex);
