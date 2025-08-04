@@ -1,6 +1,7 @@
 using Microsoft.Maui.Controls;
 using MiniMikuDance.Import;
 using System;
+using System.Collections.Generic;
 
 namespace MiniMikuDanceMaui;
 
@@ -18,9 +19,14 @@ public partial class MorphView : ContentView
         _renderer = renderer;
         MorphList.Children.Clear();
         if (model?.Morphs == null) return;
+
         var textColor = (Color)Application.Current.Resources["TextColor"];
+        var registeredNames = new HashSet<string>();
         foreach (var morph in model.Morphs)
         {
+            if (!registeredNames.Add(morph.Name))
+                continue;
+
             string label = morph.Name;
             if (label.EndsWith("_L", StringComparison.OrdinalIgnoreCase))
                 label = label[..^2] + " (L)";
