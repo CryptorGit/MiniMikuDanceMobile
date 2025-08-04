@@ -21,17 +21,13 @@ public partial class MorphView : ContentView
         if (model?.Morphs == null) return;
 
         var textColor = (Color)Application.Current.Resources["TextColor"];
-        var registeredNames = new HashSet<string>();
+        var registeredNames = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+        int index = 1;
         foreach (var morph in model.Morphs)
         {
-            if (!registeredNames.Add(morph.Name))
+            var name = morph.Name.Trim();
+            if (!registeredNames.Add(name))
                 continue;
-
-            string label = morph.Name;
-            if (label.EndsWith("_L", StringComparison.OrdinalIgnoreCase))
-                label = label[..^2] + " (L)";
-            else if (label.EndsWith("_R", StringComparison.OrdinalIgnoreCase))
-                label = label[..^2] + " (R)";
 
             var grid = new Grid
             {
@@ -44,7 +40,7 @@ public partial class MorphView : ContentView
             };
             grid.Add(new Label
             {
-                Text = label,
+                Text = $"{index:D3}_{name}",
                 TextColor = textColor,
                 HorizontalTextAlignment = TextAlignment.Start
             });
@@ -52,15 +48,16 @@ public partial class MorphView : ContentView
             {
                 Minimum = 0,
                 Maximum = 1,
-                Value = renderer.GetMorphWeight(morph.Name),
+                Value = renderer.GetMorphWeight(name),
                 HorizontalOptions = LayoutOptions.FillAndExpand
             };
             slider.ValueChanged += (s, e) =>
             {
-                _renderer?.SetMorphWeight(morph.Name, (float)e.NewValue);
+                _renderer?.SetMorphWeight(name, (float)e.NewValue);
             };
             grid.Add(slider, 1, 0);
             MorphList.Children.Add(grid);
+            index++;
         }
     }
 }
