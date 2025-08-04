@@ -146,11 +146,21 @@ public class ModelImporter
 
         // モーフ情報の解析
         var morphDatas = new List<MorphData>(morphs.Length);
+        // モーフ名の重複を排除（大文字小文字を無視）
+        var morphNames = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
         foreach (var m in morphs)
         {
+            // グループモーフなど、スライダー表示が不要なタイプは除外
+            if (m.MorphType != MorphType.Vertex)
+                continue;
+
+            string name = string.IsNullOrEmpty(m.NameEnglish) ? m.Name : m.NameEnglish;
+            if (!morphNames.Add(name))
+                continue; // 同名モーフはスキップ
+
             var md = new MorphData
             {
-                Name = string.IsNullOrEmpty(m.NameEnglish) ? m.Name : m.NameEnglish,
+                Name = name,
                 Type = m.MorphType
             };
             foreach (var vm in m.VertexMorphElements.ToArray())
