@@ -22,7 +22,6 @@ using MiniMikuDance.Motion;
 using MiniMikuDance.Camera;
 using MiniMikuDance.App;
 using MiniMikuDance.Import;
-using System.Runtime.Versioning;
 
 #if ANDROID
 using Android.OS;
@@ -453,25 +452,27 @@ private void UpdateBoneViewValues()
 }
 
 #if ANDROID
-[SupportedOSPlatform("android30.0")]
 private static void RequestManageAllFilesAccessPermission()
 {
-    if (!Android.OS.Environment.IsExternalStorageManager)
+    if (OperatingSystem.IsAndroidVersionAtLeast(30))
     {
-        try
+        if (!Android.OS.Environment.IsExternalStorageManager)
         {
-            var context = Android.App.Application.Context;
-            if (context != null)
+            try
             {
-                var uri = Android.Net.Uri.Parse($"package:{context.PackageName}");
-                var intent = new Android.Content.Intent(Settings.ActionManageAppAllFilesAccessPermission, uri);
-                intent.AddFlags(Android.Content.ActivityFlags.NewTask);
-                context.StartActivity(intent);
+                var context = Android.App.Application.Context;
+                if (context != null)
+                {
+                    var uri = Android.Net.Uri.Parse($"package:{context.PackageName}");
+                    var intent = new Android.Content.Intent(Settings.ActionManageAppAllFilesAccessPermission, uri);
+                    intent.AddFlags(Android.Content.ActivityFlags.NewTask);
+                    context.StartActivity(intent);
+                }
             }
-        }
-        catch (Exception)
-        {
-            // Handle exception if launching settings fails
+            catch (Exception)
+            {
+                // Handle exception if launching settings fails
+            }
         }
     }
 }
