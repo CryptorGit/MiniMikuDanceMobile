@@ -93,6 +93,12 @@ public enum BoneFlags : ushort
 | Inherit | 腰 / 上半身2 | Use **Inherit Ratio** for torso bending |
 | Decoration | グルーブ / ヒール | Connection points for physics |
 
+### 1.4 IK Bone Dragging in Pose Editor
+
+When an IK bone is selected, the editor draws a circular handle ("ドラッグ円") at the bone's position.
+The circle lies on a plane perpendicular to the active camera ("カメラ基準平面"), and dragging moves the IK target only within this plane while depth is locked.
+This mirrors MMD's IK controls and keeps manipulation intuitive regardless of model orientation.
+
 ---
 
 ## 2. Morph List — “Blend Deformation & Expressions”
