@@ -3,7 +3,6 @@ using Microsoft.Maui.Storage;
 using MiniMikuDance.App;
 using MiniMikuDance.Data;
 using MiniMikuDance.UI;
-using System;
 using System.IO;
 #if IOS
 using MiniMikuDanceMaui;
@@ -52,7 +51,7 @@ public App()
             }
             catch (Exception)
             {
-                Console.WriteLine($"Error copying pose model.");
+                LogService.WriteLine($"Error copying pose model.");
             }
         }
 
