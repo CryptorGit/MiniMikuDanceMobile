@@ -1,7 +1,6 @@
 using System;
 using System.Diagnostics;
 using System.Collections.Generic;
-using System.Numerics;
 // Use OpenGL ES 3.0 across projects to avoid enum mismatches
 using OpenTK.Graphics.ES30;
 using GL = OpenTK.Graphics.ES30.GL;
@@ -194,7 +193,7 @@ public class Viewer : IDisposable
         _view = view;
     }
 
-    private static Matrix4 ToMatrix4(Matrix4x4 m)
+    private static Matrix4 ToMatrix4(System.Numerics.Matrix4x4 m)
     {
         return new Matrix4(
             m.M11, m.M12, m.M13, m.M14,

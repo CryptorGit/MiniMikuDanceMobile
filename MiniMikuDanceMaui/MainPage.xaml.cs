@@ -467,6 +467,7 @@ protected override async void OnAppearing()
     }
     if (OperatingSystem.IsAndroidVersionAtLeast(30))
     {
+        #pragma warning disable CA1416
         if (!Android.OS.Environment.IsExternalStorageManager)
         {
             try
@@ -485,6 +486,7 @@ protected override async void OnAppearing()
                 // Handle exception if launching settings fails
             }
         }
+        #pragma warning restore CA1416
     }
 #endif
     Viewer?.InvalidateSurface();
@@ -579,6 +581,8 @@ private void UpdateLayout()
 
 private void UpdateRendererLightingProperties()
 {
+    if (_renderer == null)
+        return;
     _renderer.ShadeShift = _shadeShift;
     _renderer.ShadeToony = _shadeToony;
     _renderer.RimIntensity = _rimIntensity;
@@ -854,7 +858,7 @@ private void ShowBottomFeature(string name)
             };
             tv.EditKeyClicked += async (s, e) =>
             {
-                if (s is TimelineView timelineView)
+                if (s is TimelineView timelineView && EditKeyPanel != null)
                 {
                     int boneIndex = timelineView.SelectedKeyInputBoneIndex;
                     var boneName = timelineView.BoneNames.Count > boneIndex && boneIndex >= 0
