@@ -43,7 +43,7 @@ public class PmxRenderer : IDisposable
     public float Distance
     {
         get => _distance;
-        set => _distance = Math.Clamp(value, 0f, 100f);
+        set => _distance = Math.Clamp(value, 0f, _stageSize);
     }
     // モデル中心より少し高い位置を基準にカメラを配置する
     private Vector3 _target = new Vector3(0f, 0.5f, 0f);
@@ -109,6 +109,8 @@ public class PmxRenderer : IDisposable
             if (_stageSize != value)
             {
                 _stageSize = value;
+                _distance = Math.Min(_distance, _stageSize);
+                _defaultCameraDistance = Math.Min(_defaultCameraDistance, _stageSize);
                 if (_program != 0)
                     GenerateGrid();
             }
