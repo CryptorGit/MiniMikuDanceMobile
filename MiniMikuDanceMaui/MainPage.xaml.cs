@@ -54,7 +54,6 @@ public partial class MainPage : ContentPage
     private readonly CameraController _cameraController = new();
     private float _rotateSensitivity = 0.1f;
     private float _panSensitivity = 0.1f;
-    private float _cameraDistance = AppSettings.DefaultCameraDistance;
     private float _shadeShift = -0.1f;
     private float _shadeToony = 0.9f;
     private float _rimIntensity = 0.5f;
@@ -152,9 +151,8 @@ public partial class MainPage : ContentPage
     _renderer.ShadeToony = 0.9f;
     _renderer.RimIntensity = 0.5f;
     _renderer.StageSize = _settings.StageSize;
-    _cameraDistance = _settings.CameraDistance;
-    _renderer.DefaultCameraDistance = _cameraDistance;
-    _renderer.Distance = _cameraDistance;
+    _renderer.DefaultCameraDistance = _settings.CameraDistance;
+    _renderer.Distance = _settings.CameraDistance;
     _renderer.DefaultCameraTargetY = _settings.CameraTargetY;
 
     var motion = App.Initializer.Motion;
@@ -175,6 +173,8 @@ public partial class MainPage : ContentPage
         setting.StageSizeChanged += v =>
         {
             _renderer.StageSize = (float)v;
+            _renderer.Distance = Math.Min(_renderer.Distance, (float)v);
+            _renderer.DefaultCameraDistance = Math.Min(_renderer.DefaultCameraDistance, (float)v);
             _settings.StageSize = (float)v;
             _settings.Save();
         };
