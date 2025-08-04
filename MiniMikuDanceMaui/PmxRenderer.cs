@@ -43,7 +43,7 @@ public class PmxRenderer : IDisposable
     public float Distance
     {
         get => _distance;
-        set => _distance = Math.Clamp(value, 1f, 20f);
+        set => _distance = Math.Clamp(value, 0f, 100f);
     }
     // モデル中心より少し高い位置を基準にカメラを配置する
     private Vector3 _target = new Vector3(0f, 0.5f, 0f);
@@ -517,7 +517,7 @@ void main(){
         Vector3 cam = Vector3.TransformPosition(new Vector3(0, 0, _distance), rot) + _target;
         Matrix4 view = Matrix4.LookAt(cam, _target, Vector3.UnitY);
         float aspect = _width == 0 || _height == 0 ? 1f : _width / (float)_height;
-        Matrix4 proj = Matrix4.CreatePerspectiveFieldOfView(MathHelper.PiOver4, aspect, 0.1f, 100f);
+        Matrix4 proj = Matrix4.CreatePerspectiveFieldOfView(MathHelper.PiOver4, aspect, 0.1f, 1000f);
         var modelMat = ModelTransform;
 
         // CPU skinning: update vertex buffers based on current bone rotations
