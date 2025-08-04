@@ -255,19 +255,18 @@ void main(){
 
     private void GenerateGrid()
     {
-        float range = _stageSize;
-        float step = range < 1f ? range : 1f;
-        int count = Math.Max(1, (int)(range / step));
-        _gridVertexCount = (count * 2 + 1) * 4;
+        float range = _stageSize / 4f;
+        int divisions = (int)(range * 2f) + 1;
+        _gridVertexCount = divisions * 4;
         float[] grid = new float[_gridVertexCount * 3];
         int idx = 0;
-        for (int i = -count; i <= count; i++)
+        for (int i = 0; i < divisions; i++)
         {
-            float p = i * step;
-            grid[idx++] = p; grid[idx++] = 0f; grid[idx++] = -range;
-            grid[idx++] = p; grid[idx++] = 0f; grid[idx++] = range;
-            grid[idx++] = -range; grid[idx++] = 0f; grid[idx++] = p;
-            grid[idx++] = range; grid[idx++] = 0f; grid[idx++] = p;
+            float pos = -range + i;
+            grid[idx++] = pos; grid[idx++] = 0f; grid[idx++] = -range;
+            grid[idx++] = pos; grid[idx++] = 0f; grid[idx++] = range;
+            grid[idx++] = -range; grid[idx++] = 0f; grid[idx++] = pos;
+            grid[idx++] = range; grid[idx++] = 0f; grid[idx++] = pos;
         }
         if (_gridVao == 0) _gridVao = GL.GenVertexArray();
         if (_gridVbo == 0) _gridVbo = GL.GenBuffer();
@@ -279,7 +278,7 @@ void main(){
         GL.BindBuffer(BufferTarget.ArrayBuffer, 0);
         GL.BindVertexArray(0);
 
-        float r = _stageSize;
+        float r = range;
         float[] plane =
         {
             -r, 0f, -r,
@@ -846,7 +845,7 @@ void main(){
             GL.DepthMask(true);
         }
 
-        Matrix4 gridModel = Matrix4.Identity;
+        Matrix4 gridModel = Matrix4.CreateTranslation(Vector3.Zero);
         GL.DepthMask(false);
         GL.UniformMatrix4(_modelLoc, false, ref gridModel);
         GL.Uniform4(_colorLoc, new Vector4(1f, 1f, 1f, 0.3f));
