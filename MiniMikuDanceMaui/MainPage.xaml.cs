@@ -14,7 +14,6 @@ using Microsoft.Maui.Storage;
 using Microsoft.Maui.Devices;
 using System.IO;
 using System.Linq;
-using System.Reflection;
 using MiniMikuDance.Import;
 using OpenTK.Mathematics;
 using MiniMikuDance.Util;
