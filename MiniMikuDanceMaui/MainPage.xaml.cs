@@ -242,8 +242,8 @@ public partial class MainPage : ContentPage
 
 private void ShowViewMenu()
 {
-    HideSettingMenu();
-    HideFileMenu();
+    HideSettingMenu(SettingMenu ?? throw new InvalidOperationException());
+    HideFileMenu(FileMenu ?? throw new InvalidOperationException());
     _viewMenuOpen = true;
     var viewMenu = ViewMenu ?? throw new InvalidOperationException();
     viewMenu.IsVisible = true;
@@ -267,8 +267,8 @@ private void OnViewMenuTapped(object? sender, TappedEventArgs e)
 
 private void ShowSettingMenu()
 {
-    HideViewMenu();
-    HideFileMenu();
+    HideViewMenu(ViewMenu ?? throw new InvalidOperationException());
+    HideFileMenu(FileMenu ?? throw new InvalidOperationException());
     _settingMenuOpen = true;
     var settingMenu = SettingMenu ?? throw new InvalidOperationException();
     settingMenu.IsVisible = true;
@@ -294,18 +294,17 @@ private void OnSettingMenuTapped(object? sender, EventArgs e)
 
 private void ShowFileMenu()
 {
-    HideViewMenu();
-    HideSettingMenu();
+    HideViewMenu(ViewMenu ?? throw new InvalidOperationException());
+    HideSettingMenu(SettingMenu ?? throw new InvalidOperationException());
     _fileMenuOpen = true;
     var fileMenu = FileMenu ?? throw new InvalidOperationException();
     fileMenu.IsVisible = true;
     UpdateOverlay();
 }
 
-private void HideFileMenu()
+private void HideFileMenu(Frame fileMenu)
 {
     _fileMenuOpen = false;
-    var fileMenu = FileMenu ?? throw new InvalidOperationException();
     fileMenu.IsVisible = false;
     UpdateOverlay();
 }
@@ -398,10 +397,9 @@ private void HideAllMenus()
     UpdateLayout();
 }
 
-private void HideViewMenu()
+private void HideViewMenu(Frame viewMenu)
 {
     _viewMenuOpen = false;
-    var viewMenu = ViewMenu ?? throw new InvalidOperationException();
     viewMenu.IsVisible = false;
     UpdateOverlay();
 }
@@ -415,10 +413,9 @@ private void HideBottomRegion()
 
 }
 
-private void HideSettingMenu()
+private void HideSettingMenu(Frame settingMenu)
 {
     _settingMenuOpen = false;
-    var settingMenu = SettingMenu ?? throw new InvalidOperationException();
     settingMenu.IsVisible = false;
     UpdateOverlay();
 }
@@ -426,14 +423,14 @@ private void HideSettingMenu()
 private void HideAllMenusAndLayout()
 {
     var viewMenu = ViewMenu;
+    if (viewMenu != null)
+        HideViewMenu(viewMenu);
     var settingMenu = SettingMenu;
+    if (settingMenu != null)
+        HideSettingMenu(settingMenu);
     var fileMenu = FileMenu;
-    if (viewMenu == null || settingMenu == null || fileMenu == null)
-        return;
-
-    HideViewMenu();
-    HideSettingMenu();
-    HideFileMenu();
+    if (fileMenu != null)
+        HideFileMenu(fileMenu);
     UpdateLayout();
 }
 
@@ -661,8 +658,8 @@ private void OnViewTouch(object? sender, SKTouchEventArgs e)
 {
     if (_viewMenuOpen || _settingMenuOpen)
     {
-        HideViewMenu();
-        HideSettingMenu();
+        if (ViewMenu != null) HideViewMenu(ViewMenu);
+        if (SettingMenu != null) HideSettingMenu(SettingMenu);
         UpdateLayout();
     }
 
@@ -1177,8 +1174,7 @@ private void RemoveBottomFeature(string name)
 
 private async void OnAddToLibraryClicked(object? sender, EventArgs e)
 {
-
-    HideFileMenu();
+    HideFileMenu(FileMenu ?? throw new InvalidOperationException());
     await AddToLibraryAsync();
 }
 
