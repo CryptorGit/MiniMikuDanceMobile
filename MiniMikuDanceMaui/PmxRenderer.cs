@@ -255,7 +255,7 @@ void main(){
 
     private void GenerateGrid()
     {
-        float range = _stageSize / 4f;
+        float range = _stageSize;
         int divisions = (int)(range * 2f) + 1;
         _gridVertexCount = divisions * 4;
         float[] grid = new float[_gridVertexCount * 3];
@@ -278,15 +278,14 @@ void main(){
         GL.BindBuffer(BufferTarget.ArrayBuffer, 0);
         GL.BindVertexArray(0);
 
-        float r = range;
         float[] plane =
         {
-            -r, 0f, -r,
-             r, 0f, -r,
-            -r, 0f,  r,
-             r, 0f, -r,
-             r, 0f,  r,
-            -r, 0f,  r
+            -range, 0f, -range,
+             range, 0f, -range,
+            -range, 0f,  range,
+             range, 0f, -range,
+             range, 0f,  range,
+            -range, 0f,  range
         };
         _groundVertexCount = 6;
         if (_groundVao == 0) _groundVao = GL.GenVertexArray();
