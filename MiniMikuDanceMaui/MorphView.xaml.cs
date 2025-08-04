@@ -31,7 +31,6 @@ public partial class MorphView : ContentView
         }
 
         var nameIndices = new Dictionary<string, int>(StringComparer.OrdinalIgnoreCase);
-        int index = 1;
         foreach (var morph in model.Morphs)
         {
             string originalName = morph.Name;
@@ -55,7 +54,7 @@ public partial class MorphView : ContentView
             };
             grid.Add(new Label
             {
-                Text = $"{index:D3}_{labelName}",
+                Text = labelName,
                 TextColor = textColor,
                 HorizontalTextAlignment = TextAlignment.Start
             });
@@ -73,7 +72,6 @@ public partial class MorphView : ContentView
             };
             grid.Add(slider, 1, 0);
             MorphList.Children.Add(grid);
-            index++;
         }
     }
 }
