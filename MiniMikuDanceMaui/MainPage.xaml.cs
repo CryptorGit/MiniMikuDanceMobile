@@ -178,15 +178,6 @@ public partial class MainPage : ContentPage
             _settings.StageSize = (float)v;
             _settings.Save();
         };
-        setting.CameraDistance = _settings.CameraDistance;
-        setting.CameraDistanceChanged += v =>
-        {
-            _renderer.DefaultCameraDistance = (float)v;
-            _renderer.Distance = (float)v;
-            _settings.CameraDistance = (float)v;
-            _settings.Save();
-            _cameraDistance = (float)v;
-        };
         setting.HeightRatioChanged += ratio =>
         {
             _bottomHeightRatio = ratio;
@@ -283,7 +274,6 @@ private void ShowSettingMenu()
         sv.HeightRatio = _bottomHeightRatio;
         sv.RotateSensitivity = _renderer.RotateSensitivity;
         sv.PanSensitivity = _renderer.PanSensitivity;
-        sv.CameraDistance = _cameraDistance;
         sv.CameraLocked = _renderer.CameraLocked;
     }
     UpdateOverlay();
@@ -438,7 +428,6 @@ private void UpdateSettingViewProperties(SettingView? sv)
     sv!.HeightRatio = _bottomHeightRatio;
     sv.RotateSensitivity = _rotateSensitivity;
     sv.PanSensitivity = _panSensitivity;
-    sv.CameraDistance = _cameraDistance;
     sv.CameraLocked = _renderer.CameraLocked;
     sv.ShowBoneOutline = _renderer.ShowBoneOutline;
 }
@@ -999,20 +988,6 @@ private void ShowBottomFeature(string name)
             {
                 if (_renderer != null)
                     _renderer.PanSensitivity = (float)v;
-            };
-            sv.CameraDistanceChanged += v =>
-            {
-                if (_renderer != null)
-                {
-                    _renderer.DefaultCameraDistance = (float)v;
-                    _renderer.Distance = (float)v;
-                }
-                if (_settings != null)
-                {
-                    _settings.CameraDistance = (float)v;
-                    _settings.Save();
-                }
-                _cameraDistance = (float)v;
             };
             sv.CameraLockChanged += locked =>
             {
