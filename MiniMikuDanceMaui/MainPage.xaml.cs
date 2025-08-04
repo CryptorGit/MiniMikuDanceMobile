@@ -333,7 +333,6 @@ private void OnLightingClicked(object? sender, EventArgs e)
     HideAllMenusAndLayout();
 }
 
-
 private void OnPoseEditorClicked(object? sender, EventArgs e)
 {
     ShowBottomFeature("POSE");

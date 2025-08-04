@@ -110,6 +110,7 @@ public class PmxRenderer : IDisposable
     public float RotateSensitivity { get; set; } = 0.1f;
     public float PanSensitivity { get; set; } = 0.1f;
     private const float ZoomSensitivity = 0.1f;
+    private const float MinStageSize = 0.1f;
     public bool CameraLocked { get; set; }
     public float ShadeShift { get; set; } = -0.1f;
     public float ShadeToony { get; set; } = 0.9f;
@@ -124,6 +125,7 @@ public class PmxRenderer : IDisposable
         get => _stageSize;
         set
         {
+            value = MathF.Max(value, MinStageSize);
             if (_stageSize != value)
             {
                 _stageSize = value;
@@ -253,16 +255,18 @@ void main(){
 
     private void GenerateGrid()
     {
-        int range = (int)_stageSize;
-        _gridVertexCount = (range * 2 + 1) * 4;
+        float range = _stageSize / 4f;
+        int divisions = (int)(range * 2f) + 1;
+        _gridVertexCount = divisions * 4;
         float[] grid = new float[_gridVertexCount * 3];
         int idx = 0;
-        for (int i = -range; i <= range; i++)
+        for (int i = 0; i < divisions; i++)
         {
-            grid[idx++] = i; grid[idx++] = 0f; grid[idx++] = -range;
-            grid[idx++] = i; grid[idx++] = 0f; grid[idx++] = range;
-            grid[idx++] = -range; grid[idx++] = 0f; grid[idx++] = i;
-            grid[idx++] = range; grid[idx++] = 0f; grid[idx++] = i;
+            float pos = -range + i;
+            grid[idx++] = pos; grid[idx++] = 0f; grid[idx++] = -range;
+            grid[idx++] = pos; grid[idx++] = 0f; grid[idx++] = range;
+            grid[idx++] = -range; grid[idx++] = 0f; grid[idx++] = pos;
+            grid[idx++] = range; grid[idx++] = 0f; grid[idx++] = pos;
         }
         if (_gridVao == 0) _gridVao = GL.GenVertexArray();
         if (_gridVbo == 0) _gridVbo = GL.GenBuffer();
@@ -274,7 +278,7 @@ void main(){
         GL.BindBuffer(BufferTarget.ArrayBuffer, 0);
         GL.BindVertexArray(0);
 
-        float r = _stageSize;
+        float r = range;
         float[] plane =
         {
             -r, 0f, -r,
@@ -841,7 +845,7 @@ void main(){
             GL.DepthMask(true);
         }
 
-        Matrix4 gridModel = Matrix4.Identity;
+        Matrix4 gridModel = Matrix4.CreateTranslation(Vector3.Zero);
         GL.DepthMask(false);
         GL.UniformMatrix4(_modelLoc, false, ref gridModel);
         GL.Uniform4(_colorLoc, new Vector4(1f, 1f, 1f, 0.3f));
