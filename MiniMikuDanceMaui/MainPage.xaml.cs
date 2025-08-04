@@ -861,10 +861,16 @@ private void ShowBottomFeature(string name)
             if (_currentModel != null)
             {
                 ApplyTimelineFrame(tv, tv.CurrentFrame);
-                Viewer?.InvalidateSurface();
+                var viewer = Viewer;
+                if (viewer == null) return;
+                viewer.InvalidateSurface();
             }
             tv.AddKeyClicked += async (s, e) =>
             {
+                if (_currentModel == null) return;
+                var panel = AddKeyPanel;
+                if (panel == null) return;
+
                 if (s is TimelineView timelineView)
                 {
                     int boneIndex = timelineView.SelectedKeyInputBoneIndex;
@@ -875,27 +881,29 @@ private void ShowBottomFeature(string name)
                     if (timelineView.HasKeyframe(boneName, timelineView.CurrentFrame))
                     {
                         await DisplayAlert("Info", "既にキーがあります", "OK");
-                        AddKeyPanel.IsVisible = false;
+                        panel.IsVisible = false;
                         return;
                     }
 
-                    AddKeyPanel.SetBones(timelineView.BoneNames);
-                    AddKeyPanel.SelectedBoneIndex = boneIndex;
-                    AddKeyPanel.SetFrame(timelineView.CurrentFrame, timelineView.GetKeyframesForBone(boneName));
-                    timelineView.SelectedKeyInputBoneIndex = AddKeyPanel.SelectedBoneIndex;
+                    panel.SetBones(timelineView.BoneNames);
+                    panel.SelectedBoneIndex = boneIndex;
+                    panel.SetFrame(timelineView.CurrentFrame, timelineView.GetKeyframesForBone(boneName));
+                    timelineView.SelectedKeyInputBoneIndex = panel.SelectedBoneIndex;
                     // Ensure rotation limit is applied even when the index does not change
-                    OnAddKeyBoneChanged(AddKeyPanel.SelectedBoneIndex);
+                    OnAddKeyBoneChanged(panel.SelectedBoneIndex);
                 }
                 _poseBeforeKeyInput = new PoseState
                 {
                     Rotations = _renderer.GetAllBoneRotations(),
                     Translations = _renderer.GetAllBoneTranslations()
                 };
-                AddKeyPanel.IsVisible = true;
+                panel.IsVisible = true;
             };
             tv.EditKeyClicked += async (s, e) =>
             {
-                if (s is not TimelineView timelineView || EditKeyPanel == null)
+                if (_currentModel == null) return;
+                var panel = EditKeyPanel;
+                if (panel == null || s is not TimelineView timelineView)
                 {
                     await DisplayAlert("Error", "EditKeyPanel または TimelineView が初期化されていません", "OK");
                     return;
@@ -909,7 +917,7 @@ private void ShowBottomFeature(string name)
                 if (!timelineView.HasKeyframe(boneName, timelineView.CurrentFrame))
                 {
                     await DisplayAlert("Info", "キーがありません", "OK");
-                    EditKeyPanel.IsVisible = false;
+                    panel.IsVisible = false;
                     return;
                 }
 
@@ -919,34 +927,34 @@ private void ShowBottomFeature(string name)
                     Translations = _renderer.GetAllBoneTranslations()
                 };
 
-                EditKeyPanel.SetBones(timelineView.BoneNames);
-                EditKeyPanel.SelectedBoneIndex = boneIndex;
+                panel.SetBones(timelineView.BoneNames);
+                panel.SelectedBoneIndex = boneIndex;
 
                 var frames = timelineView.GetKeyframesForBone(boneName);
-                EditKeyPanel.SetFrame(timelineView.CurrentFrame, frames,
+                panel.SetFrame(timelineView.CurrentFrame, frames,
                     timelineView.GetBoneTranslationAtFrame,
                     timelineView.GetBoneRotationAtFrame);
 
-                timelineView.SelectedKeyInputBoneIndex = EditKeyPanel.SelectedBoneIndex;
+                timelineView.SelectedKeyInputBoneIndex = panel.SelectedBoneIndex;
 
-                var selectedIndex = EditKeyPanel.SelectedBoneIndex;
+                var selectedIndex = panel.SelectedBoneIndex;
                 if (selectedIndex >= 0)
                 {
                     // Ensure rotation limit is applied even when the index does not change
                     OnEditKeyBoneChanged(selectedIndex);
 
-                    var boneName2 = EditKeyPanel.SelectedBone;
+                    var boneName2 = panel.SelectedBone;
                     if (!string.IsNullOrEmpty(boneName2))
                     {
                         OnKeyParameterChanged(
                             boneName2,
-                            EditKeyPanel.FrameNumber,
-                            EditKeyPanel.Translation,
-                            EditKeyPanel.EulerRotation);
+                            panel.FrameNumber,
+                            panel.Translation,
+                            panel.EulerRotation);
                     }
                 }
 
-                EditKeyPanel.IsVisible = true;
+                panel.IsVisible = true;
             };
            tv.DeleteKeyClicked += (s, e) =>
            {
