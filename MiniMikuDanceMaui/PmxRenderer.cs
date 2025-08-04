@@ -110,6 +110,7 @@ public class PmxRenderer : IDisposable
     public float RotateSensitivity { get; set; } = 0.1f;
     public float PanSensitivity { get; set; } = 0.1f;
     private const float ZoomSensitivity = 0.1f;
+    private const float MinStageSize = 0.1f;
     public bool CameraLocked { get; set; }
     public float ShadeShift { get; set; } = -0.1f;
     public float ShadeToony { get; set; } = 0.9f;
@@ -124,6 +125,7 @@ public class PmxRenderer : IDisposable
         get => _stageSize;
         set
         {
+            value = MathF.Max(value, MinStageSize);
             if (_stageSize != value)
             {
                 _stageSize = value;

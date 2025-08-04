@@ -140,20 +140,29 @@ public class ModelImporter
 
         // モーフ情報の解析
         var morphDatas = new List<MorphData>(morphs.Length);
-        var morphNames = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+        var existingNames = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
         foreach (var m in morphs)
         {
             // スライダー表示が不要なモーフタイプは除外
             if (m.MorphType != MorphType.Vertex)
                 continue;
 
-            string name = string.IsNullOrEmpty(m.NameEnglish) ? m.Name : m.NameEnglish;
-            if (!morphNames.Add(name))
-                continue;
+            string baseName = string.IsNullOrEmpty(m.NameEnglish) ? m.Name : m.NameEnglish;
+            string uniqueName = baseName;
+            if (!existingNames.Add(uniqueName))
+            {
+                string suffix = GetMorphSuffix(m);
+                int index = 1;
+                uniqueName = baseName + suffix;
+                while (!existingNames.Add(uniqueName))
+                {
+                    uniqueName = baseName + suffix + "_" + index++;
+                }
+            }
 
             var md = new MorphData
             {
-                Name = name,
+                Name = uniqueName,
                 Type = m.MorphType
             };
             foreach (var vm in m.VertexMorphElements.ToArray())
@@ -279,5 +288,19 @@ public class ModelImporter
         data.Transform = System.Numerics.Matrix4x4.CreateScale(Scale);
         return data;
     }
+
+    private static string GetMorphSuffix(MMDTools.Morph morph)
+    {
+        string en = morph.NameEnglish ?? string.Empty;
+        string jp = morph.Name ?? string.Empty;
+        if (jp.Contains("左") || en.Contains("_L", StringComparison.OrdinalIgnoreCase) ||
+            en.EndsWith("L", StringComparison.OrdinalIgnoreCase) || en.EndsWith("Left", StringComparison.OrdinalIgnoreCase))
+            return "_L";
+        if (jp.Contains("右") || en.Contains("_R", StringComparison.OrdinalIgnoreCase) ||
+            en.EndsWith("R", StringComparison.OrdinalIgnoreCase) || en.EndsWith("Right", StringComparison.OrdinalIgnoreCase))
+            return "_R";
+        return "_1";
+    }
+
     // 現在は PMX モデルのみに対応しています
 }

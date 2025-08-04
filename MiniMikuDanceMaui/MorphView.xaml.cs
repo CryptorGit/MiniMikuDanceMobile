@@ -1,6 +1,6 @@
 using Microsoft.Maui.Controls;
 using MiniMikuDance.Import;
-using System.Linq;
+using System;
 
 namespace MiniMikuDanceMaui;
 
@@ -19,8 +19,14 @@ public partial class MorphView : ContentView
         MorphList.Children.Clear();
         if (model?.Morphs == null) return;
         var textColor = (Color)Application.Current.Resources["TextColor"];
-        foreach (var morph in model.Morphs.GroupBy(m => m.Name).Select(g => g.First()))
+        foreach (var morph in model.Morphs)
         {
+            string label = morph.Name;
+            if (label.EndsWith("_L", StringComparison.OrdinalIgnoreCase))
+                label = label[..^2] + " (L)";
+            else if (label.EndsWith("_R", StringComparison.OrdinalIgnoreCase))
+                label = label[..^2] + " (R)";
+
             var grid = new Grid
             {
                 ColumnDefinitions = new ColumnDefinitionCollection
@@ -32,7 +38,7 @@ public partial class MorphView : ContentView
             };
             grid.Add(new Label
             {
-                Text = morph.Name,
+                Text = label,
                 TextColor = textColor,
                 HorizontalTextAlignment = TextAlignment.Start
             });
