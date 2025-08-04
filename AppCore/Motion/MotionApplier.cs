@@ -1,17 +1,16 @@
 using System;
 using System.Numerics;
 using System.Collections.Generic;
-using MiniMikuDance.Import;
 using MiniMikuDance.PoseEstimation;
 
 namespace MiniMikuDance.Motion;
 
 public class MotionApplier
 {
-    private readonly ModelData _model;
+    private readonly MiniMikuDance.Import.ModelData _model;
     private readonly float _modelHeight;
 
-    public MotionApplier(ModelData model)
+    public MotionApplier(MiniMikuDance.Import.ModelData model)
     {
         _model = model;
         _modelHeight = EstimateModelHeight();

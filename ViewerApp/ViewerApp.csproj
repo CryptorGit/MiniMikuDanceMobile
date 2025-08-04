@@ -10,10 +10,4 @@
     <PackageReference Include="PMXParser" Version="1.1.1" />
     <PackageReference Include="AssimpNet" Version="4.1.0" />
   </ItemGroup>
-  <ItemGroup>
-    <Compile Include="..\AppCore\Import\ModelImporter.cs" Link="Import/ModelImporter.cs" />
-    <Compile Include="..\AppCore\Import\SubMeshData.cs" Link="Import/SubMeshData.cs" />
-    <Compile Include="..\AppCore\Import\BoneData.cs" Link="Import/BoneData.cs" />
-    <Compile Include="..\AppCore\Import\HumanoidBones.cs" Link="Import/HumanoidBones.cs" />
-  </ItemGroup>
 </Project>

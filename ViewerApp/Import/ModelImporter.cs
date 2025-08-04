@@ -8,7 +8,7 @@ using SixLabors.ImageSharp.PixelFormats;
 using Vector3D = Assimp.Vector3D;
 using MMDTools;
 
-namespace MiniMikuDance.Import;
+namespace ViewerApp.Import;
 
 public class ModelData
 {
@@ -79,27 +79,21 @@ public class ModelImporter
         // ボーン情報を ModelData に格納する
         var data = new ModelData();
         var boneDatas = new List<BoneData>(bones.Length);
-        var absPositions = new System.Numerics.Vector3[bones.Length];
         for (int i = 0; i < bones.Length; i++)
         {
             var b = bones[i];
             string name = string.IsNullOrEmpty(b.NameEnglish) ? b.Name : b.NameEnglish;
-            var absPos = new System.Numerics.Vector3(b.Position.X, b.Position.Y, b.Position.Z) * Scale;
-            absPositions[i] = absPos;
-            var localPos = absPos;
-            if (b.ParentBone >= 0)
-                localPos -= absPositions[b.ParentBone];
             var bd = new BoneData
             {
                 Name = name,
                 Parent = b.ParentBone,
                 Rotation = System.Numerics.Quaternion.Identity,
-                Translation = localPos
+                Translation = new System.Numerics.Vector3(b.Position.X, b.Position.Y, b.Position.Z) * Scale
             };
             boneDatas.Add(bd);
         }
 
-        // Bind/InverseBind 行列を計算（ローカル位置を使用）
+        // Bind/InverseBind 行列を計算
         var world = new System.Numerics.Matrix4x4[boneDatas.Count];
         for (int i = 0; i < boneDatas.Count; i++)
         {
@@ -117,7 +111,7 @@ public class ModelImporter
         data.Bones = boneDatas;
 
         // ヒューマノイドボーンのマッピング
-        foreach (var hb in MiniMikuDance.Import.HumanoidBones.StandardOrder)
+        foreach (var hb in ViewerApp.Import.HumanoidBones.StandardOrder)
         {
             for (int i = 0; i < boneDatas.Count; i++)
             {

@@ -14,7 +14,6 @@ using Microsoft.Maui.Storage;
 using Microsoft.Maui.Devices;
 using System.IO;
 using System.Linq;
-using MiniMikuDance.Import;
 using OpenTK.Mathematics;
 using MiniMikuDance.Util;
 using MiniMikuDance.PoseEstimation;
@@ -22,6 +21,7 @@ using MiniMikuDance.Motion;
 using MiniMikuDance.Camera;
 using MiniMikuDance.App;
 using SixLabors.ImageSharp.PixelFormats;
+using System.Runtime.Versioning;
 
 #if ANDROID
 using Android.OS;
@@ -68,8 +68,8 @@ public partial class MainPage : ContentPage
     // bottomWidth is no longer used; bottom region spans full screen width
     // private double bottomWidth = 0;
     private bool _glInitialized;
-    private ModelData? _pendingModel;
-    private ModelData? _currentModel;
+    private MiniMikuDance.Import.ModelData? _pendingModel;
+    private MiniMikuDance.Import.ModelData? _currentModel;
     private readonly Dictionary<long, SKPoint> _touchPoints = new();
     private bool _boneMode;
     private MotionEditor? _motionEditor;
@@ -418,6 +418,9 @@ private void HideSettingMenu()
 
 private void HideAllMenusAndLayout()
 {
+    if (ViewMenu == null || SettingMenu == null || FileMenu == null)
+        return;
+
     HideViewMenu();
     HideSettingMenu();
     HideFileMenu();
@@ -429,7 +432,7 @@ private void UpdateSettingViewProperties(SettingView? sv)
     if (sv == null || _renderer == null)
         return;
 
-    sv.HeightRatio = _bottomHeightRatio;
+    sv!.HeightRatio = _bottomHeightRatio;
     sv.RotateSensitivity = _rotateSensitivity;
     sv.PanSensitivity = _panSensitivity;
     sv.CameraDistance = _cameraDistance;
@@ -456,6 +459,31 @@ private void UpdateBoneViewValues()
     Viewer?.InvalidateSurface();
 }
 
+#if ANDROID
+[SupportedOSPlatform("android30.0")]
+private static void RequestManageAllFilesAccessPermission()
+{
+    if (!Android.OS.Environment.IsExternalStorageManager)
+    {
+        try
+        {
+            var context = Android.App.Application.Context;
+            if (context != null)
+            {
+                var uri = Android.Net.Uri.Parse($"package:{context.PackageName}");
+                var intent = new Android.Content.Intent(Settings.ActionManageAppAllFilesAccessPermission, uri);
+                intent.AddFlags(Android.Content.ActivityFlags.NewTask);
+                context.StartActivity(intent);
+            }
+        }
+        catch (Exception)
+        {
+            // Handle exception if launching settings fails
+        }
+    }
+}
+#endif
+
 protected override async void OnAppearing()
 {
     base.OnAppearing();
@@ -468,26 +496,7 @@ protected override async void OnAppearing()
     }
     if (OperatingSystem.IsAndroidVersionAtLeast(30))
     {
-        #pragma warning disable CA1416
-        if (!Android.OS.Environment.IsExternalStorageManager)
-        {
-            try
-            {
-                var context = Android.App.Application.Context;
-                if (context != null)
-                {
-                    var uri = Android.Net.Uri.Parse($"package:{context.PackageName}");
-                    var intent = new Android.Content.Intent(Settings.ActionManageAppAllFilesAccessPermission, uri);
-                    intent.AddFlags(Android.Content.ActivityFlags.NewTask);
-                    context.StartActivity(intent);
-                }
-            }
-            catch (Exception)
-            {
-                // Handle exception if launching settings fails
-            }
-        }
-        #pragma warning restore CA1416
+        RequestManageAllFilesAccessPermission();
     }
 #endif
     Viewer?.InvalidateSurface();
@@ -530,9 +539,9 @@ private void UpdateLayout()
     AbsoluteLayout.SetLayoutFlags(MenuOverlay, AbsoluteLayoutFlags.None);
 
     AbsoluteLayout.SetLayoutBounds(PmxImportDialog, new Rect(0.5, TopMenuHeight + 20, 0.8,
-        PmxImportDialog.IsVisible ? AbsoluteLayout.AutoSize : 0));
+        PmxImportDialog.IsVisible ? 0.8 : 0));
     AbsoluteLayout.SetLayoutFlags(PmxImportDialog,
-        AbsoluteLayoutFlags.XProportional | AbsoluteLayoutFlags.WidthProportional);
+        AbsoluteLayoutFlags.XProportional | AbsoluteLayoutFlags.WidthProportional | AbsoluteLayoutFlags.HeightProportional);
     AbsoluteLayout.SetLayoutBounds(PoseSelectMessage, new Rect(0.5, TopMenuHeight + 20, 0.8,
         PoseSelectMessage.IsVisible ? AbsoluteLayout.AutoSize : 0));
     AbsoluteLayout.SetLayoutFlags(PoseSelectMessage,
@@ -859,55 +868,58 @@ private void ShowBottomFeature(string name)
             };
             tv.EditKeyClicked += async (s, e) =>
             {
-                if (s is TimelineView timelineView && EditKeyPanel != null)
+                if (s is not TimelineView timelineView || EditKeyPanel == null)
                 {
-                    int boneIndex = timelineView.SelectedKeyInputBoneIndex;
-                    var boneName = timelineView.BoneNames.Count > boneIndex && boneIndex >= 0
-                        ? timelineView.BoneNames[boneIndex]
-                        : timelineView.SelectedBoneName;
-
-                    if (!timelineView.HasKeyframe(boneName, timelineView.CurrentFrame))
-                    {
-                        await DisplayAlert("Info", "キーがありません", "OK");
-                        EditKeyPanel.IsVisible = false;
-                        return;
-                    }
-
-                    _poseBeforeKeyInput = new PoseState
-                    {
-                        Rotations = _renderer.GetAllBoneRotations(),
-                        Translations = _renderer.GetAllBoneTranslations()
-                    };
-
-                    EditKeyPanel.SetBones(timelineView.BoneNames);
-                    EditKeyPanel.SelectedBoneIndex = boneIndex;
-
-                    var frames = timelineView.GetKeyframesForBone(boneName);
-                    EditKeyPanel.SetFrame(timelineView.CurrentFrame, frames,
-                        timelineView.GetBoneTranslationAtFrame,
-                        timelineView.GetBoneRotationAtFrame);
-
-                    timelineView.SelectedKeyInputBoneIndex = EditKeyPanel.SelectedBoneIndex;
-
-                    var selectedIndex = EditKeyPanel.SelectedBoneIndex;
-                    if (selectedIndex >= 0)
-                    {
-                        // Ensure rotation limit is applied even when the index does not change
-                        OnEditKeyBoneChanged(selectedIndex);
-
-                        var boneName2 = EditKeyPanel.SelectedBone;
-                        if (!string.IsNullOrEmpty(boneName2))
-                        {
-                            OnKeyParameterChanged(
-                                boneName2,
-                                EditKeyPanel.FrameNumber,
-                                EditKeyPanel.Translation,
-                                EditKeyPanel.EulerRotation);
-                        }
-                    }
-
-                    EditKeyPanel.IsVisible = true;
+                    await DisplayAlert("Error", "EditKeyPanel または TimelineView が初期化されていません", "OK");
+                    return;
                 }
+
+                int boneIndex = timelineView.SelectedKeyInputBoneIndex;
+                var boneName = timelineView.BoneNames.Count > boneIndex && boneIndex >= 0
+                    ? timelineView.BoneNames[boneIndex]
+                    : timelineView.SelectedBoneName;
+
+                if (!timelineView.HasKeyframe(boneName, timelineView.CurrentFrame))
+                {
+                    await DisplayAlert("Info", "キーがありません", "OK");
+                    EditKeyPanel.IsVisible = false;
+                    return;
+                }
+
+                _poseBeforeKeyInput = new PoseState
+                {
+                    Rotations = _renderer.GetAllBoneRotations(),
+                    Translations = _renderer.GetAllBoneTranslations()
+                };
+
+                EditKeyPanel.SetBones(timelineView.BoneNames);
+                EditKeyPanel.SelectedBoneIndex = boneIndex;
+
+                var frames = timelineView.GetKeyframesForBone(boneName);
+                EditKeyPanel.SetFrame(timelineView.CurrentFrame, frames,
+                    timelineView.GetBoneTranslationAtFrame,
+                    timelineView.GetBoneRotationAtFrame);
+
+                timelineView.SelectedKeyInputBoneIndex = EditKeyPanel.SelectedBoneIndex;
+
+                var selectedIndex = EditKeyPanel.SelectedBoneIndex;
+                if (selectedIndex >= 0)
+                {
+                    // Ensure rotation limit is applied even when the index does not change
+                    OnEditKeyBoneChanged(selectedIndex);
+
+                    var boneName2 = EditKeyPanel.SelectedBone;
+                    if (!string.IsNullOrEmpty(boneName2))
+                    {
+                        OnKeyParameterChanged(
+                            boneName2,
+                            EditKeyPanel.FrameNumber,
+                            EditKeyPanel.Translation,
+                            EditKeyPanel.EulerRotation);
+                    }
+                }
+
+                EditKeyPanel.IsVisible = true;
             };
            tv.DeleteKeyClicked += (s, e) =>
            {
@@ -935,7 +947,7 @@ private void ShowBottomFeature(string name)
                 ShadeShift = _shadeShift,
                 ShadeToony = _shadeToony,
                 RimIntensity = _rimIntensity
-            };
+            } ?? throw new InvalidOperationException("LightingView の生成に失敗しました");
             mv.ShadeShiftChanged += v =>
             {
                 _shadeShift = (float)v;

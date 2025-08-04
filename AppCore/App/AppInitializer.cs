@@ -1,4 +1,3 @@
-using MiniMikuDance.Import;
 using MiniMikuDance.Motion;
 using MiniMikuDance.Camera;
 using MiniMikuDance.Recording;
@@ -11,14 +10,13 @@ using System.IO;
 using System.Numerics;
 using System.Threading.Tasks;
 using System.Diagnostics;
-using ViewerApp;
 using OpenTK.Mathematics;
 
 namespace MiniMikuDance.App;
 
 public partial class AppInitializer : IDisposable
 {
-    public Viewer? Viewer { get; private set; }
+    public ViewerApp.Viewer? Viewer { get; private set; }
     public MotionPlayer? MotionPlayer { get; private set; }
     public MotionApplier? Applier { get; private set; }
 
@@ -26,7 +24,7 @@ public partial class AppInitializer : IDisposable
     /// PMXモデルを読み込んだあとに呼び出し、MotionApplier を更新する。
     /// </summary>
     /// <param name="model">ロード済みのモデルデータ</param>
-    public void UpdateApplier(ModelData model)
+    public void UpdateApplier(MiniMikuDance.Import.ModelData model)
         => Applier = new MotionApplier(model);
     public RecorderController? Recorder { get; private set; }
     public CameraController? Camera { get; private set; }
@@ -81,7 +79,7 @@ public partial class AppInitializer : IDisposable
 
 
         var settings = AppSettings.Load();
-        var importer = new ModelImporter { Scale = settings.ModelScale };
+        var importer = new MiniMikuDance.Import.ModelImporter { Scale = settings.ModelScale };
         var model = importer.ImportModel(modelPath);
 
         Applier = new MotionApplier(model);
@@ -92,7 +90,7 @@ public partial class AppInitializer : IDisposable
             var result = Applier.Apply(joint);
             OnMotionApplied?.Invoke(result);
         };
-        Viewer = new Viewer(modelPath, settings.ModelScale);
+        Viewer = new ViewerApp.Viewer(modelPath, settings.ModelScale);
 
         Viewer.FrameUpdated += dt =>
         {
