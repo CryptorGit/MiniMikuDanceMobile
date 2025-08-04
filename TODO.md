@@ -18,3 +18,4 @@
 - [ ] PoseEditorView で生成したポーズをモーション編集機能へ連携する
 - [ ] dotnet build が TerminalLogger の内部エラーで失敗するため環境を調整してビルドを確認する
 - [ ] .NET SDK 9.0.301 をインストールし、ビルドを確認する
+- [ ] PmxRenderer.Render の骨ライン表示を実機で再確認する
