@@ -154,6 +154,7 @@ public class ModelImporter
                 continue;
 
             string name = string.IsNullOrEmpty(m.NameEnglish) ? m.Name : m.NameEnglish;
+            name = name.Trim();
             if (!morphDict.TryGetValue(name, out var md))
             {
                 md = new MorphData
