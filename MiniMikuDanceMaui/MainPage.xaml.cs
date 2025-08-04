@@ -22,7 +22,6 @@ using MiniMikuDance.Motion;
 using MiniMikuDance.Camera;
 using MiniMikuDance.App;
 using MiniMikuDance.Import;
-using SixLabors.ImageSharp.PixelFormats;
 using System.Runtime.Versioning;
 
 #if ANDROID
@@ -49,11 +48,6 @@ public partial class MainPage : ContentPage
     private string? _selectedModelPath;
     private string? _selectedVideoPath;
     private string? _selectedPosePath;
-    private readonly List<string> _selectedTexturePaths = new();
-    private readonly List<Label> _texturePathLabels = new();
-    private int _currentTextureIndex = -1;
-    private string? _modelDir;
-    private float _modelScale = 1f;
     private readonly AppSettings _settings = AppSettings.Load();
 
     private readonly PmxRenderer _renderer = new();
@@ -790,14 +784,6 @@ private void ShowBottomFeature(string name)
             ev.LoadDirectory(posePath);
             view = ev;
         }
-        else if (name == "Texture")
-        {
-            var texPath = MmdFileSystem.Ensure("Models");
-            var ev = new ExplorerView(texPath, new[] { ".png", ".jpg", ".jpeg", ".tga" });
-            ev.FileSelected += OnTexExplorerFileSelected;
-            ev.LoadDirectory(texPath);
-            view = ev;
-        }
         else if (name == "BONE")
         {
             var bv = new BoneView();
@@ -1074,11 +1060,6 @@ private void ShowBottomFeature(string name)
         var posePath = MmdFileSystem.Ensure("Poses");
         aev2.LoadDirectory(posePath);
     }
-    else if (name == "Texture" && _bottomViews[name] is ExplorerView tev)
-    {
-        var texPath = MmdFileSystem.Ensure("Models");
-        tev.LoadDirectory(texPath);
-    }
     else if (name == "MTOON" && _bottomViews[name] is LightingView mv)
     {
         mv.ShadeShift = _renderer.ShadeShift;
@@ -1187,83 +1168,13 @@ private void OnOpenInViewerClicked(object? sender, EventArgs e)
     HideAllMenusAndLayout();
     PmxImportDialog.IsVisible = true;
     SelectedModelPath.Text = string.Empty;
-    ScaleEntry.Text = "1.0";
     _selectedModelPath = null;
-    _selectedTexturePaths.Clear();
-    _texturePathLabels.Clear();
-    TextureList.Children.Clear();
-    _currentTextureIndex = -1;
-    AddTextureRow();
-    _modelScale = 1f;
     UpdateLayout();
 }
 
 private void OnSelectPmxModelClicked(object? sender, EventArgs e)
 {
     ShowModelExplorer();
-}
-
-private void OnSelectPmxTextureClicked(object? sender, EventArgs e)
-{
-    if (sender is Button btn && btn.CommandParameter is int idx)
-    {
-        _currentTextureIndex = idx;
-        string? tmp = null;
-        ShowExplorer("Texture", PmxImportDialog, _texturePathLabels[idx], ref tmp);
-    }
-}
-
-private void OnAddTextureRowClicked(object? sender, EventArgs e)
-{
-    AddTextureRow();
-}
-
-private void AddTextureRow()
-{
-    var textColor = (Color)Application.Current.Resources["TextColor"];
-    int index = _selectedTexturePaths.Count;
-    var row = new Grid
-    {
-        ColumnSpacing = 6,
-        ColumnDefinitions =
-        {
-            new ColumnDefinition { Width = GridLength.Auto },
-            new ColumnDefinition { Width = GridLength.Star },
-            new ColumnDefinition { Width = GridLength.Auto }
-        }
-    };
-    var nameLabel = new Label
-    {
-        Text = index == 0 ? "Texture" : string.Empty,
-        TextColor = textColor,
-        WidthRequest = 60
-    };
-    var pathLabel = new Label
-    {
-        TextColor = textColor,
-        FontSize = 14,
-        HorizontalOptions = LayoutOptions.Fill,
-        LineBreakMode = LineBreakMode.CharacterWrap,
-        MaxLines = 2,
-        WidthRequest = 200
-    };
-    var button = new Button
-    {
-        Text = "参照",
-        CommandParameter = index
-    };
-    button.Clicked += OnSelectPmxTextureClicked;
-
-    row.Children.Add(nameLabel);
-    row.Children.Add(pathLabel);
-    row.Children.Add(button);
-    Grid.SetColumn(nameLabel, 0);
-    Grid.SetColumn(pathLabel, 1);
-    Grid.SetColumn(button, 2);
-
-    TextureList.Children.Add(row);
-    _selectedTexturePaths.Add(string.Empty);
-    _texturePathLabels.Add(pathLabel);
 }
 
 private void OnEstimatePoseClicked(object? sender, EventArgs e)
@@ -1312,7 +1223,6 @@ private void OnOpenExplorerFileSelected(object? sender, string path)
     }
 
     _selectedModelPath = path;
-    _modelDir = Path.GetDirectoryName(path);
     SelectedModelPath.Text = Path.GetFileName(path);
 }
 
@@ -1326,63 +1236,14 @@ private async void OnImportPmxClicked(object? sender, EventArgs e)
     }
 
     RemoveBottomFeature("Open");
-    RemoveBottomFeature("Texture");
     PmxImportDialog.IsVisible = false;
     SetLoadingIndicatorVisibilityAndLayout(true);
     Viewer.HasRenderLoop = false;
 
     try
     {
-        if (!float.TryParse(ScaleEntry.Text, out _modelScale))
-        {
-            _modelScale = 1f;
-        }
-
-        var importer = new ModelImporter { Scale = _modelScale };
+        var importer = new ModelImporter { Scale = 1.0f };
         var data = await Task.Run(() => importer.ImportModel(_selectedModelPath));
-
-        // PMX内のテクスチャ相対パスとサブメッシュインデックスの対応表を作成
-        var textureMap = new Dictionary<string, List<int>>(StringComparer.OrdinalIgnoreCase);
-        for (int i = 0; i < data.SubMeshes.Count; i++)
-        {
-            var texPath = data.SubMeshes[i].TextureFilePath;
-            if (string.IsNullOrEmpty(texPath))
-                continue;
-
-            if (!textureMap.TryGetValue(texPath, out var list))
-            {
-                list = new List<int>();
-                textureMap[texPath] = list;
-            }
-            list.Add(i);
-        }
-
-        if (!string.IsNullOrEmpty(_modelDir))
-        {
-            foreach (var rel in _selectedTexturePaths)
-            {
-                if (string.IsNullOrEmpty(rel))
-                    continue;
-
-                if (!textureMap.TryGetValue(rel, out var indices))
-                    continue;
-
-                var path = Path.Combine(_modelDir, rel.Replace('/', Path.DirectorySeparatorChar));
-                await using var stream = File.OpenRead(path);
-                using var image = await SixLabors.ImageSharp.Image.LoadAsync<Rgba32>(stream);
-
-                foreach (var idx in indices)
-                {
-                    var sm = data.SubMeshes[idx];
-                    sm.TextureBytes = new byte[image.Width * image.Height * 4];
-                    image.CopyPixelDataTo(sm.TextureBytes);
-                    sm.TextureWidth = image.Width;
-                    sm.TextureHeight = image.Height;
-                    sm.TextureFilePath = rel;
-                }
-                LogService.WriteLine($"Texture {rel} mapped to indices: {string.Join(",", indices)}");
-            }
-        }
 
         _pendingModel = data;
         Viewer.InvalidateSurface();
@@ -1397,52 +1258,18 @@ private async void OnImportPmxClicked(object? sender, EventArgs e)
         Viewer.HasRenderLoop = true;
         SetLoadingIndicatorVisibilityAndLayout(false);
         _selectedModelPath = null;
-        _selectedTexturePaths.Clear();
-        _texturePathLabels.Clear();
-        TextureList.Children.Clear();
         SelectedModelPath.Text = string.Empty;
-        _currentTextureIndex = -1;
     }
 }
 
 private void OnCancelImportClicked(object? sender, EventArgs e)
 {
     _selectedModelPath = null;
-    _selectedTexturePaths.Clear();
-    _texturePathLabels.Clear();
-    TextureList.Children.Clear();
     PmxImportDialog.IsVisible = false;
     SelectedModelPath.Text = string.Empty;
-    ScaleEntry.Text = "1.0";
-    _modelScale = 1f;
-    _currentTextureIndex = -1;
     SetLoadingIndicatorVisibilityAndLayout(false);
     UpdateLayout();
 }
-
-private void OnTexExplorerFileSelected(object? sender, string path)
-{
-    var ext = Path.GetExtension(path).ToLowerInvariant();
-    if (ext != ".png" && ext != ".jpg" && ext != ".jpeg" && ext != ".tga")
-    {
-        return;
-    }
-    if (PmxImportDialog.IsVisible && _modelDir != null)
-    {
-        if (_currentTextureIndex < 0)
-            _currentTextureIndex = 0;
-
-        while (_currentTextureIndex >= _texturePathLabels.Count)
-            AddTextureRow();
-
-        var rel = Path.GetRelativePath(_modelDir, path)
-            .Replace(Path.DirectorySeparatorChar, '/');
-        _selectedTexturePaths[_currentTextureIndex] = rel;
-        _texturePathLabels[_currentTextureIndex].Text = Path.GetFileName(path);
-        _currentTextureIndex++;
-    }
-}
-
 private void ShowAdaptExplorer()
 {
     ShowExplorer("Adapt", AdaptSelectMessage, SelectedPosePath, ref _selectedPosePath);
