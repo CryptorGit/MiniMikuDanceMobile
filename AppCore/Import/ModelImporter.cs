@@ -5,7 +5,6 @@ using System.Linq;
 using System.Collections.Generic;
 using SixLabors.ImageSharp;
 using SixLabors.ImageSharp.PixelFormats;
-using SixLabors.ImageSharp.Processing;
 using Vector3D = Assimp.Vector3D;
 using MMDTools;
 using MiniMikuDance.App;
