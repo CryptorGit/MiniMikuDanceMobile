@@ -177,6 +177,8 @@ public class ModelImporter
                 }
             }
 
+            var md = new MorphData { Name = uniqueName, Type = m.MorphType };
+
             if (m.MorphType == MorphType.Vertex)
             {
                 foreach (var vm in m.VertexMorphElements.ToArray())
