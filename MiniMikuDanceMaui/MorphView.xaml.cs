@@ -24,13 +24,24 @@ public partial class MorphView : ContentView
             {
                 ColumnDefinitions = new ColumnDefinitionCollection
                 {
-                    new ColumnDefinition { Width = GridLength.Auto },
+                    new ColumnDefinition { Width = 120 },
                     new ColumnDefinition { Width = GridLength.Star }
                 },
                 ColumnSpacing = 10
             };
-            grid.Add(new Label { Text = morph.Name, TextColor = textColor });
-            var slider = new Slider { Minimum = 0, Maximum = 1, Value = 0 };
+            grid.Add(new Label
+            {
+                Text = morph.Name,
+                TextColor = textColor,
+                HorizontalTextAlignment = TextAlignment.Start
+            });
+            var slider = new Slider
+            {
+                Minimum = 0,
+                Maximum = 1,
+                Value = 0,
+                HorizontalOptions = LayoutOptions.FillAndExpand
+            };
             slider.ValueChanged += (s, e) =>
             {
                 _renderer?.SetMorphWeight(morph.Name, (float)e.NewValue);
