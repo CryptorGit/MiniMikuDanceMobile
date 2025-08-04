@@ -305,6 +305,34 @@ public class ModelImporter
                 }
             }
 
+            if (!string.IsNullOrEmpty(dir))
+            {
+                string? toonPath = null;
+                if (mat.SharedToonMode == SharedToonMode.SharedToon)
+                {
+                    int toonIndex = mat.ToonTexture;
+                    var toonName = $"toon{toonIndex + 1:00}.bmp";
+                    var relPath = Path.Combine("toon", toonName);
+                    toonPath = Path.Combine(dir, relPath);
+                    smd.ToonTextureFilePath = relPath;
+                }
+                else if (mat.ToonTexture >= 0 && mat.ToonTexture < texList.Length)
+                {
+                    var toonName = texList[mat.ToonTexture]
+                        .Replace('\\', Path.DirectorySeparatorChar);
+                    toonPath = Path.Combine(dir, toonName);
+                    smd.ToonTextureFilePath = toonName;
+                }
+                if (toonPath != null && File.Exists(toonPath))
+                {
+                    using var image = SixLabors.ImageSharp.Image.Load<Rgba32>(toonPath);
+                    smd.ToonTextureWidth = image.Width;
+                    smd.ToonTextureHeight = image.Height;
+                    smd.ToonTextureBytes = new byte[image.Width * image.Height * 4];
+                    image.CopyPixelDataTo(smd.ToonTextureBytes);
+                }
+            }
+
             data.SubMeshes.Add(smd);
             faceOffset += faceCount;
         }
