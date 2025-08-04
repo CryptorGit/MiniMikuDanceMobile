@@ -245,7 +245,8 @@ private void ShowViewMenu()
     HideSettingMenu();
     HideFileMenu();
     _viewMenuOpen = true;
-    ViewMenu.IsVisible = true;
+    var viewMenu = ViewMenu ?? throw new InvalidOperationException();
+    viewMenu.IsVisible = true;
     UpdateOverlay();
 }
 
@@ -253,7 +254,8 @@ private void OnViewMenuTapped(object? sender, TappedEventArgs e)
 {
     HideAllMenus();
     _viewMenuOpen = !_viewMenuOpen;
-    ViewMenu.IsVisible = _viewMenuOpen;
+    var viewMenu = ViewMenu ?? throw new InvalidOperationException();
+    viewMenu.IsVisible = _viewMenuOpen;
     UpdateOverlay();
     UpdateLayout();
 }
@@ -268,7 +270,8 @@ private void ShowSettingMenu()
     HideViewMenu();
     HideFileMenu();
     _settingMenuOpen = true;
-    SettingMenu.IsVisible = true;
+    var settingMenu = SettingMenu ?? throw new InvalidOperationException();
+    settingMenu.IsVisible = true;
     if (SettingContent is SettingView sv)
     {
         sv.HeightRatio = _bottomHeightRatio;
@@ -283,7 +286,8 @@ private void OnSettingMenuTapped(object? sender, EventArgs e)
 {
     HideAllMenus();
     _settingMenuOpen = !_settingMenuOpen;
-    SettingMenu.IsVisible = _settingMenuOpen;
+    var settingMenu = SettingMenu ?? throw new InvalidOperationException();
+    settingMenu.IsVisible = _settingMenuOpen;
     UpdateOverlay();
     UpdateLayout();
 }
@@ -293,14 +297,16 @@ private void ShowFileMenu()
     HideViewMenu();
     HideSettingMenu();
     _fileMenuOpen = true;
-    FileMenu.IsVisible = true;
+    var fileMenu = FileMenu ?? throw new InvalidOperationException();
+    fileMenu.IsVisible = true;
     UpdateOverlay();
 }
 
 private void HideFileMenu()
 {
     _fileMenuOpen = false;
-    FileMenu.IsVisible = false;
+    var fileMenu = FileMenu ?? throw new InvalidOperationException();
+    fileMenu.IsVisible = false;
     UpdateOverlay();
 }
 
@@ -308,7 +314,8 @@ private void OnFileMenuTapped(object? sender, TappedEventArgs e)
 {
     HideAllMenus();
     _fileMenuOpen = !_fileMenuOpen;
-    FileMenu.IsVisible = _fileMenuOpen;
+    var fileMenu = FileMenu ?? throw new InvalidOperationException();
+    fileMenu.IsVisible = _fileMenuOpen;
     UpdateOverlay();
     UpdateLayout();
 }
@@ -379,11 +386,14 @@ private void OnBottomRegionTapped(object? sender, TappedEventArgs e)
 private void HideAllMenus()
 {
     _viewMenuOpen = false;
-    ViewMenu.IsVisible = false;
+    var viewMenu = ViewMenu ?? throw new InvalidOperationException();
+    viewMenu.IsVisible = false;
     _settingMenuOpen = false;
-    SettingMenu.IsVisible = false;
+    var settingMenu = SettingMenu ?? throw new InvalidOperationException();
+    settingMenu.IsVisible = false;
     _fileMenuOpen = false;
-    FileMenu.IsVisible = false;
+    var fileMenu = FileMenu ?? throw new InvalidOperationException();
+    fileMenu.IsVisible = false;
     UpdateOverlay();
     UpdateLayout();
 }
@@ -391,13 +401,15 @@ private void HideAllMenus()
 private void HideViewMenu()
 {
     _viewMenuOpen = false;
-    ViewMenu.IsVisible = false;
+    var viewMenu = ViewMenu ?? throw new InvalidOperationException();
+    viewMenu.IsVisible = false;
     UpdateOverlay();
 }
 
 private void HideBottomRegion()
 {
-    BottomRegion.IsVisible = false;
+    var bottomRegion = BottomRegion ?? throw new InvalidOperationException();
+    bottomRegion.IsVisible = false;
     _currentFeature = null;
     UpdateTabColors();
 
@@ -406,13 +418,17 @@ private void HideBottomRegion()
 private void HideSettingMenu()
 {
     _settingMenuOpen = false;
-    SettingMenu.IsVisible = false;
+    var settingMenu = SettingMenu ?? throw new InvalidOperationException();
+    settingMenu.IsVisible = false;
     UpdateOverlay();
 }
 
 private void HideAllMenusAndLayout()
 {
-    if (ViewMenu == null || SettingMenu == null || FileMenu == null)
+    var viewMenu = ViewMenu;
+    var settingMenu = SettingMenu;
+    var fileMenu = FileMenu;
+    if (viewMenu == null || settingMenu == null || fileMenu == null)
         return;
 
     HideViewMenu();
@@ -504,72 +520,81 @@ private void OnSizeChanged(object? sender, EventArgs e) => UpdateLayout();
 
 private void UpdateLayout()
 {
-    if (TopMenu == null || ViewMenu == null || FileMenu == null || SettingMenu == null ||
-        MenuOverlay == null || PmxImportDialog == null || PoseSelectMessage == null ||
-        AdaptSelectMessage == null || AddKeyPanel == null || EditKeyPanel == null ||
-        DeletePanel == null || ProgressFrame == null || LoadingIndicator == null ||
-        Viewer == null || BottomRegion == null)
-        return;
+    var topMenu = TopMenu ?? throw new InvalidOperationException();
+    var viewMenu = ViewMenu ?? throw new InvalidOperationException();
+    var fileMenu = FileMenu ?? throw new InvalidOperationException();
+    var settingMenu = SettingMenu ?? throw new InvalidOperationException();
+    var menuOverlay = MenuOverlay ?? throw new InvalidOperationException();
+    var pmxImportDialog = PmxImportDialog ?? throw new InvalidOperationException();
+    var poseSelectMessage = PoseSelectMessage ?? throw new InvalidOperationException();
+    var adaptSelectMessage = AdaptSelectMessage ?? throw new InvalidOperationException();
+    var addKeyPanel = AddKeyPanel ?? throw new InvalidOperationException();
+    var editKeyPanel = EditKeyPanel ?? throw new InvalidOperationException();
+    var deletePanel = DeletePanel ?? throw new InvalidOperationException();
+    var progressFrame = ProgressFrame ?? throw new InvalidOperationException();
+    var loadingIndicator = LoadingIndicator ?? throw new InvalidOperationException();
+    var viewer = Viewer ?? throw new InvalidOperationException();
+    var bottomRegion = BottomRegion ?? throw new InvalidOperationException();
 
-    double W = this.Width;
-    double H = this.Height;
-    Thickness safe = this.Padding;
-    AbsoluteLayout.SetLayoutBounds(TopMenu, new Rect(0, 0, W, TopMenuHeight));
-    AbsoluteLayout.SetLayoutFlags(TopMenu, AbsoluteLayoutFlags.None);
+    double W = Width;
+    double H = Height;
+    Thickness safe = Padding;
+    AbsoluteLayout.SetLayoutBounds(topMenu, new Rect(0, 0, W, TopMenuHeight));
+    AbsoluteLayout.SetLayoutFlags(topMenu, AbsoluteLayoutFlags.None);
 
-    double bottomHeight = BottomRegion.IsVisible ? H * _bottomHeightRatio : 0;
-    AbsoluteLayout.SetLayoutBounds(ViewMenu, new Rect(0, TopMenuHeight, 200,
-        ViewMenu.IsVisible ? AbsoluteLayout.AutoSize : 0));
-    AbsoluteLayout.SetLayoutFlags(ViewMenu, AbsoluteLayoutFlags.None);
-    AbsoluteLayout.SetLayoutBounds(FileMenu, new Rect(0, TopMenuHeight, 200,
-        FileMenu.IsVisible ? AbsoluteLayout.AutoSize : 0));
-    AbsoluteLayout.SetLayoutFlags(FileMenu, AbsoluteLayoutFlags.None);
-    AbsoluteLayout.SetLayoutBounds(SettingMenu, new Rect(0, TopMenuHeight, 250,
-        SettingMenu.IsVisible ? AbsoluteLayout.AutoSize : 0));
-    AbsoluteLayout.SetLayoutFlags(SettingMenu, AbsoluteLayoutFlags.None);
+    double bottomHeight = bottomRegion.IsVisible ? H * _bottomHeightRatio : 0;
+    AbsoluteLayout.SetLayoutBounds(viewMenu, new Rect(0, TopMenuHeight, 200,
+        viewMenu.IsVisible ? AbsoluteLayout.AutoSize : 0));
+    AbsoluteLayout.SetLayoutFlags(viewMenu, AbsoluteLayoutFlags.None);
+    AbsoluteLayout.SetLayoutBounds(fileMenu, new Rect(0, TopMenuHeight, 200,
+        fileMenu.IsVisible ? AbsoluteLayout.AutoSize : 0));
+    AbsoluteLayout.SetLayoutFlags(fileMenu, AbsoluteLayoutFlags.None);
+    AbsoluteLayout.SetLayoutBounds(settingMenu, new Rect(0, TopMenuHeight, 250,
+        settingMenu.IsVisible ? AbsoluteLayout.AutoSize : 0));
+    AbsoluteLayout.SetLayoutFlags(settingMenu, AbsoluteLayoutFlags.None);
 
-    AbsoluteLayout.SetLayoutBounds(MenuOverlay, new Rect(0, 0, W, H));
-    AbsoluteLayout.SetLayoutFlags(MenuOverlay, AbsoluteLayoutFlags.None);
+    AbsoluteLayout.SetLayoutBounds(menuOverlay, new Rect(0, 0, W, H));
+    AbsoluteLayout.SetLayoutFlags(menuOverlay, AbsoluteLayoutFlags.None);
 
-    AbsoluteLayout.SetLayoutBounds(PmxImportDialog, new Rect(0.5, TopMenuHeight + 20, 0.6,
-        PmxImportDialog.IsVisible ? AbsoluteLayout.AutoSize : 0));
-    AbsoluteLayout.SetLayoutFlags(PmxImportDialog,
+    AbsoluteLayout.SetLayoutBounds(pmxImportDialog, new Rect(0.5, TopMenuHeight + 20, 0.6,
+        pmxImportDialog.IsVisible ? AbsoluteLayout.AutoSize : 0));
+    AbsoluteLayout.SetLayoutFlags(pmxImportDialog,
         AbsoluteLayoutFlags.XProportional | AbsoluteLayoutFlags.WidthProportional);
-    AbsoluteLayout.SetLayoutBounds(PoseSelectMessage, new Rect(0.5, TopMenuHeight + 20, 0.8,
-        PoseSelectMessage.IsVisible ? AbsoluteLayout.AutoSize : 0));
-    AbsoluteLayout.SetLayoutFlags(PoseSelectMessage,
+    AbsoluteLayout.SetLayoutBounds(poseSelectMessage, new Rect(0.5, TopMenuHeight + 20, 0.8,
+        poseSelectMessage.IsVisible ? AbsoluteLayout.AutoSize : 0));
+    AbsoluteLayout.SetLayoutFlags(poseSelectMessage,
         AbsoluteLayoutFlags.XProportional | AbsoluteLayoutFlags.WidthProportional);
-    AbsoluteLayout.SetLayoutBounds(AdaptSelectMessage, new Rect(0.5, TopMenuHeight + 20, 0.8,
-        AdaptSelectMessage.IsVisible ? AbsoluteLayout.AutoSize : 0));
-    AbsoluteLayout.SetLayoutFlags(AdaptSelectMessage,
+    AbsoluteLayout.SetLayoutBounds(adaptSelectMessage, new Rect(0.5, TopMenuHeight + 20, 0.8,
+        adaptSelectMessage.IsVisible ? AbsoluteLayout.AutoSize : 0));
+    AbsoluteLayout.SetLayoutFlags(adaptSelectMessage,
         AbsoluteLayoutFlags.XProportional | AbsoluteLayoutFlags.WidthProportional);
-    AbsoluteLayout.SetLayoutBounds(AddKeyPanel, new Rect(W - 300 - 20, TopMenuHeight + 20, 300, 500));
-    AbsoluteLayout.SetLayoutFlags(AddKeyPanel, AbsoluteLayoutFlags.None);
-    AbsoluteLayout.SetLayoutBounds(EditKeyPanel, new Rect(W - 300 - 20, TopMenuHeight + 20, 300, 500));
-    AbsoluteLayout.SetLayoutFlags(EditKeyPanel, AbsoluteLayoutFlags.None);
-    AbsoluteLayout.SetLayoutBounds(DeletePanel, new Rect(W - 300 - 20, TopMenuHeight + 20, 300, 200));
-    AbsoluteLayout.SetLayoutFlags(DeletePanel, AbsoluteLayoutFlags.None);
+    AbsoluteLayout.SetLayoutBounds(addKeyPanel, new Rect(W - 300 - 20, TopMenuHeight + 20, 300, 500));
+    AbsoluteLayout.SetLayoutFlags(addKeyPanel, AbsoluteLayoutFlags.None);
+    AbsoluteLayout.SetLayoutBounds(editKeyPanel, new Rect(W - 300 - 20, TopMenuHeight + 20, 300, 500));
+    AbsoluteLayout.SetLayoutFlags(editKeyPanel, AbsoluteLayoutFlags.None);
+    AbsoluteLayout.SetLayoutBounds(deletePanel, new Rect(W - 300 - 20, TopMenuHeight + 20, 300, 200));
+    AbsoluteLayout.SetLayoutFlags(deletePanel, AbsoluteLayoutFlags.None);
 
-    AbsoluteLayout.SetLayoutBounds(ProgressFrame, new Rect(0.5, TopMenuHeight + 20, 0.8,
-        ProgressFrame.IsVisible ? AbsoluteLayout.AutoSize : 0));
-    AbsoluteLayout.SetLayoutFlags(ProgressFrame,
+    AbsoluteLayout.SetLayoutBounds(progressFrame, new Rect(0.5, TopMenuHeight + 20, 0.8,
+        progressFrame.IsVisible ? AbsoluteLayout.AutoSize : 0));
+    AbsoluteLayout.SetLayoutFlags(progressFrame,
         AbsoluteLayoutFlags.XProportional | AbsoluteLayoutFlags.WidthProportional);
 
-    AbsoluteLayout.SetLayoutBounds(LoadingIndicator, new Rect(0.5, 0.5, 40, 40));
-    AbsoluteLayout.SetLayoutFlags(LoadingIndicator, AbsoluteLayoutFlags.PositionProportional);
+    AbsoluteLayout.SetLayoutBounds(loadingIndicator, new Rect(0.5, 0.5, 40, 40));
+    AbsoluteLayout.SetLayoutFlags(loadingIndicator, AbsoluteLayoutFlags.PositionProportional);
 
     double viewerWidth = Math.Min(W, 2048);
     double viewerHeight = Math.Min(H, 2048);
-    AbsoluteLayout.SetLayoutBounds(Viewer, new Rect(0, 0, viewerWidth, viewerHeight));
-    AbsoluteLayout.SetLayoutFlags(Viewer, AbsoluteLayoutFlags.None);
+    AbsoluteLayout.SetLayoutBounds(viewer, new Rect(0, 0, viewerWidth, viewerHeight));
+    AbsoluteLayout.SetLayoutFlags(viewer, AbsoluteLayoutFlags.None);
 
     // Position bottom region to span full width of the page
-    AbsoluteLayout.SetLayoutBounds(BottomRegion,
+    AbsoluteLayout.SetLayoutBounds(bottomRegion,
         new Rect(0,
             H - bottomHeight - safe.Bottom,
             W,
             bottomHeight));
-    AbsoluteLayout.SetLayoutFlags(BottomRegion, AbsoluteLayoutFlags.None);
+    AbsoluteLayout.SetLayoutFlags(bottomRegion, AbsoluteLayoutFlags.None);
 
     if (_bottomViews.TryGetValue("TIMELINE", out var timelineView) && timelineView is TimelineView tv)
     {
@@ -1071,7 +1096,8 @@ private void ShowBottomFeature(string name)
     }
 
     SwitchBottomFeature(name);
-    BottomRegion.IsVisible = true;
+    var bottomRegion = BottomRegion ?? throw new InvalidOperationException();
+    bottomRegion.IsVisible = true;
     UpdateLayout();
 }
 
@@ -1124,7 +1150,8 @@ private void RemoveBottomFeature(string name)
             }
             else
             {
-                BottomRegion.IsVisible = false;
+                var bottomRegion = BottomRegion ?? throw new InvalidOperationException();
+                bottomRegion.IsVisible = false;
             }
         }
 
