@@ -24,3 +24,4 @@
 - [ ] PmxRenderer.Render の骨ライン表示を実機で再確認する
 - [ ] PmxImportDialog のレイアウト変更後、画面幅を狭めた際のボタン表示をビルドして確認する
 - [x] PmxRendererでモーフウェイトを頂点に反映する
+- [ ] Boneモード自動解除機能の実装
