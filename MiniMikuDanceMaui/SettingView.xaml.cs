@@ -1,5 +1,6 @@
 using Microsoft.Maui.Controls;
 using System;
+using MiniMikuDance.App;
 
 namespace MiniMikuDanceMaui;
 
@@ -16,6 +17,7 @@ public partial class SettingView : ContentView
     public SettingView()
     {
         InitializeComponent();
+        StageSizePicker.SelectedItem = AppSettings.DefaultStageSize.ToString("F0");
     }
 
     private void OnHeightChanged(object? sender, ValueChangedEventArgs e)
@@ -36,18 +38,11 @@ public partial class SettingView : ContentView
         PanSensitivityChanged?.Invoke(e.NewValue);
     }
 
-    private void OnStageSizeSliderChanged(object? sender, ValueChangedEventArgs e)
+    private void OnStageSizePickerChanged(object? sender, EventArgs e)
     {
-        LogService.WriteLine($"Stage size: {e.NewValue:F1}");
-        StageSizeEntry.Text = e.NewValue.ToString("F1");
-        StageSizeChanged?.Invoke(e.NewValue);
-    }
-
-    private void OnStageSizeEntryCompleted(object? sender, EventArgs e)
-    {
-        if (double.TryParse(StageSizeEntry.Text, out var v))
+        if (StageSizePicker.SelectedItem is string s && double.TryParse(s, out var v))
         {
-            StageSizeSlider.Value = v;
+            LogService.WriteLine($"Stage size: {v:F1}");
             StageSizeChanged?.Invoke(v);
         }
     }
@@ -89,12 +84,15 @@ public partial class SettingView : ContentView
 
     public double StageSize
     {
-        get => StageSizeSlider.Value;
-        set
+        get
         {
-            StageSizeSlider.Value = value;
-            StageSizeEntry.Text = value.ToString("F1");
+            if (StageSizePicker.SelectedItem is string s && double.TryParse(s, out var v))
+            {
+                return v;
+            }
+            return AppSettings.DefaultStageSize;
         }
+        set => StageSizePicker.SelectedItem = value.ToString("F0");
     }
 
     public bool CameraLocked
