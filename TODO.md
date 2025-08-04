@@ -17,3 +17,4 @@
 - [ ] PoseEditorView で IK ボーンのドラッグ操作を実装する
 - [ ] PoseEditorView で生成したポーズをモーション編集機能へ連携する
 - [ ] dotnet build が TerminalLogger の内部エラーで失敗するため環境を調整してビルドを確認する
+- [ ] .NET SDK 9.0.301 をインストールし、ビルドを確認する
