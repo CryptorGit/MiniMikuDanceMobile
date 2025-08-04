@@ -950,28 +950,28 @@ private void ShowBottomFeature(string name)
         }
         else if (name == "MTOON")
         {
-            var mv = new LightingView
+            var lv = new LightingView
             {
                 ShadeShift = _shadeShift,
                 ShadeToony = _shadeToony,
                 RimIntensity = _rimIntensity
             } ?? throw new InvalidOperationException("LightingView の生成に失敗しました");
-            mv.ShadeShiftChanged += v =>
+            lv.ShadeShiftChanged += v =>
             {
                 _shadeShift = (float)v;
                 UpdateRendererLightingProperties();
             };
-            mv.ShadeToonyChanged += v =>
+            lv.ShadeToonyChanged += v =>
             {
                 _shadeToony = (float)v;
                 UpdateRendererLightingProperties();
             };
-            mv.RimIntensityChanged += v =>
+            lv.RimIntensityChanged += v =>
             {
                 _rimIntensity = (float)v;
                 UpdateRendererLightingProperties();
             };
-            view = mv;
+            view = lv;
         }
         else if (name == "SETTING")
         {
@@ -1084,11 +1084,11 @@ private void ShowBottomFeature(string name)
         var posePath = MmdFileSystem.Ensure("Poses");
         aev2.LoadDirectory(posePath);
     }
-    else if (name == "MTOON" && _bottomViews[name] is LightingView mv)
+    else if (name == "MTOON" && _bottomViews[name] is LightingView lv)
     {
-        mv.ShadeShift = _renderer.ShadeShift;
-        mv.ShadeToony = _renderer.ShadeToony;
-        mv.RimIntensity = _renderer.RimIntensity;
+        lv.ShadeShift = _renderer.ShadeShift;
+        lv.ShadeToony = _renderer.ShadeToony;
+        lv.RimIntensity = _renderer.RimIntensity;
     }
 
     SwitchBottomFeature(name);
