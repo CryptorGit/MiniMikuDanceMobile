@@ -46,7 +46,7 @@ public partial class MorphView : ContentView
             {
                 Minimum = 0,
                 Maximum = 1,
-                Value = 0,
+                Value = renderer.GetMorphWeight(morph.Name),
                 HorizontalOptions = LayoutOptions.FillAndExpand
             };
             slider.ValueChanged += (s, e) =>

@@ -425,6 +425,11 @@ void main(){
         UpdateSkinningBuffers();
     }
 
+    public float GetMorphWeight(string name)
+    {
+        return _morphWeights.TryGetValue(name, out var weight) ? weight : 0f;
+    }
+
     public IList<Vector3> GetAllBoneRotations() => _boneRotations.ToList();
 
     public IList<Vector3> GetAllBoneTranslations() => _boneTranslations.ToList();
