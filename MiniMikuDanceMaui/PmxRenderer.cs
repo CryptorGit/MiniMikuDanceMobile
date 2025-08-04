@@ -712,6 +712,9 @@ void main(){
                 var verts = new List<float>();
                 _ikBoneOffsets.Clear();
                 _ikBoneCounts.Clear();
+                float ikRadius = IkBoneRadius;
+                if (_defaultCameraDistance > 0f)
+                    ikRadius *= _distance / _defaultCameraDistance;
                 for (int i = 0; i < _bones.Count; i++)
                 {
                     var bone = _bones[i];
@@ -724,8 +727,8 @@ void main(){
                     for (int s = 0; s <= IkBoneSegments; s++)
                     {
                         float ang = 2f * MathF.PI * s / IkBoneSegments;
-                        float x = c4.X + IkBoneRadius * MathF.Cos(ang);
-                        float y = c4.Y + IkBoneRadius * MathF.Sin(ang);
+                        float x = c4.X + ikRadius * MathF.Cos(ang);
+                        float y = c4.Y + ikRadius * MathF.Sin(ang);
                         float z = c4.Z;
                         verts.Add(x); verts.Add(y); verts.Add(z);
                     }
@@ -814,6 +817,7 @@ void main(){
             for (int i = 0; i < _ikBoneCounts.Count; i++)
             {
                 GL.DrawArrays(PrimitiveType.TriangleFan, _ikBoneOffsets[i], _ikBoneCounts[i]);
+                GL.DrawArrays(PrimitiveType.LineLoop, _ikBoneOffsets[i] + 1, _ikBoneCounts[i] - 1);
             }
             GL.Enable(EnableCap.DepthTest);
             GL.BindVertexArray(0);
