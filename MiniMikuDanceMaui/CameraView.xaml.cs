@@ -8,17 +8,11 @@ namespace MiniMikuDanceMaui;
 public partial class CameraView : ContentView
 {
     private readonly string _movieDir;
-    private readonly GyroService? _gyroService;
-    private bool _gyroRunning;
 
     public CameraView(PmxRenderer renderer)
     {
         InitializeComponent();
         _movieDir = MmdFileSystem.Ensure("Movie");
-        if (App.Initializer.Camera != null)
-        {
-            _gyroService = new GyroService(App.Initializer.Camera, renderer);
-        }
     }
 
     private async void OnRecordClicked(object? sender, EventArgs e)
@@ -43,22 +37,4 @@ public partial class CameraView : ContentView
         }
     }
 
-    private void OnGyroClicked(object? sender, EventArgs e)
-    {
-        if (_gyroService == null)
-            return;
-
-        if (_gyroRunning)
-        {
-            _gyroService.Stop();
-            _gyroRunning = false;
-            GyroButton.Text = "Gyro";
-        }
-        else
-        {
-            _gyroService.Start();
-            _gyroRunning = true;
-            GyroButton.Text = "Gyro On";
-        }
-    }
 }

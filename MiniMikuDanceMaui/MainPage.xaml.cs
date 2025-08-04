@@ -333,12 +333,6 @@ private void OnLightingClicked(object? sender, EventArgs e)
     HideAllMenusAndLayout();
 }
 
-private void OnGyroMenuClicked(object? sender, EventArgs e)
-{
-    ShowBottomFeature("GYRO");
-    HideAllMenusAndLayout();
-}
-
 private void OnPoseEditorClicked(object? sender, EventArgs e)
 {
     ShowBottomFeature("POSE");
@@ -806,11 +800,6 @@ private void ShowBottomFeature(string name)
         {
             var cv = new CameraView(_renderer);
             view = cv;
-        }
-        else if (name == "GYRO")
-        {
-            var gv = new GyroView(_cameraController, _renderer);
-            view = gv;
         }
         else if (name == "POSE")
         {
