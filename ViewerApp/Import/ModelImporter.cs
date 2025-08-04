@@ -18,6 +18,7 @@ public class ModelData
     public List<BoneData> Bones { get; set; } = new();
     public Dictionary<string, int> HumanoidBones { get; set; } = new(StringComparer.OrdinalIgnoreCase);
     public List<(string Name, int Index)> HumanoidBoneList { get; set; } = new();
+    public List<int> IkBoneIndices { get; set; } = new();
     public float ShadeShift { get; set; } = -0.1f;
     public float ShadeToony { get; set; } = 0.9f;
     public float RimIntensity { get; set; } = 0.5f;
@@ -90,6 +91,18 @@ public class ModelImporter
                 Rotation = System.Numerics.Quaternion.Identity,
                 Translation = new System.Numerics.Vector3(b.Position.X, b.Position.Y, b.Position.Z) * Scale
             };
+            if (b.BoneFlag.HasFlag(BoneFlag.IK))
+            {
+                bd.IsIk = true;
+                bd.IkTargetIndex = b.IKTarget;
+                bd.IkLoopCount = b.IterCount;
+                bd.IkAngleLimit = b.MaxRadianPerIter;
+                foreach (var link in b.IKLinks.Span)
+                {
+                    bd.IkChainIndices.Add(link.Bone);
+                }
+                data.IkBoneIndices.Add(i);
+            }
             boneDatas.Add(bd);
         }
 
