@@ -103,12 +103,6 @@
                            WidthRequest="200" />
                     <Button Text="参照" Clicked="OnSelectPmxModelClicked" />
                 </HorizontalStackLayout>
-                <VerticalStackLayout x:Name="TextureList" Spacing="6" />
-                <Button Text="追加" Clicked="OnAddTextureRowClicked" HorizontalOptions="Start" />
-                <HorizontalStackLayout Spacing="6">
-                    <Label Text="Scale" TextColor="{StaticResource TextColor}" WidthRequest="60" />
-                    <Entry x:Name="ScaleEntry" Text="1.0" WidthRequest="80" TextColor="{StaticResource TextColor}" Keyboard="Numeric" />
-                </HorizontalStackLayout>
                 <HorizontalStackLayout HorizontalOptions="Center" Spacing="20">
                     <Button Text="インポート" Clicked="OnImportPmxClicked" />
                     <Button Text="キャンセル" Clicked="OnCancelImportClicked" />
