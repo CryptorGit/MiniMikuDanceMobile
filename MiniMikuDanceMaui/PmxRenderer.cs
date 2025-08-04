@@ -53,6 +53,13 @@ public class PmxRenderer : IDisposable
     private int _boneVao;
     private int _boneVbo;
     private int _boneVertexCount;
+    private int _ikBoneVao;
+    private int _ikBoneVbo;
+    private readonly List<int> _ikBoneOffsets = new();
+    private readonly List<int> _ikBoneCounts = new();
+    private const int IkBoneSegments = 16;
+    private const float IkBoneRadius = 0.05f;
+    private static readonly Vector4 IkBoneColor = new(1f, 1f, 0f, 1f);
     private int _modelProgram;
     private int _modelViewLoc;
     private int _modelProjLoc;
@@ -91,6 +98,7 @@ public class PmxRenderer : IDisposable
     public float RimIntensity { get; set; } = 0.5f;
     public float Ambient { get; set; } = 0.3f;
     public bool ShowBoneOutline { get; set; }
+    public bool ShowIkBones { get; set; }
 
     private float _stageSize = AppSettings.DefaultStageSize;
     public float StageSize
@@ -637,6 +645,49 @@ void main(){
             {
                 _boneVertexCount = 0;
             }
+
+            if (ShowIkBones)
+            {
+                var verts = new List<float>();
+                _ikBoneOffsets.Clear();
+                _ikBoneCounts.Clear();
+                for (int i = 0; i < _bones.Count; i++)
+                {
+                    var bone = _bones[i];
+                    if (!bone.IsIk)
+                        continue;
+                    var cp = worldMats[i].Translation;
+                    var c4 = Vector4.TransformRow(new Vector4(cp.X, cp.Y, cp.Z, 1f), modelMat);
+                    _ikBoneOffsets.Add(verts.Count / 3);
+                    verts.Add(c4.X); verts.Add(c4.Y); verts.Add(c4.Z);
+                    for (int s = 0; s <= IkBoneSegments; s++)
+                    {
+                        float ang = 2f * MathF.PI * s / IkBoneSegments;
+                        float x = c4.X + IkBoneRadius * MathF.Cos(ang);
+                        float y = c4.Y + IkBoneRadius * MathF.Sin(ang);
+                        float z = c4.Z;
+                        verts.Add(x); verts.Add(y); verts.Add(z);
+                    }
+                    _ikBoneCounts.Add(IkBoneSegments + 2);
+                }
+                if (verts.Count > 0)
+                {
+                    if (_ikBoneVao == 0) _ikBoneVao = GL.GenVertexArray();
+                    if (_ikBoneVbo == 0) _ikBoneVbo = GL.GenBuffer();
+                    GL.BindVertexArray(_ikBoneVao);
+                    GL.BindBuffer(BufferTarget.ArrayBuffer, _ikBoneVbo);
+                    GL.BufferData(BufferTarget.ArrayBuffer, verts.Count * sizeof(float), verts.ToArray(), BufferUsageHint.DynamicDraw);
+                    GL.VertexAttribPointer(0, 3, VertexAttribPointerType.Float, false, 3 * sizeof(float), 0);
+                    GL.EnableVertexAttribArray(0);
+                    GL.BindBuffer(BufferTarget.ArrayBuffer, 0);
+                    GL.BindVertexArray(0);
+                }
+            }
+            else
+            {
+                _ikBoneOffsets.Clear();
+                _ikBoneCounts.Clear();
+            }
         }
 
         GL.UseProgram(_modelProgram);
@@ -692,6 +743,22 @@ void main(){
             GL.DepthMask(true);
         }
 
+        if (ShowIkBones && _ikBoneCounts.Count > 0)
+        {
+            GL.DepthMask(false);
+            GL.Disable(EnableCap.DepthTest);
+            GL.UniformMatrix4(_modelLoc, false, ref modelMat);
+            GL.Uniform4(_colorLoc, IkBoneColor);
+            GL.BindVertexArray(_ikBoneVao);
+            for (int i = 0; i < _ikBoneCounts.Count; i++)
+            {
+                GL.DrawArrays(PrimitiveType.TriangleFan, _ikBoneOffsets[i], _ikBoneCounts[i]);
+            }
+            GL.Enable(EnableCap.DepthTest);
+            GL.BindVertexArray(0);
+            GL.DepthMask(true);
+        }
+
         Matrix4 gridModel = Matrix4.Identity;
         GL.DepthMask(false);
         GL.UniformMatrix4(_modelLoc, false, ref gridModel);
@@ -721,9 +788,11 @@ void main(){
         GL.DeleteBuffer(_gridVbo);
         GL.DeleteBuffer(_groundVbo);
         GL.DeleteBuffer(_boneVbo);
+        GL.DeleteBuffer(_ikBoneVbo);
         GL.DeleteVertexArray(_gridVao);
         GL.DeleteVertexArray(_groundVao);
         GL.DeleteVertexArray(_boneVao);
+        GL.DeleteVertexArray(_ikBoneVao);
         GL.DeleteProgram(_program);
         GL.DeleteProgram(_modelProgram);
     }

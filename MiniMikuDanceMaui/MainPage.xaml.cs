@@ -765,6 +765,7 @@ private async Task ShowModelSelector()
 
 private void ShowBottomFeature(string name)
 {
+    _renderer.ShowIkBones = false;
     if (!_bottomViews.ContainsKey(name))
     {
         View view;
@@ -816,8 +817,13 @@ private void ShowBottomFeature(string name)
         }
         else if (name == "POSE")
         {
-            var pv = new PoseEditorView();
-            pv.ModeChanged += mode => _boneMode = mode;
+            var pv = new PoseEditorView { Renderer = _renderer };
+            pv.ModeChanged += mode =>
+            {
+                _boneMode = mode;
+                _renderer.ShowIkBones = mode;
+                Viewer?.InvalidateSurface();
+            };
             view = pv;
         }
         else if (name == "MORPH")

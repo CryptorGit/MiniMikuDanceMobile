@@ -8,10 +8,16 @@ public partial class PoseEditorView : ContentView
 {
     public event Action<bool>? ModeChanged;
     private bool _boneMode;
+    public PmxRenderer? Renderer { get; set; }
 
     public PoseEditorView()
     {
         InitializeComponent();
+        ModeChanged += mode =>
+        {
+            if (Renderer != null)
+                Renderer.ShowIkBones = mode;
+        };
         UpdateButtons();
     }
 
