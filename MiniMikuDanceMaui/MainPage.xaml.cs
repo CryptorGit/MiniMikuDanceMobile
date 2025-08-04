@@ -22,6 +22,7 @@ using MiniMikuDance.Motion;
 using MiniMikuDance.Camera;
 using MiniMikuDance.App;
 using SixLabors.ImageSharp.PixelFormats;
+using System.Runtime.Versioning;
 
 #if ANDROID
 using Android.OS;
@@ -458,6 +459,31 @@ private void UpdateBoneViewValues()
     Viewer?.InvalidateSurface();
 }
 
+#if ANDROID
+[SupportedOSPlatform("android30.0")]
+private static void RequestManageAllFilesAccessPermission()
+{
+    if (!Android.OS.Environment.IsExternalStorageManager)
+    {
+        try
+        {
+            var context = Android.App.Application.Context;
+            if (context != null)
+            {
+                var uri = Android.Net.Uri.Parse($"package:{context.PackageName}");
+                var intent = new Android.Content.Intent(Settings.ActionManageAppAllFilesAccessPermission, uri);
+                intent.AddFlags(Android.Content.ActivityFlags.NewTask);
+                context.StartActivity(intent);
+            }
+        }
+        catch (Exception)
+        {
+            // Handle exception if launching settings fails
+        }
+    }
+}
+#endif
+
 protected override async void OnAppearing()
 {
     base.OnAppearing();
@@ -470,26 +496,7 @@ protected override async void OnAppearing()
     }
     if (OperatingSystem.IsAndroidVersionAtLeast(30))
     {
-        #pragma warning disable CA1416
-        if (!Android.OS.Environment.IsExternalStorageManager)
-        {
-            try
-            {
-                var context = Android.App.Application.Context;
-                if (context != null)
-                {
-                    var uri = Android.Net.Uri.Parse($"package:{context.PackageName}");
-                    var intent = new Android.Content.Intent(Settings.ActionManageAppAllFilesAccessPermission, uri);
-                    intent.AddFlags(Android.Content.ActivityFlags.NewTask);
-                    context.StartActivity(intent);
-                }
-            }
-            catch (Exception)
-            {
-                // Handle exception if launching settings fails
-            }
-        }
-        #pragma warning restore CA1416
+        RequestManageAllFilesAccessPermission();
     }
 #endif
     Viewer?.InvalidateSurface();
