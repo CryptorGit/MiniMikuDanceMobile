@@ -282,6 +282,39 @@ public class ModelImporter
                 }
             }
 
+            if (!string.IsNullOrEmpty(dir))
+            {
+                if (mat.SharedToonMode == SharedToonMode.TextureIndex && mat.ToonTexture >= 0 && mat.ToonTexture < texList.Length)
+                {
+                    var toonName = texList[mat.ToonTexture]
+                        .Replace('\\', Path.DirectorySeparatorChar);
+                    var toonPath = Path.Combine(dir, toonName);
+                    smd.ToonTextureFilePath = toonName;
+                    if (File.Exists(toonPath))
+                    {
+                        using var image = SixLabors.ImageSharp.Image.Load<Rgba32>(toonPath);
+                        smd.ToonTextureWidth = image.Width;
+                        smd.ToonTextureHeight = image.Height;
+                        smd.ToonTextureBytes = new byte[image.Width * image.Height * 4];
+                        image.CopyPixelDataTo(smd.ToonTextureBytes);
+                    }
+                }
+                else if (mat.SharedToonMode == SharedToonMode.SharedToon && mat.ToonTexture >= 0 && mat.ToonTexture <= 9)
+                {
+                    var toonName = Path.Combine("toon", $"toon{mat.ToonTexture + 1:00}.bmp");
+                    var toonPath = Path.Combine(dir, toonName);
+                    smd.ToonTextureFilePath = toonName;
+                    if (File.Exists(toonPath))
+                    {
+                        using var image = SixLabors.ImageSharp.Image.Load<Rgba32>(toonPath);
+                        smd.ToonTextureWidth = image.Width;
+                        smd.ToonTextureHeight = image.Height;
+                        smd.ToonTextureBytes = new byte[image.Width * image.Height * 4];
+                        image.CopyPixelDataTo(smd.ToonTextureBytes);
+                    }
+                }
+            }
+
             data.SubMeshes.Add(smd);
             faceOffset += faceCount;
         }
