@@ -1,5 +1,6 @@
 using Microsoft.Maui.Controls;
 using MiniMikuDance.Import;
+using System.Linq;
 
 namespace MiniMikuDanceMaui;
 
@@ -18,7 +19,7 @@ public partial class MorphView : ContentView
         MorphList.Children.Clear();
         if (model?.Morphs == null) return;
         var textColor = (Color)Application.Current.Resources["TextColor"];
-        foreach (var morph in model.Morphs)
+        foreach (var morph in model.Morphs.GroupBy(m => m.Name).Select(g => g.First()))
         {
             var grid = new Grid
             {
