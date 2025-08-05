@@ -18,7 +18,7 @@
   - [x] モデルディレクトリ保持と追加テクスチャの相対パス対応
 - [ ] PMXデータ表示機能の拡張
 - [ ] テクスチャ相対パス処理のクロスプラットフォーム検証
-- [ ] ModelImporter で PMX 座標系を解析しモデルの向きを正規化する
+- [x] ModelImporter で PMX 座標系を解析しモデルの向きを正規化する
 - [x] PoseEditorView で IK ボーンのドラッグ操作を実装する
   - [x] ドラッグ挙動・表示仕様をドキュメントへ追記
   - [x] PoseEditorView.HandleViewerTouch で IK ボーンのヒットテストと平面投影を完成させる
