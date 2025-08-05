@@ -30,6 +30,9 @@ public class PmxRenderer : IDisposable
         public Vector4 Color = Vector4.One;
         public int Texture;
         public bool HasTexture;
+        public int SphereTexture;
+        public bool HasSphereTexture;
+        public int SphereMode;
         public Vector3[] Vertices = Array.Empty<Vector3>();
         public Vector3[] Normals = Array.Empty<Vector3>();
         public Vector2[] TexCoords = Array.Empty<Vector2>();
@@ -94,6 +97,9 @@ public class PmxRenderer : IDisposable
     private int _modelColorLoc;
     private int _modelTexLoc;
     private int _modelUseTexLoc;
+    private int _modelSphereTexLoc;
+    private int _modelUseSphereTexLoc;
+    private int _modelSphereModeLoc;
     private int _modelLightDirLoc;
     private int _modelViewDirLoc;
     private int _modelShadeShiftLoc;
@@ -226,6 +232,9 @@ in vec2 vTex;
 uniform vec4 uColor;
 uniform sampler2D uTex;
 uniform bool uUseTex;
+uniform sampler2D uSphereTex;
+uniform bool uUseSphereTex;
+uniform int uSphereMode;
 uniform vec3 uLightDir;
 uniform vec3 uViewDir;
 uniform float uShadeShift;
@@ -235,6 +244,15 @@ uniform float uAmbient;
 out vec4 FragColor;
 void main(){
     vec4 base = uUseTex ? texture(uTex, vTex) : uColor;
+    if(uUseSphereTex){
+        vec2 sphereUV = (uSphereMode == 3) ? vTex : (normalize(vNormal).xy * 0.5 + 0.5);
+        sphereUV.y = 1.0 - sphereUV.y;
+        vec3 sphere = texture(uSphereTex, sphereUV).rgb;
+        if(uSphereMode == 1 || uSphereMode == 3)
+            base.rgb *= sphere;
+        else if(uSphereMode == 2)
+            base.rgb += sphere;
+    }
     float ndotl = max(dot(normalize(vNormal), normalize(uLightDir)), 0.0);
     float light = clamp((ndotl + uShadeShift) * uShadeToony, 0.0, 1.0);
     float rim = pow(1.0 - max(dot(normalize(vNormal), normalize(uViewDir)), 0.0), 3.0) * uRimIntensity;
@@ -259,6 +277,9 @@ void main(){
         _modelColorLoc = GL.GetUniformLocation(_modelProgram, "uColor");
         _modelTexLoc = GL.GetUniformLocation(_modelProgram, "uTex");
         _modelUseTexLoc = GL.GetUniformLocation(_modelProgram, "uUseTex");
+        _modelSphereTexLoc = GL.GetUniformLocation(_modelProgram, "uSphereTex");
+        _modelUseSphereTexLoc = GL.GetUniformLocation(_modelProgram, "uUseSphereTex");
+        _modelSphereModeLoc = GL.GetUniformLocation(_modelProgram, "uSphereMode");
         _modelLightDirLoc = GL.GetUniformLocation(_modelProgram, "uLightDir");
         _modelViewDirLoc = GL.GetUniformLocation(_modelProgram, "uViewDir");
         _modelShadeShiftLoc = GL.GetUniformLocation(_modelProgram, "uShadeShift");
@@ -1131,6 +1152,38 @@ void main(){
                 rm.HasTexture = true;
             }
 
+            rm.SphereMode = (int)sm.SphereMode;
+            if (sm.SphereTextureBytes != null)
+            {
+                GL.ActiveTexture(TextureUnit.Texture1);
+                rm.SphereTexture = GL.GenTexture();
+                GL.BindTexture(TextureTarget.Texture2D, rm.SphereTexture);
+                var handle2 = System.Runtime.InteropServices.GCHandle.Alloc(sm.SphereTextureBytes, System.Runtime.InteropServices.GCHandleType.Pinned);
+                try
+                {
+#pragma warning disable CS0618
+                    GL.TexImage2D(
+                        (All)TextureTarget.Texture2D,
+                        0,
+                        (All)PixelInternalFormat.Rgba,
+                        sm.SphereTextureWidth,
+                        sm.SphereTextureHeight,
+                        0,
+                        (All)PixelFormat.Rgba,
+                        (All)PixelType.UnsignedByte,
+                        handle2.AddrOfPinnedObject());
+#pragma warning restore CS0618
+                }
+                finally
+                {
+                    handle2.Free();
+                }
+                GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureMinFilter, (int)TextureMinFilter.Linear);
+                GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureMagFilter, (int)TextureMagFilter.Linear);
+                rm.HasSphereTexture = true;
+                GL.ActiveTexture(TextureUnit.Texture0);
+            }
+
             _meshes.Add(rm);
         }
     }
@@ -1221,12 +1274,31 @@ void main(){
             {
                 GL.Uniform1(_modelUseTexLoc, 0);
             }
+            if (rm.HasSphereTexture)
+            {
+                GL.ActiveTexture(TextureUnit.Texture1);
+                GL.BindTexture(TextureTarget.Texture2D, rm.SphereTexture);
+                GL.Uniform1(_modelSphereTexLoc, 1);
+                GL.Uniform1(_modelUseSphereTexLoc, 1);
+                GL.Uniform1(_modelSphereModeLoc, rm.SphereMode);
+            }
+            else
+            {
+                GL.Uniform1(_modelUseSphereTexLoc, 0);
+                GL.Uniform1(_modelSphereModeLoc, 0);
+            }
             GL.BindVertexArray(rm.Vao);
             GL.DrawElements(PrimitiveType.Triangles, rm.IndexCount, DrawElementsType.UnsignedInt, IntPtr.Zero);
             GL.BindVertexArray(0);
             if (rm.HasTexture)
             {
                 GL.BindTexture(TextureTarget.Texture2D, 0);
+            }
+            if (rm.HasSphereTexture)
+            {
+                GL.ActiveTexture(TextureUnit.Texture1);
+                GL.BindTexture(TextureTarget.Texture2D, 0);
+                GL.ActiveTexture(TextureUnit.Texture0);
             }
         }
 

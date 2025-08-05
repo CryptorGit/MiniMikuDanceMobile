@@ -408,16 +408,12 @@ public class ModelImporter
                 }
             }
 
-            smd.SphereMode = (SphereMapMode)mat.SphereTextureMode;
-
-            // ライブラリによってはプロパティ名が "SphereTexture" と "SphereTextre" で異なるため、両方に対応する
-            int sphereIndex = -1;
-            var sphereProp = mat.GetType().GetProperty("SphereTexture") ??
-                            mat.GetType().GetProperty("SphereTextre");
-            if (sphereProp?.GetValue(mat) is int idx)
-                sphereIndex = idx;
-
-            if (!string.IsNullOrEmpty(dir) && sphereIndex >= 0 && sphereIndex < texList.Length)
+            smd.SphereMode = Enum.IsDefined(typeof(SphereMapMode), mat.SphereTextureMode)
+                ? (SphereMapMode)mat.SphereTextureMode
+                : SphereMapMode.None;
+            if (smd.SphereMode != SphereMapMode.None &&
+                !string.IsNullOrEmpty(dir) &&
+                mat.SphereTextre >= 0 && mat.SphereTextre < texList.Length)
             {
                 var sphereName = texList[mat.SphereTextre]
                     .Replace('\\', Path.DirectorySeparatorChar)
