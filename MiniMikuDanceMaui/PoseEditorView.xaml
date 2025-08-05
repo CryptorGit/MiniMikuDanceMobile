@@ -21,5 +21,7 @@
         <ScrollView>
             <VerticalStackLayout x:Name="IkGoalList" Spacing="4" />
         </ScrollView>
+        <Button Text="IKゴール追加" Clicked="OnAddIkGoalClicked"
+                TextColor="{StaticResource TextColor}" />
     </VerticalStackLayout>
 </ContentView>

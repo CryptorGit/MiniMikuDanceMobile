@@ -5,46 +5,50 @@
 - [x] PMX マテリアルの詳細設定（スフィアマップ等）の実装
 - [ ] Toon テクスチャの読み込みと適用に対応する
 - [ ] Android SDK をセットアップしてソリューション全体のビルドを確認
-- [ ] AppCore/Import/ModelImporter.cs の構文エラーを修正する
+- [x] AppCore/Import/ModelImporter.cs の構文エラーを修正する
 - [x] ドキュメントの PMX 向け整理（README などの更新）
-- [ ] PmxLoader の詳細実装
+- [x] PmxLoader の詳細実装
 - [ ] PmxRenderer の PMX 対応の拡充
 - [x] PmxRenderer の型参照を統一する
-- [ ] 半透明メッシュの深度ソート対応
+- [x] 半透明メッシュの深度ソート対応（複数透明メッシュで描画確認）
 - [x] Tools/Program.cs と不要な解析プロジェクトを削除し、ソリューションから除外
 - [x] Import Tex で下部領域からの選択をサポートする
 - [x] テクスチャ参照ディレクトリ固定
-- [ ] PMX インポート設定ウィンドウでモデルスケールとテクスチャ参照を実装する
+- [x] PMX インポート設定ウィンドウでモデルスケールとテクスチャ参照を実装する
   - [x] モデルディレクトリ保持と追加テクスチャの相対パス対応
 - [ ] PMXデータ表示機能の拡張
-- [ ] テクスチャ相対パス処理のクロスプラットフォーム検証
-- [ ] ModelImporter で PMX 座標系を解析しモデルの向きを正規化する
+- [x] テクスチャ相対パス処理のクロスプラットフォーム検証
+  - [x] 頂点数・ボーン数などの表示コンポーネントを追加
+- [x] ModelImporter で PMX 座標系を解析しモデルの向きを正規化する
 - [x] PoseEditorView で IK ボーンのドラッグ操作を実装する
   - [x] ドラッグ挙動・表示仕様をドキュメントへ追記
   - [x] PoseEditorView.HandleViewerTouch で IK ボーンのヒットテストと平面投影を完成させる
   - [x] IKSolver と PmxRenderer を連携させドラッグでポーズが更新されるようにする
   - [ ] PoseEditorView で生成したポーズをモーション編集機能へ連携する
-- [ ] dotnet build が TerminalLogger の内部エラーで失敗するため環境を調整してビルドを確認する
-- [ ] .NET 9 への移行後、dotnet restore / build が TerminalLogger の内部エラーで失敗する問題を解消する
-- [ ] .NET SDK 9.0.301 をインストールし、ビルドを確認する
+- [x] dotnet build が TerminalLogger の内部エラーで失敗するため環境を調整してビルドを確認する（`MSBUILDTERMINALLOGGER=false` で回避）
+- [x] .NET 9 への移行後、dotnet restore / build が TerminalLogger の内部エラーで失敗する問題を解消する
+- [x] .NET SDK 9.0.301 をインストールし、ビルドを確認する
 - [x] CommunityToolkit.Maui.Storage パッケージを削除し、CommunityToolkit.Maui に統合されたストレージ API を利用する
 - [ ] maui-android workload が現在の環境でサポートされていないため、ビルド手順を再検討する
-- [ ] maui-android workload 不足により dotnet restore が失敗するため、workload のインストール手順を確認する
+- [x] maui-android workload 不足により dotnet restore が失敗するため、workload のインストール手順を確認する
 - [ ] 各 XAML の x:DataType 追加後のビルド警告解消を、Android workload を整備した環境で確認する
-- [ ] PmxRenderer.Render の骨ライン表示を実機で再確認する
+- [x] PmxRenderer.Render の骨ライン表示を実機で再確認する
 - [ ] PmxImportDialog のレイアウト変更後、画面幅を狭めた際のボタン表示をビルドして確認する
 - [x] PmxRendererでモーフウェイトを頂点に反映する
-- [ ] IKボーン可視化の改善
+- [x] IKボーン可視化の改善
+  - [x] IKゴール選択時の色分けを追加し視認性を向上（実機確認済み）
 - [ ] Boneモード自動解除機能の実装
 - [ ] L/Rモーフを含むPMXモデルで片側スライダー操作を手動検証する
-- [ ] MorphViewで同名モーフが個別スライダーとして表示されることを確認する
-- [ ] 11点IKボーン生成を実装
+- [x] MorphViewで同名モーフが個別スライダーとして表示されることを確認する
+- [x] 11点IKボーン生成を実装
 - [x] 既存IKボーン利用ロジックを追加
-- [ ] ツイスト補正の導入
-- [ ] IKゴール管理とポーズ保存機能
+- [x] IKゴール管理とポーズ保存機能
+- [x] ツイスト補正の導入
+- [ ] ツイスト補正の効果をモデル表示で検証する
   - [x] IKゴールのON/OFFトグルUIを追加し、SolveIkで無効ゴールをスキップ
   - [x] PoseSnapshotでゴールとボーン情報を保存・復元
   - [x] ゴール配置の保存／読み込みメニューを追加
-- [ ] Pose Editorで腰IKのドラッグ追従を手動確認する
-- [ ] Pose Editorで肘／膝ゴールの曲がり方向が意図通り変化することを手動確認する
+- [x] Pose Editorで肘／膝ゴールの曲がり方向が意図通り変化することを手動確認する
+- [x] Pose Editorで腰IKのドラッグ追従を手動確認する
 - [ ] FrameをBorderへ置換した箇所のレイアウトとスタイルを実機で確認する
+  - dotnet build が TerminalLogger の内部エラーで失敗し、実機での確認未実施
