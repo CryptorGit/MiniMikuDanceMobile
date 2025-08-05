@@ -265,9 +265,9 @@ public static int MaxFrame { get; private set; } = 60;
         // ScrollViewのコンテンツサイズが変わった際に
         // レイアウトを再計測してスクロール範囲を再計算させる
         BoneNameScrollView.InvalidateMeasure();
-        BoneNameScrollView.UpdateLayout();
+        BoneNameScrollView.RefreshLayout();
         TimelineContentScrollView.InvalidateMeasure();
-        TimelineContentScrollView.UpdateLayout();
+        TimelineContentScrollView.RefreshLayout();
     }
 
     private void InvalidateAll()
