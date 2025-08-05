@@ -28,6 +28,6 @@ public class LogConsoleWriter : TextWriter
     {
         _original.WriteLine(value);
         if (!string.IsNullOrEmpty(value))
-            LogService.AddExternalLine(value);
+            LogService.AddExternalLine(value, LogService.LogLevel.Debug);
     }
 }
