@@ -16,5 +16,8 @@
                    TextColor="{StaticResource TextColor}" Keyboard="Numeric"
                    Completed="OnIkBoneRadiusEntryCompleted" />
         </HorizontalStackLayout>
+        <ScrollView>
+            <VerticalStackLayout x:Name="IkGoalList" Spacing="4" />
+        </ScrollView>
     </VerticalStackLayout>
 </ContentView>

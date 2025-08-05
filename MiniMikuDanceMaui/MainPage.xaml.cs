@@ -23,6 +23,8 @@ using MiniMikuDance.Motion;
 using MiniMikuDance.Camera;
 using MiniMikuDance.App;
 using MiniMikuDance.Import;
+using System.Text.Json;
+using System.Text;
 
 #if ANDROID
 using Android.OS;
@@ -649,6 +651,7 @@ private void LoadPendingModel()
         {
             morphView.SetModel(_currentModel, _renderer);
         }
+        _poseEditor?.RefreshIkGoalList();
         _pendingModel = null;
         SavePoseState();
     }
@@ -836,6 +839,7 @@ private void ShowBottomFeature(string name)
                 Viewer?.InvalidateSurface();
             };
             _poseEditor = pv;
+            pv.RefreshIkGoalList();
             view = pv;
         }
         else if (name == "MORPH")
@@ -1237,6 +1241,55 @@ private void OnAdaptPoseClicked(object? sender, EventArgs e)
 {
     HideAllMenusAndLayout();
     ShowAdaptExplorer();
+}
+
+private async void OnSavePoseClicked(object? sender, EventArgs e)
+{
+    HideAllMenusAndLayout();
+    try
+    {
+        var snap = _renderer.SavePose();
+        string json = JsonSerializer.Serialize(snap);
+        using var ms = new MemoryStream(Encoding.UTF8.GetBytes(json));
+        await FileSaver.Default.SaveAsync("pose.json", ms);
+    }
+    catch (Exception ex)
+    {
+        await DisplayAlert("Error", ex.Message, "OK");
+    }
+}
+
+private async void OnLoadPoseClicked(object? sender, EventArgs e)
+{
+    HideAllMenusAndLayout();
+    try
+    {
+        var result = await FilePicker.Default.PickAsync(new PickOptions
+        {
+            PickerTitle = "Select pose file",
+            FileTypes = new FilePickerFileType(new Dictionary<DevicePlatform, IEnumerable<string>>
+            {
+                [DevicePlatform.Android] = new[] { "application/json", ".json" },
+                [DevicePlatform.WinUI] = new[] { ".json" },
+                [DevicePlatform.iOS] = new[] { "public.json" }
+            })
+        });
+        if (result != null)
+        {
+            using var stream = await result.OpenReadAsync();
+            var snap = await JsonSerializer.DeserializeAsync<PoseSnapshot>(stream);
+            if (snap != null)
+            {
+                _renderer.LoadPose(snap);
+                _poseEditor?.RefreshIkGoalList();
+                _renderer.Render();
+            }
+        }
+    }
+    catch (Exception ex)
+    {
+        await DisplayAlert("Error", ex.Message, "OK");
+    }
 }
 
 private async void ShowModelExplorer()
