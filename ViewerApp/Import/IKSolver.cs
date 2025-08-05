@@ -40,10 +40,10 @@ public static class IKSolver
 
     private static bool IsTorsoChain(IList<BoneData> bones, IList<int> chain)
     {
-        if (chain.Count != 5)
+        ReadOnlySpan<string> names = new[] { "hips", "spine", "chest", "neck", "head" };
+        if (chain.Count != names.Length)
             return false;
-        string[] names = { "hips", "spine", "chest", "neck", "head" };
-        for (int i = 0; i < 5; i++)
+        for (int i = 0; i < names.Length; i++)
         {
             if (!bones[chain[i]].Name.Equals(names[i], StringComparison.OrdinalIgnoreCase))
                 return false;
