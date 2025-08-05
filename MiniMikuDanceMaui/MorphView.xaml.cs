@@ -45,14 +45,18 @@ public partial class MorphView : ContentView
                 Maximum = 1,
                 Value = renderer.GetMorphWeight(originalName),
                 // LayoutOptions.FillAndExpand は非推奨のため Fill を使用する
-                HorizontalOptions = LayoutOptions.Fill
+                HorizontalOptions = LayoutOptions.Fill,
+                BindingContext = originalName
             };
-            slider.ValueChanged += (s, e) =>
-            {
-                _renderer?.SetMorphWeight(originalName, (float)e.NewValue);
-            };
+            slider.ValueChanged += OnMorphSliderChanged;
             grid.Add(slider, 1, 0);
             MorphList.Children.Add(grid);
         }
+    }
+
+    private void OnMorphSliderChanged(object? sender, ValueChangedEventArgs e)
+    {
+        if (sender is Slider s && s.BindingContext is string name)
+            _renderer?.SetMorphWeight(name, (float)e.NewValue);
     }
 }
