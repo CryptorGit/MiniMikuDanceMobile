@@ -2,7 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Numerics;
 
-namespace ViewerApp.Import;
+namespace MiniMikuDance.Import;
 
 /// <summary>
 /// 2ボーン解析解によるIKソルバ。
