@@ -100,6 +100,8 @@ public partial class PoseEditorView : ContentView
                     _ikPlanePoint = world;
                 }
             }
+            Renderer.SetSelectedIkBone(_selectedIkBone);
+            Renderer.Render();
         }
         else if (e.ActionType == SKTouchAction.Moved && _selectedIkBone >= 0)
         {
@@ -111,6 +113,7 @@ public partial class PoseEditorView : ContentView
         else if (e.ActionType == SKTouchAction.Released || e.ActionType == SKTouchAction.Cancelled)
         {
             _selectedIkBone = -1;
+            Renderer.SetSelectedIkBone(-1);
             Renderer.Render();
             EmitPose();
         }

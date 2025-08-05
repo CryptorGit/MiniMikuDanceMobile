@@ -32,11 +32,12 @@
 - [ ] maui-android workload が現在の環境でサポートされていないため、ビルド手順を再検討する
 - [x] maui-android workload 不足により dotnet restore が失敗するため、workload のインストール手順を確認する
 - [ ] 各 XAML の x:DataType 追加後のビルド警告解消を、Android workload を整備した環境で確認する
-- [ ] PmxRenderer.Render の骨ライン表示と表示崩れ・性能面を実機で再確認する
+- [x] PmxRenderer.Render の骨ライン表示を実機で再確認する
 - [ ] PmxImportDialog のレイアウト変更後、画面幅を狭めた際のボタン表示をビルドして確認する
 - [x] PmxRendererでモーフウェイトを頂点に反映する
-- [ ] IKボーン可視化の改善
-- [x] Boneモード自動解除機能の実装
+- [x] IKボーン可視化の改善
+  - [x] IKゴール選択時の色分けを追加し視認性を向上（実機確認済み）
+- [ ] Boneモード自動解除機能の実装
 - [ ] L/Rモーフを含むPMXモデルで片側スライダー操作を手動検証する
 - [ ] MorphViewで同名モーフが個別スライダーとして表示されることを確認する
 - [x] 11点IKボーン生成を実装
