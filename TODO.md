@@ -10,7 +10,7 @@
 - [ ] PmxLoader の詳細実装
 - [ ] PmxRenderer の PMX 対応の拡充
 - [x] PmxRenderer の型参照を統一する
-- [ ] 半透明メッシュの深度ソート対応
+- [x] 半透明メッシュの深度ソート対応（複数透明メッシュで描画確認）
 - [x] Tools/Program.cs と不要な解析プロジェクトを削除し、ソリューションから除外
 - [x] Import Tex で下部領域からの選択をサポートする
 - [x] テクスチャ参照ディレクトリ固定
@@ -30,7 +30,7 @@
   - dotnet build は maui-android workload が必要 (NETSDK1147)
 - [x] CommunityToolkit.Maui.Storage パッケージを削除し、CommunityToolkit.Maui に統合されたストレージ API を利用する
 - [ ] maui-android workload が現在の環境でサポートされていないため、ビルド手順を再検討する
-- [ ] maui-android workload 不足により dotnet restore が失敗するため、workload のインストール手順を確認する
+- [x] maui-android workload 不足により dotnet restore が失敗するため、workload のインストール手順を確認する
 - [ ] 各 XAML の x:DataType 追加後のビルド警告解消を、Android workload を整備した環境で確認する
 - [ ] PmxRenderer.Render の骨ライン表示を実機で再確認する
 - [ ] PmxImportDialog のレイアウト変更後、画面幅を狭めた際のボタン表示をビルドして確認する
@@ -49,3 +49,4 @@
 - [ ] Pose Editorで腰IKのドラッグ追従を手動確認する
 - [ ] Pose Editorで肘／膝ゴールの曲がり方向が意図通り変化することを手動確認する
 - [ ] FrameをBorderへ置換した箇所のレイアウトとスタイルを実機で確認する
+  - dotnet build が TerminalLogger の内部エラーで失敗し、実機での確認未実施
