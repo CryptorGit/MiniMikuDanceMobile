@@ -114,9 +114,13 @@
                            MaxLines="2" />
                     <Button Grid.Column="2" Text="参照" Clicked="OnSelectPmxModelClicked" />
                 </Grid>
-                <HorizontalStackLayout HorizontalOptions="Center" Spacing="20">
-                    <Button Text="インポート" Clicked="OnImportPmxClicked" />
-                    <Button Text="キャンセル" Clicked="OnCancelImportClicked" />
+                <HorizontalStackLayout HorizontalOptions="Fill" Spacing="10">
+                    <Button Text="インポート"
+                            Clicked="OnImportPmxClicked"
+                            HorizontalOptions="FillAndExpand" />
+                    <Button Text="キャンセル"
+                            Clicked="OnCancelImportClicked"
+                            HorizontalOptions="FillAndExpand" />
                 </HorizontalStackLayout>
                 </VerticalStackLayout>
             </ScrollView>

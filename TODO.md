@@ -33,7 +33,7 @@
 - [x] maui-android workload 不足により dotnet restore が失敗するため、workload のインストール手順を確認する
 - [ ] 各 XAML の x:DataType 追加後のビルド警告解消を、Android workload を整備した環境で確認する
 - [ ] PmxRenderer.Render の骨ライン表示と表示崩れ・性能面を実機で再確認する
-- [ ] PmxImportDialog のレイアウト変更後、画面幅を狭めた際のボタン表示をビルドして確認する
+- [ ] PmxImportDialog のレイアウト変更後、画面幅を狭めた際のボタン表示をビルドして確認する（maui workload が Linux に非対応のため未確認）
 - [x] PmxRendererでモーフウェイトを頂点に反映する
 - [ ] IKボーン可視化の改善
 - [x] Boneモード自動解除機能の実装
