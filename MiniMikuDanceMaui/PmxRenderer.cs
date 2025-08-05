@@ -8,6 +8,7 @@ using MiniMikuDance.Util;
 using MiniMikuDance.App;
 using MiniMikuDance.Import;
 using MMDTools;
+using ViewerApp.Import;
 using Vector2 = OpenTK.Mathematics.Vector2;
 using Vector3 = OpenTK.Mathematics.Vector3;
 using Vector4 = OpenTK.Mathematics.Vector4;
@@ -622,6 +623,92 @@ void main(){
             GL.BindBuffer(BufferTarget.ArrayBuffer, 0);
             GL.BindVertexArray(0);
         }
+    }
+
+    public IList<(int Index, Vector3 World, Vector2 Screen)> GetIkBonePositions()
+    {
+        var list = new List<(int, Vector3, Vector2)>();
+        if (_bones.Count == 0)
+            return list;
+
+        Matrix4 rot = Matrix4.CreateFromQuaternion(_externalRotation) *
+                      Matrix4.CreateRotationX(_orbitX) *
+                      Matrix4.CreateRotationY(_orbitY);
+        Vector3 cam = Vector3.TransformPosition(new Vector3(0, 0, _distance), rot) + _target;
+        Matrix4 view = Matrix4.LookAt(cam, _target, Vector3.UnitY);
+        float aspect = _width == 0 || _height == 0 ? 1f : _width / (float)_height;
+        Matrix4 proj = Matrix4.CreatePerspectiveFieldOfView(MathHelper.PiOver4, aspect, 0.1f, 1000f);
+        var modelMat = _modelTransform;
+
+        for (int i = 0; i < _bones.Count; i++)
+        {
+            var bone = _bones[i];
+            if (!bone.IsIk)
+                continue;
+            var cp = _worldMats[i].Translation;
+            var p = new Vector4(cp.X, cp.Y, cp.Z, 1f);
+            p = Vector4.TransformRow(p, modelMat);
+            p = Vector4.TransformRow(p, view);
+            p = Vector4.TransformRow(p, proj);
+            if (p.W != 0f)
+            {
+                float ndcX = p.X / p.W;
+                float ndcY = p.Y / p.W;
+                float sx = (ndcX * 0.5f + 0.5f) * _width;
+                float sy = (1f - (ndcY * 0.5f + 0.5f)) * _height;
+                list.Add((i, cp, new Vector2(sx, sy)));
+            }
+        }
+        return list;
+    }
+
+    public Vector3 ProjectScreenPointToViewPlane(float sx, float sy, Vector3 planePoint)
+    {
+        Matrix4 rot = Matrix4.CreateFromQuaternion(_externalRotation) *
+                      Matrix4.CreateRotationX(_orbitX) *
+                      Matrix4.CreateRotationY(_orbitY);
+        Vector3 cam = Vector3.TransformPosition(new Vector3(0, 0, _distance), rot) + _target;
+        Matrix4 view = Matrix4.LookAt(cam, _target, Vector3.UnitY);
+        float aspect = _width == 0 || _height == 0 ? 1f : _width / (float)_height;
+        Matrix4 proj = Matrix4.CreatePerspectiveFieldOfView(MathHelper.PiOver4, aspect, 0.1f, 1000f);
+        var modelMat = _modelTransform;
+        Matrix4 mvp = modelMat * view * proj;
+        Matrix4.Invert(mvp, out var invMvp);
+
+        float ndcX = (2f * sx / _width) - 1f;
+        float ndcY = 1f - (2f * sy / _height);
+        var near4 = new Vector4(ndcX, ndcY, -1f, 1f);
+        var far4 = new Vector4(ndcX, ndcY, 1f, 1f);
+        near4 = Vector4.TransformRow(near4, invMvp);
+        far4 = Vector4.TransformRow(far4, invMvp);
+        if (near4.W != 0f) near4 /= near4.W;
+        if (far4.W != 0f) far4 /= far4.W;
+        var rayOrigin = new Vector3(near4.X, near4.Y, near4.Z);
+        var rayDir = Vector3.Normalize(new Vector3(far4.X, far4.Y, far4.Z) - rayOrigin);
+        Vector3 planeNormal = Vector3.Normalize(_target - cam);
+        float denom = Vector3.Dot(rayDir, planeNormal);
+        if (MathF.Abs(denom) < 1e-5f)
+            return planePoint;
+        float t = Vector3.Dot(planePoint - rayOrigin, planeNormal) / denom;
+        return rayOrigin + rayDir * t;
+    }
+
+    public void SetIkTargetPosition(int index, Vector3 pos)
+    {
+        if (index < 0 || index >= _bones.Count)
+            return;
+        var bone = _bones[index];
+        if (!bone.IsIk)
+            return;
+
+        bone.Translation = pos;
+
+        var chain = new List<int>(bone.IkChainIndices);
+        chain.Reverse();
+        chain.Add(bone.IkTargetIndex);
+        IKSolver.SolveChain(_bones, chain, pos);
+        UpdateSkinningBuffers();
+        RebuildIkBoneMesh();
     }
 
     public void LoadModel(ModelData data)

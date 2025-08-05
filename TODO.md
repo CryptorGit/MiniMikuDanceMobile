@@ -16,10 +16,10 @@
 - [ ] PMXデータ表示機能の拡張
 - [ ] テクスチャ相対パス処理のクロスプラットフォーム検証
 - [ ] ModelImporter で PMX 座標系を解析しモデルの向きを正規化する
-- [ ] PoseEditorView で IK ボーンのドラッグ操作を実装する
+- [x] PoseEditorView で IK ボーンのドラッグ操作を実装する
   - [x] ドラッグ挙動・表示仕様をドキュメントへ追記
-  - [ ] PoseEditorView.HandleViewerTouch で IK ボーンのヒットテストと平面投影を完成させる
-  - [ ] IKSolver と PmxRenderer を連携させドラッグでポーズが更新されるようにする
+  - [x] PoseEditorView.HandleViewerTouch で IK ボーンのヒットテストと平面投影を完成させる
+  - [x] IKSolver と PmxRenderer を連携させドラッグでポーズが更新されるようにする
   - [ ] PoseEditorView で生成したポーズをモーション編集機能へ連携する
 - [ ] dotnet build が TerminalLogger の内部エラーで失敗するため環境を調整してビルドを確認する
 - [ ] .NET SDK 9.0.301 をインストールし、ビルドを確認する

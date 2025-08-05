@@ -4,6 +4,8 @@ using Microsoft.Maui.Graphics;
 using SkiaSharp.Views.Maui;
 using SkiaSharp.Views.Maui.Controls;
 using SkiaSharp;
+using Vector2 = OpenTK.Mathematics.Vector2;
+using Vector3 = OpenTK.Mathematics.Vector3;
 
 namespace MiniMikuDanceMaui;
 
@@ -13,6 +15,7 @@ public partial class PoseEditorView : ContentView
     private bool _boneMode;
     public PmxRenderer? Renderer { get; set; }
     private int _selectedIkBone = -1;
+    private Vector3 _ikPlanePoint;
 
     public PoseEditorView()
     {
@@ -87,16 +90,30 @@ public partial class PoseEditorView : ContentView
 
         if (e.ActionType == SKTouchAction.Pressed)
         {
-            // TODO: Renderer 内の IK ボーン位置を利用したヒットテストを実装する
-            _selectedIkBone = -1; // 仮: 未実装
+            var touch = new Vector2((float)e.Location.X, (float)e.Location.Y);
+            _selectedIkBone = -1;
+            float min = float.MaxValue;
+            foreach (var (idx, world, screen) in Renderer.GetIkBonePositions())
+            {
+                float d = Vector2.Distance(touch, screen);
+                if (d < min)
+                {
+                    min = d;
+                    _selectedIkBone = idx;
+                    _ikPlanePoint = world;
+                }
+            }
         }
         else if (e.ActionType == SKTouchAction.Moved && _selectedIkBone >= 0)
         {
-            // TODO: カメラ位置と IK ボーンを結ぶ平面へポインタを投影して新しい IK 目標座標を求める
+            var pos = Renderer.ProjectScreenPointToViewPlane((float)e.Location.X, (float)e.Location.Y, _ikPlanePoint);
+            Renderer.SetIkTargetPosition(_selectedIkBone, pos);
+            Renderer.Render();
         }
         else if (e.ActionType == SKTouchAction.Released || e.ActionType == SKTouchAction.Cancelled)
         {
             _selectedIkBone = -1;
+            Renderer.Render();
         }
 
         e.Handled = true;
