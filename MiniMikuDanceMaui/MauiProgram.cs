@@ -17,6 +17,11 @@ public static class MauiProgram
     public static MauiApp CreateMauiApp()
     {
         var builder = MauiApp.CreateBuilder();
+#if DEBUG
+        LogService.MinimumLevel = LogService.LogLevel.Debug;
+#else
+        LogService.MinimumLevel = LogService.LogLevel.Info;
+#endif
         Trace.Listeners.Add(new LogTraceListener());
         Console.SetOut(new LogConsoleWriter(Console.Out));
 
