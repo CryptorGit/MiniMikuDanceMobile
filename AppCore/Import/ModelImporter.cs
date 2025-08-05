@@ -42,6 +42,7 @@ public class MorphOffset
 public class ModelImporter
 {
     private readonly AssimpContext _context = new();
+    private readonly PmxLoader _pmxLoader = new();
     public float Scale { get; set; } = 1.0f;
 
     public ModelData ImportModel(Stream stream, string? textureDir = null)
@@ -85,7 +86,8 @@ public class ModelImporter
 
     private ModelData ImportPmx(Stream stream, string? textureDir = null)
     {
-        var pmx = PMXParser.Parse(stream);
+        var pmxFile = _pmxLoader.Load(stream);
+        var pmx = pmxFile.Model;
         var verts = pmx.VertexList.ToArray();
         var faces = pmx.SurfaceList.ToArray();
         var mats = pmx.MaterialList.ToArray();
@@ -111,7 +113,8 @@ public class ModelImporter
                 Name = name,
                 Parent = b.ParentBone,
                 Rotation = System.Numerics.Quaternion.Identity,
-                Translation = localPos
+                Translation = localPos,
+                TwistWeight = (name.Contains("arm", StringComparison.OrdinalIgnoreCase) || name.Contains("leg", StringComparison.OrdinalIgnoreCase)) ? 0.5f : 0f
             };
             if (b.BoneFlag.HasFlag(BoneFlag.IK))
             {
@@ -126,6 +129,47 @@ public class ModelImporter
                 data.IkBoneIndices.Add(i);
             }
             boneDatas.Add(bd);
+        }
+
+        // モデルの向きを推定して Z+ 前方に正規化する
+        System.Numerics.Matrix4x4 rotation = System.Numerics.Matrix4x4.Identity;
+
+        int FindBone(params string[][] keywords)
+        {
+            for (int i = 0; i < bones.Length; i++)
+            {
+                string name = string.IsNullOrEmpty(bones[i].NameEnglish) ? bones[i].Name : bones[i].NameEnglish;
+                foreach (var set in keywords)
+                {
+                    bool match = true;
+                    foreach (var kw in set)
+                    {
+                        if (!name.Contains(kw, StringComparison.OrdinalIgnoreCase))
+                        {
+                            match = false;
+                            break;
+                        }
+                    }
+                    if (match)
+                        return i;
+                }
+            }
+            return -1;
+        }
+
+        int head = FindBone(new[] { "頭" }, new[] { "首" }, new[] { "head" }, new[] { "neck" });
+        int left = FindBone(new[] { "左", "肩" }, new[] { "左", "腕" }, new[] { "left", "shoulder" }, new[] { "left", "arm" });
+        int right = FindBone(new[] { "右", "肩" }, new[] { "右", "腕" }, new[] { "right", "shoulder" }, new[] { "right", "arm" });
+        if (head >= 0 && left >= 0 && right >= 0)
+        {
+            var center = (absPositions[left] + absPositions[right]) * 0.5f;
+            var up = System.Numerics.Vector3.Normalize(absPositions[head] - center);
+            var rightDir = System.Numerics.Vector3.Normalize(absPositions[right] - absPositions[left]);
+            var forward = System.Numerics.Vector3.Normalize(System.Numerics.Vector3.Cross(rightDir, up));
+            if (forward.Z < 0)
+            {
+                rotation = System.Numerics.Matrix4x4.CreateRotationY((float)Math.PI);
+            }
         }
 
         // Bind/InverseBind 行列を計算（ローカル位置を使用）
@@ -226,7 +270,7 @@ public class ModelImporter
         int GetIndex(string n) => data.HumanoidBones.TryGetValue(n, out var idx) ? idx : -1;
         var ikDefs = new (string Name, int Target, int[] Chain)[]
         {
-            ("ik_head", GetIndex("head"), new[]{ GetIndex("neck"), GetIndex("chest") }),
+            ("ik_head", GetIndex("head"), new[]{ GetIndex("neck"), GetIndex("chest"), GetIndex("spine"), GetIndex("hips") }),
             ("ik_left_wrist", GetIndex("leftHand"), new[]{ GetIndex("leftLowerArm"), GetIndex("leftUpperArm") }),
             ("ik_right_wrist", GetIndex("rightHand"), new[]{ GetIndex("rightLowerArm"), GetIndex("rightUpperArm") }),
             ("ik_left_elbow", GetIndex("leftLowerArm"), new[]{ GetIndex("leftUpperArm") }),
@@ -261,7 +305,8 @@ public class ModelImporter
                 IkTargetIndex = target,
                 IkChainIndices = validChain,
                 Rotation = System.Numerics.Quaternion.Identity,
-                Translation = boneDatas[target].BindMatrix.Translation
+                Translation = boneDatas[target].BindMatrix.Translation,
+                TwistWeight = 0f
             };
             ik.BindMatrix = System.Numerics.Matrix4x4.CreateTranslation(ik.Translation);
             System.Numerics.Matrix4x4.Invert(ik.BindMatrix, out var invIk);
@@ -349,8 +394,9 @@ public class ModelImporter
             if (!string.IsNullOrEmpty(dir) && mat.Texture >= 0 && mat.Texture < texList.Length)
             {
                 var texName = texList[mat.Texture]
-                    .Replace('\\', Path.DirectorySeparatorChar);
-                var texPath = Path.Combine(dir, texName);
+                    .Replace('\\', Path.DirectorySeparatorChar)
+                    .Replace('/', Path.DirectorySeparatorChar);
+                var texPath = Path.GetFullPath(Path.Combine(dir, texName));
                 smd.TextureFilePath = texName;
                 if (File.Exists(texPath))
                 {
@@ -363,11 +409,20 @@ public class ModelImporter
             }
 
             smd.SphereMode = (SphereMapMode)mat.SphereTextureMode;
-            if (!string.IsNullOrEmpty(dir) && mat.SphereTextre >= 0 && mat.SphereTextre < texList.Length)
+
+            // ライブラリによってはプロパティ名が "SphereTexture" と "SphereTextre" で異なるため、両方に対応する
+            int sphereIndex = -1;
+            var sphereProp = mat.GetType().GetProperty("SphereTexture") ??
+                            mat.GetType().GetProperty("SphereTextre");
+            if (sphereProp?.GetValue(mat) is int idx)
+                sphereIndex = idx;
+
+            if (!string.IsNullOrEmpty(dir) && sphereIndex >= 0 && sphereIndex < texList.Length)
             {
                 var sphereName = texList[mat.SphereTextre]
-                    .Replace('\\', Path.DirectorySeparatorChar);
-                var spherePath = Path.Combine(dir, sphereName);
+                    .Replace('\\', Path.DirectorySeparatorChar)
+                    .Replace('/', Path.DirectorySeparatorChar);
+                var spherePath = Path.GetFullPath(Path.Combine(dir, sphereName));
                 smd.SphereTextureFilePath = sphereName;
                 if (File.Exists(spherePath))
                 {
@@ -387,14 +442,15 @@ public class ModelImporter
                     int toonIndex = mat.ToonTexture;
                     var toonName = $"toon{toonIndex + 1:00}.bmp";
                     var relPath = Path.Combine("toon", toonName);
-                    toonPath = Path.Combine(dir, relPath);
+                    toonPath = Path.GetFullPath(Path.Combine(dir, relPath));
                     smd.ToonTextureFilePath = relPath;
                 }
                 else if (mat.ToonTexture >= 0 && mat.ToonTexture < texList.Length)
                 {
                     var toonName = texList[mat.ToonTexture]
-                        .Replace('\\', Path.DirectorySeparatorChar);
-                    toonPath = Path.Combine(dir, toonName);
+                        .Replace('\\', Path.DirectorySeparatorChar)
+                        .Replace('/', Path.DirectorySeparatorChar);
+                    toonPath = Path.GetFullPath(Path.Combine(dir, toonName));
                     smd.ToonTextureFilePath = toonName;
                 }
                 if (toonPath != null && File.Exists(toonPath))
@@ -410,7 +466,7 @@ public class ModelImporter
             data.SubMeshes.Add(smd);
             faceOffset += faceCount;
         }
-        data.Transform = System.Numerics.Matrix4x4.CreateScale(Scale);
+        data.Transform = rotation * System.Numerics.Matrix4x4.CreateScale(Scale);
         return data;
     }
 

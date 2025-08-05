@@ -22,27 +22,8 @@ public partial class MorphView : ContentView
 
         var textColor = (Color)Application.Current.Resources["TextColor"];
 
-        // モーフ名の出現回数をカウントし、同名モーフに番号を付与できるようにする
-        var nameCounts = new Dictionary<string, int>(StringComparer.OrdinalIgnoreCase);
-        foreach (var morph in model.Morphs)
+        foreach (var (originalName, labelName) in MorphHelper.BuildMorphEntries(model))
         {
-            var displayName = morph.Name.Trim();
-            nameCounts[displayName] = nameCounts.TryGetValue(displayName, out var c) ? c + 1 : 1;
-        }
-
-        var nameIndices = new Dictionary<string, int>(StringComparer.OrdinalIgnoreCase);
-        foreach (var morph in model.Morphs)
-        {
-            string originalName = morph.Name;
-            string displayName = originalName.Trim();
-
-            int dupIndex = nameIndices.TryGetValue(displayName, out var v) ? v + 1 : 1;
-            nameIndices[displayName] = dupIndex;
-
-            string labelName = nameCounts[displayName] > 1
-                ? $"{displayName} ({dupIndex})"
-                : displayName;
-
             var grid = new Grid
             {
                 ColumnDefinitions = new ColumnDefinitionCollection
@@ -64,14 +45,18 @@ public partial class MorphView : ContentView
                 Maximum = 1,
                 Value = renderer.GetMorphWeight(originalName),
                 // LayoutOptions.FillAndExpand は非推奨のため Fill を使用する
-                HorizontalOptions = LayoutOptions.Fill
+                HorizontalOptions = LayoutOptions.Fill,
+                BindingContext = originalName
             };
-            slider.ValueChanged += (s, e) =>
-            {
-                _renderer?.SetMorphWeight(originalName, (float)e.NewValue);
-            };
+            slider.ValueChanged += OnMorphSliderChanged;
             grid.Add(slider, 1, 0);
             MorphList.Children.Add(grid);
         }
+    }
+
+    private void OnMorphSliderChanged(object? sender, ValueChangedEventArgs e)
+    {
+        if (sender is Slider s && s.BindingContext is string name)
+            _renderer?.SetMorphWeight(name, (float)e.NewValue);
     }
 }

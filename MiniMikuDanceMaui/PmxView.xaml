@@ -10,6 +10,7 @@
                Text="PMXモデルが読み込まれていません"
                TextColor="{StaticResource TextColor}"
                IsVisible="False" />
+        <local:ModelInfoView x:Name="InfoView" IsVisible="False" />
         <CollectionView x:Name="SubMeshList" IsVisible="False">
             <CollectionView.ItemTemplate>
                 <DataTemplate>

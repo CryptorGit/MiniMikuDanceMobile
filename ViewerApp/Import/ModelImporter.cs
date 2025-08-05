@@ -105,7 +105,8 @@ public class ModelImporter
                 Name = name,
                 Parent = b.ParentBone,
                 Rotation = System.Numerics.Quaternion.Identity,
-                Translation = new System.Numerics.Vector3(b.Position.X, b.Position.Y, b.Position.Z) * Scale
+                Translation = new System.Numerics.Vector3(b.Position.X, b.Position.Y, b.Position.Z) * Scale,
+                TwistWeight = (name.Contains("arm", StringComparison.OrdinalIgnoreCase) || name.Contains("leg", StringComparison.OrdinalIgnoreCase)) ? 0.5f : 0f
             };
             if (b.BoneFlag.HasFlag(BoneFlag.IK))
             {
@@ -241,7 +242,8 @@ public class ModelImporter
                 IkTargetIndex = target,
                 IkChainIndices = validChain,
                 Rotation = System.Numerics.Quaternion.Identity,
-                Translation = boneDatas[target].BindMatrix.Translation
+                Translation = boneDatas[target].BindMatrix.Translation,
+                TwistWeight = 0f
             };
             ik.BindMatrix = System.Numerics.Matrix4x4.CreateTranslation(ik.Translation);
             System.Numerics.Matrix4x4.Invert(ik.BindMatrix, out var invIk);
@@ -329,8 +331,9 @@ public class ModelImporter
             if (!string.IsNullOrEmpty(dir) && mat.Texture >= 0 && mat.Texture < texList.Length)
             {
                 var texName = texList[mat.Texture]
-                    .Replace('\\', Path.DirectorySeparatorChar);
-                var texPath = Path.Combine(dir, texName);
+                    .Replace('\\', Path.DirectorySeparatorChar)
+                    .Replace('/', Path.DirectorySeparatorChar);
+                var texPath = Path.GetFullPath(Path.Combine(dir, texName));
                 smd.TextureFilePath = texName;
                 if (File.Exists(texPath))
                 {
@@ -346,8 +349,9 @@ public class ModelImporter
             if (!string.IsNullOrEmpty(dir) && mat.SphereTextre >= 0 && mat.SphereTextre < texList.Length)
             {
                 var sphereName = texList[mat.SphereTextre]
-                    .Replace('\\', Path.DirectorySeparatorChar);
-                var spherePath = Path.Combine(dir, sphereName);
+                    .Replace('\\', Path.DirectorySeparatorChar)
+                    .Replace('/', Path.DirectorySeparatorChar);
+                var spherePath = Path.GetFullPath(Path.Combine(dir, sphereName));
                 smd.SphereTextureFilePath = sphereName;
                 if (File.Exists(spherePath))
                 {
@@ -367,14 +371,15 @@ public class ModelImporter
                     int toonIndex = mat.ToonTexture;
                     var toonName = $"toon{toonIndex + 1:00}.bmp";
                     var relPath = Path.Combine("toon", toonName);
-                    toonPath = Path.Combine(dir, relPath);
+                    toonPath = Path.GetFullPath(Path.Combine(dir, relPath));
                     smd.ToonTextureFilePath = relPath;
                 }
                 else if (mat.ToonTexture >= 0 && mat.ToonTexture < texList.Length)
                 {
                     var toonName = texList[mat.ToonTexture]
-                        .Replace('\\', Path.DirectorySeparatorChar);
-                    toonPath = Path.Combine(dir, toonName);
+                        .Replace('\\', Path.DirectorySeparatorChar)
+                        .Replace('/', Path.DirectorySeparatorChar);
+                    toonPath = Path.GetFullPath(Path.Combine(dir, toonName));
                     smd.ToonTextureFilePath = toonName;
                 }
                 if (toonPath != null && File.Exists(toonPath))
