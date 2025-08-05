@@ -1,5 +1,6 @@
 using System;
 using System.IO;
+using System.Collections.Generic;
 using Microsoft.Maui.Storage;
 
 namespace MiniMikuDanceMaui;
@@ -13,6 +14,16 @@ public static class LogService
     private static readonly string _logFilePath;
     private static readonly string _logDirectory;
     private static readonly string _terminalLogFilePath;
+
+    public enum LogLevel
+    {
+        Debug,
+        Info,
+        Warning,
+        Error
+    }
+
+    public static LogLevel MinimumLevel { get; set; } = LogLevel.Info;
 
     static LogService()
     {
@@ -44,9 +55,11 @@ public static class LogService
             {
                 File.AppendAllText(_logFilePath, line + Environment.NewLine);
             }
-            catch (Exception ex)
+            catch
             {
+#if DEBUG
                 System.Diagnostics.Debug.WriteLine($"Error writing to log file: {ex.Message}");
+#endif
             }
             try
             {
@@ -60,16 +73,20 @@ public static class LogService
         LineLogged?.Invoke(line);
     }
 
-    public static void WriteLine(string message)
+    public static void WriteLine(string message, LogLevel level = LogLevel.Info)
     {
         string line = $"[{DateTime.Now:HH:mm:ss}] {message}";
+        
+#if DEBUG
         System.Diagnostics.Debug.WriteLine(line);
+#endif
         AddLine(line);
     }
 
-    internal static void AddExternalLine(string message)
+    internal static void AddExternalLine(string message, LogLevel level = LogLevel.Info)
     {
-        string line = $"[{DateTime.Now:HH:mm:ss}] {message}";
+        if (level < MinimumLevel) return;
+        string line = $"[{DateTime.Now:HH:mm:ss}][{level}] {message}";
         AddLine(line);
     }
 }
