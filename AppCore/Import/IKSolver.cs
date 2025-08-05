@@ -15,7 +15,7 @@ public static class IKSolver
     /// <param name="bones">ボーンリスト。</param>
     /// <param name="chain">起点から終端までのボーンインデックス列。</param>
     /// <param name="target">目標位置。</param>
-    public static void SolveChain(IList<BoneData> bones, IList<int> chain, Vector3 target)
+    public static void SolveChain(IList<BoneData> bones, IList<int> chain, Vector3 target, float twistWeight = 1f)
     {
         if (bones == null || chain == null || chain.Count == 0)
             return;
@@ -35,6 +35,7 @@ public static class IKSolver
             {
                 SolveElbowKnee(bones, chain[0], chain[1], target);
             }
+            ApplyTwist(bones, chain, twistWeight);
         }
         else
         {
@@ -138,6 +139,34 @@ public static class IKSolver
         var rot = Quaternion.CreateFromAxisAngle(axis, angle);
         bones[rootIndex].Rotation = Quaternion.Normalize(rot * bones[rootIndex].Rotation);
         bones[midIndex].Rotation = Quaternion.Normalize(rot * bones[midIndex].Rotation);
+    }
+
+    private static void ApplyTwist(IList<BoneData> bones, IList<int> chain, float globalWeight)
+    {
+        if (chain.Count < 2)
+            return;
+
+        var world = ComputeWorldTransforms(bones);
+        for (int i = 0; i < chain.Count - 1; i++)
+        {
+            int idx = chain[i];
+            float w = bones[idx].TwistWeight * globalWeight;
+            if (w <= 0f)
+                continue;
+
+            int child = chain[i + 1];
+            Vector3 axis = world[child].Translation - world[idx].Translation;
+            if (axis.LengthSquared() < 1e-8f)
+                continue;
+            axis = Vector3.Normalize(axis);
+
+            var q = bones[idx].Rotation;
+            Vector3 qAxis = new(q.X, q.Y, q.Z);
+            Vector3 proj = Vector3.Dot(qAxis, axis) * axis;
+            var twist = Quaternion.Normalize(new Quaternion(proj, q.W));
+            var swing = Quaternion.Normalize(q * Quaternion.Conjugate(twist));
+            bones[idx].Rotation = Quaternion.Normalize(Quaternion.Slerp(q, swing, w));
+        }
     }
 
     private static int FindChild(IList<BoneData> bones, int parent)
