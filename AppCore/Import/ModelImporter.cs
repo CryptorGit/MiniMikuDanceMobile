@@ -408,9 +408,7 @@ public class ModelImporter
                 }
             }
 
-            smd.SphereMode = Enum.IsDefined(typeof(SphereMapMode), mat.SphereTextureMode)
-                ? (SphereMapMode)mat.SphereTextureMode
-                : SphereMapMode.None;
+            smd.SphereMode = mat.SphereTextureMode.ToSphereMapMode(validate: true);
             if (smd.SphereMode != SphereMapMode.None &&
                 !string.IsNullOrEmpty(dir) &&
                 mat.SphereTextre >= 0 && mat.SphereTextre < texList.Length)

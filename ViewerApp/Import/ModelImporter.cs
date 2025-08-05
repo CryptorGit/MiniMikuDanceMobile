@@ -345,7 +345,7 @@ public class ModelImporter
                 }
             }
 
-            smd.SphereMode = (SphereMapMode)mat.SphereTextureMode;
+            smd.SphereMode = mat.SphereTextureMode.ToSphereMapMode();
             if (!string.IsNullOrEmpty(dir) && mat.SphereTextre >= 0 && mat.SphereTextre < texList.Length)
             {
                 var sphereName = texList[mat.SphereTextre]
