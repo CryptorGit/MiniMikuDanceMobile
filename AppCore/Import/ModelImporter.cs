@@ -41,7 +41,6 @@ public class MorphOffset
 
 public class ModelImporter
 {
-    private readonly AssimpContext _context = new();
     public float Scale { get; set; } = 1.0f;
 
     public ModelData ImportModel(Stream stream, string? textureDir = null)
@@ -78,9 +77,7 @@ public class ModelImporter
             return ImportModel(fs, Path.GetDirectoryName(path));
         }
 
-        var scene = _context.ImportFile(path, PostProcessSteps.Triangulate | PostProcessSteps.GenerateNormals);
-
-        return new ModelData { Mesh = scene.Meshes[0] };
+        throw new NotSupportedException("PMX 以外の形式には対応していません。");
     }
 
     private ModelData ImportPmx(Stream stream, string? textureDir = null)
