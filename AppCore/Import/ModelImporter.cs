@@ -18,7 +18,6 @@ public class ModelData
     public List<BoneData> Bones { get; set; } = new();
     public Dictionary<string, int> HumanoidBones { get; set; } = new(StringComparer.OrdinalIgnoreCase);
     public List<(string Name, int Index)> HumanoidBoneList { get; set; } = new();
-    public List<int> IkBoneIndices { get; set; } = new();
     public float ShadeShift { get; set; } = -0.1f;
     public float ShadeToony { get; set; } = 0.9f;
     public float RimIntensity { get; set; } = 0.5f;
@@ -120,7 +119,6 @@ public class ModelImporter
                 {
                     bd.IkChainIndices.Add(link.Bone);
                 }
-                data.IkBoneIndices.Add(i);
             }
             boneDatas.Add(bd);
         }
@@ -244,8 +242,6 @@ public class ModelImporter
             int existingIndex = boneDatas.FindIndex(b => b.IsIk && b.IkTargetIndex == target);
             if (existingIndex >= 0)
             {
-                if (!data.IkBoneIndices.Contains(existingIndex))
-                    data.IkBoneIndices.Add(existingIndex);
                 continue;
             }
 
@@ -263,7 +259,6 @@ public class ModelImporter
             ik.BindMatrix = System.Numerics.Matrix4x4.CreateTranslation(ik.Translation);
             System.Numerics.Matrix4x4.Invert(ik.BindMatrix, out var invIk);
             ik.InverseBindMatrix = invIk;
-            data.IkBoneIndices.Add(boneDatas.Count);
             boneDatas.Add(ik);
         }
         data.Bones = boneDatas;
