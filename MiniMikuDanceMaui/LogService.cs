@@ -46,7 +46,9 @@ public static class LogService
             }
             catch (Exception ex)
             {
+#if DEBUG
                 System.Diagnostics.Debug.WriteLine($"Error writing to log file: {ex.Message}");
+#endif
             }
             try
             {
@@ -63,7 +65,10 @@ public static class LogService
     public static void WriteLine(string message)
     {
         string line = $"[{DateTime.Now:HH:mm:ss}] {message}";
+        
+#if DEBUG
         System.Diagnostics.Debug.WriteLine(line);
+#endif
         AddLine(line);
     }
 

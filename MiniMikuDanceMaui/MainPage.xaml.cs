@@ -63,8 +63,6 @@ public partial class MainPage : ContentPage
     private int _extractTotalFrames;
     private int _poseTotalFrames;
     private int _adaptTotalFrames;
-    // bottomWidth is no longer used; bottom region spans full screen width
-    // private double bottomWidth = 0;
     private bool _glInitialized;
     private MiniMikuDance.Import.ModelData? _pendingModel;
     private MiniMikuDance.Import.ModelData? _currentModel;
