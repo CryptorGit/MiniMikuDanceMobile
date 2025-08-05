@@ -263,9 +263,11 @@ public static int MaxFrame { get; private set; } = 60;
         TimelineContentCanvas.HeightRequest = TimelinePixelHeight;
 
         // ScrollViewのコンテンツサイズが変わった際に
-        // レイアウトを強制更新してスクロール範囲を再計算させる
-        BoneNameScrollView.ForceLayout();
-        TimelineContentScrollView.ForceLayout();
+        // レイアウトを再計測してスクロール範囲を再計算させる
+        BoneNameScrollView.InvalidateMeasure();
+        BoneNameScrollView.UpdateLayout();
+        TimelineContentScrollView.InvalidateMeasure();
+        TimelineContentScrollView.UpdateLayout();
     }
 
     private void InvalidateAll()
