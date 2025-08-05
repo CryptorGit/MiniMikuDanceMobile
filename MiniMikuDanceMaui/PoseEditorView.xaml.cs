@@ -1,5 +1,6 @@
 using System;
 using System.Linq;
+using System.Collections.Generic;
 using Microsoft.Maui.Controls;
 using Microsoft.Maui.Graphics;
 using SkiaSharp.Views.Maui;
@@ -13,6 +14,7 @@ namespace MiniMikuDanceMaui;
 public partial class PoseEditorView : ContentView
 {
     public event Action<bool>? ModeChanged;
+    public event Action<IList<Vector3>, IList<Vector3>>? PoseChanged;
     private bool _boneMode;
     public PmxRenderer? Renderer { get; set; }
     private int _selectedIkBone = -1;
@@ -99,29 +101,47 @@ public partial class PoseEditorView : ContentView
                     _ikPlanePoint = world;
                 }
             }
+            Renderer.SetSelectedIkBone(_selectedIkBone);
+            Renderer.Render();
         }
         else if (e.ActionType == SKTouchAction.Moved && _selectedIkBone >= 0)
         {
             var pos = Renderer.ProjectScreenPointToViewPlane((float)e.Location.X, (float)e.Location.Y, _ikPlanePoint);
             Renderer.SetIkTargetPosition(_selectedIkBone, pos);
             Renderer.Render();
+            EmitPose();
         }
         else if (e.ActionType == SKTouchAction.Released || e.ActionType == SKTouchAction.Cancelled)
         {
             _selectedIkBone = -1;
+            Renderer.SetSelectedIkBone(-1);
             Renderer.Render();
+            EmitPose();
         }
 
         e.Handled = true;
+    }
+
+    private void EmitPose()
+    {
+        if (Renderer == null)
+            return;
+        var rotations = Renderer.GetAllBoneRotations();
+        var translations = Renderer.GetAllBoneTranslations();
+        PoseChanged?.Invoke(rotations, translations);
     }
 
     public void RefreshIkGoalList()
     {
         if (Renderer == null)
             return;
+
         IkGoalList.Children.Clear();
+        bool hasGoal = false;
+
         foreach (var (idx, name, enabled) in Renderer.GetIkGoals())
         {
+            hasGoal = true;
             var sw = new Switch { IsToggled = enabled };
             sw.Toggled += (s, e) =>
             {
@@ -152,6 +172,12 @@ public partial class PoseEditorView : ContentView
             hs.Children.Add(rm);
             IkGoalList.Children.Add(hs);
         }
+
+        if (!hasGoal)
+        {
+            SetBoneMode(false);
+        }
+        BoneModeButton.IsEnabled = hasGoal;
     }
 
     private async void OnAddIkGoalClicked(object? sender, EventArgs e)

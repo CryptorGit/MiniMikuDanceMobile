@@ -66,11 +66,14 @@ public class PmxRenderer : IDisposable
     private int _ikBoneVbo;
     private readonly List<int> _ikBoneOffsets = new();
     private readonly List<int> _ikBoneCounts = new();
+    private readonly List<int> _ikBoneIndices = new();
     private readonly List<Vector3> _ikTargets = new();
     private readonly List<bool> _ikGoalEnabled = new();
     private readonly List<int> _activeIkGoals = new();
     private const int IkBoneSegments = 16;
     private static readonly Vector4 IkBoneColor = new(1f, 1f, 0f, 1f);
+    private static readonly Vector4 IkBoneSelectedColor = new(0f, 1f, 0f, 1f);
+    private int _selectedIkBone = -1;
     private float _ikBoneRadius = 0.05f;
     public float IkBoneRadius
     {
@@ -615,7 +618,8 @@ void main(){
                 IkTargetIndex = b.IkTargetIndex,
                 IkChainIndices = new List<int>(b.IkChainIndices),
                 IkLoopCount = b.IkLoopCount,
-                IkAngleLimit = b.IkAngleLimit
+                IkAngleLimit = b.IkAngleLimit,
+                TwistWeight = b.TwistWeight
             });
         }
 
@@ -802,6 +806,7 @@ void main(){
         var verts = new List<float>();
         _ikBoneOffsets.Clear();
         _ikBoneCounts.Clear();
+        _ikBoneIndices.Clear();
         float ikRadius = IkBoneRadius;
         if (_defaultCameraDistance > 0f)
             ikRadius *= _distance / _defaultCameraDistance;
@@ -824,6 +829,7 @@ void main(){
                 verts.Add(x); verts.Add(y); verts.Add(z);
             }
             _ikBoneCounts.Add(IkBoneSegments + 2);
+            _ikBoneIndices.Add(i);
         }
         if (verts.Count > 0)
         {
@@ -922,6 +928,11 @@ void main(){
             _ikGoalEnabled.Add(true);
         }
         _ikTargets[index] = pos;
+    }
+
+    public void SetSelectedIkBone(int index)
+    {
+        _selectedIkBone = index;
     }
 
     public void LoadModel(ModelData data)
@@ -1195,7 +1206,8 @@ void main(){
         GL.Uniform1(_modelRimIntensityLoc, RimIntensity);
         GL.Uniform1(_modelAmbientLoc, Ambient);
         GL.UniformMatrix4(_modelMatrixLoc, false, ref modelMat);
-        foreach (var rm in _meshes)
+
+        void DrawMesh(RenderMesh rm)
         {
             GL.Uniform4(_modelColorLoc, rm.Color);
             if (rm.HasTexture)
@@ -1217,6 +1229,39 @@ void main(){
                 GL.BindTexture(TextureTarget.Texture2D, 0);
             }
         }
+
+        var opaqueMeshes = new List<RenderMesh>();
+        var transparentMeshes = new List<(RenderMesh Mesh, float Depth)>();
+        foreach (var rm in _meshes)
+        {
+            if (rm.Color.W < 0.999f)
+            {
+                float depth = 0f;
+                if (rm.Vertices.Length > 0)
+                {
+                    Vector3 center = Vector3.Zero;
+                    foreach (var v in rm.Vertices)
+                        center += v;
+                    center /= rm.Vertices.Length;
+                    Vector3 worldPos = Vector3.TransformPosition(center, modelMat);
+                    depth = (worldPos - cam).LengthSquared;
+                }
+                transparentMeshes.Add((rm, depth));
+            }
+            else
+            {
+                opaqueMeshes.Add(rm);
+            }
+        }
+
+        foreach (var rm in opaqueMeshes)
+            DrawMesh(rm);
+
+        GL.DepthMask(false);
+        foreach (var (mesh, _) in transparentMeshes.OrderByDescending(t => t.Depth))
+            DrawMesh(mesh);
+        GL.DepthMask(true);
+
         GL.UseProgram(_program);
         GL.UniformMatrix4(_viewLoc, false, ref view);
         GL.UniformMatrix4(_projLoc, false, ref proj);
@@ -1239,10 +1284,11 @@ void main(){
             GL.DepthMask(false);
             GL.Disable(EnableCap.DepthTest);
             GL.UniformMatrix4(_modelLoc, false, ref modelMat);
-            GL.Uniform4(_colorLoc, IkBoneColor);
             GL.BindVertexArray(_ikBoneVao);
             for (int i = 0; i < _ikBoneCounts.Count; i++)
             {
+                var color = _ikBoneIndices[i] == _selectedIkBone ? IkBoneSelectedColor : IkBoneColor;
+                GL.Uniform4(_colorLoc, color);
                 GL.DrawArrays(PrimitiveType.TriangleFan, _ikBoneOffsets[i], _ikBoneCounts[i]);
                 GL.DrawArrays(PrimitiveType.LineLoop, _ikBoneOffsets[i] + 1, _ikBoneCounts[i] - 1);
             }
