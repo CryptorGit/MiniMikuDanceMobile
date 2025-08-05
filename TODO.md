@@ -5,6 +5,7 @@
 - [x] PMX マテリアルの詳細設定（スフィアマップ等）の実装
 - [ ] Toon テクスチャの読み込みと適用に対応する
 - [ ] Android SDK をセットアップしてソリューション全体のビルドを確認
+  - [ ] API レベル 35 の Android SDK プラットフォームをインストールし、`dotnet build` の XA5207 エラーを解消する
 - [x] AppCore/Import/ModelImporter.cs の構文エラーを修正する
 - [x] ドキュメントの PMX 向け整理（README などの更新）
 - [x] PmxRenderer の PMX 対応の拡充
@@ -25,7 +26,22 @@
   - [x] PoseEditorView.HandleViewerTouch で IK ボーンのヒットテストと平面投影を完成させる
   - [x] IKSolver と PmxRenderer を連携させドラッグでポーズが更新されるようにする
   - [ ] PoseEditorView で生成したポーズをモーション編集機能へ連携する
-- [x] dotnet build が TerminalLogger の内部エラーで失敗するため環境を調整してビルドを確認する
+- [ ] dotnet build が TerminalLogger の内部エラーで失敗するため環境を調整してビルドを確認する
+- [ ] .NET 9 への移行後、dotnet restore / build が TerminalLogger の内部エラーで失敗する問題を解消する
+- [ ] .NET SDK 9.0.301 をインストールし、ビルドを確認する
+  - [x] SDK 本体のインストールは完了
+  - [ ] Android SDK の不足によりビルド未完了
+- [x] CommunityToolkit.Maui.Storage パッケージを削除し、CommunityToolkit.Maui に統合されたストレージ API を利用する
+- [ ] maui-android workload が現在の環境でサポートされていないため、ビルド手順を再検討する
+  - [x] `dotnet workload install maui-android` を実行済み
+  - [ ] API レベル 35 の SDK を導入して手順を再確認する
+- [ ] maui-android workload 不足により dotnet restore が失敗するため、workload のインストール手順を確認する
+  - [x] workload のインストール手順を実施
+  - [ ] API レベル 35 追加後に再検証する
+- [ ] 各 XAML の x:DataType 追加後のビルド警告解消を、Android workload を整備した環境で確認する
+  - [ ] Android SDK プラットフォームを整備してから警告を確認
+- [ ] PmxRenderer.Render の骨ライン表示を実機で再確認する
+- [x] dotnet build が TerminalLogger の内部エラーで失敗するため環境を調整してビルドを確認する（`MSBUILDTERMINALLOGGER=false` で回避）
 - [x] .NET 9 への移行後、dotnet restore / build が TerminalLogger の内部エラーで失敗する問題を解消する
 - [x] .NET SDK 9.0.301 をインストールし、ビルドを確認する
 - [x] CommunityToolkit.Maui.Storage パッケージを削除し、CommunityToolkit.Maui に統合されたストレージ API を利用する
