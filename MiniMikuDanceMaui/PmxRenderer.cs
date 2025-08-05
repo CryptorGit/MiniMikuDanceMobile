@@ -1146,7 +1146,8 @@ void main(){
         GL.Uniform1(_modelRimIntensityLoc, RimIntensity);
         GL.Uniform1(_modelAmbientLoc, Ambient);
         GL.UniformMatrix4(_modelMatrixLoc, false, ref modelMat);
-        foreach (var rm in _meshes)
+
+        void DrawMesh(RenderMesh rm)
         {
             GL.Uniform4(_modelColorLoc, rm.Color);
             if (rm.HasTexture)
@@ -1168,6 +1169,39 @@ void main(){
                 GL.BindTexture(TextureTarget.Texture2D, 0);
             }
         }
+
+        var opaqueMeshes = new List<RenderMesh>();
+        var transparentMeshes = new List<(RenderMesh Mesh, float Depth)>();
+        foreach (var rm in _meshes)
+        {
+            if (rm.Color.W < 0.999f)
+            {
+                float depth = 0f;
+                if (rm.Vertices.Length > 0)
+                {
+                    Vector3 center = Vector3.Zero;
+                    foreach (var v in rm.Vertices)
+                        center += v;
+                    center /= rm.Vertices.Length;
+                    Vector3 worldPos = Vector3.TransformPosition(center, modelMat);
+                    depth = (worldPos - cam).LengthSquared;
+                }
+                transparentMeshes.Add((rm, depth));
+            }
+            else
+            {
+                opaqueMeshes.Add(rm);
+            }
+        }
+
+        foreach (var rm in opaqueMeshes)
+            DrawMesh(rm);
+
+        GL.DepthMask(false);
+        foreach (var (mesh, _) in transparentMeshes.OrderByDescending(t => t.Depth))
+            DrawMesh(mesh);
+        GL.DepthMask(true);
+
         GL.UseProgram(_program);
         GL.UniformMatrix4(_viewLoc, false, ref view);
         GL.UniformMatrix4(_projLoc, false, ref proj);
