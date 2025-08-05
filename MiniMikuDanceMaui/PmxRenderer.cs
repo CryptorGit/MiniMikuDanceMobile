@@ -7,6 +7,7 @@ using System.Linq;
 using MiniMikuDance.Util;
 using MiniMikuDance.App;
 using MiniMikuDance.Import;
+using MiniMikuDance.Motion;
 using MMDTools;
 using ViewerApp.Import;
 using Vector2 = OpenTK.Mathematics.Vector2;
@@ -582,6 +583,9 @@ void main(){
             var trans = (tempBones[i].Translation - _bones[i].Translation).ToOpenTK();
             _boneTranslations.Add(trans);
         }
+
+        TwistCorrection.DistributeSpineTwist(_boneRotations, _indexToHumanoidName);
+        TwistCorrection.DistributeLimbTwist(_boneRotations, _indexToHumanoidName);
 
         if (ShowIkBones)
             RebuildIkBoneMesh();
