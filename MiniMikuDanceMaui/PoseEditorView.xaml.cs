@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using Microsoft.Maui.Controls;
 using Microsoft.Maui.Graphics;
 using SkiaSharp.Views.Maui;
@@ -12,6 +13,7 @@ namespace MiniMikuDanceMaui;
 public partial class PoseEditorView : ContentView
 {
     public event Action<bool>? ModeChanged;
+    public event Action<IList<Vector3>, IList<Vector3>>? PoseChanged;
     private bool _boneMode;
     public PmxRenderer? Renderer { get; set; }
     private int _selectedIkBone = -1;
@@ -104,14 +106,25 @@ public partial class PoseEditorView : ContentView
             var pos = Renderer.ProjectScreenPointToViewPlane((float)e.Location.X, (float)e.Location.Y, _ikPlanePoint);
             Renderer.SetIkTargetPosition(_selectedIkBone, pos);
             Renderer.Render();
+            EmitPose();
         }
         else if (e.ActionType == SKTouchAction.Released || e.ActionType == SKTouchAction.Cancelled)
         {
             _selectedIkBone = -1;
             Renderer.Render();
+            EmitPose();
         }
 
         e.Handled = true;
+    }
+
+    private void EmitPose()
+    {
+        if (Renderer == null)
+            return;
+        var rotations = Renderer.GetAllBoneRotations();
+        var translations = Renderer.GetAllBoneTranslations();
+        PoseChanged?.Invoke(rotations, translations);
     }
 
     public void RefreshIkGoalList()
