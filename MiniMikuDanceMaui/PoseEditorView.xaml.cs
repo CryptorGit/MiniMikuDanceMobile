@@ -187,7 +187,9 @@ public partial class PoseEditorView : ContentView
         var list = Renderer.GetAvailableIkGoals();
         if (list.Count == 0)
             return;
-        string? choice = await DisplayActionSheet("IKゴールを追加", "キャンセル", null, list.Select(x => x.Name).ToArray());
+        if (Application.Current?.MainPage == null)
+            return;
+        string? choice = await Application.Current.MainPage.DisplayActionSheet("IKゴールを追加", "キャンセル", null, list.Select(x => x.Name).ToArray());
         if (string.IsNullOrEmpty(choice) || choice == "キャンセル")
             return;
         var item = list.FirstOrDefault(x => x.Name == choice);
