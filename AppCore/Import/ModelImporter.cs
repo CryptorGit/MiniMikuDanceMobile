@@ -128,6 +128,47 @@ public class ModelImporter
             boneDatas.Add(bd);
         }
 
+        // モデルの向きを推定して Z+ 前方に正規化する
+        System.Numerics.Matrix4x4 rotation = System.Numerics.Matrix4x4.Identity;
+
+        int FindBone(params string[][] keywords)
+        {
+            for (int i = 0; i < bones.Length; i++)
+            {
+                string name = string.IsNullOrEmpty(bones[i].NameEnglish) ? bones[i].Name : bones[i].NameEnglish;
+                foreach (var set in keywords)
+                {
+                    bool match = true;
+                    foreach (var kw in set)
+                    {
+                        if (!name.Contains(kw, StringComparison.OrdinalIgnoreCase))
+                        {
+                            match = false;
+                            break;
+                        }
+                    }
+                    if (match)
+                        return i;
+                }
+            }
+            return -1;
+        }
+
+        int head = FindBone(new[] { "頭" }, new[] { "首" }, new[] { "head" }, new[] { "neck" });
+        int left = FindBone(new[] { "左", "肩" }, new[] { "左", "腕" }, new[] { "left", "shoulder" }, new[] { "left", "arm" });
+        int right = FindBone(new[] { "右", "肩" }, new[] { "右", "腕" }, new[] { "right", "shoulder" }, new[] { "right", "arm" });
+        if (head >= 0 && left >= 0 && right >= 0)
+        {
+            var center = (absPositions[left] + absPositions[right]) * 0.5f;
+            var up = System.Numerics.Vector3.Normalize(absPositions[head] - center);
+            var rightDir = System.Numerics.Vector3.Normalize(absPositions[right] - absPositions[left]);
+            var forward = System.Numerics.Vector3.Normalize(System.Numerics.Vector3.Cross(rightDir, up));
+            if (forward.Z < 0)
+            {
+                rotation = System.Numerics.Matrix4x4.CreateRotationY((float)Math.PI);
+            }
+        }
+
         // Bind/InverseBind 行列を計算（ローカル位置を使用）
         var world = new System.Numerics.Matrix4x4[boneDatas.Count];
         for (int i = 0; i < boneDatas.Count; i++)
@@ -410,7 +451,7 @@ public class ModelImporter
             data.SubMeshes.Add(smd);
             faceOffset += faceCount;
         }
-        data.Transform = System.Numerics.Matrix4x4.CreateScale(Scale);
+        data.Transform = rotation * System.Numerics.Matrix4x4.CreateScale(Scale);
         return data;
     }
 
