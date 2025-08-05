@@ -20,11 +20,6 @@ public partial class PoseEditorView : ContentView
     public PoseEditorView()
     {
         InitializeComponent();
-        ModeChanged += mode =>
-        {
-            if (Renderer != null)
-                Renderer.ShowIkBones = mode;
-        };
         UpdateButtons();
     }
 

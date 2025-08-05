@@ -789,7 +789,7 @@ private async Task ShowModelSelector()
 
 private void ShowBottomFeature(string name)
 {
-    _renderer.ShowIkBones = false;
+    _renderer.ShowIkBones = name == "POSE";
     if (!_bottomViews.ContainsKey(name))
     {
         View view;
@@ -840,7 +840,6 @@ private void ShowBottomFeature(string name)
             pv.ModeChanged += mode =>
             {
                 _boneMode = mode;
-                _renderer.ShowIkBones = mode;
                 Viewer?.InvalidateSurface();
             };
             _poseEditor = pv;
@@ -1122,6 +1121,7 @@ private void SwitchBottomFeature(string name)
 {
     if (_bottomViews.TryGetValue(name, out var view))
     {
+        _renderer.ShowIkBones = name == "POSE";
         BottomContent.Content = view;
         _currentFeature = name;
         UpdateTabColors();
