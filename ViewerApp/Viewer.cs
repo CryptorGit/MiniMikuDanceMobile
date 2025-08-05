@@ -1,3 +1,5 @@
+using System;
+using System.Collections.Generic;
 // Use OpenGL ES 3.0 across projects to avoid enum mismatches
 using OpenTK.Graphics.ES30;
 using GL = OpenTK.Graphics.ES30.GL;
