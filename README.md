@@ -21,8 +21,7 @@ MiniMikuDance は、スマートフォン上で PMX 形式の MMD 互換モデ�
 ## ビルド
 
 MAUI アプリを Android で実行する際に **「Xamarin.Android では前のバージョンの実行をサポートしていません」** というエラーが発生した場合は、`MiniMikuDanceMaui/bin` と `MiniMikuDanceMaui/obj` を削除し `dotnet clean` → `dotnet build` を実行してください。詳細な手順は [MiniMikuDanceMaui/README.md](MiniMikuDanceMaui/README.md) に記載しています。
-
-`dotnet` コマンドがインストールされていない環境では、[docs/LocalBuild.md](docs/LocalBuild.md) に記載したスクリプトで SDK をローカルに導入してビルドできます。
+環境によって .NET 9 の TerminalLogger 内部エラーで `dotnet build` が停止する場合は、ビルド前に `MSBUILDTERMINALLOGGER=false` を設定して TerminalLogger を無効化してください。
 ## ドキュメント
 
 詳細なガイドは [docs/Mobile_MMD_PMX_OpenTK_Guide.md](docs/Mobile_MMD_PMX_OpenTK_Guide.md) を参照してください。

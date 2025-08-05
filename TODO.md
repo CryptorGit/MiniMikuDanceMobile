@@ -24,10 +24,9 @@
   - [x] ドラッグ挙動・表示仕様をドキュメントへ追記
   - [x] PoseEditorView.HandleViewerTouch で IK ボーンのヒットテストと平面投影を完成させる
   - [x] IKSolver と PmxRenderer を連携させドラッグでポーズが更新されるようにする
-    - [x] PoseEditorView で生成したポーズをモーション編集機能へ連携する
-- [ ] dotnet build が TerminalLogger の内部エラーで失敗するため環境を調整してビルドを確認する
-- [ ] .NET 9 への移行後、dotnet restore / build が TerminalLogger の内部エラーで失敗する問題を解消する
-  - [ ] dotnet-install.sh で SDK を導入しても MiniMikuDanceMaui のビルドで同エラーが発生することを確認
+  - [ ] PoseEditorView で生成したポーズをモーション編集機能へ連携する
+- [x] dotnet build が TerminalLogger の内部エラーで失敗するため環境を調整してビルドを確認する（`MSBUILDTERMINALLOGGER=false` で回避）
+- [x] .NET 9 への移行後、dotnet restore / build が TerminalLogger の内部エラーで失敗する問題を解消する
 - [x] .NET SDK 9.0.301 をインストールし、ビルドを確認する
 - [x] CommunityToolkit.Maui.Storage パッケージを削除し、CommunityToolkit.Maui に統合されたストレージ API を利用する
 - [ ] maui-android workload が現在の環境でサポートされていないため、ビルド手順を再検討する
