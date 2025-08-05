@@ -838,7 +838,7 @@ void main(){
         if (far4.W != 0f) far4 /= far4.W;
         var rayOrigin = new Vector3(near4.X, near4.Y, near4.Z);
         var rayDir = Vector3.Normalize(new Vector3(far4.X, far4.Y, far4.Z) - rayOrigin);
-        Vector3 planeNormal = Vector3.Normalize(_target - cam);
+        Vector3 planeNormal = Vector3.Normalize(planePoint - cam);
         float denom = Vector3.Dot(rayDir, planeNormal);
         if (MathF.Abs(denom) < 1e-5f)
             return planePoint;
