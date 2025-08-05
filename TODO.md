@@ -7,8 +7,8 @@
 - [ ] Android SDK をセットアップしてソリューション全体のビルドを確認
 - [x] AppCore/Import/ModelImporter.cs の構文エラーを修正する
 - [x] ドキュメントの PMX 向け整理（README などの更新）
+- [x] PmxRenderer の PMX 対応の拡充
 - [x] PmxLoader の詳細実装
-- [ ] PmxRenderer の PMX 対応の拡充
 - [x] PmxRenderer の型参照を統一する
 - [x] 半透明メッシュの深度ソート対応（複数透明メッシュで描画確認）
 - [x] Tools/Program.cs と不要な解析プロジェクトを削除し、ソリューションから除外
