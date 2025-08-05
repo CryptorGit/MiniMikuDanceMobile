@@ -1,6 +1,3 @@
-using System;
-using System.Diagnostics;
-using System.Collections.Generic;
 // Use OpenGL ES 3.0 across projects to avoid enum mismatches
 using OpenTK.Graphics.ES30;
 using GL = OpenTK.Graphics.ES30.GL;
@@ -22,7 +19,6 @@ public class Viewer : IDisposable
         public int IndexCount;
         public Vector4 Color = Vector4.One;
         public int Texture;
-        public bool HasTexture;
     }
 
     private readonly GameWindow _window;
@@ -34,7 +30,6 @@ public class Viewer : IDisposable
     private readonly int _useTexLoc;
     private readonly Matrix4 _modelTransform;
     private Matrix4 _view = Matrix4.Identity;
-    private readonly Stopwatch _timer = new();
 
     public Vector2i Size { get; private set; } = new Vector2i(640, 480);
 
@@ -170,7 +165,6 @@ public class Viewer : IDisposable
                 }
                 GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureMinFilter, (int)TextureMinFilter.Linear);
                 GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureMagFilter, (int)TextureMagFilter.Linear);
-                rm.HasTexture = true;
             }
 
             _meshes.Add(rm);
@@ -184,8 +178,6 @@ public class Viewer : IDisposable
 
         GL.Enable(EnableCap.CullFace);
         GL.FrontFace(FrontFaceDirection.Ccw);
-
-        _timer.Start();
     }
 
     public void SetViewMatrix(Matrix4 view)
@@ -205,8 +197,6 @@ public class Viewer : IDisposable
     private void Render()
     {
         NativeWindow.ProcessWindowEvents(false);
-        GL.Enable(EnableCap.DepthTest);
-        GL.DepthMask(true);
         GL.Viewport(0, 0, Size.X, Size.Y);
         GL.ClearColor(1f, 1f, 1f, 1f);
         GL.Clear(ClearBufferMask.ColorBufferBit | ClearBufferMask.DepthBufferBit);
@@ -217,12 +207,10 @@ public class Viewer : IDisposable
         GL.UseProgram(_program);
         Matrix4 mvp = proj * _view * model;
         GL.UniformMatrix4(_mvpLoc, false, ref mvp);
-        // メッシュ描画時も透過処理を行う
-        GL.Enable(EnableCap.Blend);
         foreach (var rm in _meshes)
         {
             GL.Uniform4(_colorLoc, rm.Color);
-            if (rm.HasTexture)
+            if (rm.Texture != 0)
             {
                 GL.ActiveTexture(TextureUnit.Texture0);
                 GL.BindTexture(TextureTarget.Texture2D, rm.Texture);
@@ -236,10 +224,6 @@ public class Viewer : IDisposable
             GL.BindVertexArray(rm.Vao);
             GL.DrawElements(PrimitiveType.Triangles, rm.IndexCount, DrawElementsType.UnsignedInt, IntPtr.Zero);
             GL.BindVertexArray(0);
-            if (rm.HasTexture)
-            {
-                GL.BindTexture(TextureTarget.Texture2D, 0);
-            }
         }
         _window.SwapBuffers();
     }
@@ -261,10 +245,10 @@ public class Viewer : IDisposable
     {
         foreach (var rm in _meshes)
         {
-            if (rm.Vao != 0) GL.DeleteVertexArray(rm.Vao);
-            if (rm.Vbo != 0) GL.DeleteBuffer(rm.Vbo);
-            if (rm.Ebo != 0) GL.DeleteBuffer(rm.Ebo);
-            if (rm.Texture != 0) GL.DeleteTexture(rm.Texture);
+            GL.DeleteVertexArray(rm.Vao);
+            GL.DeleteBuffer(rm.Vbo);
+            GL.DeleteBuffer(rm.Ebo);
+            GL.DeleteTexture(rm.Texture);
         }
         _meshes.Clear();
         GL.DeleteProgram(_program);
