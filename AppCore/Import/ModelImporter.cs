@@ -362,8 +362,12 @@ public class ModelImporter
                 }
             }
 
-            smd.SphereMode = (SphereMapMode)mat.SphereTextureMode;
-            if (!string.IsNullOrEmpty(dir) && mat.SphereTextre >= 0 && mat.SphereTextre < texList.Length)
+            smd.SphereMode = Enum.IsDefined(typeof(SphereMapMode), mat.SphereTextureMode)
+                ? (SphereMapMode)mat.SphereTextureMode
+                : SphereMapMode.None;
+            if (smd.SphereMode != SphereMapMode.None &&
+                !string.IsNullOrEmpty(dir) &&
+                mat.SphereTextre >= 0 && mat.SphereTextre < texList.Length)
             {
                 var sphereName = texList[mat.SphereTextre]
                     .Replace('\\', Path.DirectorySeparatorChar);

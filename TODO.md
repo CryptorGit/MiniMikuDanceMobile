@@ -2,7 +2,7 @@
 - [x] FABRIK/解析IKの実装と統合
 - [x] Microsoft.Maui.Controls と Microsoft.Maui.Graphics.Skia を 9.0.70 に更新し、パッケージダウングレード警告を解消
 - [x] Microsoft.ML.OnnxRuntime を 1.17.3 に更新し、16KB ページサイズ警告を解消
-- [ ] PMX マテリアルの詳細設定（スフィアマップ等）の実装 - スフィアマップ読み込みに着手
+- [x] PMX マテリアルの詳細設定（スフィアマップ等）の実装
 - [ ] Toon テクスチャの読み込みと適用に対応する
 - [ ] Android SDK をセットアップしてソリューション全体のビルドを確認
 - [ ] AppCore/Import/ModelImporter.cs の構文エラーを修正する

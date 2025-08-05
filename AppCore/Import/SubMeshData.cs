@@ -19,7 +19,7 @@ public class SubMeshData
     public int ToonTextureWidth { get; set; }
     public int ToonTextureHeight { get; set; }
     public string? ToonTextureFilePath { get; set; }
-    public SphereMapMode SphereMode { get; set; }
+    public SphereMapMode SphereMode { get; set; } = SphereMapMode.None;
     public List<System.Numerics.Vector4> JointIndices { get; set; } = new();
     public List<System.Numerics.Vector4> JointWeights { get; set; } = new();
     public List<int> BaseVertexIndices { get; set; } = new();
