@@ -11,7 +11,19 @@
 dotnet workload install maui
 ```
 
-その上で `dotnet build` を実行し、各プラットフォーム固有の出力を生成します。
+Android で実行する前には、前回ビルドの残骸による **「Xamarin.Android では前のバージョンの実行をサポートしていません」** エラーを避けるため、以下のコマンドを順に実行することを推奨します。
+
+```bash
+dotnet clean MiniMikuDanceMaui.csproj
+dotnet build MiniMikuDanceMaui.csproj
+dotnet build -t:Run -f net8.0-android MiniMikuDanceMaui.csproj
+```
+
+### ビルドでエラーが出る場合
+
+上記の手順で解決しない場合は、一度 `MiniMikuDanceMaui/bin` と `MiniMikuDanceMaui/obj` フォルダを削除してから `dotnet clean` → `dotnet build` を実行してください。これも同エラーの回避策となります。
+
+これらの手順でビルドを行うことで、各プラットフォーム固有の出力が生成されます。
 
 ## カメラ撮影機能
 
