@@ -221,6 +221,45 @@ public class ModelImporter
                 }
             }
         }
+
+        // 11点IKボーンの追加
+        int GetIndex(string n) => data.HumanoidBones.TryGetValue(n, out var idx) ? idx : -1;
+        var ikDefs = new (string Name, int Target, int[] Chain)[]
+        {
+            ("ik_head", GetIndex("head"), new[]{ GetIndex("neck"), GetIndex("chest") }),
+            ("ik_left_wrist", GetIndex("leftHand"), new[]{ GetIndex("leftLowerArm"), GetIndex("leftUpperArm") }),
+            ("ik_right_wrist", GetIndex("rightHand"), new[]{ GetIndex("rightLowerArm"), GetIndex("rightUpperArm") }),
+            ("ik_left_elbow", GetIndex("leftLowerArm"), new[]{ GetIndex("leftUpperArm") }),
+            ("ik_right_elbow", GetIndex("rightLowerArm"), new[]{ GetIndex("rightUpperArm") }),
+            ("ik_left_knee", GetIndex("leftLowerLeg"), new[]{ GetIndex("leftUpperLeg") }),
+            ("ik_right_knee", GetIndex("rightLowerLeg"), new[]{ GetIndex("rightUpperLeg") }),
+            ("ik_left_foot", GetIndex("leftFoot"), new[]{ GetIndex("leftLowerLeg"), GetIndex("leftUpperLeg") }),
+            ("ik_right_foot", GetIndex("rightFoot"), new[]{ GetIndex("rightLowerLeg"), GetIndex("rightUpperLeg") }),
+            ("ik_chest", GetIndex("chest"), new[]{ GetIndex("spine"), GetIndex("hips") }),
+            ("ik_hip", GetIndex("hips"), Array.Empty<int>())
+        };
+
+        foreach (var (name, target, chain) in ikDefs)
+        {
+            if (target < 0) continue;
+            var validChain = chain.Where(c => c >= 0).ToList();
+            var ik = new BoneData
+            {
+                Name = name,
+                Parent = -1,
+                IsIk = true,
+                IkTargetIndex = target,
+                IkChainIndices = validChain,
+                Rotation = System.Numerics.Quaternion.Identity,
+                Translation = boneDatas[target].BindMatrix.Translation
+            };
+            ik.BindMatrix = System.Numerics.Matrix4x4.CreateTranslation(ik.Translation);
+            System.Numerics.Matrix4x4.Invert(ik.BindMatrix, out var invIk);
+            ik.InverseBindMatrix = invIk;
+            data.IkBoneIndices.Add(boneDatas.Count);
+            boneDatas.Add(ik);
+        }
+        data.Bones = boneDatas;
         var combined = new Assimp.Mesh("pmx", Assimp.PrimitiveType.Triangle);
         for (int i = 0; i < verts.Length; i++)
         {
