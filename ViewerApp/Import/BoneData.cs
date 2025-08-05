@@ -18,4 +18,7 @@ public class BoneData
     public List<int> IkChainIndices { get; set; } = new();
     public int IkLoopCount { get; set; } = 0;
     public float IkAngleLimit { get; set; } = 0f;
+
+    // ツイスト補正量（0で無効）
+    public float TwistWeight { get; set; } = 0f;
 }
