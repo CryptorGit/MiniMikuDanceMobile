@@ -63,6 +63,4 @@ public class RecorderController
         }
         _frameIndex++;
     }
-
-    public string GetSavedPath() => _savedDir;
 }
