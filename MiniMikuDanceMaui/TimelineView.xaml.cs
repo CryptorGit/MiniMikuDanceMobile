@@ -171,7 +171,7 @@ public static int MaxFrame { get; private set; } = 60;
         }
         if (TimelineContentScrollView.Handler?.PlatformView is Android.Views.View outer)
         {
-            outer.OverScrollMode = Android.Views.OverScrollMode.Never;      // 既存
+            outer.OverScrollMode = Android.Views.OverScrollMode.Never;
             // 内側の HorizontalScrollView も探して止める
             if (outer is Android.Views.ViewGroup vg &&
                 vg.ChildCount > 0 &&
