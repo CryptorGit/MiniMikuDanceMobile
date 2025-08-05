@@ -5,7 +5,7 @@
 - [ ] PMX マテリアルの詳細設定（スフィアマップ等）の実装 - スフィアマップ読み込みに着手
 - [ ] Toon テクスチャの読み込みと適用に対応する
 - [ ] Android SDK をセットアップしてソリューション全体のビルドを確認
-- [ ] AppCore/Import/ModelImporter.cs の構文エラーを修正する
+- [x] AppCore/Import/ModelImporter.cs の構文エラーを修正する
 - [x] ドキュメントの PMX 向け整理（README などの更新）
 - [ ] PmxLoader の詳細実装
 - [ ] PmxRenderer の PMX 対応の拡充

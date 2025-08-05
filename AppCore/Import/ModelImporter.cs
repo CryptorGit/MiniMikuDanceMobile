@@ -363,9 +363,17 @@ public class ModelImporter
             }
 
             smd.SphereMode = (SphereMapMode)mat.SphereTextureMode;
-            if (!string.IsNullOrEmpty(dir) && mat.SphereTextre >= 0 && mat.SphereTextre < texList.Length)
+
+            // ライブラリによってはプロパティ名が "SphereTexture" と "SphereTextre" で異なるため、両方に対応する
+            int sphereIndex = -1;
+            var sphereProp = mat.GetType().GetProperty("SphereTexture") ??
+                            mat.GetType().GetProperty("SphereTextre");
+            if (sphereProp?.GetValue(mat) is int idx)
+                sphereIndex = idx;
+
+            if (!string.IsNullOrEmpty(dir) && sphereIndex >= 0 && sphereIndex < texList.Length)
             {
-                var sphereName = texList[mat.SphereTextre]
+                var sphereName = texList[sphereIndex]
                     .Replace('\\', Path.DirectorySeparatorChar);
                 var spherePath = Path.Combine(dir, sphereName);
                 smd.SphereTextureFilePath = sphereName;
