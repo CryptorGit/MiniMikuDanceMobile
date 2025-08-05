@@ -114,6 +114,24 @@
                            MaxLines="2" />
                     <Button Grid.Column="2" Text="参照" Clicked="OnSelectPmxModelClicked" />
                 </Grid>
+                <Grid ColumnDefinitions="60,*,Auto" ColumnSpacing="6">
+                    <Label Text="Texture" TextColor="{StaticResource TextColor}" />
+                    <Label x:Name="SelectedTexturePath"
+                           Grid.Column="1"
+                           TextColor="{StaticResource TextColor}"
+                           FontSize="14"
+                           HorizontalOptions="FillAndExpand"
+                           LineBreakMode="CharacterWrap"
+                           MaxLines="2" />
+                    <Button Grid.Column="2" Text="参照" Clicked="OnSelectTextureClicked" />
+                </Grid>
+                <Grid ColumnDefinitions="60,*" ColumnSpacing="6">
+                    <Label Text="Scale" TextColor="{StaticResource TextColor}" />
+                    <Entry x:Name="ScaleEntry"
+                           Grid.Column="1"
+                           Text="1.0"
+                           Keyboard="Numeric" />
+                </Grid>
                 <HorizontalStackLayout HorizontalOptions="Center" Spacing="20">
                     <Button Text="インポート" Clicked="OnImportPmxClicked" />
                     <Button Text="キャンセル" Clicked="OnCancelImportClicked" />

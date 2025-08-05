@@ -3,9 +3,25 @@
 MiniMikuDance は、スマートフォン上で PMX 形式の MMD 互換モデルを再生・撮影できるモバイル向けアプリです。VRM などの他形式はサポートせず、PMX に特化しています。姿勢推定や録画処理も端末で完結し、Unity を使用せずに C# と OpenTK で実装されています。
 実行には `ffmpeg` コマンドが必要です。Android 環境では別途バイナリを用意し PATH に追加するかアプリに同梱してください。
 **注意: `global.json` の SDK バージョンは `9.0.301` から変更しないこと。**
+## 開発環境セットアップ
+
+1. [.NET SDK 9.0.301](https://dotnet.microsoft.com/ja-jp/download/dotnet/9.0) をインストールします。
+2. Android 向け MAUI ワークロードを追加します。
+
+   ```bash
+   dotnet workload install maui-android
+   ```
+
+3. 依存パッケージを復元します。
+
+   ```bash
+   dotnet restore
+   ```
+
 ## ビルド
 
 MAUI アプリを Android で実行する際に **「Xamarin.Android では前のバージョンの実行をサポートしていません」** というエラーが発生した場合は、`MiniMikuDanceMaui/bin` と `MiniMikuDanceMaui/obj` を削除し `dotnet clean` → `dotnet build` を実行してください。詳細な手順は [MiniMikuDanceMaui/README.md](MiniMikuDanceMaui/README.md) に記載しています。
+環境によって .NET 9 の TerminalLogger 内部エラーで `dotnet build` が停止する場合は、ビルド前に `MSBUILDTERMINALLOGGER=false` を設定して TerminalLogger を無効化してください。
 ## ドキュメント
 
 詳細なガイドは [docs/Mobile_MMD_PMX_OpenTK_Guide.md](docs/Mobile_MMD_PMX_OpenTK_Guide.md) を参照してください。

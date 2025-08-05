@@ -22,27 +22,8 @@ public partial class MorphView : ContentView
 
         var textColor = (Color)Application.Current.Resources["TextColor"];
 
-        // モーフ名の出現回数をカウントし、同名モーフに番号を付与できるようにする
-        var nameCounts = new Dictionary<string, int>(StringComparer.OrdinalIgnoreCase);
-        foreach (var morph in model.Morphs)
+        foreach (var (originalName, labelName) in MorphHelper.BuildMorphEntries(model))
         {
-            var displayName = morph.Name.Trim();
-            nameCounts[displayName] = nameCounts.TryGetValue(displayName, out var c) ? c + 1 : 1;
-        }
-
-        var nameIndices = new Dictionary<string, int>(StringComparer.OrdinalIgnoreCase);
-        foreach (var morph in model.Morphs)
-        {
-            string originalName = morph.Name;
-            string displayName = originalName.Trim();
-
-            int dupIndex = nameIndices.TryGetValue(displayName, out var v) ? v + 1 : 1;
-            nameIndices[displayName] = dupIndex;
-
-            string labelName = nameCounts[displayName] > 1
-                ? $"{displayName} ({dupIndex})"
-                : displayName;
-
             var grid = new Grid
             {
                 ColumnDefinitions = new ColumnDefinitionCollection
