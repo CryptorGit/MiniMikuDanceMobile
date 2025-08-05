@@ -1,4 +1,5 @@
 using System;
+using System.Linq;
 using Microsoft.Maui.Controls;
 using Microsoft.Maui.Graphics;
 using SkiaSharp.Views.Maui;
@@ -133,10 +134,39 @@ public partial class PoseEditorView : ContentView
                 TextColor = (Color)Application.Current.Resources["TextColor"],
                 VerticalOptions = LayoutOptions.Center
             };
+            var rm = new Button
+            {
+                Text = "削除",
+                Padding = new Thickness(0),
+                TextColor = (Color)Application.Current.Resources["TextColor"]
+            };
+            rm.Clicked += (s, e) =>
+            {
+                Renderer.RemoveIkGoal(idx);
+                RefreshIkGoalList();
+                Renderer.Render();
+            };
             var hs = new HorizontalStackLayout { Spacing = 6 };
             hs.Children.Add(sw);
             hs.Children.Add(lbl);
+            hs.Children.Add(rm);
             IkGoalList.Children.Add(hs);
         }
+    }
+
+    private async void OnAddIkGoalClicked(object? sender, EventArgs e)
+    {
+        if (Renderer == null)
+            return;
+        var list = Renderer.GetAvailableIkGoals();
+        if (list.Count == 0)
+            return;
+        string? choice = await DisplayActionSheet("IKゴールを追加", "キャンセル", null, list.Select(x => x.Name).ToArray());
+        if (string.IsNullOrEmpty(choice) || choice == "キャンセル")
+            return;
+        var item = list.FirstOrDefault(x => x.Name == choice);
+        Renderer.AddIkGoal(item.Index);
+        RefreshIkGoalList();
+        Renderer.Render();
     }
 }
