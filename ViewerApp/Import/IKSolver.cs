@@ -10,6 +10,56 @@ namespace ViewerApp.Import;
 public static class IKSolver
 {
     /// <summary>
+    /// チェーン長や用途に応じて最適な IK ソルバを呼び出します。
+    /// </summary>
+    /// <param name="bones">ボーンリスト。</param>
+    /// <param name="chain">起点から終端までのボーンインデックス列。</param>
+    /// <param name="target">目標位置。</param>
+    public static void SolveChain(IList<BoneData> bones, IList<int> chain, Vector3 target)
+    {
+        if (bones == null || chain == null || chain.Count == 0)
+            return;
+
+        if (IsTorsoChain(bones, chain))
+        {
+            FabrikSolver.Solve(bones, chain, target);
+        }
+        else if (IsLimbChain(bones, chain))
+        {
+            if (chain.Count >= 3)
+            {
+                AnalyticTwoBoneSolver.Solve(bones, chain[0], chain[1], chain[2], target);
+                SolveCCD(bones, chain[2], target, 1, 1e-4f);
+            }
+        }
+        else
+        {
+            SolveCCD(bones, chain[chain.Count - 1], target);
+        }
+    }
+
+    private static bool IsTorsoChain(IList<BoneData> bones, IList<int> chain)
+    {
+        if (chain.Count != 5)
+            return false;
+        string[] names = { "hips", "spine", "chest", "neck", "head" };
+        for (int i = 0; i < 5; i++)
+        {
+            if (!bones[chain[i]].Name.Equals(names[i], StringComparison.OrdinalIgnoreCase))
+                return false;
+        }
+        return true;
+    }
+
+    private static bool IsLimbChain(IList<BoneData> bones, IList<int> chain)
+    {
+        if (chain.Count != 3)
+            return false;
+        string name = bones[chain[0]].Name.ToLower();
+        return name.Contains("arm") || name.Contains("leg");
+    }
+
+    /// <summary>
     /// 指定した終端ボーンが目標位置に到達するようにボーンチェーンを調整します。
     /// </summary>
     /// <param name="bones">ボーンリスト。</param>
