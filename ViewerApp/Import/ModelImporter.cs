@@ -42,7 +42,6 @@ public class MorphOffset
 public class ModelImporter
 {
     private readonly AssimpContext _context = new();
-    public float Scale { get; set; } = 1.0f;
 
     public ModelData ImportModel(Stream stream, string? textureDir = null)
     {
@@ -105,7 +104,7 @@ public class ModelImporter
                 Name = name,
                 Parent = b.ParentBone,
                 Rotation = System.Numerics.Quaternion.Identity,
-                Translation = new System.Numerics.Vector3(b.Position.X, b.Position.Y, b.Position.Z) * Scale,
+                Translation = new System.Numerics.Vector3(b.Position.X, b.Position.Y, b.Position.Z),
                 TwistWeight = (name.Contains("arm", StringComparison.OrdinalIgnoreCase) || name.Contains("leg", StringComparison.OrdinalIgnoreCase)) ? 0.5f : 0f
             };
             if (b.BoneFlag.HasFlag(BoneFlag.IK))
@@ -169,7 +168,7 @@ public class ModelImporter
                     md.Offsets.Add(new MorphOffset
                     {
                         Index = vm.TargetVertex,
-                        Offset = new System.Numerics.Vector3(vm.PosOffset.X, vm.PosOffset.Y, vm.PosOffset.Z) * Scale
+                        Offset = new System.Numerics.Vector3(vm.PosOffset.X, vm.PosOffset.Y, vm.PosOffset.Z)
                     });
                 }
             }
@@ -256,7 +255,7 @@ public class ModelImporter
         for (int i = 0; i < verts.Length; i++)
         {
             var v = verts[i];
-            combined.Vertices.Add(new Vector3D(v.Position.X * Scale, v.Position.Y * Scale, v.Position.Z * Scale));
+            combined.Vertices.Add(new Vector3D(v.Position.X, v.Position.Y, v.Position.Z));
             combined.Normals.Add(new Vector3D(v.Normal.X, v.Normal.Y, v.Normal.Z));
             combined.TextureCoordinateChannels[0].Add(new Vector3D(v.UV.X, v.UV.Y, 0));
         }
@@ -290,7 +289,7 @@ public class ModelImporter
                 for (int j = 0; j < 3; j++)
                 {
                     var vv = verts[idxs[j]];
-                    sub.Vertices.Add(new Vector3D(vv.Position.X * Scale, vv.Position.Y * Scale, vv.Position.Z * Scale));
+                    sub.Vertices.Add(new Vector3D(vv.Position.X, vv.Position.Y, vv.Position.Z));
                     sub.Normals.Add(new Vector3D(vv.Normal.X, vv.Normal.Y, vv.Normal.Z));
                     sub.TextureCoordinateChannels[0].Add(new Vector3D(vv.UV.X, vv.UV.Y, 0));
                     smd.TexCoords.Add(new System.Numerics.Vector2(vv.UV.X, vv.UV.Y));
@@ -395,7 +394,7 @@ public class ModelImporter
             data.SubMeshes.Add(smd);
             faceOffset += faceCount;
         }
-        data.Transform = System.Numerics.Matrix4x4.CreateScale(Scale);
+        data.Transform = System.Numerics.Matrix4x4.CreateScale(1.0f);
         return data;
     }
 

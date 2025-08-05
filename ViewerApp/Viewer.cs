@@ -40,7 +40,7 @@ public class Viewer : IDisposable
 
     public event Action<float>? FrameUpdated;
 
-    public Viewer(string modelPath, float scale)
+    public Viewer(string modelPath)
     {
         var nativeSettings = new NativeWindowSettings
         {
@@ -55,7 +55,7 @@ public class Viewer : IDisposable
         GL.Enable(EnableCap.Blend);
         GL.BlendFunc(BlendingFactorSrc.SrcAlpha, BlendingFactorDest.OneMinusSrcAlpha);
 
-        var importer = new ModelImporter { Scale = scale };
+        var importer = new ModelImporter();
         var model = importer.ImportModel(modelPath);
         _modelTransform = ToMatrix4(model.Transform);
 

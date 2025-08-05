@@ -1238,7 +1238,6 @@ private void OnOpenInViewerClicked(object? sender, EventArgs e)
     _selectedModelPath = null;
     SelectedTexturePath.Text = string.Empty;
     _selectedTexturePath = null;
-    ScaleEntry.Text = "1.0";
     UpdateLayout();
 }
 
@@ -1375,10 +1374,7 @@ private async void OnImportPmxClicked(object? sender, EventArgs e)
 
     try
     {
-        float scale = 1.0f;
-        if (!float.TryParse(ScaleEntry.Text, out scale))
-            scale = 1.0f;
-        var importer = new ModelImporter { Scale = scale };
+        var importer = new ModelImporter();
         MiniMikuDance.Import.ModelData data;
         if (!string.IsNullOrEmpty(_selectedTexturePath))
         {
@@ -1406,7 +1402,6 @@ private async void OnImportPmxClicked(object? sender, EventArgs e)
         SelectedModelPath.Text = string.Empty;
         _selectedTexturePath = null;
         SelectedTexturePath.Text = string.Empty;
-        ScaleEntry.Text = "1.0";
     }
 }
 
@@ -1417,7 +1412,6 @@ private void OnCancelImportClicked(object? sender, EventArgs e)
     PmxImportDialog.IsVisible = false;
     SelectedModelPath.Text = string.Empty;
     SelectedTexturePath.Text = string.Empty;
-    ScaleEntry.Text = "1.0";
     SetLoadingIndicatorVisibilityAndLayout(false);
     UpdateLayout();
 }

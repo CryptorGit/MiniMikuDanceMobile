@@ -78,7 +78,7 @@ public partial class AppInitializer : IDisposable
 
 
         var settings = AppSettings.Load();
-        var importer = new MiniMikuDance.Import.ModelImporter { Scale = settings.ModelScale };
+        var importer = new MiniMikuDance.Import.ModelImporter();
         var model = importer.ImportModel(modelPath);
 
         Applier = new MotionApplier(model);
@@ -89,7 +89,7 @@ public partial class AppInitializer : IDisposable
             var result = Applier.Apply(joint);
             OnMotionApplied?.Invoke(result);
         };
-        Viewer = new ViewerApp.Viewer(modelPath, settings.ModelScale);
+        Viewer = new ViewerApp.Viewer(modelPath);
 
         Viewer.FrameUpdated += dt =>
         {
