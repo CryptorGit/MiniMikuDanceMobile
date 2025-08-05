@@ -1122,11 +1122,17 @@ private void SwitchBottomFeature(string name)
 {
     if (_bottomViews.TryGetValue(name, out var view))
     {
+        if (_currentFeature == "POSE" && name != "POSE" && _boneMode)
+        {
+            _poseEditor?.SetBoneMode(false);
+            _boneMode = false;
+            Viewer?.InvalidateSurface();
+        }
+
         _renderer.ShowIkBones = name == "POSE";
         BottomContent.Content = view;
         _currentFeature = name;
         UpdateTabColors();
-
     }
 }
 
