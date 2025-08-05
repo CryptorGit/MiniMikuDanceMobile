@@ -8,6 +8,7 @@ using System.IO;
 using MauiIcons.Material.Outlined;
 using MiniMikuDance.Data;
 using Microsoft.Maui.Storage;
+using CommunityToolkit.Maui;
 
 namespace MiniMikuDanceMaui;
 
@@ -35,7 +36,8 @@ public static class MauiProgram
             // ← 型パラメータで自分の App クラスを渡す
             .UseMauiApp<App>()
             .UseMaterialOutlinedMauiIcons()
-            .UseSkiaSharp();
+            .UseSkiaSharp()
+            .UseMauiCommunityToolkit();
 
         return builder.Build();
     }
