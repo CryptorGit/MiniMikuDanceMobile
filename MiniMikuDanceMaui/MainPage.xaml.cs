@@ -305,7 +305,7 @@ private void ShowFileMenu()
     UpdateOverlay();
 }
 
-private void HideFileMenu(Frame fileMenu)
+private void HideFileMenu(Border fileMenu)
 {
     _fileMenuOpen = false;
     fileMenu.IsVisible = false;
@@ -400,7 +400,7 @@ private void HideAllMenus()
     UpdateLayout();
 }
 
-private void HideViewMenu(Frame viewMenu)
+private void HideViewMenu(Border viewMenu)
 {
     _viewMenuOpen = false;
     viewMenu.IsVisible = false;
@@ -416,7 +416,7 @@ private void HideBottomRegion()
 
 }
 
-private void HideSettingMenu(Frame settingMenu)
+private void HideSettingMenu(Border settingMenu)
 {
     _settingMenuOpen = false;
     settingMenu.IsVisible = false;
@@ -2109,7 +2109,7 @@ private void SetLoadingIndicatorVisibilityAndLayout(bool isVisible)
     UpdateLayout();
 }
 
-private void ShowExplorer(string featureName, Frame messageFrame, Label pathLabel, ref string? selectedPath)
+private void ShowExplorer(string featureName, Border messageFrame, Label pathLabel, ref string? selectedPath)
 {
     ShowBottomFeature(featureName);
     messageFrame.IsVisible = true;
