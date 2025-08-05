@@ -573,7 +573,8 @@ void main(){
                 IkTargetIndex = b.IkTargetIndex,
                 IkChainIndices = new List<int>(b.IkChainIndices),
                 IkLoopCount = b.IkLoopCount,
-                IkAngleLimit = b.IkAngleLimit
+                IkAngleLimit = b.IkAngleLimit,
+                TwistWeight = b.TwistWeight
             });
         }
 

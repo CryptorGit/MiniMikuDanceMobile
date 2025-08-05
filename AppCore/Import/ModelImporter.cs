@@ -111,7 +111,8 @@ public class ModelImporter
                 Name = name,
                 Parent = b.ParentBone,
                 Rotation = System.Numerics.Quaternion.Identity,
-                Translation = localPos
+                Translation = localPos,
+                TwistWeight = (name.Contains("arm", StringComparison.OrdinalIgnoreCase) || name.Contains("leg", StringComparison.OrdinalIgnoreCase)) ? 0.5f : 0f
             };
             if (b.BoneFlag.HasFlag(BoneFlag.IK))
             {
@@ -261,7 +262,8 @@ public class ModelImporter
                 IkTargetIndex = target,
                 IkChainIndices = validChain,
                 Rotation = System.Numerics.Quaternion.Identity,
-                Translation = boneDatas[target].BindMatrix.Translation
+                Translation = boneDatas[target].BindMatrix.Translation,
+                TwistWeight = 0f
             };
             ik.BindMatrix = System.Numerics.Matrix4x4.CreateTranslation(ik.Translation);
             System.Numerics.Matrix4x4.Invert(ik.BindMatrix, out var invIk);
