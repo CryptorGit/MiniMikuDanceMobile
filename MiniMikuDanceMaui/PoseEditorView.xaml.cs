@@ -118,9 +118,13 @@ public partial class PoseEditorView : ContentView
     {
         if (Renderer == null)
             return;
+
         IkGoalList.Children.Clear();
+        bool hasGoal = false;
+
         foreach (var (idx, name, enabled) in Renderer.GetIkGoals())
         {
+            hasGoal = true;
             var sw = new Switch { IsToggled = enabled };
             sw.Toggled += (s, e) =>
             {
@@ -138,5 +142,11 @@ public partial class PoseEditorView : ContentView
             hs.Children.Add(lbl);
             IkGoalList.Children.Add(hs);
         }
+
+        if (!hasGoal)
+        {
+            SetBoneMode(false);
+        }
+        BoneModeButton.IsEnabled = hasGoal;
     }
 }
