@@ -45,11 +45,6 @@ public partial class DataManager : Util.Singleton<DataManager>
     private Stream? OpenPackageFile(string path)
         => OpenPackageFileFunc?.Invoke(path);
 
-    public void SaveConfig<T>(string key, T data)
-    {
-        Util.JSONUtil.Save($"Configs/{key}.json", data);
-    }
-
     private readonly string _tempDir = Path.Combine(Path.GetTempPath(), "MiniMikuDance_Temp");
 
     public string TempDir => _tempDir;
