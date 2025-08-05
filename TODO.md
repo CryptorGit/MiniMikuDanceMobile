@@ -30,6 +30,7 @@
 - [x] CommunityToolkit.Maui.Storage パッケージを削除し、CommunityToolkit.Maui に統合されたストレージ API を利用する
 - [ ] maui-android workload が現在の環境でサポートされていないため、ビルド手順を再検討する
 - [ ] maui-android workload 不足により dotnet restore が失敗するため、workload のインストール手順を確認する
+- [ ] 各 XAML の x:DataType 追加後のビルド警告解消を、Android workload を整備した環境で確認する
 - [ ] PmxRenderer.Render の骨ライン表示を実機で再確認する
 - [ ] PmxImportDialog のレイアウト変更後、画面幅を狭めた際のボタン表示をビルドして確認する
 - [x] PmxRendererでモーフウェイトを頂点に反映する
