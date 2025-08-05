@@ -595,11 +595,20 @@ void main(){
         List<int> head = new();
         List<int> legs = new();
         List<int> arms = new();
+        int hipIkIndex = -1;
         for (int i = 0; i < tempBones.Count && i < _ikTargets.Count; i++)
         {
             var b = tempBones[i];
             if (!b.IsIk || !GetIkGoalEnabled(i))
                 continue;
+
+            // ik_hip は CCD ではなく直接平行移動させる
+            if (string.Equals(b.Name, "ik_hip", StringComparison.OrdinalIgnoreCase))
+            {
+                hipIkIndex = i;
+                continue;
+            }
+
             string name = _indexToHumanoidName.TryGetValue(b.IkTargetIndex, out var n) ? n.ToLower() : string.Empty;
             if (name.Contains("head") || name.Contains("neck"))
                 head.Add(i);
@@ -628,6 +637,14 @@ void main(){
         SolveList(head);
         SolveList(legs);
         SolveList(arms);
+
+        if (hipIkIndex >= 0)
+        {
+            var hipTarget = _ikTargets[hipIkIndex].ToNumerics();
+            int hipBoneIdx = tempBones[hipIkIndex].IkTargetIndex;
+            if (hipBoneIdx >= 0 && hipBoneIdx < tempBones.Count)
+                tempBones[hipBoneIdx].Translation = hipTarget;
+        }
 
         _boneRotations.Clear();
         _boneTranslations.Clear();
