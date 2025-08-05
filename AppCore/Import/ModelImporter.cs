@@ -226,7 +226,7 @@ public class ModelImporter
         int GetIndex(string n) => data.HumanoidBones.TryGetValue(n, out var idx) ? idx : -1;
         var ikDefs = new (string Name, int Target, int[] Chain)[]
         {
-            ("ik_head", GetIndex("head"), new[]{ GetIndex("neck"), GetIndex("chest") }),
+            ("ik_head", GetIndex("head"), new[]{ GetIndex("neck"), GetIndex("chest"), GetIndex("spine"), GetIndex("hips") }),
             ("ik_left_wrist", GetIndex("leftHand"), new[]{ GetIndex("leftLowerArm"), GetIndex("leftUpperArm") }),
             ("ik_right_wrist", GetIndex("rightHand"), new[]{ GetIndex("rightLowerArm"), GetIndex("rightUpperArm") }),
             ("ik_left_elbow", GetIndex("leftLowerArm"), new[]{ GetIndex("leftUpperArm") }),
