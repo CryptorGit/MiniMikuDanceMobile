@@ -23,7 +23,7 @@
   </ItemGroup>
     <ItemGroup>
       <PackageReference Include="AathifMahir.Maui.MauiIcons.Material.Outlined" Version="4.0.0" />
-      <PackageReference Include="CommunityToolkit.Maui" Version="12.1.0" />
+      <PackageReference Include="CommunityToolkit.Maui" Version="12.0.0" />
       <PackageReference Include="Microsoft.Maui.Controls" Version="8.0.100" />
       <PackageReference Include="Microsoft.Maui.Graphics.Skia" Version="8.0.100" />
       <PackageReference Include="OpenTK.redist.glfw" Version="3.4.0.44" />
