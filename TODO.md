@@ -26,8 +26,8 @@
     - [x] PoseEditorView で生成したポーズをモーション編集機能へ連携する
 - [ ] dotnet build が TerminalLogger の内部エラーで失敗するため環境を調整してビルドを確認する
 - [ ] .NET 9 への移行後、dotnet restore / build が TerminalLogger の内部エラーで失敗する問題を解消する
+  - [ ] dotnet-install.sh で SDK を導入しても MiniMikuDanceMaui のビルドで同エラーが発生することを確認
 - [x] .NET SDK 9.0.301 をインストールし、ビルドを確認する
-  - dotnet build は maui-android workload が必要 (NETSDK1147)
 - [x] CommunityToolkit.Maui.Storage パッケージを削除し、CommunityToolkit.Maui に統合されたストレージ API を利用する
 - [ ] maui-android workload が現在の環境でサポートされていないため、ビルド手順を再検討する
 - [x] maui-android workload 不足により dotnet restore が失敗するため、workload のインストール手順を確認する
