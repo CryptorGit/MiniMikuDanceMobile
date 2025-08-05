@@ -242,6 +242,16 @@ public class ModelImporter
         foreach (var (name, target, chain) in ikDefs)
         {
             if (target < 0) continue;
+
+            // 既存IKボーンがターゲットを参照しているか確認
+            int existingIndex = boneDatas.FindIndex(b => b.IsIk && b.IkTargetIndex == target);
+            if (existingIndex >= 0)
+            {
+                if (!data.IkBoneIndices.Contains(existingIndex))
+                    data.IkBoneIndices.Add(existingIndex);
+                continue;
+            }
+
             var validChain = chain.Where(c => c >= 0).ToList();
             var ik = new BoneData
             {
