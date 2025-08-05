@@ -30,6 +30,8 @@ public class PmxRenderer : IDisposable
         public Vector4 Color = Vector4.One;
         public int Texture;
         public bool HasTexture;
+        public int ToonTexture;
+        public bool HasToonTexture;
         public Vector3[] Vertices = Array.Empty<Vector3>();
         public Vector3[] Normals = Array.Empty<Vector3>();
         public Vector2[] TexCoords = Array.Empty<Vector2>();
@@ -90,6 +92,8 @@ public class PmxRenderer : IDisposable
     private int _modelColorLoc;
     private int _modelTexLoc;
     private int _modelUseTexLoc;
+    private int _modelToonTexLoc;
+    private int _modelUseToonTexLoc;
     private int _modelLightDirLoc;
     private int _modelViewDirLoc;
     private int _modelShadeShiftLoc;
@@ -222,6 +226,8 @@ in vec2 vTex;
 uniform vec4 uColor;
 uniform sampler2D uTex;
 uniform bool uUseTex;
+uniform sampler2D uToonTex;
+uniform bool uUseToonTex;
 uniform vec3 uLightDir;
 uniform vec3 uViewDir;
 uniform float uShadeShift;
@@ -233,8 +239,9 @@ void main(){
     vec4 base = uUseTex ? texture(uTex, vTex) : uColor;
     float ndotl = max(dot(normalize(vNormal), normalize(uLightDir)), 0.0);
     float light = clamp((ndotl + uShadeShift) * uShadeToony, 0.0, 1.0);
+    vec3 shade = uUseToonTex ? texture(uToonTex, vec2(0.5, 1.0 - light)).rgb : vec3(light);
     float rim = pow(1.0 - max(dot(normalize(vNormal), normalize(uViewDir)), 0.0), 3.0) * uRimIntensity;
-    vec3 color = base.rgb * (light + uAmbient) + base.rgb * rim;
+    vec3 color = base.rgb * (shade + uAmbient) + base.rgb * rim;
     FragColor = vec4(color, base.a);
 }";
         int mvs = GL.CreateShader(ShaderType.VertexShader);
@@ -255,6 +262,8 @@ void main(){
         _modelColorLoc = GL.GetUniformLocation(_modelProgram, "uColor");
         _modelTexLoc = GL.GetUniformLocation(_modelProgram, "uTex");
         _modelUseTexLoc = GL.GetUniformLocation(_modelProgram, "uUseTex");
+        _modelToonTexLoc = GL.GetUniformLocation(_modelProgram, "uToonTex");
+        _modelUseToonTexLoc = GL.GetUniformLocation(_modelProgram, "uUseToonTex");
         _modelLightDirLoc = GL.GetUniformLocation(_modelProgram, "uLightDir");
         _modelViewDirLoc = GL.GetUniformLocation(_modelProgram, "uViewDir");
         _modelShadeShiftLoc = GL.GetUniformLocation(_modelProgram, "uShadeShift");
@@ -886,6 +895,7 @@ void main(){
             if (rm.Vbo != 0) GL.DeleteBuffer(rm.Vbo);
             if (rm.Ebo != 0) GL.DeleteBuffer(rm.Ebo);
             if (rm.Texture != 0) GL.DeleteTexture(rm.Texture);
+            if (rm.ToonTexture != 0) GL.DeleteTexture(rm.ToonTexture);
         }
         _meshes.Clear();
         _indexToHumanoidName.Clear();
@@ -1071,6 +1081,35 @@ void main(){
                 rm.HasTexture = true;
             }
 
+            if (sm.ToonTextureBytes != null)
+            {
+                rm.ToonTexture = GL.GenTexture();
+                GL.BindTexture(TextureTarget.Texture2D, rm.ToonTexture);
+                var handle = System.Runtime.InteropServices.GCHandle.Alloc(sm.ToonTextureBytes, System.Runtime.InteropServices.GCHandleType.Pinned);
+                try
+                {
+#pragma warning disable CS0618
+                    GL.TexImage2D(
+                        (All)TextureTarget.Texture2D,
+                        0,
+                        (All)PixelInternalFormat.Rgba,
+                        sm.ToonTextureWidth,
+                        sm.ToonTextureHeight,
+                        0,
+                        (All)PixelFormat.Rgba,
+                        (All)PixelType.UnsignedByte,
+                        handle.AddrOfPinnedObject());
+#pragma warning restore CS0618
+                }
+                finally
+                {
+                    handle.Free();
+                }
+                GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureMinFilter, (int)TextureMinFilter.Linear);
+                GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureMagFilter, (int)TextureMagFilter.Linear);
+                rm.HasToonTexture = true;
+            }
+
             _meshes.Add(rm);
         }
     }
@@ -1160,12 +1199,30 @@ void main(){
             {
                 GL.Uniform1(_modelUseTexLoc, 0);
             }
+            if (rm.HasToonTexture)
+            {
+                GL.ActiveTexture(TextureUnit.Texture1);
+                GL.BindTexture(TextureTarget.Texture2D, rm.ToonTexture);
+                GL.Uniform1(_modelToonTexLoc, 1);
+                GL.Uniform1(_modelUseToonTexLoc, 1);
+                GL.ActiveTexture(TextureUnit.Texture0);
+            }
+            else
+            {
+                GL.Uniform1(_modelUseToonTexLoc, 0);
+            }
             GL.BindVertexArray(rm.Vao);
             GL.DrawElements(PrimitiveType.Triangles, rm.IndexCount, DrawElementsType.UnsignedInt, IntPtr.Zero);
             GL.BindVertexArray(0);
             if (rm.HasTexture)
             {
                 GL.BindTexture(TextureTarget.Texture2D, 0);
+            }
+            if (rm.HasToonTexture)
+            {
+                GL.ActiveTexture(TextureUnit.Texture1);
+                GL.BindTexture(TextureTarget.Texture2D, 0);
+                GL.ActiveTexture(TextureUnit.Texture0);
             }
         }
         GL.UseProgram(_program);

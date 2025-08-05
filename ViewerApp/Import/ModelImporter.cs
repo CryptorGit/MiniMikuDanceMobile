@@ -359,25 +359,23 @@ public class ModelImporter
                 }
             }
 
-            if (!string.IsNullOrEmpty(dir))
+            string? toonRelPath = null;
+            if (mat.SharedToonMode == SharedToonMode.SharedToon)
             {
-                string? toonPath = null;
-                if (mat.SharedToonMode == SharedToonMode.SharedToon)
-                {
-                    int toonIndex = mat.ToonTexture;
-                    var toonName = $"toon{toonIndex + 1:00}.bmp";
-                    var relPath = Path.Combine("toon", toonName);
-                    toonPath = Path.Combine(dir, relPath);
-                    smd.ToonTextureFilePath = relPath;
-                }
-                else if (mat.ToonTexture >= 0 && mat.ToonTexture < texList.Length)
-                {
-                    var toonName = texList[mat.ToonTexture]
-                        .Replace('\\', Path.DirectorySeparatorChar);
-                    toonPath = Path.Combine(dir, toonName);
-                    smd.ToonTextureFilePath = toonName;
-                }
-                if (toonPath != null && File.Exists(toonPath))
+                int toonIndex = mat.ToonTexture;
+                var toonName = $"toon{toonIndex + 1:00}.bmp";
+                toonRelPath = Path.Combine("toon", toonName);
+            }
+            else if (mat.ToonTexture >= 0 && mat.ToonTexture < texList.Length)
+            {
+                toonRelPath = texList[mat.ToonTexture]
+                    .Replace('\\', Path.DirectorySeparatorChar);
+            }
+            smd.ToonTextureFilePath = toonRelPath;
+            if (!string.IsNullOrEmpty(dir) && toonRelPath != null)
+            {
+                var toonPath = Path.Combine(dir, toonRelPath);
+                if (File.Exists(toonPath))
                 {
                     using var image = SixLabors.ImageSharp.Image.Load<Rgba32>(toonPath);
                     smd.ToonTextureWidth = image.Width;
