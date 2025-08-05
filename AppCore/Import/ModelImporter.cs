@@ -42,6 +42,7 @@ public class MorphOffset
 public class ModelImporter
 {
     private readonly AssimpContext _context = new();
+    private readonly PmxLoader _pmxLoader = new();
     public float Scale { get; set; } = 1.0f;
 
     public ModelData ImportModel(Stream stream, string? textureDir = null)
@@ -85,7 +86,8 @@ public class ModelImporter
 
     private ModelData ImportPmx(Stream stream, string? textureDir = null)
     {
-        var pmx = PMXParser.Parse(stream);
+        var pmxFile = _pmxLoader.Load(stream);
+        var pmx = pmxFile.Model;
         var verts = pmx.VertexList.ToArray();
         var faces = pmx.SurfaceList.ToArray();
         var mats = pmx.MaterialList.ToArray();
