@@ -76,6 +76,16 @@
                         <TapGestureRecognizer Tapped="OnAdaptPoseClicked" />
                     </Label.GestureRecognizers>
                 </Label>
+                <Label Text="Save Pose" TextColor="{StaticResource TextColor}">
+                    <Label.GestureRecognizers>
+                        <TapGestureRecognizer Tapped="OnSavePoseClicked" />
+                    </Label.GestureRecognizers>
+                </Label>
+                <Label Text="Load Pose" TextColor="{StaticResource TextColor}">
+                    <Label.GestureRecognizers>
+                        <TapGestureRecognizer Tapped="OnLoadPoseClicked" />
+                    </Label.GestureRecognizers>
+                </Label>
             </VerticalStackLayout>
         </Frame>
         <Frame x:Name="SettingMenu" IsVisible="False" BackgroundColor="{StaticResource BackgroundColor}" Padding="8" ZIndex="20">

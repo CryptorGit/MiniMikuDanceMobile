@@ -118,4 +118,30 @@ public partial class PoseEditorView : ContentView
 
         e.Handled = true;
     }
+
+    public void RefreshIkGoalList()
+    {
+        if (Renderer == null)
+            return;
+        IkGoalList.Children.Clear();
+        foreach (var (idx, name, enabled) in Renderer.GetIkGoals())
+        {
+            var sw = new Switch { IsToggled = enabled };
+            sw.Toggled += (s, e) =>
+            {
+                Renderer.SetIkGoalEnabled(idx, e.Value);
+                Renderer.Render();
+            };
+            var lbl = new Label
+            {
+                Text = name,
+                TextColor = (Color)Application.Current.Resources["TextColor"],
+                VerticalOptions = LayoutOptions.Center
+            };
+            var hs = new HorizontalStackLayout { Spacing = 6 };
+            hs.Children.Add(sw);
+            hs.Children.Add(lbl);
+            IkGoalList.Children.Add(hs);
+        }
+    }
 }
