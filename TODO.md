@@ -2,14 +2,14 @@
 - [x] FABRIK/解析IKの実装と統合
 - [x] Microsoft.Maui.Controls と Microsoft.Maui.Graphics.Skia を 9.0.70 に更新し、パッケージダウングレード警告を解消
 - [x] Microsoft.ML.OnnxRuntime を 1.17.3 に更新し、16KB ページサイズ警告を解消
-- [ ] PMX マテリアルの詳細設定（スフィアマップ等）の実装 - スフィアマップ読み込みに着手
+- [x] PMX マテリアルの詳細設定（スフィアマップ等）の実装
 - [ ] Toon テクスチャの読み込みと適用に対応する
 - [ ] Android SDK をセットアップしてソリューション全体のビルドを確認
   - [ ] API レベル 35 の Android SDK プラットフォームをインストールし、`dotnet build` の XA5207 エラーを解消する
 - [x] AppCore/Import/ModelImporter.cs の構文エラーを修正する
 - [x] ドキュメントの PMX 向け整理（README などの更新）
+- [x] PmxRenderer の PMX 対応の拡充
 - [x] PmxLoader の詳細実装
-- [ ] PmxRenderer の PMX 対応の拡充
 - [x] PmxRenderer の型参照を統一する
 - [x] 半透明メッシュの深度ソート対応（複数透明メッシュで描画確認）
 - [x] Tools/Program.cs と不要な解析プロジェクトを削除し、ソリューションから除外
