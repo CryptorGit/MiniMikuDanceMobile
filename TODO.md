@@ -1,0 +1,1 @@
+- [ ] BottomRegion.IsVisible の設定タイミングを引き続き調査し、必要に応じて適切な位置で true に設定する。

@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using Microsoft.Maui.Controls;
+using Microsoft.Maui.Graphics;
 
 namespace MiniMikuDanceMaui;
 
@@ -42,6 +43,21 @@ public partial class ExplorerView : ContentView
             .ThenBy(f => f.Name)
             .ToList();
         FileList.ItemsSource = items;
+        if (items.Count == 0)
+        {
+            var textColor = (Color)Application.Current.Resources["TextColor"];
+            FileList.EmptyView = new Label
+            {
+                Text = "フォルダが空です",
+                TextColor = textColor,
+                HorizontalTextAlignment = TextAlignment.Center,
+                VerticalTextAlignment = TextAlignment.Center
+            };
+        }
+        else
+        {
+            FileList.EmptyView = null;
+        }
     }
 
     private void UpdatePathDisplay()

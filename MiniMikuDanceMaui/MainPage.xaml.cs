@@ -797,6 +797,7 @@ private void ShowBottomFeature(string name)
         if (name == "Explorer")
         {
             var ev = new ExplorerView(MmdFileSystem.BaseDir);
+            LogService.WriteLine("ShowBottomFeature: loading base directory for Explorer");
             ev.LoadDirectory(MmdFileSystem.BaseDir);
             view = ev;
         }
@@ -805,6 +806,7 @@ private void ShowBottomFeature(string name)
             var modelsPath = MmdFileSystem.Ensure("Models");
             var ev = new ExplorerView(modelsPath, new[] { ".pmx", ".pmd" });
             ev.FileSelected += OnOpenExplorerFileSelected;
+            LogService.WriteLine($"ShowBottomFeature: loading models directory {modelsPath}");
             ev.LoadDirectory(modelsPath);
             view = ev;
         }
@@ -813,6 +815,7 @@ private void ShowBottomFeature(string name)
             var videoPath = MmdFileSystem.Ensure("Movie");
             var ev = new ExplorerView(videoPath, new[] { ".mp4" });
             ev.FileSelected += OnAnalyzeExplorerFileSelected;
+            LogService.WriteLine($"ShowBottomFeature: loading movie directory {videoPath}");
             ev.LoadDirectory(videoPath);
             view = ev;
         }
@@ -821,6 +824,7 @@ private void ShowBottomFeature(string name)
             var posePath = MmdFileSystem.Ensure("Poses");
             var ev = new ExplorerView(posePath, new[] { ".csv" });
             ev.FileSelected += OnAdaptExplorerFileSelected;
+            LogService.WriteLine($"ShowBottomFeature: loading poses directory {posePath}");
             ev.LoadDirectory(posePath);
             view = ev;
         }
@@ -1094,16 +1098,19 @@ private void ShowBottomFeature(string name)
     else if (name == "Open" && _bottomViews[name] is ExplorerView oev)
     {
         var modelsPath = MmdFileSystem.Ensure("Models");
+        LogService.WriteLine($"ShowBottomFeature: reloading models directory {modelsPath}");
         oev.LoadDirectory(modelsPath);
     }
     else if (name == "Analyze" && _bottomViews[name] is ExplorerView aev)
     {
         var videoPath = MmdFileSystem.Ensure("Movie");
+        LogService.WriteLine($"ShowBottomFeature: reloading movie directory {videoPath}");
         aev.LoadDirectory(videoPath);
     }
     else if (name == "Adapt" && _bottomViews[name] is ExplorerView aev2)
     {
         var posePath = MmdFileSystem.Ensure("Poses");
+        LogService.WriteLine($"ShowBottomFeature: reloading poses directory {posePath}");
         aev2.LoadDirectory(posePath);
     }
     else if (name == "MTOON" && _bottomViews[name] is LightingView lv)
@@ -1116,6 +1123,7 @@ private void ShowBottomFeature(string name)
     SwitchBottomFeature(name);
     var bottomRegion = BottomRegion ?? throw new InvalidOperationException();
     bottomRegion.IsVisible = true;
+    LogService.WriteLine($"BottomRegion.IsVisible set to true for {name}");
     UpdateLayout();
 }
 
@@ -1344,7 +1352,11 @@ private async void ShowModelExplorer()
         return;
     }
 
-    ShowExplorer("Open", PmxImportDialog, SelectedModelPath, ref _selectedModelPath);
+    MainThread.BeginInvokeOnMainThread(() =>
+    {
+        LogService.WriteLine("ShowExplorer(Open) called on UI thread");
+        ShowExplorer("Open", PmxImportDialog, SelectedModelPath, ref _selectedModelPath);
+    });
 }
 
 private void OnOpenExplorerFileSelected(object? sender, string path)
