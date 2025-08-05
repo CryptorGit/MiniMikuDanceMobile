@@ -1359,7 +1359,7 @@ private async void OnImportPmxClicked(object? sender, EventArgs e)
     catch (Exception ex)
     {
         await DisplayAlert("Error", ex.Message, "OK");
-        LogService.WriteLine($"Import failed: {ex.Message}");
+        LogService.WriteLine($"Import failed: {ex.Message}", LogService.LogLevel.Error);
     }
     finally
     {
