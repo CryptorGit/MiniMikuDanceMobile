@@ -21,7 +21,6 @@ using System.Runtime.Versioning;
 using MiniMikuDance.Util;
 using MiniMikuDance.PoseEstimation;
 using MiniMikuDance.Motion;
-using MiniMikuDance.Camera;
 using MiniMikuDance.App;
 using MiniMikuDance.Import;
 using System.Text.Json;
@@ -54,7 +53,6 @@ public partial class MainPage : ContentPage
     private readonly AppSettings _settings = AppSettings.Load();
 
     private readonly PmxRenderer _renderer = new();
-    private readonly CameraController _cameraController = new();
     private float _rotateSensitivity = 0.1f;
     private float _panSensitivity = 1f;
     private float _shadeShift = -0.1f;
@@ -321,12 +319,6 @@ private void OnFileMenuTapped(object? sender, TappedEventArgs e)
 }
 
 
-private async void OnSelectClicked(object? sender, EventArgs e)
-{
-    HideAllMenusAndLayout();
-    await ShowModelSelector();
-}
-
 private void OnBoneClicked(object? sender, EventArgs e)
 {
     ShowBottomFeature("BONE");
@@ -374,11 +366,6 @@ private void OnCloseBottomTapped(object? sender, TappedEventArgs e)
 }
 
 private void OnOverlayTapped(object? sender, TappedEventArgs e)
-{
-    HideAllMenusAndLayout();
-}
-
-private void OnBottomRegionTapped(object? sender, TappedEventArgs e)
 {
     HideAllMenusAndLayout();
 }
@@ -1179,12 +1166,6 @@ private void RemoveBottomFeature(string name)
     }
 }
 
-private async void OnAddToLibraryClicked(object? sender, EventArgs e)
-{
-    HideFileMenu(FileMenu ?? throw new InvalidOperationException());
-    await AddToLibraryAsync();
-}
-
 private async Task AddToLibraryAsync()
 {
 
@@ -1357,7 +1338,7 @@ private async void OnImportPmxClicked(object? sender, EventArgs e)
     catch (Exception ex)
     {
         await DisplayAlert("Error", ex.Message, "OK");
-        LogService.WriteLine($"Import failed: {ex.Message}");
+        LogService.WriteLine($"Import failed: {ex.Message}", LogService.LogLevel.Error);
     }
     finally
     {
@@ -1959,44 +1940,6 @@ private void OnBoneAxisValueChanged(double v)
     SavePoseState();
     Viewer?.InvalidateSurface();
 }
-private void OnPlayAnimationRequested()
-{
-    try
-    {
-        var player = App.Initializer.MotionPlayer;
-        var motion = App.Initializer.Motion;
-        if (player == null || motion == null)
-            return;
-
-        if (player.IsPlaying)
-        {
-            player.Pause();
-        }
-        else
-        {
-            if (player.FrameIndex >= motion.Frames.Length)
-                player.Restart();
-            else if (player.FrameIndex == 0)
-                player.Play(motion);
-            else
-                player.Resume();
-        }
-    }
-    catch (Exception)
-    {
-        // Handle exception
-    }
-}
-
-private void OnAnimationFrameChanged(int frame)
-{
-    var player = App.Initializer.MotionPlayer;
-    if (player == null)
-        return;
-    player.Seek(frame);
-    Viewer?.InvalidateSurface();
-}
-
 private void OnTimelineFrameChanged(int frame)
 {
     if (_currentModel == null)

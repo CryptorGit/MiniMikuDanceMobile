@@ -9,6 +9,6 @@ public class LogTraceListener : TraceListener
     public override void WriteLine(string? message)
     {
         if (!string.IsNullOrEmpty(message))
-            LogService.AddExternalLine(message);
+            LogService.AddExternalLine(message, LogService.LogLevel.Debug);
     }
 }

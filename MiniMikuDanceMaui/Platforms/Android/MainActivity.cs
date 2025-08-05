@@ -1,7 +1,6 @@
 using Android.App;
 using Android.Content.PM;
 using Microsoft.Maui;
-using Microsoft.Maui.Hosting;
 
 namespace MiniMikuDanceMaui;
 

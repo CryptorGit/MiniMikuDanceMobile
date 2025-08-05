@@ -25,3 +25,15 @@
 # Data folders
 MiniMikuDance/data/
 
+# パッケージ生成物
+*.nupkg
+*.snupkg
+
+# テスト結果・ログ
+TestResult*/
+*.log
+
+# OS ごとの不要ファイル
+.DS_Store
+Thumbs.db
+

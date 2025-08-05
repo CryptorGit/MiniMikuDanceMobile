@@ -7,9 +7,7 @@ using MiniMikuDance.Util;
 using MiniMikuDance.PoseEstimation;
 using System;
 using System.IO;
-using System.Numerics;
 using System.Threading.Tasks;
-using System.Diagnostics;
 using OpenTK.Mathematics;
 
 namespace MiniMikuDance.App;
@@ -17,7 +15,7 @@ namespace MiniMikuDance.App;
 public partial class AppInitializer : IDisposable
 {
     public ViewerApp.Viewer? Viewer { get; private set; }
-    public MotionPlayer? MotionPlayer { get; private set; }
+    public MotionPlayer MotionPlayer { get; private set; } = new();
     public MotionApplier? Applier { get; private set; }
 
     /// <summary>
@@ -54,7 +52,6 @@ public partial class AppInitializer : IDisposable
         _poseOutputDir = Path.Combine(baseDir, "Poses");
         Directory.CreateDirectory(_poseOutputDir);
 
-        MotionPlayer = new MotionPlayer();
         Camera = new CameraController();
         Recorder = new RecorderController(Path.Combine(baseDir, "Recordings"));
 
@@ -82,7 +79,6 @@ public partial class AppInitializer : IDisposable
         var model = importer.ImportModel(modelPath);
 
         Applier = new MotionApplier(model);
-        MotionPlayer ??= new MotionPlayer();
         MotionPlayer.OnFramePlayed += (joint) =>
         {
             if (Applier == null) return;
@@ -156,7 +152,7 @@ public partial class AppInitializer : IDisposable
 
     public void PlayMotion()
     {
-        if (MotionPlayer == null || Motion == null)
+        if (Motion == null)
             return;
         MotionPlayer.Play(Motion);
     }

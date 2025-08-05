@@ -40,12 +40,6 @@
     <MauiAsset Include="..\Configs\UIConfig.json">
       <Link>Configs\UIConfig.json</Link>
     </MauiAsset>
-    <MauiAsset Include="..\Configs\style_tokens_dark.json">
-      <Link>Configs\style_tokens_dark.json</Link>
-    </MauiAsset>
-    <MauiAsset Include="..\Configs\style_tokens_light.json">
-      <Link>Configs\style_tokens_light.json</Link>
-    </MauiAsset>
     <MauiAsset Include="..\StreamingAssets\PoseEstimation\pose_landmark_full.onnx">
       <Link>StreamingAssets\PoseEstimation\pose_landmark_full.onnx</Link>
     </MauiAsset>
