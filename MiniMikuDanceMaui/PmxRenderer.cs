@@ -66,6 +66,7 @@ public class PmxRenderer : IDisposable
     private int _ikBoneVbo;
     private readonly List<int> _ikBoneOffsets = new();
     private readonly List<int> _ikBoneCounts = new();
+    private readonly List<Vector3> _ikTargets = new();
     private const int IkBoneSegments = 16;
     private static readonly Vector4 IkBoneColor = new(1f, 1f, 0f, 1f);
     private float _ikBoneRadius = 0.05f;
@@ -470,6 +471,7 @@ void main(){
                     rm.Vertices[i] = _morphedVertices[bi];
             }
         }
+        SolveIk();
         UpdateSkinningBuffers();
     }
 
@@ -492,6 +494,97 @@ void main(){
     {
         _boneTranslations.Clear();
         _boneTranslations.AddRange(list);
+    }
+
+    private void SolveIk()
+    {
+        if (_bones.Count == 0 || _ikTargets.Count == 0)
+            return;
+
+        var tempBones = new List<BoneData>(_bones.Count);
+        for (int i = 0; i < _bones.Count; i++)
+        {
+            var b = _bones[i];
+            tempBones.Add(new BoneData
+            {
+                Name = b.Name,
+                Parent = b.Parent,
+                Rotation = b.Rotation,
+                Translation = b.Translation,
+                BindMatrix = b.BindMatrix,
+                InverseBindMatrix = b.InverseBindMatrix,
+                IsIk = b.IsIk,
+                IkTargetIndex = b.IkTargetIndex,
+                IkChainIndices = new List<int>(b.IkChainIndices),
+                IkLoopCount = b.IkLoopCount,
+                IkAngleLimit = b.IkAngleLimit
+            });
+        }
+
+        for (int i = 0; i < tempBones.Count; i++)
+        {
+            if (i < _boneRotations.Count)
+            {
+                var e = _boneRotations[i].ToNumerics();
+                tempBones[i].Rotation *= e.FromEulerDegrees();
+            }
+            if (i < _boneTranslations.Count)
+            {
+                tempBones[i].Translation += _boneTranslations[i].ToNumerics();
+            }
+        }
+
+        List<int> torso = new();
+        List<int> head = new();
+        List<int> legs = new();
+        List<int> arms = new();
+        for (int i = 0; i < tempBones.Count && i < _ikTargets.Count; i++)
+        {
+            var b = tempBones[i];
+            if (!b.IsIk)
+                continue;
+            string name = _indexToHumanoidName.TryGetValue(b.IkTargetIndex, out var n) ? n.ToLower() : string.Empty;
+            if (name.Contains("head") || name.Contains("neck"))
+                head.Add(i);
+            else if (name.Contains("leg") || name.Contains("foot"))
+                legs.Add(i);
+            else if (name.Contains("arm") || name.Contains("hand"))
+                arms.Add(i);
+            else
+                torso.Add(i);
+        }
+
+        void SolveList(List<int> list)
+        {
+            foreach (var idx in list)
+            {
+                var b = tempBones[idx];
+                var chain = new List<int>(b.IkChainIndices);
+                chain.Reverse();
+                chain.Add(b.IkTargetIndex);
+                var target = _ikTargets[idx].ToNumerics();
+                IKSolver.SolveChain(tempBones, chain, target);
+            }
+        }
+
+        SolveList(torso);
+        SolveList(head);
+        SolveList(legs);
+        SolveList(arms);
+
+        _boneRotations.Clear();
+        _boneTranslations.Clear();
+        for (int i = 0; i < tempBones.Count; i++)
+        {
+            var deltaQuat = tempBones[i].Rotation * System.Numerics.Quaternion.Inverse(_bones[i].Rotation);
+            var euler = deltaQuat.ToEulerDegrees().ToOpenTK();
+            _boneRotations.Add(euler);
+            var trans = (tempBones[i].Translation - _bones[i].Translation).ToOpenTK();
+            _boneTranslations.Add(trans);
+        }
+
+        if (ShowIkBones)
+            RebuildIkBoneMesh();
     }
 
     private void UpdateSkinningBuffers()
@@ -592,12 +685,12 @@ void main(){
         float ikRadius = IkBoneRadius;
         if (_defaultCameraDistance > 0f)
             ikRadius *= _distance / _defaultCameraDistance;
-        for (int i = 0; i < _bones.Count; i++)
+        for (int i = 0; i < _bones.Count && i < _ikTargets.Count; i++)
         {
             var bone = _bones[i];
             if (!bone.IsIk)
                 continue;
-            var cp = _worldMats[i].Translation;
+            var cp = _ikTargets[i];
             var c4 = Vector4.TransformRow(new Vector4(cp.X, cp.Y, cp.Z, 1f), modelMat);
             _ikBoneOffsets.Add(verts.Count / 3);
             verts.Add(c4.X); verts.Add(c4.Y); verts.Add(c4.Z);
@@ -640,12 +733,12 @@ void main(){
         Matrix4 proj = Matrix4.CreatePerspectiveFieldOfView(MathHelper.PiOver4, aspect, 0.1f, 1000f);
         var modelMat = _modelTransform;
 
-        for (int i = 0; i < _bones.Count; i++)
+        for (int i = 0; i < _bones.Count && i < _ikTargets.Count; i++)
         {
             var bone = _bones[i];
             if (!bone.IsIk)
                 continue;
-            var cp = _worldMats[i].Translation;
+            var cp = _ikTargets[i];
             var p = new Vector4(cp.X, cp.Y, cp.Z, 1f);
             p = Vector4.TransformRow(p, modelMat);
             p = Vector4.TransformRow(p, view);
@@ -701,14 +794,9 @@ void main(){
         if (!bone.IsIk)
             return;
 
-        bone.Translation = pos;
-
-        var chain = new List<int>(bone.IkChainIndices);
-        chain.Reverse();
-        chain.Add(bone.IkTargetIndex);
-        IKSolver.SolveChain(_bones, chain, pos);
-        UpdateSkinningBuffers();
-        RebuildIkBoneMesh();
+        while (_ikTargets.Count <= index)
+            _ikTargets.Add(Vector3.Zero);
+        _ikTargets[index] = pos;
     }
 
     public void LoadModel(ModelData data)
@@ -777,6 +865,21 @@ void main(){
         {
             _indexToHumanoidName[idx] = name;
         }
+
+        _ikTargets.Clear();
+        var initWorld = new System.Numerics.Matrix4x4[_bones.Count];
+        for (int i = 0; i < _bones.Count; i++)
+        {
+            var b = _bones[i];
+            var local = System.Numerics.Matrix4x4.CreateFromQuaternion(b.Rotation) *
+                        System.Numerics.Matrix4x4.CreateTranslation(b.Translation);
+            if (b.Parent >= 0)
+                initWorld[i] = local * initWorld[b.Parent];
+            else
+                initWorld[i] = local;
+            _ikTargets.Add(new Vector3(initWorld[i].Translation.X, initWorld[i].Translation.Y, initWorld[i].Translation.Z));
+        }
+        _worldMats = initWorld;
 
         _modelTransform = data.Transform.ToMatrix4();
 
@@ -912,6 +1015,7 @@ void main(){
         // CPU skinning: update vertex buffers based on current bone rotations
         if (_bones.Count > 0)
         {
+            SolveIk();
             UpdateSkinningBuffers();
 
             if (ShowBoneOutline)
@@ -945,8 +1049,6 @@ void main(){
             {
                 _boneVertexCount = 0;
             }
-
-            RebuildIkBoneMesh();
         }
 
         GL.UseProgram(_modelProgram);
