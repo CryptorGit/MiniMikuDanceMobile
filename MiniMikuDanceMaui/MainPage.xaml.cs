@@ -49,6 +49,7 @@ public partial class MainPage : ContentPage
     private readonly Dictionary<string, Border> _bottomTabs = new();
     private string? _currentFeature;
     private string? _selectedModelPath;
+    private string? _selectedTexturePath;
     private string? _selectedVideoPath;
     private string? _selectedPosePath;
     private readonly AppSettings _settings = AppSettings.Load();
@@ -1228,12 +1229,29 @@ private void OnOpenInViewerClicked(object? sender, EventArgs e)
     PmxImportDialog.IsVisible = true;
     SelectedModelPath.Text = string.Empty;
     _selectedModelPath = null;
+    SelectedTexturePath.Text = string.Empty;
+    _selectedTexturePath = null;
+    ScaleEntry.Text = "1.0";
     UpdateLayout();
 }
 
 private void OnSelectPmxModelClicked(object? sender, EventArgs e)
 {
     ShowModelExplorer();
+}
+
+private async void OnSelectTextureClicked(object? sender, EventArgs e)
+{
+    var result = await FilePicker.Default.PickAsync(new PickOptions
+    {
+        PickerTitle = "Select Texture File",
+        FileTypes = FilePickerFileType.Images
+    });
+    if (result != null)
+    {
+        _selectedTexturePath = Path.GetDirectoryName(result.FullPath);
+        SelectedTexturePath.Text = _selectedTexturePath;
+    }
 }
 
 private void OnEstimatePoseClicked(object? sender, EventArgs e)
@@ -1350,8 +1368,20 @@ private async void OnImportPmxClicked(object? sender, EventArgs e)
 
     try
     {
-        var importer = new ModelImporter { Scale = 1.0f };
-        var data = await Task.Run(() => importer.ImportModel(_selectedModelPath));
+        float scale = 1.0f;
+        if (!float.TryParse(ScaleEntry.Text, out scale))
+            scale = 1.0f;
+        var importer = new ModelImporter { Scale = scale };
+        MiniMikuDance.Import.ModelData data;
+        if (!string.IsNullOrEmpty(_selectedTexturePath))
+        {
+            using var fs = File.OpenRead(_selectedModelPath);
+            data = await Task.Run(() => importer.ImportModel(fs, _selectedTexturePath));
+        }
+        else
+        {
+            data = await Task.Run(() => importer.ImportModel(_selectedModelPath));
+        }
 
         _pendingModel = data;
         Viewer.InvalidateSurface();
@@ -1367,14 +1397,20 @@ private async void OnImportPmxClicked(object? sender, EventArgs e)
         SetLoadingIndicatorVisibilityAndLayout(false);
         _selectedModelPath = null;
         SelectedModelPath.Text = string.Empty;
+        _selectedTexturePath = null;
+        SelectedTexturePath.Text = string.Empty;
+        ScaleEntry.Text = "1.0";
     }
 }
 
 private void OnCancelImportClicked(object? sender, EventArgs e)
 {
     _selectedModelPath = null;
+    _selectedTexturePath = null;
     PmxImportDialog.IsVisible = false;
     SelectedModelPath.Text = string.Empty;
+    SelectedTexturePath.Text = string.Empty;
+    ScaleEntry.Text = "1.0";
     SetLoadingIndicatorVisibilityAndLayout(false);
     UpdateLayout();
 }
