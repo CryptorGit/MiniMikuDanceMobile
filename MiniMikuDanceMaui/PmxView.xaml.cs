@@ -23,11 +23,13 @@ public partial class PmxView : ContentView
         if (_model == null)
         {
             WarningLabel.IsVisible = true;
+            InfoView.IsVisible = false;
             SubMeshList.IsVisible = false;
             return;
         }
 
         WarningLabel.IsVisible = false;
+        InfoView.SetModel(_model);
         var items = _model.SubMeshes.Select((s, i) => new SubMeshInfo
         {
             Index = i,
