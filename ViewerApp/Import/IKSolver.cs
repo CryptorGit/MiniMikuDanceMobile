@@ -31,6 +31,10 @@ public static class IKSolver
                 AnalyticTwoBoneSolver.Solve(bones, chain[0], chain[1], chain[2], target);
                 SolveCCD(bones, chain[2], target, 1, 1e-4f);
             }
+            else if (chain.Count == 2)
+            {
+                SolveElbowKnee(bones, chain[0], chain[1], target);
+            }
         }
         else
         {
@@ -53,7 +57,7 @@ public static class IKSolver
 
     private static bool IsLimbChain(IList<BoneData> bones, IList<int> chain)
     {
-        if (chain.Count != 3)
+        if (chain.Count < 2 || chain.Count > 3)
             return false;
         string name = bones[chain[0]].Name.ToLower();
         return name.Contains("arm") || name.Contains("leg");
@@ -100,6 +104,50 @@ public static class IKSolver
                 index = bones[index].Parent;
             }
         }
+    }
+
+    private static void SolveElbowKnee(IList<BoneData> bones, int rootIndex, int midIndex, Vector3 poleTarget)
+    {
+        int endIndex = FindChild(bones, midIndex);
+        if (endIndex < 0)
+            return;
+
+        var world = ComputeWorldTransforms(bones);
+        Vector3 endPos = world[endIndex].Translation;
+        AnalyticTwoBoneSolver.Solve(bones, rootIndex, midIndex, endIndex, endPos);
+
+        world = ComputeWorldTransforms(bones);
+        Vector3 rootPos = world[rootIndex].Translation;
+        Vector3 midPos = world[midIndex].Translation;
+        endPos = world[endIndex].Translation;
+
+        Vector3 axis = Vector3.Normalize(endPos - rootPos);
+        Vector3 currentPole = midPos - rootPos - axis * Vector3.Dot(midPos - rootPos, axis);
+        Vector3 desiredPole = poleTarget - rootPos - axis * Vector3.Dot(poleTarget - rootPos, axis);
+
+        if (currentPole.LengthSquared() < 1e-8f || desiredPole.LengthSquared() < 1e-8f)
+            return;
+
+        currentPole = Vector3.Normalize(currentPole);
+        desiredPole = Vector3.Normalize(desiredPole);
+
+        float angle = MathF.Atan2(Vector3.Dot(axis, Vector3.Cross(currentPole, desiredPole)), Vector3.Dot(currentPole, desiredPole));
+        if (MathF.Abs(angle) < 1e-5f)
+            return;
+
+        var rot = Quaternion.CreateFromAxisAngle(axis, angle);
+        bones[rootIndex].Rotation = Quaternion.Normalize(rot * bones[rootIndex].Rotation);
+        bones[midIndex].Rotation = Quaternion.Normalize(rot * bones[midIndex].Rotation);
+    }
+
+    private static int FindChild(IList<BoneData> bones, int parent)
+    {
+        for (int i = 0; i < bones.Count; i++)
+        {
+            if (bones[i].Parent == parent)
+                return i;
+        }
+        return -1;
     }
 
     private static Matrix4x4[] ComputeWorldTransforms(IList<BoneData> bones)
