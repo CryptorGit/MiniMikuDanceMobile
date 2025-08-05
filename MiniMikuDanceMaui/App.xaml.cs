@@ -1,3 +1,4 @@
+using Microsoft.Maui;
 using Microsoft.Maui.Controls;
 using Microsoft.Maui.Storage;
 using MiniMikuDance.App;
@@ -14,7 +15,7 @@ public partial class App : Application, IDisposable
 {
     public static AppInitializer Initializer { get; } = new();
 
-public App()
+    public App()
     {
         InitializeComponent();
 #if IOS
@@ -56,8 +57,11 @@ public App()
         }
 
         Initializer.Initialize(uiConfig, null, poseModel, MmdFileSystem.BaseDir);
+    }
 
-        MainPage = new NavigationPage(new MainPage());
+    protected override Window CreateWindow(IActivationState? activationState)
+    {
+        return new Window(new NavigationPage(new MainPage()));
     }
 
     public void Dispose()
