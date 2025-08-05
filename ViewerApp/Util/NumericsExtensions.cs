@@ -19,12 +19,6 @@ public static class NumericsExtensions
         return new OpenTK.Mathematics.Vector4(v.X, v.Y, v.Z, v.W);
     }
 
-    public static Matrix4 ToMatrix4(this System.Numerics.Quaternion q)
-    {
-        var oq = new OpenTK.Mathematics.Quaternion(q.X, q.Y, q.Z, q.W);
-        return Matrix4.CreateFromQuaternion(oq);
-    }
-
     // Z→X→Y 順を使用する
     public static System.Numerics.Quaternion FromEulerDegrees(this System.Numerics.Vector3 degrees)
     {

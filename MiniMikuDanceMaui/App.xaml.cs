@@ -52,7 +52,7 @@ public partial class App : Application, IDisposable
             }
             catch (Exception)
             {
-                LogService.WriteLine($"Error copying pose model.");
+                LogService.WriteLine("Error copying pose model.", LogService.LogLevel.Error);
             }
         }
 

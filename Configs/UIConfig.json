@@ -1,15 +1,33 @@
 {
   "buttons": [
-    { "label": "Load Model", "message": "load_model" },
-    { "label": "Analyze Video", "message": "analyze_video" },
-    { "label": "Generate Motion", "message": "generate_motion" },
-    { "label": "Play Motion", "message": "play_motion" },
-    { "label": "Record", "message": "toggle_record" },
-    { "label": "Export BVH", "message": "export_bvh" },
-    { "label": "Share", "message": "share_recording" }
-  ],
-  "toggles": [
-    { "label": "Smoothing", "id": "smoothing", "defaultValue": true }
+    {
+      "label": "Load Model",
+      "message": "load_model"
+    },
+    {
+      "label": "Analyze Video",
+      "message": "analyze_video"
+    },
+    {
+      "label": "Generate Motion",
+      "message": "generate_motion"
+    },
+    {
+      "label": "Play Motion",
+      "message": "play_motion"
+    },
+    {
+      "label": "Record",
+      "message": "toggle_record"
+    },
+    {
+      "label": "Export BVH",
+      "message": "export_bvh"
+    },
+    {
+      "label": "Share",
+      "message": "share_recording"
+    }
   ],
   "showProgressBar": true,
   "showMessage": true,

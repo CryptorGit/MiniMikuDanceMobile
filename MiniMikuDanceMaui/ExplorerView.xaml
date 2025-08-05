@@ -6,7 +6,7 @@
              x:DataType="local:ExplorerViewModel"
              BackgroundColor="{DynamicResource BackgroundColor}">
     <Grid RowDefinitions="Auto,*">
-        <Grid ColumnDefinitions="Auto,*" Padding="8" x:Name="TopBar" HeightRequest="40">
+        <Grid ColumnDefinitions="Auto,*" Padding="8" HeightRequest="40">
             <Label Text="↑" TextColor="{StaticResource TextColor}" Margin="0,0,16,0" VerticalTextAlignment="Center">
                 <Label.GestureRecognizers>
                     <TapGestureRecognizer Tapped="OnUpClicked" />
