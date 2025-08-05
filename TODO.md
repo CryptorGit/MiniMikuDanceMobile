@@ -49,7 +49,7 @@
   - [x] IKゴールのON/OFFトグルUIを追加し、SolveIkで無効ゴールをスキップ
   - [x] PoseSnapshotでゴールとボーン情報を保存・復元
   - [x] ゴール配置の保存／読み込みメニューを追加
+- [x] Pose Editorで肘／膝ゴールの曲がり方向が意図通り変化することを手動確認する
 - [x] Pose Editorで腰IKのドラッグ追従を手動確認する
-- [ ] Pose Editorで肘／膝ゴールの曲がり方向が意図通り変化することを手動確認する
 - [ ] FrameをBorderへ置換した箇所のレイアウトとスタイルを実機で確認する
   - dotnet build が TerminalLogger の内部エラーで失敗し、実機での確認未実施
