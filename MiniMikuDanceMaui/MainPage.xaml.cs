@@ -21,7 +21,6 @@ using System.Runtime.Versioning;
 using MiniMikuDance.Util;
 using MiniMikuDance.PoseEstimation;
 using MiniMikuDance.Motion;
-using MiniMikuDance.Camera;
 using MiniMikuDance.App;
 using MiniMikuDance.Import;
 using System.Text.Json;
@@ -54,7 +53,6 @@ public partial class MainPage : ContentPage
     private readonly AppSettings _settings = AppSettings.Load();
 
     private readonly PmxRenderer _renderer = new();
-    private readonly CameraController _cameraController = new();
     private float _rotateSensitivity = 0.1f;
     private float _panSensitivity = 1f;
     private float _shadeShift = -0.1f;
