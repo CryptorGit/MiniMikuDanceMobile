@@ -459,6 +459,11 @@ void main(){
     public void SetMorphWeight(string name, float weight)
     {
         _morphWeights[name] = weight;
+        UpdateMorphs();
+    }
+
+    public void UpdateMorphs()
+    {
         if (_baseVertices.Length == 0)
             return;
 

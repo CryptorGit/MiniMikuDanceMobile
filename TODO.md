@@ -8,7 +8,7 @@
 - [ ] AppCore/Import/ModelImporter.cs の構文エラーを修正する
 - [x] ドキュメントの PMX 向け整理（README などの更新）
 - [ ] PmxLoader の詳細実装
-- [ ] PmxRenderer の PMX 対応の拡充
+- [x] PmxRenderer の PMX 対応の拡充
 - [x] PmxRenderer の型参照を統一する
 - [ ] 半透明メッシュの深度ソート対応
 - [x] Tools/Program.cs と不要な解析プロジェクトを削除し、ソリューションから除外
@@ -40,7 +40,7 @@
 - [ ] MorphViewで同名モーフが個別スライダーとして表示されることを確認する
 - [ ] 11点IKボーン生成を実装
 - [x] 既存IKボーン利用ロジックを追加
-- [ ] ツイスト補正の導入
+- [x] ツイスト補正の導入
 - [ ] IKゴール管理とポーズ保存機能
   - [x] IKゴールのON/OFFトグルUIを追加し、SolveIkで無効ゴールをスキップ
   - [x] PoseSnapshotでゴールとボーン情報を保存・復元
