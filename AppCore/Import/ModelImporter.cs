@@ -394,8 +394,9 @@ public class ModelImporter
             if (!string.IsNullOrEmpty(dir) && mat.Texture >= 0 && mat.Texture < texList.Length)
             {
                 var texName = texList[mat.Texture]
-                    .Replace('\\', Path.DirectorySeparatorChar);
-                var texPath = Path.Combine(dir, texName);
+                    .Replace('\\', Path.DirectorySeparatorChar)
+                    .Replace('/', Path.DirectorySeparatorChar);
+                var texPath = Path.GetFullPath(Path.Combine(dir, texName));
                 smd.TextureFilePath = texName;
                 if (File.Exists(texPath))
                 {
@@ -418,9 +419,10 @@ public class ModelImporter
 
             if (!string.IsNullOrEmpty(dir) && sphereIndex >= 0 && sphereIndex < texList.Length)
             {
-                var sphereName = texList[sphereIndex]
-                    .Replace('\\', Path.DirectorySeparatorChar);
-                var spherePath = Path.Combine(dir, sphereName);
+                var sphereName = texList[mat.SphereTextre]
+                    .Replace('\\', Path.DirectorySeparatorChar)
+                    .Replace('/', Path.DirectorySeparatorChar);
+                var spherePath = Path.GetFullPath(Path.Combine(dir, sphereName));
                 smd.SphereTextureFilePath = sphereName;
                 if (File.Exists(spherePath))
                 {
@@ -440,14 +442,15 @@ public class ModelImporter
                     int toonIndex = mat.ToonTexture;
                     var toonName = $"toon{toonIndex + 1:00}.bmp";
                     var relPath = Path.Combine("toon", toonName);
-                    toonPath = Path.Combine(dir, relPath);
+                    toonPath = Path.GetFullPath(Path.Combine(dir, relPath));
                     smd.ToonTextureFilePath = relPath;
                 }
                 else if (mat.ToonTexture >= 0 && mat.ToonTexture < texList.Length)
                 {
                     var toonName = texList[mat.ToonTexture]
-                        .Replace('\\', Path.DirectorySeparatorChar);
-                    toonPath = Path.Combine(dir, toonName);
+                        .Replace('\\', Path.DirectorySeparatorChar)
+                        .Replace('/', Path.DirectorySeparatorChar);
+                    toonPath = Path.GetFullPath(Path.Combine(dir, toonName));
                     smd.ToonTextureFilePath = toonName;
                 }
                 if (toonPath != null && File.Exists(toonPath))
