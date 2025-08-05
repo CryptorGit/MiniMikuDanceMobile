@@ -5,8 +5,7 @@
     { "label": "Generate Motion", "message": "generate_motion" },
     { "label": "Play Motion", "message": "play_motion" },
     { "label": "Record", "message": "toggle_record" },
-    { "label": "Export BVH", "message": "export_bvh" },
-    { "label": "Share", "message": "share_recording" }
+    { "label": "Export BVH", "message": "export_bvh" }
   ],
   "toggles": [
     { "label": "Smoothing", "id": "smoothing", "defaultValue": true }
