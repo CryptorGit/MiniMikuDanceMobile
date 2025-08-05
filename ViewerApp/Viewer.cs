@@ -9,6 +9,7 @@ using OpenTK.Windowing.Common;
 using OpenTK.Windowing.Desktop;
 using OpenTK.Windowing.GraphicsLibraryFramework;
 using ViewerApp.Import;
+using MiniMikuDance.Util;
 
 namespace ViewerApp;
 
@@ -57,7 +58,7 @@ public class Viewer : IDisposable
 
         var importer = new ModelImporter { Scale = scale };
         var model = importer.ImportModel(modelPath);
-        _modelTransform = ToMatrix4(model.Transform);
+        _modelTransform = model.Transform.ToMatrix4();
 
         const string vert = "#version 330 core\n" +
                            "layout(location=0) in vec3 aPos;\n" +
@@ -191,15 +192,6 @@ public class Viewer : IDisposable
     public void SetViewMatrix(Matrix4 view)
     {
         _view = view;
-    }
-
-    private static Matrix4 ToMatrix4(System.Numerics.Matrix4x4 m)
-    {
-        return new Matrix4(
-            m.M11, m.M12, m.M13, m.M14,
-            m.M21, m.M22, m.M23, m.M24,
-            m.M31, m.M32, m.M33, m.M34,
-            m.M41, m.M42, m.M43, m.M44);
     }
 
     private void Render()
