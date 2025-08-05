@@ -1,5 +1,4 @@
 using System;
-using System.Diagnostics;
 using System.Collections.Generic;
 // Use OpenGL ES 3.0 across projects to avoid enum mismatches
 using OpenTK.Graphics.ES30;
@@ -34,7 +33,6 @@ public class Viewer : IDisposable
     private readonly int _useTexLoc;
     private readonly Matrix4 _modelTransform;
     private Matrix4 _view = Matrix4.Identity;
-    private readonly Stopwatch _timer = new();
 
     public Vector2i Size { get; private set; } = new Vector2i(640, 480);
 
@@ -185,7 +183,6 @@ public class Viewer : IDisposable
         GL.Enable(EnableCap.CullFace);
         GL.FrontFace(FrontFaceDirection.Ccw);
 
-        _timer.Start();
     }
 
     public void SetViewMatrix(Matrix4 view)
