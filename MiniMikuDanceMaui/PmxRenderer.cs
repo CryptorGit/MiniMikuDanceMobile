@@ -66,10 +66,14 @@ public class PmxRenderer : IDisposable
     private int _ikBoneVbo;
     private readonly List<int> _ikBoneOffsets = new();
     private readonly List<int> _ikBoneCounts = new();
+    private readonly List<int> _ikBoneIndices = new();
     private readonly List<Vector3> _ikTargets = new();
     private readonly List<bool> _ikGoalEnabled = new();
+    private readonly List<int> _activeIkGoals = new();
     private const int IkBoneSegments = 16;
     private static readonly Vector4 IkBoneColor = new(1f, 1f, 0f, 1f);
+    private static readonly Vector4 IkBoneSelectedColor = new(0f, 1f, 0f, 1f);
+    private int _selectedIkBone = -1;
     private float _ikBoneRadius = 0.05f;
     public float IkBoneRadius
     {
@@ -378,16 +382,47 @@ void main(){
     public IList<(int Index, string Name, bool Enabled)> GetIkGoals()
     {
         var list = new List<(int, string, bool)>();
-        for (int i = 0; i < _bones.Count && i < _ikTargets.Count; i++)
+        foreach (var i in _activeIkGoals)
         {
-            var bone = _bones[i];
-            if (!bone.IsIk)
+            if (i < 0 || i >= _bones.Count || i >= _ikTargets.Count)
                 continue;
+            var bone = _bones[i];
             var name = _indexToHumanoidName.TryGetValue(bone.IkTargetIndex, out var n) ? n : bone.Name;
             bool enabled = i < _ikGoalEnabled.Count ? _ikGoalEnabled[i] : true;
             list.Add((i, name, enabled));
         }
         return list;
+    }
+
+    public IList<(int Index, string Name)> GetAvailableIkGoals()
+    {
+        var list = new List<(int, string)>();
+        for (int i = 0; i < _bones.Count && i < _ikTargets.Count; i++)
+        {
+            var bone = _bones[i];
+            if (!bone.IsIk || _activeIkGoals.Contains(i))
+                continue;
+            var name = _indexToHumanoidName.TryGetValue(bone.IkTargetIndex, out var n) ? n : bone.Name;
+            list.Add((i, name));
+        }
+        return list;
+    }
+
+    public void AddIkGoal(int index)
+    {
+        if (index < 0 || index >= _bones.Count)
+            return;
+        if (!_bones[index].IsIk || _activeIkGoals.Contains(index))
+            return;
+        _activeIkGoals.Add(index);
+        if (ShowIkBones)
+            RebuildIkBoneMesh();
+    }
+
+    public void RemoveIkGoal(int index)
+    {
+        if (_activeIkGoals.Remove(index) && ShowIkBones)
+            RebuildIkBoneMesh();
     }
 
     public PoseSnapshot SavePose()
@@ -396,6 +431,7 @@ void main(){
         {
             IkTargets = _ikTargets.Select(v => v.ToNumerics()).ToList(),
             IkEnabled = _ikGoalEnabled.ToList(),
+            IkGoalIndices = _activeIkGoals.ToList(),
             BoneRotations = _boneRotations.Select(v => v.ToNumerics()).ToList(),
             BoneTranslations = _boneTranslations.Select(v => v.ToNumerics()).ToList()
         };
@@ -408,6 +444,15 @@ void main(){
         _ikTargets.AddRange(snap.IkTargets.Select(v => v.ToOpenTK()));
         _ikGoalEnabled.Clear();
         _ikGoalEnabled.AddRange(snap.IkEnabled);
+        _activeIkGoals.Clear();
+        if (snap.IkGoalIndices.Count > 0)
+            _activeIkGoals.AddRange(snap.IkGoalIndices);
+        else
+        {
+            for (int i = 0; i < _bones.Count; i++)
+                if (_bones[i].IsIk)
+                    _activeIkGoals.Add(i);
+        }
         while (_ikGoalEnabled.Count < _ikTargets.Count)
             _ikGoalEnabled.Add(true);
         _boneRotations.Clear();
@@ -578,7 +623,8 @@ void main(){
                 IkTargetIndex = b.IkTargetIndex,
                 IkChainIndices = new List<int>(b.IkChainIndices),
                 IkLoopCount = b.IkLoopCount,
-                IkAngleLimit = b.IkAngleLimit
+                IkAngleLimit = b.IkAngleLimit,
+                TwistWeight = b.TwistWeight
             });
         }
 
@@ -600,11 +646,13 @@ void main(){
         List<int> legs = new();
         List<int> arms = new();
         int hipIkIndex = -1;
-        for (int i = 0; i < tempBones.Count && i < _ikTargets.Count; i++)
+        foreach (var i in _activeIkGoals)
         {
-            var b = tempBones[i];
-            if (!b.IsIk || !GetIkGoalEnabled(i))
+            if (i >= tempBones.Count || i >= _ikTargets.Count)
                 continue;
+            if (!GetIkGoalEnabled(i))
+                continue;
+            var b = tempBones[i];
 
             // ik_hip は CCD ではなく直接平行移動させる
             if (string.Equals(b.Name, "ik_hip", StringComparison.OrdinalIgnoreCase))
@@ -763,13 +811,15 @@ void main(){
         var verts = new List<float>();
         _ikBoneOffsets.Clear();
         _ikBoneCounts.Clear();
+        _ikBoneIndices.Clear();
         float ikRadius = IkBoneRadius;
         if (_defaultCameraDistance > 0f)
             ikRadius *= _distance / _defaultCameraDistance;
-        for (int i = 0; i < _bones.Count && i < _ikTargets.Count; i++)
+        foreach (var i in _activeIkGoals)
         {
-            var bone = _bones[i];
-            if (!bone.IsIk || !GetIkGoalEnabled(i))
+            if (i < 0 || i >= _bones.Count || i >= _ikTargets.Count)
+                continue;
+            if (!GetIkGoalEnabled(i))
                 continue;
             var cp = _ikTargets[i];
             var c4 = Vector4.TransformRow(new Vector4(cp.X, cp.Y, cp.Z, 1f), modelMat);
@@ -784,6 +834,7 @@ void main(){
                 verts.Add(x); verts.Add(y); verts.Add(z);
             }
             _ikBoneCounts.Add(IkBoneSegments + 2);
+            _ikBoneIndices.Add(i);
         }
         if (verts.Count > 0)
         {
@@ -814,10 +865,11 @@ void main(){
         Matrix4 proj = Matrix4.CreatePerspectiveFieldOfView(MathHelper.PiOver4, aspect, 0.1f, 1000f);
         var modelMat = _modelTransform;
 
-        for (int i = 0; i < _bones.Count && i < _ikTargets.Count; i++)
+        foreach (var i in _activeIkGoals)
         {
-            var bone = _bones[i];
-            if (!bone.IsIk || !GetIkGoalEnabled(i))
+            if (i < 0 || i >= _bones.Count || i >= _ikTargets.Count)
+                continue;
+            if (!GetIkGoalEnabled(i))
                 continue;
             var cp = _ikTargets[i];
             var p = new Vector4(cp.X, cp.Y, cp.Z, 1f);
@@ -872,7 +924,7 @@ void main(){
         if (index < 0 || index >= _bones.Count)
             return;
         var bone = _bones[index];
-        if (!bone.IsIk)
+        if (!bone.IsIk || !_activeIkGoals.Contains(index))
             return;
 
         while (_ikTargets.Count <= index)
@@ -881,6 +933,11 @@ void main(){
             _ikGoalEnabled.Add(true);
         }
         _ikTargets[index] = pos;
+    }
+
+    public void SetSelectedIkBone(int index)
+    {
+        _selectedIkBone = index;
     }
 
     public void LoadModel(ModelData data)
@@ -952,6 +1009,7 @@ void main(){
 
         _ikTargets.Clear();
         _ikGoalEnabled.Clear();
+        _activeIkGoals.Clear();
         var initWorld = new System.Numerics.Matrix4x4[_bones.Count];
         for (int i = 0; i < _bones.Count; i++)
         {
@@ -964,6 +1022,8 @@ void main(){
                 initWorld[i] = local;
             _ikTargets.Add(new Vector3(initWorld[i].Translation.X, initWorld[i].Translation.Y, initWorld[i].Translation.Z));
             _ikGoalEnabled.Add(true);
+            if (b.IsIk)
+                _activeIkGoals.Add(i);
         }
         _worldMats = initWorld;
 
@@ -1151,7 +1211,8 @@ void main(){
         GL.Uniform1(_modelRimIntensityLoc, RimIntensity);
         GL.Uniform1(_modelAmbientLoc, Ambient);
         GL.UniformMatrix4(_modelMatrixLoc, false, ref modelMat);
-        foreach (var rm in _meshes)
+
+        void DrawMesh(RenderMesh rm)
         {
             GL.Uniform4(_modelColorLoc, rm.Color);
             if (rm.HasTexture)
@@ -1173,6 +1234,39 @@ void main(){
                 GL.BindTexture(TextureTarget.Texture2D, 0);
             }
         }
+
+        var opaqueMeshes = new List<RenderMesh>();
+        var transparentMeshes = new List<(RenderMesh Mesh, float Depth)>();
+        foreach (var rm in _meshes)
+        {
+            if (rm.Color.W < 0.999f)
+            {
+                float depth = 0f;
+                if (rm.Vertices.Length > 0)
+                {
+                    Vector3 center = Vector3.Zero;
+                    foreach (var v in rm.Vertices)
+                        center += v;
+                    center /= rm.Vertices.Length;
+                    Vector3 worldPos = Vector3.TransformPosition(center, modelMat);
+                    depth = (worldPos - cam).LengthSquared;
+                }
+                transparentMeshes.Add((rm, depth));
+            }
+            else
+            {
+                opaqueMeshes.Add(rm);
+            }
+        }
+
+        foreach (var rm in opaqueMeshes)
+            DrawMesh(rm);
+
+        GL.DepthMask(false);
+        foreach (var (mesh, _) in transparentMeshes.OrderByDescending(t => t.Depth))
+            DrawMesh(mesh);
+        GL.DepthMask(true);
+
         GL.UseProgram(_program);
         GL.UniformMatrix4(_viewLoc, false, ref view);
         GL.UniformMatrix4(_projLoc, false, ref proj);
@@ -1195,10 +1289,11 @@ void main(){
             GL.DepthMask(false);
             GL.Disable(EnableCap.DepthTest);
             GL.UniformMatrix4(_modelLoc, false, ref modelMat);
-            GL.Uniform4(_colorLoc, IkBoneColor);
             GL.BindVertexArray(_ikBoneVao);
             for (int i = 0; i < _ikBoneCounts.Count; i++)
             {
+                var color = _ikBoneIndices[i] == _selectedIkBone ? IkBoneSelectedColor : IkBoneColor;
+                GL.Uniform4(_colorLoc, color);
                 GL.DrawArrays(PrimitiveType.TriangleFan, _ikBoneOffsets[i], _ikBoneCounts[i]);
                 GL.DrawArrays(PrimitiveType.LineLoop, _ikBoneOffsets[i] + 1, _ikBoneCounts[i] - 1);
             }
