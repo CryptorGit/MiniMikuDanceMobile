@@ -33,7 +33,6 @@ public static class MauiProgram
         };
 
         builder
-            // ← 型パラメータで自分の App クラスを渡す
             .UseMauiApp<App>()
             .UseMaterialOutlinedMauiIcons()
             .UseSkiaSharp()
