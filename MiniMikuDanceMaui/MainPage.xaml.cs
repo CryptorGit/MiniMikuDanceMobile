@@ -842,6 +842,7 @@ private void ShowBottomFeature(string name)
                 _boneMode = mode;
                 Viewer?.InvalidateSurface();
             };
+            pv.PoseChanged += OnPoseEditorPoseChanged;
             _poseEditor = pv;
             pv.RefreshIkGoalList();
             view = pv;
@@ -1121,11 +1122,17 @@ private void SwitchBottomFeature(string name)
 {
     if (_bottomViews.TryGetValue(name, out var view))
     {
+        if (_currentFeature == "POSE" && name != "POSE" && _boneMode)
+        {
+            _poseEditor?.SetBoneMode(false);
+            _boneMode = false;
+            Viewer?.InvalidateSurface();
+        }
+
         _renderer.ShowIkBones = name == "POSE";
         BottomContent.Content = view;
         _currentFeature = name;
         UpdateTabColors();
-
     }
 }
 
@@ -1907,6 +1914,25 @@ private void OnKeyParameterChanged(string bone, int frame, Vector3 trans, Vector
         _renderer.SetBoneTranslation(index, trans);
         _renderer.SetBoneRotation(index, ClampRotation(bone, rot));
         Viewer?.InvalidateSurface();
+    }
+}
+
+private void OnPoseEditorPoseChanged(IList<Vector3> rotations, IList<Vector3> translations)
+{
+    if (_currentModel == null)
+        return;
+
+    if (!_bottomViews.TryGetValue("TIMELINE", out var view) || view is not TimelineView tv)
+        return;
+
+    foreach (var boneName in tv.BoneNames)
+    {
+        if (_currentModel.HumanoidBones.TryGetValue(boneName, out var index))
+        {
+            var t = index < translations.Count ? translations[index] : Vector3.Zero;
+            var r = index < rotations.Count ? rotations[index] : Vector3.Zero;
+            tv.AddKeyframe(boneName, tv.CurrentFrame, t, r);
+        }
     }
 }
 
