@@ -679,6 +679,7 @@ private void OnViewTouch(object? sender, SKTouchEventArgs e)
         if (_boneMode)
         {
             _poseEditor?.HandleViewerTouch(e);
+            Viewer?.InvalidateSurface();
         }
         else if (_touchPoints.Count == 1 && prevPoints.ContainsKey(e.Id))
         {
@@ -686,6 +687,7 @@ private void OnViewTouch(object? sender, SKTouchEventArgs e)
             var dx = e.Location.X - prev.X;
             var dy = e.Location.Y - prev.Y;
             _renderer.Orbit(dx, dy);
+            Viewer?.InvalidateSurface();
         }
         else if (_touchPoints.Count == 2 && prevPoints.Count == 2)
         {
@@ -697,9 +699,11 @@ private void OnViewTouch(object? sender, SKTouchEventArgs e)
             var oldMid = new SKPoint((p0Old.X + p1Old.X) / 2, (p0Old.Y + p1Old.Y) / 2);
             var newMid = new SKPoint((p0New.X + p1New.X) / 2, (p0New.Y + p1New.Y) / 2);
             _renderer.Pan(newMid.X - oldMid.X, newMid.Y - oldMid.Y);
+            Viewer?.InvalidateSurface();
             float oldDist = (p0Old - p1Old).Length;
             float newDist = (p0New - p1New).Length;
             _renderer.Dolly(oldDist - newDist);
+            Viewer?.InvalidateSurface();
         }
     }
     else if (e.ActionType == SKTouchAction.Released || e.ActionType == SKTouchAction.Cancelled)
