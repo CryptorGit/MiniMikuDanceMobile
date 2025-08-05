@@ -66,10 +66,13 @@ public class PmxRenderer : IDisposable
     private int _ikBoneVbo;
     private readonly List<int> _ikBoneOffsets = new();
     private readonly List<int> _ikBoneCounts = new();
+    private readonly List<int> _ikBoneIndices = new();
     private readonly List<Vector3> _ikTargets = new();
     private readonly List<bool> _ikGoalEnabled = new();
     private const int IkBoneSegments = 16;
     private static readonly Vector4 IkBoneColor = new(1f, 1f, 0f, 1f);
+    private static readonly Vector4 IkBoneSelectedColor = new(0f, 1f, 0f, 1f);
+    private int _selectedIkBone = -1;
     private float _ikBoneRadius = 0.05f;
     public float IkBoneRadius
     {
@@ -758,6 +761,7 @@ void main(){
         var verts = new List<float>();
         _ikBoneOffsets.Clear();
         _ikBoneCounts.Clear();
+        _ikBoneIndices.Clear();
         float ikRadius = IkBoneRadius;
         if (_defaultCameraDistance > 0f)
             ikRadius *= _distance / _defaultCameraDistance;
@@ -779,6 +783,7 @@ void main(){
                 verts.Add(x); verts.Add(y); verts.Add(z);
             }
             _ikBoneCounts.Add(IkBoneSegments + 2);
+            _ikBoneIndices.Add(i);
         }
         if (verts.Count > 0)
         {
@@ -876,6 +881,11 @@ void main(){
             _ikGoalEnabled.Add(true);
         }
         _ikTargets[index] = pos;
+    }
+
+    public void SetSelectedIkBone(int index)
+    {
+        _selectedIkBone = index;
     }
 
     public void LoadModel(ModelData data)
@@ -1190,10 +1200,11 @@ void main(){
             GL.DepthMask(false);
             GL.Disable(EnableCap.DepthTest);
             GL.UniformMatrix4(_modelLoc, false, ref modelMat);
-            GL.Uniform4(_colorLoc, IkBoneColor);
             GL.BindVertexArray(_ikBoneVao);
             for (int i = 0; i < _ikBoneCounts.Count; i++)
             {
+                var color = _ikBoneIndices[i] == _selectedIkBone ? IkBoneSelectedColor : IkBoneColor;
+                GL.Uniform4(_colorLoc, color);
                 GL.DrawArrays(PrimitiveType.TriangleFan, _ikBoneOffsets[i], _ikBoneCounts[i]);
                 GL.DrawArrays(PrimitiveType.LineLoop, _ikBoneOffsets[i] + 1, _ikBoneCounts[i] - 1);
             }
