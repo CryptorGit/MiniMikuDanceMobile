@@ -23,7 +23,7 @@
   - [x] ドラッグ挙動・表示仕様をドキュメントへ追記
   - [x] PoseEditorView.HandleViewerTouch で IK ボーンのヒットテストと平面投影を完成させる
   - [x] IKSolver と PmxRenderer を連携させドラッグでポーズが更新されるようにする
-  - [ ] PoseEditorView で生成したポーズをモーション編集機能へ連携する
+    - [x] PoseEditorView で生成したポーズをモーション編集機能へ連携する
 - [ ] dotnet build が TerminalLogger の内部エラーで失敗するため環境を調整してビルドを確認する
 - [ ] .NET 9 への移行後、dotnet restore / build が TerminalLogger の内部エラーで失敗する問題を解消する
 - [ ] .NET SDK 9.0.301 をインストールし、ビルドを確認する
