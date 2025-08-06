@@ -14,7 +14,8 @@ namespace MiniMikuDance.App;
 
 public partial class AppInitializer : IDisposable
 {
-    public ViewerApp.Viewer? Viewer { get; private set; }
+    public IViewer? Viewer { get; private set; }
+    public Func<string, float, IViewer>? ViewerFactory { get; set; }
     public MotionPlayer MotionPlayer { get; private set; } = new();
     public MotionApplier? Applier { get; private set; }
 
@@ -77,7 +78,9 @@ public partial class AppInitializer : IDisposable
             var result = Applier.Apply(joint);
             OnMotionApplied?.Invoke(result);
         };
-        Viewer = new ViewerApp.Viewer(modelPath, settings.ModelScale);
+        if (ViewerFactory == null)
+            throw new InvalidOperationException("ViewerFactory is not set.");
+        Viewer = ViewerFactory(modelPath, settings.ModelScale);
 
         Viewer.FrameUpdated += dt =>
         {

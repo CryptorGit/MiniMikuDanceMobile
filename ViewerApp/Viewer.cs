@@ -9,10 +9,11 @@ using OpenTK.Windowing.Desktop;
 using OpenTK.Windowing.GraphicsLibraryFramework;
 using ViewerApp.Import;
 using MiniMikuDance.Util;
+using MiniMikuDance.App;
 
 namespace ViewerApp;
 
-public class Viewer : IDisposable
+public class Viewer : IViewer
 {
     private class RenderMesh
     {

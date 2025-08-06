@@ -11,11 +11,6 @@
     <PackageReference Include="AssimpNet" Version="4.1.0" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="..\AppCore\Import\BoneData.cs">
-      <Link>Import/BoneData.cs</Link>
-    </Compile>
-    <Compile Include="..\AppCore\Import\HumanoidBones.cs">
-      <Link>Import/HumanoidBones.cs</Link>
-    </Compile>
+    <ProjectReference Include="..\\AppCore\\AppCore.csproj" />
   </ItemGroup>
 </Project>
