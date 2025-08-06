@@ -19,11 +19,6 @@ public class LogConsoleWriter : TextWriter
         _original.Write(value);
     }
 
-    public override void Write(string? value)
-    {
-        _original.Write(value);
-    }
-
     public override void WriteLine(string? value)
     {
         _original.WriteLine(value);

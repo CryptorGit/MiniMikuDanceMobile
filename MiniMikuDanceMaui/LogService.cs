@@ -7,7 +7,6 @@ namespace MiniMikuDanceMaui;
 
 public static class LogService
 {
-    public static event Action<string>? LineLogged;
 
     private static readonly List<string> _history = new();
     private static readonly object _historyLock = new();
@@ -55,11 +54,9 @@ public static class LogService
             {
                 File.AppendAllText(_logFilePath, line + Environment.NewLine);
             }
-            catch
+            catch (Exception)
             {
-#if DEBUG
-                System.Diagnostics.Debug.WriteLine($"Error writing to log file: {ex.Message}");
-#endif
+                // ignore logging failures to log file
             }
             try
             {
@@ -70,16 +67,12 @@ public static class LogService
                 // ignore logging failures to external file
             }
         }
-        LineLogged?.Invoke(line);
     }
 
     public static void WriteLine(string message, LogLevel level = LogLevel.Info)
     {
-        string line = $"[{DateTime.Now:HH:mm:ss}] {message}";
-        
-#if DEBUG
-        System.Diagnostics.Debug.WriteLine(line);
-#endif
+        if (level < MinimumLevel) return;
+        string line = $"[{DateTime.Now:HH:mm:ss}][{level}] {message}";
         AddLine(line);
     }
 
