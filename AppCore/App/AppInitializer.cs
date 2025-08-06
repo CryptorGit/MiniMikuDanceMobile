@@ -7,13 +7,18 @@ using MiniMikuDance.PoseEstimation;
 using System;
 using System.IO;
 using System.Threading.Tasks;
-using ViewerApp;
+// ViewerApp の依存を取り除くため、ビューアー関連のインターフェースを利用します。
 
 namespace MiniMikuDance.App;
 
 public partial class AppInitializer : IDisposable
 {
-    public Viewer? Viewer { get; private set; }
+    /// <summary>
+    /// IViewer 実装を外部から注入するためのファクトリ。
+    /// </summary>
+    public Func<string, float, IViewer>? ViewerFactory { get; set; }
+
+    public IViewer? Viewer { get; private set; }
     public RecorderController? Recorder { get; private set; }
     public PoseEstimator? PoseEstimator { get; private set; }
     /// <summary>
@@ -55,11 +60,13 @@ public partial class AppInitializer : IDisposable
         }
 
         var settings = AppSettings.Load();
-        Viewer = new Viewer(modelPath, settings.ModelScale);
+        if (ViewerFactory == null)
+        {
+            throw new InvalidOperationException("ViewerFactory が設定されていません。");
+        }
+        Viewer = ViewerFactory(modelPath, settings.ModelScale);
         var importer = new ModelImporter { Scale = settings.ModelScale };
         var model = importer.ImportModel(modelPath);
-
-        Viewer = new Viewer(modelPath, settings.ModelScale);
 
         Viewer.FrameUpdated += dt =>
         {
