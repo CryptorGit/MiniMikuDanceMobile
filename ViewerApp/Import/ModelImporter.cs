@@ -6,6 +6,7 @@ using SixLabors.ImageSharp;
 using SixLabors.ImageSharp.PixelFormats;
 using Vector3D = Assimp.Vector3D;
 using MMDTools;
+using MiniMikuDance.Import;
 
 namespace ViewerApp.Import;
 
@@ -161,14 +162,14 @@ public class ModelImporter
         data.Morphs = morphDatas;
 
         // ヒューマノイドボーンのマッピング
-        foreach (var hb in ViewerApp.Import.HumanoidBones.StandardOrder)
+        foreach (var hb in MiniMikuDance.Import.HumanoidBones.StandardOrder)
         {
             for (int i = 0; i < boneDatas.Count; i++)
             {
                 if (boneDatas[i].Name.Equals(hb, StringComparison.OrdinalIgnoreCase))
                 {
                     data.HumanoidBones[hb] = i;
-                    data.HumanoidBoneList.Add((hb, i));
+                    data.HumanoidBoneList.Add((Name: hb, Index: i));
                     break;
                 }
             }
