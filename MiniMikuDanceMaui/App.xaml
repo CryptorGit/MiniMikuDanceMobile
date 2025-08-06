@@ -4,7 +4,7 @@
              xmlns:maui="clr-namespace:Microsoft.Maui.Controls;assembly=Microsoft.Maui.Controls"
              xmlns:local="clr-namespace:MiniMikuDanceMaui"
              x:Class="MiniMikuDanceMaui.App"
-             x:DataType="local:AppViewModel">
+            >
      <Application.Resources>
         <ResourceDictionary>
             <ResourceDictionary.MergedDictionaries>
