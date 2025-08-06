@@ -1,11 +1,8 @@
-using Microsoft.Maui;
 using Microsoft.Maui.Hosting;
 using Microsoft.Maui.Controls.Hosting;
 using SkiaSharp.Views.Maui.Controls.Hosting;
 using System.Diagnostics;
 using System;
-using System.IO;
-using MauiIcons.Material.Outlined;
 using MiniMikuDance.Data;
 using Microsoft.Maui.Storage;
 using CommunityToolkit.Maui;
@@ -39,7 +36,6 @@ public static class MauiProgram
 
         builder
             .UseMauiApp<App>()
-            .UseMaterialOutlinedMauiIcons()
             .UseSkiaSharp()
             .UseMauiCommunityToolkit();
 
