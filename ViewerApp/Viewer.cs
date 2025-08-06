@@ -36,7 +36,6 @@ public class Viewer : IDisposable
 
     public Vector2i Size { get; private set; } = new Vector2i(640, 480);
 
-    public event Action<float>? FrameUpdated;
 
     public Viewer(string modelPath, float scale)
     {
@@ -188,7 +187,7 @@ public class Viewer : IDisposable
         _view = view;
     }
 
-    private void Render()
+    public void Render()
     {
         NativeWindow.ProcessWindowEvents(false);
         GL.Viewport(0, 0, Size.X, Size.Y);
@@ -229,11 +228,6 @@ public class Viewer : IDisposable
         return pixels;
     }
 
-    public void Update(float deltaTime)
-    {
-        Render();
-        FrameUpdated?.Invoke(deltaTime);
-    }
 
     public void Dispose()
     {

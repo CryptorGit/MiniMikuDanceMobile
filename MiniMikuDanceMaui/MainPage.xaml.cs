@@ -597,8 +597,6 @@ private void UpdateLayout()
 
 private void UpdateRendererLightingProperties()
 {
-    if (_renderer == null)
-        return;
     _renderer.ShadeShift = _shadeShift;
     _renderer.ShadeToony = _shadeToony;
     _renderer.RimIntensity = _rimIntensity;

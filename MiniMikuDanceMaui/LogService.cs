@@ -57,9 +57,7 @@ public static class LogService
             }
             catch
             {
-#if DEBUG
-                System.Diagnostics.Debug.WriteLine($"Error writing to log file: {ex.Message}");
-#endif
+                // ignore logging failures
             }
             try
             {
@@ -76,10 +74,6 @@ public static class LogService
     public static void WriteLine(string message, LogLevel level = LogLevel.Info)
     {
         string line = $"[{DateTime.Now:HH:mm:ss}] {message}";
-        
-#if DEBUG
-        System.Diagnostics.Debug.WriteLine(line);
-#endif
         AddLine(line);
     }
 

@@ -8,7 +8,6 @@ using MiniMikuDance.PoseEstimation;
 using System;
 using System.IO;
 using System.Threading.Tasks;
-using OpenTK.Mathematics;
 
 namespace MiniMikuDance.App;
 
@@ -87,30 +86,6 @@ public partial class AppInitializer : IDisposable
         };
         Viewer = new ViewerApp.Viewer(modelPath, settings.ModelScale);
 
-        Viewer.FrameUpdated += dt =>
-        {
-            MotionPlayer.Update(dt);
-            Camera?.Update();
-            if (Camera != null)
-            {
-                var pos = Camera.Position;
-                var rot = Camera.Rotation;
-                var forward = System.Numerics.Vector3.Transform(-System.Numerics.Vector3.UnitZ, rot);
-                var lookAt = pos + forward;
-                Viewer.SetViewMatrix(Matrix4.LookAt(
-                    new OpenTK.Mathematics.Vector3(pos.X, pos.Y, pos.Z),
-                    new OpenTK.Mathematics.Vector3(lookAt.X, lookAt.Y, lookAt.Z),
-                    OpenTK.Mathematics.Vector3.UnitY));
-            }
-        };
-        Viewer.FrameUpdated += dt =>
-        {
-            if (Recorder != null && Recorder.IsRecording)
-            {
-                var pixels = Viewer.CaptureFrame();
-                Recorder.Capture(pixels, Viewer.Size.X, Viewer.Size.Y);
-            }
-        };
     }
 
     public async Task<string?> AnalyzeVideoAsync(string videoPath,
