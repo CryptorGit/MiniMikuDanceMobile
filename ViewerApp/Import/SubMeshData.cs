@@ -10,5 +10,4 @@ public class SubMeshData
     public byte[]? TextureBytes { get; set; }
     public int TextureWidth { get; set; }
     public int TextureHeight { get; set; }
-    public string? TextureFilePath { get; set; }
 }

@@ -44,39 +44,18 @@ public class ModelImporter
 
     public ModelData ImportModel(Stream stream, string? textureDir = null)
     {
-        using var ms = new MemoryStream();
-        stream.CopyTo(ms);
-        var bytes = ms.ToArray();
-        ms.Position = 0;
-
-        // ファイルヘッダを確認して PMX かどうか判断する
-        if (bytes.Length >= 4 &&
-            bytes[0] == 'P' && bytes[1] == 'M' && bytes[2] == 'X' && bytes[3] == ' ')
-        {
-            return ImportPmx(ms, textureDir);
-        }
-
-        throw new NotSupportedException("PMX 以外の形式には対応していません。");
+        return ImportPmx(stream, textureDir);
     }
 
     public ModelData ImportModel(string path)
     {
-
-
         if (!File.Exists(path))
         {
-
             throw new FileNotFoundException("Model file not found", path);
         }
 
-        string ext = Path.GetExtension(path).ToLowerInvariant();
-        if (ext == ".pmx")
-        {
-            using var fs = File.OpenRead(path);
-            return ImportModel(fs, Path.GetDirectoryName(path));
-        }
-
-        throw new NotSupportedException("PMX 以外の形式には対応していません。");
+        using var fs = File.OpenRead(path);
+        return ImportModel(fs, Path.GetDirectoryName(path));
     }
 
     private ModelData ImportPmx(Stream stream, string? textureDir = null)
@@ -351,51 +330,6 @@ public class ModelImporter
                     smd.TextureHeight = image.Height;
                     smd.TextureBytes = new byte[image.Width * image.Height * 4];
                     image.CopyPixelDataTo(smd.TextureBytes);
-                }
-            }
-
-            smd.SphereMode = (SphereMapMode)mat.SphereTextureMode;
-            if (!string.IsNullOrEmpty(dir) && mat.SphereTextre >= 0 && mat.SphereTextre < texList.Length)
-            {
-                var sphereName = texList[mat.SphereTextre]
-                    .Replace('\\', Path.DirectorySeparatorChar);
-                var spherePath = Path.Combine(dir, sphereName);
-                smd.SphereTextureFilePath = sphereName;
-                if (File.Exists(spherePath))
-                {
-                    using var image = SixLabors.ImageSharp.Image.Load<Rgba32>(spherePath);
-                    smd.SphereTextureWidth = image.Width;
-                    smd.SphereTextureHeight = image.Height;
-                    smd.SphereTextureBytes = new byte[image.Width * image.Height * 4];
-                    image.CopyPixelDataTo(smd.SphereTextureBytes);
-                }
-            }
-
-            if (!string.IsNullOrEmpty(dir))
-            {
-                string? toonPath = null;
-                if (mat.SharedToonMode == SharedToonMode.SharedToon)
-                {
-                    int toonIndex = mat.ToonTexture;
-                    var toonName = $"toon{toonIndex + 1:00}.bmp";
-                    var relPath = Path.Combine("toon", toonName);
-                    toonPath = Path.Combine(dir, relPath);
-                    smd.ToonTextureFilePath = relPath;
-                }
-                else if (mat.ToonTexture >= 0 && mat.ToonTexture < texList.Length)
-                {
-                    var toonName = texList[mat.ToonTexture]
-                        .Replace('\\', Path.DirectorySeparatorChar);
-                    toonPath = Path.Combine(dir, toonName);
-                    smd.ToonTextureFilePath = toonName;
-                }
-                if (toonPath != null && File.Exists(toonPath))
-                {
-                    using var image = SixLabors.ImageSharp.Image.Load<Rgba32>(toonPath);
-                    smd.ToonTextureWidth = image.Width;
-                    smd.ToonTextureHeight = image.Height;
-                    smd.ToonTextureBytes = new byte[image.Width * image.Height * 4];
-                    image.CopyPixelDataTo(smd.ToonTextureBytes);
                 }
             }
 

@@ -43,19 +43,7 @@ public class ModelImporter
 
     public ModelData ImportModel(Stream stream, string? textureDir = null)
     {
-        using var ms = new MemoryStream();
-        stream.CopyTo(ms);
-        var bytes = ms.ToArray();
-        ms.Position = 0;
-
-        // PMX判定
-        if (bytes.Length >= 4 &&
-            bytes[0] == 'P' && bytes[1] == 'M' && bytes[2] == 'X' && bytes[3] == ' ')
-        {
-            return ImportPmx(ms, textureDir);
-        }
-
-        throw new NotSupportedException("PMX 以外の形式には対応していません。");
+        return ImportPmx(stream, textureDir);
     }
 
     public ModelData ImportModel(string path)
@@ -65,14 +53,8 @@ public class ModelImporter
             throw new FileNotFoundException("Model file not found", path);
         }
 
-        string ext = Path.GetExtension(path).ToLowerInvariant();
-        if (ext == ".pmx")
-        {
-            using var fs = File.OpenRead(path);
-            return ImportModel(fs, Path.GetDirectoryName(path));
-        }
-
-        throw new NotSupportedException("PMX 以外の形式には対応していません。");
+        using var fs = File.OpenRead(path);
+        return ImportModel(fs, Path.GetDirectoryName(path));
     }
 
     private ModelData ImportPmx(Stream stream, string? textureDir = null)
@@ -82,6 +64,8 @@ public class ModelImporter
         var faces = pmx.SurfaceList.ToArray();
         var mats = pmx.MaterialList.ToArray();
         var texList = pmx.TextureList.ToArray();
+        var bones = pmx.BoneList.ToArray();
+        var morphs = pmx.MorphList.ToArray();
 
         var data = new ModelData();
         var boneDatas = new List<BoneData>(bones.Length);
@@ -289,7 +273,6 @@ public class ModelImporter
             {
                 var texName = texList[mat.Texture].Replace('\\', Path.DirectorySeparatorChar);
                 var texPath = Path.Combine(dir, texName);
-                smd.TextureFilePath = texName;
                 if (File.Exists(texPath))
                 {
                     using var image = Image.Load<Rgba32>(texPath);
