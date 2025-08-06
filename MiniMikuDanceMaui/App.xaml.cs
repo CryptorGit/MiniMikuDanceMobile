@@ -1,4 +1,5 @@
 using Microsoft.Maui;
+using Microsoft.Maui.ApplicationModel;
 using Microsoft.Maui.Controls;
 using Microsoft.Maui.Storage;
 using MiniMikuDance.App;
@@ -27,7 +28,8 @@ public partial class App : Application, IDisposable
 
         var modelName = "pose_landmark_full.onnx";
         var poseModel = Path.Combine(FileSystem.AppDataDirectory, modelName);
-        if (!File.Exists(poseModel))
+        var modelExists = File.Exists(poseModel);
+        if (!modelExists)
         {
             try
             {
@@ -42,13 +44,13 @@ public partial class App : Application, IDisposable
                 {
                     throw new FileNotFoundException($"Package file not found: {packagePath}");
                 }
+                modelExists = File.Exists(poseModel);
             }
             catch (Exception)
             {
                 LogService.WriteLine("Error copying pose model.", LogService.LogLevel.Error);
             }
         }
-
         Initializer.Initialize(null, poseModel, MmdFileSystem.WorkDir);
     }
 
