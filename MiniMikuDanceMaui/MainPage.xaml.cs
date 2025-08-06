@@ -467,10 +467,6 @@ public partial class MainPage : ContentPage
                 bottomHeight));
         AbsoluteLayout.SetLayoutFlags(BottomRegion, AbsoluteLayoutFlags.None);
 
-        if (_bottomViews.TryGetValue("TIMELINE", out var timelineView) && timelineView is TimelineView tv)
-        {
-            tv.RefreshScrollViews();
-        }
     }
 
 
@@ -1253,34 +1249,6 @@ public partial class MainPage : ContentPage
         Viewer?.InvalidateSurface();
     }
 
-    private void OnTimelineFrameChanged(int frame)
-    {
-        if (_currentModel == null)
-            return;
-        if (!_bottomViews.TryGetValue("TIMELINE", out var view) || view is not TimelineView tv)
-            return;
-
-        ApplyTimelineFrame(tv, frame);
-
-        Viewer?.InvalidateSurface();
-    }
-
-    private void ApplyTimelineFrame(TimelineView tv, int frame)
-    {
-        if (_currentModel == null)
-            return;
-
-        foreach (var bone in tv.BoneNames)
-        {
-            if (!_currentModel.HumanoidBones.TryGetValue(bone, out int index))
-                continue;
-            // 自動補間済みの値を取得
-            var t = tv.GetBoneTranslationAtFrame(bone, frame);
-            var r = tv.GetBoneRotationAtFrame(bone, frame);
-            _renderer.SetBoneTranslation(index, t);
-            _renderer.SetBoneRotation(index, ClampRotation(bone, r));
-        }
-    }
 
     private Vector3 ClampRotation(string bone, Vector3 rot)
     {
