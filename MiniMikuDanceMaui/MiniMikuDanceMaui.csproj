@@ -1,8 +1,8 @@
 <Project Sdk="Microsoft.NET.Sdk">
 	<PropertyGroup>
                 <!-- デフォルトでは Android のみを対象。EnableiOS=true を指定した場合は iOS も含める -->
-                <TargetFrameworks>net8.0-android34.0</TargetFrameworks>
-                <TargetFrameworks Condition="'$(EnableiOS)' == 'true'">net8.0-android34.0;net8.0-ios17.0</TargetFrameworks>
+                <TargetFrameworks>net9.0-android34.0</TargetFrameworks>
+                <TargetFrameworks Condition="'$(EnableiOS)' == 'true'">net9.0-android34.0;net9.0-ios17.0</TargetFrameworks>
 
 		<!-- MAUI シングルプロジェクト有効化 -->
 		<UseMaui>true</UseMaui>
@@ -23,8 +23,8 @@
   </ItemGroup>
     <ItemGroup>
       <PackageReference Include="AathifMahir.Maui.MauiIcons.Material.Outlined" Version="4.0.0" />
-      <PackageReference Include="Microsoft.Maui.Controls" Version="8.0.100" />
-      <PackageReference Include="Microsoft.Maui.Graphics.Skia" Version="8.0.100" />
+      <PackageReference Include="Microsoft.Maui.Controls" Version="9.0.90" />
+      <PackageReference Include="Microsoft.Maui.Graphics.Skia" Version="9.0.90" />
       <PackageReference Include="OpenTK.redist.glfw" Version="3.4.0.44" />
       <PackageReference Include="SkiaSharp.Views.Maui.Controls" Version="3.119.0" />
       <PackageReference Include="Microsoft.CodeAnalysis.NetAnalyzers" Version="9.0.0">
