@@ -10,7 +10,6 @@ public partial class SettingView : ContentView
     public event Action<double>? PanSensitivityChanged;
     public event Action<double>? ZoomSensitivityChanged;
     public event Action<double>? StageSizeChanged;
-    public event Action<bool>? CameraLockChanged;
     public event Action<bool>? BoneOutlineChanged;
     public event Action? ResetCameraRequested;
 
@@ -59,12 +58,6 @@ public partial class SettingView : ContentView
         }
     }
 
-    private void OnCameraLockChanged(object? sender, CheckedChangedEventArgs e)
-    {
-        LogService.WriteLine($"Camera lock: {e.Value}");
-        CameraLockChanged?.Invoke(e.Value);
-    }
-
     private void OnBoneOutlineChanged(object? sender, CheckedChangedEventArgs e)
     {
         LogService.WriteLine($"Bone outline: {e.Value}");
@@ -108,12 +101,6 @@ public partial class SettingView : ContentView
             StageSizeSlider.Value = value;
             StageSizeEntry.Text = value.ToString("F1");
         }
-    }
-
-    public bool CameraLocked
-    {
-        get => CameraLockCheck.IsChecked;
-        set => CameraLockCheck.IsChecked = value;
     }
 
     public bool ShowBoneOutline

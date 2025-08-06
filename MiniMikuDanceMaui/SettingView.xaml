@@ -25,11 +25,6 @@
                    Completed="OnStageSizeEntryCompleted" />
         </HorizontalStackLayout>
         <HorizontalStackLayout Spacing="6" VerticalOptions="Center">
-            <CheckBox x:Name="CameraLockCheck" Color="{StaticResource TextColor}"
-                      CheckedChanged="OnCameraLockChanged"/>
-            <Label Text="Lock Camera" TextColor="{StaticResource TextColor}" VerticalOptions="Center"/>
-        </HorizontalStackLayout>
-        <HorizontalStackLayout Spacing="6" VerticalOptions="Center">
             <CheckBox x:Name="BoneOutlineCheck" Color="{StaticResource TextColor}"
                       CheckedChanged="OnBoneOutlineChanged"/>
             <Label Text="Show Bone Outline" TextColor="{StaticResource TextColor}" VerticalOptions="Center"/>
