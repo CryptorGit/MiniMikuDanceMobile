@@ -17,9 +17,6 @@ public partial class App : Application, IDisposable
 #if IOS
         Initializer.FrameExtractor = new IosFrameExtractor();
 #endif
-#if ANDROID
-        Initializer.FrameExtractor = new AndroidFrameExtractor();
-#endif
         MmdFileSystem.Ensure("Movie");
         MmdFileSystem.Ensure("Poses");
 
