@@ -14,9 +14,6 @@ public class AppSettings
     /// <summary>最後に解析した動画ファイルのパス。</summary>
     public string LastVideoPath { get; set; } = string.Empty;
 
-    /// <summary>モーション生成時のスムージングを有効にするか。</summary>
-    public bool SmoothingEnabled { get; set; } = true;
-
     /// <summary>PMXモデルのスケールのデフォルト値。</summary>
     public const float DefaultModelScale = 1.0f;
 
