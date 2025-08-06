@@ -124,7 +124,7 @@ public partial class AppInitializer : IDisposable
             UIManager.Instance.SetMessage($"Recording: {path}");
         }
     }
-    
+
     public void Dispose()
     {
         PoseEstimator?.Dispose();

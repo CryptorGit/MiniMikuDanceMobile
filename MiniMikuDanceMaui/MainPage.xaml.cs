@@ -268,7 +268,7 @@ public partial class MainPage : ContentPage
         ShowBottomFeature("MTOON");
         HideAllMenusAndLayout();
     }
-    
+
     private void OnCloseBottomTapped(object? sender, TappedEventArgs e)
     {
         if (_currentFeature != null)
