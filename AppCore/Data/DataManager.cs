@@ -1,4 +1,5 @@
 using System.IO;
+using System.Text.Json;
 
 namespace MiniMikuDance.Data;
 
@@ -12,7 +13,19 @@ public partial class DataManager : Util.Singleton<DataManager>
         {
             using (stream)
             {
-                return Util.JSONUtil.LoadFromStream<T>(stream);
+                try
+                {
+                    var opts = new JsonSerializerOptions
+                    {
+                        PropertyNameCaseInsensitive = true
+                    };
+                    opts.Converters.Add(new Util.Vector3JsonConverter());
+                    return JsonSerializer.Deserialize<T>(stream, opts) ?? new T();
+                }
+                catch
+                {
+                    return new T();
+                }
             }
         }
 

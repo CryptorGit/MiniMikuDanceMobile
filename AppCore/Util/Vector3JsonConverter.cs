@@ -1,4 +1,3 @@
-using System;
 using System.Numerics;
 using System.Text.Json;
 using System.Text.Json.Serialization;
@@ -10,7 +9,7 @@ namespace MiniMikuDance.Util;
 /// </summary>
 public class Vector3JsonConverter : JsonConverter<Vector3>
 {
-    public override Vector3 Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
+    public override Vector3 Read(ref Utf8JsonReader reader, System.Type _, JsonSerializerOptions options)
     {
         if (reader.TokenType != JsonTokenType.StartObject)
             throw new JsonException();
@@ -30,16 +29,13 @@ public class Vector3JsonConverter : JsonConverter<Vector3>
 
                 switch (property)
                 {
-                    case "X":
-                    case "x":
+                    case "X" or "x":
                         x = reader.GetSingle();
                         break;
-                    case "Y":
-                    case "y":
+                    case "Y" or "y":
                         y = reader.GetSingle();
                         break;
-                    case "Z":
-                    case "z":
+                    case "Z" or "z":
                         z = reader.GetSingle();
                         break;
                     default:
