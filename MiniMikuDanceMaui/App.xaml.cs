@@ -4,9 +4,6 @@ using Microsoft.Maui.Storage;
 using MiniMikuDance.App;
 using MiniMikuDance.Data;
 using System.IO;
-#if IOS
-using MiniMikuDanceMaui;
-#endif
 
 namespace MiniMikuDanceMaui;
 
