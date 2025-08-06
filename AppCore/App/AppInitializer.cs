@@ -41,8 +41,6 @@ public partial class AppInitializer : IDisposable
 
     public void Initialize(string? modelPath, string poseModelPath, string baseDir)
     {
-        _poseModelPath = poseModelPath;
-        UIManager.Instance.LoadConfig(uiConfig);
         // FrameExtractor はプラットフォーム側で差し替えられる
         PoseEstimator = new PoseEstimator(poseModelPath, FrameExtractor);
         MotionGenerator = new MotionGenerator();

@@ -142,7 +142,10 @@ private Func<string, int, Vector3>? _getRotation;
     public void SetRotation(Vector3 r)
     {
         if (_rotationLimit != null)
-            r = _rotationLimit.Clamp(r);
+        {
+            var nr = _rotationLimit.Clamp(new System.Numerics.Vector3(r.X, r.Y, r.Z));
+            r = new Vector3(nr.X, nr.Y, nr.Z);
+        }
         RotXControl.Value = r.X;
         RotYControl.Value = r.Y;
         RotZControl.Value = r.Z;
