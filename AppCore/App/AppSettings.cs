@@ -41,11 +41,6 @@ public class AppSettings
     /// <summary>カメラの注視点Y座標。</summary>
     public float CameraTargetY { get; set; } = DefaultCameraTargetY;
 
-    /// <summary>ズーム感度のデフォルト値。</summary>
-    public const float DefaultZoomSensitivity = 0.1f;
-
-    /// <summary>ズーム感度。</summary>
-    public float ZoomSensitivity { get; set; } = DefaultZoomSensitivity;
 
     private const string DefaultFile = "Configs/appsettings.json";
 
