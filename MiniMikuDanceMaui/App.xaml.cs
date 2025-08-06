@@ -21,7 +21,8 @@ public partial class App : Application, IDisposable
         MmdFileSystem.Ensure("Movie");
         MmdFileSystem.Ensure("Poses");
 
-        Directory.SetCurrentDirectory(MmdFileSystem.BaseDir);
+        if (!string.IsNullOrEmpty(MmdFileSystem.BaseDir))
+            Directory.SetCurrentDirectory(MmdFileSystem.BaseDir);
         var bonesConfig = DataManager.Instance.LoadConfig<BonesConfig>("BonesConfig");
         Initializer.BonesConfig = bonesConfig;
 
@@ -50,19 +51,7 @@ public partial class App : Application, IDisposable
                 LogService.WriteLine("Error copying pose model.", LogService.LogLevel.Error);
             }
         }
-
-        if (modelExists)
-        {
-            Initializer.Initialize(null, poseModel, MmdFileSystem.BaseDir);
-        }
-        else
-        {
-            LogService.WriteLine("Pose model not found. Initialization skipped.", LogService.LogLevel.Warning);
-            MainThread.BeginInvokeOnMainThread(() =>
-            {
-                Application.Current?.MainPage?.DisplayAlert("エラー", "ポーズ推定モデルのコピーに失敗したため、初期化をスキップしました。", "OK");
-            });
-        }
+        Initializer.Initialize(null, poseModel, MmdFileSystem.WorkDir);
     }
 
     protected override Window CreateWindow(IActivationState? activationState)
