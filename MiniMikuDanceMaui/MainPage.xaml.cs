@@ -116,6 +116,13 @@ public partial class MainPage : ContentPage
         PoseProgressLabel.Text = $"ポーズ適用: {current}/{_adaptTotalFrames} ({p * 100:0}%)";
     }
 
+    private void UpdateMorphUIState(bool enabled)
+    {
+        MorphList.IsEnabled = enabled;
+        MorphSlider.IsEnabled = enabled;
+        MorphPanel.IsVisible = enabled;
+    }
+
     private class PoseState
     {
         public IList<Vector3> Rotations = new List<Vector3>();
@@ -148,6 +155,7 @@ public partial class MainPage : ContentPage
     public MainPage()
     {
     InitializeComponent();
+    UpdateMorphUIState(false);
     NavigationPage.SetHasNavigationBar(this, false);
     this.SizeChanged += OnSizeChanged;
     _renderer.RotateSensitivity = 0.1f;
@@ -609,6 +617,7 @@ private void LoadPendingModel()
         _renderer.ClearBoneRotations();
         _renderer.LoadModel(_pendingModel);
         _currentModel = _pendingModel;
+        UpdateMorphUIState(true);
         App.Initializer.UpdateApplier(_currentModel);
         _shadeShift = _pendingModel.ShadeShift;
         _shadeToony = _pendingModel.ShadeToony;
@@ -726,6 +735,7 @@ private async Task ShowModelSelector()
             }
             _renderer.LoadModel(data);
             _currentModel = data;
+            UpdateMorphUIState(true);
             _shadeShift = data.ShadeShift;
             _shadeToony = data.ShadeToony;
             _rimIntensity = data.RimIntensity;
@@ -2183,6 +2193,26 @@ private void OnMotionApplied((Dictionary<int, System.Numerics.Quaternion> rotati
     }
 
     Viewer?.InvalidateSurface();
+}
+
+private async void OnMorphSelected(object? sender, EventArgs e)
+{
+    if (_currentModel == null)
+    {
+        await DisplayAlert("Error", "PMXモデルが読み込まれていません。先にモデルをインポートしてください。", "OK");
+        return;
+    }
+    // TODO: モーフ選択処理を実装する
+}
+
+private async void OnMorphSliderChanged(object? sender, ValueChangedEventArgs e)
+{
+    if (_currentModel == null)
+    {
+        await DisplayAlert("Error", "PMXモデルが読み込まれていません。先にモデルをインポートしてください。", "OK");
+        return;
+    }
+    // TODO: モーフ値変更処理を実装する
 }
 
 private static Vector3 ToEulerAngles(System.Numerics.Quaternion q)
