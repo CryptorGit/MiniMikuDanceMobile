@@ -60,7 +60,6 @@ public partial class AppInitializer : IDisposable
             LoadModel(modelPath);
         }
 
-        DataManager.Instance.CleanupTemp();
         // Additional processing can be handled by the host application
     }
 
@@ -138,6 +137,7 @@ public partial class AppInitializer : IDisposable
             Path.GetFileNameWithoutExtension(videoPath) + ".json");
         JSONUtil.Save(outPath, Joints);
         UIManager.Instance.SetMessage("Analyze complete");
+        DataManager.Instance.CleanupTemp();
         UIManager.Instance.ExtractProgress = 0f;
         UIManager.Instance.PoseProgress = 0f;
         return outPath;
