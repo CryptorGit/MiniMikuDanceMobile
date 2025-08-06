@@ -110,15 +110,9 @@ public partial class MainPage : ContentPage
         PoseProgressLabel.Text = $"ポーズ適用: {current}/{_adaptTotalFrames} ({p * 100:0}%)";
     }
 
-    private class PoseState
-    {
-        public IList<Vector3> Rotations = new List<Vector3>();
-        public IList<Vector3> Translations = new List<Vector3>();
-    }
-
-    private readonly List<PoseState> _poseHistory = new();
+    private readonly List<PoseSnapshot> _poseHistory = new();
     private int _poseHistoryIndex = -1;
-    private PoseState? _poseBeforeKeyInput;
+    private PoseSnapshot? _poseBeforeKeyInput;
     public MotionPlayer? MotionPlayer => App.Initializer.MotionPlayer;
 
     private static string GetAppPackageDirectory()
@@ -884,11 +878,7 @@ private void ShowBottomFeature(string name)
                     // Ensure rotation limit is applied even when the index does not change
                     OnAddKeyBoneChanged(panel.SelectedBoneIndex);
                 }
-                _poseBeforeKeyInput = new PoseState
-                {
-                    Rotations = _renderer.GetAllBoneRotations(),
-                    Translations = _renderer.GetAllBoneTranslations()
-                };
+                _poseBeforeKeyInput = _renderer.SavePose();
                 panel.IsVisible = true;
             };
             tv.EditKeyClicked += async (s, e) =>
@@ -913,11 +903,7 @@ private void ShowBottomFeature(string name)
                     return;
                 }
 
-                _poseBeforeKeyInput = new PoseState
-                {
-                    Rotations = _renderer.GetAllBoneRotations(),
-                    Translations = _renderer.GetAllBoneTranslations()
-                };
+                _poseBeforeKeyInput = _renderer.SavePose();
 
                 panel.SetBones(timelineView.BoneNames);
                 panel.SelectedBoneIndex = boneIndex;
@@ -1612,8 +1598,8 @@ private void OnKeyCancelClicked()
     EditKeyPanel.IsVisible = false;
     if (_poseBeforeKeyInput != null)
     {
-        _renderer.SetAllBoneRotations(_poseBeforeKeyInput.Rotations);
-        _renderer.SetAllBoneTranslations(_poseBeforeKeyInput.Translations);
+            _renderer.SetAllBoneRotations(_poseBeforeKeyInput.BoneRotations.Select(v => v.ToOpenTK()).ToList());
+            _renderer.SetAllBoneTranslations(_poseBeforeKeyInput.BoneTranslations.Select(v => v.ToOpenTK()).ToList());
         Viewer?.InvalidateSurface();
         _poseBeforeKeyInput = null;
         SavePoseState();
@@ -1973,11 +1959,7 @@ private void ApplyTimelineFrame(TimelineView tv, int frame)
 
 private void SavePoseState()
 {
-    var state = new PoseState
-    {
-        Rotations = _renderer.GetAllBoneRotations(),
-        Translations = _renderer.GetAllBoneTranslations()
-    };
+    var state = _renderer.SavePose();
     if (_poseHistoryIndex < _poseHistory.Count - 1)
         _poseHistory.RemoveRange(_poseHistoryIndex + 1, _poseHistory.Count - _poseHistoryIndex - 1);
     _poseHistory.Add(state);
