@@ -354,12 +354,6 @@ public partial class MainPage : ContentPage
         HideAllMenusAndLayout();
     }
 
-    private void OnGyroMenuClicked(object? sender, EventArgs e)
-    {
-        ShowBottomFeature("GYRO");
-        HideAllMenusAndLayout();
-    }
-
     private void OnPoseEditorClicked(object? sender, EventArgs e)
     {
         ShowBottomFeature("POSE");
@@ -803,11 +797,6 @@ public partial class MainPage : ContentPage
             {
                 var cv = new CameraView(_renderer);
                 view = cv;
-            }
-            else if (name == "GYRO")
-            {
-                var gv = new GyroView(_cameraController, _renderer);
-                view = gv;
             }
             else if (name == "POSE")
             {

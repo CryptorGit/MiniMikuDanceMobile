@@ -58,7 +58,6 @@ public partial class AppInitializer : IDisposable
 
         MotionPlayer = new MotionPlayer();
         Camera = new CameraController();
-        Camera.EnableGyro(UIManager.Instance.GetToggle("gyro_cam"));
         Recorder = new RecorderController(Path.Combine(baseDir, "Recordings"));
 
         if (!string.IsNullOrEmpty(modelPath) && File.Exists(modelPath))

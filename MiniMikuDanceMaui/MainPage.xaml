@@ -47,11 +47,6 @@
                         <TapGestureRecognizer Tapped="OnLightingClicked" />
                     </Label.GestureRecognizers>
                 </Label>
-                <Label Text="Gyro" TextColor="{StaticResource TextColor}">
-                    <Label.GestureRecognizers>
-                        <TapGestureRecognizer Tapped="OnGyroMenuClicked" />
-                    </Label.GestureRecognizers>
-                </Label>
                 <Label Text="Pose Editor" TextColor="{StaticResource TextColor}">
                     <Label.GestureRecognizers>
                         <TapGestureRecognizer Tapped="OnPoseEditorClicked" />
