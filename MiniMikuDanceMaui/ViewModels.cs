@@ -12,6 +12,5 @@ public class LightingViewModel {}
 public class MainPageViewModel {}
 public class MorphViewModel {}
 public class PoseEditorViewModel {}
-public class PmxViewModel {}
 public class SettingViewModel {}
 public class TimelineViewModel {}

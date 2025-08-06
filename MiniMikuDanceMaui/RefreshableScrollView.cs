@@ -8,7 +8,4 @@ public class RefreshableScrollView : ScrollView
     {
         InvalidateMeasure();
     }
-
-    // 互換性のための別名メソッド
-    public void UpdateLayout() => RefreshLayout();
 }

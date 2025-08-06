@@ -841,7 +841,7 @@ private void ShowBottomFeature(string name)
         else if (name == "PMX")
         {
             var pv = new PmxView();
-            pv.SetModel(_currentModel);
+            pv.SetModel(_currentModel, _renderer);
             view = pv;
         }
 
@@ -1072,7 +1072,7 @@ private void ShowBottomFeature(string name)
     }
     else if (name == "PMX" && _bottomViews[name] is PmxView pv)
     {
-        pv.SetModel(_currentModel);
+        pv.SetModel(_currentModel, _renderer);
     }
     else if (name == "Open" && _bottomViews[name] is ExplorerView oev)
     {
