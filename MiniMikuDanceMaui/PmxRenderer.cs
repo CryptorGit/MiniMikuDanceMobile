@@ -79,7 +79,6 @@ public class PmxRenderer : IDisposable
     // デフォルトのカメラ感度をスライダーの最小値に合わせる
     public float RotateSensitivity { get; set; } = 0.1f;
     public float PanSensitivity { get; set; } = 0.1f;
-    public float ZoomSensitivity { get; set; } = 0.1f;
     public float ShadeShift { get; set; } = -0.1f;
     public float ShadeToony { get; set; } = 0.9f;
     public float RimIntensity { get; set; } = 0.5f;
@@ -287,7 +286,6 @@ void main(){
 
     public void Dolly(float delta)
     {
-        _distance *= 1f + delta * 0.01f * ZoomSensitivity;
         if (_distance < 1f) _distance = 1f;
         if (_distance > 20f) _distance = 20f;
     }

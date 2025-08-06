@@ -14,9 +14,6 @@ public class AppSettings
     /// <summary>最後に解析した動画ファイルのパス。</summary>
     public string LastVideoPath { get; set; } = string.Empty;
 
-    /// <summary>ジャイロカメラを有効にするか。</summary>
-    public bool GyroEnabled { get; set; } = true;
-
     /// <summary>モーション生成時のスムージングを有効にするか。</summary>
     public bool SmoothingEnabled { get; set; } = true;
 
@@ -44,11 +41,6 @@ public class AppSettings
     /// <summary>カメラの注視点Y座標。</summary>
     public float CameraTargetY { get; set; } = DefaultCameraTargetY;
 
-    /// <summary>ズーム感度のデフォルト値。</summary>
-    public const float DefaultZoomSensitivity = 0.1f;
-
-    /// <summary>ズーム感度。</summary>
-    public float ZoomSensitivity { get; set; } = DefaultZoomSensitivity;
 
     private const string DefaultFile = "Configs/appsettings.json";
 

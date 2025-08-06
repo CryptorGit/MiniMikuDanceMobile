@@ -8,7 +8,6 @@ public partial class SettingView : ContentView
     public event Action<double>? HeightRatioChanged;
     public event Action<double>? RotateSensitivityChanged;
     public event Action<double>? PanSensitivityChanged;
-    public event Action<double>? ZoomSensitivityChanged;
     public event Action<double>? StageSizeChanged;
     public event Action<bool>? BoneOutlineChanged;
     public event Action? ResetCameraRequested;
@@ -36,11 +35,6 @@ public partial class SettingView : ContentView
         PanSensitivityChanged?.Invoke(e.NewValue);
     }
 
-    private void OnZoomChanged(object? sender, ValueChangedEventArgs e)
-    {
-        LogService.WriteLine($"Zoom sensitivity: {e.NewValue:F2}");
-        ZoomSensitivityChanged?.Invoke(e.NewValue);
-    }
 
     private void OnStageSizeSliderChanged(object? sender, ValueChangedEventArgs e)
     {
@@ -87,11 +81,6 @@ public partial class SettingView : ContentView
         set => PanSlider.Value = value;
     }
 
-    public double ZoomSensitivity
-    {
-        get => ZoomSlider.Value;
-        set => ZoomSlider.Value = value;
-    }
 
     public double StageSize
     {
