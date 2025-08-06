@@ -4,7 +4,6 @@ namespace MiniMikuDance.Camera;
 
 public class CameraController
 {
-    private readonly ARPoseManager _arPoseManager = new();
     private Vector3 _position;
     private Quaternion _rotation = Quaternion.Identity;
 
@@ -13,13 +12,5 @@ public class CameraController
 
     public void Update()
     {
-        SyncARPose();
-    }
-
-    public void SyncARPose()
-    {
-        var pose = _arPoseManager.CurrentPose;
-        _position = pose.Position;
-        _rotation = pose.Rotation;
     }
 }
