@@ -47,7 +47,6 @@ public partial class MainPage : ContentPage
     private string? _currentFeature;
     private string? _selectedModelPath;
     private string? _selectedVideoPath;
-    private string? _selectedPosePath;
     private readonly List<string> _selectedTexturePaths = new();
     private readonly List<Label> _texturePathLabels = new();
     private int _currentTextureIndex = -1;
@@ -59,13 +58,11 @@ public partial class MainPage : ContentPage
     private readonly CameraController _cameraController = new();
     private float _rotateSensitivity = 0.1f;
     private float _panSensitivity = 0.1f;
-    private float _zoomSensitivity = 0.1f;
     private float _shadeShift = -0.1f;
     private float _shadeToony = 0.9f;
     private float _rimIntensity = 0.5f;
     private int _extractTotalFrames;
     private int _poseTotalFrames;
-    private int _adaptTotalFrames;
     // bottomWidth is no longer used; bottom region spans full screen width
     // private double bottomWidth = 0;
     private bool _glInitialized;
@@ -107,13 +104,6 @@ public partial class MainPage : ContentPage
         int current = (int)(_poseTotalFrames * p);
         PoseProgressBar.Progress = p;
         PoseProgressLabel.Text = $"姿勢推定: {current}/{_poseTotalFrames} ({p * 100:0}%)";
-    }
-
-    private void UpdateAdaptProgress(double p)
-    {
-        int current = (int)(_adaptTotalFrames * p);
-        PoseProgressBar.Progress = p;
-        PoseProgressLabel.Text = $"ポーズ適用: {current}/{_adaptTotalFrames} ({p * 100:0}%)";
     }
 
     private void UpdateMorphUIState(bool enabled)
@@ -160,8 +150,6 @@ public partial class MainPage : ContentPage
         this.SizeChanged += OnSizeChanged;
         _renderer.RotateSensitivity = 0.1f;
         _renderer.PanSensitivity = 0.1f;
-        _renderer.ZoomSensitivity = _settings.ZoomSensitivity;
-        _zoomSensitivity = _settings.ZoomSensitivity;
         _renderer.ShadeShift = -0.1f;
         _renderer.ShadeToony = 0.9f;
         _renderer.RimIntensity = 0.5f;
@@ -190,14 +178,6 @@ public partial class MainPage : ContentPage
                 _settings.StageSize = (float)v;
                 _settings.Save();
             };
-            setting.ZoomSensitivity = _settings.ZoomSensitivity;
-            setting.ZoomSensitivityChanged += v =>
-            {
-                _renderer.ZoomSensitivity = (float)v;
-                _settings.ZoomSensitivity = (float)v;
-                _settings.Save();
-                _zoomSensitivity = (float)v;
-            };
             setting.HeightRatioChanged += ratio =>
             {
                 _bottomHeightRatio = ratio;
@@ -210,10 +190,6 @@ public partial class MainPage : ContentPage
             setting.PanSensitivityChanged += v =>
             {
                 _renderer.PanSensitivity = (float)v;
-            };
-            setting.CameraLockChanged += locked =>
-            {
-                _renderer.CameraLocked = locked;
             };
             setting.ShowBoneOutline = _renderer.ShowBoneOutline;
             setting.BoneOutlineChanged += show =>
@@ -294,8 +270,6 @@ public partial class MainPage : ContentPage
             sv.HeightRatio = _bottomHeightRatio;
             sv.RotateSensitivity = _renderer.RotateSensitivity;
             sv.PanSensitivity = _renderer.PanSensitivity;
-            sv.ZoomSensitivity = _renderer.ZoomSensitivity;
-            sv.CameraLocked = _renderer.CameraLocked;
         }
         UpdateOverlay();
     }
@@ -351,12 +325,6 @@ public partial class MainPage : ContentPage
     private void OnLightingClicked(object? sender, EventArgs e)
     {
         ShowBottomFeature("MTOON");
-        HideAllMenusAndLayout();
-    }
-
-    private void OnGyroMenuClicked(object? sender, EventArgs e)
-    {
-        ShowBottomFeature("GYRO");
         HideAllMenusAndLayout();
     }
 
@@ -440,8 +408,6 @@ public partial class MainPage : ContentPage
         sv.HeightRatio = _bottomHeightRatio;
         sv.RotateSensitivity = _rotateSensitivity;
         sv.PanSensitivity = _panSensitivity;
-        sv.ZoomSensitivity = _zoomSensitivity;
-        sv.CameraLocked = _renderer.CameraLocked;
         sv.ShowBoneOutline = _renderer.ShowBoneOutline;
     }
 
@@ -510,7 +476,7 @@ public partial class MainPage : ContentPage
     {
         if (TopMenu == null || ViewMenu == null || FileMenu == null || SettingMenu == null ||
             MenuOverlay == null || PmxImportDialog == null || PoseSelectMessage == null ||
-            AdaptSelectMessage == null || AddKeyPanel == null || EditKeyPanel == null ||
+            AddKeyPanel == null || EditKeyPanel == null ||
             DeletePanel == null || ProgressFrame == null || LoadingIndicator == null ||
             Viewer == null || BottomRegion == null)
             return;
@@ -542,10 +508,6 @@ public partial class MainPage : ContentPage
         AbsoluteLayout.SetLayoutBounds(PoseSelectMessage, new Rect(0.5, TopMenuHeight + 20, 0.8,
             PoseSelectMessage.IsVisible ? AbsoluteLayout.AutoSize : 0));
         AbsoluteLayout.SetLayoutFlags(PoseSelectMessage,
-            AbsoluteLayoutFlags.XProportional | AbsoluteLayoutFlags.WidthProportional);
-        AbsoluteLayout.SetLayoutBounds(AdaptSelectMessage, new Rect(0.5, TopMenuHeight + 20, 0.8,
-            AdaptSelectMessage.IsVisible ? AbsoluteLayout.AutoSize : 0));
-        AbsoluteLayout.SetLayoutFlags(AdaptSelectMessage,
             AbsoluteLayoutFlags.XProportional | AbsoluteLayoutFlags.WidthProportional);
         AbsoluteLayout.SetLayoutBounds(AddKeyPanel, new Rect(W - 300 - 20, TopMenuHeight + 20, 300, 500));
         AbsoluteLayout.SetLayoutFlags(AddKeyPanel, AbsoluteLayoutFlags.None);
@@ -777,14 +739,6 @@ public partial class MainPage : ContentPage
                 ev.LoadDirectory(videoPath);
                 view = ev;
             }
-            else if (name == "Adapt")
-            {
-                var posePath = MmdFileSystem.Ensure("Poses");
-                var ev = new ExplorerView(posePath, new[] { ".csv" });
-                ev.FileSelected += OnAdaptExplorerFileSelected;
-                ev.LoadDirectory(posePath);
-                view = ev;
-            }
             else if (name == "Texture")
             {
                 var texPath = MmdFileSystem.Ensure("Models");
@@ -803,11 +757,6 @@ public partial class MainPage : ContentPage
             {
                 var cv = new CameraView(_renderer);
                 view = cv;
-            }
-            else if (name == "GYRO")
-            {
-                var gv = new GyroView(_cameraController, _renderer);
-                view = gv;
             }
             else if (name == "POSE")
             {
@@ -978,22 +927,6 @@ public partial class MainPage : ContentPage
                     if (_renderer != null)
                         _renderer.PanSensitivity = (float)v;
                 };
-                sv.ZoomSensitivityChanged += v =>
-                {
-                    if (_renderer != null)
-                        _renderer.ZoomSensitivity = (float)v;
-                    if (_settings != null)
-                    {
-                        _settings.ZoomSensitivity = (float)v;
-                        _settings.Save();
-                    }
-                    _zoomSensitivity = (float)v;
-                };
-                sv.CameraLockChanged += locked =>
-                {
-                    if (_renderer != null)
-                        _renderer.CameraLocked = locked;
-                };
                 sv.ResetCameraRequested += () =>
                 {
                     if (_renderer != null)
@@ -1057,11 +990,6 @@ public partial class MainPage : ContentPage
         {
             var videoPath = MmdFileSystem.Ensure("Movie");
             aev.LoadDirectory(videoPath);
-        }
-        else if (name == "Adapt" && _bottomViews[name] is ExplorerView aev2)
-        {
-            var posePath = MmdFileSystem.Ensure("Poses");
-            aev2.LoadDirectory(posePath);
         }
         else if (name == "Texture" && _bottomViews[name] is ExplorerView tev)
         {
@@ -1261,12 +1189,6 @@ public partial class MainPage : ContentPage
         ShowPoseExplorer();
     }
 
-    private void OnAdaptPoseClicked(object? sender, EventArgs e)
-    {
-        HideAllMenusAndLayout();
-        ShowAdaptExplorer();
-    }
-
     private async void ShowModelExplorer()
     {
         var modelsPath = MmdFileSystem.Ensure("Models");
@@ -1432,22 +1354,6 @@ public partial class MainPage : ContentPage
         }
     }
 
-    private void ShowAdaptExplorer()
-    {
-        ShowExplorer("Adapt", AdaptSelectMessage, SelectedPosePath, ref _selectedPosePath);
-    }
-
-    private void OnAdaptExplorerFileSelected(object? sender, string path)
-    {
-        if (Path.GetExtension(path).ToLowerInvariant() != ".csv")
-        {
-            return;
-        }
-
-        _selectedPosePath = path;
-        SelectedPosePath.Text = path;
-    }
-
     private void ShowPoseExplorer()
     {
         ShowExplorer("Analyze", PoseSelectMessage, SelectedVideoPath, ref _selectedVideoPath);
@@ -1509,138 +1415,6 @@ public partial class MainPage : ContentPage
         PoseSelectMessage.IsVisible = false;
         SelectedVideoPath.Text = string.Empty;
         SetProgressVisibilityAndLayout(false, true, true);
-    }
-
-    private async void OnStartAdaptClicked(object? sender, EventArgs e)
-    {
-        if (_currentModel == null)
-        {
-            await DisplayAlert("Error", "PMXモデルが読み込まれていません。先にモデルをインポートしてください。", "OK");
-            return;
-        }
-        if (string.IsNullOrEmpty(_selectedPosePath))
-        {
-            await DisplayAlert("Error", "ファイルが選択されていません", "OK");
-            return;
-        }
-
-        RemoveBottomFeature("Adapt");
-        AdaptSelectMessage.IsVisible = false;
-        SetProgressVisibilityAndLayout(true, false, true);
-
-        if (_pendingModel != null)
-        {
-            await DisplayAlert("Info", "モデルの読み込みが完了してから実行してください", "OK");
-            SetProgressVisibilityAndLayout(false, false, true);
-            return;
-        }
-
-        try
-        {
-            var lines = await File.ReadAllLinesAsync(_selectedPosePath);
-            if (lines.Length <= 1)
-                throw new InvalidOperationException("CSVが空です");
-
-            var header = lines[0].Split(',');
-            var posColumns = new Dictionary<string, (int X, int Y, int Z)>(StringComparer.OrdinalIgnoreCase);
-            var rotColumns = new Dictionary<string, (int X, int Y, int Z)>(StringComparer.OrdinalIgnoreCase);
-            for (int i = 3; i + 2 < header.Length; i += 3)
-            {
-                var parts = header[i].Split('.');
-                if (parts.Length < 2)
-                    continue;
-                var name = parts[0];
-                if (parts[1].StartsWith("deg", StringComparison.OrdinalIgnoreCase))
-                    rotColumns[name] = (i, i + 1, i + 2);
-                else
-                    posColumns[name] = (i, i + 1, i + 2);
-            }
-
-            var offsets = new Dictionary<string, System.Numerics.Quaternion>(StringComparer.OrdinalIgnoreCase)
-            {
-                ["leftUpperArm"] = System.Numerics.Quaternion.CreateFromAxisAngle(System.Numerics.Vector3.UnitX, MathF.PI / 4f),
-                ["rightUpperArm"] = System.Numerics.Quaternion.CreateFromAxisAngle(System.Numerics.Vector3.UnitX, MathF.PI / 4f),
-                ["leftShoulder"] = System.Numerics.Quaternion.CreateFromAxisAngle(System.Numerics.Vector3.UnitX, MathF.PI / 18f),
-                ["rightShoulder"] = System.Numerics.Quaternion.CreateFromAxisAngle(System.Numerics.Vector3.UnitX, MathF.PI / 18f),
-            };
-
-            int total = lines.Length - 1;
-            _adaptTotalFrames = total;
-            UpdateAdaptProgress(0);
-
-            if (!_bottomViews.ContainsKey("TIMELINE"))
-                ShowBottomFeature("TIMELINE");
-
-            if (_bottomViews.TryGetValue("TIMELINE", out var view) && view is TimelineView tv)
-            {
-                tv.ClearKeyframes();
-                tv.UpdateMaxFrame(_adaptTotalFrames);
-
-                var bones = HumanoidBones.StandardOrder;
-                for (int f = 0; f < total; f++)
-                {
-                    var parts = lines[1 + f].Split(',');
-
-                    var hipsTrans = Vector3.Zero;
-                    if (posColumns.TryGetValue("hips", out var pc))
-                    {
-                        float.TryParse(parts[pc.X], out float tx);
-                        float.TryParse(parts[pc.Y], out float ty);
-                        float.TryParse(parts[pc.Z], out float tz);
-                        hipsTrans = new Vector3(tx, -ty, -tz);
-                    }
-
-                    foreach (var bone in bones)
-                    {
-                        System.Numerics.Quaternion q = System.Numerics.Quaternion.Identity;
-                        if (rotColumns.TryGetValue(bone, out var c))
-                        {
-                            float.TryParse(parts[c.X], out float ax);
-                            float.TryParse(parts[c.Y], out float ay);
-                            float.TryParse(parts[c.Z], out float az);
-
-                            // 入力値は度数法で渡される
-                            const float Deg2Rad = MathF.PI / 180f;
-                            q = AxisAngleToQuaternion(ax * Deg2Rad, ay * Deg2Rad, az * Deg2Rad);
-                            q = new System.Numerics.Quaternion(q.X, -q.Y, -q.Z, q.W);
-
-                            if (offsets.TryGetValue(bone, out var off))
-                                q = System.Numerics.Quaternion.Concatenate(System.Numerics.Quaternion.Concatenate(System.Numerics.Quaternion.Inverse(off), q), off);
-                        }
-
-                        var euler = q.ToEulerDegrees().ToOpenTK();
-                        if (_currentModel != null && _currentModel.HumanoidBones.TryGetValue(bone, out _))
-                        {
-                            var trans = bone.Equals("hips", StringComparison.OrdinalIgnoreCase) ? hipsTrans : Vector3.Zero;
-                            tv.AddKeyframe(bone, f, trans, euler);
-                        }
-                    }
-
-                    UpdateAdaptProgress((f + 1) / (double)_adaptTotalFrames);
-                    await Task.Delay(1);
-                }
-
-                ApplyTimelineFrame(tv, 0);
-                SavePoseState();
-            }
-        }
-        catch (Exception ex)
-        {
-            await DisplayAlert("Error", ex.Message, "OK");
-        }
-        finally
-        {
-            SetProgressVisibilityAndLayout(false, false, true);
-            _selectedPosePath = null;
-        }
-    }
-
-    private void OnCancelAdaptClicked(object? sender, EventArgs e)
-    {
-        _selectedPosePath = null;
-        AdaptSelectMessage.IsVisible = false;
-        SelectedPosePath.Text = string.Empty;
-        SetProgressVisibilityAndLayout(false, false, true);
     }
 
     private async void OnKeyConfirmClicked(string bone, int frame, Vector3 trans, Vector3 rot)

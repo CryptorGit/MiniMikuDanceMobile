@@ -8,9 +8,7 @@ public partial class SettingView : ContentView
     public event Action<double>? HeightRatioChanged;
     public event Action<double>? RotateSensitivityChanged;
     public event Action<double>? PanSensitivityChanged;
-    public event Action<double>? ZoomSensitivityChanged;
     public event Action<double>? StageSizeChanged;
-    public event Action<bool>? CameraLockChanged;
     public event Action<bool>? BoneOutlineChanged;
     public event Action? ResetCameraRequested;
 
@@ -37,11 +35,6 @@ public partial class SettingView : ContentView
         PanSensitivityChanged?.Invoke(e.NewValue);
     }
 
-    private void OnZoomChanged(object? sender, ValueChangedEventArgs e)
-    {
-        LogService.WriteLine($"Zoom sensitivity: {e.NewValue:F2}");
-        ZoomSensitivityChanged?.Invoke(e.NewValue);
-    }
 
     private void OnStageSizeSliderChanged(object? sender, ValueChangedEventArgs e)
     {
@@ -57,12 +50,6 @@ public partial class SettingView : ContentView
             StageSizeSlider.Value = v;
             StageSizeChanged?.Invoke(v);
         }
-    }
-
-    private void OnCameraLockChanged(object? sender, CheckedChangedEventArgs e)
-    {
-        LogService.WriteLine($"Camera lock: {e.Value}");
-        CameraLockChanged?.Invoke(e.Value);
     }
 
     private void OnBoneOutlineChanged(object? sender, CheckedChangedEventArgs e)
@@ -94,11 +81,6 @@ public partial class SettingView : ContentView
         set => PanSlider.Value = value;
     }
 
-    public double ZoomSensitivity
-    {
-        get => ZoomSlider.Value;
-        set => ZoomSlider.Value = value;
-    }
 
     public double StageSize
     {
@@ -108,12 +90,6 @@ public partial class SettingView : ContentView
             StageSizeSlider.Value = value;
             StageSizeEntry.Text = value.ToString("F1");
         }
-    }
-
-    public bool CameraLocked
-    {
-        get => CameraLockCheck.IsChecked;
-        set => CameraLockCheck.IsChecked = value;
     }
 
     public bool ShowBoneOutline
