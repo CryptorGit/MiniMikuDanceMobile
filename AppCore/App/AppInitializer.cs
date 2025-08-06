@@ -38,7 +38,6 @@ public partial class AppInitializer : IDisposable
         Directory.CreateDirectory(_poseOutputDir);
 
         Recorder = new RecorderController(Path.Combine(baseDir, "Recordings"));
-
         if (!string.IsNullOrEmpty(modelPath) && File.Exists(modelPath))
         {
             LoadModel(modelPath);
@@ -52,13 +51,11 @@ public partial class AppInitializer : IDisposable
     {
         if (string.IsNullOrEmpty(modelPath) || !File.Exists(modelPath))
         {
-
             return;
         }
 
-
-
         var settings = AppSettings.Load();
+        Viewer = new Viewer(modelPath, settings.ModelScale);
         var importer = new ModelImporter { Scale = settings.ModelScale };
         var model = importer.ImportModel(modelPath);
 
@@ -127,7 +124,7 @@ public partial class AppInitializer : IDisposable
             UIManager.Instance.SetMessage($"Recording: {path}");
         }
     }
-
+    
     public void Dispose()
     {
         PoseEstimator?.Dispose();

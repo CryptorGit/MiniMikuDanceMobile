@@ -1206,6 +1206,25 @@ public partial class MainPage : ContentPage
         SetProgressVisibilityAndLayout(false, true, true);
     }
 
+    private Vector3 ClampRotation(string bone, Vector3 rot)
+    {
+        if (_bonesConfig == null)
+            return rot;
+
+        var clamped = _bonesConfig.Clamp(bone, rot.ToNumerics());
+        return clamped.ToOpenTK();
+    }
+
+    private static System.Numerics.Quaternion AxisAngleToQuaternion(float x, float y, float z)
+    {
+        var axis = new System.Numerics.Vector3(x, y, z);
+        float angle = axis.Length();
+        if (angle < 1e-6f)
+            return System.Numerics.Quaternion.Identity;
+        axis /= angle;
+        return System.Numerics.Quaternion.CreateFromAxisAngle(axis, angle);
+    }
+
     private void SetLoadingIndicatorVisibilityAndLayout(bool isVisible)
     {
         LoadingIndicator.IsVisible = isVisible;
