@@ -6,7 +6,7 @@ public partial class DataManager : Util.Singleton<DataManager>
 {
     public T LoadConfig<T>(string key) where T : new()
     {
-        var path = $"Configs/{key}.json";
+        var path = Path.Combine("Configs", $"{key}.json");
         var stream = OpenPackageFile(path);
         if (stream != null)
         {
@@ -16,34 +16,20 @@ public partial class DataManager : Util.Singleton<DataManager>
             }
         }
 
-        if (!File.Exists(path))
-        {
-            var src = Path.Combine(AppContext.BaseDirectory, path);
-            if (File.Exists(src))
-            {
-                var dir = Path.GetDirectoryName(path);
-                if (!string.IsNullOrEmpty(dir) && !Directory.Exists(dir))
-                    Directory.CreateDirectory(dir);
-                try
-                {
-                    File.Copy(src, path);
-                }
-                catch
-                {
-                    // ignore copy failures
-                }
-            }
-        }
         return Util.JSONUtil.Load<T>(path);
     }
 
     /// <summary>
     /// プラットフォーム依存のパッケージファイル読み込み関数。
     /// </summary>
-    public static Func<string, Stream?>? OpenPackageFileFunc { get; set; }
+    public static Func<string, Stream?> OpenPackageFileFunc { get; set; } = path =>
+    {
+        var fullPath = Path.Combine(AppContext.BaseDirectory, path);
+        return File.Exists(fullPath) ? File.OpenRead(fullPath) : null;
+    };
 
     private Stream? OpenPackageFile(string path)
-        => OpenPackageFileFunc?.Invoke(path);
+        => OpenPackageFileFunc(path);
 
     private readonly string _tempDir = Path.Combine(Path.GetTempPath(), "MiniMikuDance_Temp");
 
@@ -56,14 +42,5 @@ public partial class DataManager : Util.Singleton<DataManager>
             Directory.Delete(_tempDir, true);
         }
         Directory.CreateDirectory(_tempDir);
-    }
-}
-
-public partial class DataManager
-{
-    // 非 MAUI 環境向け既定実装
-    static DataManager()
-    {
-        OpenPackageFileFunc = _ => null;
     }
 }
