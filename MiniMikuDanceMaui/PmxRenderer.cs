@@ -79,7 +79,6 @@ public class PmxRenderer : IDisposable
     // デフォルトのカメラ感度をスライダーの最小値に合わせる
     public float RotateSensitivity { get; set; } = 0.1f;
     public float PanSensitivity { get; set; } = 0.1f;
-    public bool CameraLocked { get; set; }
     public float ShadeShift { get; set; } = -0.1f;
     public float ShadeToony { get; set; } = 0.9f;
     public float RimIntensity { get; set; } = 0.5f;
@@ -271,17 +270,15 @@ void main(){
 
     public void Orbit(float dx, float dy)
     {
-        if (CameraLocked) return;
         _orbitY -= dx * 0.01f * RotateSensitivity;
         _orbitX -= dy * 0.01f * RotateSensitivity;
     }
 
     public void Pan(float dx, float dy)
     {
-        if (CameraLocked) return;
         Matrix4 rot = Matrix4.CreateFromQuaternion(_externalRotation) *
-                      Matrix4.CreateRotationX(_orbitX) *
-                      Matrix4.CreateRotationY(_orbitY);
+                     Matrix4.CreateRotationX(_orbitX) *
+                     Matrix4.CreateRotationY(_orbitY);
         Vector3 right = Vector3.TransformNormal(Vector3.UnitX, rot);
         Vector3 up = Vector3.TransformNormal(Vector3.UnitY, rot);
         _target += (-right * dx + up * dy) * 0.01f * PanSensitivity;
@@ -289,9 +286,6 @@ void main(){
 
     public void Dolly(float delta)
     {
-        if (CameraLocked) return;
-        const float zoomSensitivity = 0.1f;
-        _distance *= 1f + delta * 0.01f * zoomSensitivity;
         if (_distance < 1f) _distance = 1f;
         if (_distance > 20f) _distance = 20f;
     }

@@ -191,10 +191,6 @@ public partial class MainPage : ContentPage
             {
                 _renderer.PanSensitivity = (float)v;
             };
-            setting.CameraLockChanged += locked =>
-            {
-                _renderer.CameraLocked = locked;
-            };
             setting.ShowBoneOutline = _renderer.ShowBoneOutline;
             setting.BoneOutlineChanged += show =>
             {
@@ -274,7 +270,6 @@ public partial class MainPage : ContentPage
             sv.HeightRatio = _bottomHeightRatio;
             sv.RotateSensitivity = _renderer.RotateSensitivity;
             sv.PanSensitivity = _renderer.PanSensitivity;
-            sv.CameraLocked = _renderer.CameraLocked;
         }
         UpdateOverlay();
     }
@@ -413,7 +408,6 @@ public partial class MainPage : ContentPage
         sv.HeightRatio = _bottomHeightRatio;
         sv.RotateSensitivity = _rotateSensitivity;
         sv.PanSensitivity = _panSensitivity;
-        sv.CameraLocked = _renderer.CameraLocked;
         sv.ShowBoneOutline = _renderer.ShowBoneOutline;
     }
 
@@ -932,11 +926,6 @@ public partial class MainPage : ContentPage
                 {
                     if (_renderer != null)
                         _renderer.PanSensitivity = (float)v;
-                };
-                sv.CameraLockChanged += locked =>
-                {
-                    if (_renderer != null)
-                        _renderer.CameraLocked = locked;
                 };
                 sv.ResetCameraRequested += () =>
                 {
