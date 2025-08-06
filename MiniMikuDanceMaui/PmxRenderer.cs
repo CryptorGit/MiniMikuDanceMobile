@@ -18,6 +18,8 @@ using MathHelper = OpenTK.Mathematics.MathHelper;
 
 namespace MiniMikuDanceMaui;
 
+public record SubMeshInfo(int Index, string Texture, string Size);
+
 public class PmxRenderer : IDisposable
 {
     private int _program;
@@ -38,6 +40,8 @@ public class PmxRenderer : IDisposable
         public int[] BaseVertexIndices = Array.Empty<int>();
     }
     private readonly System.Collections.Generic.List<RenderMesh> _meshes = new();
+    private readonly List<SubMeshInfo> _subMeshInfos = new();
+    public IReadOnlyList<SubMeshInfo> SubMeshInfos => _subMeshInfos;
     private int _gridVao;
     private int _gridVbo;
     private int _gridVertexCount;
@@ -896,6 +900,7 @@ void main(){
         _morphOrderSet.Clear();
         _baseVertices = data.Mesh.Vertices.Select(v => new Vector3(v.X, v.Y, v.Z)).ToArray();
         _morphedVertices = (Vector3[])_baseVertices.Clone();
+        _subMeshInfos.Clear();
         foreach (var morph in data.Morphs)
         {
             if (morph == null)
@@ -972,39 +977,41 @@ void main(){
             });
         }
 
-        foreach (var sm in data.SubMeshes)
+        for (int i = 0; i < data.SubMeshes.Count; i++)
         {
+            var sm = data.SubMeshes[i];
+            _subMeshInfos.Add(new SubMeshInfo(i, sm.TextureFilePath ?? "(none)", $"{sm.TextureWidth}x{sm.TextureHeight}"));
             int vcount = sm.Mesh.VertexCount;
             float[] verts = new float[vcount * 8];
-            for (int i = 0; i < vcount; i++)
+            for (int j = 0; j < vcount; j++)
             {
-                var v = sm.Mesh.Vertices[i];
-                verts[i * 8 + 0] = v.X;
-                verts[i * 8 + 1] = v.Y;
-                verts[i * 8 + 2] = v.Z;
-                if (i < sm.Mesh.Normals.Count)
+                var v = sm.Mesh.Vertices[j];
+                verts[j * 8 + 0] = v.X;
+                verts[j * 8 + 1] = v.Y;
+                verts[j * 8 + 2] = v.Z;
+                if (j < sm.Mesh.Normals.Count)
                 {
-                    var n = sm.Mesh.Normals[i];
-                    verts[i * 8 + 3] = n.X;
-                    verts[i * 8 + 4] = n.Y;
-                    verts[i * 8 + 5] = n.Z;
+                    var n = sm.Mesh.Normals[j];
+                    verts[j * 8 + 3] = n.X;
+                    verts[j * 8 + 4] = n.Y;
+                    verts[j * 8 + 5] = n.Z;
                 }
                 else
                 {
-                    verts[i * 8 + 3] = 0f;
-                    verts[i * 8 + 4] = 0f;
-                    verts[i * 8 + 5] = 1f;
+                    verts[j * 8 + 3] = 0f;
+                    verts[j * 8 + 4] = 0f;
+                    verts[j * 8 + 5] = 1f;
                 }
-                if (i < sm.TexCoords.Count)
+                if (j < sm.TexCoords.Count)
                 {
-                    var uv = sm.TexCoords[i];
-                    verts[i * 8 + 6] = uv.X;
-                    verts[i * 8 + 7] = uv.Y;
+                    var uv = sm.TexCoords[j];
+                    verts[j * 8 + 6] = uv.X;
+                    verts[j * 8 + 7] = uv.Y;
                 }
                 else
                 {
-                    verts[i * 8 + 6] = 0f;
-                    verts[i * 8 + 7] = 0f;
+                    verts[j * 8 + 6] = 0f;
+                    verts[j * 8 + 7] = 0f;
                 }
             }
 

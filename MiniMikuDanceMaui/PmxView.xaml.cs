@@ -1,26 +1,17 @@
-using System.Linq;
 using Microsoft.Maui.Controls;
 
 namespace MiniMikuDanceMaui;
 
 public partial class PmxView : ContentView
 {
-    private MiniMikuDance.Import.ModelData? _model;
-
     public PmxView()
     {
         InitializeComponent();
     }
 
-    public void SetModel(MiniMikuDance.Import.ModelData? model)
+    public void SetModel(MiniMikuDance.Import.ModelData? model, PmxRenderer renderer)
     {
-        _model = model;
-        UpdateView();
-    }
-
-    private void UpdateView()
-    {
-        if (_model == null)
+        if (model == null)
         {
             WarningLabel.IsVisible = true;
             SubMeshList.IsVisible = false;
@@ -28,20 +19,7 @@ public partial class PmxView : ContentView
         }
 
         WarningLabel.IsVisible = false;
-        var items = _model.SubMeshes.Select((s, i) => new SubMeshInfo
-        {
-            Index = i,
-            Texture = s.TextureFilePath ?? "(none)",
-            Size = $"{s.TextureWidth}x{s.TextureHeight}"
-        }).ToList();
-        SubMeshList.ItemsSource = items;
+        SubMeshList.ItemsSource = renderer.SubMeshInfos;
         SubMeshList.IsVisible = true;
-    }
-
-    private class SubMeshInfo
-    {
-        public int Index { get; set; }
-        public string Texture { get; set; } = string.Empty;
-        public string Size { get; set; } = string.Empty;
     }
 }
