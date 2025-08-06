@@ -93,7 +93,6 @@ public class FfmpegFrameExtractor : IVideoFrameExtractor
             FileName = ffmpeg,
             Arguments = $"-i \"{path}\"",
             RedirectStandardError = true,
-            RedirectStandardOutput = true,
             UseShellExecute = false,
             CreateNoWindow = true
         };
