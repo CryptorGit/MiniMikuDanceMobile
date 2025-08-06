@@ -2,6 +2,7 @@ using System;
 using System.Linq;
 using System.Numerics;
 using System.Collections.Generic;
+using System.Threading.Tasks;
 using SixLabors.ImageSharp;
 using SixLabors.ImageSharp.PixelFormats;
 using SixLabors.ImageSharp.Processing;
@@ -185,34 +186,31 @@ public class PoseEstimator : IDisposable
         };
     }
 
-    public Task<JointData[]> EstimateAsync(string videoPath, string tempDir, Action<float>? extractProgress = null, Action<float>? poseProgress = null)
+    public async Task<JointData[]> EstimateAsync(string videoPath, string tempDir, Action<float>? extractProgress = null, Action<float>? poseProgress = null)
     {
-        return Task.Run(() =>
+        const int jointCount = 33;
+
+        if (_session == null)
         {
-            const int jointCount = 33;
+            throw new InvalidOperationException("Pose estimation model not loaded.");
+        }
 
-            if (_session == null)
-            {
-                throw new InvalidOperationException("Pose estimation model not loaded.");
-            }
+        var meta = _session.InputMetadata.First();
+        var dims = meta.Value.Dimensions.Select(d => d <= 0 ? 1 : d).ToArray();
 
-            var meta = _session.InputMetadata.First();
-            var dims = meta.Value.Dimensions.Select(d => d <= 0 ? 1 : d).ToArray();
+        var files = await _extractor.ExtractFrames(videoPath, 30, tempDir, extractProgress);
 
-            var files = _extractor.ExtractFrames(videoPath, 30, tempDir, extractProgress).GetAwaiter().GetResult();
+        var results = new List<JointData>(files.Length);
+        for (int i = 0; i < files.Length; i++)
+        {
+            using var image = Image.Load<Rgb24>(files[i]);
+            var jd = SearchBest(image, meta.Key, dims, jointCount, true);
+            jd.Timestamp = i / 30f;
+            results.Add(jd);
+            poseProgress?.Invoke((i + 1) / (float)files.Length);
+        }
 
-            var results = new List<JointData>(files.Length);
-            for (int i = 0; i < files.Length; i++)
-            {
-                using var image = Image.Load<Rgb24>(files[i]);
-                var jd = SearchBest(image, meta.Key, dims, jointCount, true);
-                jd.Timestamp = i / 30f;
-                results.Add(jd);
-                poseProgress?.Invoke((i + 1) / (float)files.Length);
-            }
-
-            return results.ToArray();
-        });
+        return results.ToArray();
     }
 
     public void Dispose()

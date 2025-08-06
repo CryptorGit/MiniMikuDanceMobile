@@ -22,11 +22,11 @@ public static class MauiProgram
         Trace.Listeners.Add(new LogTraceListener());
         Console.SetOut(new LogConsoleWriter(Console.Out));
 
-        DataManager.OpenPackageFileFunc = path =>
+        DataManager.OpenPackageFileFunc = async path =>
         {
             try
             {
-                return FileSystem.OpenAppPackageFileAsync(path).GetAwaiter().GetResult();
+                return await FileSystem.OpenAppPackageFileAsync(path);
             }
             catch
             {

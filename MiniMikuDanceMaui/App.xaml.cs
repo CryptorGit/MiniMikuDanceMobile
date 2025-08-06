@@ -4,6 +4,7 @@ using Microsoft.Maui.Storage;
 using MiniMikuDance.App;
 using MiniMikuDance.Data;
 using System.IO;
+using System.Threading.Tasks;
 
 namespace MiniMikuDanceMaui;
 
@@ -21,7 +22,13 @@ public partial class App : Application, IDisposable
         MmdFileSystem.Ensure("Poses");
 
         Directory.SetCurrentDirectory(MmdFileSystem.BaseDir);
-        var bonesConfig = DataManager.Instance.LoadConfig<BonesConfig>("BonesConfig");
+
+        _ = InitializeAsync();
+    }
+
+    private async Task InitializeAsync()
+    {
+        var bonesConfig = await DataManager.Instance.LoadConfigAsync<BonesConfig>("BonesConfig");
         Initializer.BonesConfig = bonesConfig;
 
         var modelName = "pose_landmark_full.onnx";
@@ -31,11 +38,11 @@ public partial class App : Application, IDisposable
             try
             {
                 var packagePath = Path.Combine("StreamingAssets", "PoseEstimation", modelName);
-                using var src = FileSystem.OpenAppPackageFileAsync(packagePath).GetAwaiter().GetResult();
+                using var src = await FileSystem.OpenAppPackageFileAsync(packagePath);
                 if (src != null)
                 {
-                    using var dst = File.Create(poseModel);
-                    src.CopyTo(dst);
+                    await using var dst = File.Create(poseModel);
+                    await src.CopyToAsync(dst);
                 }
                 else
                 {
