@@ -139,8 +139,7 @@ public class MotionEditor
     public Dictionary<string, List<int>> GetKeyFramesInRange(IEnumerable<string> bones, int startFrame, int endFrame)
     {
         var result = new Dictionary<string, List<int>>();
-        if (startFrame > endFrame)
-            (startFrame, endFrame) = (endFrame, startFrame);
+        NormalizeRange(ref startFrame, ref endFrame);
         foreach (var bone in bones)
         {
             if (_keyFrames.TryGetValue(bone, out var set))
@@ -174,8 +173,7 @@ public class MotionEditor
 
     public void RemoveRange(IEnumerable<string> bones, int startFrame, int endFrame)
     {
-        if (startFrame > endFrame)
-            (startFrame, endFrame) = (endFrame, startFrame);
+        NormalizeRange(ref startFrame, ref endFrame);
         foreach (var bone in bones)
         {
             if (_keyFrames.TryGetValue(bone, out var set))
@@ -206,6 +204,12 @@ public class MotionEditor
             list.Add(last);
 
         Motion.Frames = list.ToArray();
+    }
+
+    private static void NormalizeRange(ref int startFrame, ref int endFrame)
+    {
+        if (startFrame > endFrame)
+            (startFrame, endFrame) = (endFrame, startFrame);
     }
 }
 
