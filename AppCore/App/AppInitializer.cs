@@ -36,15 +36,13 @@ public partial class AppInitializer : IDisposable
     public MotionData? Motion { get; set; }
     public BonesConfig? BonesConfig { get; set; }
     public Action<(Dictionary<int, System.Numerics.Quaternion> rotations, System.Numerics.Matrix4x4 transform)>? OnMotionApplied { get; set; }
-    private string _poseModelPath = string.Empty;
     private string _poseOutputDir = string.Empty;
 
 
-    public void Initialize(UIConfig uiConfig, string? modelPath, string poseModelPath, string baseDir)
+    public void Initialize(string? modelPath, string poseModelPath, string baseDir)
     {
-
-        UIManager.Instance.LoadConfig(uiConfig);
         _poseModelPath = poseModelPath;
+        UIManager.Instance.LoadConfig(uiConfig);
         // FrameExtractor はプラットフォーム側で差し替えられる
         PoseEstimator = new PoseEstimator(poseModelPath, FrameExtractor);
         MotionGenerator = new MotionGenerator();
@@ -60,7 +58,6 @@ public partial class AppInitializer : IDisposable
             LoadModel(modelPath);
         }
 
-        DataManager.Instance.CleanupTemp();
         // Additional processing can be handled by the host application
     }
 
@@ -68,11 +65,8 @@ public partial class AppInitializer : IDisposable
     {
         if (string.IsNullOrEmpty(modelPath) || !File.Exists(modelPath))
         {
-
             return;
         }
-
-
 
         var settings = AppSettings.Load();
         var importer = new MiniMikuDance.Import.ModelImporter { Scale = settings.ModelScale };
@@ -102,9 +96,7 @@ public partial class AppInitializer : IDisposable
                     new OpenTK.Mathematics.Vector3(lookAt.X, lookAt.Y, lookAt.Z),
                     OpenTK.Mathematics.Vector3.UnitY));
             }
-        };
-        Viewer.FrameUpdated += dt =>
-        {
+
             if (Recorder != null && Recorder.IsRecording)
             {
                 var pixels = Viewer.CaptureFrame();
@@ -138,6 +130,7 @@ public partial class AppInitializer : IDisposable
             Path.GetFileNameWithoutExtension(videoPath) + ".json");
         JSONUtil.Save(outPath, Joints);
         UIManager.Instance.SetMessage("Analyze complete");
+        DataManager.Instance.CleanupTemp();
         UIManager.Instance.ExtractProgress = 0f;
         UIManager.Instance.PoseProgress = 0f;
         return outPath;
@@ -166,10 +159,6 @@ public partial class AppInitializer : IDisposable
         {
             var path = Recorder.StopRecording();
             UIManager.Instance.IsRecording = false;
-            if (!string.IsNullOrEmpty(Recorder.ThumbnailPath))
-            {
-                UIManager.Instance.SetThumbnail(Recorder.ThumbnailPath);
-            }
             UIManager.Instance.SetMessage($"Saved: {path}");
         }
         else

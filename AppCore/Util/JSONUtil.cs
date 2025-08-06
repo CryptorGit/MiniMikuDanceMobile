@@ -14,35 +14,20 @@ public static class JSONUtil
         opts.Converters.Add(new Vector3JsonConverter());
         return opts;
     }
-    public static T LoadFromStream<T>(Stream stream) where T : new()
-    {
-        try
-        {
-            using var reader = new StreamReader(stream, leaveOpen: true);
-            var json = reader.ReadToEnd();
-            var opts = CreateOptions();
-            return JsonSerializer.Deserialize<T>(json, opts) ?? new T();
-        }
-        catch
-        {
-            return new T();
-        }
-    }
 
     public static T Load<T>(string path) where T : new()
     {
-        if (!File.Exists(path))
-        {
-            var placeholder = new T();
-            Save(path, placeholder);
-            return placeholder;
-        }
-
         try
         {
+            if (!File.Exists(path))
+            {
+                var placeholder = new T();
+                Save(path, placeholder);
+                return placeholder;
+            }
+
             var json = File.ReadAllText(path);
-            var opts = CreateOptions();
-            return JsonSerializer.Deserialize<T>(json, opts) ?? new T();
+            return JsonSerializer.Deserialize<T>(json, CreateOptions()) ?? new T();
         }
         catch
         {
@@ -55,7 +40,7 @@ public static class JSONUtil
         var dir = Path.GetDirectoryName(path);
         if (!string.IsNullOrEmpty(dir) && !Directory.Exists(dir))
             Directory.CreateDirectory(dir!);
-        var json = JsonSerializer.Serialize(data, CreateOptions(writeIndented: true));
+        var json = JsonSerializer.Serialize(data, CreateOptions(true));
         File.WriteAllText(path, json);
     }
 }

@@ -1,7 +1,6 @@
 <?xml version="1.0" encoding="utf-8" ?>
 <Application xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
-             xmlns:maui="clr-namespace:Microsoft.Maui.Controls;assembly=Microsoft.Maui.Controls"
              xmlns:local="clr-namespace:MiniMikuDanceMaui"
              x:Class="MiniMikuDanceMaui.App"
              x:DataType="local:AppViewModel">
@@ -12,7 +11,6 @@
             </ResourceDictionary.MergedDictionaries>
             <!-- サイズ設定 -->
             <x:Double x:Key="RowHeight">44</x:Double>
-            <x:Double x:Key="HalfRowHeight">22</x:Double>
         </ResourceDictionary>
      </Application.Resources>
  </Application>

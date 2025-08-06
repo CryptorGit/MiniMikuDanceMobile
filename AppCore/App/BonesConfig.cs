@@ -10,6 +10,11 @@ public class BoneLimit
     public string Bone { get; set; } = string.Empty;
     public Vector3 Min { get; set; }
     public Vector3 Max { get; set; }
+
+    public Vector3 Clamp(Vector3 rot) => new(
+        Math.Clamp(rot.X, Min.X, Max.X),
+        Math.Clamp(rot.Y, Min.Y, Max.Y),
+        Math.Clamp(rot.Z, Min.Z, Max.Z));
 }
 
 public class BonesConfig
@@ -24,13 +29,6 @@ public class BonesConfig
 
     public Vector3 Clamp(string bone, Vector3 rot)
     {
-        if (TryGetLimit(bone, out var lim) && lim != null)
-        {
-            return new Vector3(
-                Math.Clamp(rot.X, lim.Min.X, lim.Max.X),
-                Math.Clamp(rot.Y, lim.Min.Y, lim.Max.Y),
-                Math.Clamp(rot.Z, lim.Min.Z, lim.Max.Z));
-        }
-        return rot;
+        return TryGetLimit(bone, out var lim) && lim != null ? lim.Clamp(rot) : rot;
     }
 }
