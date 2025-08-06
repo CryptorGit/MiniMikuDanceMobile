@@ -15,7 +15,7 @@ public partial class App : Application, IDisposable
 {
     public static AppInitializer Initializer { get; } = new();
 
-public App()
+    public App()
     {
         InitializeComponent();
 #if IOS
