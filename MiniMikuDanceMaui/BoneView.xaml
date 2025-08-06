@@ -3,7 +3,7 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
              xmlns:local="clr-namespace:MiniMikuDanceMaui"
              x:Class="MiniMikuDanceMaui.BoneView"
-             x:DataType="local:BoneViewModel"
+            
              BackgroundColor="{StaticResource BackgroundColor}">
     <ScrollView>
         <VerticalStackLayout x:Name="BoneList" Padding="10" Spacing="5" />

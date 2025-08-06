@@ -3,7 +3,7 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
              xmlns:local="clr-namespace:MiniMikuDanceMaui"
              x:Class="MiniMikuDanceMaui.SettingView"
-             x:DataType="local:SettingViewModel"
+            
              BackgroundColor="{StaticResource BackgroundColor}">
     <VerticalStackLayout Spacing="10" Padding="10">
         <Label Text="Bottom Region Height" TextColor="{StaticResource TextColor}"/>

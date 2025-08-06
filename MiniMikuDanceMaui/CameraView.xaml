@@ -3,7 +3,7 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
              xmlns:local="clr-namespace:MiniMikuDanceMaui"
              x:Class="MiniMikuDanceMaui.CameraView"
-             x:DataType="local:CameraViewModel"
+            
              BackgroundColor="{StaticResource BackgroundColor}">
     <VerticalStackLayout Padding="10" Spacing="10">
         <Button x:Name="RecordButton" Text="Record" Clicked="OnRecordClicked"

@@ -3,7 +3,7 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
              xmlns:local="clr-namespace:MiniMikuDanceMaui"
              x:Class="MiniMikuDanceMaui.BoneAxisControl"
-             x:DataType="local:BoneAxisControlViewModel">
+            >
     <VerticalStackLayout Spacing="2">
         <!-- 列幅を可変にして小さい画面でも見切れないよう調整 -->
         <Grid ColumnDefinitions="*,Auto,Auto,Auto" RowSpacing="0">

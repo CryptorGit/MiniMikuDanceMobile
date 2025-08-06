@@ -3,7 +3,7 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
              xmlns:local="clr-namespace:MiniMikuDanceMaui"
              x:Class="MiniMikuDanceMaui.KeyDeletePanel"
-             x:DataType="local:KeyDeletePanelViewModel"
+            
              BackgroundColor="{StaticResource OverlayBackgroundColor}"
              HorizontalOptions="End"
              VerticalOptions="Start"
@@ -16,7 +16,7 @@
         <Picker x:Name="FramePicker" Title="Frame" SelectedIndexChanged="OnFrameChanged" />
         <HorizontalStackLayout HorizontalOptions="End" Spacing="10">
             <Button Text="delete" x:Name="DeleteButton" Clicked="OnDeleteClicked" />
-            <Button Text="cancel" x:Name="CancelButton" Clicked="OnCancelClicked" />
+            <Button Text="cancel" Clicked="OnCancelClicked" />
         </HorizontalStackLayout>
     </VerticalStackLayout>
     </Grid>
