@@ -1,15 +1,34 @@
 using System.IO;
 using SystemPath = System.IO.Path;
 using Microsoft.Maui.Storage;
+#if ANDROID
+using AndroidX.DocumentFile.Provider;
+using Android.App;
+#endif
 
 namespace MiniMikuDanceMaui;
 
 public static class MmdFileSystem
 {
-    public static readonly string BaseDir;
+    public static string BaseDir { get; private set; } = string.Empty;
+#if ANDROID
+    public static Android.Net.Uri? BaseUri { get; private set; }
+#endif
 
     static MmdFileSystem()
     {
+#if ANDROID
+        if (Android.OS.Build.VERSION.SdkInt >= Android.OS.BuildVersionCodes.R)
+        {
+            var uri = Preferences.Get("saf_base_uri", null);
+            if (!string.IsNullOrEmpty(uri))
+            {
+                BaseUri = Android.Net.Uri.Parse(uri);
+                LogService.WriteLine($"[MmdFileSystem] Using SAF storage: {uri}", LogService.LogLevel.Info);
+                return;
+            }
+        }
+#endif
         var root = FileSystem.AppDataDirectory;
         BaseDir = SystemPath.Combine(root, "MiniMikuDance", "data");
         Directory.CreateDirectory(BaseDir);
@@ -17,8 +36,32 @@ public static class MmdFileSystem
         LogService.WriteLine($"[MmdFileSystem] Using storage: {BaseDir}", LogService.LogLevel.Info);
     }
 
+#if ANDROID
+    public static void SetBaseUri(Android.Net.Uri uri)
+    {
+        BaseUri = uri;
+    }
+#endif
+
     public static string Ensure(string subdir)
     {
+#if ANDROID
+        if (BaseUri != null)
+        {
+            var context = Android.App.Application.Context;
+            var doc = DocumentFile.FromTreeUri(context, BaseUri);
+            if (doc != null)
+            {
+                foreach (var part in subdir.Split(SystemPath.DirectorySeparatorChar, StringSplitOptions.RemoveEmptyEntries))
+                {
+                    var next = doc.FindFile(part);
+                    doc = next ?? doc.CreateDirectory(part);
+                }
+                return doc.Uri.ToString();
+            }
+            return BaseUri.ToString();
+        }
+#endif
         var path = SystemPath.Combine(BaseDir, subdir);
         Directory.CreateDirectory(path);
         return path;

@@ -28,7 +28,6 @@ using System.Text;
 
 #if ANDROID
 using Android.OS;
-using Android.Provider;
 #endif
 
 namespace MiniMikuDanceMaui;
@@ -448,30 +447,25 @@ private void UpdateBoneViewValues()
 }
 
 #if ANDROID
-[SupportedOSPlatform("android30.0")]
-private static void RequestManageAllFilesAccessPermission()
+private const int RequestOpenDocumentTree = 1001;
+
+private static Task<Android.Net.Uri?> RequestFolderAccessAsync()
 {
-    if (Android.OS.Build.VERSION.SdkInt >= Android.OS.BuildVersionCodes.R)
+    var tcs = new TaskCompletionSource<Android.Net.Uri?>();
+    var activity = Platform.CurrentActivity;
+    if (activity == null)
     {
-        if (!Android.OS.Environment.IsExternalStorageManager)
-        {
-            try
-            {
-                var context = Android.App.Application.Context;
-                if (context != null)
-                {
-                    var uri = Android.Net.Uri.Parse($"package:{context.PackageName}");
-                    var intent = new Android.Content.Intent(Settings.ActionManageAppAllFilesAccessPermission, uri);
-                    intent.AddFlags(Android.Content.ActivityFlags.NewTask);
-                    context.StartActivity(intent);
-                }
-            }
-            catch (Exception)
-            {
-                // Handle exception if launching settings fails
-            }
-        }
+        tcs.SetResult(null);
+        return tcs.Task;
     }
+
+    MainActivity.FolderPickerTcs = tcs;
+    var intent = new Android.Content.Intent(Android.Content.Intent.ActionOpenDocumentTree);
+    intent.AddFlags(Android.Content.ActivityFlags.GrantPersistableUriPermission |
+                    Android.Content.ActivityFlags.GrantReadUriPermission |
+                    Android.Content.ActivityFlags.GrantWriteUriPermission);
+    activity.StartActivityForResult(intent, RequestOpenDocumentTree);
+    return tcs.Task;
 }
 #endif
 
@@ -479,15 +473,37 @@ protected override async void OnAppearing()
 {
     base.OnAppearing();
 #if ANDROID
-    var readStatus = await Permissions.RequestAsync<Permissions.StorageRead>();
-    var writeStatus = await Permissions.RequestAsync<Permissions.StorageWrite>();
-    if (readStatus != PermissionStatus.Granted || writeStatus != PermissionStatus.Granted)
-    {
-        // Permissions not granted, consider showing a message to the user
-    }
     if (Android.OS.Build.VERSION.SdkInt >= Android.OS.BuildVersionCodes.R)
     {
-        RequestManageAllFilesAccessPermission();
+        var uriString = Preferences.Get("saf_base_uri", null);
+        if (string.IsNullOrEmpty(uriString))
+        {
+            var uri = await RequestFolderAccessAsync();
+            if (uri != null)
+            {
+                var activity = Platform.CurrentActivity;
+                if (activity != null)
+                {
+                    var flags = Android.Content.ActivityFlags.GrantReadUriPermission | Android.Content.ActivityFlags.GrantWriteUriPermission;
+                    activity.ContentResolver?.TakePersistableUriPermission(uri, flags);
+                }
+                Preferences.Set("saf_base_uri", uri.ToString());
+                MmdFileSystem.SetBaseUri(uri);
+            }
+        }
+        else
+        {
+            MmdFileSystem.SetBaseUri(Android.Net.Uri.Parse(uriString));
+        }
+    }
+    else
+    {
+        var readStatus = await Permissions.RequestAsync<Permissions.StorageRead>();
+        var writeStatus = await Permissions.RequestAsync<Permissions.StorageWrite>();
+        if (readStatus != PermissionStatus.Granted || writeStatus != PermissionStatus.Granted)
+        {
+            // Permissions not granted, consider showing a message to the user
+        }
     }
 #endif
     Viewer?.InvalidateSurface();
