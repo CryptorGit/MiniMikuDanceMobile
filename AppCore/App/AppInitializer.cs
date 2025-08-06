@@ -39,9 +39,9 @@ public partial class AppInitializer : IDisposable
     private string _poseOutputDir = string.Empty;
 
 
-    public void Initialize(UIConfig uiConfig, string? modelPath, string poseModelPath, string baseDir)
+    public void Initialize(string? modelPath, string poseModelPath, string baseDir)
     {
-
+        _poseModelPath = poseModelPath;
         UIManager.Instance.LoadConfig(uiConfig);
         // FrameExtractor はプラットフォーム側で差し替えられる
         PoseEstimator = new PoseEstimator(poseModelPath, FrameExtractor);
@@ -159,10 +159,6 @@ public partial class AppInitializer : IDisposable
         {
             var path = Recorder.StopRecording();
             UIManager.Instance.IsRecording = false;
-            if (!string.IsNullOrEmpty(Recorder.ThumbnailPath))
-            {
-                UIManager.Instance.SetThumbnail(Recorder.ThumbnailPath);
-            }
             UIManager.Instance.SetMessage($"Saved: {path}");
         }
         else

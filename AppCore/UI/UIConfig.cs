@@ -1,24 +1,9 @@
 namespace MiniMikuDance.UI;
 
-public class UIButton
-{
-    public string Label { get; set; } = string.Empty;
-    public string Message { get; set; } = string.Empty;
-}
-
-public class UIToggle
-{
-    public string Label { get; set; } = string.Empty;
-    public string Id { get; set; } = string.Empty;
-    public bool DefaultValue { get; set; }
-}
-
+/// <summary>
+/// XAML からのバインドに使用される設定クラス。
+/// 現在は利用されるプロパティがないため空の定義とする。
+/// </summary>
 public class UIConfig
 {
-    public List<UIButton> Buttons { get; set; } = new();
-    public List<UIToggle> Toggles { get; set; } = new();
-    public bool ShowProgressBar { get; set; }
-    public bool ShowMessage { get; set; }
-    public bool ShowRecordingIndicator { get; set; }
-    public bool ShowThumbnail { get; set; }
 }
