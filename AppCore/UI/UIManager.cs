@@ -117,11 +117,6 @@ public class UIManager : Singleton<UIManager>
             ImGui.TextWrapped(Message);
         }
 
-        if (Config.ShowRecordingIndicator && IsRecording)
-        {
-            ImGui.TextColored(new Vector4(1, 0, 0, 1), "● REC");
-        }
-
         if (Config.ShowThumbnail && _thumbnailTexture != 0)
         {
             ImGui.Image((IntPtr)_thumbnailTexture, _thumbnailSize);
