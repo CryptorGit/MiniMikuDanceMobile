@@ -36,7 +36,6 @@ public partial class AppInitializer : IDisposable
     public MotionData? Motion { get; set; }
     public BonesConfig? BonesConfig { get; set; }
     public Action<(Dictionary<int, System.Numerics.Quaternion> rotations, System.Numerics.Matrix4x4 transform)>? OnMotionApplied { get; set; }
-    private string _poseModelPath = string.Empty;
     private string _poseOutputDir = string.Empty;
 
 
@@ -44,7 +43,6 @@ public partial class AppInitializer : IDisposable
     {
 
         UIManager.Instance.LoadConfig(uiConfig);
-        _poseModelPath = poseModelPath;
         // FrameExtractor はプラットフォーム側で差し替えられる
         PoseEstimator = new PoseEstimator(poseModelPath, FrameExtractor);
         MotionGenerator = new MotionGenerator();
