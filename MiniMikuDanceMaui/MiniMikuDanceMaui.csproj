@@ -27,6 +27,10 @@
       <PackageReference Include="Microsoft.Maui.Graphics.Skia" Version="8.0.100" />
       <PackageReference Include="OpenTK.redist.glfw" Version="3.4.0.44" />
       <PackageReference Include="SkiaSharp.Views.Maui.Controls" Version="3.119.0" />
+      <PackageReference Include="Microsoft.CodeAnalysis.NetAnalyzers" Version="9.0.0">
+        <PrivateAssets>all</PrivateAssets>
+        <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+      </PackageReference>
     </ItemGroup>
   <ItemGroup>
     <!-- 追加のアセットが必要な場合はここに記述します -->

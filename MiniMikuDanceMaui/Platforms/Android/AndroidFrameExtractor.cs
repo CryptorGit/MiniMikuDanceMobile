@@ -50,7 +50,11 @@ public class AndroidFrameExtractor : IVideoFrameExtractor
                 if (bmp == null) continue;
                 string path = System.IO.Path.Combine(outputDir, $"frame_{index:D08}.png");
                 using var fs = File.OpenWrite(path);
-                bmp.Compress(Bitmap.CompressFormat.Png, 100, fs);
+                var format = Bitmap.CompressFormat.Png;
+                if (format != null)
+                {
+                    bmp.Compress(format, 100, fs);
+                }
                 list.Add(path);
                 index++;
                 if (progressCb != null && frameCount > 0)

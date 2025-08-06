@@ -37,6 +37,7 @@ public partial class PoseEditorView : ContentView
 
     private void UpdateButtons()
     {
+        if (Application.Current == null) return;
         var active = (Color)Application.Current.Resources["TabActiveColor"];
         var inactive = (Color)Application.Current.Resources["TabInactiveColor"];
         CameraModeButton.BackgroundColor = _boneMode ? inactive : active;
