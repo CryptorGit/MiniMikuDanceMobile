@@ -790,8 +790,9 @@ private void ShowBottomFeature(string name)
         View view;
         if (name == "Explorer")
         {
-            var ev = new ExplorerView(MmdFileSystem.BaseDir);
-            ev.LoadDirectory(MmdFileSystem.BaseDir);
+            var rootPath = string.IsNullOrEmpty(MmdFileSystem.BaseDir) ? MmdFileSystem.WorkDir : MmdFileSystem.BaseDir;
+            var ev = new ExplorerView(rootPath);
+            ev.LoadDirectory(rootPath);
             view = ev;
         }
         else if (name == "Open")

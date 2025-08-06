@@ -20,7 +20,8 @@ public partial class App : Application, IDisposable
         MmdFileSystem.Ensure("Movie");
         MmdFileSystem.Ensure("Poses");
 
-        Directory.SetCurrentDirectory(MmdFileSystem.BaseDir);
+        if (!string.IsNullOrEmpty(MmdFileSystem.BaseDir))
+            Directory.SetCurrentDirectory(MmdFileSystem.BaseDir);
         var bonesConfig = DataManager.Instance.LoadConfig<BonesConfig>("BonesConfig");
         Initializer.BonesConfig = bonesConfig;
 
@@ -48,7 +49,7 @@ public partial class App : Application, IDisposable
             }
         }
 
-        Initializer.Initialize(null, poseModel, MmdFileSystem.BaseDir);
+        Initializer.Initialize(null, poseModel, MmdFileSystem.WorkDir);
     }
 
     protected override Window CreateWindow(IActivationState? activationState)

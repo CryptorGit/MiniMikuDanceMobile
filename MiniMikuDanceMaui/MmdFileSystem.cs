@@ -11,6 +11,7 @@ namespace MiniMikuDanceMaui;
 public static class MmdFileSystem
 {
     public static string BaseDir { get; private set; } = string.Empty;
+    public static string WorkDir { get; private set; } = string.Empty;
 #if ANDROID
     public static Android.Net.Uri? BaseUri { get; private set; }
 #endif
@@ -25,12 +26,17 @@ public static class MmdFileSystem
             {
                 BaseUri = Android.Net.Uri.Parse(uri);
                 LogService.WriteLine($"[MmdFileSystem] Using SAF storage: {uri}", LogService.LogLevel.Info);
+                var root = FileSystem.AppDataDirectory;
+                WorkDir = SystemPath.Combine(root, "MiniMikuDance", "data");
+                Directory.CreateDirectory(WorkDir);
+                Directory.CreateDirectory(SystemPath.Combine(WorkDir, "Movie"));
                 return;
             }
         }
 #endif
-        var root = FileSystem.AppDataDirectory;
-        BaseDir = SystemPath.Combine(root, "MiniMikuDance", "data");
+        var rootDir = FileSystem.AppDataDirectory;
+        BaseDir = SystemPath.Combine(rootDir, "MiniMikuDance", "data");
+        WorkDir = BaseDir;
         Directory.CreateDirectory(BaseDir);
         Directory.CreateDirectory(SystemPath.Combine(BaseDir, "Movie"));
         LogService.WriteLine($"[MmdFileSystem] Using storage: {BaseDir}", LogService.LogLevel.Info);
@@ -57,12 +63,10 @@ public static class MmdFileSystem
                     var next = doc.FindFile(part);
                     doc = next ?? doc.CreateDirectory(part);
                 }
-                return doc.Uri.ToString();
             }
-            return BaseUri.ToString();
         }
 #endif
-        var path = SystemPath.Combine(BaseDir, subdir);
+        var path = SystemPath.Combine(WorkDir, subdir);
         Directory.CreateDirectory(path);
         return path;
     }
