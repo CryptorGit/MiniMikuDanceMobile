@@ -59,7 +59,6 @@ public partial class MainPage : ContentPage
     private readonly CameraController _cameraController = new();
     private float _rotateSensitivity = 0.1f;
     private float _panSensitivity = 0.1f;
-    private float _zoomSensitivity = 0.1f;
     private float _shadeShift = -0.1f;
     private float _shadeToony = 0.9f;
     private float _rimIntensity = 0.5f;
@@ -160,8 +159,6 @@ public partial class MainPage : ContentPage
         this.SizeChanged += OnSizeChanged;
         _renderer.RotateSensitivity = 0.1f;
         _renderer.PanSensitivity = 0.1f;
-        _renderer.ZoomSensitivity = _settings.ZoomSensitivity;
-        _zoomSensitivity = _settings.ZoomSensitivity;
         _renderer.ShadeShift = -0.1f;
         _renderer.ShadeToony = 0.9f;
         _renderer.RimIntensity = 0.5f;
@@ -189,14 +186,6 @@ public partial class MainPage : ContentPage
                 _renderer.StageSize = (float)v;
                 _settings.StageSize = (float)v;
                 _settings.Save();
-            };
-            setting.ZoomSensitivity = _settings.ZoomSensitivity;
-            setting.ZoomSensitivityChanged += v =>
-            {
-                _renderer.ZoomSensitivity = (float)v;
-                _settings.ZoomSensitivity = (float)v;
-                _settings.Save();
-                _zoomSensitivity = (float)v;
             };
             setting.HeightRatioChanged += ratio =>
             {
@@ -294,7 +283,6 @@ public partial class MainPage : ContentPage
             sv.HeightRatio = _bottomHeightRatio;
             sv.RotateSensitivity = _renderer.RotateSensitivity;
             sv.PanSensitivity = _renderer.PanSensitivity;
-            sv.ZoomSensitivity = _renderer.ZoomSensitivity;
             sv.CameraLocked = _renderer.CameraLocked;
         }
         UpdateOverlay();
@@ -440,7 +428,6 @@ public partial class MainPage : ContentPage
         sv.HeightRatio = _bottomHeightRatio;
         sv.RotateSensitivity = _rotateSensitivity;
         sv.PanSensitivity = _panSensitivity;
-        sv.ZoomSensitivity = _zoomSensitivity;
         sv.CameraLocked = _renderer.CameraLocked;
         sv.ShowBoneOutline = _renderer.ShowBoneOutline;
     }
@@ -977,17 +964,6 @@ public partial class MainPage : ContentPage
                 {
                     if (_renderer != null)
                         _renderer.PanSensitivity = (float)v;
-                };
-                sv.ZoomSensitivityChanged += v =>
-                {
-                    if (_renderer != null)
-                        _renderer.ZoomSensitivity = (float)v;
-                    if (_settings != null)
-                    {
-                        _settings.ZoomSensitivity = (float)v;
-                        _settings.Save();
-                    }
-                    _zoomSensitivity = (float)v;
                 };
                 sv.CameraLockChanged += locked =>
                 {
