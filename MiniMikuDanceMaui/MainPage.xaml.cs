@@ -69,8 +69,6 @@ public partial class MainPage : ContentPage
     private ModelData? _pendingModel;
     private ModelData? _currentModel;
     private readonly Dictionary<long, SKPoint> _touchPoints = new();
-    private bool _boneMode;
-    private MotionEditor? _motionEditor;
     private readonly BonesConfig? _bonesConfig = App.Initializer.BonesConfig;
     private void SetProgressVisibilityAndLayout(bool isVisible,
         bool showExtract,
@@ -106,22 +104,6 @@ public partial class MainPage : ContentPage
         PoseProgressLabel.Text = $"姿勢推定: {current}/{_poseTotalFrames} ({p * 100:0}%)";
     }
 
-    private void UpdateMorphUIState(bool enabled)
-    {
-        MorphList.IsEnabled = enabled;
-        MorphSlider.IsEnabled = enabled;
-        MorphPanel.IsVisible = enabled;
-    }
-
-    private class PoseState
-    {
-        public IList<Vector3> Rotations = new List<Vector3>();
-        public IList<Vector3> Translations = new List<Vector3>();
-    }
-
-    private readonly List<PoseState> _poseHistory = new();
-    private int _poseHistoryIndex = -1;
-    private PoseState? _poseBeforeKeyInput;
     public MotionPlayer? MotionPlayer => App.Initializer.MotionPlayer;
 
     private static string GetAppPackageDirectory()
@@ -145,7 +127,6 @@ public partial class MainPage : ContentPage
     public MainPage()
     {
         InitializeComponent();
-        UpdateMorphUIState(false);
         NavigationPage.SetHasNavigationBar(this, false);
         this.SizeChanged += OnSizeChanged;
         _renderer.RotateSensitivity = 0.1f;
@@ -156,12 +137,6 @@ public partial class MainPage : ContentPage
         _renderer.StageSize = _settings.StageSize;
         _renderer.DefaultCameraDistance = _settings.CameraDistance;
         _renderer.DefaultCameraTargetY = _settings.CameraTargetY;
-
-        var motion = App.Initializer.Motion;
-        if (motion != null)
-        {
-            _motionEditor = new MotionEditor(motion);
-        }
 
         if (Viewer is SKGLView glView)
         {
@@ -203,35 +178,6 @@ public partial class MainPage : ContentPage
                 Viewer?.InvalidateSurface();
             };
         }
-
-        AddKeyPanel.Confirmed += OnAddKeyConfirmClicked;
-        AddKeyPanel.Canceled += OnAddKeyCancelClicked;
-        AddKeyPanel.BoneChanged += OnAddKeyBoneChanged;
-        AddKeyPanel.FrameChanged += OnAddKeyFrameChanged;
-        AddKeyPanel.ParameterChanged += OnKeyParameterChanged;
-
-        // BoneAxisControl の値変更時にモデルへ即座に反映する
-        AddKeyPanel.RotXControl.ValueChanged += OnBoneAxisValueChanged;
-        AddKeyPanel.RotYControl.ValueChanged += OnBoneAxisValueChanged;
-        AddKeyPanel.RotZControl.ValueChanged += OnBoneAxisValueChanged;
-        AddKeyPanel.PosXControl.ValueChanged += OnBoneAxisValueChanged;
-        AddKeyPanel.PosYControl.ValueChanged += OnBoneAxisValueChanged;
-        AddKeyPanel.PosZControl.ValueChanged += OnBoneAxisValueChanged;
-
-        EditKeyPanel.Confirmed += OnEditKeyConfirmClicked;
-        EditKeyPanel.Canceled += OnEditKeyCancelClicked;
-        EditKeyPanel.BoneChanged += OnEditKeyBoneChanged;
-        EditKeyPanel.FrameChanged += OnEditKeyFrameChanged;
-        EditKeyPanel.ParameterChanged += OnKeyParameterChanged;
-        EditKeyPanel.RotXControl.ValueChanged += OnBoneAxisValueChanged;
-        EditKeyPanel.RotYControl.ValueChanged += OnBoneAxisValueChanged;
-        EditKeyPanel.RotZControl.ValueChanged += OnBoneAxisValueChanged;
-        EditKeyPanel.PosXControl.ValueChanged += OnBoneAxisValueChanged;
-        EditKeyPanel.PosYControl.ValueChanged += OnBoneAxisValueChanged;
-        EditKeyPanel.PosZControl.ValueChanged += OnBoneAxisValueChanged;
-        DeletePanel.Confirmed += OnKeyDeleteConfirmClicked;
-        DeletePanel.Canceled += OnKeyDeleteCancelClicked;
-        DeletePanel.BoneChanged += OnDeleteBoneChanged;
 
         App.Initializer.OnMotionApplied += OnMotionApplied;
     }
@@ -327,14 +273,7 @@ public partial class MainPage : ContentPage
         ShowBottomFeature("MTOON");
         HideAllMenusAndLayout();
     }
-
-    private void OnPoseEditorClicked(object? sender, EventArgs e)
-    {
-        ShowBottomFeature("POSE");
-        HideAllMenusAndLayout();
-    }
-
-
+    
     private void OnCloseBottomTapped(object? sender, TappedEventArgs e)
     {
         if (_currentFeature != null)
@@ -476,8 +415,6 @@ public partial class MainPage : ContentPage
     {
         if (TopMenu == null || ViewMenu == null || FileMenu == null || SettingMenu == null ||
             MenuOverlay == null || PmxImportDialog == null || PoseSelectMessage == null ||
-            AddKeyPanel == null || EditKeyPanel == null ||
-            DeletePanel == null || ProgressFrame == null || LoadingIndicator == null ||
             Viewer == null || BottomRegion == null)
             return;
 
@@ -509,13 +446,6 @@ public partial class MainPage : ContentPage
             PoseSelectMessage.IsVisible ? AbsoluteLayout.AutoSize : 0));
         AbsoluteLayout.SetLayoutFlags(PoseSelectMessage,
             AbsoluteLayoutFlags.XProportional | AbsoluteLayoutFlags.WidthProportional);
-        AbsoluteLayout.SetLayoutBounds(AddKeyPanel, new Rect(W - 300 - 20, TopMenuHeight + 20, 300, 500));
-        AbsoluteLayout.SetLayoutFlags(AddKeyPanel, AbsoluteLayoutFlags.None);
-        AbsoluteLayout.SetLayoutBounds(EditKeyPanel, new Rect(W - 300 - 20, TopMenuHeight + 20, 300, 500));
-        AbsoluteLayout.SetLayoutFlags(EditKeyPanel, AbsoluteLayoutFlags.None);
-        AbsoluteLayout.SetLayoutBounds(DeletePanel, new Rect(W - 300 - 20, TopMenuHeight + 20, 300, 200));
-        AbsoluteLayout.SetLayoutFlags(DeletePanel, AbsoluteLayoutFlags.None);
-
         AbsoluteLayout.SetLayoutBounds(ProgressFrame, new Rect(0.5, TopMenuHeight + 20, 0.8,
             ProgressFrame.IsVisible ? AbsoluteLayout.AutoSize : 0));
         AbsoluteLayout.SetLayoutFlags(ProgressFrame,
@@ -579,14 +509,12 @@ public partial class MainPage : ContentPage
             _renderer.ClearBoneRotations();
             _renderer.LoadModel(_pendingModel);
             _currentModel = _pendingModel;
-            UpdateMorphUIState(true);
             App.Initializer.UpdateApplier(_currentModel);
             _shadeShift = _pendingModel.ShadeShift;
             _shadeToony = _pendingModel.ShadeToony;
             _rimIntensity = _pendingModel.RimIntensity;
             UpdateRendererLightingProperties();
             _pendingModel = null;
-            SavePoseState();
         }
     }
 
@@ -608,11 +536,7 @@ public partial class MainPage : ContentPage
             var prevPoints = new Dictionary<long, SKPoint>(_touchPoints);
             _touchPoints[e.Id] = e.Location;
 
-            if (_boneMode)
-            {
-                // TODO: implement bone manipulation via touch
-            }
-            else if (_touchPoints.Count == 1 && prevPoints.ContainsKey(e.Id))
+            if (_touchPoints.Count == 1 && prevPoints.ContainsKey(e.Id))
             {
                 var prev = prevPoints[e.Id];
                 var dx = e.Location.X - prev.X;
@@ -697,7 +621,6 @@ public partial class MainPage : ContentPage
                 }
                 _renderer.LoadModel(data);
                 _currentModel = data;
-                UpdateMorphUIState(true);
                 _shadeShift = data.ShadeShift;
                 _shadeToony = data.ShadeToony;
                 _rimIntensity = data.RimIntensity;
@@ -753,135 +676,11 @@ public partial class MainPage : ContentPage
                 SetupBoneView(bv);
                 view = bv;
             }
-            else if (name == "CAMERA")
-            {
-                var cv = new CameraView(_renderer);
-                view = cv;
-            }
-            else if (name == "POSE")
-            {
-                var pv = new PoseEditorView();
-                pv.ModeChanged += mode => _boneMode = mode;
-                view = pv;
-            }
-
             else if (name == "PMX")
             {
                 var pv = new PmxView();
                 pv.SetModel(_currentModel);
                 view = pv;
-            }
-
-            else if (name == "TIMELINE")
-            {
-                var tv = new TimelineView();
-                tv.Model = _currentModel;
-                tv.CurrentFrameChanged += OnTimelineFrameChanged;
-                if (_currentModel != null)
-                {
-                    ApplyTimelineFrame(tv, tv.CurrentFrame);
-                    Viewer?.InvalidateSurface();
-                }
-                tv.AddKeyClicked += async (s, e) =>
-                {
-                    if (s is TimelineView timelineView)
-                    {
-                        int boneIndex = timelineView.SelectedKeyInputBoneIndex;
-                        var boneName = timelineView.BoneNames.Count > boneIndex && boneIndex >= 0
-                            ? timelineView.BoneNames[boneIndex]
-                            : timelineView.SelectedBoneName;
-
-                        if (timelineView.HasKeyframe(boneName, timelineView.CurrentFrame))
-                        {
-                            await DisplayAlert("Info", "既にキーがあります", "OK");
-                            AddKeyPanel.IsVisible = false;
-                            return;
-                        }
-
-                        AddKeyPanel.SetBones(timelineView.BoneNames);
-                        AddKeyPanel.SelectedBoneIndex = boneIndex;
-                        AddKeyPanel.SetFrame(timelineView.CurrentFrame, timelineView.GetKeyframesForBone(boneName));
-                        timelineView.SelectedKeyInputBoneIndex = AddKeyPanel.SelectedBoneIndex;
-                        // Ensure rotation limit is applied even when the index does not change
-                        OnAddKeyBoneChanged(AddKeyPanel.SelectedBoneIndex);
-                    }
-                    _poseBeforeKeyInput = new PoseState
-                    {
-                        Rotations = _renderer.GetAllBoneRotations(),
-                        Translations = _renderer.GetAllBoneTranslations()
-                    };
-                    AddKeyPanel.IsVisible = true;
-                };
-                tv.EditKeyClicked += async (s, e) =>
-                {
-                    if (s is TimelineView timelineView)
-                    {
-                        int boneIndex = timelineView.SelectedKeyInputBoneIndex;
-                        var boneName = timelineView.BoneNames.Count > boneIndex && boneIndex >= 0
-                            ? timelineView.BoneNames[boneIndex]
-                            : timelineView.SelectedBoneName;
-
-                        if (!timelineView.HasKeyframe(boneName, timelineView.CurrentFrame))
-                        {
-                            await DisplayAlert("Info", "キーがありません", "OK");
-                            EditKeyPanel.IsVisible = false;
-                            return;
-                        }
-
-                        _poseBeforeKeyInput = new PoseState
-                        {
-                            Rotations = _renderer.GetAllBoneRotations(),
-                            Translations = _renderer.GetAllBoneTranslations()
-                        };
-
-                        EditKeyPanel.SetBones(timelineView.BoneNames);
-                        EditKeyPanel.SelectedBoneIndex = boneIndex;
-
-                        var frames = timelineView.GetKeyframesForBone(boneName);
-                        EditKeyPanel.SetFrame(timelineView.CurrentFrame, frames,
-                            timelineView.GetBoneTranslationAtFrame,
-                            timelineView.GetBoneRotationAtFrame);
-
-                        timelineView.SelectedKeyInputBoneIndex = EditKeyPanel.SelectedBoneIndex;
-
-                        var selectedIndex = EditKeyPanel.SelectedBoneIndex;
-                        if (selectedIndex >= 0)
-                        {
-                            // Ensure rotation limit is applied even when the index does not change
-                            OnEditKeyBoneChanged(selectedIndex);
-
-                            var boneName2 = EditKeyPanel.SelectedBone;
-                            if (!string.IsNullOrEmpty(boneName2))
-                            {
-                                OnKeyParameterChanged(
-                                    boneName2,
-                                    EditKeyPanel.FrameNumber,
-                                    EditKeyPanel.Translation,
-                                    EditKeyPanel.EulerRotation);
-                            }
-                        }
-
-                        EditKeyPanel.IsVisible = true;
-                    }
-                };
-                tv.DeleteKeyClicked += (s, e) =>
-                {
-                    DeletePanel.IsVisible = true;
-                    if (s is TimelineView timelineView)
-                    {
-                        int boneIndex = timelineView.SelectedKeyInputBoneIndex;
-                        DeletePanel.SetBones(timelineView.BoneNames);
-                        DeletePanel.SelectedBoneIndex = boneIndex;
-                        var bone = timelineView.BoneNames.Count > boneIndex && boneIndex >= 0
-                       ? timelineView.BoneNames[boneIndex]
-                       : timelineView.SelectedBoneName;
-                        var frames = timelineView.GetKeyframesForBone(bone);
-                        DeletePanel.SetFrames(frames);
-                        DeletePanel.SelectedFrameIndex = frames.IndexOf(timelineView.CurrentFrame);
-                        timelineView.SelectedKeyInputBoneIndex = DeletePanel.SelectedBoneIndex;
-                    }
-                };
-                view = tv;
             }
             else if (name == "MTOON")
             {
@@ -1416,379 +1215,6 @@ public partial class MainPage : ContentPage
         SelectedVideoPath.Text = string.Empty;
         SetProgressVisibilityAndLayout(false, true, true);
     }
-
-    private async void OnKeyConfirmClicked(string bone, int frame, Vector3 trans, Vector3 rot)
-    {
-        SetLoadingIndicatorVisibilityAndLayout(true);
-        await Task.Delay(50);
-        _motionEditor?.AddKeyFrame(bone, frame);
-
-        var rClamped = ClampRotation(bone, rot);
-
-        if (rClamped != rot)
-        {
-            if (AddKeyPanel.IsVisible)
-                AddKeyPanel.SetRotation(rClamped);
-            else if (EditKeyPanel.IsVisible)
-                EditKeyPanel.SetRotation(rClamped);
-        }
-
-        if (_currentFeature == "TIMELINE" && _bottomViews.TryGetValue("TIMELINE", out var timelineView) && timelineView is TimelineView tv)
-        {
-            tv.AddKeyframe(bone, frame, trans, rClamped);
-        }
-
-        if (_currentModel != null)
-        {
-            if (_currentModel.HumanoidBones.TryGetValue(bone, out int index))
-            {
-                _renderer.SetBoneTranslation(index, trans);
-                _renderer.SetBoneRotation(index, rClamped);
-
-                SavePoseState();
-                Viewer?.InvalidateSurface();
-            }
-        }
-        _poseBeforeKeyInput = null;
-        AddKeyPanel.IsVisible = false;
-        EditKeyPanel.IsVisible = false;
-        SetLoadingIndicatorVisibilityAndLayout(false);
-    }
-
-    private void OnKeyCancelClicked()
-    {
-        AddKeyPanel.IsVisible = false;
-        EditKeyPanel.IsVisible = false;
-        if (_poseBeforeKeyInput != null)
-        {
-            _renderer.SetAllBoneRotations(_poseBeforeKeyInput.Rotations);
-            _renderer.SetAllBoneTranslations(_poseBeforeKeyInput.Translations);
-            Viewer?.InvalidateSurface();
-            _poseBeforeKeyInput = null;
-            SavePoseState();
-        }
-        SetLoadingIndicatorVisibilityAndLayout(false);
-    }
-
-    private void OnAddKeyConfirmClicked(string bone, int frame, Vector3 trans, Vector3 rot)
-        => OnKeyConfirmClicked(bone, frame, trans, rot);
-
-    private void OnEditKeyConfirmClicked(string bone, int frame, Vector3 trans, Vector3 rot)
-        => OnKeyConfirmClicked(bone, frame, trans, rot);
-
-    private void OnAddKeyCancelClicked()
-        => OnKeyCancelClicked();
-
-    private void OnEditKeyCancelClicked()
-        => OnKeyCancelClicked();
-
-    private async void OnKeyDeleteConfirmClicked(string bone, int frame)
-    {
-        SetLoadingIndicatorVisibilityAndLayout(true);
-        await Task.Delay(50);
-        _motionEditor?.RemoveKeyFrame(bone, frame);
-        if (_currentFeature == "TIMELINE" && _bottomViews.TryGetValue("TIMELINE", out var timelineView) && timelineView is TimelineView tv)
-        {
-            tv.RemoveKeyframe(bone, frame);
-            // 現在のフレームにおける姿勢を再適用してモデルを更新する
-            ApplyTimelineFrame(tv, tv.CurrentFrame);
-            Viewer?.InvalidateSurface();
-        }
-        DeletePanel.IsVisible = false;
-        SetLoadingIndicatorVisibilityAndLayout(false);
-    }
-
-    private void OnKeyDeleteCancelClicked()
-    {
-        DeletePanel.IsVisible = false;
-        SetLoadingIndicatorVisibilityAndLayout(false);
-    }
-
-    private void OnAddKeyBoneChanged(int index)
-    {
-        int frame = AddKeyPanel.FrameNumber;
-
-        if (_bottomViews.TryGetValue("TIMELINE", out var timelineView) && timelineView is TimelineView tv)
-        {
-            tv.SelectedKeyInputBoneIndex = index;
-
-            if (index >= 0 && index < tv.BoneNames.Count)
-            {
-                var boneName = tv.BoneNames[index];
-                if (_bonesConfig != null && _bonesConfig.TryGetLimit(boneName, out var lim))
-                    AddKeyPanel.SetRotationLimit(lim);
-                else
-                    AddKeyPanel.SetRotationLimit(null);
-
-                if (tv.HasAnyKeyframe(boneName))
-                {
-                    AddKeyPanel.SetTranslation(tv.GetNearestTranslation(boneName, frame));
-                    AddKeyPanel.SetRotation(ClampRotation(boneName, tv.GetNearestRotation(boneName, frame)));
-                }
-                else if (_motionEditor != null)
-                {
-                    var t = GetBoneTranslationAtFrame(boneName, frame);
-                    var r = ClampRotation(boneName, GetBoneRotationAtFrame(boneName, frame));
-                    AddKeyPanel.SetTranslation(t);
-                    AddKeyPanel.SetRotation(r);
-                }
-                else
-                {
-                    AddKeyPanel.SetTranslation(Vector3.Zero);
-                    AddKeyPanel.SetRotation(Vector3.Zero);
-                }
-            }
-
-            return;
-        }
-
-        if (_currentModel == null) return;
-        if (index >= 0 && index < _currentModel.HumanoidBoneList.Count)
-        {
-            var boneName = _currentModel.HumanoidBoneList[index].Name;
-            if (_bonesConfig != null && _bonesConfig.TryGetLimit(boneName, out var lim))
-                AddKeyPanel.SetRotationLimit(lim);
-            else
-                AddKeyPanel.SetRotationLimit(null);
-
-            var t = GetBoneTranslationAtFrame(boneName, frame);
-            var r = ClampRotation(boneName, GetBoneRotationAtFrame(boneName, frame));
-            AddKeyPanel.SetTranslation(t);
-            AddKeyPanel.SetRotation(r);
-        }
-    }
-
-    private void OnEditKeyBoneChanged(int index)
-    {
-        int frame = EditKeyPanel.FrameNumber;
-
-        if (_bottomViews.TryGetValue("TIMELINE", out var timelineView) && timelineView is TimelineView tv)
-        {
-            tv.SelectedKeyInputBoneIndex = index;
-
-            if (index >= 0 && index < tv.BoneNames.Count)
-            {
-                var boneName = tv.BoneNames[index];
-                if (_bonesConfig != null && _bonesConfig.TryGetLimit(boneName, out var lim))
-                    EditKeyPanel.SetRotationLimit(lim);
-                else
-                    EditKeyPanel.SetRotationLimit(null);
-                if (tv.HasKeyframe(boneName, frame))
-                {
-                    EditKeyPanel.SetTranslation(tv.GetBoneTranslationAtFrame(boneName, frame));
-                    EditKeyPanel.SetRotation(ClampRotation(boneName, tv.GetBoneRotationAtFrame(boneName, frame)));
-                }
-                else if (tv.HasAnyKeyframe(boneName))
-                {
-                    EditKeyPanel.SetTranslation(tv.GetNearestTranslation(boneName, frame));
-                    EditKeyPanel.SetRotation(ClampRotation(boneName, tv.GetNearestRotation(boneName, frame)));
-                }
-                else if (_motionEditor != null)
-                {
-                    var t = GetBoneTranslationAtFrame(boneName, frame);
-                    var r = ClampRotation(boneName, GetBoneRotationAtFrame(boneName, frame));
-                    EditKeyPanel.SetTranslation(t);
-                    EditKeyPanel.SetRotation(r);
-                }
-                else
-                {
-                    EditKeyPanel.SetTranslation(Vector3.Zero);
-                    EditKeyPanel.SetRotation(Vector3.Zero);
-                }
-
-                EditKeyPanel.SetFrameOptions(tv.GetKeyframesForBone(boneName));
-                OnKeyParameterChanged(
-                    EditKeyPanel.SelectedBone,
-                    EditKeyPanel.FrameNumber,
-                    EditKeyPanel.Translation,
-                    EditKeyPanel.EulerRotation);
-            }
-
-            return;
-        }
-
-        if (_currentModel == null) return;
-        if (index >= 0 && index < _currentModel.HumanoidBoneList.Count)
-        {
-            var boneName = _currentModel.HumanoidBoneList[index].Name;
-            if (_bonesConfig != null && _bonesConfig.TryGetLimit(boneName, out var lim))
-                EditKeyPanel.SetRotationLimit(lim);
-            else
-                EditKeyPanel.SetRotationLimit(null);
-
-            var t = GetBoneTranslationAtFrame(boneName, frame);
-            var r = ClampRotation(boneName, GetBoneRotationAtFrame(boneName, frame));
-            EditKeyPanel.SetTranslation(t);
-            EditKeyPanel.SetRotation(r);
-            OnKeyParameterChanged(
-                EditKeyPanel.SelectedBone,
-                EditKeyPanel.FrameNumber,
-                EditKeyPanel.Translation,
-                EditKeyPanel.EulerRotation);
-        }
-    }
-
-    private void OnDeleteBoneChanged(int index)
-    {
-        if (_currentModel == null) return;
-        if (_bottomViews.TryGetValue("TIMELINE", out var timelineView) && timelineView is TimelineView tv)
-        {
-            tv.SelectedKeyInputBoneIndex = index;
-            if (index >= 0 && index < tv.BoneNames.Count)
-            {
-                var bone = tv.BoneNames[index];
-                DeletePanel.SetFrames(tv.GetKeyframesForBone(bone));
-            }
-            else
-            {
-                DeletePanel.SetFrames(Array.Empty<int>());
-            }
-        }
-    }
-
-    private void OnAddKeyFrameChanged(int frame)
-    {
-        if (_bottomViews.TryGetValue("TIMELINE", out var timelineView) && timelineView is TimelineView tv)
-        {
-            int boneIndex = AddKeyPanel.SelectedBoneIndex;
-            if (boneIndex >= 0 && boneIndex < tv.BoneNames.Count)
-            {
-                var bone = tv.BoneNames[boneIndex];
-                if (tv.HasAnyKeyframe(bone))
-                {
-                    var t = tv.GetBoneTranslationAtFrame(bone, frame);
-                    var r = ClampRotation(bone, tv.GetBoneRotationAtFrame(bone, frame));
-                    AddKeyPanel.SetTranslation(t);
-                    AddKeyPanel.SetRotation(r);
-                }
-                else if (_motionEditor != null)
-                {
-                    var t = GetBoneTranslationAtFrame(bone, frame);
-                    var r = ClampRotation(bone, GetBoneRotationAtFrame(bone, frame));
-                    AddKeyPanel.SetTranslation(t);
-                    AddKeyPanel.SetRotation(r);
-                }
-                else
-                {
-                    AddKeyPanel.SetTranslation(Vector3.Zero);
-                    AddKeyPanel.SetRotation(Vector3.Zero);
-                }
-            }
-            return;
-        }
-    }
-
-    private void OnEditKeyFrameChanged(int frame)
-    {
-        if (_bottomViews.TryGetValue("TIMELINE", out var timelineView) && timelineView is TimelineView tv)
-        {
-            int boneIndex = EditKeyPanel.SelectedBoneIndex;
-            if (boneIndex >= 0 && boneIndex < tv.BoneNames.Count)
-            {
-                var bone = tv.BoneNames[boneIndex];
-                if (tv.HasAnyKeyframe(bone))
-                {
-                    var t = tv.GetBoneTranslationAtFrame(bone, frame);
-                    var r = ClampRotation(bone, tv.GetBoneRotationAtFrame(bone, frame));
-                    EditKeyPanel.SetTranslation(t);
-                    EditKeyPanel.SetRotation(r);
-                    OnKeyParameterChanged(
-                        EditKeyPanel.SelectedBone,
-                        EditKeyPanel.FrameNumber,
-                        EditKeyPanel.Translation,
-                        EditKeyPanel.EulerRotation);
-                }
-                else if (_motionEditor != null)
-                {
-                    var t = GetBoneTranslationAtFrame(bone, frame);
-                    var r = ClampRotation(bone, GetBoneRotationAtFrame(bone, frame));
-                    EditKeyPanel.SetTranslation(t);
-                    EditKeyPanel.SetRotation(r);
-                    OnKeyParameterChanged(
-                        EditKeyPanel.SelectedBone,
-                        EditKeyPanel.FrameNumber,
-                        EditKeyPanel.Translation,
-                        EditKeyPanel.EulerRotation);
-                }
-                else
-                {
-                    EditKeyPanel.SetTranslation(Vector3.Zero);
-                    EditKeyPanel.SetRotation(Vector3.Zero);
-                    OnKeyParameterChanged(
-                        EditKeyPanel.SelectedBone,
-                        EditKeyPanel.FrameNumber,
-                        EditKeyPanel.Translation,
-                        EditKeyPanel.EulerRotation);
-                }
-            }
-            return;
-        }
-    }
-
-    private void OnKeyParameterChanged(string bone, int frame, Vector3 trans, Vector3 rot)
-    {
-        if (_currentModel == null)
-            return;
-
-        if (_currentModel.HumanoidBones.TryGetValue(bone, out int index))
-        {
-            _renderer.SetBoneTranslation(index, trans);
-            _renderer.SetBoneRotation(index, ClampRotation(bone, rot));
-            Viewer?.InvalidateSurface();
-        }
-    }
-
-    /// <summary>
-    /// BoneAxisControl の値が変更された際に呼び出されるハンドラ。
-    /// 現在選択中のボーンに対してモデルを更新する。
-    /// </summary>
-    /// <param name="v">未使用</param>
-    private void OnBoneAxisValueChanged(double v)
-    {
-        if (_currentModel == null)
-            return;
-
-        string boneName;
-        Vector3 translation;
-        Vector3 rotation;
-
-        if (AddKeyPanel.IsVisible)
-        {
-            boneName = AddKeyPanel.SelectedBone;
-            translation = AddKeyPanel.Translation;
-            rotation = AddKeyPanel.EulerRotation;
-        }
-        else if (EditKeyPanel.IsVisible)
-        {
-            boneName = EditKeyPanel.SelectedBone;
-            translation = EditKeyPanel.Translation;
-            rotation = EditKeyPanel.EulerRotation;
-        }
-        else
-        {
-            return;
-        }
-
-        if (string.IsNullOrEmpty(boneName) ||
-            !_currentModel.HumanoidBones.TryGetValue(boneName, out int index))
-            return;
-
-        var rClamped = ClampRotation(boneName, rotation);
-
-        if (rClamped != rotation)
-        {
-            if (AddKeyPanel.IsVisible)
-                AddKeyPanel.SetRotation(rClamped);
-            else if (EditKeyPanel.IsVisible)
-                EditKeyPanel.SetRotation(rClamped);
-            rotation = rClamped;
-        }
-
-        _renderer.SetBoneTranslation(index, translation);
-        _renderer.SetBoneRotation(index, rClamped);
-        SavePoseState();
-        Viewer?.InvalidateSurface();
-    }
     private void OnPlayAnimationRequested()
     {
         try
@@ -1856,21 +1282,6 @@ public partial class MainPage : ContentPage
         }
     }
 
-
-
-    private void SavePoseState()
-    {
-        var state = new PoseState
-        {
-            Rotations = _renderer.GetAllBoneRotations(),
-            Translations = _renderer.GetAllBoneTranslations()
-        };
-        if (_poseHistoryIndex < _poseHistory.Count - 1)
-            _poseHistory.RemoveRange(_poseHistoryIndex + 1, _poseHistory.Count - _poseHistoryIndex - 1);
-        _poseHistory.Add(state);
-        _poseHistoryIndex = _poseHistory.Count - 1;
-    }
-
     private Vector3 ClampRotation(string bone, Vector3 rot)
     {
         if (_bonesConfig == null)
@@ -1878,49 +1289,6 @@ public partial class MainPage : ContentPage
 
         var clamped = _bonesConfig.Clamp(bone, rot.ToNumerics());
         return clamped.ToOpenTK();
-    }
-
-    private Vector3 GetBoneTranslationAtFrame(string bone, int frame)
-    {
-        if (_bottomViews.TryGetValue("TIMELINE", out var view) && view is TimelineView tv)
-        {
-            if (tv.HasKeyframe(bone, frame))
-                return tv.GetBoneTranslationAtFrame(bone, frame);
-        }
-
-        if (_motionEditor == null || App.Initializer.Applier == null || _currentModel == null)
-            return Vector3.Zero;
-
-        var frames = _motionEditor.Motion.Frames;
-        if (frame < 0 || frame >= frames.Length)
-            return Vector3.Zero;
-
-        var (_, transform) = App.Initializer.Applier.Apply(frames[frame]);
-
-        if (!_currentModel.HumanoidBones.TryGetValue("hips", out int hipsIndex))
-            return Vector3.Zero;
-        if (!_currentModel.HumanoidBones.TryGetValue(bone, out int index) || index != hipsIndex)
-            return Vector3.Zero;
-
-        return new Vector3(transform.M41, transform.M42, transform.M43);
-    }
-
-    private Vector3 GetBoneRotationAtFrame(string bone, int frame)
-    {
-        if (_motionEditor == null || App.Initializer.Applier == null || _currentModel == null)
-            return Vector3.Zero;
-        var frames = _motionEditor.Motion.Frames;
-        if (frame < 0 || frame >= frames.Length)
-            return Vector3.Zero;
-
-        // JointData からモデル座標系での回転を取得する
-        var (rotations, _) = App.Initializer.Applier.Apply(frames[frame]);
-        if (!_currentModel.HumanoidBones.TryGetValue(bone, out int index))
-            return Vector3.Zero;
-        if (!rotations.TryGetValue(index, out var q))
-            return Vector3.Zero;
-        var euler = ToEulerAngles(q);
-        return new Vector3(euler.X, euler.Y, euler.Z);
     }
 
     private static System.Numerics.Quaternion AxisAngleToQuaternion(float x, float y, float z)
@@ -1967,26 +1335,6 @@ public partial class MainPage : ContentPage
         }
 
         Viewer?.InvalidateSurface();
-    }
-
-    private async void OnMorphSelected(object? sender, EventArgs e)
-    {
-        if (_currentModel == null)
-        {
-            await DisplayAlert("Error", "PMXモデルが読み込まれていません。先にモデルをインポートしてください。", "OK");
-            return;
-        }
-        // TODO: モーフ選択処理を実装する
-    }
-
-    private async void OnMorphSliderChanged(object? sender, ValueChangedEventArgs e)
-    {
-        if (_currentModel == null)
-        {
-            await DisplayAlert("Error", "PMXモデルが読み込まれていません。先にモデルをインポートしてください。", "OK");
-            return;
-        }
-        // TODO: モーフ値変更処理を実装する
     }
 
     private static Vector3 ToEulerAngles(System.Numerics.Quaternion q)
