@@ -20,9 +20,7 @@ public static class TwistCorrection
         if (rotations == null || indexToHumanoidName == null)
             return;
 
-        var nameToIndex = new Dictionary<string, int>(StringComparer.OrdinalIgnoreCase);
-        foreach (var kv in indexToHumanoidName)
-            nameToIndex[kv.Value] = kv.Key;
+        var nameToIndex = BuildNameToIndex(indexToHumanoidName);
 
         var names = new[]
         {
@@ -61,10 +59,8 @@ public static class TwistCorrection
         if (rotations == null || indexToHumanoidName == null)
             return;
 
-        var nameToIndex = new Dictionary<string, int>(StringComparer.OrdinalIgnoreCase);
-        foreach (var kv in indexToHumanoidName)
-            nameToIndex[kv.Value] = kv.Key;
-
+        var nameToIndex = BuildNameToIndex(indexToHumanoidName);
+        
         var bases = new[]
         {
             HumanoidBones.StandardOrder[5],  // leftUpperArm
@@ -94,6 +90,14 @@ public static class TwistCorrection
             twistRot.Y = half;
             rotations[twistIdx] = twistRot;
         }
+    }
+
+    private static Dictionary<string, int> BuildNameToIndex(IDictionary<int, string> indexToHumanoidName)
+    {
+        var nameToIndex = new Dictionary<string, int>(StringComparer.OrdinalIgnoreCase);
+        foreach (var kv in indexToHumanoidName)
+            nameToIndex[kv.Value] = kv.Key;
+        return nameToIndex;
     }
 }
 
