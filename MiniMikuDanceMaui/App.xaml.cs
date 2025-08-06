@@ -3,7 +3,6 @@ using Microsoft.Maui.Controls;
 using Microsoft.Maui.Storage;
 using MiniMikuDance.App;
 using MiniMikuDance.Data;
-using MiniMikuDance.UI;
 using System.IO;
 #if IOS
 using MiniMikuDanceMaui;
@@ -28,7 +27,6 @@ public partial class App : Application, IDisposable
         MmdFileSystem.Ensure("Poses");
 
         Directory.SetCurrentDirectory(MmdFileSystem.BaseDir);
-        var uiConfig = DataManager.Instance.LoadConfig<UIConfig>("UIConfig");
         var bonesConfig = DataManager.Instance.LoadConfig<BonesConfig>("BonesConfig");
         Initializer.BonesConfig = bonesConfig;
 
@@ -56,7 +54,7 @@ public partial class App : Application, IDisposable
             }
         }
 
-        Initializer.Initialize(uiConfig, null, poseModel, MmdFileSystem.BaseDir);
+        Initializer.Initialize(null, poseModel, MmdFileSystem.BaseDir);
     }
 
     protected override Window CreateWindow(IActivationState? activationState)
