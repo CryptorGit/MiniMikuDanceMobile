@@ -198,8 +198,6 @@ public class PoseEstimator : IDisposable
 
             var meta = _session.InputMetadata.First();
             var dims = meta.Value.Dimensions.Select(d => d <= 0 ? 1 : d).ToArray();
-            int height = dims.Length > 1 ? dims[1] : 256;
-            int width = dims.Length > 2 ? dims[2] : 256;
 
             Directory.CreateDirectory(tempDir);
 
