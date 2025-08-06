@@ -9,8 +9,7 @@
     { "label": "Share", "message": "share_recording" }
   ],
   "toggles": [
-    { "label": "Gyro Cam", "id": "gyro_cam", "defaultValue": true },
-    { "label": "Smoothing", "id": "smoothing", "defaultValue": true }
+    { "label": "Gyro Cam", "id": "gyro_cam", "defaultValue": true }
   ],
   "showProgressBar": true,
   "showMessage": true,

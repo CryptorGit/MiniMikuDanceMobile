@@ -17,9 +17,6 @@ public class AppSettings
     /// <summary>ジャイロカメラを有効にするか。</summary>
     public bool GyroEnabled { get; set; } = true;
 
-    /// <summary>モーション生成時のスムージングを有効にするか。</summary>
-    public bool SmoothingEnabled { get; set; } = true;
-
     /// <summary>PMXモデルのスケールのデフォルト値。</summary>
     public const float DefaultModelScale = 1.0f;
 
