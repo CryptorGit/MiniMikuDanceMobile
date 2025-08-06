@@ -19,8 +19,6 @@ using MiniMikuDance.Import;
 using OpenTK.Mathematics;
 using MiniMikuDance.Util;
 using MiniMikuDance.PoseEstimation;
-using MiniMikuDance.Motion;
-using MiniMikuDance.Camera;
 using MiniMikuDance.App;
 using SixLabors.ImageSharp.PixelFormats;
 
@@ -55,7 +53,6 @@ public partial class MainPage : ContentPage
     private readonly AppSettings _settings = AppSettings.Load();
 
     private readonly PmxRenderer _renderer = new();
-    private readonly CameraController _cameraController = new();
     private float _rotateSensitivity = 0.1f;
     private float _panSensitivity = 0.1f;
     private float _shadeShift = -0.1f;
@@ -104,7 +101,6 @@ public partial class MainPage : ContentPage
         PoseProgressLabel.Text = $"姿勢推定: {current}/{_poseTotalFrames} ({p * 100:0}%)";
     }
 
-    public MotionPlayer? MotionPlayer => App.Initializer.MotionPlayer;
 
     private static string GetAppPackageDirectory()
     {
@@ -179,7 +175,6 @@ public partial class MainPage : ContentPage
             };
         }
 
-        App.Initializer.OnMotionApplied += OnMotionApplied;
     }
 
     private void ShowViewMenu()
@@ -467,10 +462,6 @@ public partial class MainPage : ContentPage
                 bottomHeight));
         AbsoluteLayout.SetLayoutFlags(BottomRegion, AbsoluteLayoutFlags.None);
 
-        if (_bottomViews.TryGetValue("TIMELINE", out var timelineView) && timelineView is TimelineView tv)
-        {
-            tv.RefreshScrollViews();
-        }
     }
 
 
@@ -509,7 +500,6 @@ public partial class MainPage : ContentPage
             _renderer.ClearBoneRotations();
             _renderer.LoadModel(_pendingModel);
             _currentModel = _pendingModel;
-            App.Initializer.UpdateApplier(_currentModel);
             _shadeShift = _pendingModel.ShadeShift;
             _shadeToony = _pendingModel.ShadeToony;
             _rimIntensity = _pendingModel.RimIntensity;
@@ -1215,92 +1205,6 @@ public partial class MainPage : ContentPage
         SelectedVideoPath.Text = string.Empty;
         SetProgressVisibilityAndLayout(false, true, true);
     }
-    private void OnPlayAnimationRequested()
-    {
-        try
-        {
-            var player = App.Initializer.MotionPlayer;
-            var motion = App.Initializer.Motion;
-            if (player == null || motion == null)
-                return;
-
-            if (player.IsPlaying)
-            {
-                player.Pause();
-            }
-            else
-            {
-                if (player.FrameIndex >= motion.Frames.Length)
-                    player.Restart();
-                else if (player.FrameIndex == 0)
-                    player.Play(motion);
-                else
-                    player.Resume();
-            }
-        }
-        catch (Exception)
-        {
-            // Handle exception
-        }
-    }
-
-    private void OnAnimationFrameChanged(int frame)
-    {
-        var player = App.Initializer.MotionPlayer;
-        if (player == null)
-            return;
-        player.Seek(frame);
-        Viewer?.InvalidateSurface();
-    }
-
-    private void OnTimelineFrameChanged(int frame)
-    {
-        if (_currentModel == null)
-            return;
-        if (!_bottomViews.TryGetValue("TIMELINE", out var view) || view is not TimelineView tv)
-            return;
-
-        ApplyTimelineFrame(tv, frame);
-
-        Viewer?.InvalidateSurface();
-    }
-
-    private void ApplyTimelineFrame(TimelineView tv, int frame)
-    {
-        if (_currentModel == null)
-            return;
-
-        foreach (var bone in tv.BoneNames)
-        {
-            if (!_currentModel.HumanoidBones.TryGetValue(bone, out int index))
-                continue;
-            // 自動補間済みの値を取得
-            var t = tv.GetBoneTranslationAtFrame(bone, frame);
-            var r = tv.GetBoneRotationAtFrame(bone, frame);
-            _renderer.SetBoneTranslation(index, t);
-            _renderer.SetBoneRotation(index, ClampRotation(bone, r));
-        }
-    }
-
-    private Vector3 ClampRotation(string bone, Vector3 rot)
-    {
-        if (_bonesConfig == null)
-            return rot;
-
-        var clamped = _bonesConfig.Clamp(bone, rot.ToNumerics());
-        return clamped.ToOpenTK();
-    }
-
-    private static System.Numerics.Quaternion AxisAngleToQuaternion(float x, float y, float z)
-    {
-        var axis = new System.Numerics.Vector3(x, y, z);
-        float angle = axis.Length();
-        if (angle < 1e-6f)
-            return System.Numerics.Quaternion.Identity;
-        axis /= angle;
-        return System.Numerics.Quaternion.CreateFromAxisAngle(axis, angle);
-    }
-
 
 
     private void SetLoadingIndicatorVisibilityAndLayout(bool isVisible)
@@ -1318,45 +1222,4 @@ public partial class MainPage : ContentPage
         UpdateLayout();
     }
 
-    private void OnMotionApplied((Dictionary<int, System.Numerics.Quaternion> rotations, System.Numerics.Matrix4x4 transform) data)
-    {
-        foreach (var kv in data.rotations)
-        {
-            var euler = ToEulerAngles(kv.Value);
-            _renderer.SetBoneRotation(kv.Key, new Vector3(euler.X, euler.Y, euler.Z));
-        }
-
-        _renderer.ModelTransform = data.transform.ToMatrix4();
-
-        // hips の平行移動は別途管理するためゼロにリセットする
-        if (_currentModel != null && _currentModel.HumanoidBones.TryGetValue("hips", out var hipsIdx))
-        {
-            _renderer.SetBoneTranslation(hipsIdx, Vector3.Zero);
-        }
-
-        Viewer?.InvalidateSurface();
-    }
-
-    private static Vector3 ToEulerAngles(System.Numerics.Quaternion q)
-    {
-        // Z→X→Y 順を使用する
-        const float rad2deg = 180f / MathF.PI;
-        var m = System.Numerics.Matrix4x4.CreateFromQuaternion(q);
-        float sx = -m.M23;
-        float cx = MathF.Sqrt(1 - sx * sx);
-        float x, y, z;
-        if (cx > 1e-6f)
-        {
-            x = MathF.Asin(sx);
-            y = MathF.Atan2(m.M13, m.M33);
-            z = MathF.Atan2(m.M21, m.M22);
-        }
-        else
-        {
-            x = MathF.Asin(sx);
-            y = MathF.Atan2(-m.M31, m.M11);
-            z = 0f;
-        }
-        return new Vector3(x * rad2deg, y * rad2deg, z * rad2deg);
-    }
 }
