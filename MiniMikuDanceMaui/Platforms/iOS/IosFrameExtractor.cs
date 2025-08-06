@@ -42,12 +42,12 @@ public class IosFrameExtractor : IVideoFrameExtractor
             {
                 var time = CMTime.FromSeconds(i / (double)fps, fps);
                 NSError? error;
-                using var cg = generator.CopyCGImageAtTime(time, out var actual, out error);
+                var cg = generator.CopyCGImageAtTime(time, out var actual, out error);
                 if (error != null)
                     continue;
-                using var image = UIImage.FromImage(cg);
+                var image = UIImage.FromImage(cg);
                 var path = Path.Combine(outputDir, $"frame_{i:D08}.png");
-                using var data = image.AsPNG();
+                var data = image.AsPNG();
                 File.WriteAllBytes(path, data.ToArray());
                 result.Add(path);
                 if (progressCb != null && frameCount > 0)

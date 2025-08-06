@@ -10,9 +10,5 @@
     <string>1</string>
     <key>CFBundleShortVersionString</key>
     <string>1.0</string>
-    <key>NSCameraUsageDescription</key>
-    <string>このアプリではカメラを使用します。</string>
-    <key>NSMicrophoneUsageDescription</key>
-    <string>このアプリではマイクを使用します。</string>
 </dict>
 </plist>

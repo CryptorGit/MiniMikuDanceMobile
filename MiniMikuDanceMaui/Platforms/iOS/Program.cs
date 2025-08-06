@@ -1,11 +1,9 @@
-using UIKit;
-
 namespace MiniMikuDanceMaui;
 
 public class Program
 {
     static void Main(string[] args)
     {
-        UIApplication.Main(args, null, typeof(AppDelegate));
+        UIKit.UIApplication.Main(args, null, typeof(AppDelegate));
     }
 }
