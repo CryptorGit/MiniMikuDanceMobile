@@ -22,9 +22,6 @@
 # その他自動生成ファイル (必要に応じて)
 *.xaml.g.cs
 
-# Data folders
-MiniMikuDance/data/
-
 # パッケージ生成物
 *.nupkg
 *.snupkg
