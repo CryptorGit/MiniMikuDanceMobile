@@ -1225,8 +1225,6 @@ public partial class MainPage : ContentPage
         return System.Numerics.Quaternion.CreateFromAxisAngle(axis, angle);
     }
 
-
-
     private void SetLoadingIndicatorVisibilityAndLayout(bool isVisible)
     {
         LoadingIndicator.IsVisible = isVisible;

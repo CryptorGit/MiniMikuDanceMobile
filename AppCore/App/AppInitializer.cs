@@ -1,3 +1,5 @@
+using MiniMikuDance.Import;
+using MiniMikuDance.Recording;
 using MiniMikuDance.UI;
 using MiniMikuDance.Data;
 using MiniMikuDance.Util;
@@ -12,6 +14,7 @@ namespace MiniMikuDance.App;
 public partial class AppInitializer : IDisposable
 {
     public Viewer? Viewer { get; private set; }
+    public RecorderController? Recorder { get; private set; }
     public PoseEstimator? PoseEstimator { get; private set; }
     /// <summary>
     /// 動画フレームを抽出する実装。各プラットフォームで必要に応じて差し替える。
@@ -34,6 +37,7 @@ public partial class AppInitializer : IDisposable
         _poseOutputDir = Path.Combine(baseDir, "Poses");
         Directory.CreateDirectory(_poseOutputDir);
 
+        Recorder = new RecorderController(Path.Combine(baseDir, "Recordings"));
         if (!string.IsNullOrEmpty(modelPath) && File.Exists(modelPath))
         {
             LoadModel(modelPath);
@@ -52,6 +56,19 @@ public partial class AppInitializer : IDisposable
 
         var settings = AppSettings.Load();
         Viewer = new Viewer(modelPath, settings.ModelScale);
+        var importer = new ModelImporter { Scale = settings.ModelScale };
+        var model = importer.ImportModel(modelPath);
+
+        Viewer = new Viewer(modelPath, settings.ModelScale);
+
+        Viewer.FrameUpdated += dt =>
+        {
+            if (Recorder != null && Recorder.IsRecording)
+            {
+                var pixels = Viewer.CaptureFrame();
+                Recorder.Capture(pixels, Viewer.Size.X, Viewer.Size.Y);
+            }
+        };
     }
 
     public async Task<string?> AnalyzeVideoAsync(string videoPath,
@@ -84,7 +101,30 @@ public partial class AppInitializer : IDisposable
         return outPath;
     }
 
+    public void ToggleRecord()
+    {
+        if (Viewer == null || Recorder == null)
+            return;
 
+        if (Recorder.IsRecording)
+        {
+            var path = Recorder.StopRecording();
+            UIManager.Instance.IsRecording = false;
+            if (!string.IsNullOrEmpty(Recorder.ThumbnailPath))
+            {
+                UIManager.Instance.SetThumbnail(Recorder.ThumbnailPath);
+            }
+            UIManager.Instance.SetMessage($"Saved: {path}");
+        }
+        else
+        {
+            var size = Viewer.Size;
+            var path = Recorder.StartRecording(size.X, size.Y, 30);
+            UIManager.Instance.IsRecording = true;
+            UIManager.Instance.SetMessage($"Recording: {path}");
+        }
+    }
+    
     public void Dispose()
     {
         PoseEstimator?.Dispose();
