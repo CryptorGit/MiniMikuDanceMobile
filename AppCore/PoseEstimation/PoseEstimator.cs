@@ -199,34 +199,19 @@ public class PoseEstimator : IDisposable
             var meta = _session.InputMetadata.First();
             var dims = meta.Value.Dimensions.Select(d => d <= 0 ? 1 : d).ToArray();
 
-            Directory.CreateDirectory(tempDir);
+            var files = _extractor.ExtractFrames(videoPath, 30, tempDir, extractProgress).GetAwaiter().GetResult();
 
-            try
+            var results = new List<JointData>(files.Length);
+            for (int i = 0; i < files.Length; i++)
             {
-                var files = _extractor.ExtractFrames(videoPath, 30, tempDir, extractProgress).GetAwaiter().GetResult();
-
-                var results = new List<JointData>(files.Length);
-                for (int i = 0; i < files.Length; i++)
-                {
-                    using var image = Image.Load<Rgb24>(files[i]);
-                    var jd = SearchBest(image, meta.Key, dims, jointCount, true);
-                    jd.Timestamp = i / 30f;
-                    results.Add(jd);
-                    poseProgress?.Invoke((i + 1) / (float)files.Length);
-                }
-
-                return results.ToArray();
+                using var image = Image.Load<Rgb24>(files[i]);
+                var jd = SearchBest(image, meta.Key, dims, jointCount, true);
+                jd.Timestamp = i / 30f;
+                results.Add(jd);
+                poseProgress?.Invoke((i + 1) / (float)files.Length);
             }
-            finally
-            {
-                if (Directory.Exists(tempDir))
-                {
-                    foreach (var f in Directory.GetFiles(tempDir))
-                    {
-                        try { File.Delete(f); } catch { /* ignore */ }
-                    }
-                }
-            }
+
+            return results.ToArray();
         });
     }
 
