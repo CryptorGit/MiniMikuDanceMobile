@@ -8,11 +8,8 @@ namespace MiniMikuDance.App;
 /// </summary>
 public class AppSettings
 {
-    /// <summary>PMXモデルのスケールのデフォルト値。</summary>
-    public const float DefaultModelScale = 1.0f;
-
     /// <summary>PMXモデルに適用するスケール。</summary>
-    public float ModelScale { get; set; } = DefaultModelScale;
+    public float ModelScale { get; set; } = 1.0f;
 
     /// <summary>ステージの半径のデフォルト値。</summary>
     public const float DefaultStageSize = 50f;
