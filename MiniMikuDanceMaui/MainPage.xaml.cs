@@ -1206,7 +1206,6 @@ public partial class MainPage : ContentPage
         SetProgressVisibilityAndLayout(false, true, true);
     }
 
-
     private void SetLoadingIndicatorVisibilityAndLayout(bool isVisible)
     {
         LoadingIndicator.IsVisible = isVisible;
