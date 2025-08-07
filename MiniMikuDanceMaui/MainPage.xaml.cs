@@ -379,20 +379,6 @@ public partial class MainPage : ContentPage
         UpdateBoneViewProperties(bv);
     }
 
-    private void UpdateMorphViewProperties(MorphView? mv)
-    {
-        if (mv == null || _currentModel?.Morphs == null)
-            return;
-
-        var list = _currentModel.Morphs.Select(m => m.Name).ToList();
-        mv.SetMorphs(list);
-    }
-
-    private void SetupMorphView(MorphView mv)
-    {
-        UpdateMorphViewProperties(mv);
-    }
-
     private void UpdateBoneViewValues()
     {
         Viewer?.InvalidateSurface();
@@ -755,7 +741,10 @@ public partial class MainPage : ContentPage
             else if (name == "MORPH")
             {
                 var mv = new MorphView();
-                SetupMorphView(mv);
+                if (_currentModel?.Morphs != null)
+                {
+                    mv.SetMorphs(_currentModel.Morphs);
+                }
                 mv.MorphValueChanged += (morphName, value) =>
                 {
                     _renderer.SetMorph(morphName, (float)value);
@@ -853,7 +842,10 @@ public partial class MainPage : ContentPage
         }
         else if (name == "MORPH" && _bottomViews[name] is MorphView morphView)
         {
-            UpdateMorphViewProperties(morphView);
+            if (_currentModel?.Morphs != null)
+            {
+                morphView.SetMorphs(_currentModel.Morphs);
+            }
         }
 
         SwitchBottomFeature(name);
@@ -1084,6 +1076,10 @@ public partial class MainPage : ContentPage
 
             _pendingModel = data;
             Viewer.InvalidateSurface();
+            if (_bottomViews.TryGetValue("MORPH", out var view) && view is MorphView mv)
+            {
+                mv.SetMorphs(data.Morphs);
+            }
         }
         catch (Exception ex)
         {

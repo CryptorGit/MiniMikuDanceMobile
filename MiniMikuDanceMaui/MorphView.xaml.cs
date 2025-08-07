@@ -1,6 +1,7 @@
 using Microsoft.Maui.Controls;
 using System;
 using System.Collections.Generic;
+using MiniMikuDance.Import;
 
 namespace MiniMikuDanceMaui;
 
@@ -13,12 +14,13 @@ public partial class MorphView : ContentView
         InitializeComponent();
     }
 
-    public void SetMorphs(IEnumerable<string> morphs)
+    public void SetMorphs(IEnumerable<MorphData> morphs)
     {
         MorphList.Children.Clear();
         var textColor = (Color)Application.Current.Resources["TextColor"];
-        foreach (var name in morphs)
+        foreach (var morph in morphs)
         {
+            var name = morph.Name;
             var grid = new Grid { ColumnDefinitions = "*,60", RowSpacing = 2 };
             grid.Children.Add(new Label { Text = name, TextColor = textColor }, 0, 0);
             var valueLabel = new Label { Text = "0", TextColor = textColor, HorizontalTextAlignment = TextAlignment.End };
