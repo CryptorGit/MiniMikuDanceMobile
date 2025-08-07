@@ -34,7 +34,7 @@
                 </Label.GestureRecognizers>
             </Label>
         </HorizontalStackLayout>
-        <Frame x:Name="ViewMenu" IsVisible="False" BackgroundColor="{StaticResource BackgroundColor}" Padding="0" ZIndex="20">
+        <Border x:Name="ViewMenu" IsVisible="False" Background="{StaticResource BackgroundColor}" Padding="0" ZIndex="20">
             <VerticalStackLayout Spacing="4" Padding="8">
                 
                 <Label Text="Bone" TextColor="{StaticResource TextColor}">
@@ -53,8 +53,8 @@
                     </Label.GestureRecognizers>
                 </Label>
             </VerticalStackLayout>
-        </Frame>
-        <Frame x:Name="FileMenu" IsVisible="False" BackgroundColor="{StaticResource BackgroundColor}" Padding="0" ZIndex="20">
+        </Border>
+        <Border x:Name="FileMenu" IsVisible="False" Background="{StaticResource BackgroundColor}" Padding="0" ZIndex="20">
             <VerticalStackLayout Spacing="4" Padding="8">
                 <Label Text="Import PMX" TextColor="{StaticResource TextColor}">
                     <Label.GestureRecognizers>
@@ -67,19 +67,19 @@
                     </Label.GestureRecognizers>
                 </Label>
             </VerticalStackLayout>
-        </Frame>
-        <Frame x:Name="SettingMenu" IsVisible="False" BackgroundColor="{StaticResource BackgroundColor}" Padding="8" ZIndex="20">
+        </Border>
+        <Border x:Name="SettingMenu" IsVisible="False" Background="{StaticResource BackgroundColor}" Padding="8" ZIndex="20">
             <VerticalStackLayout Spacing="10">
                 <mmd:SettingView x:Name="SettingContent" />
             </VerticalStackLayout>
-        </Frame>
+        </Border>
         <!-- Overlay は BottomRegion より背面に配置しつつ Viewer より前面に表示する -->
         <BoxView x:Name="MenuOverlay" BackgroundColor="Transparent" IsVisible="False" ZIndex="1">
             <BoxView.GestureRecognizers>
                 <TapGestureRecognizer Tapped="OnOverlayTapped" />
             </BoxView.GestureRecognizers>
         </BoxView>
-        <Frame x:Name="PmxImportDialog" IsVisible="False" BackgroundColor="{StaticResource BackgroundColor}" Padding="8" ZIndex="30" WidthRequest="420" HeightRequest="160">
+        <Border x:Name="PmxImportDialog" IsVisible="False" Background="{StaticResource BackgroundColor}" Padding="8" ZIndex="30" WidthRequest="420" HeightRequest="160">
             <VerticalStackLayout Spacing="6">
                 <HorizontalStackLayout Spacing="6">
                     <Label Text="Model" TextColor="{StaticResource TextColor}" WidthRequest="60" />
@@ -97,8 +97,8 @@
                     <Button Text="キャンセル" Clicked="OnCancelImportClicked" />
                 </HorizontalStackLayout>
             </VerticalStackLayout>
-        </Frame>
-        <Frame x:Name="PoseSelectMessage" IsVisible="False" BackgroundColor="{StaticResource BackgroundColor}" Padding="8" ZIndex="30">
+        </Border>
+        <Border x:Name="PoseSelectMessage" IsVisible="False" Background="{StaticResource BackgroundColor}" Padding="8" ZIndex="30">
             <VerticalStackLayout Spacing="6">
                 <Label Text="動画ファイルを以下から選択してください" TextColor="{StaticResource TextColor}" />
                 <Label x:Name="SelectedVideoPath" TextColor="{StaticResource TextColor}" FontSize="14" />
@@ -107,15 +107,15 @@
                     <Button Text="キャンセル" Clicked="OnCancelEstimateClicked" />
                 </HorizontalStackLayout>
             </VerticalStackLayout>
-        </Frame>
-        <Frame x:Name="ProgressFrame" IsVisible="False" BackgroundColor="{StaticResource BackgroundColor}" Padding="8" ZIndex="30">
+        </Border>
+        <Border x:Name="ProgressFrame" IsVisible="False" Background="{StaticResource BackgroundColor}" Padding="8" ZIndex="30">
             <VerticalStackLayout Spacing="4">
                 <Label x:Name="ExtractProgressLabel" Text="" TextColor="{StaticResource TextColor}" HorizontalTextAlignment="Center" />
                 <ProgressBar x:Name="ExtractProgressBar" Progress="0" HeightRequest="4" />
                 <Label x:Name="PoseProgressLabel" Text="" TextColor="{StaticResource TextColor}" HorizontalTextAlignment="Center" />
                 <ProgressBar x:Name="PoseProgressBar" Progress="0" HeightRequest="4" />
             </VerticalStackLayout>
-        </Frame>
+        </Border>
         <ActivityIndicator x:Name="LoadingIndicator" IsRunning="True" IsVisible="False" Color="{StaticResource IndicatorColor}" ZIndex="30" />
         <skia:SKGLView x:Name="Viewer" HasRenderLoop="True" EnableTouchEvents="True" MaximumWidthRequest="2048" MaximumHeightRequest="2048" />
         <Grid x:Name="BottomRegion" BackgroundColor="{StaticResource BackgroundColor}" IsVisible="False" ZIndex="2">
