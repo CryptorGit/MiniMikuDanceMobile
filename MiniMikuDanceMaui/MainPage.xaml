@@ -74,7 +74,7 @@
                 <TapGestureRecognizer Tapped="OnOverlayTapped" />
             </BoxView.GestureRecognizers>
         </BoxView>
-        <Frame x:Name="PmxImportDialog" IsVisible="False" BackgroundColor="{StaticResource BackgroundColor}" Padding="8" ZIndex="30">
+        <Frame x:Name="PmxImportDialog" IsVisible="False" BackgroundColor="{StaticResource BackgroundColor}" Padding="8" ZIndex="30" WidthRequest="420" HeightRequest="160">
             <VerticalStackLayout Spacing="6">
                 <HorizontalStackLayout Spacing="6">
                     <Label Text="Model" TextColor="{StaticResource TextColor}" WidthRequest="60" />
@@ -84,14 +84,8 @@
                            HorizontalOptions="FillAndExpand"
                            LineBreakMode="CharacterWrap"
                            MaxLines="2"
-                           WidthRequest="200" />
+                           WidthRequest="260" />
                     <Button Text="参照" Clicked="OnSelectPmxModelClicked" />
-                </HorizontalStackLayout>
-                <VerticalStackLayout x:Name="TextureList" Spacing="6" />
-                <Button Text="追加" Clicked="OnAddTextureRowClicked" HorizontalOptions="Start" />
-                <HorizontalStackLayout Spacing="6">
-                    <Label Text="Scale" TextColor="{StaticResource TextColor}" WidthRequest="60" />
-                    <Entry x:Name="ScaleEntry" Text="1.0" WidthRequest="80" TextColor="{StaticResource TextColor}" Keyboard="Numeric" />
                 </HorizontalStackLayout>
                 <HorizontalStackLayout HorizontalOptions="Center" Spacing="20">
                     <Button Text="インポート" Clicked="OnImportPmxClicked" />
