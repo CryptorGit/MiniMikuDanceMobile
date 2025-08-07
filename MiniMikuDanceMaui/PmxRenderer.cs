@@ -82,6 +82,8 @@ public class PmxRenderer : IDisposable
     private int _height;
     private readonly List<Vector3> _boneRotations = new();
     private readonly List<Vector3> _boneTranslations = new();
+    private bool _bonesDirty;
+    private bool _morphDirty;
     private List<MiniMikuDance.Import.BoneData> _bones = new();
     private readonly Dictionary<int, string> _indexToHumanoidName = new();
     private System.Numerics.Matrix4x4[] _worldMats = Array.Empty<System.Numerics.Matrix4x4>();
@@ -324,6 +326,7 @@ void main(){
     {
         _boneRotations.Clear();
         _boneTranslations.Clear();
+        _bonesDirty = true;
     }
 
     public void SetBoneRotation(int index, Vector3 degrees)
@@ -339,6 +342,7 @@ void main(){
         while (_boneRotations.Count <= index)
             _boneRotations.Add(Vector3.Zero);
         _boneRotations[index] = degrees;
+        _bonesDirty = true;
     }
 
     public void SetBoneTranslation(int index, Vector3 translation)
@@ -348,6 +352,7 @@ void main(){
         while (_boneTranslations.Count <= index)
             _boneTranslations.Add(Vector3.Zero);
         _boneTranslations[index] = translation;
+        _bonesDirty = true;
     }
 
     public Vector3 GetBoneRotation(int index)
@@ -370,6 +375,7 @@ void main(){
             return;
 
         _morphValues[name] = value;
+        _morphDirty = true;
 
         foreach (var rm in _meshes)
             Array.Copy(rm.BaseVertices, rm.Vertices, rm.Vertices.Length);
@@ -599,8 +605,10 @@ void main(){
         Matrix4 proj = Matrix4.CreatePerspectiveFieldOfView(MathHelper.PiOver4, aspect, 0.1f, 100f);
         var modelMat = ModelTransform;
 
-        // CPU skinning: update vertex buffers based on current bone rotations
-        if (_bones.Count > 0)
+        bool needsUpdate = _bonesDirty || _morphDirty;
+
+        // CPU スキニングと頂点バッファ更新
+        if (needsUpdate && _bones.Count > 0)
         {
             if (_worldMats.Length != _bones.Count)
                 _worldMats = new System.Numerics.Matrix4x4[_bones.Count];
@@ -717,6 +725,9 @@ void main(){
             {
                 _boneVertexCount = 0;
             }
+
+            _bonesDirty = false;
+            _morphDirty = false;
         }
 
         GL.UseProgram(_modelProgram);
