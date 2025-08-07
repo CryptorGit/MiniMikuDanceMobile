@@ -80,6 +80,11 @@ public class PmxRenderer : IDisposable
     }
     private int _width;
     private int _height;
+    private Matrix4 _viewMatrix = Matrix4.Identity;
+    private Matrix4 _projMatrix = Matrix4.Identity;
+    private Matrix4 _cameraRot = Matrix4.Identity;
+    private Vector3 _cameraPos;
+    private bool _viewProjDirty = true;
     private readonly List<Vector3> _boneRotations = new();
     private readonly List<Vector3> _boneTranslations = new();
     private List<MiniMikuDance.Import.BoneData> _bones = new();
@@ -276,12 +281,14 @@ void main(){
         _width = width;
         _height = height;
         GL.Viewport(0, 0, width, height);
+        _viewProjDirty = true;
     }
 
     public void Orbit(float dx, float dy)
     {
         _orbitY -= dx * 0.01f * RotateSensitivity;
         _orbitX -= dy * 0.01f * RotateSensitivity;
+        _viewProjDirty = true;
     }
 
     public void Pan(float dx, float dy)
@@ -292,6 +299,7 @@ void main(){
         Vector3 right = Vector3.TransformNormal(Vector3.UnitX, rot);
         Vector3 up = Vector3.TransformNormal(Vector3.UnitY, rot);
         _target += (-right * dx + up * dy) * 0.01f * PanSensitivity;
+        _viewProjDirty = true;
     }
 
     public void Dolly(float delta)
@@ -299,6 +307,7 @@ void main(){
         _distance -= delta * 0.01f;
         if (_distance < 1f) _distance = 1f;
         if (_distance > 100f) _distance = 100f;
+        _viewProjDirty = true;
     }
 
     public void ResetCamera()
@@ -310,11 +319,13 @@ void main(){
         if (_distance < 1f) _distance = 1f;
         if (_distance > 100f) _distance = 100f;
         _externalRotation = Quaternion.Identity;
+        _viewProjDirty = true;
     }
 
     public void SetExternalRotation(Quaternion q)
     {
         _externalRotation = q;
+        _viewProjDirty = true;
     }
 
     public void ClearBoneRotations()
@@ -582,13 +593,17 @@ void main(){
         GL.ClearColor(1f, 1f, 1f, 1f);
         GL.Clear(ClearBufferMask.ColorBufferBit | ClearBufferMask.DepthBufferBit);
 
-        Matrix4 rot = Matrix4.CreateFromQuaternion(_externalRotation) *
-                      Matrix4.CreateRotationX(_orbitX) *
-                      Matrix4.CreateRotationY(_orbitY);
-        Vector3 cam = Vector3.TransformPosition(new Vector3(0, 0, _distance), rot) + _target;
-        Matrix4 view = Matrix4.LookAt(cam, _target, Vector3.UnitY);
-        float aspect = _width == 0 || _height == 0 ? 1f : _width / (float)_height;
-        Matrix4 proj = Matrix4.CreatePerspectiveFieldOfView(MathHelper.PiOver4, aspect, 0.1f, 100f);
+        if (_viewProjDirty)
+        {
+            _cameraRot = Matrix4.CreateFromQuaternion(_externalRotation) *
+                         Matrix4.CreateRotationX(_orbitX) *
+                         Matrix4.CreateRotationY(_orbitY);
+            _cameraPos = Vector3.TransformPosition(new Vector3(0, 0, _distance), _cameraRot) + _target;
+            _viewMatrix = Matrix4.LookAt(_cameraPos, _target, Vector3.UnitY);
+            float aspect = _width == 0 || _height == 0 ? 1f : _width / (float)_height;
+            _projMatrix = Matrix4.CreatePerspectiveFieldOfView(MathHelper.PiOver4, aspect, 0.1f, 100f);
+            _viewProjDirty = false;
+        }
         var modelMat = ModelTransform;
 
         // CPU skinning: update vertex buffers based on current bone rotations
@@ -700,13 +715,13 @@ void main(){
         }
 
         GL.UseProgram(_modelProgram);
-        GL.UniformMatrix4(_modelViewLoc, false, ref view);
-        GL.UniformMatrix4(_modelProjLoc, false, ref proj);
+        GL.UniformMatrix4(_modelViewLoc, false, ref _viewMatrix);
+        GL.UniformMatrix4(_modelProjLoc, false, ref _projMatrix);
         // ライトと視線方向をカメラ角度に合わせて更新
         Vector3 light = Vector3.Normalize(new Vector3(0.3f, 0.6f, -0.7f));
-        light = Vector3.TransformNormal(light, rot);
+        light = Vector3.TransformNormal(light, _cameraRot);
         GL.Uniform3(_modelLightDirLoc, ref light);
-        Vector3 viewDir = Vector3.Normalize(_target - cam);
+        Vector3 viewDir = Vector3.Normalize(_target - _cameraPos);
         GL.Uniform3(_modelViewDirLoc, ref viewDir);
         GL.Uniform1(_modelShadeShiftLoc, ShadeShift);
         GL.Uniform1(_modelShadeToonyLoc, ShadeToony);
@@ -736,8 +751,8 @@ void main(){
             }
         }
         GL.UseProgram(_program);
-        GL.UniformMatrix4(_viewLoc, false, ref view);
-        GL.UniformMatrix4(_projLoc, false, ref proj);
+        GL.UniformMatrix4(_viewLoc, false, ref _viewMatrix);
+        GL.UniformMatrix4(_projLoc, false, ref _projMatrix);
 
         Matrix4 gridModel = Matrix4.Identity;
         GL.DepthMask(false);
