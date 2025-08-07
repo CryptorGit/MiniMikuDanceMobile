@@ -55,7 +55,7 @@ public partial class MainPage : ContentPage
 
     private readonly PmxRenderer _renderer = new();
     private float _rotateSensitivity = 0.1f;
-    private float _panSensitivity = 0.1f;
+    private float _panSensitivity = 1f;
     private float _shadeShift = -0.1f;
     private float _shadeToony = 0.9f;
     private float _rimIntensity = 0.5f;
@@ -130,7 +130,7 @@ public partial class MainPage : ContentPage
         NavigationPage.SetHasNavigationBar(this, false);
         this.SizeChanged += OnSizeChanged;
         _renderer.RotateSensitivity = 0.1f;
-        _renderer.PanSensitivity = 0.1f;
+        _renderer.PanSensitivity = 1f;
         _renderer.ShadeShift = -0.1f;
         _renderer.ShadeToony = 0.9f;
         _renderer.RimIntensity = 0.5f;

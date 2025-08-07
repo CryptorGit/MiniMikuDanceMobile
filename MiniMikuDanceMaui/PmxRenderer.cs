@@ -78,7 +78,7 @@ public class PmxRenderer : IDisposable
     private Quaternion _externalRotation = Quaternion.Identity;
     // デフォルトのカメラ感度をスライダーの最小値に合わせる
     public float RotateSensitivity { get; set; } = 0.1f;
-    public float PanSensitivity { get; set; } = 0.1f;
+    public float PanSensitivity { get; set; } = 1f;
     public float ShadeShift { get; set; } = -0.1f;
     public float ShadeToony { get; set; } = 0.9f;
     public float RimIntensity { get; set; } = 0.5f;

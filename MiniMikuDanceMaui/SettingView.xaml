@@ -11,7 +11,7 @@
         <Slider x:Name="RotateSlider" Minimum="0.1" Maximum="5" Value="0.1"
                 ValueChanged="OnRotateChanged"/>
         <Label Text="Pan Sensitivity" TextColor="{StaticResource TextColor}"/>
-        <Slider x:Name="PanSlider" Minimum="0.1" Maximum="5" Value="0.1"
+        <Slider x:Name="PanSlider" Minimum="0.1" Maximum="5" Value="1"
                 ValueChanged="OnPanChanged"/>
         <Label Text="Stage Size" TextColor="{StaticResource TextColor}"/>
         <HorizontalStackLayout Spacing="6">
