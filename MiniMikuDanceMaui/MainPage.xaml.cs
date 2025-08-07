@@ -1195,7 +1195,7 @@ public partial class MainPage : ContentPage
         UpdateLayout();
     }
 
-    private void ShowExplorer(string featureName, Frame messageFrame, Label pathLabel, ref string? selectedPath)
+    private void ShowExplorer(string featureName, Border messageFrame, Label pathLabel, ref string? selectedPath)
     {
         ShowBottomFeature(featureName);
         messageFrame.IsVisible = true;
