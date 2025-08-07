@@ -9,7 +9,6 @@ using MiniMikuDance.Util;
 using MiniMikuDance.Import;
 using MiniMikuDance.App;
 using SkiaSharp.Views.Maui.Controls;
-using MMDTools;
 
 namespace MiniMikuDanceMaui;
 
