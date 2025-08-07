@@ -8,6 +8,7 @@ using System.Linq;
 using MiniMikuDance.Util;
 using MiniMikuDance.Import;
 using MiniMikuDance.App;
+using MMDTools;
 using SkiaSharp.Views.Maui.Controls;
 
 namespace MiniMikuDanceMaui;
