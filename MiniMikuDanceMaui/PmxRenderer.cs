@@ -770,8 +770,6 @@ void main(){
                     finally
                     {
                         handle.Free();
-                        lines.Add(pp.X); lines.Add(pp.Y); lines.Add(pp.Z);
-                        lines.Add(cp.X); lines.Add(cp.Y); lines.Add(cp.Z);
                     }
                 }
             }
