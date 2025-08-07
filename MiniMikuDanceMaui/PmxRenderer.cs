@@ -191,7 +191,7 @@ uniform mat4 uProj;
 uniform mat4 uBones[MAX_BONES];
 out vec3 vNormal;
 out vec2 vTex;
-void main(){
+void main(){{
     mat4 skin =
         aJointWeights.x * uBones[int(aJointIndices.x)] +
         aJointWeights.y * uBones[int(aJointIndices.y)] +
@@ -201,7 +201,7 @@ void main(){
     vNormal = mat3(uModel * skin) * aNormal;
     vTex = aTex;
     gl_Position = uProj * uView * pos;
-}";
+}}";
 
         const string modelFrag = @"#version 300 es
 precision mediump float;
