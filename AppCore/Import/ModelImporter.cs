@@ -81,18 +81,27 @@ public class ModelImporter
         // ボーン情報を ModelData に格納する
         var data = new ModelData();
         var boneDatas = new List<BoneData>(bones.Length);
+        var worldPositions = new System.Numerics.Vector3[bones.Length];
         for (int i = 0; i < bones.Length; i++)
         {
             var b = bones[i];
             string name = string.IsNullOrEmpty(b.NameEnglish) ? b.Name : b.NameEnglish;
+            var pos = new System.Numerics.Vector3(b.Position.X, b.Position.Y, b.Position.Z) * Scale;
+            worldPositions[i] = pos;
             var bd = new BoneData
             {
                 Name = name,
                 Parent = b.ParentBone,
                 Rotation = System.Numerics.Quaternion.Identity,
-                Translation = new System.Numerics.Vector3(b.Position.X, b.Position.Y, b.Position.Z) * Scale
+                Translation = pos
             };
             boneDatas.Add(bd);
+        }
+
+        for (int i = 0; i < boneDatas.Count; i++)
+        {
+            int parent = boneDatas[i].Parent;
+            boneDatas[i].Translation = parent >= 0 ? worldPositions[i] - worldPositions[parent] : worldPositions[i];
         }
 
         // Bind/InverseBind 行列を計算
