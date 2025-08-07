@@ -86,8 +86,13 @@ public class PmxRenderer : IDisposable
     private int _height;
     private readonly List<Vector3> _boneRotations = new();
     private readonly List<Vector3> _boneTranslations = new();
+    private bool _bonesDirty;
+    private bool _morphDirty;
     private List<MiniMikuDance.Import.BoneData> _bones = new();
     private readonly Dictionary<int, string> _indexToHumanoidName = new();
+    private System.Numerics.Matrix4x4[] _worldMats = Array.Empty<System.Numerics.Matrix4x4>();
+    private System.Numerics.Matrix4x4[] _skinMats = Array.Empty<System.Numerics.Matrix4x4>();
+    private float[] _tmpVertexBuffer = Array.Empty<float>();
     public BonesConfig? BonesConfig { get; set; }
     private Quaternion _externalRotation = Quaternion.Identity;
     // デフォルトのカメラ感度をスライダーの最小値に合わせる
@@ -354,6 +359,7 @@ void main(){
     {
         _boneRotations.Clear();
         _boneTranslations.Clear();
+        _bonesDirty = true;
     }
 
     public void SetBoneRotation(int index, Vector3 degrees)
@@ -369,6 +375,7 @@ void main(){
         while (_boneRotations.Count <= index)
             _boneRotations.Add(Vector3.Zero);
         _boneRotations[index] = degrees;
+        _bonesDirty = true;
     }
 
     public void SetBoneTranslation(int index, Vector3 translation)
@@ -378,6 +385,7 @@ void main(){
         while (_boneTranslations.Count <= index)
             _boneTranslations.Add(Vector3.Zero);
         _boneTranslations[index] = translation;
+        _bonesDirty = true;
     }
 
     public Vector3 GetBoneRotation(int index)
@@ -400,6 +408,7 @@ void main(){
             return;
 
         _morphValues[name] = value;
+        _morphDirty = true;
 
         foreach (var rm in _meshes)
             Array.Copy(rm.BaseVertices, rm.Vertices, rm.Vertices.Length);
@@ -438,6 +447,8 @@ void main(){
         _meshes.Clear();
         _indexToHumanoidName.Clear();
         _bones = data.Bones.ToList();
+        _worldMats = new System.Numerics.Matrix4x4[_bones.Count];
+        _skinMats = new System.Numerics.Matrix4x4[_bones.Count];
         foreach (var (name, idx) in data.HumanoidBoneList)
         {
             _indexToHumanoidName[idx] = name;
@@ -555,6 +566,9 @@ void main(){
             _meshes.Add(rm);
         }
 
+        int maxVertices = _meshes.Count > 0 ? _meshes.Max(m => m.Vertices.Length) : 0;
+        _tmpVertexBuffer = new float[maxVertices * 8];
+
         _morphs.Clear();
         _morphValues.Clear();
         _morphVertexMap.Clear();
@@ -624,10 +638,23 @@ void main(){
         Matrix4 proj = Matrix4.CreatePerspectiveFieldOfView(MathHelper.PiOver4, aspect, 0.1f, 100f);
         var modelMat = ModelTransform;
 
-        // CPU skinning: update vertex buffers based on current bone rotations
-        if (_bones.Count > 0)
+        bool needsUpdate = _bonesDirty || _morphDirty;
+
+        // CPU スキニングと頂点バッファ更新
+        if (needsUpdate && _bones.Count > 0)
         {
             EnsureBoneCapacity();
+
+            if (_worldMats.Length != _bones.Count)
+                _worldMats = new System.Numerics.Matrix4x4[_bones.Count];
+            else
+                Array.Clear(_worldMats, 0, _worldMats.Length);
+
+            if (_skinMats.Length != _bones.Count)
+                _skinMats = new System.Numerics.Matrix4x4[_bones.Count];
+            else
+                Array.Clear(_skinMats, 0, _skinMats.Length);
+
             for (int i = 0; i < _bones.Count; i++)
             {
                 var bone = _bones[i];
@@ -650,7 +677,11 @@ void main(){
             {
                 if (rm.JointIndices.Length != rm.Vertices.Length)
                     continue;
-                float[] buf = new float[rm.Vertices.Length * 8];
+                int required = rm.Vertices.Length * 8;
+                if (_tmpVertexBuffer.Length < required)
+                    _tmpVertexBuffer = new float[required];
+                else
+                    Array.Clear(_tmpVertexBuffer, 0, required);
                 for (int vi = 0; vi < rm.Vertices.Length; vi++)
                 {
                     var pos = System.Numerics.Vector3.Zero;
@@ -671,28 +702,28 @@ void main(){
                     if (norm.LengthSquared() > 0)
                         norm = System.Numerics.Vector3.Normalize(norm);
 
-                    buf[vi * 8 + 0] = pos.X;
-                    buf[vi * 8 + 1] = pos.Y;
-                    buf[vi * 8 + 2] = pos.Z;
-                    buf[vi * 8 + 3] = norm.X;
-                    buf[vi * 8 + 4] = norm.Y;
-                    buf[vi * 8 + 5] = norm.Z;
+                    _tmpVertexBuffer[vi * 8 + 0] = pos.X;
+                    _tmpVertexBuffer[vi * 8 + 1] = pos.Y;
+                    _tmpVertexBuffer[vi * 8 + 2] = pos.Z;
+                    _tmpVertexBuffer[vi * 8 + 3] = norm.X;
+                    _tmpVertexBuffer[vi * 8 + 4] = norm.Y;
+                    _tmpVertexBuffer[vi * 8 + 5] = norm.Z;
                     if (vi < rm.TexCoords.Length)
                     {
-                        buf[vi * 8 + 6] = rm.TexCoords[vi].X;
-                        buf[vi * 8 + 7] = rm.TexCoords[vi].Y;
+                        _tmpVertexBuffer[vi * 8 + 6] = rm.TexCoords[vi].X;
+                        _tmpVertexBuffer[vi * 8 + 7] = rm.TexCoords[vi].Y;
                     }
                     else
                     {
-                        buf[vi * 8 + 6] = 0f;
-                        buf[vi * 8 + 7] = 0f;
+                        _tmpVertexBuffer[vi * 8 + 6] = 0f;
+                        _tmpVertexBuffer[vi * 8 + 7] = 0f;
                     }
                 }
                 GL.BindBuffer(BufferTarget.ArrayBuffer, rm.Vbo);
-                var handle = System.Runtime.InteropServices.GCHandle.Alloc(buf, System.Runtime.InteropServices.GCHandleType.Pinned);
+                var handle = System.Runtime.InteropServices.GCHandle.Alloc(_tmpVertexBuffer, System.Runtime.InteropServices.GCHandleType.Pinned);
                 try
                 {
-                    GL.BufferSubData(BufferTarget.ArrayBuffer, IntPtr.Zero, buf.Length * sizeof(float), handle.AddrOfPinnedObject());
+                    GL.BufferSubData(BufferTarget.ArrayBuffer, IntPtr.Zero, required * sizeof(float), handle.AddrOfPinnedObject());
                 }
                 finally
                 {
@@ -726,6 +757,8 @@ void main(){
                     finally
                     {
                         handle.Free();
+                        lines.Add(pp.X); lines.Add(pp.Y); lines.Add(pp.Z);
+                        lines.Add(cp.X); lines.Add(cp.Y); lines.Add(cp.Z);
                     }
                 }
             }
@@ -733,6 +766,9 @@ void main(){
             {
                 _boneVertexCount = 0;
             }
+
+            _bonesDirty = false;
+            _morphDirty = false;
         }
 
         GL.UseProgram(_modelProgram);
