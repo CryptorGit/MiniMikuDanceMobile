@@ -446,18 +446,32 @@ public partial class MainPage : ContentPage
         AbsoluteLayout.SetLayoutBounds(MenuOverlay, new Rect(0, 0, W, H));
         AbsoluteLayout.SetLayoutFlags(MenuOverlay, AbsoluteLayoutFlags.None);
 
-        AbsoluteLayout.SetLayoutBounds(PmxImportDialog, new Rect(0.5, TopMenuHeight + 20, 0.8,
-            PmxImportDialog.IsVisible ? AbsoluteLayout.AutoSize : 0));
-        AbsoluteLayout.SetLayoutFlags(PmxImportDialog,
-            AbsoluteLayoutFlags.XProportional | AbsoluteLayoutFlags.WidthProportional);
-        AbsoluteLayout.SetLayoutBounds(PoseSelectMessage, new Rect(0.5, TopMenuHeight + 20, 0.8,
-            PoseSelectMessage.IsVisible ? AbsoluteLayout.AutoSize : 0));
-        AbsoluteLayout.SetLayoutFlags(PoseSelectMessage,
-            AbsoluteLayoutFlags.XProportional | AbsoluteLayoutFlags.WidthProportional);
-        AbsoluteLayout.SetLayoutBounds(ProgressFrame, new Rect(0.5, TopMenuHeight + 20, 0.8,
-            ProgressFrame.IsVisible ? AbsoluteLayout.AutoSize : 0));
-        AbsoluteLayout.SetLayoutFlags(ProgressFrame,
-            AbsoluteLayoutFlags.XProportional | AbsoluteLayoutFlags.WidthProportional);
+        AbsoluteLayout.SetLayoutBounds(
+            PmxImportDialog,
+            new Rect(
+                0.5,
+                TopMenuHeight + 20,
+                AbsoluteLayout.AutoSize,
+                PmxImportDialog.IsVisible ? AbsoluteLayout.AutoSize : 0));
+        AbsoluteLayout.SetLayoutFlags(PmxImportDialog, AbsoluteLayoutFlags.XProportional);
+
+        AbsoluteLayout.SetLayoutBounds(
+            PoseSelectMessage,
+            new Rect(
+                0.5,
+                TopMenuHeight + 20,
+                AbsoluteLayout.AutoSize,
+                PoseSelectMessage.IsVisible ? AbsoluteLayout.AutoSize : 0));
+        AbsoluteLayout.SetLayoutFlags(PoseSelectMessage, AbsoluteLayoutFlags.XProportional);
+
+        AbsoluteLayout.SetLayoutBounds(
+            ProgressFrame,
+            new Rect(
+                0.5,
+                TopMenuHeight + 20,
+                AbsoluteLayout.AutoSize,
+                ProgressFrame.IsVisible ? AbsoluteLayout.AutoSize : 0));
+        AbsoluteLayout.SetLayoutFlags(ProgressFrame, AbsoluteLayoutFlags.XProportional);
 
         AbsoluteLayout.SetLayoutBounds(LoadingIndicator, new Rect(0.5, 0.5, 40, 40));
         AbsoluteLayout.SetLayoutFlags(LoadingIndicator, AbsoluteLayoutFlags.PositionProportional);
