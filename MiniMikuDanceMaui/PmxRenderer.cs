@@ -39,6 +39,7 @@ public class PmxRenderer : IDisposable
     private readonly Dictionary<string, MorphData> _morphs = new(StringComparer.OrdinalIgnoreCase);
     private readonly Dictionary<string, float> _morphValues = new(StringComparer.OrdinalIgnoreCase);
     private readonly Dictionary<int, List<(RenderMesh Mesh, int Index)>> _morphVertexMap = new();
+    private bool _morphDirty;
     public SKGLView? Viewer { get; set; }
     private int _gridVao;
     private int _gridVbo;
@@ -338,6 +339,7 @@ void main(){
         while (_boneRotations.Count <= index)
             _boneRotations.Add(Vector3.Zero);
         _boneRotations[index] = degrees;
+        _morphDirty = true;
     }
 
     public void SetBoneTranslation(int index, Vector3 translation)
@@ -347,6 +349,7 @@ void main(){
         while (_boneTranslations.Count <= index)
             _boneTranslations.Add(Vector3.Zero);
         _boneTranslations[index] = translation;
+        _morphDirty = true;
     }
 
     public Vector3 GetBoneRotation(int index)
@@ -368,31 +371,26 @@ void main(){
         if (!_morphs.TryGetValue(name, out var morph) || morph.Type != MorphType.Vertex)
             return;
 
+        _morphValues.TryGetValue(name, out var oldValue);
+        if (MathF.Abs(oldValue - value) < 1e-6f)
+            return;
+
         _morphValues[name] = value;
+        float delta = value - oldValue;
 
-        foreach (var rm in _meshes)
-            Array.Copy(rm.BaseVertices, rm.Vertices, rm.Vertices.Length);
-
-        foreach (var kv in _morphValues)
+        foreach (var off in morph.Offsets)
         {
-            if (kv.Value == 0f)
-                continue;
-            if (!_morphs.TryGetValue(kv.Key, out var md) || md.Type != MorphType.Vertex)
-                continue;
-            foreach (var off in md.Offsets)
+            if (_morphVertexMap.TryGetValue(off.Index, out var list))
             {
-                if (_morphVertexMap.TryGetValue(off.Index, out var list))
+                var offset = new Vector3(off.Offset.X, off.Offset.Y, off.Offset.Z) * delta;
+                foreach (var (mesh, idx) in list)
                 {
-                    var offset = new Vector3(off.Offset.X, off.Offset.Y, off.Offset.Z) * kv.Value;
-                    foreach (var (mesh, idx) in list)
-                    {
-                        mesh.Vertices[idx] += offset;
-                    }
+                    mesh.Vertices[idx] += offset;
                 }
             }
         }
 
-        Viewer?.InvalidateSurface();
+        _morphDirty = true;
     }
 
     public void LoadModel(MiniMikuDance.Import.ModelData data)
@@ -588,6 +586,7 @@ void main(){
                 }
             }
         }
+        _morphDirty = true;
     }
 
     public void Render()
@@ -609,7 +608,7 @@ void main(){
         var modelMat = ModelTransform;
 
         // CPU skinning: update vertex buffers based on current bone rotations
-        if (_bones.Count > 0)
+        if (_bones.Count > 0 && _morphDirty)
         {
             var worldMats = new System.Numerics.Matrix4x4[_bones.Count];
             for (int i = 0; i < _bones.Count; i++)
@@ -728,6 +727,12 @@ void main(){
                 GL.BindBuffer(BufferTarget.ArrayBuffer, 0);
                 GL.BindVertexArray(0);
             }
+            else
+            {
+                _boneVertexCount = 0;
+            }
+
+            _morphDirty = false;
         }
 
         GL.UseProgram(_modelProgram);
