@@ -781,7 +781,8 @@ void main(){
         GL.Uniform1(_modelRimIntensityLoc, RimIntensity);
         GL.Uniform1(_modelAmbientLoc, Ambient);
         if (_bones.Count > 0 && _boneArray.Length > 0)
-            GL.UniformMatrix4(_modelBonesLoc, _bones.Count, false, _boneArray);
+            // _boneArray は行優先で格納されているため、転置フラグを有効にして送信する
+            GL.UniformMatrix4(_modelBonesLoc, _bones.Count, true, _boneArray);
         GL.UniformMatrix4(_modelMatrixLoc, false, ref modelMat);
         foreach (var rm in _meshes)
         {
