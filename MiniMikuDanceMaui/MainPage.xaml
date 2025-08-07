@@ -47,6 +47,11 @@
                         <TapGestureRecognizer Tapped="OnLightingClicked" />
                     </Label.GestureRecognizers>
                 </Label>
+                <Label Text="Morph" TextColor="{StaticResource TextColor}">
+                    <Label.GestureRecognizers>
+                        <TapGestureRecognizer Tapped="OnMorphClicked" />
+                    </Label.GestureRecognizers>
+                </Label>
             </VerticalStackLayout>
         </Frame>
         <Frame x:Name="FileMenu" IsVisible="False" BackgroundColor="{StaticResource BackgroundColor}" Padding="0" ZIndex="20">
