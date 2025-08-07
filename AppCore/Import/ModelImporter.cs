@@ -108,18 +108,31 @@ public class ModelImporter
 
         // Bind/InverseBind 行列を計算
         var world = new System.Numerics.Matrix4x4[boneDatas.Count];
-        for (int i = 0; i < boneDatas.Count; i++)
+        var computed = new bool[boneDatas.Count];
+
+        System.Numerics.Matrix4x4 ComputeWorld(int index)
         {
-            var bd = boneDatas[i];
+            if (computed[index])
+                return world[index];
+
+            var bd = boneDatas[index];
             var local = System.Numerics.Matrix4x4.CreateFromQuaternion(bd.Rotation) *
                         System.Numerics.Matrix4x4.CreateTranslation(bd.Translation);
             if (bd.Parent >= 0)
-                world[i] = local * world[bd.Parent];
+                world[index] = local * ComputeWorld(bd.Parent);
             else
-                world[i] = local;
-            bd.BindMatrix = world[i];
-            System.Numerics.Matrix4x4.Invert(world[i], out var inv);
-            bd.InverseBindMatrix = inv;
+                world[index] = local;
+
+            computed[index] = true;
+            return world[index];
+        }
+
+        for (int i = 0; i < boneDatas.Count; i++)
+        {
+            var w = ComputeWorld(i);
+            boneDatas[i].BindMatrix = w;
+            System.Numerics.Matrix4x4.Invert(w, out var inv);
+            boneDatas[i].InverseBindMatrix = inv;
         }
         data.Bones = boneDatas;
 

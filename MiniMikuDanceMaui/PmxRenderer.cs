@@ -674,20 +674,31 @@ void main(){
         if (_bones.Count > 0 && _morphDirty)
         {
             var worldMats = new System.Numerics.Matrix4x4[_bones.Count];
-            for (int i = 0; i < _bones.Count; i++)
+            var computed = new bool[_bones.Count];
+
+            System.Numerics.Matrix4x4 ComputeWorld(int index)
             {
-                var bone = _bones[i];
-                System.Numerics.Vector3 euler = i < _boneRotations.Count ? _boneRotations[i].ToNumerics() : System.Numerics.Vector3.Zero;
+                if (computed[index])
+                    return worldMats[index];
+
+                var bone = _bones[index];
+                System.Numerics.Vector3 euler = index < _boneRotations.Count ? _boneRotations[index].ToNumerics() : System.Numerics.Vector3.Zero;
                 var delta = euler.FromEulerDegrees();
                 System.Numerics.Vector3 trans = bone.Translation;
-                if (i < _boneTranslations.Count)
-                    trans += _boneTranslations[i].ToNumerics();
+                if (index < _boneTranslations.Count)
+                    trans += _boneTranslations[index].ToNumerics();
                 var local = System.Numerics.Matrix4x4.CreateFromQuaternion(bone.Rotation * delta) * System.Numerics.Matrix4x4.CreateTranslation(trans);
                 if (bone.Parent >= 0)
-                    worldMats[i] = local * worldMats[bone.Parent];
+                    worldMats[index] = local * ComputeWorld(bone.Parent);
                 else
-                    worldMats[i] = local;
+                    worldMats[index] = local;
+
+                computed[index] = true;
+                return worldMats[index];
             }
+
+            for (int i = 0; i < _bones.Count; i++)
+                ComputeWorld(i);
 
             var skinMats = new System.Numerics.Matrix4x4[_bones.Count];
             for (int i = 0; i < _bones.Count; i++)
