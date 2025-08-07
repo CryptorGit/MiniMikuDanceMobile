@@ -284,7 +284,8 @@ void main(){
     vNormal = nrm;
     vTex = aTex;
     gl_Position = uProj * uView * pos;
-"};
+}
+";
 
         const string modelFrag = @"#version 300 es
 precision mediump float;
