@@ -283,6 +283,12 @@ public partial class MainPage : ContentPage
         HideAllMenusAndLayout();
     }
 
+    private void OnMorphClicked(object? sender, EventArgs e)
+    {
+        ShowBottomFeature("MORPH");
+        HideAllMenusAndLayout();
+    }
+
     private void OnCloseBottomTapped(object? sender, TappedEventArgs e)
     {
         if (_currentFeature != null)
@@ -371,6 +377,20 @@ public partial class MainPage : ContentPage
     private void SetupBoneView(BoneView bv)
     {
         UpdateBoneViewProperties(bv);
+    }
+
+    private void UpdateMorphViewProperties(MorphView? mv)
+    {
+        if (mv == null || _currentModel?.Morphs == null)
+            return;
+
+        var list = _currentModel.Morphs.Select(m => m.Name).ToList();
+        mv.SetMorphs(list);
+    }
+
+    private void SetupMorphView(MorphView mv)
+    {
+        UpdateMorphViewProperties(mv);
     }
 
     private void UpdateBoneViewValues()
@@ -732,6 +752,16 @@ public partial class MainPage : ContentPage
                 };
                 view = mv;
             }
+            else if (name == "MORPH")
+            {
+                var mv = new MorphView();
+                SetupMorphView(mv);
+                mv.MorphValueChanged += (morphName, value) =>
+                {
+                    _renderer.SetMorph(morphName, (float)value);
+                };
+                view = mv;
+            }
             else if (name == "SETTING")
             {
                 var sv = new SettingView();
@@ -820,6 +850,10 @@ public partial class MainPage : ContentPage
             mv.ShadeShift = _renderer.ShadeShift;
             mv.ShadeToony = _renderer.ShadeToony;
             mv.RimIntensity = _renderer.RimIntensity;
+        }
+        else if (name == "MORPH" && _bottomViews[name] is MorphView morphView)
+        {
+            UpdateMorphViewProperties(morphView);
         }
 
         SwitchBottomFeature(name);
