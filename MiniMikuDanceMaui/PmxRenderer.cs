@@ -59,6 +59,10 @@ public class PmxRenderer : IDisposable
     private int _boneVao;
     private int _boneVbo;
     private int _boneVertexCount;
+    private System.Numerics.Matrix4x4[] _worldMats = Array.Empty<System.Numerics.Matrix4x4>();
+    private System.Numerics.Matrix4x4[] _skinMats = Array.Empty<System.Numerics.Matrix4x4>();
+    private float[] _boneLines = Array.Empty<float>();
+    private int _boneCapacity;
     private int _modelProgram;
     private int _modelViewLoc;
     private int _modelProjLoc;
@@ -122,6 +126,35 @@ public class PmxRenderer : IDisposable
     {
         get => _defaultCameraTargetY;
         set => _defaultCameraTargetY = value;
+    }
+
+    private void EnsureBoneCapacity()
+    {
+        if (_boneCapacity == _bones.Count)
+            return;
+
+        _boneCapacity = _bones.Count;
+        _worldMats = new System.Numerics.Matrix4x4[_boneCapacity];
+        _skinMats = new System.Numerics.Matrix4x4[_boneCapacity];
+        _boneLines = new float[_boneCapacity * 6];
+
+        if (_boneVbo != 0) GL.DeleteBuffer(_boneVbo);
+        if (_boneVao != 0) GL.DeleteVertexArray(_boneVao);
+        _boneVbo = 0;
+        _boneVao = 0;
+
+        if (_boneCapacity > 0)
+        {
+            _boneVao = GL.GenVertexArray();
+            _boneVbo = GL.GenBuffer();
+            GL.BindVertexArray(_boneVao);
+            GL.BindBuffer(BufferTarget.ArrayBuffer, _boneVbo);
+            GL.BufferData(BufferTarget.ArrayBuffer, _boneLines.Length * sizeof(float), IntPtr.Zero, BufferUsageHint.DynamicDraw);
+            GL.VertexAttribPointer(0, 3, VertexAttribPointerType.Float, false, 3 * sizeof(float), 0);
+            GL.EnableVertexAttribArray(0);
+            GL.BindBuffer(BufferTarget.ArrayBuffer, 0);
+            GL.BindVertexArray(0);
+        }
     }
 
     public void Initialize()
@@ -594,7 +627,7 @@ void main(){
         // CPU skinning: update vertex buffers based on current bone rotations
         if (_bones.Count > 0)
         {
-            var worldMats = new System.Numerics.Matrix4x4[_bones.Count];
+            EnsureBoneCapacity();
             for (int i = 0; i < _bones.Count; i++)
             {
                 var bone = _bones[i];
@@ -605,14 +638,13 @@ void main(){
                     trans += _boneTranslations[i].ToNumerics();
                 var local = System.Numerics.Matrix4x4.CreateFromQuaternion(bone.Rotation * delta) * System.Numerics.Matrix4x4.CreateTranslation(trans);
                 if (bone.Parent >= 0)
-                    worldMats[i] = local * worldMats[bone.Parent];
+                    _worldMats[i] = local * _worldMats[bone.Parent];
                 else
-                    worldMats[i] = local;
+                    _worldMats[i] = local;
             }
 
-            var skinMats = new System.Numerics.Matrix4x4[_bones.Count];
             for (int i = 0; i < _bones.Count; i++)
-                skinMats[i] = _bones[i].InverseBindMatrix * worldMats[i];
+                _skinMats[i] = _bones[i].InverseBindMatrix * _worldMats[i];
 
             foreach (var rm in _meshes)
             {
@@ -629,9 +661,9 @@ void main(){
                     {
                         int bi = (int)jp[k];
                         float w = jw[k];
-                        if (bi >= 0 && bi < skinMats.Length && w > 0f)
+                        if (bi >= 0 && bi < _skinMats.Length && w > 0f)
                         {
-                            var m = skinMats[bi];
+                            var m = _skinMats[bi];
                             pos += System.Numerics.Vector3.Transform(rm.Vertices[vi].ToNumerics(), m) * w;
                             norm += System.Numerics.Vector3.TransformNormal(rm.Normals[vi].ToNumerics(), m) * w;
                         }
@@ -670,28 +702,32 @@ void main(){
 
             if (ShowBoneOutline)
             {
-                var lines = new List<float>();
+                int lineIdx = 0;
                 for (int i = 0; i < _bones.Count; i++)
                 {
                     var bone = _bones[i];
                     if (bone.Parent >= 0)
                     {
-                        var pp = worldMats[bone.Parent].Translation;
-                        var cp = worldMats[i].Translation;
-                        lines.Add(pp.X); lines.Add(pp.Y); lines.Add(pp.Z);
-                        lines.Add(cp.X); lines.Add(cp.Y); lines.Add(cp.Z);
+                        var pp = _worldMats[bone.Parent].Translation;
+                        var cp = _worldMats[i].Translation;
+                        _boneLines[lineIdx++] = pp.X; _boneLines[lineIdx++] = pp.Y; _boneLines[lineIdx++] = pp.Z;
+                        _boneLines[lineIdx++] = cp.X; _boneLines[lineIdx++] = cp.Y; _boneLines[lineIdx++] = cp.Z;
                     }
                 }
-                _boneVertexCount = lines.Count / 3;
-                if (_boneVao == 0) _boneVao = GL.GenVertexArray();
-                if (_boneVbo == 0) _boneVbo = GL.GenBuffer();
-                GL.BindVertexArray(_boneVao);
-                GL.BindBuffer(BufferTarget.ArrayBuffer, _boneVbo);
-                GL.BufferData(BufferTarget.ArrayBuffer, lines.Count * sizeof(float), lines.ToArray(), BufferUsageHint.DynamicDraw);
-                GL.VertexAttribPointer(0, 3, VertexAttribPointerType.Float, false, 3 * sizeof(float), 0);
-                GL.EnableVertexAttribArray(0);
-                GL.BindBuffer(BufferTarget.ArrayBuffer, 0);
-                GL.BindVertexArray(0);
+                _boneVertexCount = lineIdx / 3;
+                if (_boneVertexCount > 0)
+                {
+                    GL.BindBuffer(BufferTarget.ArrayBuffer, _boneVbo);
+                    var handle = System.Runtime.InteropServices.GCHandle.Alloc(_boneLines, System.Runtime.InteropServices.GCHandleType.Pinned);
+                    try
+                    {
+                        GL.BufferSubData(BufferTarget.ArrayBuffer, IntPtr.Zero, lineIdx * sizeof(float), handle.AddrOfPinnedObject());
+                    }
+                    finally
+                    {
+                        handle.Free();
+                    }
+                }
             }
             else
             {
