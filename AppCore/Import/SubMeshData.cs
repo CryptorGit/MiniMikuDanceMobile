@@ -1,4 +1,5 @@
 using Assimp;
+using MMDTools;
 
 namespace MiniMikuDance.Import;
 
@@ -13,4 +14,8 @@ public class SubMeshData
     public string? TextureFilePath { get; set; }
     public List<System.Numerics.Vector4> JointIndices { get; set; } = new();
     public List<System.Numerics.Vector4> JointWeights { get; set; } = new();
+    public List<WeightTransformType> WeightTypes { get; set; } = new();
+    public List<System.Numerics.Vector3> SdefC { get; set; } = new();
+    public List<System.Numerics.Vector3> SdefR0 { get; set; } = new();
+    public List<System.Numerics.Vector3> SdefR1 { get; set; } = new();
 }
