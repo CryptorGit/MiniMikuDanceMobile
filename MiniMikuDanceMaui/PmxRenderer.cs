@@ -60,6 +60,8 @@ public class PmxRenderer : IDisposable
     private int _boneVao;
     private int _boneVbo;
     private int _boneVertexCount;
+    private float[] _boneLineVertices = Array.Empty<float>();
+    private int[] _boneLinePairs = Array.Empty<int>();
     private int _modelProgram;
     private int _modelViewLoc;
     private int _modelProjLoc;
@@ -403,6 +405,21 @@ void main(){
         _meshes.Clear();
         _indexToHumanoidName.Clear();
         _bones = data.Bones.ToList();
+        if (_boneVao != 0) { GL.DeleteVertexArray(_boneVao); _boneVao = 0; }
+        if (_boneVbo != 0) { GL.DeleteBuffer(_boneVbo); _boneVbo = 0; }
+        var pairList = new List<int>();
+        for (int i = 0; i < _bones.Count; i++)
+        {
+            var bone = _bones[i];
+            if (bone.Parent >= 0)
+            {
+                pairList.Add(bone.Parent);
+                pairList.Add(i);
+            }
+        }
+        _boneLinePairs = pairList.ToArray();
+        _boneLineVertices = new float[_boneLinePairs.Length / 2 * 6];
+        _boneVertexCount = _boneLineVertices.Length / 3;
         foreach (var (name, idx) in data.HumanoidBoneList)
         {
             _indexToHumanoidName[idx] = name;
@@ -667,28 +684,46 @@ void main(){
                 }
             }
 
-            if (ShowBoneOutline)
+            if (ShowBoneOutline && _boneLinePairs.Length > 0)
             {
-                var lines = new List<float>();
-                for (int i = 0; i < _bones.Count; i++)
+                for (int i = 0; i < _boneLinePairs.Length / 2; i++)
                 {
-                    var bone = _bones[i];
-                    if (bone.Parent >= 0)
-                    {
-                        var pp = worldMats[bone.Parent].Translation;
-                        var cp = worldMats[i].Translation;
-                        lines.Add(pp.X); lines.Add(pp.Y); lines.Add(pp.Z);
-                        lines.Add(cp.X); lines.Add(cp.Y); lines.Add(cp.Z);
-                    }
+                    int parent = _boneLinePairs[i * 2];
+                    int child = _boneLinePairs[i * 2 + 1];
+                    var pp = worldMats[parent].Translation;
+                    var cp = worldMats[child].Translation;
+                    int offset = i * 6;
+                    _boneLineVertices[offset + 0] = pp.X;
+                    _boneLineVertices[offset + 1] = pp.Y;
+                    _boneLineVertices[offset + 2] = pp.Z;
+                    _boneLineVertices[offset + 3] = cp.X;
+                    _boneLineVertices[offset + 4] = cp.Y;
+                    _boneLineVertices[offset + 5] = cp.Z;
                 }
-                _boneVertexCount = lines.Count / 3;
                 if (_boneVao == 0) _boneVao = GL.GenVertexArray();
-                if (_boneVbo == 0) _boneVbo = GL.GenBuffer();
-                GL.BindVertexArray(_boneVao);
-                GL.BindBuffer(BufferTarget.ArrayBuffer, _boneVbo);
-                GL.BufferData(BufferTarget.ArrayBuffer, lines.Count * sizeof(float), lines.ToArray(), BufferUsageHint.DynamicDraw);
-                GL.VertexAttribPointer(0, 3, VertexAttribPointerType.Float, false, 3 * sizeof(float), 0);
-                GL.EnableVertexAttribArray(0);
+                if (_boneVbo == 0)
+                {
+                    _boneVbo = GL.GenBuffer();
+                    GL.BindVertexArray(_boneVao);
+                    GL.BindBuffer(BufferTarget.ArrayBuffer, _boneVbo);
+                    GL.BufferData(BufferTarget.ArrayBuffer, _boneLineVertices.Length * sizeof(float), IntPtr.Zero, BufferUsageHint.DynamicDraw);
+                    GL.VertexAttribPointer(0, 3, VertexAttribPointerType.Float, false, 3 * sizeof(float), 0);
+                    GL.EnableVertexAttribArray(0);
+                }
+                else
+                {
+                    GL.BindVertexArray(_boneVao);
+                    GL.BindBuffer(BufferTarget.ArrayBuffer, _boneVbo);
+                }
+                var lineHandle = System.Runtime.InteropServices.GCHandle.Alloc(_boneLineVertices, System.Runtime.InteropServices.GCHandleType.Pinned);
+                try
+                {
+                    GL.BufferSubData(BufferTarget.ArrayBuffer, IntPtr.Zero, _boneLineVertices.Length * sizeof(float), lineHandle.AddrOfPinnedObject());
+                }
+                finally
+                {
+                    lineHandle.Free();
+                }
                 GL.BindBuffer(BufferTarget.ArrayBuffer, 0);
                 GL.BindVertexArray(0);
             }
