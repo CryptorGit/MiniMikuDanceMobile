@@ -66,6 +66,7 @@ public partial class MainPage : ContentPage
     private ModelData? _pendingModel;
     private ModelData? _currentModel;
     private readonly Dictionary<long, SKPoint> _touchPoints = new();
+    private readonly long[] _touchIds = new long[2];
     private readonly BonesConfig? _bonesConfig = App.Initializer.BonesConfig;
     private void SetProgressVisibilityAndLayout(bool isVisible,
         bool showExtract,
@@ -523,29 +524,43 @@ public partial class MainPage : ContentPage
         }
         else if (e.ActionType == SKTouchAction.Moved)
         {
-            var prevPoints = new Dictionary<long, SKPoint>(_touchPoints);
-            _touchPoints[e.Id] = e.Location;
+            if (_touchPoints.TryGetValue(e.Id, out var prev))
+            {
+                _touchPoints[e.Id] = e.Location;
 
-            if (_touchPoints.Count == 1 && prevPoints.ContainsKey(e.Id))
-            {
-                var prev = prevPoints[e.Id];
-                var dx = e.Location.X - prev.X;
-                var dy = e.Location.Y - prev.Y;
-                _renderer.Orbit(dx, dy);
+                if (_touchPoints.Count == 1)
+                {
+                    var dx = e.Location.X - prev.X;
+                    var dy = e.Location.Y - prev.Y;
+                    _renderer.Orbit(dx, dy);
+                }
+                else if (_touchPoints.Count == 2)
+                {
+                    var index = 0;
+                    foreach (var id in _touchPoints.Keys)
+                    {
+                        _touchIds[index++] = id;
+                    }
+
+                    var id0 = _touchIds[0];
+                    var id1 = _touchIds[1];
+
+                    var p0Old = id0 == e.Id ? prev : _touchPoints[id0];
+                    var p1Old = id1 == e.Id ? prev : _touchPoints[id1];
+                    var p0New = _touchPoints[id0];
+                    var p1New = _touchPoints[id1];
+
+                    var oldMid = new SKPoint((p0Old.X + p1Old.X) / 2, (p0Old.Y + p1Old.Y) / 2);
+                    var newMid = new SKPoint((p0New.X + p1New.X) / 2, (p0New.Y + p1New.Y) / 2);
+                    _renderer.Pan(newMid.X - oldMid.X, newMid.Y - oldMid.Y);
+                    float oldDist = (p0Old - p1Old).Length;
+                    float newDist = (p0New - p1New).Length;
+                    _renderer.Dolly(oldDist - newDist);
+                }
             }
-            else if (_touchPoints.Count == 2 && prevPoints.Count == 2)
+            else
             {
-                var ids = new List<long>(_touchPoints.Keys);
-                var p0Old = prevPoints[ids[0]];
-                var p1Old = prevPoints[ids[1]];
-                var p0New = _touchPoints[ids[0]];
-                var p1New = _touchPoints[ids[1]];
-                var oldMid = new SKPoint((p0Old.X + p1Old.X) / 2, (p0Old.Y + p1Old.Y) / 2);
-                var newMid = new SKPoint((p0New.X + p1New.X) / 2, (p0New.Y + p1New.Y) / 2);
-                _renderer.Pan(newMid.X - oldMid.X, newMid.Y - oldMid.Y);
-                float oldDist = (p0Old - p1Old).Length;
-                float newDist = (p0New - p1New).Length;
-                _renderer.Dolly(oldDist - newDist);
+                _touchPoints[e.Id] = e.Location;
             }
         }
         else if (e.ActionType == SKTouchAction.Released || e.ActionType == SKTouchAction.Cancelled)
