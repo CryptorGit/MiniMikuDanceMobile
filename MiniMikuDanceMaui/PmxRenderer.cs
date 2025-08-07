@@ -61,8 +61,8 @@ public class PmxRenderer : IDisposable
     private float[] _boneLineVertices = Array.Empty<float>();
     private int[] _boneLinePairs = Array.Empty<int>();
     private float[] _boneArray = Array.Empty<float>();
-    private const int MaxSupportedBones = 256;
-    private int _maxShaderBones = MaxSupportedBones;
+    private int _boneCount;
+    private int _boneTexture;
     private int _modelProgram;
     private int _modelViewLoc;
     private int _modelProjLoc;
@@ -76,7 +76,7 @@ public class PmxRenderer : IDisposable
     private int _modelShadeToonyLoc;
     private int _modelRimIntensityLoc;
     private int _modelAmbientLoc;
-    private int _modelBonesLoc;
+    private int _modelBoneTexLoc;
     private Matrix4 _modelTransform = Matrix4.Identity;
     public Matrix4 ModelTransform
     {
@@ -165,12 +165,12 @@ void main(){
 
         // 透過描画設定（デフォルトでは無効）
         GL.BlendFunc(BlendingFactorSrc.SrcAlpha, BlendingFactorDest.OneMinusSrcAlpha);
-        CreateModelProgram(_maxShaderBones);
+        CreateModelProgram();
 
         GenerateGrid();
     }
 
-    private void CreateModelProgram(int maxBones)
+    private void CreateModelProgram()
     {
         if (_modelProgram != 0)
         {
@@ -178,8 +178,7 @@ void main(){
             _modelProgram = 0;
         }
 
-        string modelVert = $@"#version 300 es
-#define MAX_BONES {maxBones}
+        string modelVert = @"#version 300 es
 layout(location = 0) in vec3 aPosition;
 layout(location = 1) in vec3 aNormal;
 layout(location = 2) in vec2 aTex;
@@ -188,20 +187,27 @@ layout(location = 4) in vec4 aJointWeights;
 uniform mat4 uModel;
 uniform mat4 uView;
 uniform mat4 uProj;
-uniform mat4 uBones[MAX_BONES];
+uniform sampler2D uBoneTex;
+mat4 GetBone(int idx){
+    vec4 r0 = texelFetch(uBoneTex, ivec2(idx,0),0);
+    vec4 r1 = texelFetch(uBoneTex, ivec2(idx,1),0);
+    vec4 r2 = texelFetch(uBoneTex, ivec2(idx,2),0);
+    vec4 r3 = texelFetch(uBoneTex, ivec2(idx,3),0);
+    return transpose(mat4(r0,r1,r2,r3));
+}
 out vec3 vNormal;
 out vec2 vTex;
-void main(){{
+void main(){
     mat4 skin =
-        aJointWeights.x * uBones[int(aJointIndices.x)] +
-        aJointWeights.y * uBones[int(aJointIndices.y)] +
-        aJointWeights.z * uBones[int(aJointIndices.z)] +
-        aJointWeights.w * uBones[int(aJointIndices.w)];
+        aJointWeights.x * GetBone(int(aJointIndices.x)) +
+        aJointWeights.y * GetBone(int(aJointIndices.y)) +
+        aJointWeights.z * GetBone(int(aJointIndices.z)) +
+        aJointWeights.w * GetBone(int(aJointIndices.w));
     vec4 pos = uModel * skin * vec4(aPosition,1.0);
     vNormal = mat3(uModel * skin) * aNormal;
     vTex = aTex;
     gl_Position = uProj * uView * pos;
-}}";
+}";
 
         const string modelFrag = @"#version 300 es
 precision mediump float;
@@ -250,7 +256,7 @@ void main(){
         _modelShadeToonyLoc = GL.GetUniformLocation(_modelProgram, "uShadeToony");
         _modelRimIntensityLoc = GL.GetUniformLocation(_modelProgram, "uRimIntensity");
         _modelAmbientLoc = GL.GetUniformLocation(_modelProgram, "uAmbient");
-        _modelBonesLoc = GL.GetUniformLocation(_modelProgram, "uBones");
+        _modelBoneTexLoc = GL.GetUniformLocation(_modelProgram, "uBoneTex");
     }
 
     private void GenerateGrid()
@@ -450,10 +456,9 @@ void main(){
         _indexToHumanoidName.Clear();
         _bones = data.Bones.ToList();
         _boneArray = Array.Empty<float>();
-        _maxShaderBones = Math.Min(_bones.Count, MaxSupportedBones);
-        if (_bones.Count > MaxSupportedBones)
-            Console.WriteLine($"Warning: bone count {_bones.Count} exceeds limit {MaxSupportedBones}. Clamping.");
-        CreateModelProgram(_maxShaderBones);
+        _boneCount = _bones.Count;
+        if (_boneTexture != 0) { GL.DeleteTexture(_boneTexture); _boneTexture = 0; }
+        CreateModelProgram();
         if (_boneVao != 0) { GL.DeleteVertexArray(_boneVao); _boneVao = 0; }
         if (_boneVbo != 0) { GL.DeleteBuffer(_boneVbo); _boneVbo = 0; }
         var pairList = new List<int>();
@@ -475,6 +480,8 @@ void main(){
         }
 
         _modelTransform = data.Transform.ToMatrix4();
+
+        _morphDirty = true;
 
         if (data.SubMeshes.Count == 0)
         {
@@ -722,8 +729,8 @@ void main(){
             for (int i = 0; i < _bones.Count; i++)
                 skinMats[i] = _bones[i].InverseBindMatrix * worldMats[i];
 
-            _boneArray = new float[_maxShaderBones * 16];
-            for (int i = 0; i < _maxShaderBones; i++)
+            _boneArray = new float[_boneCount * 16];
+            for (int i = 0; i < _boneCount; i++)
             {
                 var m = skinMats[i];
                 int offset = i * 16;
@@ -744,6 +751,22 @@ void main(){
                 _boneArray[offset +14] = m.M43;
                 _boneArray[offset +15] = m.M44;
             }
+
+            if (_boneTexture == 0)
+            {
+                _boneTexture = GL.GenTexture();
+                GL.BindTexture(TextureTarget.Texture2D, _boneTexture);
+                GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureMinFilter, (int)TextureMinFilter.Nearest);
+                GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureMagFilter, (int)TextureMagFilter.Nearest);
+                GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureWrapS, (int)TextureWrapMode.ClampToEdge);
+                GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureWrapT, (int)TextureWrapMode.ClampToEdge);
+            }
+            else
+            {
+                GL.BindTexture(TextureTarget.Texture2D, _boneTexture);
+            }
+            GL.TexImage2D(TextureTarget.Texture2D, 0, PixelInternalFormat.Rgba32f, _boneCount, 4, 0, PixelFormat.Rgba, PixelType.Float, _boneArray);
+            GL.BindTexture(TextureTarget.Texture2D, 0);
 
             if (ShowBoneOutline && _boneLinePairs.Length > 0)
             {
@@ -809,9 +832,13 @@ void main(){
         GL.Uniform1(_modelShadeToonyLoc, ShadeToony);
         GL.Uniform1(_modelRimIntensityLoc, RimIntensity);
         GL.Uniform1(_modelAmbientLoc, Ambient);
-        if (_maxShaderBones > 0 && _boneArray.Length > 0)
-            // _boneArray は行優先で格納されているため、転置フラグを有効にして送信する
-            GL.UniformMatrix4(_modelBonesLoc, _maxShaderBones, true, _boneArray);
+        if (_boneTexture != 0)
+        {
+            GL.ActiveTexture(TextureUnit.Texture1);
+            GL.BindTexture(TextureTarget.Texture2D, _boneTexture);
+            GL.Uniform1(_modelBoneTexLoc, 1);
+            GL.ActiveTexture(TextureUnit.Texture0);
+        }
         GL.UniformMatrix4(_modelMatrixLoc, false, ref modelMat);
         foreach (var rm in _meshes)
         {
@@ -834,6 +861,11 @@ void main(){
             {
                 GL.BindTexture(TextureTarget.Texture2D, 0);
             }
+        }
+        if (_boneTexture != 0)
+        {
+            GL.ActiveTexture(TextureUnit.Texture1);
+            GL.BindTexture(TextureTarget.Texture2D, 0);
         }
         GL.UseProgram(_program);
         GL.UniformMatrix4(_viewLoc, false, ref view);
@@ -882,6 +914,7 @@ void main(){
         GL.DeleteVertexArray(_gridVao);
         GL.DeleteVertexArray(_groundVao);
         GL.DeleteVertexArray(_boneVao);
+        if (_boneTexture != 0) GL.DeleteTexture(_boneTexture);
         GL.DeleteProgram(_program);
         GL.DeleteProgram(_modelProgram);
     }
