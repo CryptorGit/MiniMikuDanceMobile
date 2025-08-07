@@ -20,6 +20,7 @@ public class ModelData
     public List<BoneData> Bones { get; set; } = new();
     public Dictionary<string, int> HumanoidBones { get; set; } = new(StringComparer.OrdinalIgnoreCase);
     public List<(string Name, int Index)> HumanoidBoneList { get; set; } = new();
+    public List<MorphData> Morphs { get; set; } = new();
     public float ShadeShift { get; set; } = -0.1f;
     public float ShadeToony { get; set; } = 0.9f;
     public float RimIntensity { get; set; } = 0.5f;
@@ -77,6 +78,7 @@ public class ModelImporter
         var mats = pmx.MaterialList.ToArray();
         var texList = pmx.TextureList.ToArray();
         var bones = pmx.BoneList.ToArray();
+        var morphs = pmx.MorphList.ToArray();
 
         // ボーン情報を ModelData に格納する
         var data = new ModelData();
@@ -125,6 +127,25 @@ public class ModelImporter
                 }
             }
         }
+        var morphDatas = new List<MorphData>(morphs.Length);
+        foreach (var m in morphs)
+        {
+            string name = string.IsNullOrEmpty(m.NameEnglish) ? m.Name : m.NameEnglish;
+            var md = new MorphData { Name = name, Type = m.MorphType };
+            if (m.MorphType == MorphType.Vertex)
+            {
+                foreach (var elem in m.VertexMorphElements.Span)
+                {
+                    md.Offsets.Add(new MorphOffset
+                    {
+                        Index = elem.TargetVertex,
+                        Offset = new System.Numerics.Vector3(elem.PosOffset.X * Scale, elem.PosOffset.Y * Scale, elem.PosOffset.Z * Scale)
+                    });
+                }
+            }
+            morphDatas.Add(md);
+        }
+        data.Morphs = morphDatas;
         var combined = new Assimp.Mesh("pmx", Assimp.PrimitiveType.Triangle);
         for (int i = 0; i < verts.Length; i++)
         {
