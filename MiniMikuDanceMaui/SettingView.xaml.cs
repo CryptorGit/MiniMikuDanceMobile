@@ -36,18 +36,11 @@ public partial class SettingView : ContentView
     }
 
 
-    private void OnStageSizeSliderChanged(object? sender, ValueChangedEventArgs e)
-    {
-        LogService.WriteLine($"Stage size: {e.NewValue:F1}");
-        StageSizeEntry.Text = e.NewValue.ToString("F1");
-        StageSizeChanged?.Invoke(e.NewValue);
-    }
-
     private void OnStageSizeEntryCompleted(object? sender, EventArgs e)
     {
         if (double.TryParse(StageSizeEntry.Text, out var v))
         {
-            StageSizeSlider.Value = v;
+            StageSizeEntry.Text = v.ToString("F1");
             StageSizeChanged?.Invoke(v);
         }
     }
@@ -84,12 +77,8 @@ public partial class SettingView : ContentView
 
     public double StageSize
     {
-        get => StageSizeSlider.Value;
-        set
-        {
-            StageSizeSlider.Value = value;
-            StageSizeEntry.Text = value.ToString("F1");
-        }
+        get => double.TryParse(StageSizeEntry.Text, out var v) ? v : 0;
+        set => StageSizeEntry.Text = value.ToString("F1");
     }
 
     public bool ShowBoneOutline
