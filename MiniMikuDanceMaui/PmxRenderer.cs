@@ -732,45 +732,19 @@ void main(){
             if (morph.Type == MorphType.Vertex)
                 _morphs[morph.Name] = morph;
         }
-
-        var lookup = new Dictionary<(Vector3 Pos, Vector3 Nor, Vector2 Uv), List<int>>();
-        var meshVerts = data.Mesh.Vertices;
-        var meshNorms = data.Mesh.Normals;
-        var meshUVs = data.Mesh.TextureCoordinateChannels[0];
-        for (int i = 0; i < data.Mesh.VertexCount; i++)
+        for (int mi = 0; mi < data.SubMeshes.Count; mi++)
         {
-            var pos = new Vector3(meshVerts[i].X, meshVerts[i].Y, meshVerts[i].Z);
-            var nor = i < meshNorms.Count ? new Vector3(meshNorms[i].X, meshNorms[i].Y, meshNorms[i].Z) : Vector3.Zero;
-            var uv = i < meshUVs.Count ? new Vector2(meshUVs[i].X, meshUVs[i].Y) : Vector2.Zero;
-            var key = (pos, nor, uv);
-            if (!lookup.TryGetValue(key, out var list))
+            var sm = data.SubMeshes[mi];
+            var rm = _meshes[mi];
+            for (int i = 0; i < sm.OriginalIndices.Count; i++)
             {
-                list = new List<int>();
-                lookup[key] = list;
-            }
-            list.Add(i);
-        }
-
-        foreach (var rm in _meshes)
-        {
-            for (int i = 0; i < rm.Vertices.Length; i++)
-            {
-                var pos = rm.BaseVertices[i];
-                var nor = i < rm.Normals.Length ? rm.Normals[i] : Vector3.Zero;
-                var uv = i < rm.TexCoords.Length ? rm.TexCoords[i] : Vector2.Zero;
-                var key = (pos, nor, uv);
-                if (lookup.TryGetValue(key, out var idxList))
+                int idx = sm.OriginalIndices[i];
+                if (!_morphVertexMap.TryGetValue(idx, out var l))
                 {
-                    foreach (var idx in idxList)
-                    {
-                        if (!_morphVertexMap.TryGetValue(idx, out var l))
-                        {
-                            l = new List<(RenderMesh, int)>();
-                            _morphVertexMap[idx] = l;
-                        }
-                        l.Add((rm, i));
-                    }
+                    l = new List<(RenderMesh, int)>();
+                    _morphVertexMap[idx] = l;
                 }
+                l.Add((rm, i));
             }
         }
         _morphDirty = true;

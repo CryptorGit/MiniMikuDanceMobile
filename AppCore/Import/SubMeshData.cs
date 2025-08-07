@@ -18,4 +18,5 @@ public class SubMeshData
     public List<System.Numerics.Vector3> SdefC { get; set; } = new();
     public List<System.Numerics.Vector3> SdefR0 { get; set; } = new();
     public List<System.Numerics.Vector3> SdefR1 { get; set; } = new();
+    public List<int> OriginalIndices { get; set; } = new();
 }

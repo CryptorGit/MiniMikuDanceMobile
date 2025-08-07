@@ -210,6 +210,7 @@ public class ModelImporter
                     sub.Normals.Add(new Vector3D(vv.Normal.X, vv.Normal.Y, vv.Normal.Z));
                     sub.TextureCoordinateChannels[0].Add(new Vector3D(vv.UV.X, vv.UV.Y, 0));
                     smd.TexCoords.Add(new System.Numerics.Vector2(vv.UV.X, vv.UV.Y));
+                    smd.OriginalIndices.Add(idxs[j]);
 
                     System.Numerics.Vector4 ji = System.Numerics.Vector4.Zero;
                     System.Numerics.Vector4 jw = System.Numerics.Vector4.Zero;
