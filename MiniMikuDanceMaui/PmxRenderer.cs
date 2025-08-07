@@ -664,17 +664,6 @@ void main(){
         GL.UniformMatrix4(_viewLoc, false, ref view);
         GL.UniformMatrix4(_projLoc, false, ref proj);
 
-        if (ShowBoneOutline && _boneVertexCount > 0)
-        {
-            GL.DepthMask(false);
-            GL.UniformMatrix4(_modelLoc, false, ref modelMat);
-            GL.Uniform4(_colorLoc, new Vector4(1f, 0f, 0f, 1f));
-            GL.BindVertexArray(_boneVao);
-            GL.DrawArrays(PrimitiveType.Lines, 0, _boneVertexCount);
-            GL.BindVertexArray(0);
-            GL.DepthMask(true);
-        }
-
         Matrix4 gridModel = Matrix4.Identity;
         GL.DepthMask(false);
         GL.UniformMatrix4(_modelLoc, false, ref gridModel);
@@ -689,6 +678,17 @@ void main(){
         GL.DrawArrays(PrimitiveType.Lines, 0, _gridVertexCount);
         GL.BindVertexArray(0);
         GL.DepthMask(true);
+
+        if (ShowBoneOutline && _boneVertexCount > 0)
+        {
+            GL.Disable(EnableCap.DepthTest);
+            GL.UniformMatrix4(_modelLoc, false, ref modelMat);
+            GL.Uniform4(_colorLoc, new Vector4(1f, 0f, 0f, 1f));
+            GL.BindVertexArray(_boneVao);
+            GL.DrawArrays(PrimitiveType.Lines, 0, _boneVertexCount);
+            GL.BindVertexArray(0);
+            GL.Enable(EnableCap.DepthTest);
+        }
     }
 
     public void Dispose()
