@@ -38,11 +38,4 @@ public partial class PmxView : ContentView
         SubMeshList.ItemsSource = items;
         SubMeshList.IsVisible = true;
     }
-
-    private class SubMeshInfo
-    {
-        public int Index { get; set; }
-        public string Texture { get; set; } = string.Empty;
-        public string Size { get; set; } = string.Empty;
-    }
 }

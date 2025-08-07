@@ -780,12 +780,12 @@ public partial class MainPage : ContentPage
             }
             else
             {
-                var textColor = (Color)Application.Current.Resources["TextColor"];
+                var textColor = (Color)(Application.Current?.Resources?.TryGetValue("TextColor", out var textColorValue) == true ? textColorValue : Colors.Black);
                 view = new Label { Text = $"{name} view", TextColor = textColor, HorizontalTextAlignment = TextAlignment.Center, VerticalTextAlignment = TextAlignment.Center };
             }
             _bottomViews[name] = view;
 
-            var tabBgColor = (Color)Application.Current.Resources["TabBackgroundColor"];
+            var tabBgColor = (Color)(Application.Current?.Resources?.TryGetValue("TabBackgroundColor", out var tabBgColorValue) == true ? tabBgColorValue : Colors.LightGray);
             var border = new Border
             {
                 BackgroundColor = tabBgColor,
@@ -795,7 +795,7 @@ public partial class MainPage : ContentPage
             var label = new Label
             {
                 Text = name,
-                TextColor = (Color)Application.Current.Resources["TextColor"],
+                TextColor = (Color)(Application.Current?.Resources?.TryGetValue("TextColor", out var textColorValue2) == true ? textColorValue2 : Colors.Black),
                 FontSize = 16,
                 HorizontalTextAlignment = TextAlignment.Center,
                 VerticalTextAlignment = TextAlignment.Center
@@ -866,8 +866,8 @@ public partial class MainPage : ContentPage
 
     private void UpdateTabColors()
     {
-        var active = (Color)Application.Current.Resources["TabActiveColor"];
-        var inactive = (Color)Application.Current.Resources["TabInactiveColor"];
+        var active = (Color)(Application.Current?.Resources?.TryGetValue("TabActiveColor", out var activeColor) == true ? activeColor : Colors.Blue);
+        var inactive = (Color)(Application.Current?.Resources?.TryGetValue("TabInactiveColor", out var inactiveColor) == true ? inactiveColor : Colors.Gray);
         foreach (var kv in _bottomTabs)
         {
             kv.Value.BackgroundColor = kv.Key == _currentFeature ? active : inactive;
