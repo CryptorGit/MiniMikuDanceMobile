@@ -60,6 +60,7 @@ public class PmxRenderer : IDisposable
     private int _boneVertexCount;
     private float[] _boneLineVertices = Array.Empty<float>();
     private int[] _boneLinePairs = Array.Empty<int>();
+    private float[] _boneArray = Array.Empty<float>();
     private int _modelProgram;
     private int _modelViewLoc;
     private int _modelProjLoc;
@@ -414,6 +415,7 @@ void main(){
         _meshes.Clear();
         _indexToHumanoidName.Clear();
         _bones = data.Bones.ToList();
+        _boneArray = Array.Empty<float>();
         if (_boneVao != 0) { GL.DeleteVertexArray(_boneVao); _boneVao = 0; }
         if (_boneVbo != 0) { GL.DeleteBuffer(_boneVbo); _boneVbo = 0; }
         var pairList = new List<int>();
@@ -648,7 +650,6 @@ void main(){
         Matrix4 proj = Matrix4.CreatePerspectiveFieldOfView(MathHelper.PiOver4, aspect, 0.1f, 100f);
         var modelMat = ModelTransform;
 
-        float[] boneArray = Array.Empty<float>();
         // CPU skinning: update vertex buffers based on current bone rotations
         if (_bones.Count > 0 && _morphDirty)
         {
@@ -672,27 +673,27 @@ void main(){
             for (int i = 0; i < _bones.Count; i++)
                 skinMats[i] = _bones[i].InverseBindMatrix * worldMats[i];
 
-            boneArray = new float[_bones.Count * 16];
+            _boneArray = new float[_bones.Count * 16];
             for (int i = 0; i < _bones.Count; i++)
             {
                 var m = skinMats[i];
                 int offset = i * 16;
-                boneArray[offset + 0] = m.M11;
-                boneArray[offset + 1] = m.M12;
-                boneArray[offset + 2] = m.M13;
-                boneArray[offset + 3] = m.M14;
-                boneArray[offset + 4] = m.M21;
-                boneArray[offset + 5] = m.M22;
-                boneArray[offset + 6] = m.M23;
-                boneArray[offset + 7] = m.M24;
-                boneArray[offset + 8] = m.M31;
-                boneArray[offset + 9] = m.M32;
-                boneArray[offset +10] = m.M33;
-                boneArray[offset +11] = m.M34;
-                boneArray[offset +12] = m.M41;
-                boneArray[offset +13] = m.M42;
-                boneArray[offset +14] = m.M43;
-                boneArray[offset +15] = m.M44;
+                _boneArray[offset + 0] = m.M11;
+                _boneArray[offset + 1] = m.M12;
+                _boneArray[offset + 2] = m.M13;
+                _boneArray[offset + 3] = m.M14;
+                _boneArray[offset + 4] = m.M21;
+                _boneArray[offset + 5] = m.M22;
+                _boneArray[offset + 6] = m.M23;
+                _boneArray[offset + 7] = m.M24;
+                _boneArray[offset + 8] = m.M31;
+                _boneArray[offset + 9] = m.M32;
+                _boneArray[offset +10] = m.M33;
+                _boneArray[offset +11] = m.M34;
+                _boneArray[offset +12] = m.M41;
+                _boneArray[offset +13] = m.M42;
+                _boneArray[offset +14] = m.M43;
+                _boneArray[offset +15] = m.M44;
             }
 
             if (ShowBoneOutline && _boneLinePairs.Length > 0)
@@ -759,8 +760,8 @@ void main(){
         GL.Uniform1(_modelShadeToonyLoc, ShadeToony);
         GL.Uniform1(_modelRimIntensityLoc, RimIntensity);
         GL.Uniform1(_modelAmbientLoc, Ambient);
-        if (_bones.Count > 0)
-            GL.UniformMatrix4(_modelBonesLoc, _bones.Count, false, boneArray);
+        if (_bones.Count > 0 && _boneArray.Length > 0)
+            GL.UniformMatrix4(_modelBonesLoc, _bones.Count, false, _boneArray);
         GL.UniformMatrix4(_modelMatrixLoc, false, ref modelMat);
         foreach (var rm in _meshes)
         {
