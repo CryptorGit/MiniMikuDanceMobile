@@ -286,6 +286,7 @@ void main(){
 
     public void Dolly(float delta)
     {
+        _distance -= delta * 0.01f;
         if (_distance < 1f) _distance = 1f;
         if (_distance > 20f) _distance = 20f;
     }
