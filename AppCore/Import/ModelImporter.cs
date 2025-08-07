@@ -233,6 +233,11 @@ public class ModelImporter
                             jw = new System.Numerics.Vector4(vv.Weight1, vv.Weight2, vv.Weight3, vv.Weight4);
                             break;
                     }
+                    float sum = jw.X + jw.Y + jw.Z + jw.W;
+                    if (sum != 0f && sum != 1f)
+                    {
+                        jw /= sum;
+                    }
                     smd.JointIndices.Add(ji);
                     smd.JointWeights.Add(jw);
                 }
