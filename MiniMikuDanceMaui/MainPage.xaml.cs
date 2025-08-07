@@ -139,6 +139,7 @@ public partial class MainPage : ContentPage
         {
             glView.PaintSurface += OnPaintSurface;
             glView.Touch += OnViewTouch;
+            _renderer.Viewer = glView;
         }
 
         _renderTimer = Dispatcher.CreateTimer();

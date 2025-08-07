@@ -8,6 +8,8 @@ using System.Linq;
 using MiniMikuDance.Util;
 using MiniMikuDance.Import;
 using MiniMikuDance.App;
+using SkiaSharp.Views.Maui.Controls;
+using MMDTools;
 
 namespace MiniMikuDanceMaui;
 
@@ -24,12 +26,17 @@ public class PmxRenderer : IDisposable
         public int Texture;
         public bool HasTexture;
         public Vector3[] Vertices = Array.Empty<Vector3>();
+        public Vector3[] BaseVertices = Array.Empty<Vector3>();
         public Vector3[] Normals = Array.Empty<Vector3>();
         public Vector2[] TexCoords = Array.Empty<Vector2>();
         public Vector4[] JointIndices = Array.Empty<Vector4>();
         public Vector4[] JointWeights = Array.Empty<Vector4>();
     }
     private readonly System.Collections.Generic.List<RenderMesh> _meshes = new();
+    private readonly Dictionary<string, MorphData> _morphs = new(StringComparer.OrdinalIgnoreCase);
+    private readonly Dictionary<string, float> _morphValues = new(StringComparer.OrdinalIgnoreCase);
+    private readonly Dictionary<int, List<(RenderMesh Mesh, int Index)>> _morphVertexMap = new();
+    public SKGLView? Viewer { get; set; }
     private int _gridVao;
     private int _gridVbo;
     private int _gridVertexCount;
@@ -351,20 +358,36 @@ void main(){
         return _boneTranslations[index];
     }
 
-    public IList<Vector3> GetAllBoneRotations() => _boneRotations.ToList();
-
-    public IList<Vector3> GetAllBoneTranslations() => _boneTranslations.ToList();
-
-    public void SetAllBoneRotations(IList<Vector3> list)
+    public void SetMorph(string name, float value)
     {
-        _boneRotations.Clear();
-        _boneRotations.AddRange(list);
-    }
+        if (!_morphs.TryGetValue(name, out var morph) || morph.Type != MorphType.Vertex)
+            return;
 
-    public void SetAllBoneTranslations(IList<Vector3> list)
-    {
-        _boneTranslations.Clear();
-        _boneTranslations.AddRange(list);
+        _morphValues[name] = value;
+
+        foreach (var rm in _meshes)
+            Array.Copy(rm.BaseVertices, rm.Vertices, rm.Vertices.Length);
+
+        foreach (var kv in _morphValues)
+        {
+            if (kv.Value == 0f)
+                continue;
+            if (!_morphs.TryGetValue(kv.Key, out var md) || md.Type != MorphType.Vertex)
+                continue;
+            foreach (var off in md.Offsets)
+            {
+                if (_morphVertexMap.TryGetValue(off.Index, out var list))
+                {
+                    var offset = new Vector3(off.Offset.X, off.Offset.Y, off.Offset.Z) * kv.Value;
+                    foreach (var (mesh, idx) in list)
+                    {
+                        mesh.Vertices[idx] += offset;
+                    }
+                }
+            }
+        }
+
+        Viewer?.InvalidateSurface();
     }
 
     public void LoadModel(MiniMikuDance.Import.ModelData data)
@@ -440,6 +463,7 @@ void main(){
             var rm = new RenderMesh();
             rm.IndexCount = indices.Count;
             rm.Vertices = sm.Mesh.Vertices.Select(v => new Vector3(v.X, v.Y, v.Z)).ToArray();
+            rm.BaseVertices = rm.Vertices.ToArray();
             rm.Normals = sm.Mesh.Normals.Select(n => new Vector3(n.X, n.Y, n.Z)).ToArray();
             rm.TexCoords = sm.TexCoords.Select(t => new Vector2(t.X, t.Y)).ToArray();
             rm.JointIndices = sm.JointIndices.Select(j => new Vector4(j.X, j.Y, j.Z, j.W)).ToArray();
@@ -493,6 +517,56 @@ void main(){
             }
 
             _meshes.Add(rm);
+        }
+
+        _morphs.Clear();
+        _morphValues.Clear();
+        _morphVertexMap.Clear();
+        foreach (var morph in data.Morphs)
+        {
+            if (morph.Type == MorphType.Vertex)
+                _morphs[morph.Name] = morph;
+        }
+
+        var lookup = new Dictionary<(Vector3 Pos, Vector3 Nor, Vector2 Uv), List<int>>();
+        var meshVerts = data.Mesh.Vertices;
+        var meshNorms = data.Mesh.Normals;
+        var meshUVs = data.Mesh.TextureCoordinateChannels[0];
+        for (int i = 0; i < data.Mesh.VertexCount; i++)
+        {
+            var pos = new Vector3(meshVerts[i].X, meshVerts[i].Y, meshVerts[i].Z);
+            var nor = i < meshNorms.Count ? new Vector3(meshNorms[i].X, meshNorms[i].Y, meshNorms[i].Z) : Vector3.Zero;
+            var uv = i < meshUVs.Count ? new Vector2(meshUVs[i].X, meshUVs[i].Y) : Vector2.Zero;
+            var key = (pos, nor, uv);
+            if (!lookup.TryGetValue(key, out var list))
+            {
+                list = new List<int>();
+                lookup[key] = list;
+            }
+            list.Add(i);
+        }
+
+        foreach (var rm in _meshes)
+        {
+            for (int i = 0; i < rm.Vertices.Length; i++)
+            {
+                var pos = rm.BaseVertices[i];
+                var nor = i < rm.Normals.Length ? rm.Normals[i] : Vector3.Zero;
+                var uv = i < rm.TexCoords.Length ? rm.TexCoords[i] : Vector2.Zero;
+                var key = (pos, nor, uv);
+                if (lookup.TryGetValue(key, out var idxList))
+                {
+                    foreach (var idx in idxList)
+                    {
+                        if (!_morphVertexMap.TryGetValue(idx, out var l))
+                        {
+                            l = new List<(RenderMesh, int)>();
+                            _morphVertexMap[idx] = l;
+                        }
+                        l.Add((rm, i));
+                    }
+                }
+            }
         }
     }
 
