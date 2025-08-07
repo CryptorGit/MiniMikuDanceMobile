@@ -37,6 +37,7 @@ public class PmxRenderer : IDisposable
     private readonly Dictionary<string, MorphData> _morphs = new(StringComparer.OrdinalIgnoreCase);
     private readonly Dictionary<string, float> _morphValues = new(StringComparer.OrdinalIgnoreCase);
     private readonly Dictionary<int, List<(RenderMesh Mesh, int Index)>> _morphVertexMap = new();
+    private bool _morphDirty;
     public SKGLView? Viewer { get; set; }
     private int _gridVao;
     private int _gridVbo;
@@ -57,6 +58,8 @@ public class PmxRenderer : IDisposable
     private int _boneVao;
     private int _boneVbo;
     private int _boneVertexCount;
+    private float[] _boneLineVertices = Array.Empty<float>();
+    private int[] _boneLinePairs = Array.Empty<int>();
     private int _modelProgram;
     private int _modelViewLoc;
     private int _modelProjLoc;
@@ -345,6 +348,7 @@ void main(){
         while (_boneRotations.Count <= index)
             _boneRotations.Add(Vector3.Zero);
         _boneRotations[index] = degrees;
+        _morphDirty = true;
     }
 
     public void SetBoneTranslation(int index, Vector3 translation)
@@ -354,6 +358,7 @@ void main(){
         while (_boneTranslations.Count <= index)
             _boneTranslations.Add(Vector3.Zero);
         _boneTranslations[index] = translation;
+        _morphDirty = true;
     }
 
     public Vector3 GetBoneRotation(int index)
@@ -375,31 +380,26 @@ void main(){
         if (!_morphs.TryGetValue(name, out var morph) || morph.Type != MorphType.Vertex)
             return;
 
+        _morphValues.TryGetValue(name, out var oldValue);
+        if (MathF.Abs(oldValue - value) < 1e-6f)
+            return;
+
         _morphValues[name] = value;
+        float delta = value - oldValue;
 
-        foreach (var rm in _meshes)
-            Array.Copy(rm.BaseVertices, rm.Vertices, rm.Vertices.Length);
-
-        foreach (var kv in _morphValues)
+        foreach (var off in morph.Offsets)
         {
-            if (kv.Value == 0f)
-                continue;
-            if (!_morphs.TryGetValue(kv.Key, out var md) || md.Type != MorphType.Vertex)
-                continue;
-            foreach (var off in md.Offsets)
+            if (_morphVertexMap.TryGetValue(off.Index, out var list))
             {
-                if (_morphVertexMap.TryGetValue(off.Index, out var list))
+                var offset = new Vector3(off.Offset.X, off.Offset.Y, off.Offset.Z) * delta;
+                foreach (var (mesh, idx) in list)
                 {
-                    var offset = new Vector3(off.Offset.X, off.Offset.Y, off.Offset.Z) * kv.Value;
-                    foreach (var (mesh, idx) in list)
-                    {
-                        mesh.Vertices[idx] += offset;
-                    }
+                    mesh.Vertices[idx] += offset;
                 }
             }
         }
 
-        Viewer?.InvalidateSurface();
+        _morphDirty = true;
     }
 
     public void LoadModel(MiniMikuDance.Import.ModelData data)
@@ -414,6 +414,21 @@ void main(){
         _meshes.Clear();
         _indexToHumanoidName.Clear();
         _bones = data.Bones.ToList();
+        if (_boneVao != 0) { GL.DeleteVertexArray(_boneVao); _boneVao = 0; }
+        if (_boneVbo != 0) { GL.DeleteBuffer(_boneVbo); _boneVbo = 0; }
+        var pairList = new List<int>();
+        for (int i = 0; i < _bones.Count; i++)
+        {
+            var bone = _bones[i];
+            if (bone.Parent >= 0)
+            {
+                pairList.Add(bone.Parent);
+                pairList.Add(i);
+            }
+        }
+        _boneLinePairs = pairList.ToArray();
+        _boneLineVertices = new float[_boneLinePairs.Length / 2 * 6];
+        _boneVertexCount = _boneLineVertices.Length / 3;
         foreach (var (name, idx) in data.HumanoidBoneList)
         {
             _indexToHumanoidName[idx] = name;
@@ -612,6 +627,7 @@ void main(){
                 }
             }
         }
+        _morphDirty = true;
     }
 
     public void Render()
@@ -633,7 +649,8 @@ void main(){
         var modelMat = ModelTransform;
 
         float[] boneArray = Array.Empty<float>();
-        if (_bones.Count > 0)
+        // CPU skinning: update vertex buffers based on current bone rotations
+        if (_bones.Count > 0 && _morphDirty)
         {
             var worldMats = new System.Numerics.Matrix4x4[_bones.Count];
             for (int i = 0; i < _bones.Count; i++)
@@ -678,28 +695,46 @@ void main(){
                 boneArray[offset +15] = m.M44;
             }
 
-            if (ShowBoneOutline)
+            if (ShowBoneOutline && _boneLinePairs.Length > 0)
             {
-                var lines = new List<float>();
-                for (int i = 0; i < _bones.Count; i++)
+                for (int i = 0; i < _boneLinePairs.Length / 2; i++)
                 {
-                    var bone = _bones[i];
-                    if (bone.Parent >= 0)
-                    {
-                        var pp = worldMats[bone.Parent].Translation;
-                        var cp = worldMats[i].Translation;
-                        lines.Add(pp.X); lines.Add(pp.Y); lines.Add(pp.Z);
-                        lines.Add(cp.X); lines.Add(cp.Y); lines.Add(cp.Z);
-                    }
+                    int parent = _boneLinePairs[i * 2];
+                    int child = _boneLinePairs[i * 2 + 1];
+                    var pp = worldMats[parent].Translation;
+                    var cp = worldMats[child].Translation;
+                    int offset = i * 6;
+                    _boneLineVertices[offset + 0] = pp.X;
+                    _boneLineVertices[offset + 1] = pp.Y;
+                    _boneLineVertices[offset + 2] = pp.Z;
+                    _boneLineVertices[offset + 3] = cp.X;
+                    _boneLineVertices[offset + 4] = cp.Y;
+                    _boneLineVertices[offset + 5] = cp.Z;
                 }
-                _boneVertexCount = lines.Count / 3;
                 if (_boneVao == 0) _boneVao = GL.GenVertexArray();
-                if (_boneVbo == 0) _boneVbo = GL.GenBuffer();
-                GL.BindVertexArray(_boneVao);
-                GL.BindBuffer(BufferTarget.ArrayBuffer, _boneVbo);
-                GL.BufferData(BufferTarget.ArrayBuffer, lines.Count * sizeof(float), lines.ToArray(), BufferUsageHint.DynamicDraw);
-                GL.VertexAttribPointer(0, 3, VertexAttribPointerType.Float, false, 3 * sizeof(float), 0);
-                GL.EnableVertexAttribArray(0);
+                if (_boneVbo == 0)
+                {
+                    _boneVbo = GL.GenBuffer();
+                    GL.BindVertexArray(_boneVao);
+                    GL.BindBuffer(BufferTarget.ArrayBuffer, _boneVbo);
+                    GL.BufferData(BufferTarget.ArrayBuffer, _boneLineVertices.Length * sizeof(float), IntPtr.Zero, BufferUsageHint.DynamicDraw);
+                    GL.VertexAttribPointer(0, 3, VertexAttribPointerType.Float, false, 3 * sizeof(float), 0);
+                    GL.EnableVertexAttribArray(0);
+                }
+                else
+                {
+                    GL.BindVertexArray(_boneVao);
+                    GL.BindBuffer(BufferTarget.ArrayBuffer, _boneVbo);
+                }
+                var lineHandle = System.Runtime.InteropServices.GCHandle.Alloc(_boneLineVertices, System.Runtime.InteropServices.GCHandleType.Pinned);
+                try
+                {
+                    GL.BufferSubData(BufferTarget.ArrayBuffer, IntPtr.Zero, _boneLineVertices.Length * sizeof(float), lineHandle.AddrOfPinnedObject());
+                }
+                finally
+                {
+                    lineHandle.Free();
+                }
                 GL.BindBuffer(BufferTarget.ArrayBuffer, 0);
                 GL.BindVertexArray(0);
             }
@@ -707,6 +742,8 @@ void main(){
             {
                 _boneVertexCount = 0;
             }
+
+            _morphDirty = false;
         }
 
         GL.UseProgram(_modelProgram);
