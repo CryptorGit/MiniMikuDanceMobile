@@ -2,6 +2,7 @@ using Microsoft.Maui.ApplicationModel;
 using Microsoft.Maui.Controls;
 using Microsoft.Maui.Graphics;
 using Microsoft.Maui.Layouts;
+using Microsoft.Maui.Dispatching;
 using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
@@ -68,6 +69,8 @@ public partial class MainPage : ContentPage
     private readonly Dictionary<long, SKPoint> _touchPoints = new();
     private readonly long[] _touchIds = new long[2];
     private readonly BonesConfig? _bonesConfig = App.Initializer.BonesConfig;
+    private bool _needsRender;
+    private readonly IDispatcherTimer _renderTimer;
     private void SetProgressVisibilityAndLayout(bool isVisible,
         bool showExtract,
         bool showPose)
@@ -140,6 +143,18 @@ public partial class MainPage : ContentPage
             glView.PaintSurface += OnPaintSurface;
             glView.Touch += OnViewTouch;
         }
+
+        _renderTimer = Dispatcher.CreateTimer();
+        _renderTimer.Interval = TimeSpan.FromMilliseconds(16);
+        _renderTimer.Tick += (s, e) =>
+        {
+            if (_needsRender)
+            {
+                Viewer?.InvalidateSurface();
+            }
+        };
+        _renderTimer.Start();
+        _needsRender = true;
 
         if (SettingContent is SettingView setting)
         {
@@ -492,6 +507,7 @@ public partial class MainPage : ContentPage
         _renderer.Resize(e.BackendRenderTarget.Width, e.BackendRenderTarget.Height);
         _renderer.Render();
         GL.Flush();
+        _needsRender = false;
     }
 
     private void LoadPendingModel()
@@ -568,7 +584,7 @@ public partial class MainPage : ContentPage
             _touchPoints.Remove(e.Id);
         }
         e.Handled = true;
-        Viewer?.InvalidateSurface();
+        _needsRender = true;
     }
 
     private async Task ShowModelSelector()
