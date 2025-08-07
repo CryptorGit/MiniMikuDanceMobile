@@ -571,7 +571,7 @@ public partial class MainPage : ContentPage
                     _renderer.Pan(newMid.X - oldMid.X, newMid.Y - oldMid.Y);
                     float oldDist = (p0Old - p1Old).Length;
                     float newDist = (p0New - p1New).Length;
-                    _renderer.Dolly(oldDist - newDist);
+                    _renderer.Dolly(newDist - oldDist);
                 }
             }
             else
