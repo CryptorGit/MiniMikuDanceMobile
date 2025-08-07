@@ -388,6 +388,7 @@ void main(){
         _morphValues[name] = value;
         float delta = value - oldValue;
 
+        var updateMap = new Dictionary<RenderMesh, HashSet<int>>();
         foreach (var off in morph.Offsets)
         {
             if (_morphVertexMap.TryGetValue(off.Index, out var list))
@@ -396,9 +397,28 @@ void main(){
                 foreach (var (mesh, idx) in list)
                 {
                     mesh.Vertices[idx] += offset;
+                    if (!updateMap.TryGetValue(mesh, out var set))
+                    {
+                        set = new HashSet<int>();
+                        updateMap[mesh] = set;
+                    }
+                    set.Add(idx);
                 }
             }
         }
+
+        foreach (var kv in updateMap)
+        {
+            var mesh = kv.Key;
+            GL.BindBuffer(BufferTarget.ArrayBuffer, mesh.Vbo);
+            foreach (var idx in kv.Value)
+            {
+                var v = mesh.Vertices[idx];
+                float[] buf = { v.X, v.Y, v.Z };
+                GL.BufferSubData(BufferTarget.ArrayBuffer, (IntPtr)(idx * 16 * sizeof(float)), buf.Length * sizeof(float), buf);
+            }
+        }
+        GL.BindBuffer(BufferTarget.ArrayBuffer, 0);
 
         _morphDirty = true;
     }
