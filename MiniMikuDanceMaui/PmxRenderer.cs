@@ -178,12 +178,17 @@ void main(){
             _modelProgram = 0;
         }
 
-        string modelVert = @"#version 300 es
+        
+string modelVert = @"#version 300 es
 layout(location = 0) in vec3 aPosition;
 layout(location = 1) in vec3 aNormal;
 layout(location = 2) in vec2 aTex;
 layout(location = 3) in vec4 aJointIndices;
 layout(location = 4) in vec4 aJointWeights;
+layout(location = 5) in float aWeightType;
+layout(location = 6) in vec3 aSdefC;
+layout(location = 7) in vec3 aSdefR0;
+layout(location = 8) in vec3 aSdefR1;
 uniform mat4 uModel;
 uniform mat4 uView;
 uniform mat4 uProj;
@@ -195,19 +200,91 @@ mat4 GetBone(int idx){
     vec4 r3 = texelFetch(uBoneTex, ivec2(idx,3),0);
     return transpose(mat4(r0,r1,r2,r3));
 }
+vec4 MatToQuat(mat3 m){
+    vec4 q;
+    float trace = m[0][0] + m[1][1] + m[2][2];
+    if(trace > 0.0){
+        float s = 0.5 / sqrt(trace + 1.0);
+        q.w = 0.25 / s;
+        q.x = (m[2][1] - m[1][2]) * s;
+        q.y = (m[0][2] - m[2][0]) * s;
+        q.z = (m[1][0] - m[0][1]) * s;
+    } else if(m[0][0] > m[1][1] && m[0][0] > m[2][2]) {
+        float s = 2.0 * sqrt(1.0 + m[0][0] - m[1][1] - m[2][2]);
+        q.w = (m[2][1] - m[1][2]) / s;
+        q.x = 0.25 * s;
+        q.y = (m[0][1] + m[1][0]) / s;
+        q.z = (m[0][2] + m[2][0]) / s;
+    } else if(m[1][1] > m[2][2]) {
+        float s = 2.0 * sqrt(1.0 + m[1][1] - m[0][0] - m[2][2]);
+        q.w = (m[0][2] - m[2][0]) / s;
+        q.x = (m[0][1] + m[1][0]) / s;
+        q.y = 0.25 * s;
+        q.z = (m[1][2] + m[2][1]) / s;
+    } else {
+        float s = 2.0 * sqrt(1.0 + m[2][2] - m[0][0] - m[1][1]);
+        q.w = (m[1][0] - m[0][1]) / s;
+        q.x = (m[0][2] + m[2][0]) / s;
+        q.y = (m[1][2] + m[2][1]) / s;
+        q.z = 0.25 * s;
+    }
+    return q;
+}
+mat3 QuatToMat(vec4 q){
+    float x=q.x, y=q.y, z=q.z, w=q.w;
+    return mat3(
+        1.0-2.0*y*y-2.0*z*z, 2.0*x*y-2.0*z*w, 2.0*x*z+2.0*y*w,
+        2.0*x*y+2.0*z*w, 1.0-2.0*x*x-2.0*z*z, 2.0*y*z-2.0*x*w,
+        2.0*x*z-2.0*y*w, 2.0*y*z+2.0*x*w, 1.0-2.0*x*x-2.0*y*y
+    );
+}
 out vec3 vNormal;
 out vec2 vTex;
 void main(){
-    mat4 skin =
-        aJointWeights.x * GetBone(int(aJointIndices.x)) +
-        aJointWeights.y * GetBone(int(aJointIndices.y)) +
-        aJointWeights.z * GetBone(int(aJointIndices.z)) +
-        aJointWeights.w * GetBone(int(aJointIndices.w));
-    vec4 pos = uModel * skin * vec4(aPosition,1.0);
-    vNormal = mat3(uModel * skin) * aNormal;
+    mat4 b0 = GetBone(int(aJointIndices.x));
+    mat4 b1 = GetBone(int(aJointIndices.y));
+    mat4 b2 = GetBone(int(aJointIndices.z));
+    mat4 b3 = GetBone(int(aJointIndices.w));
+    float w0 = aJointWeights.x;
+    float w1 = aJointWeights.y;
+    float w2 = aJointWeights.z;
+    float w3 = aJointWeights.w;
+    vec4 pos;
+    vec3 nrm;
+    if(int(aWeightType) == 3){
+        mat3 r0 = mat3(b0);
+        mat3 r1 = mat3(b1);
+        vec3 t0 = b0[3].xyz;
+        vec3 t1 = b1[3].xyz;
+        vec3 local = aPosition - aSdefC;
+        vec3 p0 = r0 * local + t0 + r0 * aSdefR0;
+        vec3 p1 = r1 * local + t1 + r1 * aSdefR1;
+        vec3 fp = aSdefC + w0 * p0 + w1 * p1;
+        nrm = normalize(r0 * aNormal * w0 + r1 * aNormal * w1);
+        pos = uModel * vec4(fp,1.0);
+        nrm = mat3(uModel) * nrm;
+    } else if(int(aWeightType) == 4){
+        mat3 r0 = mat3(b0);
+        mat3 r1 = mat3(b1);
+        mat3 r2 = mat3(b2);
+        mat3 r3 = mat3(b3);
+        vec4 q = MatToQuat(r0) * w0 + MatToQuat(r1) * w1 + MatToQuat(r2) * w2 + MatToQuat(r3) * w3;
+        q = normalize(q);
+        mat3 rot = QuatToMat(q);
+        vec3 trans = b0[3].xyz * w0 + b1[3].xyz * w1 + b2[3].xyz * w2 + b3[3].xyz * w3;
+        vec3 fp = rot * aPosition + trans;
+        nrm = rot * aNormal;
+        pos = uModel * vec4(fp,1.0);
+        nrm = mat3(uModel) * nrm;
+    } else {
+        mat4 skin = w0 * b0 + w1 * b1 + w2 * b2 + w3 * b3;
+        pos = uModel * skin * vec4(aPosition,1.0);
+        nrm = mat3(uModel * skin) * aNormal;
+    }
+    vNormal = nrm;
     vTex = aTex;
     gl_Position = uProj * uView * pos;
-}";
+"};
 
         const string modelFrag = @"#version 300 es
 precision mediump float;
@@ -435,7 +512,7 @@ void main(){
             {
                 var v = mesh.Vertices[idx];
                 float[] buf = { v.X, v.Y, v.Z };
-                GL.BufferSubData(BufferTarget.ArrayBuffer, (IntPtr)(idx * 16 * sizeof(float)), buf.Length * sizeof(float), buf);
+                GL.BufferSubData(BufferTarget.ArrayBuffer, (IntPtr)(idx * 26 * sizeof(float)), buf.Length * sizeof(float), buf);
             }
         }
         GL.BindBuffer(BufferTarget.ArrayBuffer, 0);
@@ -494,67 +571,81 @@ void main(){
         foreach (var sm in data.SubMeshes)
         {
             int vcount = sm.Mesh.VertexCount;
-            float[] verts = new float[vcount * 16];
+            const int strideFloats = 26;
+            float[] verts = new float[vcount * strideFloats];
             for (int i = 0; i < vcount; i++)
             {
                 var v = sm.Mesh.Vertices[i];
-                verts[i * 16 + 0] = v.X;
-                verts[i * 16 + 1] = v.Y;
-                verts[i * 16 + 2] = v.Z;
+                verts[i * strideFloats + 0] = v.X;
+                verts[i * strideFloats + 1] = v.Y;
+                verts[i * strideFloats + 2] = v.Z;
                 if (i < sm.Mesh.Normals.Count)
                 {
                     var n = sm.Mesh.Normals[i];
-                    verts[i * 16 + 3] = n.X;
-                    verts[i * 16 + 4] = n.Y;
-                    verts[i * 16 + 5] = n.Z;
+                    verts[i * strideFloats + 3] = n.X;
+                    verts[i * strideFloats + 4] = n.Y;
+                    verts[i * strideFloats + 5] = n.Z;
                 }
                 else
                 {
-                    verts[i * 16 + 3] = 0f;
-                    verts[i * 16 + 4] = 0f;
-                    verts[i * 16 + 5] = 1f;
+                    verts[i * strideFloats + 3] = 0f;
+                    verts[i * strideFloats + 4] = 0f;
+                    verts[i * strideFloats + 5] = 1f;
                 }
                 if (i < sm.TexCoords.Count)
                 {
                     var uv = sm.TexCoords[i];
-                    verts[i * 16 + 6] = uv.X;
-                    verts[i * 16 + 7] = uv.Y;
+                    verts[i * strideFloats + 6] = uv.X;
+                    verts[i * strideFloats + 7] = uv.Y;
                 }
                 else
                 {
-                    verts[i * 16 + 6] = 0f;
-                    verts[i * 16 + 7] = 0f;
+                    verts[i * strideFloats + 6] = 0f;
+                    verts[i * strideFloats + 7] = 0f;
                 }
                 if (i < sm.JointIndices.Count)
                 {
                     var j = sm.JointIndices[i];
-                    verts[i * 16 + 8] = j.X;
-                    verts[i * 16 + 9] = j.Y;
-                    verts[i * 16 +10] = j.Z;
-                    verts[i * 16 +11] = j.W;
+                    verts[i * strideFloats + 8] = j.X;
+                    verts[i * strideFloats + 9] = j.Y;
+                    verts[i * strideFloats +10] = j.Z;
+                    verts[i * strideFloats +11] = j.W;
                 }
                 else
                 {
-                    verts[i * 16 + 8] = 0f;
-                    verts[i * 16 + 9] = 0f;
-                    verts[i * 16 +10] = 0f;
-                    verts[i * 16 +11] = 0f;
+                    verts[i * strideFloats + 8] = 0f;
+                    verts[i * strideFloats + 9] = 0f;
+                    verts[i * strideFloats +10] = 0f;
+                    verts[i * strideFloats +11] = 0f;
                 }
                 if (i < sm.JointWeights.Count)
                 {
                     var w = sm.JointWeights[i];
-                    verts[i * 16 +12] = w.X;
-                    verts[i * 16 +13] = w.Y;
-                    verts[i * 16 +14] = w.Z;
-                    verts[i * 16 +15] = w.W;
+                    verts[i * strideFloats +12] = w.X;
+                    verts[i * strideFloats +13] = w.Y;
+                    verts[i * strideFloats +14] = w.Z;
+                    verts[i * strideFloats +15] = w.W;
                 }
                 else
                 {
-                    verts[i * 16 +12] = 0f;
-                    verts[i * 16 +13] = 0f;
-                    verts[i * 16 +14] = 0f;
-                    verts[i * 16 +15] = 0f;
+                    verts[i * strideFloats +12] = 0f;
+                    verts[i * strideFloats +13] = 0f;
+                    verts[i * strideFloats +14] = 0f;
+                    verts[i * strideFloats +15] = 0f;
                 }
+                verts[i * strideFloats +16] = i < sm.WeightTypes.Count ? (float)sm.WeightTypes[i] : 0f;
+                var c = i < sm.SdefC.Count ? sm.SdefC[i] : System.Numerics.Vector3.Zero;
+                var r0 = i < sm.SdefR0.Count ? sm.SdefR0[i] : System.Numerics.Vector3.Zero;
+                var r1 = i < sm.SdefR1.Count ? sm.SdefR1[i] : System.Numerics.Vector3.Zero;
+                verts[i * strideFloats +17] = c.X;
+                verts[i * strideFloats +18] = c.Y;
+                verts[i * strideFloats +19] = c.Z;
+                verts[i * strideFloats +20] = r0.X;
+                verts[i * strideFloats +21] = r0.Y;
+                verts[i * strideFloats +22] = r0.Z;
+                verts[i * strideFloats +23] = r1.X;
+                verts[i * strideFloats +24] = r1.Y;
+                verts[i * strideFloats +25] = r1.Z;
             }
 
             var indices = new System.Collections.Generic.List<uint>();
@@ -578,7 +669,7 @@ void main(){
             GL.BindVertexArray(rm.Vao);
             GL.BindBuffer(BufferTarget.ArrayBuffer, rm.Vbo);
             GL.BufferData(BufferTarget.ArrayBuffer, verts.Length * sizeof(float), verts, BufferUsageHint.StaticDraw);
-            int stride = 16 * sizeof(float);
+            int stride = strideFloats * sizeof(float);
             GL.VertexAttribPointer(0, 3, VertexAttribPointerType.Float, false, stride, 0);
             GL.EnableVertexAttribArray(0);
             GL.VertexAttribPointer(1, 3, VertexAttribPointerType.Float, false, stride, 3 * sizeof(float));
@@ -589,6 +680,14 @@ void main(){
             GL.EnableVertexAttribArray(3);
             GL.VertexAttribPointer(4, 4, VertexAttribPointerType.Float, false, stride, 12 * sizeof(float));
             GL.EnableVertexAttribArray(4);
+            GL.VertexAttribPointer(5, 1, VertexAttribPointerType.Float, false, stride, 16 * sizeof(float));
+            GL.EnableVertexAttribArray(5);
+            GL.VertexAttribPointer(6, 3, VertexAttribPointerType.Float, false, stride, 17 * sizeof(float));
+            GL.EnableVertexAttribArray(6);
+            GL.VertexAttribPointer(7, 3, VertexAttribPointerType.Float, false, stride, 20 * sizeof(float));
+            GL.EnableVertexAttribArray(7);
+            GL.VertexAttribPointer(8, 3, VertexAttribPointerType.Float, false, stride, 23 * sizeof(float));
+            GL.EnableVertexAttribArray(8);
             GL.BindBuffer(BufferTarget.ElementArrayBuffer, rm.Ebo);
             GL.BufferData(BufferTarget.ElementArrayBuffer, indices.Count * sizeof(uint), indices.ToArray(), BufferUsageHint.StaticDraw);
             GL.BindVertexArray(0);

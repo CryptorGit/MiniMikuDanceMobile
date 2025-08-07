@@ -221,6 +221,11 @@ public class ModelImporter
                             jw.X = 1f;
                             break;
                         case WeightTransformType.BDEF2:
+                            ji.X = vv.BoneIndex1;
+                            ji.Y = vv.BoneIndex2;
+                            jw.X = vv.Weight1;
+                            jw.Y = 1f - vv.Weight1;
+                            break;
                         case WeightTransformType.SDEF:
                             ji.X = vv.BoneIndex1;
                             ji.Y = vv.BoneIndex2;
@@ -241,6 +246,19 @@ public class ModelImporter
                     }
                     smd.JointIndices.Add(ji);
                     smd.JointWeights.Add(jw);
+                    smd.WeightTypes.Add(vv.WeightTransformType);
+                    if (vv.WeightTransformType == WeightTransformType.SDEF)
+                    {
+                        smd.SdefC.Add(new System.Numerics.Vector3(vv.C.X * Scale, vv.C.Y * Scale, vv.C.Z * Scale));
+                        smd.SdefR0.Add(new System.Numerics.Vector3(vv.R0.X * Scale, vv.R0.Y * Scale, vv.R0.Z * Scale));
+                        smd.SdefR1.Add(new System.Numerics.Vector3(vv.R1.X * Scale, vv.R1.Y * Scale, vv.R1.Z * Scale));
+                    }
+                    else
+                    {
+                        smd.SdefC.Add(System.Numerics.Vector3.Zero);
+                        smd.SdefR0.Add(System.Numerics.Vector3.Zero);
+                        smd.SdefR1.Add(System.Numerics.Vector3.Zero);
+                    }
                 }
                 var face = new Face();
                 face.Indices.Add(baseIndex);
