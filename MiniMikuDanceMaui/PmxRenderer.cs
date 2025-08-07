@@ -765,7 +765,7 @@ void main(){
             {
                 GL.BindTexture(TextureTarget.Texture2D, _boneTexture);
             }
-            GL.TexImage2D(TextureTarget.Texture2D, 0, PixelInternalFormat.Rgba32f, _boneCount, 4, 0, PixelFormat.Rgba, PixelType.Float, _boneArray);
+            GL.TexImage2D(TextureTarget.Texture2D, 0, (PixelInternalFormat)SizedInternalFormat.Rgba32f, _boneCount, 4, 0, PixelFormat.Rgba, PixelType.Float, _boneArray);
             GL.BindTexture(TextureTarget.Texture2D, 0);
 
             if (ShowBoneOutline && _boneLinePairs.Length > 0)
