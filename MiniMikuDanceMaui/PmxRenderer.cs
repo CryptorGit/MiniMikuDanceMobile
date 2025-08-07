@@ -712,7 +712,7 @@ void main(){
                 System.Numerics.Vector3 trans = bone.Translation;
                 if (index < _boneTranslations.Count)
                     trans += _boneTranslations[index].ToNumerics();
-                var local = System.Numerics.Matrix4x4.CreateFromQuaternion(bone.Rotation * delta) * System.Numerics.Matrix4x4.CreateTranslation(trans);
+                var local = System.Numerics.Matrix4x4.CreateTranslation(trans) * System.Numerics.Matrix4x4.CreateFromQuaternion(bone.Rotation * delta);
                 if (bone.Parent >= 0)
                     worldMats[index] = local * ComputeWorld(bone.Parent);
                 else

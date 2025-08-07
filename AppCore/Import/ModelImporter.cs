@@ -116,8 +116,8 @@ public class ModelImporter
                 return world[index];
 
             var bd = boneDatas[index];
-            var local = System.Numerics.Matrix4x4.CreateFromQuaternion(bd.Rotation) *
-                        System.Numerics.Matrix4x4.CreateTranslation(bd.Translation);
+            var local = System.Numerics.Matrix4x4.CreateTranslation(bd.Translation) *
+                        System.Numerics.Matrix4x4.CreateFromQuaternion(bd.Rotation);
             if (bd.Parent >= 0)
                 world[index] = local * ComputeWorld(bd.Parent);
             else
