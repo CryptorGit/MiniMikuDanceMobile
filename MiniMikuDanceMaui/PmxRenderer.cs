@@ -627,7 +627,7 @@ void main(){
                 }
             }
         }
-        _morphDirty = true;
+        _morphDirty = true; // スキニング行列の再計算を要求
     }
 
     public void Render()
