@@ -769,7 +769,7 @@ void main(){
             {
                 fixed (float* bonePtr = _boneArray)
                 {
-                    GL.TexImage2D((All)TextureTarget.Texture2D, 0, (int)All.Rgba32f, _boneCount, 4, 0, (All)PixelFormat.Rgba, (All)PixelType.Float, (IntPtr)bonePtr);
+                    GL.TexImage2D((All)TextureTarget.Texture2D, 0, All.Rgba32f, _boneCount, 4, 0, (All)PixelFormat.Rgba, (All)PixelType.Float, (IntPtr)bonePtr);
                 }
             }
             GL.BindTexture(TextureTarget.Texture2D, 0);
