@@ -288,7 +288,7 @@ void main(){
     {
         _distance -= delta * 0.01f;
         if (_distance < 1f) _distance = 1f;
-        if (_distance > 20f) _distance = 20f;
+        if (_distance > 100f) _distance = 100f;
     }
 
     public void ResetCamera()
@@ -298,7 +298,7 @@ void main(){
         _target = new Vector3(0f, _defaultCameraTargetY, 0f);
         _distance = _defaultCameraDistance;
         if (_distance < 1f) _distance = 1f;
-        if (_distance > 20f) _distance = 20f;
+        if (_distance > 100f) _distance = 100f;
         _externalRotation = Quaternion.Identity;
     }
 
