@@ -37,9 +37,6 @@ public class Viewer : IViewer
     private Matrix4 _view = Matrix4.Identity;
     private readonly Stopwatch _timer = new();
 
-    private byte[]? _pixelBuffer;
-    private Vector2i _pixelBufferSize;
-
     public Vector2i Size { get; private set; } = new Vector2i(640, 480);
 
     public event Action<float>? FrameUpdated;
@@ -233,19 +230,19 @@ public class Viewer : IViewer
     {
         int width = Size.X;
         int height = Size.Y;
-        if (_pixelBuffer == null || _pixelBufferSize != Size)
+        int length = width * height * 4;
+        var buffer = ArrayPool<byte>.Shared.Rent(length);
+        try
         {
-            if (_pixelBuffer != null)
-            {
-                ArrayPool<byte>.Shared.Return(_pixelBuffer);
-            }
-            _pixelBuffer = ArrayPool<byte>.Shared.Rent(width * height * 4);
-            _pixelBufferSize = Size;
+            GL.ReadPixels(0, 0, width, height, PixelFormat.Rgba, PixelType.UnsignedByte, buffer);
+            var result = new byte[length];
+            System.Buffer.BlockCopy(buffer, 0, result, 0, length);
+            return result;
         }
-
-        var buffer = _pixelBuffer!;
-        GL.ReadPixels(0, 0, width, height, PixelFormat.Rgba, PixelType.UnsignedByte, buffer);
-        return buffer;
+        finally
+        {
+            ArrayPool<byte>.Shared.Return(buffer);
+        }
     }
 
     public void Update(float deltaTime)
@@ -264,12 +261,6 @@ public class Viewer : IViewer
             if (rm.Texture != 0) GL.DeleteTexture(rm.Texture);
         }
         _meshes.Clear();
-        if (_pixelBuffer != null)
-        {
-            ArrayPool<byte>.Shared.Return(_pixelBuffer);
-            _pixelBuffer = null;
-            _pixelBufferSize = default;
-        }
 
         GL.DeleteProgram(_program);
         _window.Close();
