@@ -40,6 +40,7 @@ public class PmxRenderer : IDisposable
     private readonly Dictionary<string, float> _morphValues = new(StringComparer.OrdinalIgnoreCase);
     private readonly Dictionary<int, List<(RenderMesh Mesh, int Index)>> _morphVertexMap = new();
     private readonly HashSet<int> _changedOriginalVertices = new();
+    private readonly object _changedVerticesLock = new();
     private readonly Dictionary<int, Vector3> _vertexTotalOffsets = new();
     private readonly Dictionary<int, List<(string MorphName, Vector3 Offset)>> _vertexMorphOffsets = new();
     public SKGLView? Viewer { get; set; }
@@ -473,7 +474,10 @@ void main(){
             else
                 _vertexTotalOffsets.Remove(vid);
 
-            _changedOriginalVertices.Add(vid);
+            lock (_changedVerticesLock)
+            {
+                _changedOriginalVertices.Add(vid);
+            }
 
             if (_morphVertexMap.TryGetValue(vid, out var list))
             {
@@ -797,6 +801,18 @@ void main(){
         var modelMat = ModelTransform;
 
         bool needsUpdate = _bonesDirty || _morphDirty;
+        List<int>? changedVerts = null;
+        if (_morphDirty)
+        {
+            lock (_changedVerticesLock)
+            {
+                if (_changedOriginalVertices.Count > 0)
+                {
+                    changedVerts = _changedOriginalVertices.ToList();
+                    _changedOriginalVertices.Clear();
+                }
+            }
+        }
 
         // CPU スキニングと頂点バッファ更新
         if (needsUpdate && _bones.Count > 0)
@@ -891,13 +907,13 @@ void main(){
                     }
                 }
             }
-            else if (_morphDirty && _changedOriginalVertices.Count > 0)
+            else if (_morphDirty && changedVerts != null)
             {
                 var small = new float[8];
                 var handleSmall = System.Runtime.InteropServices.GCHandle.Alloc(small, System.Runtime.InteropServices.GCHandleType.Pinned);
                 try
                 {
-                    foreach (var origIdx in _changedOriginalVertices)
+                    foreach (var origIdx in changedVerts)
                     {
                         if (!_morphVertexMap.TryGetValue(origIdx, out var mapped)) continue;
                         foreach (var (rm, vi) in mapped)
@@ -974,7 +990,6 @@ void main(){
 
             _bonesDirty = false;
             _morphDirty = false;
-            _changedOriginalVertices.Clear();
         }
         else if (needsUpdate)
         {
@@ -1019,7 +1034,6 @@ void main(){
                 }
             }
             _morphDirty = false;
-            _changedOriginalVertices.Clear();
         }
 
         GL.UseProgram(_modelProgram);
