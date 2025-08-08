@@ -67,6 +67,7 @@ public class VrmRenderer : IDisposable
     private int _height;
     private readonly List<Vector3> _boneRotations = new();
     private readonly List<Vector3> _boneTranslations = new();
+    private bool _bonesDirty = true;
     private List<MiniMikuDance.Import.BoneData> _bones = new();
     private readonly Dictionary<int, string> _indexToHumanoidName = new();
     public BonesConfig? BonesConfig { get; set; }
@@ -273,6 +274,7 @@ void main(){
     {
         _boneRotations.Clear();
         _boneTranslations.Clear();
+        _bonesDirty = true;
     }
 
     public void SetBoneRotation(int index, Vector3 degrees)
@@ -288,6 +290,7 @@ void main(){
         while (_boneRotations.Count <= index)
             _boneRotations.Add(Vector3.Zero);
         _boneRotations[index] = degrees;
+        _bonesDirty = true;
     }
 
     public void SetBoneTranslation(int index, Vector3 translation)
@@ -297,6 +300,7 @@ void main(){
         while (_boneTranslations.Count <= index)
             _boneTranslations.Add(Vector3.Zero);
         _boneTranslations[index] = translation;
+        _bonesDirty = true;
     }
 
     public Vector3 GetBoneRotation(int index)
@@ -321,12 +325,14 @@ void main(){
     {
         _boneRotations.Clear();
         _boneRotations.AddRange(list);
+        _bonesDirty = true;
     }
 
     public void SetAllBoneTranslations(IList<Vector3> list)
     {
         _boneTranslations.Clear();
         _boneTranslations.AddRange(list);
+        _bonesDirty = true;
     }
 
     public void LoadModel(MiniMikuDance.Import.ModelData data)
@@ -458,6 +464,7 @@ void main(){
 
             _meshes.Add(rm);
         }
+        _bonesDirty = true;
     }
 
     public void Render()
@@ -477,7 +484,7 @@ void main(){
         Matrix4 proj = Matrix4.CreatePerspectiveFieldOfView(MathHelper.PiOver4, aspect, 0.1f, 100f);
 
         // CPU skinning: update vertex buffers based on current bone rotations
-        if (_bones.Count > 0)
+        if (_bonesDirty && _bones.Count > 0)
         {
             const float deg2rad = MathF.PI / 180f;
             var worldMats = new System.Numerics.Matrix4x4[_bones.Count];
@@ -553,6 +560,7 @@ void main(){
                     handle.Free();
                 }
             }
+            _bonesDirty = false;
         }
 
         GL.UseProgram(_modelProgram);
