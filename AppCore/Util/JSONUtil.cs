@@ -4,6 +4,9 @@ namespace MiniMikuDance.Util;
 
 public static class JSONUtil
 {
+    private static readonly JsonSerializerOptions Options = CreateOptions();
+    private static readonly JsonSerializerOptions IndentedOptions = CreateOptions(writeIndented: true);
+
     private static JsonSerializerOptions CreateOptions(bool writeIndented = false)
     {
         var opts = new JsonSerializerOptions
@@ -14,14 +17,13 @@ public static class JSONUtil
         opts.Converters.Add(new Vector3JsonConverter());
         return opts;
     }
+
     public static T LoadFromStream<T>(Stream stream) where T : new()
     {
         try
         {
-            using var reader = new StreamReader(stream, leaveOpen: true);
-            var json = reader.ReadToEnd();
-            var opts = CreateOptions();
-            return JsonSerializer.Deserialize<T>(json, opts) ?? new T();
+            var result = JsonSerializer.DeserializeAsync<T>(stream, Options).GetAwaiter().GetResult();
+            return result ?? new T();
         }
         catch
         {
@@ -40,9 +42,9 @@ public static class JSONUtil
 
         try
         {
-            var json = File.ReadAllText(path);
-            var opts = CreateOptions();
-            return JsonSerializer.Deserialize<T>(json, opts) ?? new T();
+            using var fs = File.OpenRead(path);
+            var result = JsonSerializer.DeserializeAsync<T>(fs, Options).GetAwaiter().GetResult();
+            return result ?? new T();
         }
         catch
         {
@@ -55,7 +57,7 @@ public static class JSONUtil
         var dir = Path.GetDirectoryName(path);
         if (!string.IsNullOrEmpty(dir) && !Directory.Exists(dir))
             Directory.CreateDirectory(dir!);
-        var json = JsonSerializer.Serialize(data, CreateOptions(writeIndented: true));
+        var json = JsonSerializer.Serialize(data, IndentedOptions);
         File.WriteAllText(path, json);
     }
 }
