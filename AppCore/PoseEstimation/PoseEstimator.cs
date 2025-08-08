@@ -167,6 +167,8 @@ public class PoseEstimator : IDisposable
         Vector3[] bestPos = new Vector3[jointCount];
         float[] bestConf = new float[jointCount];
 
+        using var rotated = new Image<Rgb24>(dstW, dstH);
+
         foreach (var center in centers)
         {
             foreach (var s in scales)
@@ -185,7 +187,16 @@ public class PoseEstimator : IDisposable
 
                 foreach (var ang in angles)
                 {
-                    using var rotated = patch.Clone(ctx => { if (Math.Abs(ang) > 0.1f) ctx.Rotate((float)ang); });
+                    rotated.Mutate(ctx =>
+                    {
+                        ctx.DrawImage(patch, 1f);
+                        if (Math.Abs(ang) > 0.1f)
+                        {
+                            ctx.Rotate((float)ang);
+                            ctx.Crop(new Rectangle(0, 0, dstW, dstH));
+                        }
+                    });
+
                     var (pos, conf) = InferPatch(rotated, inputName, dims, jointCount, flipTta);
                     float sc = AverageScore(conf);
                     if (sc > bestScore)
