@@ -10,7 +10,7 @@ namespace MiniMikuDanceMaui;
 public partial class MorphView : ContentView
 {
     public event Action<string, double>? MorphValueChanged;
-    private readonly Dictionary<string, CancellationTokenSource> _cancellationTokens = new();
+    private readonly Dictionary<string, CancellationTokenSource> _cancellationTokens = new(StringComparer.OrdinalIgnoreCase);
     private readonly object _ctsLock = new();
 
     public MorphView()
@@ -32,9 +32,24 @@ public partial class MorphView : ContentView
 
         MorphList.Children.Clear();
         var textColor = (Color)(Application.Current?.Resources?.TryGetValue("TextColor", out var color) == true ? color : Colors.Black);
+        var usedNames = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
         foreach (var morph in morphs)
         {
             var name = morph.Name;
+            if (usedNames.Contains(name))
+            {
+                LogService.WriteLine($"Duplicate morph name detected in view: {name}");
+                int suffix = 1;
+                string newName;
+                do
+                {
+                    newName = $"{name}_{suffix++}";
+                } while (usedNames.Contains(newName));
+                LogService.WriteLine($"Renaming morph '{name}' to '{newName}'");
+                morph.Name = newName;
+                name = newName;
+            }
+            usedNames.Add(name);
             var grid = new Grid
             {
                 ColumnDefinitions = new ColumnDefinitionCollection

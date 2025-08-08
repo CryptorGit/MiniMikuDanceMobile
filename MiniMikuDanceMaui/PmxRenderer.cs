@@ -611,7 +611,21 @@ void main(){
         foreach (var morph in data.Morphs)
         {
             if (morph.Type != MorphType.Vertex) continue;
-            _morphs[morph.Name] = morph;
+            var name = morph.Name;
+            if (_morphs.ContainsKey(name))
+            {
+                LogService.WriteLine($"Duplicate morph name detected: {name}");
+                int suffix = 1;
+                string newName;
+                do
+                {
+                    newName = $"{name}_{suffix++}";
+                } while (_morphs.ContainsKey(newName));
+                LogService.WriteLine($"Renaming morph '{name}' to '{newName}'");
+                morph.Name = newName;
+                name = newName;
+            }
+            _morphs[name] = morph;
             foreach (var off in morph.Offsets)
             {
                 if (!_vertexMorphContribs.TryGetValue(off.Index, out var lst))
@@ -619,7 +633,7 @@ void main(){
                     lst = new List<(Vector3, string)>();
                     _vertexMorphContribs[off.Index] = lst;
                 }
-                lst.Add((new Vector3(off.Offset.X, off.Offset.Y, off.Offset.Z), morph.Name));
+                lst.Add((new Vector3(off.Offset.X, off.Offset.Y, off.Offset.Z), name));
             }
         }
 
