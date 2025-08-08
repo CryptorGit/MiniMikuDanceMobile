@@ -467,6 +467,8 @@ void main(){
         GL.FrontFace(FrontFaceDirection.Ccw);
         GL.ClearColor(1f, 1f, 1f, 1f);
         GL.Clear(ClearBufferMask.ColorBufferBit | ClearBufferMask.DepthBufferBit);
+        // 透過描画が必要なためブレンドはレンダリング開始時に一度だけ有効化する
+        GL.Enable(EnableCap.Blend);
 
         Matrix4 rot = Matrix4.CreateFromQuaternion(_externalRotation) *
                       Matrix4.CreateRotationX(_orbitX) *
@@ -568,8 +570,7 @@ void main(){
         GL.Uniform1(_modelShadeToonyLoc, ShadeToony);
         GL.Uniform1(_modelRimIntensityLoc, RimIntensity);
         GL.Uniform1(_modelAmbientLoc, Ambient);
-        // テクスチャのアルファを利用するためブレンドを有効化
-        GL.Enable(EnableCap.Blend);
+        // モデル行列を設定して描画
         var modelMat = ModelTransform;
         GL.UniformMatrix4(_modelMatrixLoc, false, ref modelMat);
         foreach (var rm in _meshes)
@@ -594,9 +595,6 @@ void main(){
                 GL.BindTexture(TextureTarget.Texture2D, 0);
             }
         }
-        // グリッド描画では透過を利用するためブレンドを再度有効化
-        GL.Enable(EnableCap.Blend);
-
         GL.UseProgram(_program);
         GL.UniformMatrix4(_viewLoc, false, ref view);
         GL.UniformMatrix4(_projLoc, false, ref proj);
@@ -615,6 +613,8 @@ void main(){
         GL.DrawArrays(PrimitiveType.Lines, 0, ((10 - (-10) + 1) * 2) * 2);
         GL.BindVertexArray(0);
         GL.DepthMask(true);
+        // レンダリング後はブレンドを無効化して状態をリセット
+        GL.Disable(EnableCap.Blend);
     }
 
     public void Dispose()
