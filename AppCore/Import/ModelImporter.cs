@@ -4,7 +4,6 @@ using System.IO;
 using System.Collections.Generic;
 using SixLabors.ImageSharp;
 using SixLabors.ImageSharp.PixelFormats;
-using SixLabors.ImageSharp.Processing;
 using Vector3D = Assimp.Vector3D;
 using MMDTools;
 using MiniMikuDance.App;
@@ -28,6 +27,15 @@ public class ModelData
 public class ModelImporter
 {
     private readonly AssimpContext _context = new();
+    private sealed class TextureData
+    {
+        public int Width;
+        public int Height;
+        public byte[] Pixels = Array.Empty<byte>();
+    }
+
+    private static readonly Dictionary<string, TextureData> s_textureCache = new(StringComparer.OrdinalIgnoreCase);
+
     public float Scale { get; set; } = AppSettings.DefaultModelScale;
 
     public ModelData ImportModel(Stream stream, string? textureDir = null)
@@ -251,11 +259,21 @@ public class ModelImporter
                 smd.TextureFilePath = texName;
                 if (File.Exists(texPath))
                 {
-                    using var image = SixLabors.ImageSharp.Image.Load<Rgba32>(texPath);
-                    smd.TextureWidth = image.Width;
-                    smd.TextureHeight = image.Height;
-                    smd.TextureBytes = new byte[image.Width * image.Height * 4];
-                    image.CopyPixelDataTo(smd.TextureBytes);
+                    if (!s_textureCache.TryGetValue(texPath, out var tex))
+                    {
+                        using var image = Image.Load<Rgba32>(texPath);
+                        tex = new TextureData
+                        {
+                            Width = image.Width,
+                            Height = image.Height,
+                            Pixels = new byte[image.Width * image.Height * 4]
+                        };
+                        image.CopyPixelDataTo(tex.Pixels);
+                        s_textureCache[texPath] = tex;
+                    }
+                    smd.TextureWidth = tex.Width;
+                    smd.TextureHeight = tex.Height;
+                    smd.TextureBytes = tex.Pixels;
                 }
             }
 
