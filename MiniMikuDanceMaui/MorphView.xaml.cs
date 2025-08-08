@@ -11,6 +11,7 @@ public partial class MorphView : ContentView
 {
     public event Action<string, double>? MorphValueChanged;
     private readonly Dictionary<string, CancellationTokenSource> _cancellationTokens = new();
+    private readonly object _ctsLock = new();
 
     public MorphView()
     {
@@ -19,11 +20,14 @@ public partial class MorphView : ContentView
 
     public void SetMorphs(IEnumerable<MorphData> morphs)
     {
-        foreach (var cts in _cancellationTokens.Values)
+        lock (_ctsLock)
         {
-            cts.Cancel();
+            foreach (var cts in _cancellationTokens.Values)
+            {
+                cts.Cancel();
+            }
+            _cancellationTokens.Clear();
         }
-        _cancellationTokens.Clear();
 
         MorphList.Children.Clear();
         var textColor = (Color)(Application.Current?.Resources?.TryGetValue("TextColor", out var color) == true ? color : Colors.Black);
@@ -53,15 +57,19 @@ public partial class MorphView : ContentView
             {
                 valueLabel.Text = $"{e.NewValue:F2}";
 
-                if (_cancellationTokens.TryGetValue(name, out var cts))
+                CancellationTokenSource cts;
+                lock (_ctsLock)
                 {
-                    cts.Cancel();
+                    if (_cancellationTokens.TryGetValue(name, out var existingCts))
+                    {
+                        existingCts.Cancel();
+                    }
+
+                    cts = new CancellationTokenSource();
+                    _cancellationTokens[name] = cts;
                 }
 
-                var newCts = new CancellationTokenSource();
-                _cancellationTokens[name] = newCts;
-
-                _ = DebounceMorphAsync(name, e.NewValue, newCts);
+                _ = DebounceMorphAsync(name, e.NewValue, cts);
             };
             MorphList.Children.Add(slider);
         }
@@ -84,9 +92,12 @@ public partial class MorphView : ContentView
         }
         finally
         {
-            if (_cancellationTokens.TryGetValue(name, out var existingCts) && existingCts == cts)
+            lock (_ctsLock)
             {
-                _cancellationTokens.Remove(name);
+                if (_cancellationTokens.TryGetValue(name, out var existingCts) && existingCts == cts)
+                {
+                    _cancellationTokens.Remove(name);
+                }
             }
             cts.Dispose();
         }
