@@ -2,7 +2,6 @@ using System;
 using OpenTK.Mathematics;
 using OpenTK.Graphics.ES30;
 using GL = OpenTK.Graphics.ES30.GL;
-using System.Runtime.InteropServices;
 using System.Collections.Generic;
 using System.Linq;
 using MiniMikuDance.Util;
@@ -842,61 +841,57 @@ void main(){
                         }
                     }
                     GL.BindBuffer(BufferTarget.ArrayBuffer, rm.Vbo);
-                    var handle = System.Runtime.InteropServices.GCHandle.Alloc(_tmpVertexBuffer, System.Runtime.InteropServices.GCHandleType.Pinned);
-                    try
+                    unsafe
                     {
-                        GL.BufferSubData(BufferTarget.ArrayBuffer, IntPtr.Zero, required * sizeof(float), handle.AddrOfPinnedObject());
-                    }
-                    finally
-                    {
-                        handle.Free();
+                        fixed (float* ptr = _tmpVertexBuffer)
+                        {
+                            GL.BufferSubData(BufferTarget.ArrayBuffer, IntPtr.Zero, required * sizeof(float), (IntPtr)ptr);
+                        }
                     }
                 }
             }
             else if (_morphDirty && _changedOriginalVertices.Count > 0)
             {
-                var small = new float[8];
-                var handleSmall = System.Runtime.InteropServices.GCHandle.Alloc(small, System.Runtime.InteropServices.GCHandleType.Pinned);
-                try
+                Span<float> small = stackalloc float[8];
+                foreach (var origIdx in _changedOriginalVertices)
                 {
-                    foreach (var origIdx in _changedOriginalVertices)
+                    if (!_morphVertexMap.TryGetValue(origIdx, out var mapped)) continue;
+                    foreach (var (rm, vi) in mapped)
                     {
-                        if (!_morphVertexMap.TryGetValue(origIdx, out var mapped)) continue;
-                        foreach (var (rm, vi) in mapped)
+                        var pos = System.Numerics.Vector3.Zero;
+                        var norm = System.Numerics.Vector3.Zero;
+                        var jp = rm.JointIndices[vi];
+                        var jw = rm.JointWeights[vi];
+                        for (int k = 0; k < 4; k++)
                         {
-                            var pos = System.Numerics.Vector3.Zero;
-                            var norm = System.Numerics.Vector3.Zero;
-                            var jp = rm.JointIndices[vi];
-                            var jw = rm.JointWeights[vi];
-                            for (int k = 0; k < 4; k++)
+                            int bi = (int)jp[k];
+                            float w = jw[k];
+                            if (bi >= 0 && bi < _skinMats.Length && w > 0f)
                             {
-                                int bi = (int)jp[k];
-                                float w = jw[k];
-                                if (bi >= 0 && bi < _skinMats.Length && w > 0f)
-                                {
-                                    var m = _skinMats[bi];
-                                    pos += System.Numerics.Vector3.Transform(rm.Vertices[vi].ToNumerics(), m) * w;
-                                    norm += System.Numerics.Vector3.TransformNormal(rm.Normals[vi].ToNumerics(), m) * w;
-                                }
+                                var m = _skinMats[bi];
+                                pos += System.Numerics.Vector3.Transform(rm.Vertices[vi].ToNumerics(), m) * w;
+                                norm += System.Numerics.Vector3.TransformNormal(rm.Normals[vi].ToNumerics(), m) * w;
                             }
-                            if (norm.LengthSquared() > 0)
-                                norm = System.Numerics.Vector3.Normalize(norm);
+                        }
+                        if (norm.LengthSquared() > 0)
+                            norm = System.Numerics.Vector3.Normalize(norm);
 
-                            small[0] = pos.X; small[1] = pos.Y; small[2] = pos.Z;
-                            small[3] = norm.X; small[4] = norm.Y; small[5] = norm.Z;
-                            if (vi < rm.TexCoords.Length)
-                            { small[6] = rm.TexCoords[vi].X; small[7] = rm.TexCoords[vi].Y; }
-                            else { small[6] = 0f; small[7] = 0f; }
+                        small[0] = pos.X; small[1] = pos.Y; small[2] = pos.Z;
+                        small[3] = norm.X; small[4] = norm.Y; small[5] = norm.Z;
+                        if (vi < rm.TexCoords.Length)
+                        { small[6] = rm.TexCoords[vi].X; small[7] = rm.TexCoords[vi].Y; }
+                        else { small[6] = 0f; small[7] = 0f; }
 
-                            GL.BindBuffer(BufferTarget.ArrayBuffer, rm.Vbo);
-                            IntPtr offset = new IntPtr(vi * 8 * sizeof(float));
-                            GL.BufferSubData(BufferTarget.ArrayBuffer, offset, 8 * sizeof(float), handleSmall.AddrOfPinnedObject());
+                        GL.BindBuffer(BufferTarget.ArrayBuffer, rm.Vbo);
+                        IntPtr offset = new IntPtr(vi * 8 * sizeof(float));
+                        unsafe
+                        {
+                            fixed (float* ptr = small)
+                            {
+                                GL.BufferSubData(BufferTarget.ArrayBuffer, offset, 8 * sizeof(float), (IntPtr)ptr);
+                            }
                         }
                     }
-                }
-                finally
-                {
-                    handleSmall.Free();
                 }
             }
 
@@ -970,14 +965,12 @@ void main(){
                     }
                 }
                 GL.BindBuffer(BufferTarget.ArrayBuffer, rm.Vbo);
-                var handle = System.Runtime.InteropServices.GCHandle.Alloc(_tmpVertexBuffer, System.Runtime.InteropServices.GCHandleType.Pinned);
-                try
+                unsafe
                 {
-                    GL.BufferSubData(BufferTarget.ArrayBuffer, IntPtr.Zero, required * sizeof(float), handle.AddrOfPinnedObject());
-                }
-                finally
-                {
-                    handle.Free();
+                    fixed (float* ptr = _tmpVertexBuffer)
+                    {
+                        GL.BufferSubData(BufferTarget.ArrayBuffer, IntPtr.Zero, required * sizeof(float), (IntPtr)ptr);
+                    }
                 }
             }
             _morphDirty = false;
