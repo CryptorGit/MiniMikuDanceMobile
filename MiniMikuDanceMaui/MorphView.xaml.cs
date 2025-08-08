@@ -19,6 +19,13 @@ public partial class MorphView : ContentView
 
     public void SetMorphs(IEnumerable<MorphData> morphs)
     {
+        foreach (var cts in _cancellationTokens.Values)
+        {
+            cts.Cancel();
+            cts.Dispose();
+        }
+        _cancellationTokens.Clear();
+
         foreach (var debouncer in _debouncers.Values)
         {
             debouncer.timer.Stop();
@@ -56,6 +63,7 @@ public partial class MorphView : ContentView
                 if (_cancellationTokens.TryGetValue(name, out var cts))
                 {
                     cts.Cancel();
+                    cts.Dispose();
                 }
 
                 cts = new CancellationTokenSource();
