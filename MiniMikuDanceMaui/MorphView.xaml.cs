@@ -1,3 +1,4 @@
+using Microsoft.Maui.ApplicationModel;
 using Microsoft.Maui.Controls;
 using System;
 using System.Collections.Generic;
@@ -99,7 +100,10 @@ public partial class MorphView : ContentView
 
             try
             {
-                MorphValueChanged?.Invoke(name, value);
+                await MainThread.InvokeOnMainThreadAsync(() =>
+                {
+                    MorphValueChanged?.Invoke(name, value);
+                });
             }
             catch (Exception ex)
             {
