@@ -42,37 +42,50 @@ internal static class PmxLoader
         var model = new PmxModel();
         int faceOffset = 0;
         string baseDir = Path.GetDirectoryName(path) ?? string.Empty;
+        Span<int> ids = stackalloc int[3];
         foreach (var mat in mats)
         {
-            var pos = new List<float>();
-            var norm = new List<float>();
-            var uv = new List<float>();
-            var idx = new List<uint>();
             int faceCount = mat.VertexCount / 3;
+            int vertexCount = faceCount * 3;
+            float[] pos = new float[vertexCount * 3];
+            float[] norm = new float[vertexCount * 3];
+            float[] uv = new float[vertexCount * 2];
+            uint[] idx = new uint[vertexCount];
+            var posSpan = pos.AsSpan();
+            var normSpan = norm.AsSpan();
+            var uvSpan = uv.AsSpan();
+            var idxSpan = idx.AsSpan();
+            int posIndex = 0;
+            int normIndex = 0;
+            int uvIndex = 0;
+            int idxIndex = 0;
             for (int i = 0; i < faceCount; i++)
             {
                 var f = faces[faceOffset + i];
-                int[] ids = { f.V1, f.V2, f.V3 };
+                ids[0] = f.V1;
+                ids[1] = f.V2;
+                ids[2] = f.V3;
                 for (int j = 0; j < 3; j++)
                 {
                     var v = verts[ids[j]];
-                    pos.Add(v.Position.X * scale);
-                    pos.Add(v.Position.Y * scale);
-                    pos.Add(v.Position.Z * scale);
-                    norm.Add(v.Normal.X);
-                    norm.Add(v.Normal.Y);
-                    norm.Add(v.Normal.Z);
-                    uv.Add(v.UV.X);
-                    uv.Add(v.UV.Y);
-                    idx.Add((uint)idx.Count);
+                    posSpan[posIndex++] = v.Position.X * scale;
+                    posSpan[posIndex++] = v.Position.Y * scale;
+                    posSpan[posIndex++] = v.Position.Z * scale;
+                    normSpan[normIndex++] = v.Normal.X;
+                    normSpan[normIndex++] = v.Normal.Y;
+                    normSpan[normIndex++] = v.Normal.Z;
+                    uvSpan[uvIndex++] = v.UV.X;
+                    uvSpan[uvIndex++] = v.UV.Y;
+                    idxSpan[idxIndex] = (uint)idxIndex;
+                    idxIndex++;
                 }
             }
             var sm = new PmxSubMesh
             {
-                Positions = pos.ToArray(),
-                Normals = norm.ToArray(),
-                TexCoords = uv.ToArray(),
-                Indices = idx.ToArray(),
+                Positions = pos,
+                Normals = norm,
+                TexCoords = uv,
+                Indices = idx,
                 ColorFactor = new OtkVector4(mat.Diffuse.R, mat.Diffuse.G, mat.Diffuse.B, mat.Diffuse.A)
             };
             if (mat.Texture >= 0 && mat.Texture < texList.Length)
