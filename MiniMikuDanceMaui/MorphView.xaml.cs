@@ -6,7 +6,7 @@ using MiniMikuDance.Import;
 
 namespace MiniMikuDanceMaui;
 
-public partial class MorphView : ContentView
+public partial class MorphView : ContentView, IDisposable
 {
     public event Action<string, double>? MorphValueChanged;
     private readonly Dictionary<string, (IDispatcherTimer timer, double last)> _debouncers = new();
@@ -16,8 +16,22 @@ public partial class MorphView : ContentView
         InitializeComponent();
     }
 
+    private void StopAllTimers()
+    {
+        foreach (var (timer, _) in _debouncers.Values)
+        {
+            timer.Stop();
+            if (timer is IDisposable disposable)
+            {
+                disposable.Dispose();
+            }
+        }
+        _debouncers.Clear();
+    }
+
     public void SetMorphs(IEnumerable<MorphData> morphs)
     {
+        StopAllTimers();
         MorphList.Children.Clear();
         var textColor = (Color)(Application.Current?.Resources?.TryGetValue("TextColor", out var color) == true ? color : Colors.Black);
         foreach (var morph in morphs)
@@ -69,5 +83,10 @@ public partial class MorphView : ContentView
             };
             MorphList.Children.Add(slider);
         }
+    }
+
+    public void Dispose()
+    {
+        StopAllTimers();
     }
 }
