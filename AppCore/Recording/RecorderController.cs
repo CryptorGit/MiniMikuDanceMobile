@@ -1,8 +1,12 @@
 using System;
 using System.IO;
+using System.Collections.Concurrent;
+using System.Runtime.InteropServices;
+using System.Threading.Tasks;
 using SixLabors.ImageSharp;
 using SixLabors.ImageSharp.PixelFormats;
 using SixLabors.ImageSharp.Processing;
+using SixLabors.ImageSharp.Formats.Png;
 
 namespace MiniMikuDance.Recording;
 
@@ -14,6 +18,10 @@ public class RecorderController
     private int _frameIndex;
     private string _thumbnailPath = string.Empty;
     private readonly string _baseDir;
+    private readonly ConcurrentQueue<Image<Rgba32>> _imagePool = new();
+    private readonly ConcurrentBag<Task> _pendingTasks = new();
+    private int _width;
+    private int _height;
 
     public RecorderController(string baseDir = "Recordings")
     {
@@ -30,6 +38,12 @@ public class RecorderController
         File.WriteAllText(_infoPath, $"Resolution:{width}x{height} FPS:{fps} Started:{DateTime.Now}\n");
         _frameIndex = 0;
         _recording = true;
+        _width = width;
+        _height = height;
+        while (_imagePool.TryDequeue(out var img))
+        {
+            img.Dispose();
+        }
         return _savedDir;
     }
 
@@ -42,6 +56,11 @@ public class RecorderController
 
         _recording = false;
         File.AppendAllText(_infoPath, $"Stopped:{DateTime.Now}\n");
+        Task.WaitAll(_pendingTasks.ToArray());
+        while (_imagePool.TryDequeue(out var img))
+        {
+            img.Dispose();
+        }
         return _savedDir;
     }
 
@@ -53,15 +72,50 @@ public class RecorderController
     {
         if (!_recording) return;
 
-        using var image = Image.LoadPixelData<Rgba32>(rgba, width, height);
-        image.Mutate(x => x.Flip(FlipMode.Vertical));
+        if (!_imagePool.TryDequeue(out var image))
+        {
+            image = new Image<Rgba32>(_width, _height);
+        }
+
+        CopyToImage(rgba, image, width, height);
         string path = Path.Combine(_savedDir, $"frame_{_frameIndex:D04}.png");
-        image.Save(path);
+        var task = Task.Run(async () =>
+        {
+            await image.SaveAsPngAsync(path);
+            _imagePool.Enqueue(image);
+        });
+        _pendingTasks.Add(task);
         if (_frameIndex == 0)
         {
             _thumbnailPath = path;
         }
         _frameIndex++;
+    }
+
+    private static void CopyToImage(byte[] src, Image<Rgba32> image, int width, int height)
+    {
+        if (image.DangerousTryGetSinglePixelMemory(out var mem))
+        {
+            var dest = mem.Span;
+            var source = MemoryMarshal.Cast<byte, Rgba32>(src);
+            for (int y = 0; y < height; y++)
+            {
+                var srcRow = source.Slice((height - 1 - y) * width, width);
+                var dstRow = dest.Slice(y * width, width);
+                srcRow.CopyTo(dstRow);
+            }
+        }
+        else
+        {
+            image.ProcessPixelRows(accessor =>
+            {
+                for (int y = 0; y < height; y++)
+                {
+                    var srcRow = MemoryMarshal.Cast<byte, Rgba32>(src).Slice((height - 1 - y) * width, width);
+                    srcRow.CopyTo(accessor.GetRowSpan(y));
+                }
+            });
+        }
     }
 
     public string GetSavedPath() => _savedDir;
