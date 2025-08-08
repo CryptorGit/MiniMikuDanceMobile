@@ -17,6 +17,19 @@ public partial class MorphView : ContentView
 
     public void SetMorphs(IEnumerable<MorphData> morphs)
     {
+        foreach (var cts in _cancellationTokens.Values)
+        {
+            cts.Cancel();
+            cts.Dispose();
+        }
+        _cancellationTokens.Clear();
+
+        foreach (var debouncer in _debouncers.Values)
+        {
+            debouncer.timer.Stop();
+        }
+        _debouncers.Clear();
+
         MorphList.Children.Clear();
         var textColor = (Color)(Application.Current?.Resources?.TryGetValue("TextColor", out var color) == true ? color : Colors.Black);
         foreach (var morph in morphs)
@@ -46,8 +59,11 @@ public partial class MorphView : ContentView
             {
                 valueLabel.Text = $"{e.NewValue:F2}";
 
-                cts?.Cancel();
-                cts?.Dispose();
+                if (_cancellationTokens.TryGetValue(name, out var cts))
+                {
+                    cts.Cancel();
+                    cts.Dispose();
+                }
 
                 cts = new CancellationTokenSource();
 
