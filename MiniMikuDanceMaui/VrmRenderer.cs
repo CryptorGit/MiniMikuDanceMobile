@@ -621,9 +621,26 @@ void main(){
     {
         foreach (var rm in _meshes)
         {
-            if (rm.Vao != 0) GL.DeleteVertexArray(rm.Vao);
-            if (rm.Vbo != 0) GL.DeleteBuffer(rm.Vbo);
-            if (rm.Ebo != 0) GL.DeleteBuffer(rm.Ebo);
+            if (rm.Vao != 0)
+            {
+                GL.DeleteVertexArray(rm.Vao);
+                rm.Vao = 0;
+            }
+            if (rm.Vbo != 0)
+            {
+                GL.DeleteBuffer(rm.Vbo);
+                rm.Vbo = 0;
+            }
+            if (rm.Ebo != 0)
+            {
+                GL.DeleteBuffer(rm.Ebo);
+                rm.Ebo = 0;
+            }
+            if (rm.Texture != 0)
+            {
+                GL.DeleteTexture(rm.Texture);
+                rm.Texture = 0;
+            }
         }
         _meshes.Clear();
         _indexToHumanoidName.Clear();
