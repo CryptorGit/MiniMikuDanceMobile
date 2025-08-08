@@ -88,7 +88,7 @@ public class FfmpegFrameExtractor : IVideoFrameExtractor
         if (proc == null)
             throw new InvalidOperationException("Failed to start ffmpeg process.");
 
-        _ = Task.Run(async () =>
+        var progressTask = Task.Run(async () =>
         {
             string? line;
             while ((line = await proc.StandardOutput.ReadLineAsync()) != null)
@@ -103,7 +103,9 @@ public class FfmpegFrameExtractor : IVideoFrameExtractor
             }
         });
 
+        await progressTask;
         await proc.WaitForExitAsync();
+        await progressTask;
         if (proc.ExitCode != 0)
         {
             var err = await proc.StandardError.ReadToEndAsync();
