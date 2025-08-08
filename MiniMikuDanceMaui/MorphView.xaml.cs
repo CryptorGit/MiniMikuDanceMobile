@@ -10,8 +10,6 @@ namespace MiniMikuDanceMaui;
 public partial class MorphView : ContentView
 {
     public event Action<string, double>? MorphValueChanged;
-    private readonly Dictionary<string, CancellationTokenSource> _cancellationTokens = new();
-
     public MorphView()
     {
         InitializeComponent();
@@ -19,12 +17,6 @@ public partial class MorphView : ContentView
 
     public void SetMorphs(IEnumerable<MorphData> morphs)
     {
-        foreach (var debouncer in _debouncers.Values)
-        {
-            debouncer.timer.Stop();
-        }
-        _debouncers.Clear();
-
         MorphList.Children.Clear();
         var textColor = (Color)(Application.Current?.Resources?.TryGetValue("TextColor", out var color) == true ? color : Colors.Black);
         foreach (var morph in morphs)
@@ -49,17 +41,15 @@ public partial class MorphView : ContentView
             Grid.SetRow(valueLabel, 0);
             MorphList.Children.Add(grid);
             var slider = new Slider { Minimum = 0, Maximum = 1 };
+            CancellationTokenSource? cts = null;
             slider.ValueChanged += (s, e) =>
             {
                 valueLabel.Text = $"{e.NewValue:F2}";
 
-                if (_cancellationTokens.TryGetValue(name, out var cts))
-                {
-                    cts.Cancel();
-                }
+                cts?.Cancel();
+                cts?.Dispose();
 
                 cts = new CancellationTokenSource();
-                _cancellationTokens[name] = cts;
 
                 _ = DebounceMorphAsync(name, e.NewValue, cts);
             };
