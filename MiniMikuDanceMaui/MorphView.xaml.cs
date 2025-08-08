@@ -25,9 +25,9 @@ public partial class MorphView : ContentView
             foreach (var cts in _cancellationTokens.Values)
             {
                 cts.Cancel();
+                cts.Dispose();
             }
             _cancellationTokens.Clear();
-            cts.Dispose();
         }
 
         MorphList.Children.Clear();
