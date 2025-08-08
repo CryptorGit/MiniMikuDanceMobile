@@ -200,19 +200,32 @@ public class ModelImporter : IDisposable
         }
         var morphDatas = new List<MorphData>(morphs.Length);
         var nameCounts = new Dictionary<string, int>(StringComparer.OrdinalIgnoreCase);
+        var usedNames = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
         foreach (var m in morphs)
         {
             string name = string.IsNullOrEmpty(m.NameEnglish) ? m.Name : m.NameEnglish;
+            name = name.Trim();
             // Ensure unique morph names so left/right or duplicates are not collapsed later
             if (nameCounts.TryGetValue(name, out var cnt))
             {
                 cnt++;
                 nameCounts[name] = cnt;
-                name = $"{name} ({cnt})";
+                var candidate = $"{name}_{cnt}";
+                if (!usedNames.Add(candidate))
+                {
+                    Console.Error.WriteLine($"モーフ名 '{name}' のユニーク化に失敗しました。後続処理で無視されます。");
+                    continue;
+                }
+                name = candidate;
             }
             else
             {
                 nameCounts[name] = 0;
+                if (!usedNames.Add(name))
+                {
+                    Console.Error.WriteLine($"モーフ名 '{name}' のユニーク化に失敗しました。後続処理で無視されます。");
+                    continue;
+                }
             }
             var md = new MorphData { Name = name, Type = m.MorphType };
             if (m.MorphType == MorphType.Vertex)
