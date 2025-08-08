@@ -81,7 +81,15 @@ public partial class MorphView : ContentView
         try
         {
             await Task.Delay(TimeSpan.FromMilliseconds(16), cts.Token);
-            MorphValueChanged?.Invoke(name, value);
+
+            try
+            {
+                MorphValueChanged?.Invoke(name, value);
+            }
+            catch (Exception ex)
+            {
+                LogService.WriteLine($"Error in MorphValueChanged: {ex}");
+            }
         }
         catch (TaskCanceledException)
         {
