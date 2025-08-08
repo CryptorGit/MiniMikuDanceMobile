@@ -27,6 +27,7 @@ public partial class MorphView : ContentView
                 cts.Cancel();
             }
             _cancellationTokens.Clear();
+            cts.Dispose();
         }
 
         MorphList.Children.Clear();
