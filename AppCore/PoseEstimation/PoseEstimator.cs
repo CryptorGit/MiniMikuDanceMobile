@@ -236,7 +236,7 @@ public class PoseEstimator : IDisposable
             for (int i = 0; i < files.Length; i++)
             {
                 using var image = await Image.LoadAsync<Rgb24>(files[i]);
-                var jd = await Task.Run(() => SearchBest(image, meta.Key, dims, jointCount, true));
+                var jd = SearchBest(image, meta.Key, dims, jointCount, true);
                 jd.Timestamp = i / 30f;
                 results.Add(jd);
                 poseProgress?.Report((i + 1) / (float)files.Length);
