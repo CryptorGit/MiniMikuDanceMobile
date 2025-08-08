@@ -1,5 +1,6 @@
 using System;
 using System.IO;
+using System.Threading.Tasks;
 using Microsoft.Maui.Storage;
 
 namespace MiniMikuDanceMaui;
@@ -8,6 +9,7 @@ public static class LogService
 {
     public static event Action<string>? LineLogged;
 
+    private const int MaxHistory = 1000;
     private static readonly List<string> _history = new();
     private static readonly object _historyLock = new();
     private static readonly string _logFilePath;
@@ -40,6 +42,14 @@ public static class LogService
         lock (_historyLock)
         {
             _history.Add(line);
+            if (_history.Count > MaxHistory)
+            {
+                _history.RemoveAt(0);
+            }
+        }
+        LineLogged?.Invoke(line);
+        Task.Run(() =>
+        {
             try
             {
                 File.AppendAllText(_logFilePath, line + Environment.NewLine);
@@ -56,8 +66,7 @@ public static class LogService
             {
                 // ignore logging failures to external file
             }
-        }
-        LineLogged?.Invoke(line);
+        });
     }
 
     public static void WriteLine(string message)
