@@ -631,7 +631,7 @@ public partial class MainPage : ContentPage
 
 
 
-                var importer = new MiniMikuDance.Import.ModelImporter();
+                using var importer = new MiniMikuDance.Import.ModelImporter();
                 MiniMikuDance.Import.ModelData data;
                 if (!string.IsNullOrEmpty(result.FullPath))
                 {
@@ -1022,7 +1022,7 @@ public partial class MainPage : ContentPage
         try
         {
             _modelScale = 1f;
-            var importer = new ModelImporter { Scale = _modelScale };
+            using var importer = new ModelImporter { Scale = _modelScale };
             var data = await Task.Run(() => importer.ImportModel(_selectedModelPath));
 
             // PMX内のテクスチャ相対パスとサブメッシュインデックスの対応表を作成
