@@ -1,6 +1,7 @@
 using System;
 using System.Diagnostics;
 using System.Collections.Generic;
+using System.Buffers;
 // Use OpenGL ES 3.0 across projects to avoid enum mismatches
 using OpenTK.Graphics.ES30;
 using GL = OpenTK.Graphics.ES30.GL;
@@ -35,6 +36,9 @@ public class Viewer : IViewer
     private readonly Matrix4 _modelTransform;
     private Matrix4 _view = Matrix4.Identity;
     private readonly Stopwatch _timer = new();
+
+    private byte[]? _pixelBuffer;
+    private Vector2i _pixelBufferSize;
 
     public Vector2i Size { get; private set; } = new Vector2i(640, 480);
 
@@ -227,9 +231,21 @@ public class Viewer : IViewer
 
     public byte[] CaptureFrame()
     {
-        byte[] pixels = new byte[Size.X * Size.Y * 4];
-        GL.ReadPixels(0, 0, Size.X, Size.Y, PixelFormat.Rgba, PixelType.UnsignedByte, pixels);
-        return pixels;
+        int width = Size.X;
+        int height = Size.Y;
+        if (_pixelBuffer == null || _pixelBufferSize != Size)
+        {
+            if (_pixelBuffer != null)
+            {
+                ArrayPool<byte>.Shared.Return(_pixelBuffer);
+            }
+            _pixelBuffer = ArrayPool<byte>.Shared.Rent(width * height * 4);
+            _pixelBufferSize = Size;
+        }
+
+        var buffer = _pixelBuffer!;
+        GL.ReadPixels(0, 0, width, height, PixelFormat.Rgba, PixelType.UnsignedByte, buffer);
+        return buffer;
     }
 
     public void Update(float deltaTime)
@@ -248,6 +264,13 @@ public class Viewer : IViewer
             if (rm.Texture != 0) GL.DeleteTexture(rm.Texture);
         }
         _meshes.Clear();
+        if (_pixelBuffer != null)
+        {
+            ArrayPool<byte>.Shared.Return(_pixelBuffer);
+            _pixelBuffer = null;
+            _pixelBufferSize = default;
+        }
+
         GL.DeleteProgram(_program);
         _window.Close();
         _window.Dispose();
