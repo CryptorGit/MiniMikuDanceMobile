@@ -9,11 +9,23 @@ namespace MiniMikuDanceMaui;
 public partial class MorphView : ContentView
 {
     public event Action<string, double>? MorphValueChanged;
-    private readonly Dictionary<string, (IDispatcherTimer timer, double last)> _debouncers = new();
+    private readonly Dictionary<string, double> _debouncers = new();
+    private readonly IDispatcherTimer _timer;
 
     public MorphView()
     {
         InitializeComponent();
+        _timer = Dispatcher.CreateTimer();
+        _timer.Interval = TimeSpan.FromMilliseconds(16);
+        _timer.IsRepeating = false;
+        _timer.Tick += (_, _) =>
+        {
+            foreach (var (key, value) in _debouncers)
+            {
+                MorphValueChanged?.Invoke(key, value);
+            }
+            _debouncers.Clear();
+        };
     }
 
     public void SetMorphs(IEnumerable<MorphData> morphs)
@@ -46,26 +58,9 @@ public partial class MorphView : ContentView
             {
                 valueLabel.Text = $"{e.NewValue:F2}";
                 // Debounce updates to reduce CPU churn while dragging
-                if (!_debouncers.TryGetValue(name, out var entry))
-                {
-                    var t = Dispatcher.CreateTimer();
-                    t.Interval = TimeSpan.FromMilliseconds(16);
-                    t.IsRepeating = false;
-                    t.Tick += (ss, ee) =>
-                    {
-                        MorphValueChanged?.Invoke(name, _debouncers[name].last);
-                    };
-                    entry = (t, e.NewValue);
-                    _debouncers[name] = entry;
-                }
-                else
-                {
-                    entry.last = e.NewValue;
-                    _debouncers[name] = entry;
-                }
-                // restart single-shot timer
-                entry.timer.Stop();
-                entry.timer.Start();
+                _debouncers[name] = e.NewValue;
+                _timer.Stop();
+                _timer.Start();
             };
             MorphList.Children.Add(slider);
         }
