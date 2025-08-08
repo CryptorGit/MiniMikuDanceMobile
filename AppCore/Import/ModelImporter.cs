@@ -42,6 +42,7 @@ public class ModelImporter : IDisposable
 
     private static readonly Dictionary<string, CacheItem> s_textureCache = new(StringComparer.OrdinalIgnoreCase);
     private static readonly LinkedList<string> s_lruList = new();
+    private static readonly object s_cacheLock = new();
     private static int s_cacheCapacity = AppSettings.DefaultTextureCacheSize;
 
     public static int CacheCapacity
@@ -49,8 +50,11 @@ public class ModelImporter : IDisposable
         get => s_cacheCapacity;
         set
         {
-            s_cacheCapacity = Math.Max(0, value);
-            TrimCache();
+            lock (s_cacheLock)
+            {
+                s_cacheCapacity = Math.Max(0, value);
+                TrimCache();
+            }
         }
     }
 
@@ -58,8 +62,11 @@ public class ModelImporter : IDisposable
 
     public static void ClearCache()
     {
-        s_textureCache.Clear();
-        s_lruList.Clear();
+        lock (s_cacheLock)
+        {
+            s_textureCache.Clear();
+            s_lruList.Clear();
+        }
     }
 
     private static void TrimCache()
@@ -312,30 +319,33 @@ public class ModelImporter : IDisposable
                 smd.TextureFilePath = texName;
                 if (File.Exists(texPath))
                 {
-                    if (!s_textureCache.TryGetValue(texPath, out var item))
+                    lock (s_cacheLock)
                     {
-                        using var image = Image.Load<Rgba32>(texPath);
-                        var tex = new TextureData
+                        if (!s_textureCache.TryGetValue(texPath, out var item))
                         {
-                            Width = image.Width,
-                            Height = image.Height,
-                            Pixels = new byte[image.Width * image.Height * 4]
-                        };
-                        image.CopyPixelDataTo(tex.Pixels);
-                        var node = s_lruList.AddFirst(texPath);
-                        item = new CacheItem { Texture = tex, Node = node };
-                        s_textureCache[texPath] = item;
-                        TrimCache();
+                            using var image = Image.Load<Rgba32>(texPath);
+                            var tex = new TextureData
+                            {
+                                Width = image.Width,
+                                Height = image.Height,
+                                Pixels = new byte[image.Width * image.Height * 4]
+                            };
+                            image.CopyPixelDataTo(tex.Pixels);
+                            var node = s_lruList.AddFirst(texPath);
+                            item = new CacheItem { Texture = tex, Node = node };
+                            s_textureCache[texPath] = item;
+                            TrimCache();
+                        }
+                        else
+                        {
+                            var node = item.Node;
+                            s_lruList.Remove(node);
+                            s_lruList.AddFirst(node);
+                        }
+                        smd.TextureWidth = item.Texture.Width;
+                        smd.TextureHeight = item.Texture.Height;
+                        smd.TextureBytes = item.Texture.Pixels;
                     }
-                    else
-                    {
-                        var node = item.Node;
-                        s_lruList.Remove(node);
-                        s_lruList.AddFirst(node);
-                    }
-                    smd.TextureWidth = item.Texture.Width;
-                    smd.TextureHeight = item.Texture.Height;
-                    smd.TextureBytes = item.Texture.Pixels;
                 }
             }
 
