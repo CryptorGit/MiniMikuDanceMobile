@@ -1,4 +1,5 @@
 using System.Text.Json;
+using System.Threading.Tasks;
 
 namespace MiniMikuDance.Util;
 
@@ -22,7 +23,20 @@ public static class JSONUtil
     {
         try
         {
-            var result = JsonSerializer.DeserializeAsync<T>(stream, Options).GetAwaiter().GetResult();
+            var result = JsonSerializer.Deserialize<T>(stream, Options);
+            return result ?? new T();
+        }
+        catch
+        {
+            return new T();
+        }
+    }
+
+    public static async Task<T> LoadFromStreamAsync<T>(Stream stream) where T : new()
+    {
+        try
+        {
+            var result = await JsonSerializer.DeserializeAsync<T>(stream, Options);
             return result ?? new T();
         }
         catch
@@ -43,7 +57,28 @@ public static class JSONUtil
         try
         {
             using var fs = File.OpenRead(path);
-            var result = JsonSerializer.DeserializeAsync<T>(fs, Options).GetAwaiter().GetResult();
+            var result = JsonSerializer.Deserialize<T>(fs, Options);
+            return result ?? new T();
+        }
+        catch
+        {
+            return new T();
+        }
+    }
+
+    public static async Task<T> LoadAsync<T>(string path) where T : new()
+    {
+        if (!File.Exists(path))
+        {
+            var placeholder = new T();
+            Save(path, placeholder);
+            return placeholder;
+        }
+
+        try
+        {
+            await using var fs = new FileStream(path, FileMode.Open, FileAccess.Read, FileShare.Read, 4096, FileOptions.Asynchronous);
+            var result = await JsonSerializer.DeserializeAsync<T>(fs, Options);
             return result ?? new T();
         }
         catch
