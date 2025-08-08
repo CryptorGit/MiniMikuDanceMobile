@@ -185,51 +185,54 @@ public class PoseEstimator : IDisposable
         };
     }
 
-    public Task<JointData[]> EstimateAsync(string videoPath, string tempDir, Action<float>? extractProgress = null, Action<float>? poseProgress = null)
+    public async Task<JointData[]> EstimateAsync(
+        string videoPath,
+        string tempDir,
+        IProgress<float>? extractProgress = null,
+        IProgress<float>? poseProgress = null)
     {
-        return Task.Run(() =>
+        const int jointCount = 33;
+
+        if (_session == null)
         {
-            const int jointCount = 33;
+            throw new InvalidOperationException("Pose estimation model not loaded.");
+        }
 
-            if (_session == null)
+        var meta = _session.InputMetadata.First();
+        var dims = meta.Value.Dimensions.Select(d => d <= 0 ? 1 : d).ToArray();
+
+        Directory.CreateDirectory(tempDir);
+
+        try
+        {
+            var files = await _extractor.ExtractFrames(
+                videoPath,
+                30,
+                tempDir,
+                p => extractProgress?.Report(p));
+
+            var results = new List<JointData>(files.Length);
+            for (int i = 0; i < files.Length; i++)
             {
-                throw new InvalidOperationException("Pose estimation model not loaded.");
+                using var image = await Image.LoadAsync<Rgb24>(files[i]);
+                var jd = await Task.Run(() => SearchBest(image, meta.Key, dims, jointCount, true));
+                jd.Timestamp = i / 30f;
+                results.Add(jd);
+                poseProgress?.Report((i + 1) / (float)files.Length);
             }
 
-            var meta = _session.InputMetadata.First();
-            var dims = meta.Value.Dimensions.Select(d => d <= 0 ? 1 : d).ToArray();
-            int height = dims.Length > 1 ? dims[1] : 256;
-            int width = dims.Length > 2 ? dims[2] : 256;
-
-            Directory.CreateDirectory(tempDir);
-
-            try
+            return results.ToArray();
+        }
+        finally
+        {
+            if (Directory.Exists(tempDir))
             {
-                var files = _extractor.ExtractFrames(videoPath, 30, tempDir, extractProgress).GetAwaiter().GetResult();
-
-                var results = new List<JointData>(files.Length);
-                for (int i = 0; i < files.Length; i++)
+                foreach (var f in Directory.GetFiles(tempDir))
                 {
-                    using var image = Image.Load<Rgb24>(files[i]);
-                    var jd = SearchBest(image, meta.Key, dims, jointCount, true);
-                    jd.Timestamp = i / 30f;
-                    results.Add(jd);
-                    poseProgress?.Invoke((i + 1) / (float)files.Length);
-                }
-
-                return results.ToArray();
-            }
-            finally
-            {
-                if (Directory.Exists(tempDir))
-                {
-                    foreach (var f in Directory.GetFiles(tempDir))
-                    {
-                        try { File.Delete(f); } catch { /* ignore */ }
-                    }
+                    try { File.Delete(f); } catch { /* ignore */ }
                 }
             }
-        });
+        }
     }
 
     public void Dispose()

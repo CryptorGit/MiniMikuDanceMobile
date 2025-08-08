@@ -1144,8 +1144,8 @@ public partial class MainPage : ContentPage
 
             string? path = await App.Initializer.AnalyzeVideoAsync(
                 _selectedVideoPath,
-                p => MainThread.BeginInvokeOnMainThread(() => UpdateExtractProgress(p)),
-                p => MainThread.BeginInvokeOnMainThread(() => UpdatePoseProgress(p)));
+                new Progress<float>(p => MainThread.BeginInvokeOnMainThread(() => UpdateExtractProgress(p))),
+                new Progress<float>(p => MainThread.BeginInvokeOnMainThread(() => UpdatePoseProgress(p))));
             if (!string.IsNullOrEmpty(path))
             {
                 await DisplayAlert("Saved", $"{Path.GetFileName(path)} を保存しました", "OK");

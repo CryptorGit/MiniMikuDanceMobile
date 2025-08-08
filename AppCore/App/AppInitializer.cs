@@ -79,8 +79,8 @@ public partial class AppInitializer : IDisposable
     }
 
     public async Task<string?> AnalyzeVideoAsync(string videoPath,
-        Action<float>? extractProgress = null,
-        Action<float>? poseProgress = null)
+        IProgress<float>? extractProgress = null,
+        IProgress<float>? poseProgress = null)
     {
         if (PoseEstimator == null)
             return null;
@@ -89,16 +89,16 @@ public partial class AppInitializer : IDisposable
         Joints = await PoseEstimator.EstimateAsync(
             videoPath,
             DataManager.Instance.TempDir,
-            p =>
+            new Progress<float>(p =>
             {
                 UIManager.Instance.ExtractProgress = p;
-                extractProgress?.Invoke(p);
-            },
-            p =>
+                extractProgress?.Report(p);
+            }),
+            new Progress<float>(p =>
             {
                 UIManager.Instance.PoseProgress = p;
-                poseProgress?.Invoke(p);
-            });
+                poseProgress?.Report(p);
+            }));
         string outPath = Path.Combine(_poseOutputDir,
             Path.GetFileNameWithoutExtension(videoPath) + ".json");
         JSONUtil.Save(outPath, Joints);
