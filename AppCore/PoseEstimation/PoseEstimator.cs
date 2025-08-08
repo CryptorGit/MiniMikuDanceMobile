@@ -246,12 +246,16 @@ public class PoseEstimator : IDisposable
         }
         finally
         {
-            if (Directory.Exists(tempDir))
+            try
             {
-                foreach (var f in Directory.GetFiles(tempDir))
+                if (Directory.Exists(tempDir))
                 {
-                    try { File.Delete(f); } catch { /* ignore */ }
+                    Directory.Delete(tempDir, true);
                 }
+            }
+            catch
+            {
+                // ignore
             }
         }
     }
