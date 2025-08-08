@@ -1,7 +1,6 @@
 using Assimp;
 using System;
 using System.IO;
-using System.Linq;
 using System.Collections.Generic;
 using SixLabors.ImageSharp;
 using SixLabors.ImageSharp.PixelFormats;
@@ -33,16 +32,30 @@ public class ModelImporter
 
     public ModelData ImportModel(Stream stream, string? textureDir = null)
     {
-        using var ms = new MemoryStream();
-        stream.CopyTo(ms);
-        var bytes = ms.ToArray();
-        ms.Position = 0;
-
-        // ファイルヘッダを確認して PMX かどうか判断する
-        if (bytes.Length >= 4 &&
-            bytes[0] == 'P' && bytes[1] == 'M' && bytes[2] == 'X' && bytes[3] == ' ')
+        Span<byte> header = stackalloc byte[4];
+        int read = stream.Read(header);
+        if (read < 4)
         {
-            return ImportPmx(ms, textureDir);
+            throw new NotSupportedException("PMX 以外の形式には対応していません。");
+        }
+
+        Stream src = stream;
+        if (stream.CanSeek)
+        {
+            stream.Position = 0;
+        }
+        else
+        {
+            var ms = new MemoryStream();
+            ms.Write(header);
+            stream.CopyTo(ms);
+            ms.Position = 0;
+            src = ms;
+        }
+
+        if (header[0] == 'P' && header[1] == 'M' && header[2] == 'X' && header[3] == ' ')
+        {
+            return ImportPmx(src, textureDir);
         }
 
         throw new NotSupportedException("PMX 以外の形式には対応していません。");
