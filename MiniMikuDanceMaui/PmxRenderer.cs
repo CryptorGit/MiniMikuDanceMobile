@@ -440,6 +440,9 @@ void main(){
         value = Math.Clamp(value, 0f, 1f);
         if (MathF.Abs(value) < 1e-5f) value = 0f;
 
+        if (_morphValues.TryGetValue(name, out var current) && MathF.Abs(current - value) < 1e-5f)
+            return;
+
         _morphValues[name] = value;
         _morphDirty = true;
 
