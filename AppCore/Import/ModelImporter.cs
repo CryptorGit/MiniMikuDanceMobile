@@ -24,7 +24,7 @@ public class ModelData
     public float RimIntensity { get; set; } = 0.5f;
 }
 
-public class ModelImporter
+public class ModelImporter : IDisposable
 {
     private readonly AssimpContext _context = new();
     private sealed class TextureData
@@ -37,6 +37,12 @@ public class ModelImporter
     private static readonly Dictionary<string, TextureData> s_textureCache = new(StringComparer.OrdinalIgnoreCase);
 
     public float Scale { get; set; } = AppSettings.DefaultModelScale;
+
+    public void Dispose()
+    {
+        _context.Dispose();
+        GC.SuppressFinalize(this);
+    }
 
     public ModelData ImportModel(Stream stream, string? textureDir = null)
     {
