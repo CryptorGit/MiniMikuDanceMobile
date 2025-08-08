@@ -2,6 +2,7 @@ using System;
 using System.Linq;
 using System.Numerics;
 using System.Collections.Generic;
+using System.Runtime.InteropServices;
 using SixLabors.ImageSharp;
 using SixLabors.ImageSharp.PixelFormats;
 using SixLabors.ImageSharp.Processing;
@@ -64,16 +65,17 @@ public class PoseEstimator : IDisposable
         int w = dims.Length > 2 ? dims[2] : 256;
         var tensor = new DenseTensor<float>(dims);
 
-        for (int y = 0; y < h; y++)
+        int pixelCount = w * h;
+        var pixels = new Rgb24[pixelCount];
+        img.CopyPixelDataTo(pixels);
+
+        float inv = 1f / 255f;
+        var dst = MemoryMarshal.Cast<float, Vector3>(tensor.Buffer.Span);
+
+        for (int i = 0; i < pixelCount; i++)
         {
-            var span = img.DangerousGetPixelRowMemory(y).Span;
-            for (int x = 0; x < w; x++)
-            {
-                var p = span[x];
-                tensor[0, y, x, 0] = p.R / 255f;
-                tensor[0, y, x, 1] = p.G / 255f;
-                tensor[0, y, x, 2] = p.B / 255f;
-            }
+            var p = pixels[i];
+            dst[i] = new Vector3(p.R, p.G, p.B) * inv;
         }
 
         using var output = _session!.Run(new[] { NamedOnnxValue.CreateFromTensor(inputName, tensor) });
