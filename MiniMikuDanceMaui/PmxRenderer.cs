@@ -683,7 +683,7 @@ void main(){
                 {
                     if (!isParent[i]) continue;
                     var p = _bones[i].BindMatrix.Translation;
-                    if (minN == null)
+                    if (minN == null || maxN == null)
                     {
                         minN = p; maxN = p;
                     }

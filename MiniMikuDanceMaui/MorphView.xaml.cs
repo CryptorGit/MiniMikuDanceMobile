@@ -10,6 +10,8 @@ namespace MiniMikuDanceMaui;
 public partial class MorphView : ContentView
 {
     public event Action<string, double>? MorphValueChanged;
+    private readonly Dictionary<string, CancellationTokenSource> _cancellationTokens = new();
+
     public MorphView()
     {
         InitializeComponent();
@@ -23,12 +25,6 @@ public partial class MorphView : ContentView
             cts.Dispose();
         }
         _cancellationTokens.Clear();
-
-        foreach (var debouncer in _debouncers.Values)
-        {
-            debouncer.timer.Stop();
-        }
-        _debouncers.Clear();
 
         MorphList.Children.Clear();
         var textColor = (Color)(Application.Current?.Resources?.TryGetValue("TextColor", out var color) == true ? color : Colors.Black);
@@ -54,7 +50,6 @@ public partial class MorphView : ContentView
             Grid.SetRow(valueLabel, 0);
             MorphList.Children.Add(grid);
             var slider = new Slider { Minimum = 0, Maximum = 1 };
-            CancellationTokenSource? cts = null;
             slider.ValueChanged += (s, e) =>
             {
                 valueLabel.Text = $"{e.NewValue:F2}";
@@ -65,9 +60,10 @@ public partial class MorphView : ContentView
                     cts.Dispose();
                 }
 
-                cts = new CancellationTokenSource();
+                var newCts = new CancellationTokenSource();
+                _cancellationTokens[name] = newCts;
 
-                _ = DebounceMorphAsync(name, e.NewValue, cts);
+                _ = DebounceMorphAsync(name, e.NewValue, newCts);
             };
             MorphList.Children.Add(slider);
         }
@@ -83,6 +79,14 @@ public partial class MorphView : ContentView
         catch (TaskCanceledException)
         {
             // Ignored
+        }
+        finally
+        {
+            if (_cancellationTokens.TryGetValue(name, out var existingCts) && existingCts == cts)
+            {
+                _cancellationTokens.Remove(name);
+            }
+            cts.Dispose();
         }
     }
 }
