@@ -35,21 +35,21 @@ public partial class MorphView : ContentView
         var usedNames = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
         foreach (var morph in morphs)
         {
-            var name = morph.Name;
-            if (usedNames.Contains(name))
+            var originalName = morph.Name;
+            var displayName = originalName;
+            if (usedNames.Contains(displayName))
             {
-                LogService.WriteLine($"Duplicate morph name detected in view: {name}");
+                LogService.WriteLine($"Duplicate morph name detected in view: {displayName}");
                 int suffix = 1;
                 string newName;
                 do
                 {
-                    newName = $"{name}_{suffix++}";
+                    newName = $"{displayName}_{suffix++}";
                 } while (usedNames.Contains(newName));
-                LogService.WriteLine($"Renaming morph '{name}' to '{newName}'");
-                morph.Name = newName;
-                name = newName;
+                LogService.WriteLine($"Renaming morph '{displayName}' to '{newName}'");
+                displayName = newName;
             }
-            usedNames.Add(name);
+            usedNames.Add(displayName);
             var grid = new Grid
             {
                 ColumnDefinitions = new ColumnDefinitionCollection
@@ -59,7 +59,7 @@ public partial class MorphView : ContentView
                 },
                 RowSpacing = 2
             };
-            var nameLabel = new Label { Text = name, TextColor = textColor };
+            var nameLabel = new Label { Text = displayName, TextColor = textColor };
             grid.Add(nameLabel);
             Grid.SetColumn(nameLabel, 0);
             Grid.SetRow(nameLabel, 0);
@@ -76,22 +76,22 @@ public partial class MorphView : ContentView
                 CancellationTokenSource cts;
                 lock (_ctsLock)
                 {
-                    if (_cancellationTokens.TryGetValue(name, out var existingCts))
+                    if (_cancellationTokens.TryGetValue(displayName, out var existingCts))
                     {
                         existingCts.Cancel();
                     }
 
                     cts = new CancellationTokenSource();
-                    _cancellationTokens[name] = cts;
+                    _cancellationTokens[displayName] = cts;
                 }
 
-                _ = DebounceMorphAsync(name, e.NewValue, cts);
+                _ = DebounceMorphAsync(displayName, originalName, e.NewValue, cts);
             };
             MorphList.Children.Add(slider);
         }
     }
 
-    private async Task DebounceMorphAsync(string name, double value, CancellationTokenSource cts)
+    private async Task DebounceMorphAsync(string displayName, string name, double value, CancellationTokenSource cts)
     {
         try
         {
@@ -118,9 +118,9 @@ public partial class MorphView : ContentView
         {
             lock (_ctsLock)
             {
-                if (_cancellationTokens.TryGetValue(name, out var existingCts) && existingCts == cts)
+                if (_cancellationTokens.TryGetValue(displayName, out var existingCts) && existingCts == cts)
                 {
-                    _cancellationTokens.Remove(name);
+                    _cancellationTokens.Remove(displayName);
                 }
             }
             cts.Dispose();
