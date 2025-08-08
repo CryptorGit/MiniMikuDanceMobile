@@ -80,6 +80,7 @@ public partial class MorphView : ContentView
                     if (_cancellationTokens.TryGetValue(displayName, out var existingCts))
                     {
                         existingCts.Cancel();
+                        existingCts.Dispose();
                     }
 
                     cts = new CancellationTokenSource();
