@@ -38,6 +38,11 @@ public class ModelImporter : IDisposable
 
     public float Scale { get; set; } = AppSettings.DefaultModelScale;
 
+    public static void ClearCache()
+    {
+        s_textureCache.Clear();
+    }
+
     public void Dispose()
     {
         _context.Dispose();
@@ -287,6 +292,7 @@ public class ModelImporter : IDisposable
             faceOffset += faceCount;
         }
         data.Transform = System.Numerics.Matrix4x4.CreateScale(Scale);
+        ClearCache();
         return data;
     }
     // 現在は PMX モデルのみに対応しています
