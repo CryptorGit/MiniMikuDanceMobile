@@ -58,6 +58,10 @@ public class ModelImporter : IDisposable
 
     public static void ClearCache()
     {
+        foreach (var item in s_textureCache.Values)
+        {
+            item.Texture.Pixels = null!;
+        }
         s_textureCache.Clear();
         s_lruList.Clear();
     }
@@ -68,6 +72,10 @@ public class ModelImporter : IDisposable
         {
             var last = s_lruList.Last;
             if (last is null) break;
+            if (s_textureCache.TryGetValue(last.Value, out var item))
+            {
+                item.Texture.Pixels = null!;
+            }
             s_textureCache.Remove(last.Value);
             s_lruList.RemoveLast();
         }
