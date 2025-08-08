@@ -2,6 +2,8 @@ using System;
 using System.IO;
 using System.Numerics;
 using System.Collections.Generic;
+using System.Buffers;
+using System.Runtime.InteropServices;
 using SixLabors.ImageSharp;
 using SixLabors.ImageSharp.PixelFormats;
 using ImGuiNET;
@@ -80,9 +82,25 @@ public class UIManager : Singleton<UIManager>
             return;
 
         using var image = Image.Load<Rgba32>(path);
-        var bytes = new byte[image.Width * image.Height * 4];
-        image.CopyPixelDataTo(bytes);
-        _thumbnailTexture = _textureLoader(bytes, image.Width, image.Height);
+        if (image.DangerousTryGetSinglePixelMemory(out var mem))
+        {
+            _thumbnailTexture = _textureLoader(MemoryMarshal.AsBytes(mem.Span), image.Width, image.Height);
+        }
+        else
+        {
+            int byteLen = image.Width * image.Height * 4;
+            var buffer = ArrayPool<byte>.Shared.Rent(byteLen);
+            try
+            {
+                image.CopyPixelDataTo(buffer);
+                _thumbnailTexture = _textureLoader(buffer.AsSpan(0, byteLen), image.Width, image.Height);
+            }
+            finally
+            {
+                ArrayPool<byte>.Shared.Return(buffer);
+            }
+        }
+
         _thumbnailSize = new Vector2(image.Width, image.Height);
     }
 
