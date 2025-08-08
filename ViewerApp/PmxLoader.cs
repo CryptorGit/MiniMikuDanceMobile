@@ -27,9 +27,17 @@ internal class PmxModel
     public OtkMatrix4 Transform = OtkMatrix4.Identity;
 }
 
+internal sealed class TextureData
+{
+    public int Width;
+    public int Height;
+    public byte[] Pixels = Array.Empty<byte>();
+}
+
 internal static class PmxLoader
 {
     public const float DefaultScale = 0.1f;
+    private static readonly Dictionary<string, TextureData> s_textureCache = new(StringComparer.OrdinalIgnoreCase);
 
     public static PmxModel Load(string path, float scale = DefaultScale)
     {
@@ -94,11 +102,21 @@ internal static class PmxLoader
                 var texPath = Path.Combine(baseDir, texName);
                 if (File.Exists(texPath))
                 {
-                    using var image = Image.Load<Rgba32>(texPath);
-                    sm.TextureWidth = image.Width;
-                    sm.TextureHeight = image.Height;
-                    sm.TextureBytes = new byte[image.Width * image.Height * 4];
-                    image.CopyPixelDataTo(sm.TextureBytes);
+                    if (!s_textureCache.TryGetValue(texPath, out var tex))
+                    {
+                        using var image = Image.Load<Rgba32>(texPath);
+                        tex = new TextureData
+                        {
+                            Width = image.Width,
+                            Height = image.Height,
+                            Pixels = new byte[image.Width * image.Height * 4]
+                        };
+                        image.CopyPixelDataTo(tex.Pixels);
+                        s_textureCache[texPath] = tex;
+                    }
+                    sm.TextureWidth = tex.Width;
+                    sm.TextureHeight = tex.Height;
+                    sm.TextureBytes = tex.Pixels;
                 }
             }
             model.SubMeshes.Add(sm);
