@@ -18,6 +18,12 @@ public partial class MorphView : ContentView
 
     public void SetMorphs(IEnumerable<MorphData> morphs)
     {
+        foreach (var debouncer in _debouncers.Values)
+        {
+            debouncer.timer.Stop();
+        }
+        _debouncers.Clear();
+
         MorphList.Children.Clear();
         var textColor = (Color)(Application.Current?.Resources?.TryGetValue("TextColor", out var color) == true ? color : Colors.Black);
         foreach (var morph in morphs)
