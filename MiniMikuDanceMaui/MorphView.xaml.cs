@@ -1,6 +1,8 @@
 using Microsoft.Maui.Controls;
 using System;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
+using System.ComponentModel;
 using System.Threading;
 using System.Threading.Tasks;
 using MiniMikuDance.Import;
@@ -11,60 +13,46 @@ public partial class MorphView : ContentView
 {
     public event Action<string, double>? MorphValueChanged;
     private readonly Dictionary<string, CancellationTokenSource> _cancellationTokens = new();
+    public ObservableCollection<MorphItem> MorphItems { get; } = new();
 
     public MorphView()
     {
         InitializeComponent();
+        BindingContext = this;
     }
 
     public void SetMorphs(IEnumerable<MorphData> morphs)
     {
-        foreach (var debouncer in _debouncers.Values)
+        foreach (var cts in _cancellationTokens.Values)
         {
-            debouncer.timer.Stop();
+            cts.Cancel();
         }
-        _debouncers.Clear();
+        _cancellationTokens.Clear();
+        MorphItems.Clear();
 
-        MorphList.Children.Clear();
-        var textColor = (Color)(Application.Current?.Resources?.TryGetValue("TextColor", out var color) == true ? color : Colors.Black);
         foreach (var morph in morphs)
         {
-            var name = morph.Name;
-            var grid = new Grid
-            {
-                ColumnDefinitions = new ColumnDefinitionCollection
-                {
-                    new ColumnDefinition { Width = GridLength.Star },
-                    new ColumnDefinition { Width = 60 }
-                },
-                RowSpacing = 2
-            };
-            var nameLabel = new Label { Text = name, TextColor = textColor };
-            grid.Add(nameLabel);
-            Grid.SetColumn(nameLabel, 0);
-            Grid.SetRow(nameLabel, 0);
-            var valueLabel = new Label { Text = "0", TextColor = textColor, HorizontalTextAlignment = TextAlignment.End };
-            grid.Add(valueLabel);
-            Grid.SetColumn(valueLabel, 1);
-            Grid.SetRow(valueLabel, 0);
-            MorphList.Children.Add(grid);
-            var slider = new Slider { Minimum = 0, Maximum = 1 };
-            slider.ValueChanged += (s, e) =>
-            {
-                valueLabel.Text = $"{e.NewValue:F2}";
-
-                if (_cancellationTokens.TryGetValue(name, out var cts))
-                {
-                    cts.Cancel();
-                }
-
-                cts = new CancellationTokenSource();
-                _cancellationTokens[name] = cts;
-
-                _ = DebounceMorphAsync(name, e.NewValue, cts);
-            };
-            MorphList.Children.Add(slider);
+            MorphItems.Add(new MorphItem(morph.Name));
         }
+    }
+
+    private void OnSliderValueChanged(object? sender, ValueChangedEventArgs e)
+    {
+        if (sender is not Slider slider || slider.BindingContext is not MorphItem item)
+        {
+            return;
+        }
+
+        var name = item.Name;
+        if (_cancellationTokens.TryGetValue(name, out var cts))
+        {
+            cts.Cancel();
+        }
+
+        cts = new CancellationTokenSource();
+        _cancellationTokens[name] = cts;
+
+        _ = DebounceMorphAsync(name, e.NewValue, cts);
     }
 
     private async Task DebounceMorphAsync(string name, double value, CancellationTokenSource cts)
@@ -77,6 +65,33 @@ public partial class MorphView : ContentView
         catch (TaskCanceledException)
         {
             // Ignored
+        }
+    }
+
+    private class MorphItem : INotifyPropertyChanged
+    {
+        public string Name { get; }
+        private double _value;
+        public double Value
+        {
+            get => _value;
+            set
+            {
+                if (Math.Abs(_value - value) < double.Epsilon)
+                {
+                    return;
+                }
+
+                _value = value;
+                PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(Value)));
+            }
+        }
+
+        public event PropertyChangedEventHandler? PropertyChanged;
+
+        public MorphItem(string name)
+        {
+            Name = name;
         }
     }
 }

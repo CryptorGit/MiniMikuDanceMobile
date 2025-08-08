@@ -3,7 +3,26 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
              x:Class="MiniMikuDanceMaui.MorphView"
              BackgroundColor="{StaticResource BackgroundColor}">
-    <ScrollView>
-        <VerticalStackLayout x:Name="MorphList" Padding="10" Spacing="10" />
-    </ScrollView>
+    <CollectionView x:Name="MorphList"
+                    ItemsSource="{Binding MorphItems}"
+                    Padding="10"
+                    SelectionMode="None">
+        <CollectionView.ItemTemplate>
+            <DataTemplate>
+                <VerticalStackLayout Spacing="10">
+                    <Grid ColumnDefinitions="*,60">
+                        <Label Text="{Binding Name}"
+                               TextColor="{DynamicResource TextColor}" />
+                        <Label Text="{Binding Value, StringFormat='{0:F2}'}"
+                               TextColor="{DynamicResource TextColor}"
+                               HorizontalTextAlignment="End" />
+                    </Grid>
+                    <Slider Minimum="0"
+                            Maximum="1"
+                            Value="{Binding Value}"
+                            ValueChanged="OnSliderValueChanged" />
+                </VerticalStackLayout>
+            </DataTemplate>
+        </CollectionView.ItemTemplate>
+    </CollectionView>
 </ContentView>
