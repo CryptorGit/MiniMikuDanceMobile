@@ -34,13 +34,43 @@ public class ModelImporter : IDisposable
         public byte[] Pixels = Array.Empty<byte>();
     }
 
-    private static readonly Dictionary<string, TextureData> s_textureCache = new(StringComparer.OrdinalIgnoreCase);
+    private sealed class CacheItem
+    {
+        public TextureData Texture = null!;
+        public LinkedListNode<string> Node = null!;
+    }
+
+    private static readonly Dictionary<string, CacheItem> s_textureCache = new(StringComparer.OrdinalIgnoreCase);
+    private static readonly LinkedList<string> s_lruList = new();
+    private static int s_cacheCapacity = AppSettings.DefaultTextureCacheSize;
+
+    public static int CacheCapacity
+    {
+        get => s_cacheCapacity;
+        set
+        {
+            s_cacheCapacity = Math.Max(0, value);
+            TrimCache();
+        }
+    }
 
     public float Scale { get; set; } = AppSettings.DefaultModelScale;
 
     public static void ClearCache()
     {
         s_textureCache.Clear();
+        s_lruList.Clear();
+    }
+
+    private static void TrimCache()
+    {
+        while (s_textureCache.Count > s_cacheCapacity)
+        {
+            var last = s_lruList.Last;
+            if (last is null) break;
+            s_textureCache.Remove(last.Value);
+            s_lruList.RemoveLast();
+        }
     }
 
     public void Dispose()
@@ -270,21 +300,30 @@ public class ModelImporter : IDisposable
                 smd.TextureFilePath = texName;
                 if (File.Exists(texPath))
                 {
-                    if (!s_textureCache.TryGetValue(texPath, out var tex))
+                    if (!s_textureCache.TryGetValue(texPath, out var item))
                     {
                         using var image = Image.Load<Rgba32>(texPath);
-                        tex = new TextureData
+                        var tex = new TextureData
                         {
                             Width = image.Width,
                             Height = image.Height,
                             Pixels = new byte[image.Width * image.Height * 4]
                         };
                         image.CopyPixelDataTo(tex.Pixels);
-                        s_textureCache[texPath] = tex;
+                        var node = s_lruList.AddFirst(texPath);
+                        item = new CacheItem { Texture = tex, Node = node };
+                        s_textureCache[texPath] = item;
+                        TrimCache();
                     }
-                    smd.TextureWidth = tex.Width;
-                    smd.TextureHeight = tex.Height;
-                    smd.TextureBytes = tex.Pixels;
+                    else
+                    {
+                        var node = item.Node;
+                        s_lruList.Remove(node);
+                        s_lruList.AddFirst(node);
+                    }
+                    smd.TextureWidth = item.Texture.Width;
+                    smd.TextureHeight = item.Texture.Height;
+                    smd.TextureBytes = item.Texture.Pixels;
                 }
             }
 
@@ -292,7 +331,6 @@ public class ModelImporter : IDisposable
             faceOffset += faceCount;
         }
         data.Transform = System.Numerics.Matrix4x4.CreateScale(Scale);
-        ClearCache();
         return data;
     }
     // 現在は PMX モデルのみに対応しています

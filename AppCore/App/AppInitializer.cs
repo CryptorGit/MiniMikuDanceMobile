@@ -65,6 +65,7 @@ public partial class AppInitializer : IDisposable
             throw new InvalidOperationException("ViewerFactory が設定されていません。");
         }
         Viewer = ViewerFactory(modelPath, settings.ModelScale);
+        ModelImporter.CacheCapacity = settings.TextureCacheSize;
         using var importer = new ModelImporter { Scale = settings.ModelScale };
         var model = importer.ImportModel(modelPath);
 

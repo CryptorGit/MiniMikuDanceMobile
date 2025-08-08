@@ -38,6 +38,12 @@ public class AppSettings
     /// <summary>カメラの注視点Y座標。</summary>
     public float CameraTargetY { get; set; } = DefaultCameraTargetY;
 
+    /// <summary>テクスチャキャッシュ数のデフォルト値。</summary>
+    public const int DefaultTextureCacheSize = 64;
+
+    /// <summary>テクスチャキャッシュの最大数。</summary>
+    public int TextureCacheSize { get; set; } = DefaultTextureCacheSize;
+
 
     private const string DefaultFile = "Configs/appsettings.json";
 
