@@ -22,7 +22,6 @@ public partial class MorphView : ContentView
         foreach (var cts in _cancellationTokens.Values)
         {
             cts.Cancel();
-            cts.Dispose();
         }
         _cancellationTokens.Clear();
 
@@ -57,7 +56,6 @@ public partial class MorphView : ContentView
                 if (_cancellationTokens.TryGetValue(name, out var cts))
                 {
                     cts.Cancel();
-                    cts.Dispose();
                 }
 
                 var newCts = new CancellationTokenSource();
@@ -77,6 +75,10 @@ public partial class MorphView : ContentView
             MorphValueChanged?.Invoke(name, value);
         }
         catch (TaskCanceledException)
+        {
+            // Ignored
+        }
+        catch (ObjectDisposedException)
         {
             // Ignored
         }
