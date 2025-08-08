@@ -444,20 +444,42 @@ void main(){
         if (MathF.Abs(current - value) < 1e-5f)
             return;
 
-        float diff = value - current;
-        _morphValues[name] = value;
+        if (value == 0f)
+            _morphValues.Remove(name);
+        else
+            _morphValues[name] = value;
+
         _morphDirty = true;
 
         foreach (var off in morph.Offsets)
         {
             int vid = off.Index;
-            var vec = new Vector3(off.Offset.X, off.Offset.Y, off.Offset.Z);
-            if (_vertexTotalOffsets.TryGetValue(vid, out var total))
-                total += vec * diff;
+            Vector3 total = Vector3.Zero;
+
+            foreach (var kvp in _morphValues)
+            {
+                var mv = kvp.Value;
+                if (MathF.Abs(mv) < 1e-5f) continue;
+
+                var m = _morphs[kvp.Key];
+                foreach (var mo in m.Offsets)
+                {
+                    if (mo.Index == vid)
+                    {
+                        var vec = new Vector3(mo.Offset.X, mo.Offset.Y, mo.Offset.Z);
+                        total += vec * mv;
+                        break;
+                    }
+                }
+            }
+
+            if (total.LengthSquared > 0f)
+                _vertexTotalOffsets[vid] = total;
             else
-                total = vec * diff;
-            _vertexTotalOffsets[vid] = total;
+                _vertexTotalOffsets.Remove(vid);
+
             _changedOriginalVertices.Add(vid);
+
             if (_morphVertexMap.TryGetValue(vid, out var list))
             {
                 foreach (var (mesh, idx) in list)
