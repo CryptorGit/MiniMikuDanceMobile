@@ -40,7 +40,7 @@ public class PmxRenderer : IDisposable
     private readonly Dictionary<string, float> _morphValues = new(StringComparer.OrdinalIgnoreCase);
     private readonly Dictionary<int, List<(RenderMesh Mesh, int Index)>> _morphVertexMap = new();
     private readonly HashSet<int> _changedOriginalVertices = new();
-    private readonly Dictionary<int, List<(Vector3 Offset, string Name)>> _vertexMorphContribs = new();
+    private readonly Dictionary<int, Vector3> _vertexTotalOffsets = new();
     public SKGLView? Viewer { get; set; }
     private int _gridVao;
     private int _gridVbo;
@@ -440,26 +440,26 @@ void main(){
         value = Math.Clamp(value, 0f, 1f);
         if (MathF.Abs(value) < 1e-5f) value = 0f;
 
-        if (_morphValues.TryGetValue(name, out var current) && MathF.Abs(current - value) < 1e-5f)
+        _morphValues.TryGetValue(name, out var current);
+        if (MathF.Abs(current - value) < 1e-5f)
             return;
 
+        float diff = value - current;
         _morphValues[name] = value;
         _morphDirty = true;
 
-        // Recompute affected vertices from base with all contributing morphs
         foreach (var off in morph.Offsets)
         {
             int vid = off.Index;
+            var vec = new Vector3(off.Offset.X, off.Offset.Y, off.Offset.Z);
+            if (_vertexTotalOffsets.TryGetValue(vid, out var total))
+                total += vec * diff;
+            else
+                total = vec * diff;
+            _vertexTotalOffsets[vid] = total;
             _changedOriginalVertices.Add(vid);
-            if (_morphVertexMap.TryGetValue(vid, out var list) && _vertexMorphContribs.TryGetValue(vid, out var contribs))
+            if (_morphVertexMap.TryGetValue(vid, out var list))
             {
-                Vector3 total = Vector3.Zero;
-                for (int i = 0; i < contribs.Count; i++)
-                {
-                    var (ofs, morphName) = contribs[i];
-                    if (_morphValues.TryGetValue(morphName, out var w) && w != 0f)
-                        total += ofs * w;
-                }
                 foreach (var (mesh, idx) in list)
                 {
                     mesh.Vertices[idx] = mesh.BaseVertices[idx] + total;
@@ -607,7 +607,7 @@ void main(){
         _morphs.Clear();
         _morphValues.Clear();
         _morphVertexMap.Clear();
-        _vertexMorphContribs.Clear();
+        _vertexTotalOffsets.Clear();
         foreach (var morph in data.Morphs)
         {
             if (morph.Type != MorphType.Vertex) continue;
@@ -626,15 +626,6 @@ void main(){
                 name = newName;
             }
             _morphs[name] = morph;
-            foreach (var off in morph.Offsets)
-            {
-                if (!_vertexMorphContribs.TryGetValue(off.Index, out var lst))
-                {
-                    lst = new List<(Vector3, string)>();
-                    _vertexMorphContribs[off.Index] = lst;
-                }
-                lst.Add((new Vector3(off.Offset.X, off.Offset.Y, off.Offset.Z), name));
-            }
         }
 
         var lookup = new Dictionary<(Vector3 Pos, Vector3 Nor, Vector2 Uv), List<int>>();
