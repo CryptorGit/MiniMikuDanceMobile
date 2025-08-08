@@ -39,6 +39,8 @@ public class PmxRenderer : IDisposable
     private readonly Dictionary<string, MorphData> _morphs = new(StringComparer.OrdinalIgnoreCase);
     private readonly Dictionary<string, float> _morphValues = new(StringComparer.OrdinalIgnoreCase);
     private readonly Dictionary<int, List<(RenderMesh Mesh, int Index)>> _morphVertexMap = new();
+    private readonly HashSet<int> _changedOriginalVertices = new();
+    private readonly Dictionary<int, List<(Vector3 Offset, string Name)>> _vertexMorphContribs = new();
     public SKGLView? Viewer { get; set; }
     private int _gridVao;
     private int _gridVbo;
@@ -48,8 +50,8 @@ public class PmxRenderer : IDisposable
     private int _projLoc;
     private int _colorLoc;
     private float _orbitX;
-    // 初期カメラ位置はモデルの正面が表示されるようY軸回転を180度に設定
-    private float _orbitY = MathF.PI;
+    // 初期カメラ位置: 水平回転は0（正面から）
+    private float _orbitY = 0f;
     private float _distance = 4f;
     // モデル中心より少し高い位置を基準にカメラを配置する
     private Vector3 _target = new Vector3(0f, 0.5f, 0f);
@@ -101,11 +103,26 @@ public class PmxRenderer : IDisposable
     // デフォルトのカメラ感度をスライダーの最小値に合わせる
     public float RotateSensitivity { get; set; } = 0.1f;
     public float PanSensitivity { get; set; } = 1f;
+    public float ZoomSensitivity { get; set; } = 1f;
     public float ShadeShift { get; set; } = -0.1f;
     public float ShadeToony { get; set; } = 0.9f;
     public float RimIntensity { get; set; } = 0.5f;
     public float Ambient { get; set; } = 0.3f;
-    public bool ShowBoneOutline { get; set; }
+    private bool _showBoneOutline;
+    public bool ShowBoneOutline
+    {
+        get => _showBoneOutline;
+        set
+        {
+            if (_showBoneOutline != value)
+            {
+                _showBoneOutline = value;
+                // Ensure bones buffer gets (re)built on next frame
+                _bonesDirty = true;
+                Viewer?.InvalidateSurface();
+            }
+        }
+    }
 
     private float _stageSize = AppSettings.DefaultStageSize;
     public float StageSize
@@ -324,6 +341,10 @@ void main(){
     {
         _orbitY -= dx * 0.01f * RotateSensitivity;
         _orbitX -= dy * 0.01f * RotateSensitivity;
+        // Clamp pitch to [-90°, 90°]
+        float limit = MathF.PI * 0.5f;
+        if (_orbitX < -limit) _orbitX = -limit;
+        if (_orbitX > limit) _orbitX = limit;
         _viewProjDirty = true;
     }
 
@@ -340,7 +361,7 @@ void main(){
 
     public void Dolly(float delta)
     {
-        _distance -= delta * 0.01f;
+        _distance -= delta * 0.01f * MathF.Max(0.01f, ZoomSensitivity);
         if (_distance < 1f) _distance = 1f;
         if (_distance > 100f) _distance = 100f;
         _viewProjDirty = true;
@@ -349,7 +370,7 @@ void main(){
     public void ResetCamera()
     {
         _orbitX = 0f;
-        _orbitY = MathF.PI;
+        _orbitY = 0f;
         _target = new Vector3(0f, _defaultCameraTargetY, 0f);
         _distance = _defaultCameraDistance;
         if (_distance < 1f) _distance = 1f;
@@ -416,27 +437,29 @@ void main(){
         if (!_morphs.TryGetValue(name, out var morph) || morph.Type != MorphType.Vertex)
             return;
 
+        value = Math.Clamp(value, 0f, 1f);
+        if (MathF.Abs(value) < 1e-5f) value = 0f;
+
         _morphValues[name] = value;
         _morphDirty = true;
 
-        foreach (var rm in _meshes)
-            Array.Copy(rm.BaseVertices, rm.Vertices, rm.Vertices.Length);
-
-        foreach (var kv in _morphValues)
+        // Recompute affected vertices from base with all contributing morphs
+        foreach (var off in morph.Offsets)
         {
-            if (kv.Value == 0f)
-                continue;
-            if (!_morphs.TryGetValue(kv.Key, out var md) || md.Type != MorphType.Vertex)
-                continue;
-            foreach (var off in md.Offsets)
+            int vid = off.Index;
+            _changedOriginalVertices.Add(vid);
+            if (_morphVertexMap.TryGetValue(vid, out var list) && _vertexMorphContribs.TryGetValue(vid, out var contribs))
             {
-                if (_morphVertexMap.TryGetValue(off.Index, out var list))
+                Vector3 total = Vector3.Zero;
+                for (int i = 0; i < contribs.Count; i++)
                 {
-                    var offset = new Vector3(off.Offset.X, off.Offset.Y, off.Offset.Z) * kv.Value;
-                    foreach (var (mesh, idx) in list)
-                    {
-                        mesh.Vertices[idx] += offset;
-                    }
+                    var (ofs, morphName) = contribs[i];
+                    if (_morphValues.TryGetValue(morphName, out var w) && w != 0f)
+                        total += ofs * w;
+                }
+                foreach (var (mesh, idx) in list)
+                {
+                    mesh.Vertices[idx] = mesh.BaseVertices[idx] + total;
                 }
             }
         }
@@ -581,10 +604,20 @@ void main(){
         _morphs.Clear();
         _morphValues.Clear();
         _morphVertexMap.Clear();
+        _vertexMorphContribs.Clear();
         foreach (var morph in data.Morphs)
         {
-            if (morph.Type == MorphType.Vertex)
-                _morphs[morph.Name] = morph;
+            if (morph.Type != MorphType.Vertex) continue;
+            _morphs[morph.Name] = morph;
+            foreach (var off in morph.Offsets)
+            {
+                if (!_vertexMorphContribs.TryGetValue(off.Index, out var lst))
+                {
+                    lst = new List<(Vector3, string)>();
+                    _vertexMorphContribs[off.Index] = lst;
+                }
+                lst.Add((new Vector3(off.Offset.X, off.Offset.Y, off.Offset.Z), morph.Name));
+            }
         }
 
         var lookup = new Dictionary<(Vector3 Pos, Vector3 Nor, Vector2 Uv), List<int>>();
@@ -627,6 +660,80 @@ void main(){
                 }
             }
         }
+
+        // Auto-fit camera using bone parents' bind positions (preferred),
+        // falling back to mesh bounds if unavailable.
+        try
+        {
+            bool fitDone = false;
+            if (_bones.Count > 0)
+            {
+                var isParent = new bool[_bones.Count];
+                foreach (var b in _bones)
+                {
+                    if (b.Parent >= 0 && b.Parent < _bones.Count) isParent[b.Parent] = true;
+                }
+
+                System.Numerics.Vector3? minN = null;
+                System.Numerics.Vector3? maxN = null;
+                for (int i = 0; i < _bones.Count; i++)
+                {
+                    if (!isParent[i]) continue;
+                    var p = _bones[i].BindMatrix.Translation;
+                    if (minN == null)
+                    {
+                        minN = p; maxN = p;
+                    }
+                    else
+                    {
+                        minN = System.Numerics.Vector3.Min(minN.Value, p);
+                        maxN = System.Numerics.Vector3.Max(maxN.Value, p);
+                    }
+                }
+
+                if (minN.HasValue && maxN.HasValue)
+                {
+                    var center = (minN.Value + maxN.Value) * 0.5f;
+                    var ext = maxN.Value - minN.Value;
+                    float radius = 0.5f * ext.Length();
+                    if (radius < 0.01f) radius = 1f;
+                    float fov = MathF.PI / 4f; // must match projection
+                    float dist = (radius / MathF.Tan(fov * 0.5f)) * 1.2f; // margin
+                    // Only respect height (Y). X and Z centered to 0 per request.
+                    _target = new Vector3(0f, center.Y, 0f);
+                    _distance = Math.Clamp(dist, 1f, 100f);
+                    _orbitX = 0f;
+                    _orbitY = 0f;
+                    _viewProjDirty = true;
+                    fitDone = true;
+                }
+            }
+
+            if (!fitDone && data.Mesh != null && data.Mesh.Vertices.Count > 0)
+            {
+                var v0 = data.Mesh.Vertices[0];
+                System.Numerics.Vector3 min = new(v0.X, v0.Y, v0.Z);
+                System.Numerics.Vector3 max = min;
+                foreach (var v in data.Mesh.Vertices)
+                {
+                    var p = new System.Numerics.Vector3(v.X, v.Y, v.Z);
+                    min = System.Numerics.Vector3.Min(min, p);
+                    max = System.Numerics.Vector3.Max(max, p);
+                }
+                var center = (min + max) * 0.5f;
+                var ext = max - min;
+                float radius = 0.5f * ext.Length();
+                if (radius < 0.01f) radius = 1f;
+                float fov = MathF.PI / 4f;
+                float dist = (radius / MathF.Tan(fov * 0.5f)) * 1.2f;
+                _target = new Vector3(0f, center.Y, 0f);
+                _distance = Math.Clamp(dist, 1f, 100f);
+                _orbitX = 0f;
+                _orbitY = 0f;
+                _viewProjDirty = true;
+            }
+        }
+        catch { /* ignore fit errors */ }
     }
 
     public void Render()
@@ -686,61 +793,110 @@ void main(){
             for (int i = 0; i < _bones.Count; i++)
                 _skinMats[i] = _bones[i].InverseBindMatrix * _worldMats[i];
 
-            foreach (var rm in _meshes)
+            if (_bonesDirty)
             {
-                if (rm.JointIndices.Length != rm.Vertices.Length)
-                    continue;
-                int required = rm.Vertices.Length * 8;
-                if (_tmpVertexBuffer.Length < required)
-                    _tmpVertexBuffer = new float[required];
-                else
-                    Array.Clear(_tmpVertexBuffer, 0, required);
-                for (int vi = 0; vi < rm.Vertices.Length; vi++)
+                foreach (var rm in _meshes)
                 {
-                    var pos = System.Numerics.Vector3.Zero;
-                    var norm = System.Numerics.Vector3.Zero;
-                    var jp = rm.JointIndices[vi];
-                    var jw = rm.JointWeights[vi];
-                    for (int k = 0; k < 4; k++)
+                    if (rm.JointIndices.Length != rm.Vertices.Length)
+                        continue;
+                    int required = rm.Vertices.Length * 8;
+                    if (_tmpVertexBuffer.Length < required)
+                        _tmpVertexBuffer = new float[required];
+                    else
+                        Array.Clear(_tmpVertexBuffer, 0, required);
+                    for (int vi = 0; vi < rm.Vertices.Length; vi++)
                     {
-                        int bi = (int)jp[k];
-                        float w = jw[k];
-                        if (bi >= 0 && bi < _skinMats.Length && w > 0f)
+                        var pos = System.Numerics.Vector3.Zero;
+                        var norm = System.Numerics.Vector3.Zero;
+                        var jp = rm.JointIndices[vi];
+                        var jw = rm.JointWeights[vi];
+                        for (int k = 0; k < 4; k++)
                         {
-                            var m = _skinMats[bi];
-                            pos += System.Numerics.Vector3.Transform(rm.Vertices[vi].ToNumerics(), m) * w;
-                            norm += System.Numerics.Vector3.TransformNormal(rm.Normals[vi].ToNumerics(), m) * w;
+                            int bi = (int)jp[k];
+                            float w = jw[k];
+                            if (bi >= 0 && bi < _skinMats.Length && w > 0f)
+                            {
+                                var m = _skinMats[bi];
+                                pos += System.Numerics.Vector3.Transform(rm.Vertices[vi].ToNumerics(), m) * w;
+                                norm += System.Numerics.Vector3.TransformNormal(rm.Normals[vi].ToNumerics(), m) * w;
+                            }
+                        }
+                        if (norm.LengthSquared() > 0)
+                            norm = System.Numerics.Vector3.Normalize(norm);
+
+                        _tmpVertexBuffer[vi * 8 + 0] = pos.X;
+                        _tmpVertexBuffer[vi * 8 + 1] = pos.Y;
+                        _tmpVertexBuffer[vi * 8 + 2] = pos.Z;
+                        _tmpVertexBuffer[vi * 8 + 3] = norm.X;
+                        _tmpVertexBuffer[vi * 8 + 4] = norm.Y;
+                        _tmpVertexBuffer[vi * 8 + 5] = norm.Z;
+                        if (vi < rm.TexCoords.Length)
+                        {
+                            _tmpVertexBuffer[vi * 8 + 6] = rm.TexCoords[vi].X;
+                            _tmpVertexBuffer[vi * 8 + 7] = rm.TexCoords[vi].Y;
+                        }
+                        else
+                        {
+                            _tmpVertexBuffer[vi * 8 + 6] = 0f;
+                            _tmpVertexBuffer[vi * 8 + 7] = 0f;
                         }
                     }
-                    if (norm.LengthSquared() > 0)
-                        norm = System.Numerics.Vector3.Normalize(norm);
-
-                    _tmpVertexBuffer[vi * 8 + 0] = pos.X;
-                    _tmpVertexBuffer[vi * 8 + 1] = pos.Y;
-                    _tmpVertexBuffer[vi * 8 + 2] = pos.Z;
-                    _tmpVertexBuffer[vi * 8 + 3] = norm.X;
-                    _tmpVertexBuffer[vi * 8 + 4] = norm.Y;
-                    _tmpVertexBuffer[vi * 8 + 5] = norm.Z;
-                    if (vi < rm.TexCoords.Length)
+                    GL.BindBuffer(BufferTarget.ArrayBuffer, rm.Vbo);
+                    var handle = System.Runtime.InteropServices.GCHandle.Alloc(_tmpVertexBuffer, System.Runtime.InteropServices.GCHandleType.Pinned);
+                    try
                     {
-                        _tmpVertexBuffer[vi * 8 + 6] = rm.TexCoords[vi].X;
-                        _tmpVertexBuffer[vi * 8 + 7] = rm.TexCoords[vi].Y;
+                        GL.BufferSubData(BufferTarget.ArrayBuffer, IntPtr.Zero, required * sizeof(float), handle.AddrOfPinnedObject());
                     }
-                    else
+                    finally
                     {
-                        _tmpVertexBuffer[vi * 8 + 6] = 0f;
-                        _tmpVertexBuffer[vi * 8 + 7] = 0f;
+                        handle.Free();
                     }
                 }
-                GL.BindBuffer(BufferTarget.ArrayBuffer, rm.Vbo);
-                var handle = System.Runtime.InteropServices.GCHandle.Alloc(_tmpVertexBuffer, System.Runtime.InteropServices.GCHandleType.Pinned);
+            }
+            else if (_morphDirty && _changedOriginalVertices.Count > 0)
+            {
+                var small = new float[8];
+                var handleSmall = System.Runtime.InteropServices.GCHandle.Alloc(small, System.Runtime.InteropServices.GCHandleType.Pinned);
                 try
                 {
-                    GL.BufferSubData(BufferTarget.ArrayBuffer, IntPtr.Zero, required * sizeof(float), handle.AddrOfPinnedObject());
+                    foreach (var origIdx in _changedOriginalVertices)
+                    {
+                        if (!_morphVertexMap.TryGetValue(origIdx, out var mapped)) continue;
+                        foreach (var (rm, vi) in mapped)
+                        {
+                            var pos = System.Numerics.Vector3.Zero;
+                            var norm = System.Numerics.Vector3.Zero;
+                            var jp = rm.JointIndices[vi];
+                            var jw = rm.JointWeights[vi];
+                            for (int k = 0; k < 4; k++)
+                            {
+                                int bi = (int)jp[k];
+                                float w = jw[k];
+                                if (bi >= 0 && bi < _skinMats.Length && w > 0f)
+                                {
+                                    var m = _skinMats[bi];
+                                    pos += System.Numerics.Vector3.Transform(rm.Vertices[vi].ToNumerics(), m) * w;
+                                    norm += System.Numerics.Vector3.TransformNormal(rm.Normals[vi].ToNumerics(), m) * w;
+                                }
+                            }
+                            if (norm.LengthSquared() > 0)
+                                norm = System.Numerics.Vector3.Normalize(norm);
+
+                            small[0] = pos.X; small[1] = pos.Y; small[2] = pos.Z;
+                            small[3] = norm.X; small[4] = norm.Y; small[5] = norm.Z;
+                            if (vi < rm.TexCoords.Length)
+                            { small[6] = rm.TexCoords[vi].X; small[7] = rm.TexCoords[vi].Y; }
+                            else { small[6] = 0f; small[7] = 0f; }
+
+                            GL.BindBuffer(BufferTarget.ArrayBuffer, rm.Vbo);
+                            IntPtr offset = new IntPtr(vi * 8 * sizeof(float));
+                            GL.BufferSubData(BufferTarget.ArrayBuffer, offset, 8 * sizeof(float), handleSmall.AddrOfPinnedObject());
+                        }
+                    }
                 }
                 finally
                 {
-                    handle.Free();
+                    handleSmall.Free();
                 }
             }
 
@@ -780,6 +936,52 @@ void main(){
 
             _bonesDirty = false;
             _morphDirty = false;
+            _changedOriginalVertices.Clear();
+        }
+        else if (needsUpdate)
+        {
+            // No bones: just push morphed (or base) vertices to GPU
+            foreach (var rm in _meshes)
+            {
+                int required = rm.Vertices.Length * 8;
+                if (_tmpVertexBuffer.Length < required)
+                    _tmpVertexBuffer = new float[required];
+                else
+                    Array.Clear(_tmpVertexBuffer, 0, required);
+                for (int vi = 0; vi < rm.Vertices.Length; vi++)
+                {
+                    var pos = rm.Vertices[vi];
+                    var nor = vi < rm.Normals.Length ? rm.Normals[vi] : new Vector3(0, 0, 1);
+                    _tmpVertexBuffer[vi * 8 + 0] = pos.X;
+                    _tmpVertexBuffer[vi * 8 + 1] = pos.Y;
+                    _tmpVertexBuffer[vi * 8 + 2] = pos.Z;
+                    _tmpVertexBuffer[vi * 8 + 3] = nor.X;
+                    _tmpVertexBuffer[vi * 8 + 4] = nor.Y;
+                    _tmpVertexBuffer[vi * 8 + 5] = nor.Z;
+                    if (vi < rm.TexCoords.Length)
+                    {
+                        _tmpVertexBuffer[vi * 8 + 6] = rm.TexCoords[vi].X;
+                        _tmpVertexBuffer[vi * 8 + 7] = rm.TexCoords[vi].Y;
+                    }
+                    else
+                    {
+                        _tmpVertexBuffer[vi * 8 + 6] = 0f;
+                        _tmpVertexBuffer[vi * 8 + 7] = 0f;
+                    }
+                }
+                GL.BindBuffer(BufferTarget.ArrayBuffer, rm.Vbo);
+                var handle = System.Runtime.InteropServices.GCHandle.Alloc(_tmpVertexBuffer, System.Runtime.InteropServices.GCHandleType.Pinned);
+                try
+                {
+                    GL.BufferSubData(BufferTarget.ArrayBuffer, IntPtr.Zero, required * sizeof(float), handle.AddrOfPinnedObject());
+                }
+                finally
+                {
+                    handle.Free();
+                }
+            }
+            _morphDirty = false;
+            _changedOriginalVertices.Clear();
         }
 
         GL.UseProgram(_modelProgram);

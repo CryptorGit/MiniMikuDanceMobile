@@ -271,6 +271,24 @@ public class PoseEstimator : IDisposable
         }
     }
 
+    public async Task<JointData[]> EstimateImageAsync(string imagePath, IProgress<float>? poseProgress = null)
+    {
+        const int jointCount = 33;
+        if (_session == null)
+        {
+            throw new InvalidOperationException("Pose estimation model not loaded.");
+        }
+
+        var meta = _session.InputMetadata.First();
+        var dims = meta.Value.Dimensions.Select(d => d <= 0 ? 1 : d).ToArray();
+
+        using var image = await Image.LoadAsync<Rgb24>(imagePath);
+        var jd = SearchBest(image, meta.Key, dims, jointCount, true);
+        jd.Timestamp = 0f;
+        poseProgress?.Report(1f);
+        return new[] { jd };
+    }
+
     public void Dispose()
     {
         _session?.Dispose();

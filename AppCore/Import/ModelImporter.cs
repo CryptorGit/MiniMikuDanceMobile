@@ -199,9 +199,21 @@ public class ModelImporter : IDisposable
             }
         }
         var morphDatas = new List<MorphData>(morphs.Length);
+        var nameCounts = new Dictionary<string, int>(StringComparer.OrdinalIgnoreCase);
         foreach (var m in morphs)
         {
             string name = string.IsNullOrEmpty(m.NameEnglish) ? m.Name : m.NameEnglish;
+            // Ensure unique morph names so left/right or duplicates are not collapsed later
+            if (nameCounts.TryGetValue(name, out var cnt))
+            {
+                cnt++;
+                nameCounts[name] = cnt;
+                name = $"{name} ({cnt})";
+            }
+            else
+            {
+                nameCounts[name] = 0;
+            }
             var md = new MorphData { Name = name, Type = m.MorphType };
             if (m.MorphType == MorphType.Vertex)
             {

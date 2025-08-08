@@ -176,6 +176,10 @@ public partial class MainPage : ContentPage
             {
                 _renderer.PanSensitivity = (float)v;
             };
+            setting.ZoomSensitivityChanged += v =>
+            {
+                _renderer.ZoomSensitivity = (float)v;
+            };
             setting.ShowBoneOutline = _renderer.ShowBoneOutline;
             setting.BoneOutlineChanged += show =>
             {
@@ -362,6 +366,7 @@ public partial class MainPage : ContentPage
         sv.HeightRatio = _bottomHeightRatio;
         sv.RotateSensitivity = _rotateSensitivity;
         sv.PanSensitivity = _panSensitivity;
+        sv.ZoomSensitivity = _renderer.ZoomSensitivity;
         sv.ShowBoneOutline = _renderer.ShowBoneOutline;
     }
 
@@ -696,10 +701,10 @@ public partial class MainPage : ContentPage
             }
             else if (name == "Analyze")
             {
-                var videoPath = MmdFileSystem.Ensure("Movie");
-                var ev = new ExplorerView(videoPath, new[] { ".mp4" });
+                var imagesPath = MmdFileSystem.Ensure("Movie");
+                var ev = new ExplorerView(imagesPath, new[] { ".png", ".jpg", ".jpeg", ".bmp", ".webp" });
                 ev.FileSelected += OnAnalyzeExplorerFileSelected;
-                ev.LoadDirectory(videoPath);
+                ev.LoadDirectory(imagesPath);
                 view = ev;
             }
             else if (name == "BONE")
@@ -832,8 +837,8 @@ public partial class MainPage : ContentPage
         }
         else if (name == "Analyze" && _bottomViews[name] is ExplorerView aev)
         {
-            var videoPath = MmdFileSystem.Ensure("Movie");
-            aev.LoadDirectory(videoPath);
+            var imagesPath = MmdFileSystem.Ensure("Movie");
+            aev.LoadDirectory(imagesPath);
         }
         else if (name == "MTOON" && _bottomViews[name] is LightingView mv)
         {
@@ -948,19 +953,13 @@ public partial class MainPage : ContentPage
     private void OnOpenInViewerClicked(object? sender, EventArgs e)
     {
         HideAllMenusAndLayout();
-        PmxImportDialog.IsVisible = true;
         SelectedModelPath.Text = string.Empty;
         _selectedModelPath = null;
         _modelDir = null;
         _modelScale = 1f;
-        UpdateLayout();
+        // Use the same mechanism as Estimate Pose: show bottom explorer and dialog overlay together
+        ShowExplorer("Open", PmxImportDialog, SelectedModelPath, ref _selectedModelPath);
     }
-
-    private void OnSelectPmxModelClicked(object? sender, EventArgs e)
-    {
-        ShowModelExplorer();
-    }
-
 
     private void OnEstimatePoseClicked(object? sender, EventArgs e)
     {
@@ -1116,11 +1115,9 @@ public partial class MainPage : ContentPage
 
     private void OnAnalyzeExplorerFileSelected(object? sender, string path)
     {
-        if (Path.GetExtension(path).ToLowerInvariant() != ".mp4")
-        {
-            return;
-        }
-
+        var ext = Path.GetExtension(path).ToLowerInvariant();
+        var ok = ext == ".png" || ext == ".jpg" || ext == ".jpeg" || ext == ".bmp" || ext == ".webp";
+        if (!ok) return;
         _selectedVideoPath = path;
         SelectedVideoPath.Text = path;
     }
@@ -1135,18 +1132,16 @@ public partial class MainPage : ContentPage
 
         RemoveBottomFeature("Analyze");
         PoseSelectMessage.IsVisible = false;
-        SetProgressVisibilityAndLayout(true, true, true);
+        // Photo mode: only show pose progress
+        _extractTotalFrames = 0;
+        _poseTotalFrames = 1;
+        SetProgressVisibilityAndLayout(true, false, true);
 
         try
         {
-            _extractTotalFrames = await App.Initializer.FrameExtractor.GetFrameCountAsync(_selectedVideoPath, 30);
-            _poseTotalFrames = _extractTotalFrames;
-            UpdateExtractProgress(0);
             UpdatePoseProgress(0);
-
-            string? path = await App.Initializer.AnalyzeVideoAsync(
+            string? path = await App.Initializer.AnalyzePhotoAsync(
                 _selectedVideoPath,
-                new Progress<float>(p => MainThread.BeginInvokeOnMainThread(() => UpdateExtractProgress(p))),
                 new Progress<float>(p => MainThread.BeginInvokeOnMainThread(() => UpdatePoseProgress(p))));
             if (!string.IsNullOrEmpty(path))
             {
@@ -1159,7 +1154,7 @@ public partial class MainPage : ContentPage
         }
         finally
         {
-            SetProgressVisibilityAndLayout(false, true, true);
+            SetProgressVisibilityAndLayout(false, false, true);
             _selectedVideoPath = null;
         }
     }

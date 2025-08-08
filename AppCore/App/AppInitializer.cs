@@ -109,6 +109,28 @@ public partial class AppInitializer : IDisposable
         return outPath;
     }
 
+    public async Task<string?> AnalyzePhotoAsync(string imagePath,
+        IProgress<float>? poseProgress = null)
+    {
+        if (PoseEstimator == null)
+            return null;
+        DataManager.Instance.CleanupTemp();
+        UIManager.Instance.SetMessage("Analyzing photo...");
+        Joints = await PoseEstimator.EstimateImageAsync(
+            imagePath,
+            new Progress<float>(p =>
+            {
+                UIManager.Instance.PoseProgress = p;
+                poseProgress?.Report(p);
+            }));
+        string outPath = Path.Combine(_poseOutputDir,
+            Path.GetFileNameWithoutExtension(imagePath) + ".json");
+        JSONUtil.Save(outPath, Joints);
+        UIManager.Instance.SetMessage("Analyze complete");
+        UIManager.Instance.PoseProgress = 0f;
+        return outPath;
+    }
+
     public void ToggleRecord()
     {
         if (Viewer == null || Recorder == null)

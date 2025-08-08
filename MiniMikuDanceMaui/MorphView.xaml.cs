@@ -1,4 +1,5 @@
 using Microsoft.Maui.Controls;
+using Microsoft.Maui.Dispatching;
 using System;
 using System.Collections.Generic;
 using MiniMikuDance.Import;
@@ -8,6 +9,7 @@ namespace MiniMikuDanceMaui;
 public partial class MorphView : ContentView
 {
     public event Action<string, double>? MorphValueChanged;
+    private readonly Dictionary<string, (IDispatcherTimer timer, double last)> _debouncers = new();
 
     public MorphView()
     {
@@ -43,7 +45,27 @@ public partial class MorphView : ContentView
             slider.ValueChanged += (s, e) =>
             {
                 valueLabel.Text = $"{e.NewValue:F2}";
-                MorphValueChanged?.Invoke(name, e.NewValue);
+                // Debounce updates to reduce CPU churn while dragging
+                if (!_debouncers.TryGetValue(name, out var entry))
+                {
+                    var t = Dispatcher.CreateTimer();
+                    t.Interval = TimeSpan.FromMilliseconds(16);
+                    t.IsRepeating = false;
+                    t.Tick += (ss, ee) =>
+                    {
+                        MorphValueChanged?.Invoke(name, _debouncers[name].last);
+                    };
+                    entry = (t, e.NewValue);
+                    _debouncers[name] = entry;
+                }
+                else
+                {
+                    entry.last = e.NewValue;
+                    _debouncers[name] = entry;
+                }
+                // restart single-shot timer
+                entry.timer.Stop();
+                entry.timer.Start();
             };
             MorphList.Children.Add(slider);
         }

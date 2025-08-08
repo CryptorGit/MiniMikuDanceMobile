@@ -79,19 +79,15 @@
                 <TapGestureRecognizer Tapped="OnOverlayTapped" />
             </BoxView.GestureRecognizers>
         </BoxView>
-        <Border x:Name="PmxImportDialog" IsVisible="False" Background="{StaticResource BackgroundColor}" Padding="8" ZIndex="30" WidthRequest="420" HeightRequest="160">
+        <Border x:Name="PmxImportDialog" IsVisible="False" Background="{StaticResource BackgroundColor}" Padding="8" ZIndex="30">
             <VerticalStackLayout Spacing="6">
-                <HorizontalStackLayout Spacing="6">
-                    <Label Text="Model" TextColor="{StaticResource TextColor}" WidthRequest="60" />
-                    <Label x:Name="SelectedModelPath"
-                           TextColor="{StaticResource TextColor}"
-                           FontSize="14"
-                           HorizontalOptions="FillAndExpand"
-                           LineBreakMode="CharacterWrap"
-                           MaxLines="2"
-                           WidthRequest="260" />
-                    <Button Text="参照" Clicked="OnSelectPmxModelClicked" />
-                </HorizontalStackLayout>
+                <Label Text="モデルファイルを以下から選択してください" TextColor="{StaticResource TextColor}" />
+                <Label x:Name="SelectedModelPath"
+                       TextColor="{StaticResource TextColor}"
+                       FontSize="14"
+                       HorizontalOptions="FillAndExpand"
+                       LineBreakMode="CharacterWrap"
+                       MaxLines="2" />
                 <HorizontalStackLayout HorizontalOptions="Center" Spacing="20">
                     <Button Text="インポート" Clicked="OnImportPmxClicked" />
                     <Button Text="キャンセル" Clicked="OnCancelImportClicked" />
@@ -100,7 +96,7 @@
         </Border>
         <Border x:Name="PoseSelectMessage" IsVisible="False" Background="{StaticResource BackgroundColor}" Padding="8" ZIndex="30">
             <VerticalStackLayout Spacing="6">
-                <Label Text="動画ファイルを以下から選択してください" TextColor="{StaticResource TextColor}" />
+                <Label Text="画像ファイルを以下から選択してください" TextColor="{StaticResource TextColor}" />
                 <Label x:Name="SelectedVideoPath" TextColor="{StaticResource TextColor}" FontSize="14" />
                 <HorizontalStackLayout HorizontalOptions="Center" Spacing="20">
                     <Button Text="Start" Clicked="OnStartEstimateClicked" />
