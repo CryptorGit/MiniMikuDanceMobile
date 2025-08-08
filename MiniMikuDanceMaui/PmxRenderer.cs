@@ -41,6 +41,7 @@ public class PmxRenderer : IDisposable
     private readonly Dictionary<int, List<(RenderMesh Mesh, int Index)>> _morphVertexMap = new();
     private readonly HashSet<int> _changedOriginalVertices = new();
     private readonly Dictionary<int, List<(Vector3 Offset, string Name)>> _vertexMorphContribs = new();
+    private readonly Dictionary<int, Vector3> _vertexMorphOffsets = new();
     public SKGLView? Viewer { get; set; }
     private int _gridVao;
     private int _gridVbo;
@@ -440,23 +441,36 @@ void main(){
         value = Math.Clamp(value, 0f, 1f);
         if (MathF.Abs(value) < 1e-5f) value = 0f;
 
+        _morphValues.TryGetValue(name, out var oldValue);
+        float delta = value - oldValue;
+        if (MathF.Abs(delta) < 1e-5f)
+            return;
+
         _morphValues[name] = value;
         _morphDirty = true;
 
-        // Recompute affected vertices from base with all contributing morphs
         foreach (var off in morph.Offsets)
         {
             int vid = off.Index;
             _changedOriginalVertices.Add(vid);
-            if (_morphVertexMap.TryGetValue(vid, out var list) && _vertexMorphContribs.TryGetValue(vid, out var contribs))
+
+            var total = _vertexMorphOffsets.TryGetValue(vid, out var current) ? current : Vector3.Zero;
+            if (_vertexMorphContribs.TryGetValue(vid, out var contribs))
             {
-                Vector3 total = Vector3.Zero;
                 for (int i = 0; i < contribs.Count; i++)
                 {
                     var (ofs, morphName) = contribs[i];
-                    if (_morphValues.TryGetValue(morphName, out var w) && w != 0f)
-                        total += ofs * w;
+                    if (string.Equals(morphName, name, StringComparison.OrdinalIgnoreCase))
+                    {
+                        total += ofs * delta;
+                        break;
+                    }
                 }
+            }
+            _vertexMorphOffsets[vid] = total;
+
+            if (_morphVertexMap.TryGetValue(vid, out var list))
+            {
                 foreach (var (mesh, idx) in list)
                 {
                     mesh.Vertices[idx] = mesh.BaseVertices[idx] + total;
@@ -605,6 +619,7 @@ void main(){
         _morphValues.Clear();
         _morphVertexMap.Clear();
         _vertexMorphContribs.Clear();
+        _vertexMorphOffsets.Clear();
         foreach (var morph in data.Morphs)
         {
             if (morph.Type != MorphType.Vertex) continue;
