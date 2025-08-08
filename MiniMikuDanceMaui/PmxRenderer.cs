@@ -455,7 +455,7 @@ void main(){
         }
         _meshes.Clear();
         _indexToHumanoidName.Clear();
-        _bones = data.Bones.ToList();
+        _bones = data.Bones;
         _worldMats = new System.Numerics.Matrix4x4[_bones.Count];
         _skinMats = new System.Numerics.Matrix4x4[_bones.Count];
         foreach (var (name, idx) in data.HumanoidBoneList)
