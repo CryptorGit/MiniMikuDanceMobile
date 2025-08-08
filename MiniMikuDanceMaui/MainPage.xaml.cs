@@ -631,6 +631,7 @@ public partial class MainPage : ContentPage
 
 
 
+                MiniMikuDance.Import.ModelImporter.CacheCapacity = _settings.TextureCacheSize;
                 using var importer = new MiniMikuDance.Import.ModelImporter();
                 MiniMikuDance.Import.ModelData data;
                 if (!string.IsNullOrEmpty(result.FullPath))
@@ -1022,6 +1023,7 @@ public partial class MainPage : ContentPage
         try
         {
             _modelScale = 1f;
+            ModelImporter.CacheCapacity = _settings.TextureCacheSize;
             using var importer = new ModelImporter { Scale = _modelScale };
             var data = await Task.Run(() => importer.ImportModel(_selectedModelPath));
 
