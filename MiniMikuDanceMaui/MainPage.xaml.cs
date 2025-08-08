@@ -1002,7 +1002,7 @@ public partial class MainPage : ContentPage
 
         _selectedModelPath = path;
         _modelDir = Path.GetDirectoryName(path);
-        SelectedModelPath.Text = path;
+        SelectedModelPath.Text = Path.GetFileName(path);
     }
 
     private async void OnImportPmxClicked(object? sender, EventArgs e)
