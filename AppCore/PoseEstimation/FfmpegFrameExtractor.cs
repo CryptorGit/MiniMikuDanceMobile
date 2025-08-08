@@ -6,6 +6,26 @@ public class FfmpegFrameExtractor : IVideoFrameExtractor
 {
     public Action<float>? OnProgress { get; set; }
 
+    private static string? _cachedFfmpegPath;
+
+    /// <summary>
+    /// キャッシュしているffmpegパスを再探索します。
+    /// </summary>
+    public static void ResetFfmpegPath() => _cachedFfmpegPath = null;
+
+    /// <summary>
+    /// キャッシュされたffmpegパスの存在を検証します。
+    /// </summary>
+    public static bool RevalidateFfmpegPath()
+    {
+        if (string.IsNullOrEmpty(_cachedFfmpegPath) || !File.Exists(_cachedFfmpegPath))
+        {
+            _cachedFfmpegPath = null;
+            return false;
+        }
+        return true;
+    }
+
     public async Task<int> GetFrameCountAsync(string videoPath, int fps)
     {
         var ffmpeg = FindFfmpeg();
@@ -16,10 +36,14 @@ public class FfmpegFrameExtractor : IVideoFrameExtractor
     }
     private static string? FindFfmpeg()
     {
+        if (!string.IsNullOrEmpty(_cachedFfmpegPath) && File.Exists(_cachedFfmpegPath))
+            return _cachedFfmpegPath;
+
         var env = Environment.GetEnvironmentVariable("FFMPEG_PATH");
         if (!string.IsNullOrEmpty(env) && File.Exists(env))
         {
-            return env;
+            _cachedFfmpegPath = env;
+            return _cachedFfmpegPath;
         }
 
         var paths = (Environment.GetEnvironmentVariable("PATH") ?? string.Empty)
@@ -28,8 +52,12 @@ public class FfmpegFrameExtractor : IVideoFrameExtractor
         {
             var exe = Path.Combine(p, OperatingSystem.IsWindows() ? "ffmpeg.exe" : "ffmpeg");
             if (File.Exists(exe))
-                return exe;
+            {
+                _cachedFfmpegPath = exe;
+                return _cachedFfmpegPath;
+            }
         }
+        _cachedFfmpegPath = null;
         return null;
     }
 
