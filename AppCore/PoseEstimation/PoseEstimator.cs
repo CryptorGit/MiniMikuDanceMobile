@@ -27,6 +27,11 @@ public class PoseEstimator : IDisposable
     private readonly InferenceSession? _session;
     private readonly IVideoFrameExtractor _extractor;
 
+    private DenseTensor<float>? _tensorCache;
+    private Rgb24[]? _pixelCache;
+    private int _cachedWidth;
+    private int _cachedHeight;
+
     private static readonly int[] LrMap = new int[]
     {
         0,4,5,6,1,2,3,8,7,10,9,
@@ -59,20 +64,34 @@ public class PoseEstimator : IDisposable
         return n > 0 ? sum / n : float.NegativeInfinity;
     }
 
-    private (Vector3[] pos, float[] conf) RunModel(Image<Rgb24> img, string inputName, int[] dims, int jointCount)
+    private void EnsureBuffers(int[] dims)
     {
         int h = dims.Length > 1 ? dims[1] : 256;
         int w = dims.Length > 2 ? dims[2] : 256;
-        var tensor = new DenseTensor<float>(dims);
+        if (_tensorCache == null || _cachedWidth != w || _cachedHeight != h)
+        {
+            _tensorCache = new DenseTensor<float>(dims);
+            _pixelCache = new Rgb24[w * h];
+            _cachedWidth = w;
+            _cachedHeight = h;
+        }
+        else if (_pixelCache == null || _pixelCache.Length != w * h)
+        {
+            _pixelCache = new Rgb24[w * h];
+        }
+    }
 
-        int pixelCount = w * h;
-        var pixels = new Rgb24[pixelCount];
+    private (Vector3[] pos, float[] conf) RunModel(Image<Rgb24> img, string inputName, int[] dims, int jointCount)
+    {
+        EnsureBuffers(dims);
+        var tensor = _tensorCache!;
+        var pixels = _pixelCache!;
         img.CopyPixelDataTo(pixels);
 
         float inv = 1f / 255f;
         var dst = MemoryMarshal.Cast<float, Vector3>(tensor.Buffer.Span);
 
-        for (int i = 0; i < pixelCount; i++)
+        for (int i = 0; i < pixels.Length; i++)
         {
             var p = pixels[i];
             dst[i] = new Vector3(p.R, p.G, p.B) * inv;
