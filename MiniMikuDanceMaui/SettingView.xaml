@@ -16,6 +16,9 @@
         <Label Text="Zoom Sensitivity" TextColor="{StaticResource TextColor}"/>
         <Slider x:Name="ZoomSlider" Minimum="0.05" Maximum="5" Value="1"
                 ValueChanged="OnZoomChanged"/>
+        <Label Text="IKボーン球サイズ" TextColor="{StaticResource TextColor}"/>
+        <Slider x:Name="IkBoneSizeSlider" Minimum="0.005" Maximum="0.05" Value="0.0125"
+                ValueChanged="OnIkBoneSizeChanged"/>
         <Label Text="Stage Size" TextColor="{StaticResource TextColor}"/>
         <Entry x:Name="StageSizeEntry" Text="30" WidthRequest="60"
                TextColor="{StaticResource TextColor}" Keyboard="Numeric"
