@@ -491,7 +491,7 @@ void main(){
         GL.BindVertexArray(0);
     }
 
-    private void DrawIkBones(Matrix4 modelMat)
+    private void DrawIkBones()
     {
         if (_ikBones.Count == 0)
             return;
@@ -504,7 +504,7 @@ void main(){
         GL.BindVertexArray(_ikBoneVao);
         for (int i = 0; i < _ikBones.Count; i++)
         {
-            var mat = modelMat * Matrix4.CreateTranslation(_ikBones[i].Position.ToOpenTK()) * Matrix4.CreateScale(0.05f);
+            var mat = Matrix4.CreateTranslation(_ikBones[i].Position.ToOpenTK()) * Matrix4.CreateScale(0.05f);
             GL.UniformMatrix4(_modelLoc, false, ref mat);
             var color = _ikBones[i].PmxBoneIndex == sel ? new Vector4(1f, 0f, 0f, 1f) : new Vector4(0f, 1f, 0f, 1f);
             GL.Uniform4(_colorLoc, color);
@@ -1342,7 +1342,7 @@ void main(){
 
         if (ShowIkBones && _ikBones.Count > 0)
         {
-            DrawIkBones(modelMat);
+            DrawIkBones();
             if (IkManager.SelectedBoneIndex >= 0)
             {
                 DrawInteractionPlane(IkManager.DragPlane, modelMat);
