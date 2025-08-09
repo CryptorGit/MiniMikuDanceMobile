@@ -44,6 +44,12 @@ public class AppSettings
     /// <summary>ボーン選択時のピクセル閾値。</summary>
     public float BonePickPixels { get; set; } = DefaultBonePickPixels;
 
+    /// <summary>IKボーン球サイズのデフォルト値。</summary>
+    public const float DefaultIkBoneScale = 0.0125f;
+
+    /// <summary>IKボーン球サイズ。</summary>
+    public float IkBoneScale { get; set; } = DefaultIkBoneScale;
+
     /// <summary>テクスチャキャッシュ数のデフォルト値。</summary>
     public const int DefaultTextureCacheSize = 64;
 

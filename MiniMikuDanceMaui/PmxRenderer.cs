@@ -156,6 +156,20 @@ public class PmxRenderer : IDisposable
         }
     }
 
+    private float _ikBoneScale = AppSettings.DefaultIkBoneScale;
+    public float IkBoneScale
+    {
+        get => _ikBoneScale;
+        set
+        {
+            if (_ikBoneScale != value)
+            {
+                _ikBoneScale = value;
+                Viewer?.InvalidateSurface();
+            }
+        }
+    }
+
     private float _stageSize = AppSettings.DefaultStageSize;
     public float StageSize
     {
@@ -536,7 +550,7 @@ void main(){
         {
             var ik = _ikBones[i];
             var worldPos = Vector3.TransformPosition(ik.Position.ToOpenTK(), _modelTransform);
-            float scale = 0.0125f * _distance * IkManager.ScaleFactor;
+            float scale = _ikBoneScale * _distance * IkManager.ScaleFactor;
             if (ik.IsSelected)
                 scale *= 1.4f;
             var mat = Matrix4.CreateScale(scale) * Matrix4.CreateTranslation(worldPos);

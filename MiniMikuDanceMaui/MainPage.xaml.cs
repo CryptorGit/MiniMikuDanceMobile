@@ -174,6 +174,7 @@ public partial class MainPage : ContentPage
         _renderer.DefaultCameraTargetY = _settings.CameraTargetY;
         _renderer.BonePickPixels = _settings.BonePickPixels;
         _renderer.ShowIkBones = _poseMode;
+        _renderer.IkBoneScale = _settings.IkBoneScale;
 
         if (Viewer is SKGLView glView)
         {
@@ -219,6 +220,13 @@ public partial class MainPage : ContentPage
             setting.ZoomSensitivityChanged += v =>
             {
                 _renderer.ZoomSensitivity = (float)v;
+            };
+            setting.IkBoneSize = _settings.IkBoneScale;
+            setting.IkBoneSizeChanged += v =>
+            {
+                _renderer.IkBoneScale = (float)v;
+                _settings.IkBoneScale = (float)v;
+                _settings.Save();
             };
             setting.ShowBoneOutline = _renderer.ShowBoneOutline;
             setting.BoneOutlineChanged += show =>
@@ -269,6 +277,7 @@ public partial class MainPage : ContentPage
             sv.HeightRatio = _bottomHeightRatio;
             sv.RotateSensitivity = _renderer.RotateSensitivity;
             sv.PanSensitivity = _renderer.PanSensitivity;
+            sv.IkBoneSize = _renderer.IkBoneScale;
         }
         UpdateOverlay();
     }
