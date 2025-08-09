@@ -1,4 +1,5 @@
 using System;
+using System.Buffers;
 using OpenTK.Mathematics;
 using OpenTK.Graphics.ES30;
 using GL = OpenTK.Graphics.ES30.GL;
@@ -345,7 +346,8 @@ void main(){
     {
         int range = (int)_stageSize;
         _gridVertexCount = (range * 2 + 1) * 4;
-        float[] grid = new float[_gridVertexCount * 3];
+        int gridSize = _gridVertexCount * 3;
+        float[] grid = ArrayPool<float>.Shared.Rent(gridSize);
         int idx = 0;
         for (int i = -range; i <= range; i++)
         {
@@ -358,11 +360,12 @@ void main(){
         if (_gridVbo == 0) _gridVbo = GL.GenBuffer();
         GL.BindVertexArray(_gridVao);
         GL.BindBuffer(BufferTarget.ArrayBuffer, _gridVbo);
-        GL.BufferData(BufferTarget.ArrayBuffer, grid.Length * sizeof(float), grid, BufferUsageHint.StaticDraw);
+        GL.BufferData(BufferTarget.ArrayBuffer, gridSize * sizeof(float), grid, BufferUsageHint.StaticDraw);
         GL.VertexAttribPointer(0, 3, VertexAttribPointerType.Float, false, 3 * sizeof(float), 0);
         GL.EnableVertexAttribArray(0);
         GL.BindBuffer(BufferTarget.ArrayBuffer, 0);
         GL.BindVertexArray(0);
+        ArrayPool<float>.Shared.Return(grid);
 
         float r = _stageSize;
         float[] plane =
