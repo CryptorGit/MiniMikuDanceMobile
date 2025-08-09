@@ -76,6 +76,7 @@ public static class IkManager
         { IkBoneType.RightFoot, new Vector3(0.2f, -0.8f, 0f) }
     };
     private static float _scaleFactor = 1f;
+    public static float ScaleFactor => _scaleFactor;
 
     private static bool _mappingLoaded;
 

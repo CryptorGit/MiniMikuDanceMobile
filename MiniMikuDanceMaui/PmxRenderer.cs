@@ -529,7 +529,9 @@ void main(){
         {
             var ik = _ikBones[i];
             var worldPos = Vector3.TransformPosition(ik.Position.ToOpenTK(), _modelTransform);
-            float scale = ik.IsSelected ? 0.07f : 0.05f;
+            float scale = 0.0125f * _distance * IkManager.ScaleFactor;
+            if (ik.IsSelected)
+                scale *= 1.4f;
             var mat = Matrix4.CreateScale(scale) * Matrix4.CreateTranslation(worldPos);
             GL.UniformMatrix4(_modelLoc, false, ref mat);
             var color = ik.IsSelected ? new Vector4(1f, 0f, 0f, 1f) : new Vector4(0f, 1f, 0f, 1f);
