@@ -89,9 +89,19 @@ public class RecorderController
     {
         if (!_recording || _frameChannel == null) return;
 
+        if (_width != width || _height != height)
+        {
+            _width = width;
+            _height = height;
+            while (_imagePool.TryDequeue(out var oldImage))
+            {
+                oldImage.Dispose();
+            }
+        }
+
         if (!_imagePool.TryDequeue(out var image))
         {
-            image = new Image<Rgba32>(_width, _height);
+            image = new Image<Rgba32>(width, height);
         }
 
         CopyToImage(rgba, image, width, height);
