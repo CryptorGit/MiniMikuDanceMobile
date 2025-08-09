@@ -103,7 +103,7 @@ public static class IkManager
             var bonePos = GetBonePositionFunc(idx);
             var camPos = GetCameraPositionFunc();
             var normal = Vector3.Normalize(camPos - bonePos);
-            _dragPlane = new Plane(bonePos, normal);
+            _dragPlane = new Plane(normal, -Vector3.Dot(normal, bonePos));
         }
         return idx;
     }
