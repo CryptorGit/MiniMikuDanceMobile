@@ -38,6 +38,12 @@ public class AppSettings
     /// <summary>カメラの注視点Y座標。</summary>
     public float CameraTargetY { get; set; } = DefaultCameraTargetY;
 
+    /// <summary>ボーン選択のピクセル閾値のデフォルト値。</summary>
+    public const float DefaultBonePickPixels = 60f;
+
+    /// <summary>ボーン選択時のピクセル閾値。</summary>
+    public float BonePickPixels { get; set; } = DefaultBonePickPixels;
+
     /// <summary>テクスチャキャッシュ数のデフォルト値。</summary>
     public const int DefaultTextureCacheSize = 64;
 
