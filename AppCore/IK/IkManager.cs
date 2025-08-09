@@ -37,23 +37,22 @@ public static class IkManager
             if (ik == null)
                 continue;
 
+            var bRoot = modelBones[i];
+            var rootPos = Vector3.Transform(Vector3.Zero, bRoot.BindMatrix);
+            BonesDict[i] = new IkBone(i, rootPos, bRoot.Rotation);
+
             var chainIndices = new List<int>(ik.Chain);
             chainIndices.Reverse();
             chainIndices.Add(ik.Target);
 
-            foreach (var idx in chainIndices)
-            {
-                if (!BonesDict.ContainsKey(idx))
-                {
-                    var b = modelBones[idx];
-                    var pos = Vector3.Transform(Vector3.Zero, b.BindMatrix);
-                    BonesDict[idx] = new IkBone(idx, pos, b.Rotation);
-                }
-            }
-
             var chain = new IkBone[chainIndices.Count];
             for (int j = 0; j < chainIndices.Count; j++)
-                chain[j] = BonesDict[chainIndices[j]];
+            {
+                var idx = chainIndices[j];
+                var b = modelBones[idx];
+                var pos = Vector3.Transform(Vector3.Zero, b.BindMatrix);
+                chain[j] = new IkBone(idx, pos, b.Rotation);
+            }
 
             IIkSolver solver;
             if (chain.Length == 3)
@@ -69,8 +68,8 @@ public static class IkManager
                     lengths[j] = Vector3.Distance(chain[j].Position, chain[j + 1].Position);
                 solver = new FabrikSolver(lengths);
             }
-            Solvers[chain[^1].PmxBoneIndex] = (solver, chain);
-            Trace.WriteLine($"IKチェーンを構築しました: {string.Join(" -> ", chainIndices)}");
+            Solvers[i] = (solver, chain);
+            Trace.WriteLine($"IKチェーンを構築しました: {i} -> {string.Join(" -> ", chainIndices)}");
         }
     }
 
@@ -136,8 +135,10 @@ public static class IkManager
         {
             bone.Position = position;
             Trace.WriteLine($"UpdateTarget: index={boneIndex} pos={position}");
+            SetBoneTranslation?.Invoke(boneIndex, position.ToOpenTK());
             if (Solvers.TryGetValue(boneIndex, out var solver))
             {
+                solver.Chain[^1].Position = position;
                 solver.Solver.Solve(solver.Chain);
                 foreach (var b in solver.Chain)
                 {
