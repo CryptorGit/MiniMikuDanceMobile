@@ -626,7 +626,7 @@ void main(){
 
         int result = -1;
         float scale = _defaultCameraDistance != 0 ? _distance / _defaultCameraDistance : 1f;
-        float best = Math.Clamp(_bonePickPixels * scale, 50f, 80f); // ピクセル閾値
+        float best = _bonePickPixels * scale; // ピクセル閾値
         for (int i = 0; i < _worldMats.Length && i < _bones.Count; i++)
         {
             var pos = _worldMats[i].Translation.ToOpenTK();
