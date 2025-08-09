@@ -606,6 +606,13 @@ void main(){
         return _cameraPos.ToNumerics();
     }
 
+    public System.Numerics.Vector3 WorldToModel(System.Numerics.Vector3 worldPos)
+    {
+        Matrix4.Invert(_modelTransform, out var inv);
+        var pos = Vector3.TransformPosition(worldPos.ToOpenTK(), inv);
+        return pos.ToNumerics();
+    }
+
     public (System.Numerics.Vector3 Origin, System.Numerics.Vector3 Direction) ScreenPointToRay(float screenX, float screenY)
     {
         if (_width == 0 || _height == 0)
