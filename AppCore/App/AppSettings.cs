@@ -44,8 +44,8 @@ public class AppSettings
     /// <summary>ボーン選択時のピクセル閾値。</summary>
     public float BonePickPixels { get; set; } = DefaultBonePickPixels;
 
-    /// <summary>IKボーン球サイズのデフォルト値 (0.005f)。</summary>
-    public const float DefaultIkBoneScale = 0.005f;
+    /// <summary>IKボーン球サイズのデフォルト値 (0.001f)。</summary>
+    public const float DefaultIkBoneScale = 0.001f;
 
     /// <summary>IKボーン球サイズ。</summary>
     public float IkBoneScale { get; set; } = DefaultIkBoneScale;
