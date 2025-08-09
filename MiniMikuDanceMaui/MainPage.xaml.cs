@@ -129,6 +129,8 @@ public partial class MainPage : ContentPage
             IkManager.PickFunc = _renderer.PickBone;
             IkManager.GetBonePositionFunc = _renderer.GetBoneWorldPosition;
             IkManager.GetCameraPositionFunc = _renderer.GetCameraPosition;
+            IkManager.SetBoneRotation = _renderer.SetBoneRotation;
+            IkManager.SetBoneTranslation = _renderer.SetBoneTranslation;
         }
         else
         {
@@ -136,6 +138,8 @@ public partial class MainPage : ContentPage
             IkManager.PickFunc = null;
             IkManager.GetBonePositionFunc = null;
             IkManager.GetCameraPositionFunc = null;
+            IkManager.SetBoneRotation = null;
+            IkManager.SetBoneTranslation = null;
         }
         _renderer.ShowIkBones = _poseMode;
         Viewer?.InvalidateSurface();

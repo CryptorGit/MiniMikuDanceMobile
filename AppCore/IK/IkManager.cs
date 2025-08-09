@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using System.Numerics;
 using MiniMikuDance.Import;
+using MiniMikuDance.Util;
 
 namespace MiniMikuDance.IK;
 
@@ -44,6 +45,8 @@ public static class IkManager
     public static System.Func<float, float, int>? PickFunc { get; set; }
     public static System.Func<int, Vector3>? GetBonePositionFunc { get; set; }
     public static System.Func<Vector3>? GetCameraPositionFunc { get; set; }
+    public static System.Action<int, OpenTK.Mathematics.Vector3>? SetBoneRotation { get; set; }
+    public static System.Action<int, OpenTK.Mathematics.Vector3>? SetBoneTranslation { get; set; }
 
     private static int _selectedBoneIndex = -1;
     private static Plane _dragPlane;
@@ -82,15 +85,6 @@ public static class IkManager
     public static IkBone? Get(IkBoneType type)
     {
         return BonesDict.TryGetValue(type, out var bone) ? bone : null;
-    }
-
-    public static void Update(IkBoneType type, Vector3 position, Quaternion rotation)
-    {
-        if (BonesDict.TryGetValue(type, out var bone))
-        {
-            bone.Position = position;
-            bone.Rotation = rotation;
-        }
     }
 
     // レンダラーから提供された情報を用いてボーン選択を行う
@@ -135,6 +129,11 @@ public static class IkManager
             if (Solvers.TryGetValue(boneIndex, out var solver))
             {
                 solver.Solver.Solve(solver.Chain);
+                foreach (var b in solver.Chain)
+                {
+                    SetBoneRotation?.Invoke(b.PmxBoneIndex, b.Rotation.ToEulerDegrees().ToOpenTK());
+                    SetBoneTranslation?.Invoke(b.PmxBoneIndex, b.Position.ToOpenTK());
+                }
             }
         }
     }
