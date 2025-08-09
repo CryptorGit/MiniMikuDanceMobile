@@ -126,7 +126,7 @@ public partial class MainPage : ContentPage
             }
             catch (Exception ex)
             {
-                Trace.WriteLine($"SetIkBones failed: {ex.Message}");
+                System.Diagnostics.Trace.WriteLine($"SetIkBones failed: {ex.Message}");
             }
             IkManager.PickFunc = _renderer.PickBone;
             IkManager.GetBonePositionFunc = _renderer.GetBoneWorldPosition;
@@ -639,7 +639,7 @@ public partial class MainPage : ContentPage
                 }
                 catch (Exception ex)
                 {
-                    Trace.WriteLine($"SetIkBones failed: {ex.Message}");
+                    System.Diagnostics.Trace.WriteLine($"SetIkBones failed: {ex.Message}");
                 }
                 IkManager.PickFunc = _renderer.PickBone;
                 IkManager.GetBonePositionFunc = _renderer.GetBoneWorldPosition;
