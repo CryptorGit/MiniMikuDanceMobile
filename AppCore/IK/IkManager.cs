@@ -118,23 +118,33 @@ public static class IkManager
         _mappingLoaded = true;
     }
 
-    public static void Initialize(IReadOnlyList<BoneData> modelBones)
+    /// <summary>
+    /// VRChat 相当の11ボーン構成を生成する
+    /// </summary>
+    /// <param name="modelBones">PMXモデルのボーン一覧</param>
+    public static void GenerateVrChatSkeleton(IReadOnlyList<BoneData> modelBones)
     {
-        if (BonesDict.Count > 0) return;
+        Clear();
         LoadMappings();
-        foreach (var kv in BoneNames)
+        foreach (IkBoneType type in System.Enum.GetValues<IkBoneType>())
         {
-            int idx = FindBoneIndex(modelBones, kv.Value);
+            if (!BoneNames.TryGetValue(type, out var names))
+                continue;
+            int idx = FindBoneIndex(modelBones, names);
             if (idx >= 0)
             {
                 var b = modelBones[idx];
                 var ik = new IkBone(idx, b.BindMatrix.Translation, Quaternion.Identity);
-                BonesDict[kv.Key] = ik;
+                BonesDict[type] = ik;
                 BoneIndexDict[idx] = ik;
+            }
+            else if (type == IkBoneType.Hip)
+            {
+                BonesDict[type] = new IkBone(-1, Vector3.Zero, Quaternion.Identity);
             }
             else
             {
-                CreateVirtualBone(kv.Key);
+                CreateVirtualBone(type);
             }
         }
         SetupSolvers();
