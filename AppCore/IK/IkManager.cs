@@ -37,6 +37,17 @@ public static class IkManager
     };
 
     private static readonly Dictionary<IkBoneType, IkBone> BonesDict = new();
+    private static readonly Dictionary<int, IkBone> BoneIndexDict = new();
+
+    // レンダラーから提供される各種処理を委譲用デリゲートとして保持
+    public static System.Func<float, float, int>? PickFunc { get; set; }
+    public static System.Func<int, Vector3>? GetBonePositionFunc { get; set; }
+    public static System.Func<Vector3>? GetCameraPositionFunc { get; set; }
+
+    private static int _selectedBoneIndex = -1;
+    private static Plane _dragPlane;
+
+    public static int SelectedBoneIndex => _selectedBoneIndex;
 
     public static IReadOnlyDictionary<IkBoneType, IkBone> Bones => BonesDict;
 
@@ -49,7 +60,9 @@ public static class IkManager
             if (idx >= 0)
             {
                 var b = modelBones[idx];
-                BonesDict[kv.Key] = new IkBone(idx, b.BindMatrix.Translation, Quaternion.Identity);
+                var ik = new IkBone(idx, b.BindMatrix.Translation, Quaternion.Identity);
+                BonesDict[kv.Key] = ik;
+                BoneIndexDict[idx] = ik;
             }
         }
     }
@@ -77,8 +90,56 @@ public static class IkManager
         }
     }
 
+    // レンダラーから提供された情報を用いてボーン選択を行う
+    public static int PickBone(float screenX, float screenY)
+    {
+        if (PickFunc == null || GetBonePositionFunc == null || GetCameraPositionFunc == null)
+            return -1;
+
+        int idx = PickFunc(screenX, screenY);
+        _selectedBoneIndex = idx;
+        if (idx >= 0)
+        {
+            var bonePos = GetBonePositionFunc(idx);
+            var camPos = GetCameraPositionFunc();
+            var normal = Vector3.Normalize(camPos - bonePos);
+            _dragPlane = new Plane(bonePos, normal);
+        }
+        return idx;
+    }
+
+    // 選択中ボーンのドラッグ平面との交点を計算
+    public static Vector3? IntersectDragPlane((Vector3 Origin, Vector3 Direction) ray)
+    {
+        if (_selectedBoneIndex < 0)
+            return null;
+
+        var denom = Vector3.Dot(_dragPlane.Normal, ray.Direction);
+        if (System.Math.Abs(denom) < 1e-6f)
+            return null;
+        var t = -(Vector3.Dot(_dragPlane.Normal, ray.Origin) + _dragPlane.D) / denom;
+        if (t < 0)
+            return null;
+        return ray.Origin + ray.Direction * t;
+    }
+
+    public static void UpdateTarget(int boneIndex, Vector3 position)
+    {
+        if (BoneIndexDict.TryGetValue(boneIndex, out var bone))
+        {
+            bone.Position = position;
+        }
+    }
+
+    public static void ReleaseSelection()
+    {
+        _selectedBoneIndex = -1;
+    }
+
     public static void Clear()
     {
         BonesDict.Clear();
+        BoneIndexDict.Clear();
+        ReleaseSelection();
     }
 }
