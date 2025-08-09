@@ -144,7 +144,16 @@ public static class IkManager
 
         var t = -(Vector3.Dot(_dragPlane.Normal, origin) + _dragPlane.D) / denom;
         if (t < 0)
-            return null;
+        {
+            // Z 軸反転によりレイ方向が逆転した場合は補正する
+            dir = -dir;
+            denom = Vector3.Dot(_dragPlane.Normal, dir);
+            if (System.Math.Abs(denom) < 1e-6f)
+                return null;
+            t = -(Vector3.Dot(_dragPlane.Normal, origin) + _dragPlane.D) / denom;
+            if (t < 0)
+                return null;
+        }
 
         return origin + dir * t;
     }
