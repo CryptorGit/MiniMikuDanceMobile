@@ -6,6 +6,7 @@ using System.Diagnostics;
 using System;
 using System.IO;
 using MauiIcons.Material.Outlined;
+using MauiIcons.Material;
 using MiniMikuDance.Data;
 using Microsoft.Maui.Storage;
 
@@ -35,6 +36,7 @@ public static class MauiProgram
             // ← 型パラメータで自分の App クラスを渡す
             .UseMauiApp<App>()
             .UseMaterialOutlinedMauiIcons()
+            .UseMaterialMauiIcons()
             .UseSkiaSharp();
 
         return builder.Build();

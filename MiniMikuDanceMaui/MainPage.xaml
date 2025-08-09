@@ -36,31 +36,33 @@
             </Label>
             <Grid HorizontalOptions="EndAndExpand" VerticalOptions="Center">
                 <Switch x:Name="PoseModeSwitch" Toggled="OnPoseModeToggled" HorizontalOptions="End" />
-                <Label x:Name="CameraIcon"
-                       mi:MauiIcon.Value="{mi:Material Icon=PhotoCamera, IconColor=Gray}"
+                <mi:MauiIcon Icon="{mi:Material Icon=PhotoCamera}"
+                       IconColor="Gray"
+                       x:Name="CameraIcon"
                        HorizontalOptions="End"
                        VerticalOptions="Center">
-                    <Label.Triggers>
-                        <DataTrigger TargetType="Label"
+                    <mi:MauiIcon.Triggers>
+                        <DataTrigger TargetType="mi:MauiIcon"
                                     Binding="{Binding IsToggled, Source={x:Reference PoseModeSwitch}}"
                                     Value="True">
                             <Setter Property="IsVisible" Value="False" />
                         </DataTrigger>
-                    </Label.Triggers>
-                </Label>
-                <Label x:Name="PoseIcon"
-                       mi:MauiIcon.Value="{mi:Material Icon=AccessibilityNew, IconColor=Green}"
+                    </mi:MauiIcon.Triggers>
+                </mi:MauiIcon>
+                <mi:MauiIcon Icon="{mi:Material Icon=AccessibilityNew}"
+                       IconColor="Green"
+                       x:Name="PoseIcon"
                        HorizontalOptions="End"
                        VerticalOptions="Center"
                        IsVisible="False">
-                    <Label.Triggers>
-                        <DataTrigger TargetType="Label"
+                    <mi:MauiIcon.Triggers>
+                        <DataTrigger TargetType="mi:MauiIcon"
                                     Binding="{Binding IsToggled, Source={x:Reference PoseModeSwitch}}"
                                     Value="True">
                             <Setter Property="IsVisible" Value="True" />
                         </DataTrigger>
-                    </Label.Triggers>
-                </Label>
+                    </mi:MauiIcon.Triggers>
+                </mi:MauiIcon>
             </Grid>
         </HorizontalStackLayout>
         <Border x:Name="ViewMenu" IsVisible="False" Background="{StaticResource BackgroundColor}" Padding="0" ZIndex="20">

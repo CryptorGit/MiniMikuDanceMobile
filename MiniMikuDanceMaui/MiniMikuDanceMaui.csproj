@@ -22,6 +22,7 @@
     <ProjectReference Include="..\AppCore\AppCore.csproj" />
   </ItemGroup>
     <ItemGroup>
+      <PackageReference Include="AathifMahir.Maui.MauiIcons.Material" Version="4.0.0" />
       <PackageReference Include="AathifMahir.Maui.MauiIcons.Material.Outlined" Version="4.0.0" />
       <PackageReference Include="Microsoft.Maui.Controls" Version="9.0.90" />
       <PackageReference Include="Microsoft.Maui.Graphics.Skia" Version="9.0.90" />
