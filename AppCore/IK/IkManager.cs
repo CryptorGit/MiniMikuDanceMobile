@@ -122,16 +122,19 @@ public static class IkManager
     /// <summary>
     /// VRChat 相当の11ボーン構成を生成する
     /// </summary>
-    /// <param name="modelBones">PMXモデルのボーン一覧</param>
-    public static void GenerateVrChatSkeleton(IReadOnlyList<BoneData> modelBones)
+    /// <param name="model">読み込まれたモデルデータ</param>
+    public static void GenerateVrChatSkeleton(ModelData model)
     {
         Clear();
         LoadMappings();
+        var modelBones = model.Bones;
         foreach (IkBoneType type in System.Enum.GetValues<IkBoneType>())
         {
             if (!BoneNames.TryGetValue(type, out var names))
                 continue;
-            int idx = FindBoneIndex(modelBones, names);
+            int idx = FindMappedBoneIndex(model.HumanoidBoneList, names);
+            if (idx < 0)
+                idx = FindBoneIndex(modelBones, names);
             if (idx >= 0)
             {
                 var b = modelBones[idx];
@@ -142,13 +145,28 @@ public static class IkManager
             else if (type == IkBoneType.Hip)
             {
                 BonesDict[type] = new IkBone(-1, Vector3.Zero, Quaternion.Identity);
+                System.Diagnostics.Trace.WriteLine($"IK bone mapping failed for {type}");
             }
             else
             {
                 CreateVirtualBone(type);
+                System.Diagnostics.Trace.WriteLine($"IK bone mapping failed for {type}");
             }
         }
         SetupSolvers();
+    }
+
+    private static int FindMappedBoneIndex(IEnumerable<(string Name, int Index)> mappedBones, IEnumerable<string> names)
+    {
+        foreach (var n in names)
+        {
+            foreach (var (name, idx) in mappedBones)
+            {
+                if (string.Equals(name, n, System.StringComparison.OrdinalIgnoreCase))
+                    return idx;
+            }
+        }
+        return -1;
     }
 
     private static int FindBoneIndex(IReadOnlyList<BoneData> bones, IEnumerable<string> names)
