@@ -1,4 +1,5 @@
 using System.Numerics;
+using System.Collections.Generic;
 
 namespace MiniMikuDance.Import;
 
@@ -10,4 +11,11 @@ public class BoneData
     public Vector3 Translation { get; set; } = Vector3.Zero;
     public Matrix4x4 BindMatrix { get; set; } = Matrix4x4.Identity;
     public Matrix4x4 InverseBindMatrix { get; set; } = Matrix4x4.Identity;
+    public IkInfo? Ik { get; set; }
+}
+
+public class IkInfo
+{
+    public int Target { get; set; } = -1;
+    public List<int> Chain { get; } = new();
 }
