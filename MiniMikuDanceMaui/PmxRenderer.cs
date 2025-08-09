@@ -927,7 +927,28 @@ void main(){
             }
         }
 
-        var lookup = new Dictionary<(Vector3 Pos, Vector3 Nor, Vector2 Uv), List<int>>();
+        static ulong MakeVertexKey(Vector3 pos, Vector3 nor, Vector2 uv)
+        {
+            const ulong basis = 1469598103934665603UL;
+            const ulong prime = 1099511628211UL;
+            ulong hash = basis;
+            ulong Add(ulong h, float f)
+            {
+                h ^= (uint)BitConverter.SingleToInt32Bits(f);
+                return h * prime;
+            }
+            hash = Add(hash, pos.X);
+            hash = Add(hash, pos.Y);
+            hash = Add(hash, pos.Z);
+            hash = Add(hash, nor.X);
+            hash = Add(hash, nor.Y);
+            hash = Add(hash, nor.Z);
+            hash = Add(hash, uv.X);
+            hash = Add(hash, uv.Y);
+            return hash;
+        }
+
+        var lookup = new Dictionary<ulong, List<int>>();
         var meshVerts = data.Mesh.Vertices;
         var meshNorms = data.Mesh.Normals;
         var meshUVs = data.Mesh.TextureCoordinateChannels[0];
@@ -936,7 +957,7 @@ void main(){
             var pos = new Vector3(meshVerts[i].X, meshVerts[i].Y, meshVerts[i].Z);
             var nor = i < meshNorms.Count ? new Vector3(meshNorms[i].X, meshNorms[i].Y, meshNorms[i].Z) : Vector3.Zero;
             var uv = i < meshUVs.Count ? new Vector2(meshUVs[i].X, meshUVs[i].Y) : Vector2.Zero;
-            var key = (pos, nor, uv);
+            var key = MakeVertexKey(pos, nor, uv);
             if (!lookup.TryGetValue(key, out var list))
             {
                 list = new List<int>();
@@ -952,7 +973,7 @@ void main(){
                 var pos = rm.BaseVertices[i];
                 var nor = i < rm.Normals.Length ? rm.Normals[i] : Vector3.Zero;
                 var uv = i < rm.TexCoords.Length ? rm.TexCoords[i] : Vector2.Zero;
-                var key = (pos, nor, uv);
+                var key = MakeVertexKey(pos, nor, uv);
                 if (lookup.TryGetValue(key, out var idxList))
                 {
                     foreach (var idx in idxList)
