@@ -596,7 +596,9 @@ void main(){
     {
         if (index < 0 || index >= _worldMats.Length)
             return System.Numerics.Vector3.Zero;
-        return _worldMats[index].Translation;
+        var pos = _worldMats[index].Translation.ToOpenTK();
+        pos = Vector3.Transform(pos, _modelTransform);
+        return pos.ToNumerics();
     }
 
     public System.Numerics.Vector3 GetCameraPosition()
