@@ -3,6 +3,7 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
              xmlns:skia="clr-namespace:SkiaSharp.Views.Maui.Controls;assembly=SkiaSharp.Views.Maui.Controls"
              xmlns:mmd="clr-namespace:MiniMikuDanceMaui"
+             xmlns:mi="http://www.aathifmahir.com/dotnet/2022/maui/icons"
              x:Class="MiniMikuDanceMaui.MainPage"
              BackgroundColor="Transparent">
 
@@ -33,6 +34,34 @@
                     <TapGestureRecognizer Tapped="OnSettingMenuTapped" />
                 </Label.GestureRecognizers>
             </Label>
+            <Grid HorizontalOptions="EndAndExpand" VerticalOptions="Center">
+                <Switch x:Name="PoseModeSwitch" Toggled="OnPoseModeToggled" HorizontalOptions="End" />
+                <Label x:Name="CameraIcon"
+                       mi:MauiIcon.Value="{mi:Material Icon=PhotoCamera, IconColor=Gray}"
+                       HorizontalOptions="End"
+                       VerticalOptions="Center">
+                    <Label.Triggers>
+                        <DataTrigger TargetType="Label"
+                                    Binding="{Binding IsToggled, Source={x:Reference PoseModeSwitch}}"
+                                    Value="True">
+                            <Setter Property="IsVisible" Value="False" />
+                        </DataTrigger>
+                    </Label.Triggers>
+                </Label>
+                <Label x:Name="PoseIcon"
+                       mi:MauiIcon.Value="{mi:Material Icon=AccessibilityNew, IconColor=Green}"
+                       HorizontalOptions="End"
+                       VerticalOptions="Center"
+                       IsVisible="False">
+                    <Label.Triggers>
+                        <DataTrigger TargetType="Label"
+                                    Binding="{Binding IsToggled, Source={x:Reference PoseModeSwitch}}"
+                                    Value="True">
+                            <Setter Property="IsVisible" Value="True" />
+                        </DataTrigger>
+                    </Label.Triggers>
+                </Label>
+            </Grid>
         </HorizontalStackLayout>
         <Border x:Name="ViewMenu" IsVisible="False" Background="{StaticResource BackgroundColor}" Padding="0" ZIndex="20">
             <VerticalStackLayout Spacing="4" Padding="8">

@@ -126,6 +126,20 @@ public class PmxRenderer : IDisposable
         }
     }
 
+    private bool _showIkBones;
+    public bool ShowIkBones
+    {
+        get => _showIkBones;
+        set
+        {
+            if (_showIkBones != value)
+            {
+                _showIkBones = value;
+                Viewer?.InvalidateSurface();
+            }
+        }
+    }
+
     private float _stageSize = AppSettings.DefaultStageSize;
     public float StageSize
     {
