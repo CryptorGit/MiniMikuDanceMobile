@@ -251,6 +251,7 @@ public static class IkManager
                 var ik = new IkBone(idx, worldPos, b.Rotation);
                 BonesDict[type] = ik;
                 BoneIndexDict[idx] = ik;
+                Trace.WriteLine($"{type} を PMX ボーン '{b.Name}' (index {idx}) にマッピングしました。");
             }
             else
             {
@@ -264,6 +265,8 @@ public static class IkManager
                 {
                     CreateVirtualBone(type);
                 }
+                if (BonesDict.TryGetValue(type, out var vb))
+                    Trace.WriteLine($"{type} 用に仮想ボーンを生成しました (index {vb.PmxBoneIndex})。");
             }
         }
         SetupSolvers();
@@ -400,6 +403,11 @@ public static class IkManager
             {
                 var solver = new TwoBoneSolver(Dist(chest, ls), Dist(ls, lh));
                 Solvers[lh.PmxBoneIndex] = (solver, chain);
+                Trace.WriteLine("IKチェーン: Chest -> LeftShoulder -> LeftHand を構築しました。");
+            }
+            else
+            {
+                Trace.WriteLine("IKチェーン: LeftHand の構築に失敗しました (ボーンがマッピングされていません)。");
             }
         }
 
@@ -412,6 +420,11 @@ public static class IkManager
             {
                 var solver = new TwoBoneSolver(Dist(chest, rs), Dist(rs, rh));
                 Solvers[rh.PmxBoneIndex] = (solver, chain);
+                Trace.WriteLine("IKチェーン: Chest -> RightShoulder -> RightHand を構築しました。");
+            }
+            else
+            {
+                Trace.WriteLine("IKチェーン: RightHand の構築に失敗しました (ボーンがマッピングされていません)。");
             }
         }
 
@@ -424,6 +437,11 @@ public static class IkManager
             {
                 var solver = new TwoBoneSolver(Dist(hip, lk), Dist(lk, lf));
                 Solvers[lf.PmxBoneIndex] = (solver, chain);
+                Trace.WriteLine("IKチェーン: Hip -> LeftKnee -> LeftFoot を構築しました。");
+            }
+            else
+            {
+                Trace.WriteLine("IKチェーン: LeftFoot の構築に失敗しました (ボーンがマッピングされていません)。");
             }
         }
 
@@ -436,6 +454,11 @@ public static class IkManager
             {
                 var solver = new TwoBoneSolver(Dist(hip, rk), Dist(rk, rf));
                 Solvers[rf.PmxBoneIndex] = (solver, chain);
+                Trace.WriteLine("IKチェーン: Hip -> RightKnee -> RightFoot を構築しました。");
+            }
+            else
+            {
+                Trace.WriteLine("IKチェーン: RightFoot の構築に失敗しました (ボーンがマッピングされていません)。");
             }
         }
 
@@ -449,6 +472,11 @@ public static class IkManager
                 var lengths = new[] { Dist(hip, chest), Dist(chest, head) };
                 var solver = new FabrikSolver(lengths);
                 Solvers[head.PmxBoneIndex] = (solver, chain);
+                Trace.WriteLine("IKチェーン: Hip -> Chest -> Head を構築しました。");
+            }
+            else
+            {
+                Trace.WriteLine("IKチェーン: Head の構築に失敗しました (ボーンがマッピングされていません)。");
             }
         }
     }
