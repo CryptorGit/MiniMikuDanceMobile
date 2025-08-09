@@ -2,6 +2,7 @@ using Assimp;
 using System;
 using System.IO;
 using System.Collections.Generic;
+using System.Buffers;
 using SixLabors.ImageSharp;
 using SixLabors.ImageSharp.PixelFormats;
 using Vector3D = Assimp.Vector3D;
@@ -70,6 +71,10 @@ public class ModelImporter : IDisposable
     {
         lock (s_cacheLock)
         {
+            foreach (var item in s_textureCache.Values)
+            {
+                ArrayPool<byte>.Shared.Return(item.Texture.Pixels);
+            }
             s_textureCache.Clear();
             s_lruList.Clear();
         }
@@ -83,7 +88,11 @@ public class ModelImporter : IDisposable
             {
                 var last = s_lruList.Last;
                 if (last is null) break;
-                s_textureCache.Remove(last.Value);
+                if (s_textureCache.TryGetValue(last.Value, out var item))
+                {
+                    ArrayPool<byte>.Shared.Return(item.Texture.Pixels);
+                    s_textureCache.Remove(last.Value);
+                }
                 s_lruList.RemoveLast();
             }
         }
@@ -348,32 +357,56 @@ public class ModelImporter : IDisposable
                 smd.TextureFilePath = texName;
                 if (File.Exists(texPath))
                 {
+                    CacheItem? item;
                     lock (s_cacheLock)
                     {
-                        if (!s_textureCache.TryGetValue(texPath, out var item))
-                        {
-                            using var image = Image.Load<Rgba32>(texPath);
-                            var tex = new TextureData
-                            {
-                                Width = image.Width,
-                                Height = image.Height,
-                                Pixels = new byte[image.Width * image.Height * 4]
-                            };
-                            image.CopyPixelDataTo(tex.Pixels);
-                            var node = s_lruList.AddFirst(texPath);
-                            item = new CacheItem { Texture = tex, Node = node };
-                            s_textureCache[texPath] = item;
-                            TrimCache();
-                        }
-                        else
+                        if (s_textureCache.TryGetValue(texPath, out item))
                         {
                             var node = item.Node;
                             s_lruList.Remove(node);
                             s_lruList.AddFirst(node);
+                            smd.TextureWidth = item.Texture.Width;
+                            smd.TextureHeight = item.Texture.Height;
+                            smd.TextureBytes = item.Texture.Pixels;
                         }
-                        smd.TextureWidth = item.Texture.Width;
-                        smd.TextureHeight = item.Texture.Height;
-                        smd.TextureBytes = item.Texture.Pixels;
+                    }
+
+                    if (item is null)
+                    {
+                        using var image = Image.Load<Rgba32>(texPath);
+                        int width = image.Width;
+                        int height = image.Height;
+                        int size = width * height * 4;
+                        var pool = ArrayPool<byte>.Shared;
+                        var pixels = pool.Rent(size);
+                        image.CopyPixelDataTo(pixels);
+
+                        lock (s_cacheLock)
+                        {
+                            if (!s_textureCache.TryGetValue(texPath, out item))
+                            {
+                                var tex = new TextureData
+                                {
+                                    Width = width,
+                                    Height = height,
+                                    Pixels = pixels
+                                };
+                                var node = s_lruList.AddFirst(texPath);
+                                item = new CacheItem { Texture = tex, Node = node };
+                                s_textureCache[texPath] = item;
+                                TrimCache();
+                            }
+                            else
+                            {
+                                pool.Return(pixels);
+                                var node = item.Node;
+                                s_lruList.Remove(node);
+                                s_lruList.AddFirst(node);
+                            }
+                            smd.TextureWidth = item.Texture.Width;
+                            smd.TextureHeight = item.Texture.Height;
+                            smd.TextureBytes = item.Texture.Pixels;
+                        }
                     }
                 }
             }
