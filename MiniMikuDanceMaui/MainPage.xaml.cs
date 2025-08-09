@@ -58,6 +58,7 @@ public partial class MainPage : ContentPage
     private float _rimIntensity = 0.5f;
     private int _extractTotalFrames;
     private int _poseTotalFrames;
+    private bool _poseMode;
     // bottomWidth is no longer used; bottom region spans full screen width
     // private double bottomWidth = 0;
     private bool _glInitialized;
@@ -100,6 +101,14 @@ public partial class MainPage : ContentPage
         int current = (int)(_poseTotalFrames * p);
         PoseProgressBar.Progress = p;
         PoseProgressLabel.Text = $"姿勢推定: {current}/{_poseTotalFrames} ({p * 100:0}%)";
+    }
+
+    private void OnPoseModeToggled(object? sender, ToggledEventArgs e)
+    {
+        _poseMode = e.Value;
+        _touchPoints.Clear();
+        _renderer.ShowIkBones = _poseMode;
+        Viewer?.InvalidateSurface();
     }
 
 
@@ -550,6 +559,12 @@ public partial class MainPage : ContentPage
 
     private void OnViewTouch(object? sender, SKTouchEventArgs e)
     {
+        if (_poseMode)
+        {
+            e.Handled = true;
+            return;
+        }
+
         if (_viewMenuOpen || _settingMenuOpen)
         {
             HideViewMenu();
