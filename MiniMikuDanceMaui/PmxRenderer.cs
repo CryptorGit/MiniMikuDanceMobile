@@ -185,6 +185,13 @@ public class PmxRenderer : IDisposable
         set => _defaultCameraTargetY = value;
     }
 
+    private float _bonePickPixels = AppSettings.DefaultBonePickPixels;
+    public float BonePickPixels
+    {
+        get => _bonePickPixels;
+        set => _bonePickPixels = value;
+    }
+
     private void EnsureBoneCapacity()
     {
         if (_boneCapacity == _bones.Count)
@@ -596,7 +603,8 @@ void main(){
             return -1;
 
         int result = -1;
-        float best = 30f; // ピクセル閾値
+        float scale = _defaultCameraDistance != 0 ? _distance / _defaultCameraDistance : 1f;
+        float best = MathF.Clamp(_bonePickPixels * scale, 50f, 80f); // ピクセル閾値
         for (int i = 0; i < _worldMats.Length && i < _bones.Count; i++)
         {
             var pos = _worldMats[i].Translation.ToOpenTK();

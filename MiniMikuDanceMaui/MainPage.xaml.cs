@@ -172,6 +172,7 @@ public partial class MainPage : ContentPage
         _renderer.StageSize = _settings.StageSize;
         _renderer.DefaultCameraDistance = _settings.CameraDistance;
         _renderer.DefaultCameraTargetY = _settings.CameraTargetY;
+        _renderer.BonePickPixels = _settings.BonePickPixels;
         _renderer.ShowIkBones = _poseMode;
 
         if (Viewer is SKGLView glView)
