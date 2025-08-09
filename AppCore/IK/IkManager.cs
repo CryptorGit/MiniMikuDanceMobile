@@ -9,17 +9,13 @@ public enum IkBoneType
     Head,
     Chest,
     Hip,
-    LeftUpperArm,
-    LeftLowerArm,
+    LeftShoulder,
     LeftHand,
-    RightUpperArm,
-    RightLowerArm,
+    RightShoulder,
     RightHand,
-    LeftUpperLeg,
-    RightUpperLeg,
-    LeftLowerLeg,
+    LeftKnee,
     LeftFoot,
-    RightLowerLeg,
+    RightKnee,
     RightFoot
 }
 
@@ -30,17 +26,13 @@ public static class IkManager
         { IkBoneType.Head, "head" },
         { IkBoneType.Chest, "chest" },
         { IkBoneType.Hip, "hips" },
-        { IkBoneType.LeftUpperArm, "leftUpperArm" },
-        { IkBoneType.LeftLowerArm, "leftLowerArm" },
+        { IkBoneType.LeftShoulder, "leftShoulder" },
         { IkBoneType.LeftHand, "leftHand" },
-        { IkBoneType.RightUpperArm, "rightUpperArm" },
-        { IkBoneType.RightLowerArm, "rightLowerArm" },
+        { IkBoneType.RightShoulder, "rightShoulder" },
         { IkBoneType.RightHand, "rightHand" },
-        { IkBoneType.LeftUpperLeg, "leftUpperLeg" },
-        { IkBoneType.RightUpperLeg, "rightUpperLeg" },
-        { IkBoneType.LeftLowerLeg, "leftLowerLeg" },
+        { IkBoneType.LeftKnee, "leftKnee" },
         { IkBoneType.LeftFoot, "leftFoot" },
-        { IkBoneType.RightLowerLeg, "rightLowerLeg" },
+        { IkBoneType.RightKnee, "rightKnee" },
         { IkBoneType.RightFoot, "rightFoot" }
     };
 
@@ -166,44 +158,44 @@ public static class IkManager
 
         Solvers.Clear();
 
-        if (BonesDict.TryGetValue(IkBoneType.LeftUpperArm, out var lua) &&
-            BonesDict.TryGetValue(IkBoneType.LeftLowerArm, out var lla) &&
+        if (BonesDict.TryGetValue(IkBoneType.Chest, out var chest) &&
+            BonesDict.TryGetValue(IkBoneType.LeftShoulder, out var ls) &&
             BonesDict.TryGetValue(IkBoneType.LeftHand, out var lh))
         {
-            var solver = new TwoBoneSolver(Dist(lua, lla), Dist(lla, lh));
-            var chain = new[] { lua, lla, lh };
+            var solver = new TwoBoneSolver(Dist(chest, ls), Dist(ls, lh));
+            var chain = new[] { chest, ls, lh };
             Solvers[lh.PmxBoneIndex] = (solver, chain);
         }
 
-        if (BonesDict.TryGetValue(IkBoneType.RightUpperArm, out var rua) &&
-            BonesDict.TryGetValue(IkBoneType.RightLowerArm, out var rla) &&
+        if (BonesDict.TryGetValue(IkBoneType.Chest, out chest) &&
+            BonesDict.TryGetValue(IkBoneType.RightShoulder, out var rs) &&
             BonesDict.TryGetValue(IkBoneType.RightHand, out var rh))
         {
-            var solver = new TwoBoneSolver(Dist(rua, rla), Dist(rla, rh));
-            var chain = new[] { rua, rla, rh };
+            var solver = new TwoBoneSolver(Dist(chest, rs), Dist(rs, rh));
+            var chain = new[] { chest, rs, rh };
             Solvers[rh.PmxBoneIndex] = (solver, chain);
         }
 
-        if (BonesDict.TryGetValue(IkBoneType.LeftUpperLeg, out var lul) &&
-            BonesDict.TryGetValue(IkBoneType.LeftLowerLeg, out var lll) &&
+        if (BonesDict.TryGetValue(IkBoneType.Hip, out var hip) &&
+            BonesDict.TryGetValue(IkBoneType.LeftKnee, out var lk) &&
             BonesDict.TryGetValue(IkBoneType.LeftFoot, out var lf))
         {
-            var solver = new TwoBoneSolver(Dist(lul, lll), Dist(lll, lf));
-            var chain = new[] { lul, lll, lf };
+            var solver = new TwoBoneSolver(Dist(hip, lk), Dist(lk, lf));
+            var chain = new[] { hip, lk, lf };
             Solvers[lf.PmxBoneIndex] = (solver, chain);
         }
 
-        if (BonesDict.TryGetValue(IkBoneType.RightUpperLeg, out var rul) &&
-            BonesDict.TryGetValue(IkBoneType.RightLowerLeg, out var rll) &&
+        if (BonesDict.TryGetValue(IkBoneType.Hip, out hip) &&
+            BonesDict.TryGetValue(IkBoneType.RightKnee, out var rk) &&
             BonesDict.TryGetValue(IkBoneType.RightFoot, out var rf))
         {
-            var solver = new TwoBoneSolver(Dist(rul, rll), Dist(rll, rf));
-            var chain = new[] { rul, rll, rf };
+            var solver = new TwoBoneSolver(Dist(hip, rk), Dist(rk, rf));
+            var chain = new[] { hip, rk, rf };
             Solvers[rf.PmxBoneIndex] = (solver, chain);
         }
 
-        if (BonesDict.TryGetValue(IkBoneType.Hip, out var hip) &&
-            BonesDict.TryGetValue(IkBoneType.Chest, out var chest) &&
+        if (BonesDict.TryGetValue(IkBoneType.Hip, out hip) &&
+            BonesDict.TryGetValue(IkBoneType.Chest, out chest) &&
             BonesDict.TryGetValue(IkBoneType.Head, out var head))
         {
             var lengths = new[] { Dist(hip, chest), Dist(chest, head) };
