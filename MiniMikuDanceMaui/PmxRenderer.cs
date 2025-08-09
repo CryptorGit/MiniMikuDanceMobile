@@ -52,6 +52,7 @@ public class PmxRenderer : IDisposable
     private int _viewLoc;
     private int _projLoc;
     private int _colorLoc;
+    private int _pointSizeLoc;
     private float _orbitX;
     // 初期カメラ位置: 水平回転はπ（モデル正面を向く）
     private float _orbitY = MathF.PI;
@@ -206,13 +207,15 @@ public class PmxRenderer : IDisposable
 
     public void Initialize()
     {
-        const string vert = @"#version 300 es
+const string vert = @"#version 300 es
 layout(location = 0) in vec3 aPosition;
 uniform mat4 uModel;
 uniform mat4 uView;
 uniform mat4 uProj;
+uniform float uPointSize;
 void main(){
     gl_Position = uProj * uView * uModel * vec4(aPosition,1.0);
+    gl_PointSize = uPointSize;
 }";
         const string frag = @"#version 300 es
 precision mediump float;
@@ -237,17 +240,19 @@ void main(){
         _viewLoc = GL.GetUniformLocation(_program, "uView");
         _projLoc = GL.GetUniformLocation(_program, "uProj");
         _colorLoc = GL.GetUniformLocation(_program, "uColor");
+        _pointSizeLoc = GL.GetUniformLocation(_program, "uPointSize");
 
         // 透過描画設定（デフォルトでは無効）
         GL.BlendFunc(BlendingFactorSrc.SrcAlpha, BlendingFactorDest.OneMinusSrcAlpha);
 
-        const string modelVert = @"#version 300 es
+const string modelVert = @"#version 300 es
 layout(location = 0) in vec3 aPosition;
 layout(location = 1) in vec3 aNormal;
 layout(location = 2) in vec2 aTex;
 uniform mat4 uModel;
 uniform mat4 uView;
 uniform mat4 uProj;
+uniform float uPointSize;
 out vec3 vNormal;
 out vec2 vTex;
 void main(){
@@ -255,6 +260,7 @@ void main(){
     vNormal = mat3(uModel) * aNormal;
     vTex = aTex;
     gl_Position = uProj * uView * pos;
+    gl_PointSize = uPointSize;
 }";
         const string modelFrag = @"#version 300 es
 precision mediump float;
@@ -458,7 +464,7 @@ void main(){
         GL.Disable(EnableCap.DepthTest);
         GL.UniformMatrix4(_modelLoc, false, ref modelMat);
         GL.Uniform4(_colorLoc, new Vector4(0f, 0f, 1f, 1f));
-        GL.PointSize(8f);
+        GL.Uniform1(_pointSizeLoc, 8f);
         GL.BindVertexArray(_ikBoneVao);
         GL.DrawArrays(PrimitiveType.Points, 0, _ikBones.Count);
         GL.BindVertexArray(0);
@@ -471,7 +477,7 @@ void main(){
                 if (_ikBones[i].PmxBoneIndex == sel)
                 {
                     GL.Uniform4(_colorLoc, new Vector4(1f, 0f, 0f, 1f));
-                    GL.PointSize(12f);
+                    GL.Uniform1(_pointSizeLoc, 12f);
                     GL.BindVertexArray(_ikBoneVao);
                     GL.DrawArrays(PrimitiveType.Points, i, 1);
                     GL.BindVertexArray(0);
@@ -479,7 +485,7 @@ void main(){
                 }
             }
         }
-        GL.PointSize(1f);
+        GL.Uniform1(_pointSizeLoc, 1f);
         GL.Enable(EnableCap.DepthTest);
     }
 
