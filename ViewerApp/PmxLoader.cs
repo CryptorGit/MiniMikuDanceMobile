@@ -37,7 +37,10 @@ internal sealed class TextureData
 internal static class PmxLoader
 {
     public const float DefaultScale = 0.1f;
+    public static int MaxTextureCache { get; set; } = 32;
     private static readonly Dictionary<string, TextureData> s_textureCache = new(StringComparer.OrdinalIgnoreCase);
+    private static readonly LinkedList<string> s_textureLru = new();
+    private static readonly Dictionary<string, LinkedListNode<string>> s_textureNodes = new(StringComparer.OrdinalIgnoreCase);
 
     public static PmxModel Load(string path, float scale = DefaultScale)
     {
@@ -113,6 +116,12 @@ internal static class PmxLoader
                         };
                         image.CopyPixelDataTo(tex.Pixels);
                         s_textureCache[texPath] = tex;
+                        TouchTexture(texPath);
+                        TrimCache();
+                    }
+                    else
+                    {
+                        TouchTexture(texPath);
                     }
                     sm.TextureWidth = tex.Width;
                     sm.TextureHeight = tex.Height;
@@ -124,5 +133,34 @@ internal static class PmxLoader
         }
         model.Transform = OtkMatrix4.CreateScale(scale);
         return model;
+    }
+
+    private static void TouchTexture(string key)
+    {
+        if (s_textureNodes.TryGetValue(key, out var node))
+        {
+            s_textureLru.Remove(node);
+            s_textureLru.AddLast(node);
+        }
+        else
+        {
+            var newNode = s_textureLru.AddLast(key);
+            s_textureNodes[key] = newNode;
+        }
+    }
+
+    private static void TrimCache()
+    {
+        while (s_textureCache.Count > MaxTextureCache && s_textureLru.First is { } first)
+        {
+            var oldKey = first.Value;
+            s_textureLru.RemoveFirst();
+            s_textureNodes.Remove(oldKey);
+            if (s_textureCache.TryGetValue(oldKey, out var tex))
+            {
+                tex.Pixels = Array.Empty<byte>();
+                s_textureCache.Remove(oldKey);
+            }
+        }
     }
 }
