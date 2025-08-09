@@ -16,7 +16,11 @@ public enum IkBoneType
     RightLowerArm,
     RightHand,
     LeftUpperLeg,
-    RightUpperLeg
+    RightUpperLeg,
+    LeftLowerLeg,
+    LeftFoot,
+    RightLowerLeg,
+    RightFoot
 }
 
 public static class IkManager
@@ -33,11 +37,16 @@ public static class IkManager
         { IkBoneType.RightLowerArm, "rightLowerArm" },
         { IkBoneType.RightHand, "rightHand" },
         { IkBoneType.LeftUpperLeg, "leftUpperLeg" },
-        { IkBoneType.RightUpperLeg, "rightUpperLeg" }
+        { IkBoneType.RightUpperLeg, "rightUpperLeg" },
+        { IkBoneType.LeftLowerLeg, "leftLowerLeg" },
+        { IkBoneType.LeftFoot, "leftFoot" },
+        { IkBoneType.RightLowerLeg, "rightLowerLeg" },
+        { IkBoneType.RightFoot, "rightFoot" }
     };
 
     private static readonly Dictionary<IkBoneType, IkBone> BonesDict = new();
     private static readonly Dictionary<int, IkBone> BoneIndexDict = new();
+    private static readonly Dictionary<int, (IIkSolver Solver, IkBone[] Chain)> Solvers = new();
 
     // レンダラーから提供される各種処理を委譲用デリゲートとして保持
     public static System.Func<float, float, int>? PickFunc { get; set; }
@@ -65,6 +74,7 @@ public static class IkManager
                 BoneIndexDict[idx] = ik;
             }
         }
+        SetupSolvers();
     }
 
     private static int FindBoneIndex(IReadOnlyList<BoneData> bones, string name)
@@ -129,6 +139,10 @@ public static class IkManager
         if (BoneIndexDict.TryGetValue(boneIndex, out var bone))
         {
             bone.Position = position;
+            if (Solvers.TryGetValue(boneIndex, out var solver))
+            {
+                solver.Solver.Solve(solver.Chain);
+            }
         }
     }
 
@@ -141,6 +155,60 @@ public static class IkManager
     {
         BonesDict.Clear();
         BoneIndexDict.Clear();
+        Solvers.Clear();
         ReleaseSelection();
+    }
+
+    private static void SetupSolvers()
+    {
+        static float Dist(IkBone a, IkBone b) => Vector3.Distance(a.Position, b.Position);
+
+        Solvers.Clear();
+
+        if (BonesDict.TryGetValue(IkBoneType.LeftUpperArm, out var lua) &&
+            BonesDict.TryGetValue(IkBoneType.LeftLowerArm, out var lla) &&
+            BonesDict.TryGetValue(IkBoneType.LeftHand, out var lh))
+        {
+            var solver = new TwoBoneSolver(Dist(lua, lla), Dist(lla, lh));
+            var chain = new[] { lua, lla, lh };
+            Solvers[lh.PmxBoneIndex] = (solver, chain);
+        }
+
+        if (BonesDict.TryGetValue(IkBoneType.RightUpperArm, out var rua) &&
+            BonesDict.TryGetValue(IkBoneType.RightLowerArm, out var rla) &&
+            BonesDict.TryGetValue(IkBoneType.RightHand, out var rh))
+        {
+            var solver = new TwoBoneSolver(Dist(rua, rla), Dist(rla, rh));
+            var chain = new[] { rua, rla, rh };
+            Solvers[rh.PmxBoneIndex] = (solver, chain);
+        }
+
+        if (BonesDict.TryGetValue(IkBoneType.LeftUpperLeg, out var lul) &&
+            BonesDict.TryGetValue(IkBoneType.LeftLowerLeg, out var lll) &&
+            BonesDict.TryGetValue(IkBoneType.LeftFoot, out var lf))
+        {
+            var solver = new TwoBoneSolver(Dist(lul, lll), Dist(lll, lf));
+            var chain = new[] { lul, lll, lf };
+            Solvers[lf.PmxBoneIndex] = (solver, chain);
+        }
+
+        if (BonesDict.TryGetValue(IkBoneType.RightUpperLeg, out var rul) &&
+            BonesDict.TryGetValue(IkBoneType.RightLowerLeg, out var rll) &&
+            BonesDict.TryGetValue(IkBoneType.RightFoot, out var rf))
+        {
+            var solver = new TwoBoneSolver(Dist(rul, rll), Dist(rll, rf));
+            var chain = new[] { rul, rll, rf };
+            Solvers[rf.PmxBoneIndex] = (solver, chain);
+        }
+
+        if (BonesDict.TryGetValue(IkBoneType.Hip, out var hip) &&
+            BonesDict.TryGetValue(IkBoneType.Chest, out var chest) &&
+            BonesDict.TryGetValue(IkBoneType.Head, out var head))
+        {
+            var lengths = new[] { Dist(hip, chest), Dist(chest, head) };
+            var chain = new[] { hip, chest, head };
+            var solver = new FabrikSolver(lengths);
+            Solvers[head.PmxBoneIndex] = (solver, chain);
+        }
     }
 }
