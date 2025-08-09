@@ -39,6 +39,9 @@ public class PoseEstimator : IDisposable
         24,23,26,25,28,27,30,29,32,31
     };
 
+    private static readonly float[] Angles = { -40f, -20f, 0f, 20f, 40f };
+    private static readonly float[] Scales = { 0.32f, 0.38f, 0.44f };
+
     public PoseEstimator(string modelPath, IVideoFrameExtractor? extractor = null)
     {
         if (File.Exists(modelPath))
@@ -158,10 +161,7 @@ public class PoseEstimator : IDisposable
         int dstH = dims.Length > 1 ? dims[1] : 256;
         int dstW = dims.Length > 2 ? dims[2] : 256;
 
-        float[] angles = { -40f, -20f, 0f, 20f, 40f };
-        float[] scales = { 0.32f, 0.38f, 0.44f };
-
-        var centers = new List<(float cx, float cy)> { (W * 0.5f, H * 0.55f) };
+        var center = (cx: W * 0.5f, cy: H * 0.55f);
 
         float bestScore = float.NegativeInfinity;
         Vector3[] bestPos = new Vector3[jointCount];
@@ -169,42 +169,39 @@ public class PoseEstimator : IDisposable
 
         using var rotated = new Image<Rgb24>(dstW, dstH);
 
-        foreach (var center in centers)
+        foreach (var s in Scales)
         {
-            foreach (var s in scales)
-            {
-                float half = s * Math.Min(W, H);
-                int size = (int)(half * 2f);
-                int x0 = (int)Math.Round(center.cx - half);
-                int y0 = (int)Math.Round(center.cy - half);
-                var rect = new Rectangle(x0, y0, size, size);
+            float half = s * Math.Min(W, H);
+            int size = (int)(half * 2f);
+            int x0 = (int)Math.Round(center.cx - half);
+            int y0 = (int)Math.Round(center.cy - half);
+            var rect = new Rectangle(x0, y0, size, size);
 
-                using var patch = frame.Clone(ctx =>
+            using var patch = frame.Clone(ctx =>
+            {
+                ctx.Crop(rect);
+                ctx.Resize(dstW, dstH);
+            });
+
+            foreach (var ang in Angles)
+            {
+                rotated.Mutate(ctx =>
                 {
-                    ctx.Crop(rect);
-                    ctx.Resize(dstW, dstH);
+                    ctx.DrawImage(patch, 1f);
+                    if (Math.Abs(ang) > 0.1f)
+                    {
+                        ctx.Rotate((float)ang);
+                        ctx.Crop(new Rectangle(0, 0, dstW, dstH));
+                    }
                 });
 
-                foreach (var ang in angles)
+                var (pos, conf) = InferPatch(rotated, inputName, dims, jointCount, flipTta);
+                float sc = AverageScore(conf);
+                if (sc > bestScore)
                 {
-                    rotated.Mutate(ctx =>
-                    {
-                        ctx.DrawImage(patch, 1f);
-                        if (Math.Abs(ang) > 0.1f)
-                        {
-                            ctx.Rotate((float)ang);
-                            ctx.Crop(new Rectangle(0, 0, dstW, dstH));
-                        }
-                    });
-
-                    var (pos, conf) = InferPatch(rotated, inputName, dims, jointCount, flipTta);
-                    float sc = AverageScore(conf);
-                    if (sc > bestScore)
-                    {
-                        bestScore = sc;
-                        Array.Copy(pos, bestPos, jointCount);
-                        Array.Copy(conf, bestConf, jointCount);
-                    }
+                    bestScore = sc;
+                    Array.Copy(pos, bestPos, jointCount);
+                    Array.Copy(conf, bestConf, jointCount);
                 }
             }
         }
