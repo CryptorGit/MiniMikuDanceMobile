@@ -18,6 +18,10 @@ public static class LogService
     private static readonly string _logFilePath;
     private static readonly string _logDirectory;
     private static readonly string _terminalLogFilePath;
+    private static readonly StreamWriter _logWriter;
+    private static readonly StreamWriter _terminalLogWriter;
+    private static readonly Task _processingTask;
+    private static bool _isShutdown;
     private static readonly Channel<string> _logChannel = Channel.CreateBounded<string>(
         new BoundedChannelOptions(LogChannelCapacity)
         {
@@ -35,7 +39,12 @@ public static class LogService
         var externalDir = MmdFileSystem.Ensure("Log");
         _terminalLogFilePath = Path.Combine(externalDir, "tarminalLog.txt");
 
-        Task.Run(ProcessLogQueue);
+        _logWriter = new StreamWriter(_logFilePath, append: true, Encoding.UTF8);
+        _terminalLogWriter = new StreamWriter(_terminalLogFilePath, append: true, Encoding.UTF8);
+
+        AppDomain.CurrentDomain.ProcessExit += (_, _) => Shutdown();
+
+        _processingTask = Task.Run(ProcessLogQueue);
     }
 
     public static IReadOnlyList<string> History
@@ -76,6 +85,25 @@ public static class LogService
         AddLine(line);
     }
 
+    public static void Shutdown()
+    {
+        if (_isShutdown)
+        {
+            return;
+        }
+
+        _isShutdown = true;
+        _logChannel.Writer.TryComplete();
+        try
+        {
+            _processingTask.Wait();
+        }
+        catch
+        {
+            // ignore exceptions during shutdown
+        }
+    }
+
     private static async Task ProcessLogQueue()
     {
         while (await _logChannel.Reader.WaitToReadAsync())
@@ -94,7 +122,8 @@ public static class LogService
 
             try
             {
-                File.AppendAllText(_logFilePath, text);
+                await _logWriter.WriteAsync(text);
+                await _logWriter.FlushAsync();
             }
             catch (Exception ex)
             {
@@ -102,12 +131,16 @@ public static class LogService
             }
             try
             {
-                File.AppendAllText(_terminalLogFilePath, text);
+                await _terminalLogWriter.WriteAsync(text);
+                await _terminalLogWriter.FlushAsync();
             }
             catch
             {
                 // ignore logging failures to external file
             }
         }
+
+        _logWriter.Dispose();
+        _terminalLogWriter.Dispose();
     }
 }
