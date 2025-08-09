@@ -344,7 +344,7 @@ void main(){
         _orbitY -= dx * 0.01f * RotateSensitivity;
         _orbitX -= dy * 0.01f * RotateSensitivity;
         // Clamp pitch to [-90°, 90°]
-        float limit = MathF.PI * 0.5f;
+        float limit = MathHelper.DegreesToRadians(89.9f);
         if (_orbitX < -limit) _orbitX = -limit;
         if (_orbitX > limit) _orbitX = limit;
         _viewProjDirty = true;
