@@ -78,6 +78,7 @@ public static class IkManager
     public static System.Func<Vector3>? GetCameraPositionFunc { get; set; }
     public static System.Action<int, OpenTK.Mathematics.Vector3>? SetBoneRotation { get; set; }
     public static System.Action<int, OpenTK.Mathematics.Vector3>? SetBoneTranslation { get; set; }
+    public static System.Func<Vector3, Vector3>? ToModelSpaceFunc { get; set; }
 
     private static int _selectedBoneIndex = -1;
     private static Plane _dragPlane;
@@ -134,7 +135,7 @@ public static class IkManager
             if (idx >= 0)
             {
                 var b = modelBones[idx];
-                var ik = new IkBone(idx, b.BindMatrix.Translation, Quaternion.Identity);
+                var ik = new IkBone(idx, b.BindMatrix.Translation, b.Rotation);
                 BonesDict[type] = ik;
                 BoneIndexDict[idx] = ik;
             }
@@ -215,6 +216,9 @@ public static class IkManager
 
     public static void UpdateTarget(int boneIndex, Vector3 position)
     {
+        if (ToModelSpaceFunc != null)
+            position = ToModelSpaceFunc(position);
+
         if (BoneIndexDict.TryGetValue(boneIndex, out var bone))
         {
             bone.Position = position;
@@ -223,7 +227,8 @@ public static class IkManager
                 solver.Solver.Solve(solver.Chain);
                 foreach (var b in solver.Chain)
                 {
-                    SetBoneRotation?.Invoke(b.PmxBoneIndex, b.Rotation.ToEulerDegrees().ToOpenTK());
+                    var delta = Quaternion.Inverse(b.BaseRotation) * b.Rotation;
+                    SetBoneRotation?.Invoke(b.PmxBoneIndex, delta.ToEulerDegrees().ToOpenTK());
                     SetBoneTranslation?.Invoke(b.PmxBoneIndex, b.Position.ToOpenTK());
                 }
             }
