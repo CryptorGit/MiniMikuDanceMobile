@@ -1,1 +1,2 @@
 - Android SDK が不足しているため、`MiniMikuDanceMaui` のビルドに失敗する。SDK の導入が必要。
+- RendererでIKボーンを自動追加しないこと
