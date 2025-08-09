@@ -144,8 +144,8 @@ public static class IkManager
 
         if (hipIdx >= 0 && chestIdx >= 0)
         {
-            var hip = modelBones[hipIdx].BindMatrix.Translation;
-            var chest = modelBones[chestIdx].BindMatrix.Translation;
+            var hip = Vector3.Transform(Vector3.Zero, modelBones[hipIdx].BindMatrix);
+            var chest = Vector3.Transform(Vector3.Zero, modelBones[chestIdx].BindMatrix);
             var dist = Vector3.Distance(hip, chest);
             if (dist > 1e-5f)
                 _scaleFactor = dist / defaultHipChest;
@@ -160,7 +160,9 @@ public static class IkManager
                 if (b.Parent >= 0 && b.Parent < modelBones.Count)
                 {
                     var p = modelBones[b.Parent];
-                    var dist = Vector3.Distance(b.BindMatrix.Translation, p.BindMatrix.Translation);
+                    var bPos = Vector3.Transform(Vector3.Zero, b.BindMatrix);
+                    var pPos = Vector3.Transform(Vector3.Zero, p.BindMatrix);
+                    var dist = Vector3.Distance(bPos, pPos);
                     if (dist > 1e-5f)
                     {
                         total += dist;
@@ -243,7 +245,8 @@ public static class IkManager
             if (idx >= 0)
             {
                 var b = modelBones[idx];
-                var ik = new IkBone(idx, b.BindMatrix.Translation, b.Rotation);
+                var worldPos = Vector3.Transform(Vector3.Zero, b.BindMatrix);
+                var ik = new IkBone(idx, worldPos, b.Rotation);
                 BonesDict[type] = ik;
                 BoneIndexDict[idx] = ik;
             }

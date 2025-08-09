@@ -433,11 +433,27 @@ void main(){
     {
         _ikBones.Clear();
         _ikBones.AddRange(bones);
+        UpdateIkBoneWorldPositions();
     }
 
     public void ClearIkBones()
     {
         _ikBones.Clear();
+    }
+
+    private void UpdateIkBoneWorldPositions()
+    {
+        if (_ikBones.Count == 0 || _worldMats.Length == 0)
+            return;
+
+        foreach (var ik in _ikBones)
+        {
+            int idx = ik.PmxBoneIndex;
+            if (idx >= 0 && idx < _worldMats.Length)
+            {
+                ik.Position = _worldMats[idx].Translation;
+            }
+        }
     }
 
     private void EnsureIkBoneMesh()
@@ -500,6 +516,7 @@ void main(){
 
     private void DrawIkBones()
     {
+        UpdateIkBoneWorldPositions();
         if (_ikBones.Count == 0)
             return;
         EnsureIkBoneMesh();
@@ -1101,6 +1118,8 @@ void main(){
 
             for (int i = 0; i < _bones.Count; i++)
                 _skinMats[i] = _bones[i].InverseBindMatrix * _worldMats[i];
+
+            UpdateIkBoneWorldPositions();
 
             if (_bonesDirty)
             {
