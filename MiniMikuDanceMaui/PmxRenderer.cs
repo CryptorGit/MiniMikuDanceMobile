@@ -421,6 +421,66 @@ void main(){
         _ikBones.Clear();
     }
 
+    // スクリーン座標から最も近いボーンを選択
+    public int PickBone(float screenX, float screenY)
+    {
+        if (_bones.Count == 0 || _width == 0 || _height == 0)
+            return -1;
+
+        int result = -1;
+        float best = 20f; // ピクセル閾値
+        for (int i = 0; i < _worldMats.Length && i < _bones.Count; i++)
+        {
+            var pos = _worldMats[i].Translation.ToOpenTK();
+            var v4 = new Vector4(pos, 1f);
+            var clip = Vector4.Transform(v4, _viewMatrix);
+            clip = Vector4.Transform(clip, _projMatrix);
+            if (clip.W <= 0)
+                continue;
+            var ndc = clip.Xyz / clip.W;
+            var sx = (ndc.X * 0.5f + 0.5f) * _width;
+            var sy = (-ndc.Y * 0.5f + 0.5f) * _height;
+            var dx = sx - screenX;
+            var dy = sy - screenY;
+            var dist = MathF.Sqrt(dx * dx + dy * dy);
+            if (dist < best)
+            {
+                best = dist;
+                result = i;
+            }
+        }
+        return result;
+    }
+
+    public System.Numerics.Vector3 GetBoneWorldPosition(int index)
+    {
+        if (index < 0 || index >= _worldMats.Length)
+            return System.Numerics.Vector3.Zero;
+        return _worldMats[index].Translation;
+    }
+
+    public System.Numerics.Vector3 GetCameraPosition()
+    {
+        return _cameraPos.ToNumerics();
+    }
+
+    public (System.Numerics.Vector3 Origin, System.Numerics.Vector3 Direction) ScreenPointToRay(float screenX, float screenY)
+    {
+        if (_width == 0 || _height == 0)
+            return (System.Numerics.Vector3.Zero, System.Numerics.Vector3.UnitZ);
+
+        float x = (2f * screenX / _width) - 1f;
+        float y = 1f - (2f * screenY / _height);
+        var invProj = Matrix4.Invert(_projMatrix, out var pInv) ? pInv : Matrix4.Identity;
+        var invView = Matrix4.Invert(_viewMatrix, out var vInv) ? vInv : Matrix4.Identity;
+        var rayClip = new Vector4(x, y, -1f, 1f);
+        var rayEye = Vector4.Transform(rayClip, invProj);
+        rayEye.Z = -1f; rayEye.W = 0f;
+        var rayWorld = Vector4.Transform(rayEye, invView);
+        var dir = Vector3.Normalize(rayWorld.Xyz);
+        return (_cameraPos.ToNumerics(), dir.ToNumerics());
+    }
+
     public void SetBoneRotation(int index, Vector3 degrees)
     {
         if (index < 0)

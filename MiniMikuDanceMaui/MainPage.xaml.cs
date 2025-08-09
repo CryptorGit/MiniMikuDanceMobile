@@ -112,6 +112,16 @@ public partial class MainPage : ContentPage
         {
             IkManager.Initialize(_currentModel.Bones);
             _renderer.SetIkBones(IkManager.Bones.Values);
+            IkManager.PickFunc = _renderer.PickBone;
+            IkManager.GetBonePositionFunc = _renderer.GetBoneWorldPosition;
+            IkManager.GetCameraPositionFunc = _renderer.GetCameraPosition;
+        }
+        else
+        {
+            IkManager.ReleaseSelection();
+            IkManager.PickFunc = null;
+            IkManager.GetBonePositionFunc = null;
+            IkManager.GetCameraPositionFunc = null;
         }
         _renderer.ShowIkBones = _poseMode;
         Viewer?.InvalidateSurface();
@@ -569,7 +579,26 @@ public partial class MainPage : ContentPage
     {
         if (_poseMode)
         {
+            if (e.ActionType == SKTouchAction.Pressed)
+            {
+                IkManager.PickBone(e.Location.X, e.Location.Y);
+            }
+            else if (e.ActionType == SKTouchAction.Moved)
+            {
+                var ray = _renderer.ScreenPointToRay(e.Location.X, e.Location.Y);
+                var pos = IkManager.IntersectDragPlane(ray);
+                if (pos.HasValue && IkManager.SelectedBoneIndex >= 0)
+                {
+                    IkManager.UpdateTarget(IkManager.SelectedBoneIndex, pos.Value);
+                }
+            }
+            else if (e.ActionType == SKTouchAction.Released || e.ActionType == SKTouchAction.Cancelled)
+            {
+                IkManager.ReleaseSelection();
+            }
             e.Handled = true;
+            Viewer?.InvalidateSurface();
+            _needsRender = true;
             return;
         }
 
