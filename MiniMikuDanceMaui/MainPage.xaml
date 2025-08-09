@@ -35,7 +35,16 @@
                 </Label.GestureRecognizers>
             </Label>
             <Grid HorizontalOptions="EndAndExpand" VerticalOptions="Center">
-                <Switch x:Name="PoseModeSwitch" Toggled="OnPoseModeToggled" HorizontalOptions="End" />
+                <Switch x:Name="PoseModeSwitch" Toggled="OnPoseModeToggled" HorizontalOptions="End" OnColor="Green">
+                    <Switch.Triggers>
+                        <Trigger TargetType="Switch" Property="IsToggled" Value="True">
+                            <Setter Property="ThumbColor" Value="Green" />
+                        </Trigger>
+                        <Trigger TargetType="Switch" Property="IsToggled" Value="False">
+                            <Setter Property="ThumbColor" Value="Gray" />
+                        </Trigger>
+                    </Switch.Triggers>
+                </Switch>
                 <mi:MauiIcon Icon="{mi:Material Icon=PhotoCamera}"
                        IconColor="Gray"
                        x:Name="CameraIcon"

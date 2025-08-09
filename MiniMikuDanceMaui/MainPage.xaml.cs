@@ -134,7 +134,8 @@ public partial class MainPage : ContentPage
         }
         else
         {
-            IkManager.ReleaseSelection();
+            IkManager.Clear();
+            _renderer.ClearIkBones();
             IkManager.PickFunc = null;
             IkManager.GetBonePositionFunc = null;
             IkManager.GetCameraPositionFunc = null;
