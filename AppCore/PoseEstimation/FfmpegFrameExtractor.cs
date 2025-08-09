@@ -1,5 +1,6 @@
 using System;
 using System.Diagnostics;
+using System.Collections.Generic;
 
 namespace MiniMikuDance.PoseEstimation;
 public class FfmpegFrameExtractor : IVideoFrameExtractor
@@ -7,6 +8,8 @@ public class FfmpegFrameExtractor : IVideoFrameExtractor
     public Action<float>? OnProgress { get; set; }
 
     private static string? _cachedFfmpegPath;
+    private static readonly Dictionary<string, (TimeSpan Duration, DateTime CachedAt)> _durationCache = new();
+    private static readonly TimeSpan _cacheLifetime = TimeSpan.FromMinutes(1);
 
     /// <summary>
     /// キャッシュしているffmpegパスを再探索します。
@@ -31,6 +34,11 @@ public class FfmpegFrameExtractor : IVideoFrameExtractor
         var ffmpeg = FindFfmpeg();
         if (ffmpeg == null)
             return 0;
+        return await GetFrameCountInternalAsync(ffmpeg, videoPath, fps);
+    }
+
+    private static async Task<int> GetFrameCountInternalAsync(string ffmpeg, string videoPath, int fps)
+    {
         var duration = await GetDurationAsync(ffmpeg, videoPath);
         return duration > TimeSpan.Zero ? (int)Math.Ceiling(duration.TotalSeconds * fps) : 0;
     }
@@ -72,9 +80,8 @@ public class FfmpegFrameExtractor : IVideoFrameExtractor
 
         var progressCb = onProgress ?? OnProgress;
 
-        // 動画長取得
-        var duration = await GetDurationAsync(ffmpeg, videoPath);
-        int totalFrames = duration > TimeSpan.Zero ? (int)Math.Ceiling(duration.TotalSeconds * fps) : -1;
+        // フレーム数計算
+        int totalFrames = await GetFrameCountInternalAsync(ffmpeg, videoPath, fps);
 
         var startInfo = new ProcessStartInfo
         {
@@ -118,28 +125,44 @@ public class FfmpegFrameExtractor : IVideoFrameExtractor
 
     private static async Task<TimeSpan> GetDurationAsync(string ffmpeg, string path)
     {
-        var info = new ProcessStartInfo
+        try
         {
-            FileName = ffmpeg,
-            Arguments = $"-i \"{path}\"",
-            RedirectStandardError = true,
-            RedirectStandardOutput = true,
-            UseShellExecute = false,
-            CreateNoWindow = true
-        };
+            if (_durationCache.TryGetValue(path, out var cache) && DateTime.UtcNow - cache.CachedAt < _cacheLifetime)
+            {
+                return cache.Duration;
+            }
 
-        using var p = Process.Start(info);
-        if (p == null)
-            return TimeSpan.Zero;
-        string err = await p.StandardError.ReadToEndAsync();
-        await p.WaitForExitAsync();
-        var idx = err.IndexOf("Duration:");
-        if (idx >= 0)
-        {
-            var sub = err.Substring(idx + 9, 11);
-            if (TimeSpan.TryParse(sub, out var dur))
-                return dur;
+            var info = new ProcessStartInfo
+            {
+                FileName = ffmpeg,
+                Arguments = $"-i \"{path}\"",
+                RedirectStandardError = true,
+                RedirectStandardOutput = true,
+                UseShellExecute = false,
+                CreateNoWindow = true
+            };
+
+            using var p = Process.Start(info);
+            if (p == null)
+                return TimeSpan.Zero;
+            string err = await p.StandardError.ReadToEndAsync();
+            await p.WaitForExitAsync();
+            var idx = err.IndexOf("Duration:");
+            if (idx >= 0)
+            {
+                var sub = err.Substring(idx + 9, 11);
+                if (TimeSpan.TryParse(sub, out var dur))
+                {
+                    _durationCache[path] = (dur, DateTime.UtcNow);
+                    return dur;
+                }
+            }
         }
+        catch
+        {
+            // 既存機能との互換性を保つため、例外は呼び出し元に伝播させない
+        }
+        _durationCache.Remove(path);
         return TimeSpan.Zero;
     }
 }
