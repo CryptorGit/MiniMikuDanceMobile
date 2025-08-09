@@ -597,7 +597,7 @@ void main(){
         if (index < 0 || index >= _worldMats.Length)
             return System.Numerics.Vector3.Zero;
         var pos = _worldMats[index].Translation.ToOpenTK();
-        pos = Vector3.Transform(pos, _modelTransform);
+        pos = Vector3.TransformPosition(pos, _modelTransform);
         return pos.ToNumerics();
     }
 
