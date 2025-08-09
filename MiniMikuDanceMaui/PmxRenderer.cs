@@ -558,6 +558,7 @@ void main(){
         {
             var ik = _ikBones[i];
             var worldPos = Vector3.TransformPosition(ik.Position.ToOpenTK(), _modelTransform);
+            worldPos.Z = -worldPos.Z;
             float scale = _ikBoneScale * _distance * IkManager.ScaleFactor;
             if (ik.IsSelected)
                 scale *= 1.4f;
@@ -656,7 +657,10 @@ void main(){
             return System.Numerics.Vector3.Zero;
         var pos = _worldMats[index].Translation.ToOpenTK();
         pos = Vector3.TransformPosition(pos, _modelTransform);
-        return pos.ToNumerics();
+        pos.Z = -pos.Z;
+        var result = pos.ToNumerics();
+        System.Diagnostics.Trace.WriteLine($"GetBoneWorldPosition[{index}] => {result}");
+        return result;
     }
 
     public System.Numerics.Vector3 GetCameraPosition()
@@ -668,7 +672,10 @@ void main(){
     {
         Matrix4.Invert(_modelTransform, out var inv);
         var pos = Vector3.TransformPosition(worldPos.ToOpenTK(), inv);
-        return pos.ToNumerics();
+        pos.Z = -pos.Z;
+        var result = pos.ToNumerics();
+        System.Diagnostics.Trace.WriteLine($"WorldToModel {worldPos} => {result}");
+        return result;
     }
 
     public (System.Numerics.Vector3 Origin, System.Numerics.Vector3 Direction) ScreenPointToRay(float screenX, float screenY)

@@ -9,6 +9,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MiniMikuDanceMaui", "MiniMi
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ViewerApp", "ViewerApp\ViewerApp.csproj", "{9E1B2E62-33F6-4F4E-A7FB-DB65C7FE063D}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AppCore.Tests", "AppCore.Tests\AppCore.Tests.csproj", "{6EEA051A-42B3-4FCC-B968-2D2541129B6B}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -56,6 +58,20 @@ Global
 		{9E1B2E62-33F6-4F4E-A7FB-DB65C7FE063D}.Release|x64.Build.0 = Release|Any CPU
 		{9E1B2E62-33F6-4F4E-A7FB-DB65C7FE063D}.Release|x86.ActiveCfg = Release|Any CPU
 		{9E1B2E62-33F6-4F4E-A7FB-DB65C7FE063D}.Release|x86.Build.0 = Release|Any CPU
+		{6EEA051A-42B3-4FCC-B968-2D2541129B6B}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{6EEA051A-42B3-4FCC-B968-2D2541129B6B}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{6EEA051A-42B3-4FCC-B968-2D2541129B6B}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{6EEA051A-42B3-4FCC-B968-2D2541129B6B}.Debug|x64.Build.0 = Debug|Any CPU
+		{6EEA051A-42B3-4FCC-B968-2D2541129B6B}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{6EEA051A-42B3-4FCC-B968-2D2541129B6B}.Debug|x86.Build.0 = Debug|Any CPU
+		{6EEA051A-42B3-4FCC-B968-2D2541129B6B}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{6EEA051A-42B3-4FCC-B968-2D2541129B6B}.Release|Any CPU.Build.0 = Release|Any CPU
+		{6EEA051A-42B3-4FCC-B968-2D2541129B6B}.Release|x64.ActiveCfg = Release|Any CPU
+		{6EEA051A-42B3-4FCC-B968-2D2541129B6B}.Release|x64.Build.0 = Release|Any CPU
+		{6EEA051A-42B3-4FCC-B968-2D2541129B6B}.Release|x86.ActiveCfg = Release|Any CPU
+		{6EEA051A-42B3-4FCC-B968-2D2541129B6B}.Release|x86.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
 	EndGlobalSection
 EndGlobal

@@ -349,6 +349,11 @@ public static class IkManager
 
             var bonePos = GetBonePositionFunc(idx);
             var camPos = GetCameraPositionFunc();
+            if (ToModelSpaceFunc != null)
+            {
+                bonePos = ToModelSpaceFunc(bonePos);
+                camPos = ToModelSpaceFunc(camPos);
+            }
             var normal = Vector3.Normalize(camPos - bonePos);
             _dragPlane = new Plane(normal, -Vector3.Dot(normal, bonePos));
         }
@@ -361,25 +366,33 @@ public static class IkManager
         if (_selectedBoneIndex < 0)
             return null;
 
-        var denom = Vector3.Dot(_dragPlane.Normal, ray.Direction);
+        var origin = ray.Origin;
+        var dir = ray.Direction;
+        if (ToModelSpaceFunc != null)
+        {
+            var originModel = ToModelSpaceFunc(origin);
+            var dirEnd = ToModelSpaceFunc(origin + dir);
+            dir = Vector3.Normalize(dirEnd - originModel);
+            origin = originModel;
+        }
+
+        var denom = Vector3.Dot(_dragPlane.Normal, dir);
         if (System.Math.Abs(denom) < 1e-6f)
             return null;
 
-        var t = -(Vector3.Dot(_dragPlane.Normal, ray.Origin) + _dragPlane.D) / denom;
+        var t = -(Vector3.Dot(_dragPlane.Normal, origin) + _dragPlane.D) / denom;
         if (t < 0)
             return null;
 
-        return ray.Origin + ray.Direction * t;
+        return origin + dir * t;
     }
 
     public static void UpdateTarget(int boneIndex, Vector3 position)
     {
-        if (ToModelSpaceFunc != null)
-            position = ToModelSpaceFunc(position);
-
         if (BoneIndexDict.TryGetValue(boneIndex, out var bone))
         {
             bone.Position = position;
+            System.Diagnostics.Trace.WriteLine($"UpdateTarget: index={boneIndex} pos={position}");
             if (Solvers.TryGetValue(boneIndex, out var solver))
             {
                 solver.Solver.Solve(solver.Chain);
