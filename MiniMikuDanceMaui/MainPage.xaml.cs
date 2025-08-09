@@ -142,7 +142,7 @@ public partial class MainPage : ContentPage
             IkManager.SetBoneRotation = null;
             IkManager.SetBoneTranslation = null;
         }
-        _renderer.ShowIkBones = _poseMode;
+        _renderer.ShowIkBones = _poseMode && _settings.ShowIkBones;
         Viewer?.InvalidateSurface();
     }
 
@@ -178,6 +178,7 @@ public partial class MainPage : ContentPage
         _renderer.StageSize = _settings.StageSize;
         _renderer.DefaultCameraDistance = _settings.CameraDistance;
         _renderer.DefaultCameraTargetY = _settings.CameraTargetY;
+        _renderer.ShowIkBones = _poseMode && _settings.ShowIkBones;
 
         if (Viewer is SKGLView glView)
         {
@@ -228,6 +229,13 @@ public partial class MainPage : ContentPage
             setting.BoneOutlineChanged += show =>
             {
                 _renderer.ShowBoneOutline = show;
+                Viewer?.InvalidateSurface();
+            };
+            setting.ShowIkBones = _renderer.ShowIkBones;
+            setting.IkBonesChanged += show =>
+            {
+                _settings.ShowIkBones = show;
+                _renderer.ShowIkBones = _poseMode && show;
                 Viewer?.InvalidateSurface();
             };
             setting.ResetCameraRequested += () =>
@@ -412,6 +420,7 @@ public partial class MainPage : ContentPage
         sv.PanSensitivity = _panSensitivity;
         sv.ZoomSensitivity = _renderer.ZoomSensitivity;
         sv.ShowBoneOutline = _renderer.ShowBoneOutline;
+        sv.ShowIkBones = _renderer.ShowIkBones;
     }
 
     private void UpdateBoneViewProperties(BoneView? bv)

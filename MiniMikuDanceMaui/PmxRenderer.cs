@@ -67,6 +67,8 @@ public class PmxRenderer : IDisposable
     private int _boneVertexCount;
     private int _ikBoneVao;
     private int _ikBoneVbo;
+    private int _ikBoneEbo;
+    private int _ikBoneIndexCount;
     private int _interactionPlaneVao;
     private int _interactionPlaneVbo;
     private System.Numerics.Matrix4x4[] _worldMats = Array.Empty<System.Numerics.Matrix4x4>();
@@ -431,61 +433,85 @@ void main(){
         _ikBones.Clear();
     }
 
+    private void EnsureIkBoneMesh()
+    {
+        if (_ikBoneVao != 0)
+            return;
+
+        const int lat = 8;
+        const int lon = 8;
+        var vertices = new List<float>();
+        var indices = new List<ushort>();
+
+        for (int y = 0; y <= lat; y++)
+        {
+            float v = (float)y / lat;
+            float theta = v * MathF.PI;
+            float sinTheta = MathF.Sin(theta);
+            float cosTheta = MathF.Cos(theta);
+            for (int x = 0; x <= lon; x++)
+            {
+                float u = (float)x / lon;
+                float phi = u * MathF.PI * 2f;
+                float sinPhi = MathF.Sin(phi);
+                float cosPhi = MathF.Cos(phi);
+                vertices.Add(cosPhi * sinTheta);
+                vertices.Add(cosTheta);
+                vertices.Add(sinPhi * sinTheta);
+            }
+        }
+
+        for (int y = 0; y < lat; y++)
+        {
+            for (int x = 0; x < lon; x++)
+            {
+                int first = y * (lon + 1) + x;
+                int second = first + lon + 1;
+                indices.Add((ushort)first);
+                indices.Add((ushort)second);
+                indices.Add((ushort)(first + 1));
+                indices.Add((ushort)second);
+                indices.Add((ushort)(second + 1));
+                indices.Add((ushort)(first + 1));
+            }
+        }
+
+        _ikBoneIndexCount = indices.Count;
+        _ikBoneVao = GL.GenVertexArray();
+        _ikBoneVbo = GL.GenBuffer();
+        _ikBoneEbo = GL.GenBuffer();
+
+        GL.BindVertexArray(_ikBoneVao);
+        GL.BindBuffer(BufferTarget.ArrayBuffer, _ikBoneVbo);
+        GL.BufferData(BufferTarget.ArrayBuffer, vertices.Count * sizeof(float), vertices.ToArray(), BufferUsageHint.StaticDraw);
+        GL.VertexAttribPointer(0, 3, VertexAttribPointerType.Float, false, 3 * sizeof(float), 0);
+        GL.EnableVertexAttribArray(0);
+        GL.BindBuffer(BufferTarget.ElementArrayBuffer, _ikBoneEbo);
+        GL.BufferData(BufferTarget.ElementArrayBuffer, indices.Count * sizeof(ushort), indices.ToArray(), BufferUsageHint.StaticDraw);
+        GL.BindVertexArray(0);
+    }
+
     private void DrawIkBones(Matrix4 modelMat)
     {
         if (_ikBones.Count == 0)
             return;
+        EnsureIkBoneMesh();
 
-        if (_ikBoneVao == 0)
-        {
-            _ikBoneVao = GL.GenVertexArray();
-            _ikBoneVbo = GL.GenBuffer();
-            GL.BindVertexArray(_ikBoneVao);
-            GL.BindBuffer(BufferTarget.ArrayBuffer, _ikBoneVbo);
-            GL.VertexAttribPointer(0, 3, VertexAttribPointerType.Float, false, 3 * sizeof(float), 0);
-            GL.EnableVertexAttribArray(0);
-            GL.BindBuffer(BufferTarget.ArrayBuffer, 0);
-            GL.BindVertexArray(0);
-        }
+        GL.Disable(EnableCap.DepthTest);
+        GL.Uniform1(_pointSizeLoc, 1f);
 
-        var verts = new float[_ikBones.Count * 3];
+        int sel = IkManager.SelectedBoneIndex;
+        GL.BindVertexArray(_ikBoneVao);
         for (int i = 0; i < _ikBones.Count; i++)
         {
             var p = _ikBones[i].Position;
-            verts[i * 3 + 0] = p.X;
-            verts[i * 3 + 1] = p.Y;
-            verts[i * 3 + 2] = p.Z;
+            var mat = modelMat * Matrix4.CreateTranslation(p) * Matrix4.CreateScale(0.05f);
+            GL.UniformMatrix4(_modelLoc, false, ref mat);
+            var color = _ikBones[i].PmxBoneIndex == sel ? new Vector4(1f, 0f, 0f, 1f) : new Vector4(0f, 1f, 0f, 1f);
+            GL.Uniform4(_colorLoc, color);
+            GL.DrawElements(PrimitiveType.Triangles, _ikBoneIndexCount, DrawElementsType.UnsignedShort, 0);
         }
-
-        GL.BindBuffer(BufferTarget.ArrayBuffer, _ikBoneVbo);
-        GL.BufferData(BufferTarget.ArrayBuffer, verts.Length * sizeof(float), verts, BufferUsageHint.DynamicDraw);
-        GL.BindBuffer(BufferTarget.ArrayBuffer, 0);
-
-        GL.Disable(EnableCap.DepthTest);
-        GL.UniformMatrix4(_modelLoc, false, ref modelMat);
-        GL.Uniform4(_colorLoc, new Vector4(0f, 0f, 1f, 1f));
-        GL.Uniform1(_pointSizeLoc, 8f);
-        GL.BindVertexArray(_ikBoneVao);
-        GL.DrawArrays(PrimitiveType.Points, 0, _ikBones.Count);
         GL.BindVertexArray(0);
-
-        int sel = IkManager.SelectedBoneIndex;
-        if (sel >= 0)
-        {
-            for (int i = 0; i < _ikBones.Count; i++)
-            {
-                if (_ikBones[i].PmxBoneIndex == sel)
-                {
-                    GL.Uniform4(_colorLoc, new Vector4(1f, 0f, 0f, 1f));
-                    GL.Uniform1(_pointSizeLoc, 12f);
-                    GL.BindVertexArray(_ikBoneVao);
-                    GL.DrawArrays(PrimitiveType.Points, i, 1);
-                    GL.BindVertexArray(0);
-                    break;
-                }
-            }
-        }
-        GL.Uniform1(_pointSizeLoc, 1f);
         GL.Enable(EnableCap.DepthTest);
     }
 
@@ -1328,6 +1354,7 @@ void main(){
         GL.DeleteBuffer(_groundVbo);
         GL.DeleteBuffer(_boneVbo);
         GL.DeleteBuffer(_ikBoneVbo);
+        GL.DeleteBuffer(_ikBoneEbo);
         GL.DeleteBuffer(_interactionPlaneVbo);
         GL.DeleteVertexArray(_gridVao);
         GL.DeleteVertexArray(_groundVao);
