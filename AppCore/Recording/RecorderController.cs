@@ -3,6 +3,7 @@ using System.IO;
 using System.Collections.Concurrent;
 using System.Runtime.InteropServices;
 using System.Threading.Tasks;
+using System.Threading.Channels;
 using SixLabors.ImageSharp;
 using SixLabors.ImageSharp.PixelFormats;
 using SixLabors.ImageSharp.Processing;
@@ -19,7 +20,8 @@ public class RecorderController
     private string _thumbnailPath = string.Empty;
     private readonly string _baseDir;
     private readonly ConcurrentQueue<Image<Rgba32>> _imagePool = new();
-    private readonly ConcurrentBag<Task> _pendingTasks = new();
+    private Channel<(Image<Rgba32> Image, string Path)>? _frameChannel;
+    private Task? _workerTask;
     private int _width;
     private int _height;
 
@@ -44,6 +46,15 @@ public class RecorderController
         {
             img.Dispose();
         }
+        _frameChannel = Channel.CreateUnbounded<(Image<Rgba32> Image, string Path)>();
+        _workerTask = Task.Run(async () =>
+        {
+            await foreach (var (img, path) in _frameChannel.Reader.ReadAllAsync())
+            {
+                await img.SaveAsPngAsync(path);
+                _imagePool.Enqueue(img);
+            }
+        });
         return _savedDir;
     }
 
@@ -56,11 +67,14 @@ public class RecorderController
 
         _recording = false;
         File.AppendAllText(_infoPath, $"Stopped:{DateTime.Now}\n");
-        Task.WaitAll(_pendingTasks.ToArray());
+        _frameChannel?.Writer.Complete();
+        _workerTask?.Wait();
         while (_imagePool.TryDequeue(out var img))
         {
             img.Dispose();
         }
+        _frameChannel = null;
+        _workerTask = null;
         return _savedDir;
     }
 
@@ -79,12 +93,7 @@ public class RecorderController
 
         CopyToImage(rgba, image, width, height);
         string path = Path.Combine(_savedDir, $"frame_{_frameIndex:D04}.png");
-        var task = Task.Run(async () =>
-        {
-            await image.SaveAsPngAsync(path);
-            _imagePool.Enqueue(image);
-        });
-        _pendingTasks.Add(task);
+        _frameChannel?.Writer.TryWrite((image, path));
         if (_frameIndex == 0)
         {
             _thumbnailPath = path;
