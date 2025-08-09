@@ -3,6 +3,7 @@ using System.Linq;
 using System.Numerics;
 using System.Collections.Generic;
 using System.Runtime.InteropServices;
+using System.Buffers;
 using SixLabors.ImageSharp;
 using SixLabors.ImageSharp.PixelFormats;
 using SixLabors.ImageSharp.Processing;
@@ -110,17 +111,28 @@ public class PoseEstimator : IDisposable
         else
             stride = span.Length / jointCount;
 
-        var pos = new Vector3[jointCount];
-        var conf = new float[jointCount];
-
-        for (int j = 0; j < jointCount && j * stride + 2 < span.Length; j++)
+        var pos = ArrayPool<Vector3>.Shared.Rent(jointCount);
+        var conf = ArrayPool<float>.Shared.Rent(jointCount);
+        bool success = false;
+        try
         {
-            int idx = j * stride;
-            pos[j] = new Vector3(span[idx], span[idx + 1], span[idx + 2]);
-            conf[j] = stride > 3 && idx + 3 < span.Length ? span[idx + 3] : 1f;
+            for (int j = 0; j < jointCount && j * stride + 2 < span.Length; j++)
+            {
+                int idx = j * stride;
+                pos[j] = new Vector3(span[idx], span[idx + 1], span[idx + 2]);
+                conf[j] = stride > 3 && idx + 3 < span.Length ? span[idx + 3] : 1f;
+            }
+            success = true;
+            return (pos, conf);
         }
-
-        return (pos, conf);
+        finally
+        {
+            if (!success)
+            {
+                ArrayPool<Vector3>.Shared.Return(pos);
+                ArrayPool<float>.Shared.Return(conf);
+            }
+        }
     }
 
     private (Vector3[] pos, float[] conf) InferPatch(Image<Rgb24> patch, string inputName, int[] dims, int jointCount, bool flipTta)
@@ -132,26 +144,45 @@ public class PoseEstimator : IDisposable
         var (p2orig, c2orig) = RunModel(flipped, inputName, dims, jointCount);
         int w = dims.Length > 2 ? dims[2] : 256;
 
-        var p2 = new Vector3[jointCount];
-        var c2 = new float[jointCount];
-        for (int i = 0; i < jointCount; i++)
+        var p2 = ArrayPool<Vector3>.Shared.Rent(jointCount);
+        var c2 = ArrayPool<float>.Shared.Rent(jointCount);
+        var pos = ArrayPool<Vector3>.Shared.Rent(jointCount);
+        var conf = ArrayPool<float>.Shared.Rent(jointCount);
+        bool success = false;
+        try
         {
-            int k = LrMap[i];
-            var pp = p2orig[k];
-            p2[i] = new Vector3(w - pp.X, pp.Y, pp.Z);
-            c2[i] = c2orig[k];
-        }
+            for (int i = 0; i < jointCount; i++)
+            {
+                int k = LrMap[i];
+                var pp = p2orig[k];
+                p2[i] = new Vector3(w - pp.X, pp.Y, pp.Z);
+                c2[i] = c2orig[k];
+            }
 
-        var pos = new Vector3[jointCount];
-        var conf = new float[jointCount];
-        for (int i = 0; i < jointCount; i++)
-        {
-            float w1 = Math.Clamp(c1[i], 0.1f, 1f);
-            float w2 = Math.Clamp(c2[i], 0.1f, 1f);
-            pos[i] = (p1[i] * w1 + p2[i] * w2) / (w1 + w2);
-            conf[i] = (c1[i] + c2[i]) * 0.5f;
+            for (int i = 0; i < jointCount; i++)
+            {
+                float w1 = Math.Clamp(c1[i], 0.1f, 1f);
+                float w2 = Math.Clamp(c2[i], 0.1f, 1f);
+                pos[i] = (p1[i] * w1 + p2[i] * w2) / (w1 + w2);
+                conf[i] = (c1[i] + c2[i]) * 0.5f;
+            }
+            success = true;
+            return (pos, conf);
         }
-        return (pos, conf);
+        finally
+        {
+            ArrayPool<Vector3>.Shared.Return(p1);
+            ArrayPool<float>.Shared.Return(c1);
+            ArrayPool<Vector3>.Shared.Return(p2orig);
+            ArrayPool<float>.Shared.Return(c2orig);
+            ArrayPool<Vector3>.Shared.Return(p2);
+            ArrayPool<float>.Shared.Return(c2);
+            if (!success)
+            {
+                ArrayPool<Vector3>.Shared.Return(pos);
+                ArrayPool<float>.Shared.Return(conf);
+            }
+        }
     }
 
     private JointData SearchBest(Image<Rgb24> frame, string inputName, int[] dims, int jointCount, bool flipTta)
@@ -164,55 +195,75 @@ public class PoseEstimator : IDisposable
         var center = (cx: W * 0.5f, cy: H * 0.55f);
 
         float bestScore = float.NegativeInfinity;
-        Vector3[] bestPos = new Vector3[jointCount];
-        float[] bestConf = new float[jointCount];
+        var bestPos = ArrayPool<Vector3>.Shared.Rent(jointCount);
+        var bestConf = ArrayPool<float>.Shared.Rent(jointCount);
 
         using var rotated = new Image<Rgb24>(dstW, dstH);
-
-        foreach (var s in Scales)
+        try
         {
-            float half = s * Math.Min(W, H);
-            int size = (int)(half * 2f);
-            int x0 = (int)Math.Round(center.cx - half);
-            int y0 = (int)Math.Round(center.cy - half);
-            var rect = new Rectangle(x0, y0, size, size);
-
-            using var patch = frame.Clone(ctx =>
+            foreach (var s in Scales)
             {
-                ctx.Crop(rect);
-                ctx.Resize(dstW, dstH);
-            });
+                float half = s * Math.Min(W, H);
+                int size = (int)(half * 2f);
+                int x0 = (int)Math.Round(center.cx - half);
+                int y0 = (int)Math.Round(center.cy - half);
+                var rect = new Rectangle(x0, y0, size, size);
 
-            foreach (var ang in Angles)
-            {
-                rotated.Mutate(ctx =>
+                using var patch = frame.Clone(ctx =>
                 {
-                    ctx.Clear(Color.Black);
-                    ctx.DrawImage(patch, 1f);
-                    if (Math.Abs(ang) > 0.1f)
-                    {
-                        ctx.Rotate((float)ang);
-                        ctx.Crop(new Rectangle(0, 0, dstW, dstH));
-                    }
+                    ctx.Crop(rect);
+                    ctx.Resize(dstW, dstH);
                 });
 
-                var (pos, conf) = InferPatch(rotated, inputName, dims, jointCount, flipTta);
-                float sc = AverageScore(conf);
-                if (sc > bestScore)
+                foreach (var ang in Angles)
                 {
-                    bestScore = sc;
-                    Array.Copy(pos, bestPos, jointCount);
-                    Array.Copy(conf, bestConf, jointCount);
+                    rotated.Mutate(ctx =>
+                    {
+                        ctx.Clear(Color.Black);
+                        ctx.DrawImage(patch, 1f);
+                        if (Math.Abs(ang) > 0.1f)
+                        {
+                            ctx.Rotate((float)ang);
+                            ctx.Crop(new Rectangle(0, 0, dstW, dstH));
+                        }
+                    });
+
+                    var (pos, conf) = InferPatch(rotated, inputName, dims, jointCount, flipTta);
+                    try
+                    {
+                        float sc = AverageScore(conf);
+                        if (sc > bestScore)
+                        {
+                            bestScore = sc;
+                            Array.Copy(pos, bestPos, jointCount);
+                            Array.Copy(conf, bestConf, jointCount);
+                        }
+                    }
+                    finally
+                    {
+                        ArrayPool<Vector3>.Shared.Return(pos);
+                        ArrayPool<float>.Shared.Return(conf);
+                    }
                 }
             }
-        }
 
-        return new JointData
+            var finalPos = new Vector3[jointCount];
+            var finalConf = new float[jointCount];
+            Array.Copy(bestPos, finalPos, jointCount);
+            Array.Copy(bestConf, finalConf, jointCount);
+
+            return new JointData
+            {
+                Positions = finalPos,
+                Confidences = finalConf,
+                Rotations = new Vector3[jointCount]
+            };
+        }
+        finally
         {
-            Positions = bestPos,
-            Confidences = bestConf,
-            Rotations = new Vector3[jointCount]
-        };
+            ArrayPool<Vector3>.Shared.Return(bestPos);
+            ArrayPool<float>.Shared.Return(bestConf);
+        }
     }
 
     public async Task<JointData[]> EstimateAsync(
