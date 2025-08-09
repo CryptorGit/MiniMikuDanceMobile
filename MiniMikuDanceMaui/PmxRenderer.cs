@@ -454,6 +454,14 @@ void main(){
     {
         _ikBones.Clear();
         _ikBones.AddRange(bones);
+        for (int i = 0; i < _bones.Count; i++)
+        {
+            if (_bones[i].Ik != null)
+            {
+                var pos = _bones[i].BindMatrix.Translation;
+                _ikBones.Add(new IkBone(i, pos, _bones[i].Rotation));
+            }
+        }
         UpdateIkBoneWorldPositions();
     }
 

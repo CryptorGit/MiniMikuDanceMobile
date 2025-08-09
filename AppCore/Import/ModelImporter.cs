@@ -159,6 +159,13 @@ public class ModelImporter : IDisposable
                 Rotation = System.Numerics.Quaternion.Identity,
                 Translation = pos
             };
+            if (b.IKLinkCount > 0)
+            {
+                var ik = new IkInfo { Target = b.IKTarget };
+                foreach (var link in b.IKLinks.ToArray())
+                    ik.Chain.Add(link.Bone);
+                bd.Ik = ik;
+            }
             boneDatas.Add(bd);
         }
 

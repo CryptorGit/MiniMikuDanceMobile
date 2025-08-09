@@ -193,8 +193,37 @@ public static class IkManager
         Clear();
         LoadMappings();
         CalculateScale(modelBones);
+        var mapped = new HashSet<IkBoneType>();
+        for (int i = 0; i < modelBones.Count; i++)
+        {
+            var ikInfo = modelBones[i].Ik;
+            if (ikInfo == null)
+                continue;
+            var targetName = modelBones[ikInfo.Target].Name;
+            foreach (var kv in BoneNames)
+            {
+                foreach (var n in kv.Value)
+                {
+                    if (string.Equals(n, targetName, System.StringComparison.OrdinalIgnoreCase))
+                    {
+                        var b = modelBones[i];
+                        var worldPos = Vector3.Transform(Vector3.Zero, b.BindMatrix);
+                        var ik = new IkBone(i, worldPos, b.Rotation);
+                        BonesDict[kv.Key] = ik;
+                        BoneIndexDict[i] = ik;
+                        mapped.Add(kv.Key);
+                        Trace.WriteLine($"{kv.Key} を IK ボーン '{b.Name}' (index {i}) にマッピングしました。");
+                        goto nextBone;
+                    }
+                }
+            }
+        nextBone: ;
+        }
+
         foreach (IkBoneType type in System.Enum.GetValues<IkBoneType>())
         {
+            if (mapped.Contains(type))
+                continue;
             if (!BoneNames.TryGetValue(type, out var names))
                 continue;
             int idx = -1;
