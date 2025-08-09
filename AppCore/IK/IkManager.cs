@@ -57,6 +57,7 @@ public static class IkManager
     private static Plane _dragPlane;
 
     public static int SelectedBoneIndex => _selectedBoneIndex;
+    public static Plane DragPlane => _dragPlane;
 
     public static IReadOnlyDictionary<IkBoneType, IkBone> Bones => BonesDict;
 
