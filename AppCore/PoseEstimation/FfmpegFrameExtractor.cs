@@ -102,8 +102,8 @@ public class FfmpegFrameExtractor : IVideoFrameExtractor
                 }
             }
         });
-
-        await progressTask;
+        // プロセス終了後に残りの出力を読み取るため、
+        // 先にプロセスの終了を待機し、その後でprogressTaskを待機する。
         await proc.WaitForExitAsync();
         await progressTask;
         if (proc.ExitCode != 0)
