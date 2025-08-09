@@ -110,7 +110,7 @@ public partial class MainPage : ContentPage
         _touchPoints.Clear();
         if (_poseMode && _currentModel != null)
         {
-            IkManager.GenerateVrChatSkeleton(_currentModel.Bones);
+            IkManager.GenerateVrChatSkeleton(_currentModel.Bones, _currentModel.HumanoidBones);
             _renderer.SetIkBones(IkManager.Bones.Values);
             IkManager.PickFunc = _renderer.PickBone;
             IkManager.GetBonePositionFunc = _renderer.GetBoneWorldPosition;
@@ -591,7 +591,7 @@ public partial class MainPage : ContentPage
 
             if (_poseMode && _currentModel != null)
             {
-                IkManager.GenerateVrChatSkeleton(_currentModel.Bones);
+                IkManager.GenerateVrChatSkeleton(_currentModel.Bones, _currentModel.HumanoidBones);
                 _renderer.SetIkBones(IkManager.Bones.Values);
                 IkManager.PickFunc = _renderer.PickBone;
                 IkManager.GetBonePositionFunc = _renderer.GetBoneWorldPosition;
