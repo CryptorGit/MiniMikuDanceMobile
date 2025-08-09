@@ -433,8 +433,8 @@ void main(){
         {
             var pos = _worldMats[i].Translation.ToOpenTK();
             var v4 = new Vector4(pos, 1f);
-            var clip = Vector4.TransformRow(v4, _viewMatrix);
-            clip = Vector4.TransformRow(clip, _projMatrix);
+            var clip = v4 * _viewMatrix;
+            clip = clip * _projMatrix;
             if (clip.W <= 0)
                 continue;
             var ndc = clip.Xyz / clip.W;
@@ -476,9 +476,9 @@ void main(){
         if (!Matrix4.Invert(_viewMatrix, out var invView))
             invView = Matrix4.Identity;
         var rayClip = new Vector4(x, y, -1f, 1f);
-        var rayEye = Vector4.TransformRow(rayClip, invProj);
+        var rayEye = rayClip * invProj;
         rayEye.Z = -1f; rayEye.W = 0f;
-        var rayWorld = Vector4.TransformRow(rayEye, invView);
+        var rayWorld = rayEye * invView;
         var dir = Vector3.Normalize(rayWorld.Xyz);
         return (_cameraPos.ToNumerics(), dir.ToNumerics());
     }
