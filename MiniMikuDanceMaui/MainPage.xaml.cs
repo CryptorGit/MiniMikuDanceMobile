@@ -22,6 +22,7 @@ using MiniMikuDance.Util;
 using MiniMikuDance.PoseEstimation;
 using MiniMikuDance.App;
 using SixLabors.ImageSharp.PixelFormats;
+using MiniMikuDance.IK;
 
 #if ANDROID
 using Android.OS;
@@ -107,6 +108,11 @@ public partial class MainPage : ContentPage
     {
         _poseMode = e.Value;
         _touchPoints.Clear();
+        if (_poseMode && _currentModel != null)
+        {
+            IkManager.Initialize(_currentModel.Bones);
+            _renderer.SetIkBones(IkManager.Bones.Values);
+        }
         _renderer.ShowIkBones = _poseMode;
         Viewer?.InvalidateSurface();
     }
@@ -546,6 +552,8 @@ public partial class MainPage : ContentPage
     {
         if (_pendingModel != null)
         {
+            IkManager.Clear();
+            _renderer.ClearIkBones();
             _renderer.ClearBoneRotations();
             _renderer.LoadModel(_pendingModel);
             _currentModel = _pendingModel;

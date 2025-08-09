@@ -8,6 +8,7 @@ using System.Linq;
 using MiniMikuDance.Util;
 using MiniMikuDance.Import;
 using MiniMikuDance.App;
+using MiniMikuDance.IK;
 using MMDTools;
 using SkiaSharp.Views.Maui.Controls;
 using Vector2 = OpenTK.Mathematics.Vector2;
@@ -98,6 +99,7 @@ public class PmxRenderer : IDisposable
     private bool _bonesDirty;
     private bool _morphDirty;
     private List<MiniMikuDance.Import.BoneData> _bones = new();
+    private readonly List<IkBone> _ikBones = new();
     private readonly Dictionary<int, string> _indexToHumanoidName = new();
     private float[] _tmpVertexBuffer = Array.Empty<float>();
     public BonesConfig? BonesConfig { get; set; }
@@ -406,6 +408,17 @@ void main(){
         _boneRotations.Clear();
         _boneTranslations.Clear();
         _bonesDirty = true;
+    }
+
+    public void SetIkBones(IEnumerable<IkBone> bones)
+    {
+        _ikBones.Clear();
+        _ikBones.AddRange(bones);
+    }
+
+    public void ClearIkBones()
+    {
+        _ikBones.Clear();
     }
 
     public void SetBoneRotation(int index, Vector3 degrees)
