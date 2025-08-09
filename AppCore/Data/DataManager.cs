@@ -50,18 +50,6 @@ public partial class DataManager : Util.Singleton<DataManager>
         Util.JSONUtil.Save($"Configs/{key}.json", data);
     }
 
-    private readonly string _tempDir = Path.Combine(Path.GetTempPath(), "MiniMikuDance_Temp");
-
-    public string TempDir => _tempDir;
-
-    public void CleanupTemp()
-    {
-        if (Directory.Exists(_tempDir))
-        {
-            Directory.Delete(_tempDir, true);
-        }
-        Directory.CreateDirectory(_tempDir);
-    }
 }
 
 public partial class DataManager

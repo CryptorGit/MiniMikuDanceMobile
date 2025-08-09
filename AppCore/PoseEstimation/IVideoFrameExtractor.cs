@@ -1,3 +1,6 @@
+using System.Collections.Generic;
+using System.IO;
+
 namespace MiniMikuDance.PoseEstimation;
 
 /// <summary>
@@ -9,14 +12,15 @@ public interface IVideoFrameExtractor
     /// 進捗を通知するためのコールバック。
     /// </summary>
     Action<float>? OnProgress { get; set; }
+
     /// <summary>
-    /// 指定動画からフレームを抽出し outputDir に保存する。
+    /// 指定動画からフレームをメモリストリームとして抽出する。
     /// </summary>
     /// <param name="videoPath">入力動画パス</param>
     /// <param name="fps">抽出するフレームレート</param>
-    /// <param name="outputDir">出力ディレクトリ</param>
-    /// <returns>保存したフレーム画像のパス配列</returns>
-    Task<string[]> ExtractFrames(string videoPath, int fps, string outputDir, Action<float>? onProgress = null);
+    /// <param name="onProgress">進捗コールバック</param>
+    /// <returns>抽出したフレームストリームの列挙</returns>
+    IAsyncEnumerable<Stream> ExtractFrames(string videoPath, int fps, Action<float>? onProgress = null);
 
     /// <summary>
     /// 動画の総フレーム数を取得する。

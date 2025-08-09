@@ -1,5 +1,7 @@
 using System;
+using System.Collections.Generic;
 using System.Diagnostics;
+using System.IO;
 
 namespace MiniMikuDance.PoseEstimation;
 public class FfmpegFrameExtractor : IVideoFrameExtractor
@@ -61,9 +63,9 @@ public class FfmpegFrameExtractor : IVideoFrameExtractor
         return null;
     }
 
-    public async Task<string[]> ExtractFrames(string videoPath, int fps, string outputDir, Action<float>? onProgress = null)
+
+    public async IAsyncEnumerable<Stream> ExtractFrames(string videoPath, int fps, Action<float>? onProgress = null)
     {
-        Directory.CreateDirectory(outputDir);
         var ffmpeg = FindFfmpeg();
         if (ffmpeg == null)
         {
@@ -72,14 +74,13 @@ public class FfmpegFrameExtractor : IVideoFrameExtractor
 
         var progressCb = onProgress ?? OnProgress;
 
-        // 動画長取得
         var duration = await GetDurationAsync(ffmpeg, videoPath);
         int totalFrames = duration > TimeSpan.Zero ? (int)Math.Ceiling(duration.TotalSeconds * fps) : -1;
 
         var startInfo = new ProcessStartInfo
         {
             FileName = ffmpeg,
-            Arguments = $"-i \"{videoPath}\" -vf fps={fps} \"{Path.Combine(outputDir, "frame_%08d.png")}\" -hide_banner -loglevel error -progress pipe:1 -nostats",
+            Arguments = $"-i \"{videoPath}\" -vf fps={fps} -f image2pipe -vcodec png -hide_banner -loglevel error -",
             RedirectStandardOutput = true,
             RedirectStandardError = true,
             UseShellExecute = false
@@ -88,32 +89,52 @@ public class FfmpegFrameExtractor : IVideoFrameExtractor
         if (proc == null)
             throw new InvalidOperationException("Failed to start ffmpeg process.");
 
-        var progressTask = Task.Run(async () =>
+        var errTask = proc.StandardError.ReadToEndAsync();
+        var output = proc.StandardOutput.BaseStream;
+        var buffer = new byte[4096];
+        var current = new MemoryStream();
+        var pngEnd = new byte[] { 0, 0, 0, 0, 73, 69, 78, 68, 174, 66, 96, 130 };
+        int match = 0;
+        int index = 0;
+
+        while (true)
         {
-            string? line;
-            while ((line = await proc.StandardOutput.ReadLineAsync()) != null)
+            int read = await output.ReadAsync(buffer.AsMemory(0, buffer.Length));
+            if (read <= 0) break;
+            for (int i = 0; i < read; i++)
             {
-                if (line.StartsWith("frame=") && int.TryParse(line.AsSpan(6), out var f))
+                byte b = buffer[i];
+                current.WriteByte(b);
+                if (b == pngEnd[match])
                 {
-                    if (totalFrames > 0 && progressCb != null)
+                    match++;
+                    if (match == pngEnd.Length)
                     {
-                        progressCb(Math.Clamp(f / (float)totalFrames, 0f, 1f));
+                        current.Position = 0;
+                        yield return current;
+                        current = new MemoryStream();
+                        match = 0;
+                        index++;
+                        if (progressCb != null && totalFrames > 0)
+                        {
+                            progressCb(Math.Clamp(index / (float)totalFrames, 0f, 1f));
+                        }
                     }
                 }
+                else
+                {
+                    match = b == pngEnd[0] ? 1 : 0;
+                }
             }
-        });
-        // プロセス終了後に残りの出力を読み取るため、
-        // 先にプロセスの終了を待機し、その後でprogressTaskを待機する。
+        }
+
+        current.Dispose();
         await proc.WaitForExitAsync();
-        await progressTask;
+        var err = await errTask;
         if (proc.ExitCode != 0)
         {
-            var err = await proc.StandardError.ReadToEndAsync();
             throw new InvalidOperationException($"ffmpeg failed: {err}");
         }
-        var files = Directory.GetFiles(outputDir, "frame_*.png");
-        Array.Sort(files);
-        return files;
     }
 
     private static async Task<TimeSpan> GetDurationAsync(string ffmpeg, string path)

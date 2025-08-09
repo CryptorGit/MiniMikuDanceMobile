@@ -1,5 +1,7 @@
 #if IOS
 using System;
+using System.Collections.Generic;
+using System.IO;
 using AVFoundation;
 using CoreMedia;
 using Foundation;
@@ -23,40 +25,34 @@ public class IosFrameExtractor : IVideoFrameExtractor
         });
     }
 
-    public Task<string[]> ExtractFrames(string videoPath, int fps, string outputDir, Action<float>? onProgress = null)
+    public async IAsyncEnumerable<Stream> ExtractFrames(string videoPath, int fps, Action<float>? onProgress = null)
     {
-        return Task.Run(() =>
+        var asset = AVAsset.FromUrl(NSUrl.FromFilename(videoPath));
+        var generator = new AVAssetImageGenerator(asset)
         {
-            Directory.CreateDirectory(outputDir);
-            var asset = AVAsset.FromUrl(NSUrl.FromFilename(videoPath));
-            var generator = new AVAssetImageGenerator(asset)
+            AppliesPreferredTrackTransform = true
+        };
+        var duration = asset.Duration;
+        var totalSeconds = duration.Seconds;
+        int frameCount = (int)Math.Floor(totalSeconds * fps);
+        var progressCb = onProgress ?? OnProgress;
+        for (int i = 0; i < frameCount; i++)
+        {
+            var time = CMTime.FromSeconds(i / (double)fps, fps);
+            NSError? error;
+            using var cg = generator.CopyCGImageAtTime(time, out var actual, out error);
+            if (error != null)
+                continue;
+            using var image = UIImage.FromImage(cg);
+            using var data = image.AsPNG();
+            var ms = new MemoryStream(data.ToArray());
+            ms.Position = 0;
+            yield return ms;
+            if (progressCb != null && frameCount > 0)
             {
-                AppliesPreferredTrackTransform = true
-            };
-            var duration = asset.Duration;
-            var totalSeconds = duration.Seconds;
-            int frameCount = (int)Math.Floor(totalSeconds * fps);
-            var progressCb = onProgress ?? OnProgress;
-            var result = new List<string>(frameCount);
-            for (int i = 0; i < frameCount; i++)
-            {
-                var time = CMTime.FromSeconds(i / (double)fps, fps);
-                NSError? error;
-                using var cg = generator.CopyCGImageAtTime(time, out var actual, out error);
-                if (error != null)
-                    continue;
-                using var image = UIImage.FromImage(cg);
-                var path = Path.Combine(outputDir, $"frame_{i:D08}.png");
-                using var data = image.AsPNG();
-                File.WriteAllBytes(path, data.ToArray());
-                result.Add(path);
-                if (progressCb != null && frameCount > 0)
-                {
-                    progressCb(Math.Clamp((i + 1) / (float)frameCount, 0f, 1f));
-                }
+                progressCb(Math.Clamp((i + 1) / (float)frameCount, 0f, 1f));
             }
-            return result.ToArray();
-        });
+        }
     }
 }
 #endif

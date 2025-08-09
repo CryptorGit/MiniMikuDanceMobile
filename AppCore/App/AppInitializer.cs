@@ -1,7 +1,6 @@
 using MiniMikuDance.Import;
 using MiniMikuDance.Recording;
 using MiniMikuDance.UI;
-using MiniMikuDance.Data;
 using MiniMikuDance.Util;
 using MiniMikuDance.PoseEstimation;
 using System;
@@ -48,7 +47,6 @@ public partial class AppInitializer : IDisposable
             LoadModel(modelPath);
         }
 
-        DataManager.Instance.CleanupTemp();
         // Additional processing can be handled by the host application
     }
 
@@ -85,11 +83,9 @@ public partial class AppInitializer : IDisposable
     {
         if (PoseEstimator == null)
             return null;
-        DataManager.Instance.CleanupTemp();
         UIManager.Instance.SetMessage("Analyzing video...");
         Joints = await PoseEstimator.EstimateAsync(
             videoPath,
-            DataManager.Instance.TempDir,
             new Progress<float>(p =>
             {
                 UIManager.Instance.ExtractProgress = p;
@@ -114,7 +110,6 @@ public partial class AppInitializer : IDisposable
     {
         if (PoseEstimator == null)
             return null;
-        DataManager.Instance.CleanupTemp();
         UIManager.Instance.SetMessage("Analyzing photo...");
         Joints = await PoseEstimator.EstimateImageAsync(
             imagePath,

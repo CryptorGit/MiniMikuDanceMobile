@@ -28,42 +28,33 @@ public class AndroidFrameExtractor : IVideoFrameExtractor
         });
     }
 
-    public Task<string[]> ExtractFrames(string videoPath, int fps, string outputDir, Action<float>? onProgress = null)
+    public async IAsyncEnumerable<Stream> ExtractFrames(string videoPath, int fps, Action<float>? onProgress = null)
     {
-        return Task.Run(() =>
-        {
-            Directory.CreateDirectory(outputDir);
-            using var retriever = new MediaMetadataRetriever();
-            retriever.SetDataSource(videoPath);
-            var durStr = retriever.ExtractMetadata(MetadataKey.Duration);
-            if (!long.TryParse(durStr, out var durationMs))
-                durationMs = 0;
+        using var retriever = new MediaMetadataRetriever();
+        retriever.SetDataSource(videoPath);
+        var durStr = retriever.ExtractMetadata(MetadataKey.Duration);
+        if (!long.TryParse(durStr, out var durationMs))
+            durationMs = 0;
 
-            long interval = 1000 / fps;
-            var list = new List<string>();
-            long index = 0;
-            int frameCount = (int)(durationMs / interval);
-            var progressCb = onProgress ?? OnProgress;
-            for (long t = 0; t < durationMs; t += interval)
+        long interval = 1000 / fps;
+        int frameCount = (int)(durationMs / interval);
+        long index = 0;
+        var progressCb = onProgress ?? OnProgress;
+        for (long t = 0; t < durationMs; t += interval)
+        {
+            using var bmp = retriever.GetFrameAtTime(t * 1000, Option.ClosestSync);
+            if (bmp == null) continue;
+            var ms = new MemoryStream();
+            var format = Bitmap.CompressFormat.Png;
+            bmp.Compress(format, 100, ms);
+            ms.Position = 0;
+            yield return ms;
+            index++;
+            if (progressCb != null && frameCount > 0)
             {
-                using var bmp = retriever.GetFrameAtTime(t * 1000, Option.ClosestSync);
-                if (bmp == null) continue;
-                string path = System.IO.Path.Combine(outputDir, $"frame_{index:D08}.png");
-                using var fs = File.OpenWrite(path);
-                var format = Bitmap.CompressFormat.Png;
-                if (format != null)
-                {
-                    bmp.Compress(format, 100, fs);
-                }
-                list.Add(path);
-                index++;
-                if (progressCb != null && frameCount > 0)
-                {
-                    progressCb(Math.Clamp(index / (float)frameCount, 0f, 1f));
-                }
+                progressCb(Math.Clamp(index / (float)frameCount, 0f, 1f));
             }
-            return list.ToArray();
-        });
+        }
     }
 }
 #endif

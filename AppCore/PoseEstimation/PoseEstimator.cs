@@ -216,7 +216,6 @@ public class PoseEstimator : IDisposable
 
     public async Task<JointData[]> EstimateAsync(
         string videoPath,
-        string tempDir,
         IProgress<float>? extractProgress = null,
         IProgress<float>? poseProgress = null)
     {
@@ -230,42 +229,27 @@ public class PoseEstimator : IDisposable
         var meta = _session.InputMetadata.First();
         var dims = meta.Value.Dimensions.Select(d => d <= 0 ? 1 : d).ToArray();
 
-        Directory.CreateDirectory(tempDir);
+        int frameCount = await _extractor.GetFrameCountAsync(videoPath, 30);
+        var results = new List<JointData>(frameCount > 0 ? frameCount : 10);
+        int index = 0;
 
-        try
+        await foreach (var stream in _extractor.ExtractFrames(videoPath, 30, p => extractProgress?.Report(p)))
         {
-            var files = await _extractor.ExtractFrames(
-                videoPath,
-                30,
-                tempDir,
-                p => extractProgress?.Report(p));
-
-            var results = new List<JointData>(files.Length);
-            for (int i = 0; i < files.Length; i++)
+            using (stream)
             {
-                using var image = await Image.LoadAsync<Rgb24>(files[i]);
+                using var image = await Image.LoadAsync<Rgb24>(stream);
                 var jd = SearchBest(image, meta.Key, dims, jointCount, true);
-                jd.Timestamp = i / 30f;
+                jd.Timestamp = index / 30f;
                 results.Add(jd);
-                poseProgress?.Report((i + 1) / (float)files.Length);
             }
+            index++;
+            if (poseProgress != null && frameCount > 0)
+            {
+                poseProgress.Report(Math.Clamp(index / (float)frameCount, 0f, 1f));
+            }
+        }
 
-            return results.ToArray();
-        }
-        finally
-        {
-            try
-            {
-                if (Directory.Exists(tempDir))
-                {
-                    Directory.Delete(tempDir, true);
-                }
-            }
-            catch
-            {
-                // ignore
-            }
-        }
+        return results.ToArray();
     }
 
     public async Task<JointData[]> EstimateImageAsync(string imagePath, IProgress<float>? poseProgress = null)
