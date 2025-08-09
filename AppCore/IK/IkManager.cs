@@ -108,7 +108,6 @@ public static class IkManager
         return idx;
     }
 
-    // 選択中ボーンのドラッグ平面との交点を計算
     public static Vector3? IntersectDragPlane((Vector3 Origin, Vector3 Direction) ray)
     {
         if (_selectedBoneIndex < 0)
@@ -117,9 +116,11 @@ public static class IkManager
         var denom = Vector3.Dot(_dragPlane.Normal, ray.Direction);
         if (System.Math.Abs(denom) < 1e-6f)
             return null;
+
         var t = -(Vector3.Dot(_dragPlane.Normal, ray.Origin) + _dragPlane.D) / denom;
         if (t < 0)
             return null;
+
         return ray.Origin + ray.Direction * t;
     }
 
