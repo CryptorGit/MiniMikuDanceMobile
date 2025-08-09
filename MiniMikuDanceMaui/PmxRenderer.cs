@@ -5,7 +5,6 @@ using OpenTK.Graphics.ES30;
 using GL = OpenTK.Graphics.ES30.GL;
 using System.Runtime.InteropServices;
 using System.Collections.Generic;
-using System.Linq;
 using MiniMikuDance.Util;
 using MiniMikuDance.Import;
 using MiniMikuDance.App;
@@ -574,35 +573,53 @@ void main(){
         float scale = _defaultCameraDistance != 0 ? _distance / _defaultCameraDistance : 1f;
         float best = _bonePickPixels * scale; // ピクセル閾値
 
-        IEnumerable<int> indices;
         if (_ikBones.Count > 0)
         {
             best *= 1.5f; // IKボーンは選択しやすくする
-            indices = _ikBones.Select(b => b.PmxBoneIndex);
+            foreach (var bone in _ikBones)
+            {
+                int i = bone.PmxBoneIndex;
+                var pos = _worldMats[i].Translation.ToOpenTK();
+                var v4 = new Vector4(pos, 1f);
+                var clip = v4 * _viewMatrix;
+                clip = clip * _projMatrix;
+                if (clip.W <= 0)
+                    continue;
+                var ndc = clip.Xyz / clip.W;
+                var sx = (ndc.X * 0.5f + 0.5f) * _width;
+                var sy = (-ndc.Y * 0.5f + 0.5f) * _height;
+                var dx = sx - screenX;
+                var dy = sy - screenY;
+                var dist = MathF.Sqrt(dx * dx + dy * dy);
+                if (dist < best)
+                {
+                    best = dist;
+                    result = i;
+                }
+            }
         }
         else
         {
-            indices = Enumerable.Range(0, Math.Min(_worldMats.Length, _bones.Count));
-        }
-
-        foreach (var i in indices)
-        {
-            var pos = _worldMats[i].Translation.ToOpenTK();
-            var v4 = new Vector4(pos, 1f);
-            var clip = v4 * _viewMatrix;
-            clip = clip * _projMatrix;
-            if (clip.W <= 0)
-                continue;
-            var ndc = clip.Xyz / clip.W;
-            var sx = (ndc.X * 0.5f + 0.5f) * _width;
-            var sy = (-ndc.Y * 0.5f + 0.5f) * _height;
-            var dx = sx - screenX;
-            var dy = sy - screenY;
-            var dist = MathF.Sqrt(dx * dx + dy * dy);
-            if (dist < best)
+            int limit = Math.Min(_worldMats.Length, _bones.Count);
+            for (int i = 0; i < limit; i++)
             {
-                best = dist;
-                result = i;
+                var pos = _worldMats[i].Translation.ToOpenTK();
+                var v4 = new Vector4(pos, 1f);
+                var clip = v4 * _viewMatrix;
+                clip = clip * _projMatrix;
+                if (clip.W <= 0)
+                    continue;
+                var ndc = clip.Xyz / clip.W;
+                var sx = (ndc.X * 0.5f + 0.5f) * _width;
+                var sy = (-ndc.Y * 0.5f + 0.5f) * _height;
+                var dx = sx - screenX;
+                var dy = sy - screenY;
+                var dist = MathF.Sqrt(dx * dx + dy * dy);
+                if (dist < best)
+                {
+                    best = dist;
+                    result = i;
+                }
             }
         }
         return result;
@@ -831,12 +848,47 @@ void main(){
 
             var rm = new RenderMesh();
             rm.IndexCount = indices.Count;
-            rm.BaseVertices = sm.Mesh.Vertices.Select(v => new Vector3(v.X, v.Y, v.Z)).ToArray();
-            rm.VertexOffsets = new Vector3[rm.BaseVertices.Length];
-            rm.Normals = sm.Mesh.Normals.Select(n => new Vector3(n.X, n.Y, n.Z)).ToArray();
-            rm.TexCoords = sm.TexCoords.Select(t => new Vector2(t.X, t.Y)).ToArray();
-            rm.JointIndices = sm.JointIndices.Select(j => new Vector4(j.X, j.Y, j.Z, j.W)).ToArray();
-            rm.JointWeights = sm.JointWeights.Select(w => new Vector4(w.X, w.Y, w.Z, w.W)).ToArray();
+
+            int baseVertCount = sm.Mesh.Vertices.Count;
+            rm.BaseVertices = new Vector3[baseVertCount];
+            for (int i = 0; i < baseVertCount; i++)
+            {
+                var v = sm.Mesh.Vertices[i];
+                rm.BaseVertices[i] = new Vector3(v.X, v.Y, v.Z);
+            }
+            rm.VertexOffsets = new Vector3[baseVertCount];
+
+            int normalsCount = sm.Mesh.Normals.Count;
+            rm.Normals = new Vector3[normalsCount];
+            for (int i = 0; i < normalsCount; i++)
+            {
+                var n = sm.Mesh.Normals[i];
+                rm.Normals[i] = new Vector3(n.X, n.Y, n.Z);
+            }
+
+            int texCount = sm.TexCoords.Count;
+            rm.TexCoords = new Vector2[texCount];
+            for (int i = 0; i < texCount; i++)
+            {
+                var t = sm.TexCoords[i];
+                rm.TexCoords[i] = new Vector2(t.X, t.Y);
+            }
+
+            int jointIndexCount = sm.JointIndices.Count;
+            rm.JointIndices = new Vector4[jointIndexCount];
+            for (int i = 0; i < jointIndexCount; i++)
+            {
+                var j = sm.JointIndices[i];
+                rm.JointIndices[i] = new Vector4(j.X, j.Y, j.Z, j.W);
+            }
+
+            int jointWeightCount = sm.JointWeights.Count;
+            rm.JointWeights = new Vector4[jointWeightCount];
+            for (int i = 0; i < jointWeightCount; i++)
+            {
+                var w = sm.JointWeights[i];
+                rm.JointWeights[i] = new Vector4(w.X, w.Y, w.Z, w.W);
+            }
             rm.Vao = GL.GenVertexArray();
             rm.Vbo = GL.GenBuffer();
             rm.Ebo = GL.GenBuffer();
