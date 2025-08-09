@@ -58,7 +58,7 @@ public class RecorderController
         return _savedDir;
     }
 
-    public string StopRecording()
+    public async Task<string> StopRecording()
     {
         if (!_recording)
         {
@@ -68,7 +68,10 @@ public class RecorderController
         _recording = false;
         File.AppendAllText(_infoPath, $"Stopped:{DateTime.Now}\n");
         _frameChannel?.Writer.Complete();
-        _workerTask?.Wait();
+        if (_workerTask != null)
+        {
+            await _workerTask;
+        }
         while (_imagePool.TryDequeue(out var img))
         {
             img.Dispose();

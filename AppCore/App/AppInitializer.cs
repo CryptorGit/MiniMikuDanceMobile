@@ -131,14 +131,14 @@ public partial class AppInitializer : IDisposable
         return outPath;
     }
 
-    public void ToggleRecord()
+    public async Task ToggleRecord()
     {
         if (Viewer == null || Recorder == null)
             return;
 
         if (Recorder.IsRecording)
         {
-            var path = Recorder.StopRecording();
+            var path = await Recorder.StopRecording();
             UIManager.Instance.IsRecording = false;
             if (!string.IsNullOrEmpty(Recorder.ThumbnailPath))
             {
