@@ -12,12 +12,19 @@ public static class LogService
     public static event Action<string>? LineLogged;
 
     private const int MaxHistory = 1000;
+    private const int LogChannelCapacity = 100;
     private static readonly List<string> _history = new();
     private static readonly object _historyLock = new();
     private static readonly string _logFilePath;
     private static readonly string _logDirectory;
     private static readonly string _terminalLogFilePath;
-    private static readonly Channel<string> _logChannel = Channel.CreateUnbounded<string>();
+    private static readonly Channel<string> _logChannel = Channel.CreateBounded<string>(
+        new BoundedChannelOptions(LogChannelCapacity)
+        {
+            FullMode = BoundedChannelFullMode.DropOldest,
+            SingleReader = true,
+            SingleWriter = false,
+        });
 
     static LogService()
     {
