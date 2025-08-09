@@ -108,22 +108,27 @@ public partial class MainPage : ContentPage
     {
         _poseMode = e.Value;
         _touchPoints.Clear();
-        if (_poseMode && _currentModel != null)
+        if (_poseMode)
         {
-            IkManager.Initialize(_currentModel.Bones);
-            _renderer.SetIkBones(IkManager.Bones.Values);
-            IkManager.PickFunc = _renderer.PickBone;
-            IkManager.GetBonePositionFunc = _renderer.GetBoneWorldPosition;
-            IkManager.GetCameraPositionFunc = _renderer.GetCameraPosition;
+            _renderer.EnablePoseMode();
+            if (_currentModel != null)
+            {
+                IkManager.Initialize(_currentModel.Bones);
+                _renderer.SetIkBones(IkManager.Bones.Values);
+                IkManager.PickFunc = _renderer.PickBone;
+                IkManager.GetBonePositionFunc = _renderer.GetBoneWorldPosition;
+                IkManager.GetCameraPositionFunc = _renderer.GetCameraPosition;
+            }
+            IkManager.ReleaseSelection();
         }
         else
         {
+            _renderer.DisablePoseMode();
             IkManager.ReleaseSelection();
             IkManager.PickFunc = null;
             IkManager.GetBonePositionFunc = null;
             IkManager.GetCameraPositionFunc = null;
         }
-        _renderer.ShowIkBones = _poseMode;
         Viewer?.InvalidateSurface();
     }
 
@@ -572,6 +577,16 @@ public partial class MainPage : ContentPage
             _rimIntensity = _pendingModel.RimIntensity;
             UpdateRendererLightingProperties();
             _pendingModel = null;
+            if (_poseMode && _currentModel != null)
+            {
+                IkManager.Initialize(_currentModel.Bones);
+                _renderer.SetIkBones(IkManager.Bones.Values);
+                IkManager.PickFunc = _renderer.PickBone;
+                IkManager.GetBonePositionFunc = _renderer.GetBoneWorldPosition;
+                IkManager.GetCameraPositionFunc = _renderer.GetCameraPosition;
+                IkManager.ReleaseSelection();
+                _renderer.EnablePoseMode();
+            }
         }
     }
 

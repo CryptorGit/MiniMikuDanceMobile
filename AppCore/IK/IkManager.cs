@@ -63,19 +63,22 @@ public static class IkManager
 
     public static void Initialize(IReadOnlyList<BoneData> modelBones)
     {
-        if (BonesDict.Count > 0) return;
-        foreach (var kv in BoneNames)
+        if (BonesDict.Count == 0)
         {
-            int idx = FindBoneIndex(modelBones, kv.Value);
-            if (idx >= 0)
+            foreach (var kv in BoneNames)
             {
-                var b = modelBones[idx];
-                var ik = new IkBone(idx, b.BindMatrix.Translation, Quaternion.Identity);
-                BonesDict[kv.Key] = ik;
-                BoneIndexDict[idx] = ik;
+                int idx = FindBoneIndex(modelBones, kv.Value);
+                if (idx >= 0)
+                {
+                    var b = modelBones[idx];
+                    var ik = new IkBone(idx, b.BindMatrix.Translation, Quaternion.Identity);
+                    BonesDict[kv.Key] = ik;
+                    BoneIndexDict[idx] = ik;
+                }
             }
+            SetupSolvers();
         }
-        SetupSolvers();
+        ReleaseSelection();
     }
 
     private static int FindBoneIndex(IReadOnlyList<BoneData> bones, string name)

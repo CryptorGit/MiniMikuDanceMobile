@@ -147,6 +147,16 @@ public class PmxRenderer : IDisposable
         }
     }
 
+    public void EnablePoseMode()
+    {
+        ShowIkBones = true;
+    }
+
+    public void DisablePoseMode()
+    {
+        ShowIkBones = false;
+    }
+
     private float _stageSize = AppSettings.DefaultStageSize;
     public float StageSize
     {
