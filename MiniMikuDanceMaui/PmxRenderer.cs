@@ -29,8 +29,8 @@ public class PmxRenderer : IDisposable
         public Vector4 Color = Vector4.One;
         public int Texture;
         public bool HasTexture;
-        public Vector3[] Vertices = Array.Empty<Vector3>();
         public Vector3[] BaseVertices = Array.Empty<Vector3>();
+        public Vector3[] VertexOffsets = Array.Empty<Vector3>();
         public Vector3[] Normals = Array.Empty<Vector3>();
         public Vector2[] TexCoords = Array.Empty<Vector2>();
         public Vector4[] JointIndices = Array.Empty<Vector4>();
@@ -39,11 +39,11 @@ public class PmxRenderer : IDisposable
     private readonly System.Collections.Generic.List<RenderMesh> _meshes = new();
     private readonly Dictionary<string, MorphData> _morphs = new(StringComparer.OrdinalIgnoreCase);
     private readonly Dictionary<string, float> _morphValues = new(StringComparer.OrdinalIgnoreCase);
-    private readonly Dictionary<int, List<(RenderMesh Mesh, int Index)>> _morphVertexMap = new();
+    private List<(RenderMesh Mesh, int Index)>?[] _morphVertexMap = Array.Empty<List<(RenderMesh Mesh, int Index)>?>();
     private readonly HashSet<int> _changedOriginalVertices = new();
     private readonly object _changedVerticesLock = new();
-    private readonly Dictionary<int, Vector3> _vertexTotalOffsets = new();
-    private readonly Dictionary<int, List<(string MorphName, Vector3 Offset)>> _vertexMorphOffsets = new();
+    private Vector3[] _vertexTotalOffsets = Array.Empty<Vector3>();
+    private List<(string MorphName, Vector3 Offset)>?[] _vertexMorphOffsets = Array.Empty<List<(string MorphName, Vector3 Offset)>?>();
     public SKGLView? Viewer { get; set; }
     private int _gridVao;
     private int _gridVbo;
@@ -723,7 +723,8 @@ void main(){
             int vid = off.Index;
             Vector3 total = Vector3.Zero;
 
-            if (_vertexMorphOffsets.TryGetValue(vid, out var contribs))
+            var contribs = _vertexMorphOffsets[vid];
+            if (contribs != null)
             {
                 foreach (var (mName, vec) in contribs)
                 {
@@ -734,20 +735,18 @@ void main(){
                 }
             }
 
-            if (total.LengthSquared > 0f)
-                _vertexTotalOffsets[vid] = total;
-            else
-                _vertexTotalOffsets.Remove(vid);
+            _vertexTotalOffsets[vid] = total;
 
             lock (_changedVerticesLock)
             {
                 _changedOriginalVertices.Add(vid);
             }
 
-            if (_morphVertexMap.TryGetValue(vid, out var list))
+            var list = _morphVertexMap[vid];
+            if (list != null)
             {
                 foreach (var (mesh, idx) in list)
-                    mesh.Vertices[idx] = mesh.BaseVertices[idx] + total;
+                    mesh.VertexOffsets[idx] = total;
             }
         }
 
@@ -828,8 +827,8 @@ void main(){
 
             var rm = new RenderMesh();
             rm.IndexCount = indices.Count;
-            rm.Vertices = sm.Mesh.Vertices.Select(v => new Vector3(v.X, v.Y, v.Z)).ToArray();
-            rm.BaseVertices = rm.Vertices.ToArray();
+            rm.BaseVertices = sm.Mesh.Vertices.Select(v => new Vector3(v.X, v.Y, v.Z)).ToArray();
+            rm.VertexOffsets = new Vector3[rm.BaseVertices.Length];
             rm.Normals = sm.Mesh.Normals.Select(n => new Vector3(n.X, n.Y, n.Z)).ToArray();
             rm.TexCoords = sm.TexCoords.Select(t => new Vector2(t.X, t.Y)).ToArray();
             rm.JointIndices = sm.JointIndices.Select(j => new Vector4(j.X, j.Y, j.Z, j.W)).ToArray();
@@ -885,14 +884,15 @@ void main(){
             _meshes.Add(rm);
         }
 
-        int maxVertices = _meshes.Count > 0 ? _meshes.Max(m => m.Vertices.Length) : 0;
+        int maxVertices = _meshes.Count > 0 ? _meshes.Max(m => m.BaseVertices.Length) : 0;
         _tmpVertexBuffer = new float[maxVertices * 8];
 
         _morphs.Clear();
         _morphValues.Clear();
-        _morphVertexMap.Clear();
-        _vertexTotalOffsets.Clear();
-        _vertexMorphOffsets.Clear();
+        int totalVertices = data.Mesh.VertexCount;
+        _morphVertexMap = new List<(RenderMesh Mesh, int Index)>?[totalVertices];
+        _vertexTotalOffsets = new Vector3[totalVertices];
+        _vertexMorphOffsets = new List<(string MorphName, Vector3 Offset)>?[totalVertices];
         foreach (var morph in data.Morphs)
         {
             if (morph.Type != MorphType.Vertex) continue;
@@ -918,9 +918,10 @@ void main(){
             foreach (var off in mData.Offsets)
             {
                 var vec = new Vector3(off.Offset.X, off.Offset.Y, off.Offset.Z);
-                if (!_vertexMorphOffsets.TryGetValue(off.Index, out var list))
+                var list = _vertexMorphOffsets[off.Index];
+                if (list == null)
                 {
-                    list = new List<(string, Vector3)>();
+                    list = new List<(string MorphName, Vector3 Offset)>();
                     _vertexMorphOffsets[off.Index] = list;
                 }
                 list.Add((mName, vec));
@@ -947,7 +948,7 @@ void main(){
 
         foreach (var rm in _meshes)
         {
-            for (int i = 0; i < rm.Vertices.Length; i++)
+            for (int i = 0; i < rm.BaseVertices.Length; i++)
             {
                 var pos = rm.BaseVertices[i];
                 var nor = i < rm.Normals.Length ? rm.Normals[i] : Vector3.Zero;
@@ -957,9 +958,10 @@ void main(){
                 {
                     foreach (var idx in idxList)
                     {
-                        if (!_morphVertexMap.TryGetValue(idx, out var l))
+                        var l = _morphVertexMap[idx];
+                        if (l == null)
                         {
-                            l = new List<(RenderMesh, int)>();
+                            l = new List<(RenderMesh Mesh, int Index)>();
                             _morphVertexMap[idx] = l;
                         }
                         l.Add((rm, i));
@@ -1120,19 +1122,20 @@ void main(){
             {
                 foreach (var rm in _meshes)
                 {
-                    if (rm.JointIndices.Length != rm.Vertices.Length)
+                    if (rm.JointIndices.Length != rm.BaseVertices.Length)
                         continue;
-                    int required = rm.Vertices.Length * 8;
+                    int required = rm.BaseVertices.Length * 8;
                     if (_tmpVertexBuffer.Length < required)
                         _tmpVertexBuffer = new float[required];
                     else
                         Array.Clear(_tmpVertexBuffer, 0, required);
-                    for (int vi = 0; vi < rm.Vertices.Length; vi++)
+                    for (int vi = 0; vi < rm.BaseVertices.Length; vi++)
                     {
                         var pos = System.Numerics.Vector3.Zero;
                         var norm = System.Numerics.Vector3.Zero;
                         var jp = rm.JointIndices[vi];
                         var jw = rm.JointWeights[vi];
+                        var basePos = (rm.BaseVertices[vi] + rm.VertexOffsets[vi]).ToNumerics();
                         for (int k = 0; k < 4; k++)
                         {
                             int bi = (int)jp[k];
@@ -1140,7 +1143,7 @@ void main(){
                             if (bi >= 0 && bi < _skinMats.Length && w > 0f)
                             {
                                 var m = _skinMats[bi];
-                                pos += System.Numerics.Vector3.Transform(rm.Vertices[vi].ToNumerics(), m) * w;
+                                pos += System.Numerics.Vector3.Transform(basePos, m) * w;
                                 norm += System.Numerics.Vector3.TransformNormal(rm.Normals[vi].ToNumerics(), m) * w;
                             }
                         }
@@ -1184,13 +1187,15 @@ void main(){
                 {
                     foreach (var origIdx in changedVerts)
                     {
-                        if (!_morphVertexMap.TryGetValue(origIdx, out var mapped)) continue;
+                        var mapped = _morphVertexMap[origIdx];
+                        if (mapped == null) continue;
                         foreach (var (rm, vi) in mapped)
                         {
                             var pos = System.Numerics.Vector3.Zero;
                             var norm = System.Numerics.Vector3.Zero;
                             var jp = rm.JointIndices[vi];
                             var jw = rm.JointWeights[vi];
+                            var basePos = (rm.BaseVertices[vi] + rm.VertexOffsets[vi]).ToNumerics();
                             for (int k = 0; k < 4; k++)
                             {
                                 int bi = (int)jp[k];
@@ -1198,7 +1203,7 @@ void main(){
                                 if (bi >= 0 && bi < _skinMats.Length && w > 0f)
                                 {
                                     var m = _skinMats[bi];
-                                    pos += System.Numerics.Vector3.Transform(rm.Vertices[vi].ToNumerics(), m) * w;
+                                    pos += System.Numerics.Vector3.Transform(basePos, m) * w;
                                     norm += System.Numerics.Vector3.TransformNormal(rm.Normals[vi].ToNumerics(), m) * w;
                                 }
                             }
@@ -1265,14 +1270,14 @@ void main(){
             // No bones: just push morphed (or base) vertices to GPU
             foreach (var rm in _meshes)
             {
-                int required = rm.Vertices.Length * 8;
+                int required = rm.BaseVertices.Length * 8;
                 if (_tmpVertexBuffer.Length < required)
                     _tmpVertexBuffer = new float[required];
                 else
                     Array.Clear(_tmpVertexBuffer, 0, required);
-                for (int vi = 0; vi < rm.Vertices.Length; vi++)
+                for (int vi = 0; vi < rm.BaseVertices.Length; vi++)
                 {
-                    var pos = rm.Vertices[vi];
+                    var pos = rm.BaseVertices[vi] + rm.VertexOffsets[vi];
                     var nor = vi < rm.Normals.Length ? rm.Normals[vi] : new Vector3(0, 0, 1);
                     _tmpVertexBuffer[vi * 8 + 0] = pos.X;
                     _tmpVertexBuffer[vi * 8 + 1] = pos.Y;
