@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Numerics;
@@ -37,40 +38,59 @@ public static class IkManager
             if (ik == null)
                 continue;
 
-            var bRoot = modelBones[i];
-            var rootPos = Vector3.Transform(Vector3.Zero, bRoot.BindMatrix);
-            BonesDict[i] = new IkBone(i, rootPos, bRoot.Rotation);
-
-            var chainIndices = new List<int>(ik.Chain);
-            chainIndices.Reverse();
-            chainIndices.Add(ik.Target);
-
-            var chain = new IkBone[chainIndices.Count];
-            for (int j = 0; j < chainIndices.Count; j++)
-            {
-                var idx = chainIndices[j];
-                var b = modelBones[idx];
-                var pos = Vector3.Transform(Vector3.Zero, b.BindMatrix);
-                chain[j] = new IkBone(idx, pos, b.Rotation);
-            }
-
-            IIkSolver solver;
-            if (chain.Length == 3)
-            {
-                float l1 = Vector3.Distance(chain[0].Position, chain[1].Position);
-                float l2 = Vector3.Distance(chain[1].Position, chain[2].Position);
-                solver = new TwoBoneSolver(l1, l2);
-            }
-            else
-            {
-                var lengths = new float[chain.Length - 1];
-                for (int j = 0; j < lengths.Length; j++)
-                    lengths[j] = Vector3.Distance(chain[j].Position, chain[j + 1].Position);
-                solver = new FabrikSolver(lengths);
-            }
-            Solvers[i] = (solver, chain);
-            Trace.WriteLine($"IKチェーンを構築しました: {i} -> {string.Join(" -> ", chainIndices)}");
+            RegisterIkBone(i, modelBones[i], ik, modelBones);
         }
+
+        // "足IK" ボーンが取りこぼされていないか確認する
+        for (int i = 0; i < modelBones.Count; i++)
+        {
+            if (BonesDict.ContainsKey(i))
+                continue;
+            var name = modelBones[i].Name;
+            if (name.Contains("足", StringComparison.Ordinal) &&
+                (name.Contains("IK", StringComparison.OrdinalIgnoreCase) || name.Contains("ＩＫ")))
+            {
+                var ik = modelBones[i].Ik;
+                if (ik != null)
+                    RegisterIkBone(i, modelBones[i], ik, modelBones);
+            }
+        }
+    }
+
+    private static void RegisterIkBone(int index, BoneData bRoot, IkInfo ik, IReadOnlyList<BoneData> modelBones)
+    {
+        var rootPos = Vector3.Transform(Vector3.Zero, bRoot.BindMatrix);
+        BonesDict[index] = new IkBone(index, rootPos, bRoot.Rotation);
+
+        var chainIndices = new List<int>(ik.Chain);
+        chainIndices.Reverse();
+        chainIndices.Add(ik.Target);
+
+        var chain = new IkBone[chainIndices.Count];
+        for (int j = 0; j < chainIndices.Count; j++)
+        {
+            var idx = chainIndices[j];
+            var b = modelBones[idx];
+            var pos = Vector3.Transform(Vector3.Zero, b.BindMatrix);
+            chain[j] = new IkBone(idx, pos, b.Rotation);
+        }
+
+        IIkSolver solver;
+        if (chain.Length == 3)
+        {
+            float l1 = Vector3.Distance(chain[0].Position, chain[1].Position);
+            float l2 = Vector3.Distance(chain[1].Position, chain[2].Position);
+            solver = new TwoBoneSolver(l1, l2);
+        }
+        else
+        {
+            var lengths = new float[chain.Length - 1];
+            for (int j = 0; j < lengths.Length; j++)
+                lengths[j] = Vector3.Distance(chain[j].Position, chain[j + 1].Position);
+            solver = new FabrikSolver(lengths);
+        }
+        Solvers[index] = (solver, chain);
+        Trace.WriteLine($"IKチェーンを構築しました: {index} -> {string.Join(" -> ", chainIndices)}");
     }
 
     // レンダラーから提供された情報を用いてボーン選択を行う

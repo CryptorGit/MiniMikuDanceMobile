@@ -569,7 +569,19 @@ void main(){
         int result = -1;
         float scale = _defaultCameraDistance != 0 ? _distance / _defaultCameraDistance : 1f;
         float best = _bonePickPixels * scale; // ピクセル閾値
-        for (int i = 0; i < _worldMats.Length && i < _bones.Count; i++)
+
+        IEnumerable<int> indices;
+        if (_ikBones.Count > 0)
+        {
+            best *= 1.5f; // IKボーンは選択しやすくする
+            indices = _ikBones.Select(b => b.PmxBoneIndex);
+        }
+        else
+        {
+            indices = Enumerable.Range(0, Math.Min(_worldMats.Length, _bones.Count));
+        }
+
+        foreach (var i in indices)
         {
             var pos = _worldMats[i].Translation.ToOpenTK();
             var v4 = new Vector4(pos, 1f);
