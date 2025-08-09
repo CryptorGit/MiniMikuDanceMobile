@@ -4,6 +4,7 @@ using Microsoft.Maui.Graphics;
 using Microsoft.Maui.Layouts;
 using Microsoft.Maui.Dispatching;
 using System;
+using System.Diagnostics;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using SkiaSharp.Views.Maui;
@@ -111,7 +112,22 @@ public partial class MainPage : ContentPage
         if (_poseMode && _currentModel != null)
         {
             IkManager.LoadPmxIkBones(_currentModel.Bones);
-            _renderer.SetIkBones(IkManager.Bones.Values);
+            try
+            {
+                var ikBones = IkManager.Bones.Values;
+                if (ikBones.Any())
+                {
+                    _renderer.SetIkBones(ikBones);
+                }
+                else
+                {
+                    _renderer.ClearIkBones();
+                }
+            }
+            catch (Exception ex)
+            {
+                Trace.WriteLine($"SetIkBones failed: {ex.Message}");
+            }
             IkManager.PickFunc = _renderer.PickBone;
             IkManager.GetBonePositionFunc = _renderer.GetBoneWorldPosition;
             IkManager.GetCameraPositionFunc = _renderer.GetCameraPosition;
@@ -609,7 +625,22 @@ public partial class MainPage : ContentPage
             if (_poseMode && _currentModel != null)
             {
                 IkManager.LoadPmxIkBones(_currentModel.Bones);
-                _renderer.SetIkBones(IkManager.Bones.Values);
+                try
+                {
+                    var ikBones = IkManager.Bones.Values;
+                    if (ikBones.Any())
+                    {
+                        _renderer.SetIkBones(ikBones);
+                    }
+                    else
+                    {
+                        _renderer.ClearIkBones();
+                    }
+                }
+                catch (Exception ex)
+                {
+                    Trace.WriteLine($"SetIkBones failed: {ex.Message}");
+                }
                 IkManager.PickFunc = _renderer.PickBone;
                 IkManager.GetBonePositionFunc = _renderer.GetBoneWorldPosition;
                 IkManager.GetCameraPositionFunc = _renderer.GetCameraPosition;
