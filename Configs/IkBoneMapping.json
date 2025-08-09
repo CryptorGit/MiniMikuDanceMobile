@@ -1,15 +1,15 @@
 {
   "mapping": {
-    "Head": ["head", "Head", "J_Bip_C_Head"],
-    "Chest": ["chest", "Chest", "upperChest", "spine2", "J_Bip_C_Chest"],
-    "Hip": ["hips", "Hips", "J_Bip_C_Hips"],
-    "LeftShoulder": ["leftShoulder", "LeftShoulder", "leftUpperArm", "LeftUpperArm", "J_Bip_L_UpperArm"],
-    "LeftHand": ["leftHand", "LeftHand", "J_Bip_L_Hand"],
-    "RightShoulder": ["rightShoulder", "RightShoulder", "rightUpperArm", "RightUpperArm", "J_Bip_R_UpperArm"],
-    "RightHand": ["rightHand", "RightHand", "J_Bip_R_Hand"],
-    "LeftKnee": ["leftKnee", "LeftKnee", "leftLowerLeg", "LeftLowerLeg", "J_Bip_L_LowerLeg"],
-    "LeftFoot": ["leftFoot", "LeftFoot", "J_Bip_L_Foot"],
-    "RightKnee": ["rightKnee", "RightKnee", "rightLowerLeg", "RightLowerLeg", "J_Bip_R_LowerLeg"],
-    "RightFoot": ["rightFoot", "RightFoot", "J_Bip_R_Foot"]
+    "Head": ["head", "Head", "J_Bip_C_Head", "頭", "頭部"],
+    "Chest": ["chest", "Chest", "upperChest", "spine2", "J_Bip_C_Chest", "胸", "胸部"],
+    "Hip": ["hips", "Hips", "J_Bip_C_Hips", "腰"],
+    "LeftShoulder": ["leftShoulder", "LeftShoulder", "leftUpperArm", "LeftUpperArm", "J_Bip_L_UpperArm", "左肩", "左腕"],
+    "LeftHand": ["leftHand", "LeftHand", "J_Bip_L_Hand", "左手", "左手首"],
+    "RightShoulder": ["rightShoulder", "RightShoulder", "rightUpperArm", "RightUpperArm", "J_Bip_R_UpperArm", "右肩", "右腕"],
+    "RightHand": ["rightHand", "RightHand", "J_Bip_R_Hand", "右手", "右手首"],
+    "LeftKnee": ["leftKnee", "LeftKnee", "leftLowerLeg", "LeftLowerLeg", "J_Bip_L_LowerLeg", "左ひざ", "左膝"],
+    "LeftFoot": ["leftFoot", "LeftFoot", "J_Bip_L_Foot", "左足", "左足首"],
+    "RightKnee": ["rightKnee", "RightKnee", "rightLowerLeg", "RightLowerLeg", "J_Bip_R_LowerLeg", "右ひざ", "右膝"],
+    "RightFoot": ["rightFoot", "RightFoot", "J_Bip_R_Foot", "右足", "右足首"]
   }
 }

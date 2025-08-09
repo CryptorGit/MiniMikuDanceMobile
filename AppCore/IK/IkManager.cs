@@ -134,7 +134,9 @@ public static class IkManager
     /// </summary>
     /// <param name="modelBones">PMXモデルのボーン一覧</param>
     /// <param name="humanoidBones">ヒューマノイドボーン名とインデックスのマッピング</param>
-    public static void GenerateVrChatSkeleton(IReadOnlyList<BoneData> modelBones, IDictionary<string, int>? humanoidBones = null)
+    public static void GenerateVrChatSkeleton(IReadOnlyList<BoneData> modelBones,
+        IDictionary<string, int>? humanoidBones = null,
+        IReadOnlyList<(string Name, int Index)>? humanoidBoneList = null)
     {
         Clear();
         LoadMappings();
@@ -142,8 +144,26 @@ public static class IkManager
         {
             if (!BoneNames.TryGetValue(type, out var names))
                 continue;
+            int idx = -1;
+            if (humanoidBoneList != null)
+            {
+                foreach (var hb in humanoidBoneList)
+                {
+                    foreach (var n in names)
+                    {
+                        if (string.Equals(hb.Name, n, System.StringComparison.OrdinalIgnoreCase))
+                        {
+                            idx = hb.Index;
+                            break;
+                        }
+                    }
+                    if (idx >= 0)
+                        break;
+                }
+            }
 
-            int idx = FindBoneIndex(modelBones, names);
+            if (idx < 0)
+                idx = FindBoneIndex(modelBones, names);
             if (idx < 0 && humanoidBones != null)
             {
                 string? resolved = null;
@@ -181,6 +201,7 @@ public static class IkManager
             else
             {
                 Trace.WriteLine($"{type} ボーンが見つかりません。");
+                System.Console.Error.WriteLine($"IKマッピング失敗: {type} ボーンが見つかりません。");
                 if (type == IkBoneType.Hip)
                 {
                     BonesDict[type] = new IkBone(-1, Vector3.Zero, Quaternion.Identity);
