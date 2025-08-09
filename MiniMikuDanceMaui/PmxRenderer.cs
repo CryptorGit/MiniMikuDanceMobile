@@ -628,7 +628,8 @@ void main(){
     {
         Matrix4.Invert(_modelTransform, out var inv);
         var pos = Vector3.TransformPosition(worldPos.ToOpenTK(), inv);
-        // Z 軸の向きをモデル座標系に合わせる
+        // MMD(左手系)とOpenGL(右手系)の差異を吸収するため、Z軸のみ反転する。
+        // X/Y軸はそのまま保持する。
         pos.Z = -pos.Z;
         var result = pos.ToNumerics();
         System.Diagnostics.Trace.WriteLine($"WorldToModel {worldPos} => {result}");
@@ -640,12 +641,13 @@ void main(){
         if (_width == 0 || _height == 0)
             return (System.Numerics.Vector3.Zero, System.Numerics.Vector3.UnitZ);
 
-        float x = (2f * screenX / _width) - 1f;
-        float y = 1f - (2f * screenY / _height);
+        float x = (2f * screenX / _width) - 1f; // X軸はそのまま
+        float y = 1f - (2f * screenY / _height); // スクリーン座標ではY軸が下向きのため反転
         Matrix4.Invert(_projMatrix, out var invProj);
         Matrix4.Invert(_viewMatrix, out var invView);
         var rayClip = new Vector4(x, y, -1f, 1f);
         var rayEye = rayClip * invProj;
+        // ビュー空間では前方を -Z とするため、Z軸を反転する
         rayEye.Z = -1f; rayEye.W = 0f;
         var rayWorld = rayEye * invView;
         var dir = Vector3.Normalize(rayWorld.Xyz);
