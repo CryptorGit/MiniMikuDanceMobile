@@ -590,6 +590,17 @@ public partial class MainPage : ContentPage
             _rimIntensity = _pendingModel.RimIntensity;
             UpdateRendererLightingProperties();
             _pendingModel = null;
+
+            if (_poseMode && _currentModel != null)
+            {
+                IkManager.Initialize(_currentModel.Bones);
+                _renderer.SetIkBones(IkManager.Bones.Values);
+                IkManager.PickFunc = _renderer.PickBone;
+                IkManager.GetBonePositionFunc = _renderer.GetBoneWorldPosition;
+                IkManager.GetCameraPositionFunc = _renderer.GetCameraPosition;
+                IkManager.SetBoneRotation = _renderer.SetBoneRotation;
+                IkManager.SetBoneTranslation = _renderer.SetBoneTranslation;
+            }
         }
     }
 
