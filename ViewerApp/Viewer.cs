@@ -35,6 +35,7 @@ public class Viewer : IViewer
     private readonly int _useTexLoc;
     private readonly Matrix4 _modelTransform;
     private Matrix4 _view = Matrix4.Identity;
+    private Matrix4 _proj;
     private readonly Stopwatch _timer = new();
 
     private byte[]? _pixelBuffer;
@@ -179,6 +180,9 @@ public class Viewer : IViewer
         GL.Enable(EnableCap.CullFace);
         GL.FrontFace(FrontFaceDirection.Ccw);
 
+        _proj = Matrix4.CreatePerspectiveFieldOfView(MathHelper.PiOver4, Size.X / (float)Size.Y, 0.1f, 100f);
+        _window.Resize += OnResize;
+
         _timer.Start();
     }
 
@@ -204,6 +208,12 @@ public class Viewer : IViewer
         }
     }
 
+    private void OnResize(ResizeEventArgs e)
+    {
+        Size = e.Size;
+        _proj = Matrix4.CreatePerspectiveFieldOfView(MathHelper.PiOver4, Size.X / (float)Size.Y, 0.1f, 100f);
+    }
+
     private void Render()
     {
         NativeWindow.ProcessWindowEvents(false);
@@ -213,10 +223,9 @@ public class Viewer : IViewer
         GL.Clear(ClearBufferMask.ColorBufferBit | ClearBufferMask.DepthBufferBit);
 
         Matrix4 model = _modelTransform;
-        Matrix4 proj = Matrix4.CreatePerspectiveFieldOfView(MathHelper.PiOver4, Size.X / (float)Size.Y, 0.1f, 100f);
 
         GL.UseProgram(_program);
-        Matrix4 mvp = proj * _view * model;
+        Matrix4 mvp = _proj * _view * model;
         GL.UniformMatrix4(_mvpLoc, false, ref mvp);
         foreach (var rm in _meshes)
         {
