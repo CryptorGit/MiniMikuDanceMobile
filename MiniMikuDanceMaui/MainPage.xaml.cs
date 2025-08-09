@@ -118,6 +118,11 @@ public partial class MainPage : ContentPage
             IkManager.SetBoneRotation = _renderer.SetBoneRotation;
             IkManager.SetBoneTranslation = _renderer.SetBoneTranslation;
             IkManager.ToModelSpaceFunc = _renderer.WorldToModel;
+            IkManager.InvalidateViewer = () =>
+            {
+                _needsRender = true;
+                Viewer?.InvalidateSurface();
+            };
         }
         else
         {
@@ -129,6 +134,7 @@ public partial class MainPage : ContentPage
             IkManager.SetBoneRotation = null;
             IkManager.SetBoneTranslation = null;
             IkManager.ToModelSpaceFunc = null;
+            IkManager.InvalidateViewer = null;
         }
         _renderer.ShowIkBones = _poseMode;
         Viewer?.InvalidateSurface();
@@ -599,26 +605,26 @@ public partial class MainPage : ContentPage
     {
         if (_poseMode)
         {
-            if (e.ActionType == SKTouchAction.Pressed)
+            switch (e.ActionType)
             {
-                IkManager.PickBone(e.Location.X, e.Location.Y);
+                case SKTouchAction.Pressed:
+                    IkManager.PickBone(e.Location.X, e.Location.Y);
+                    break;
+                case SKTouchAction.Moved:
+                    var ray = _renderer.ScreenPointToRay(e.Location.X, e.Location.Y);
+                    var pos = IkManager.IntersectDragPlane(ray);
+                    if (pos.HasValue && IkManager.SelectedBoneIndex >= 0)
+                    {
+                        IkManager.UpdateTarget(IkManager.SelectedBoneIndex, pos.Value);
+                    }
+                    break;
+                case SKTouchAction.Released:
+                case SKTouchAction.Cancelled:
+                    IkManager.ReleaseSelection();
+                    break;
             }
-            else if (e.ActionType == SKTouchAction.Moved)
-            {
-                var ray = _renderer.ScreenPointToRay(e.Location.X, e.Location.Y);
-                var pos = IkManager.IntersectDragPlane(ray);
-                if (pos.HasValue && IkManager.SelectedBoneIndex >= 0)
-                {
-                    IkManager.UpdateTarget(IkManager.SelectedBoneIndex, pos.Value);
-                }
-            }
-            else if (e.ActionType == SKTouchAction.Released || e.ActionType == SKTouchAction.Cancelled)
-            {
-                IkManager.ReleaseSelection();
-            }
+            IkManager.InvalidateViewer?.Invoke();
             e.Handled = true;
-            Viewer?.InvalidateSurface();
-            _needsRender = true;
             return;
         }
 

@@ -90,6 +90,7 @@ public static class IkManager
     public static System.Action<int, OpenTK.Mathematics.Vector3>? SetBoneRotation { get; set; }
     public static System.Action<int, OpenTK.Mathematics.Vector3>? SetBoneTranslation { get; set; }
     public static System.Func<Vector3, Vector3>? ToModelSpaceFunc { get; set; }
+    public static System.Action? InvalidateViewer { get; set; }
 
     private static int _selectedBoneIndex = -1;
     private static Plane _dragPlane;
@@ -303,15 +304,22 @@ public static class IkManager
         if (PickFunc == null || GetBonePositionFunc == null || GetCameraPositionFunc == null)
             return -1;
 
+        if (_selectedBoneIndex >= 0 && BoneIndexDict.TryGetValue(_selectedBoneIndex, out var prev))
+            prev.IsSelected = false;
+
         int idx = PickFunc(screenX, screenY);
         _selectedBoneIndex = idx;
         if (idx >= 0)
         {
+            if (BoneIndexDict.TryGetValue(idx, out var sel))
+                sel.IsSelected = true;
+
             var bonePos = GetBonePositionFunc(idx);
             var camPos = GetCameraPositionFunc();
             var normal = Vector3.Normalize(camPos - bonePos);
             _dragPlane = new Plane(normal, -Vector3.Dot(normal, bonePos));
         }
+        InvalidateViewer?.Invoke();
         return idx;
     }
 
@@ -348,13 +356,17 @@ public static class IkManager
                     SetBoneRotation?.Invoke(b.PmxBoneIndex, delta.ToEulerDegrees().ToOpenTK());
                     SetBoneTranslation?.Invoke(b.PmxBoneIndex, b.Position.ToOpenTK());
                 }
+                InvalidateViewer?.Invoke();
             }
         }
     }
 
     public static void ReleaseSelection()
     {
+        if (_selectedBoneIndex >= 0 && BoneIndexDict.TryGetValue(_selectedBoneIndex, out var prev))
+            prev.IsSelected = false;
         _selectedBoneIndex = -1;
+        InvalidateViewer?.Invoke();
     }
 
     public static void Clear()
