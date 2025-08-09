@@ -75,6 +75,7 @@ public static class IkManager
         { IkBoneType.RightKnee, new Vector3(0.2f, -0.4f, 0f) },
         { IkBoneType.RightFoot, new Vector3(0.2f, -0.8f, 0f) }
     };
+    private static float _scaleFactor = 1f;
 
     private static bool _mappingLoaded;
 
@@ -129,6 +130,53 @@ public static class IkManager
         _mappingLoaded = true;
     }
 
+    private static void CalculateScale(IReadOnlyList<BoneData> modelBones)
+    {
+        const float defaultHipChest = 0.2f;
+        _scaleFactor = 1f;
+
+        int hipIdx = -1;
+        int chestIdx = -1;
+        if (BoneNames.TryGetValue(IkBoneType.Hip, out var hipNames))
+            hipIdx = FindBoneIndex(modelBones, hipNames);
+        if (BoneNames.TryGetValue(IkBoneType.Chest, out var chestNames))
+            chestIdx = FindBoneIndex(modelBones, chestNames);
+
+        if (hipIdx >= 0 && chestIdx >= 0)
+        {
+            var hip = modelBones[hipIdx].BindMatrix.Translation;
+            var chest = modelBones[chestIdx].BindMatrix.Translation;
+            var dist = Vector3.Distance(hip, chest);
+            if (dist > 1e-5f)
+                _scaleFactor = dist / defaultHipChest;
+        }
+        else
+        {
+            float total = 0f;
+            int count = 0;
+            for (int i = 0; i < modelBones.Count; i++)
+            {
+                var b = modelBones[i];
+                if (b.Parent >= 0 && b.Parent < modelBones.Count)
+                {
+                    var p = modelBones[b.Parent];
+                    var dist = Vector3.Distance(b.BindMatrix.Translation, p.BindMatrix.Translation);
+                    if (dist > 1e-5f)
+                    {
+                        total += dist;
+                        count++;
+                    }
+                }
+            }
+            if (count > 0)
+            {
+                var avg = total / count;
+                if (avg > 1e-5f)
+                    _scaleFactor = avg / defaultHipChest;
+            }
+        }
+    }
+
     /// <summary>
     /// VRChat 相当の11ボーン構成を生成する
     /// </summary>
@@ -140,6 +188,7 @@ public static class IkManager
     {
         Clear();
         LoadMappings();
+        CalculateScale(modelBones);
         foreach (IkBoneType type in System.Enum.GetValues<IkBoneType>())
         {
             if (!BoneNames.TryGetValue(type, out var names))
@@ -235,6 +284,7 @@ public static class IkManager
         if (!BonesDict.TryGetValue(parentType, out var parent))
             return;
         var offset = DefaultOffsets.TryGetValue(type, out var o) ? o : Vector3.Zero;
+        offset *= _scaleFactor;
         var ik = new IkBone(-1, parent.Position + offset, Quaternion.Identity);
         BonesDict[type] = ik;
     }
