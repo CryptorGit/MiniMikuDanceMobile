@@ -471,10 +471,8 @@ void main(){
 
         float x = (2f * screenX / _width) - 1f;
         float y = 1f - (2f * screenY / _height);
-        if (!Matrix4.Invert(_projMatrix, out var invProj))
-            invProj = Matrix4.Identity;
-        if (!Matrix4.Invert(_viewMatrix, out var invView))
-            invView = Matrix4.Identity;
+        Matrix4.Invert(_projMatrix, out var invProj);
+        Matrix4.Invert(_viewMatrix, out var invView);
         var rayClip = new Vector4(x, y, -1f, 1f);
         var rayEye = Vector4.TransformRow(rayClip, invProj);
         rayEye.Z = -1f; rayEye.W = 0f;
