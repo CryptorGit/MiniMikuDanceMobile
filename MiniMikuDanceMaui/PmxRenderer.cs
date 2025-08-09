@@ -956,6 +956,8 @@ void main(){
             }
         }
 
+        _bonesDirty = true;
+
         // Auto-fit camera using bone parents' bind positions (preferred),
         // falling back to mesh bounds if unavailable.
         try
