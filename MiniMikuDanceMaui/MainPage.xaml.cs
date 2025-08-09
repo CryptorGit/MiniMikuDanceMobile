@@ -111,6 +111,8 @@ public partial class MainPage : ContentPage
         _touchPoints.Clear();
         if (_poseMode && _currentModel != null)
         {
+            _renderer.SetExternalRotation(Quaternion.Identity);
+            _renderer.ModelTransform = Matrix4.Identity;
             IkManager.LoadPmxIkBones(_currentModel.Bones);
             try
             {

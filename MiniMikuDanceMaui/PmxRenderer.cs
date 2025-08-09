@@ -452,7 +452,10 @@ void main(){
     {
         _ikBones.Clear();
         _ikBones.AddRange(bones);
-        UpdateIkBoneWorldPositions();
+        foreach (var ik in _ikBones)
+        {
+            ik.Position = GetBoneWorldPosition(ik.PmxBoneIndex);
+        }
     }
 
     public void ClearIkBones()
@@ -467,11 +470,7 @@ void main(){
 
         foreach (var ik in _ikBones)
         {
-            int idx = ik.PmxBoneIndex;
-            if (idx >= 0 && idx < _worldMats.Length)
-            {
-                ik.Position = _worldMats[idx].Translation;
-            }
+            ik.Position = GetBoneWorldPosition(ik.PmxBoneIndex);
         }
     }
 
@@ -547,8 +546,7 @@ void main(){
         for (int i = 0; i < _ikBones.Count; i++)
         {
             var ik = _ikBones[i];
-            var worldPos = Vector3.TransformPosition(ik.Position.ToOpenTK(), _modelTransform);
-            worldPos.Z = -worldPos.Z;
+            var worldPos = ik.Position.ToOpenTK();
             float scale = _ikBoneScale * _distance;
             if (ik.IsSelected)
                 scale *= 1.4f;
