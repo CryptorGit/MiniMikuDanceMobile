@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using System.Numerics;
+using MiniMikuDance.Data;
 using MiniMikuDance.Import;
 using MiniMikuDance.Util;
 
@@ -22,20 +23,50 @@ public enum IkBoneType
 
 public static class IkManager
 {
-    private static readonly Dictionary<IkBoneType, string> BoneNames = new()
+    private static readonly Dictionary<IkBoneType, List<string>> BoneNames = new()
     {
-        { IkBoneType.Head, "head" },
-        { IkBoneType.Chest, "chest" },
-        { IkBoneType.Hip, "hips" },
-        { IkBoneType.LeftShoulder, "leftShoulder" },
-        { IkBoneType.LeftHand, "leftHand" },
-        { IkBoneType.RightShoulder, "rightShoulder" },
-        { IkBoneType.RightHand, "rightHand" },
-        { IkBoneType.LeftKnee, "leftKnee" },
-        { IkBoneType.LeftFoot, "leftFoot" },
-        { IkBoneType.RightKnee, "rightKnee" },
-        { IkBoneType.RightFoot, "rightFoot" }
+        { IkBoneType.Hip, new List<string> { "hips" } },
+        { IkBoneType.Chest, new List<string> { "chest" } },
+        { IkBoneType.Head, new List<string> { "head" } },
+        { IkBoneType.LeftShoulder, new List<string> { "leftShoulder" } },
+        { IkBoneType.LeftHand, new List<string> { "leftHand" } },
+        { IkBoneType.RightShoulder, new List<string> { "rightShoulder" } },
+        { IkBoneType.RightHand, new List<string> { "rightHand" } },
+        { IkBoneType.LeftKnee, new List<string> { "leftKnee" } },
+        { IkBoneType.LeftFoot, new List<string> { "leftFoot" } },
+        { IkBoneType.RightKnee, new List<string> { "rightKnee" } },
+        { IkBoneType.RightFoot, new List<string> { "rightFoot" } }
     };
+
+    private static readonly Dictionary<IkBoneType, IkBoneType> ParentMap = new()
+    {
+        { IkBoneType.Chest, IkBoneType.Hip },
+        { IkBoneType.Head, IkBoneType.Chest },
+        { IkBoneType.LeftShoulder, IkBoneType.Chest },
+        { IkBoneType.LeftHand, IkBoneType.LeftShoulder },
+        { IkBoneType.RightShoulder, IkBoneType.Chest },
+        { IkBoneType.RightHand, IkBoneType.RightShoulder },
+        { IkBoneType.LeftKnee, IkBoneType.Hip },
+        { IkBoneType.LeftFoot, IkBoneType.LeftKnee },
+        { IkBoneType.RightKnee, IkBoneType.Hip },
+        { IkBoneType.RightFoot, IkBoneType.RightKnee }
+    };
+
+    private static readonly Dictionary<IkBoneType, Vector3> DefaultOffsets = new()
+    {
+        { IkBoneType.Chest, new Vector3(0f, 0.2f, 0f) },
+        { IkBoneType.Head, new Vector3(0f, 0.2f, 0f) },
+        { IkBoneType.LeftShoulder, new Vector3(-0.2f, 0.15f, 0f) },
+        { IkBoneType.LeftHand, new Vector3(-0.5f, 0f, 0f) },
+        { IkBoneType.RightShoulder, new Vector3(0.2f, 0.15f, 0f) },
+        { IkBoneType.RightHand, new Vector3(0.5f, 0f, 0f) },
+        { IkBoneType.LeftKnee, new Vector3(-0.2f, -0.4f, 0f) },
+        { IkBoneType.LeftFoot, new Vector3(-0.2f, -0.8f, 0f) },
+        { IkBoneType.RightKnee, new Vector3(0.2f, -0.4f, 0f) },
+        { IkBoneType.RightFoot, new Vector3(0.2f, -0.8f, 0f) }
+    };
+
+    private static bool _mappingLoaded;
 
     private static readonly Dictionary<IkBoneType, IkBone> BonesDict = new();
     private static readonly Dictionary<int, IkBone> BoneIndexDict = new();
@@ -56,9 +87,41 @@ public static class IkManager
 
     public static IReadOnlyDictionary<IkBoneType, IkBone> Bones => BonesDict;
 
+    private static void LoadMappings()
+    {
+        if (_mappingLoaded)
+            return;
+        try
+        {
+            var cfg = DataManager.Instance.LoadConfig<IkBoneMappingConfig>("IkBoneMapping");
+            foreach (var kv in cfg.Mapping)
+            {
+                if (System.Enum.TryParse<IkBoneType>(kv.Key, out var type))
+                {
+                    if (!BoneNames.TryGetValue(type, out var list))
+                    {
+                        list = new List<string>();
+                        BoneNames[type] = list;
+                    }
+                    foreach (var n in kv.Value)
+                    {
+                        if (!list.Contains(n))
+                            list.Add(n);
+                    }
+                }
+            }
+        }
+        catch
+        {
+            // ignore config load errors
+        }
+        _mappingLoaded = true;
+    }
+
     public static void Initialize(IReadOnlyList<BoneData> modelBones)
     {
         if (BonesDict.Count > 0) return;
+        LoadMappings();
         foreach (var kv in BoneNames)
         {
             int idx = FindBoneIndex(modelBones, kv.Value);
@@ -69,17 +132,36 @@ public static class IkManager
                 BonesDict[kv.Key] = ik;
                 BoneIndexDict[idx] = ik;
             }
+            else
+            {
+                CreateVirtualBone(kv.Key);
+            }
         }
         SetupSolvers();
     }
 
-    private static int FindBoneIndex(IReadOnlyList<BoneData> bones, string name)
+    private static int FindBoneIndex(IReadOnlyList<BoneData> bones, IEnumerable<string> names)
     {
-        for (int i = 0; i < bones.Count; i++)
+        foreach (var n in names)
         {
-            if (bones[i].Name == name) return i;
+            for (int i = 0; i < bones.Count; i++)
+            {
+                if (string.Equals(bones[i].Name, n, System.StringComparison.OrdinalIgnoreCase))
+                    return i;
+            }
         }
         return -1;
+    }
+
+    private static void CreateVirtualBone(IkBoneType type)
+    {
+        if (!ParentMap.TryGetValue(type, out var parentType))
+            return;
+        if (!BonesDict.TryGetValue(parentType, out var parent))
+            return;
+        var offset = DefaultOffsets.TryGetValue(type, out var o) ? o : Vector3.Zero;
+        var ik = new IkBone(-1, parent.Position + offset, Quaternion.Identity);
+        BonesDict[type] = ik;
     }
 
     public static IkBone? Get(IkBoneType type)

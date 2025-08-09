@@ -111,21 +111,7 @@ public partial class MainPage : ContentPage
         if (_poseMode && _currentModel != null)
         {
             IkManager.Initialize(_currentModel.Bones);
-            var ikBones = new[]
-            {
-                IkManager.Get(IkBoneType.Head),
-                IkManager.Get(IkBoneType.Chest),
-                IkManager.Get(IkBoneType.Hip),
-                IkManager.Get(IkBoneType.LeftShoulder),
-                IkManager.Get(IkBoneType.LeftHand),
-                IkManager.Get(IkBoneType.RightShoulder),
-                IkManager.Get(IkBoneType.RightHand),
-                IkManager.Get(IkBoneType.LeftKnee),
-                IkManager.Get(IkBoneType.LeftFoot),
-                IkManager.Get(IkBoneType.RightKnee),
-                IkManager.Get(IkBoneType.RightFoot)
-            }.Where(b => b != null).Select(b => b!);
-            _renderer.SetIkBones(ikBones);
+            _renderer.SetIkBones(IkManager.Bones.Values);
             IkManager.PickFunc = _renderer.PickBone;
             IkManager.GetBonePositionFunc = _renderer.GetBoneWorldPosition;
             IkManager.GetCameraPositionFunc = _renderer.GetCameraPosition;

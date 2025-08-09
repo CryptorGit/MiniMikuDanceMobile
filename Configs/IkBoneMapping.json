@@ -1,0 +1,15 @@
+{
+  "mapping": {
+    "Head": ["head", "Head", "J_Bip_C_Head"],
+    "Chest": ["chest", "Chest", "upperChest", "spine2", "J_Bip_C_Chest"],
+    "Hip": ["hips", "Hips", "J_Bip_C_Hips"],
+    "LeftShoulder": ["leftShoulder", "LeftShoulder", "leftUpperArm", "LeftUpperArm", "J_Bip_L_UpperArm"],
+    "LeftHand": ["leftHand", "LeftHand", "J_Bip_L_Hand"],
+    "RightShoulder": ["rightShoulder", "RightShoulder", "rightUpperArm", "RightUpperArm", "J_Bip_R_UpperArm"],
+    "RightHand": ["rightHand", "RightHand", "J_Bip_R_Hand"],
+    "LeftKnee": ["leftKnee", "LeftKnee", "leftLowerLeg", "LeftLowerLeg", "J_Bip_L_LowerLeg"],
+    "LeftFoot": ["leftFoot", "LeftFoot", "J_Bip_L_Foot"],
+    "RightKnee": ["rightKnee", "RightKnee", "rightLowerLeg", "RightLowerLeg", "J_Bip_R_LowerLeg"],
+    "RightFoot": ["rightFoot", "RightFoot", "J_Bip_R_Foot"]
+  }
+}
