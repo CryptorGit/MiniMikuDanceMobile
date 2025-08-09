@@ -625,6 +625,8 @@ void main(){
     {
         Matrix4.Invert(_modelTransform, out var inv);
         var pos = Vector3.TransformPosition(worldPos.ToOpenTK(), inv);
+        // Z 軸の向きをモデル座標系に合わせる
+        pos.Z = -pos.Z;
         var result = pos.ToNumerics();
         System.Diagnostics.Trace.WriteLine($"WorldToModel {worldPos} => {result}");
         return result;
