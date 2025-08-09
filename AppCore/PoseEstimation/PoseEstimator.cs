@@ -101,23 +101,23 @@ public class PoseEstimator : IDisposable
         }
 
         using var output = _session!.Run(new[] { NamedOnnxValue.CreateFromTensor(inputName, tensor) });
-        var outTensor = output.First().AsTensor<float>();
-        var data = outTensor.ToArray();
+        var outTensor = (DenseTensor<float>)output.First().AsTensor<float>();
+        var span = outTensor.Buffer.Span;
         int stride;
 
         if (outTensor.Dimensions.Length >= 3 && outTensor.Dimensions[^2] == jointCount)
             stride = outTensor.Dimensions[^1];
         else
-            stride = data.Length / jointCount;
+            stride = span.Length / jointCount;
 
         var pos = new Vector3[jointCount];
         var conf = new float[jointCount];
 
-        for (int j = 0; j < jointCount && j * stride + 2 < data.Length; j++)
+        for (int j = 0; j < jointCount && j * stride + 2 < span.Length; j++)
         {
             int idx = j * stride;
-            pos[j] = new Vector3(data[idx], data[idx + 1], data[idx + 2]);
-            conf[j] = stride > 3 && idx + 3 < data.Length ? data[idx + 3] : 1f;
+            pos[j] = new Vector3(span[idx], span[idx + 1], span[idx + 2]);
+            conf[j] = stride > 3 && idx + 3 < span.Length ? span[idx + 3] : 1f;
         }
 
         return (pos, conf);
