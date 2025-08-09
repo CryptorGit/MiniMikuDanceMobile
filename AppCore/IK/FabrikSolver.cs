@@ -6,6 +6,7 @@ public class FabrikSolver : IIkSolver
 {
     private readonly float[] _lengths;
     private readonly int _iterations;
+    private const float Epsilon = 1e-6f;
 
     public FabrikSolver(float[] lengths, int iterations = 10)
     {
@@ -26,7 +27,8 @@ public class FabrikSolver : IIkSolver
 
         if (Vector3.Distance(rootPos, target) > total)
         {
-            var dir = Vector3.Normalize(target - rootPos);
+            var diff = target - rootPos;
+            var dir = diff.LengthSquared() > Epsilon ? Vector3.Normalize(diff) : Vector3.UnitX;
             chain[0].Position = rootPos;
             for (int i = 1; i < chain.Length; i++)
             {
@@ -41,14 +43,16 @@ public class FabrikSolver : IIkSolver
                 chain[^1].Position = target;
                 for (int i = chain.Length - 2; i >= 0; i--)
                 {
-                    var dir = Vector3.Normalize(chain[i].Position - chain[i + 1].Position);
+                    var delta = chain[i].Position - chain[i + 1].Position;
+                    var dir = delta.LengthSquared() > Epsilon ? Vector3.Normalize(delta) : Vector3.UnitX;
                     chain[i].Position = chain[i + 1].Position + dir * _lengths[i];
                 }
 
                 chain[0].Position = basePos;
                 for (int i = 1; i < chain.Length; i++)
                 {
-                    var dir = Vector3.Normalize(chain[i].Position - chain[i - 1].Position);
+                    var delta = chain[i].Position - chain[i - 1].Position;
+                    var dir = delta.LengthSquared() > Epsilon ? Vector3.Normalize(delta) : Vector3.UnitX;
                     chain[i].Position = chain[i - 1].Position + dir * _lengths[i - 1];
                 }
             }
@@ -64,9 +68,14 @@ public class FabrikSolver : IIkSolver
 
     private static Quaternion LookRotation(Vector3 forward, Vector3 up)
     {
+        if (forward.LengthSquared() < Epsilon || up.LengthSquared() < Epsilon)
+            return Quaternion.Identity;
         forward = Vector3.Normalize(forward);
         up = Vector3.Normalize(up);
-        var right = Vector3.Normalize(Vector3.Cross(up, forward));
+        var right = Vector3.Cross(up, forward);
+        if (right.LengthSquared() < Epsilon)
+            return Quaternion.Identity;
+        right = Vector3.Normalize(right);
         var newUp = Vector3.Cross(forward, right);
         var m = new Matrix4x4(
             right.X, right.Y, right.Z, 0,

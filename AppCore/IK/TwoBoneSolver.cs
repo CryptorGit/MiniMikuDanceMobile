@@ -6,6 +6,7 @@ public class TwoBoneSolver : IIkSolver
 {
     private readonly float _length1;
     private readonly float _length2;
+    private const float Epsilon = 1e-6f;
 
     public TwoBoneSolver(float length1, float length2)
     {
@@ -30,15 +31,15 @@ public class TwoBoneSolver : IIkSolver
         var maxReach = _length1 + _length2 - 1e-5f;
         var minReach = System.MathF.Abs(_length1 - _length2) + 1e-5f;
         dist = System.Math.Clamp(dist, minReach, maxReach);
-        var dir = Vector3.Normalize(toTarget);
+        var dir = toTarget.LengthSquared() > Epsilon ? Vector3.Normalize(toTarget) : Vector3.UnitX;
         target = rootPos + dir * dist;
         end.Position = target;
 
         var poleDir = chain.Length > 3 ? chain[3].Position - rootPos : mid.Position - rootPos;
-        var planeNormal = Vector3.Normalize(Vector3.Cross(dir, poleDir));
-        if (planeNormal.LengthSquared() < 1e-6f)
-            planeNormal = Vector3.UnitY;
-        var planeTangent = Vector3.Normalize(Vector3.Cross(planeNormal, dir));
+        var cross = Vector3.Cross(dir, poleDir);
+        var planeNormal = cross.LengthSquared() > Epsilon ? Vector3.Normalize(cross) : Vector3.UnitY;
+        var tangentCross = Vector3.Cross(planeNormal, dir);
+        var planeTangent = tangentCross.LengthSquared() > Epsilon ? Vector3.Normalize(tangentCross) : Vector3.UnitX;
 
         var cos0 = (_length1 * _length1 + dist * dist - _length2 * _length2) / (2 * _length1 * dist);
         cos0 = System.Math.Clamp(cos0, -1f, 1f);
@@ -54,9 +55,14 @@ public class TwoBoneSolver : IIkSolver
 
     private static Quaternion LookRotation(Vector3 forward, Vector3 up)
     {
+        if (forward.LengthSquared() < Epsilon || up.LengthSquared() < Epsilon)
+            return Quaternion.Identity;
         forward = Vector3.Normalize(forward);
         up = Vector3.Normalize(up);
-        var right = Vector3.Normalize(Vector3.Cross(up, forward));
+        var right = Vector3.Cross(up, forward);
+        if (right.LengthSquared() < Epsilon)
+            return Quaternion.Identity;
+        right = Vector3.Normalize(right);
         var newUp = Vector3.Cross(forward, right);
         var m = new Matrix4x4(
             right.X, right.Y, right.Z, 0,
