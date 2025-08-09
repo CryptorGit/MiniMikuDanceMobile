@@ -42,6 +42,7 @@ public class PmxRenderer : IDisposable
     private List<(RenderMesh Mesh, int Index)>?[] _morphVertexMap = Array.Empty<List<(RenderMesh Mesh, int Index)>?>();
     private readonly HashSet<int> _changedOriginalVertices = new();
     private readonly object _changedVerticesLock = new();
+    private readonly List<int> _changedVerticesList = new();
     private Vector3[] _vertexTotalOffsets = Array.Empty<Vector3>();
     private List<(string MorphName, Vector3 Offset)>?[] _vertexMorphOffsets = Array.Empty<List<(string MorphName, Vector3 Offset)>?>();
     public SKGLView? Viewer { get; set; }
@@ -1077,7 +1078,11 @@ void main(){
             {
                 if (_changedOriginalVertices.Count > 0)
                 {
-                    changedVerts = _changedOriginalVertices.ToList();
+                    changedVerts = _changedVerticesList;
+                    changedVerts.Clear();
+                    changedVerts.EnsureCapacity(_changedOriginalVertices.Count);
+                    foreach (var idx in _changedOriginalVertices)
+                        changedVerts.Add(idx);
                     _changedOriginalVertices.Clear();
                 }
             }
@@ -1185,8 +1190,10 @@ void main(){
                 var handleSmall = System.Runtime.InteropServices.GCHandle.Alloc(small, System.Runtime.InteropServices.GCHandleType.Pinned);
                 try
                 {
-                    foreach (var origIdx in changedVerts)
+                    var span = CollectionsMarshal.AsSpan(changedVerts);
+                    for (int ci = 0; ci < span.Length; ci++)
                     {
+                        var origIdx = span[ci];
                         var mapped = _morphVertexMap[origIdx];
                         if (mapped == null) continue;
                         foreach (var (rm, vi) in mapped)
