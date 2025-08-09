@@ -639,13 +639,22 @@ void main(){
         _bonesDirty = true;
     }
 
-    public void SetBoneTranslation(int index, Vector3 translation)
+    public void SetBoneTranslation(int index, Vector3 worldPos)
     {
-        if (index < 0)
+        if (index < 0 || index >= _bones.Count)
             return;
+
+        var bone = _bones[index];
+        var parentBind = bone.Parent >= 0 && bone.Parent < _bones.Count
+            ? _bones[bone.Parent].BindMatrix
+            : System.Numerics.Matrix4x4.Identity;
+        System.Numerics.Matrix4x4.Invert(parentBind, out var invParent);
+        var localPos = System.Numerics.Vector3.Transform(worldPos.ToNumerics(), invParent);
+        var delta = localPos - bone.Translation;
+
         while (_boneTranslations.Count <= index)
             _boneTranslations.Add(Vector3.Zero);
-        _boneTranslations[index] = translation;
+        _boneTranslations[index] = delta.ToOpenTK();
         _bonesDirty = true;
     }
 
