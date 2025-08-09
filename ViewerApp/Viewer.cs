@@ -187,11 +187,27 @@ public class Viewer : IViewer
         _view = view;
     }
 
+    [Conditional("DEBUG")]
+    private void EnsureRenderState()
+    {
+        if (!GL.IsEnabled(EnableCap.DepthTest))
+        {
+            GL.Enable(EnableCap.DepthTest);
+        }
+        if (GL.GetInteger(GetPName.DepthWritemask) == 0)
+        {
+            GL.DepthMask(true);
+        }
+        if (!GL.IsEnabled(EnableCap.Blend))
+        {
+            GL.Enable(EnableCap.Blend);
+        }
+    }
+
     private void Render()
     {
         NativeWindow.ProcessWindowEvents(false);
-        GL.Enable(EnableCap.DepthTest);
-        GL.DepthMask(true);
+        EnsureRenderState();
         GL.Viewport(0, 0, Size.X, Size.Y);
         GL.ClearColor(1f, 1f, 1f, 1f);
         GL.Clear(ClearBufferMask.ColorBufferBit | ClearBufferMask.DepthBufferBit);
@@ -202,8 +218,6 @@ public class Viewer : IViewer
         GL.UseProgram(_program);
         Matrix4 mvp = proj * _view * model;
         GL.UniformMatrix4(_mvpLoc, false, ref mvp);
-        // メッシュ描画時も透過処理を行う
-        GL.Enable(EnableCap.Blend);
         foreach (var rm in _meshes)
         {
             GL.Uniform4(_colorLoc, rm.Color);
