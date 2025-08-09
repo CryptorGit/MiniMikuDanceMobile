@@ -559,7 +559,7 @@ void main(){
             var ik = _ikBones[i];
             var worldPos = Vector3.TransformPosition(ik.Position.ToOpenTK(), _modelTransform);
             worldPos.Z = -worldPos.Z;
-            float scale = _ikBoneScale * _distance * IkManager.ScaleFactor;
+            float scale = _ikBoneScale * _distance;
             if (ik.IsSelected)
                 scale *= 1.4f;
             var mat = Matrix4.CreateScale(scale) * Matrix4.CreateTranslation(worldPos);
