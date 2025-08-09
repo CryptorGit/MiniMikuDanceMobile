@@ -1,2 +1,4 @@
 - PMX由来のIK角度制限の反映は未実装。
 - UI上でのドラッグ操作による安定性は手動確認が必要。
+- MiniMikuDance.sln に含まれる AppCore.Tests プロジェクトが存在せず、ビルドが失敗する。
+- MiniMikuDanceMaui プロジェクトのビルドで MSBuild の TerminalLogger 例外が発生する。
