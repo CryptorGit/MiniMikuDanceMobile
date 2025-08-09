@@ -91,7 +91,7 @@ public partial class MorphView : ContentView
         {
             if (!_debounceStates.TryGetValue(displayName, out state))
             {
-                var dispatcher = Dispatcher.GetForCurrentThread();
+                var dispatcher = Microsoft.Maui.Dispatching.Dispatcher.GetForCurrentThread();
                 if (dispatcher == null)
                 {
                     return;
