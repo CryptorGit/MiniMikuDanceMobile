@@ -524,14 +524,15 @@ void main(){
         GL.Disable(EnableCap.DepthTest);
         GL.Uniform1(_pointSizeLoc, 1f);
 
-        int sel = IkManager.SelectedBoneIndex;
         GL.BindVertexArray(_ikBoneVao);
         for (int i = 0; i < _ikBones.Count; i++)
         {
-            var worldPos = Vector3.TransformPosition(_ikBones[i].Position.ToOpenTK(), _modelTransform);
-            var mat = Matrix4.CreateTranslation(worldPos) * Matrix4.CreateScale(0.05f);
+            var ik = _ikBones[i];
+            var worldPos = Vector3.TransformPosition(ik.Position.ToOpenTK(), _modelTransform);
+            float scale = ik.IsSelected ? 0.07f : 0.05f;
+            var mat = Matrix4.CreateTranslation(worldPos) * Matrix4.CreateScale(scale);
             GL.UniformMatrix4(_modelLoc, false, ref mat);
-            var color = _ikBones[i].PmxBoneIndex == sel ? new Vector4(1f, 0f, 0f, 1f) : new Vector4(0f, 1f, 0f, 1f);
+            var color = ik.IsSelected ? new Vector4(1f, 0f, 0f, 1f) : new Vector4(0f, 1f, 0f, 1f);
             GL.Uniform4(_colorLoc, color);
             GL.DrawElements(PrimitiveType.Triangles, _ikBoneIndexCount, DrawElementsType.UnsignedShort, 0);
         }
@@ -593,7 +594,7 @@ void main(){
             return -1;
 
         int result = -1;
-        float best = 20f; // ピクセル閾値
+        float best = 30f; // ピクセル閾値
         for (int i = 0; i < _worldMats.Length && i < _bones.Count; i++)
         {
             var pos = _worldMats[i].Translation.ToOpenTK();
@@ -669,6 +670,7 @@ void main(){
             _boneRotations.Add(Vector3.Zero);
         _boneRotations[index] = degrees;
         _bonesDirty = true;
+        Viewer?.InvalidateSurface();
     }
 
     public void SetBoneTranslation(int index, Vector3 worldPos)
@@ -688,6 +690,7 @@ void main(){
             _boneTranslations.Add(Vector3.Zero);
         _boneTranslations[index] = delta.ToOpenTK();
         _bonesDirty = true;
+        Viewer?.InvalidateSurface();
     }
 
     public Vector3 GetBoneRotation(int index)
