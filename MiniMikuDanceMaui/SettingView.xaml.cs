@@ -11,7 +11,6 @@ public partial class SettingView : ContentView
     public event Action<double>? ZoomSensitivityChanged;
     public event Action<double>? StageSizeChanged;
     public event Action<bool>? BoneOutlineChanged;
-    public event Action<bool>? IkBonesChanged;
     public event Action? ResetCameraRequested;
 
     public SettingView()
@@ -59,12 +58,6 @@ public partial class SettingView : ContentView
         BoneOutlineChanged?.Invoke(e.Value);
     }
 
-    private void OnIkBonesChanged(object? sender, CheckedChangedEventArgs e)
-    {
-        LogService.WriteLine($"Show IK bones: {e.Value}");
-        IkBonesChanged?.Invoke(e.Value);
-    }
-
     private void OnResetCameraClicked(object? sender, EventArgs e)
     {
         ResetCameraRequested?.Invoke();
@@ -105,11 +98,5 @@ public partial class SettingView : ContentView
     {
         get => BoneOutlineCheck.IsChecked;
         set => BoneOutlineCheck.IsChecked = value;
-    }
-
-    public bool ShowIkBones
-    {
-        get => IkBonesCheck.IsChecked;
-        set => IkBonesCheck.IsChecked = value;
     }
 }

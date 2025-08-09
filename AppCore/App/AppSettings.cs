@@ -44,9 +44,6 @@ public class AppSettings
     /// <summary>テクスチャキャッシュの最大数。</summary>
     public int TextureCacheSize { get; set; } = DefaultTextureCacheSize;
 
-    /// <summary>IKボーンを表示するかどうか。</summary>
-    public bool ShowIkBones { get; set; }
-
 
     private const string DefaultFile = "Configs/appsettings.json";
 
