@@ -64,6 +64,10 @@ public class PmxRenderer : IDisposable
     private int _boneVao;
     private int _boneVbo;
     private int _boneVertexCount;
+    private int _ikBoneVao;
+    private int _ikBoneVbo;
+    private int _interactionPlaneVao;
+    private int _interactionPlaneVbo;
     private System.Numerics.Matrix4x4[] _worldMats = Array.Empty<System.Numerics.Matrix4x4>();
     private System.Numerics.Matrix4x4[] _skinMats = Array.Empty<System.Numerics.Matrix4x4>();
     private float[] _boneLines = Array.Empty<float>();
@@ -419,6 +423,111 @@ void main(){
     public void ClearIkBones()
     {
         _ikBones.Clear();
+    }
+
+    private void DrawIkBones(Matrix4 modelMat)
+    {
+        if (_ikBones.Count == 0)
+            return;
+
+        if (_ikBoneVao == 0)
+        {
+            _ikBoneVao = GL.GenVertexArray();
+            _ikBoneVbo = GL.GenBuffer();
+            GL.BindVertexArray(_ikBoneVao);
+            GL.BindBuffer(BufferTarget.ArrayBuffer, _ikBoneVbo);
+            GL.VertexAttribPointer(0, 3, VertexAttribPointerType.Float, false, 3 * sizeof(float), 0);
+            GL.EnableVertexAttribArray(0);
+            GL.BindBuffer(BufferTarget.ArrayBuffer, 0);
+            GL.BindVertexArray(0);
+        }
+
+        var verts = new float[_ikBones.Count * 3];
+        for (int i = 0; i < _ikBones.Count; i++)
+        {
+            var p = _ikBones[i].Position;
+            verts[i * 3 + 0] = p.X;
+            verts[i * 3 + 1] = p.Y;
+            verts[i * 3 + 2] = p.Z;
+        }
+
+        GL.BindBuffer(BufferTarget.ArrayBuffer, _ikBoneVbo);
+        GL.BufferData(BufferTarget.ArrayBuffer, verts.Length * sizeof(float), verts, BufferUsageHint.DynamicDraw);
+        GL.BindBuffer(BufferTarget.ArrayBuffer, 0);
+
+        GL.Disable(EnableCap.DepthTest);
+        GL.UniformMatrix4(_modelLoc, false, ref modelMat);
+        GL.Uniform4(_colorLoc, new Vector4(0f, 0f, 1f, 1f));
+        GL.PointSize(8f);
+        GL.BindVertexArray(_ikBoneVao);
+        GL.DrawArrays(PrimitiveType.Points, 0, _ikBones.Count);
+        GL.BindVertexArray(0);
+
+        int sel = IkManager.SelectedBoneIndex;
+        if (sel >= 0)
+        {
+            for (int i = 0; i < _ikBones.Count; i++)
+            {
+                if (_ikBones[i].PmxBoneIndex == sel)
+                {
+                    GL.Uniform4(_colorLoc, new Vector4(1f, 0f, 0f, 1f));
+                    GL.PointSize(12f);
+                    GL.BindVertexArray(_ikBoneVao);
+                    GL.DrawArrays(PrimitiveType.Points, i, 1);
+                    GL.BindVertexArray(0);
+                    break;
+                }
+            }
+        }
+        GL.PointSize(1f);
+        GL.Enable(EnableCap.DepthTest);
+    }
+
+    private void DrawInteractionPlane(System.Numerics.Plane plane, Matrix4 modelMat)
+    {
+        if (_interactionPlaneVao == 0)
+        {
+            _interactionPlaneVao = GL.GenVertexArray();
+            _interactionPlaneVbo = GL.GenBuffer();
+            GL.BindVertexArray(_interactionPlaneVao);
+            GL.BindBuffer(BufferTarget.ArrayBuffer, _interactionPlaneVbo);
+            GL.VertexAttribPointer(0, 3, VertexAttribPointerType.Float, false, 3 * sizeof(float), 0);
+            GL.EnableVertexAttribArray(0);
+            GL.BindBuffer(BufferTarget.ArrayBuffer, 0);
+            GL.BindVertexArray(0);
+        }
+
+        var n = plane.Normal.ToOpenTK();
+        var center = -plane.D * n;
+        var u = Vector3.Normalize(Vector3.Cross(n, Vector3.UnitY));
+        if (u.LengthSquared < 1e-6f)
+            u = Vector3.Normalize(Vector3.Cross(n, Vector3.UnitX));
+        var v = Vector3.Cross(n, u);
+        const float size = 1f;
+        var p0 = center + (u + v) * size;
+        var p1 = center + (u - v) * size;
+        var p2 = center + (-u - v) * size;
+        var p3 = center + (-u + v) * size;
+        float[] verts =
+        {
+            p0.X, p0.Y, p0.Z,
+            p1.X, p1.Y, p1.Z,
+            p2.X, p2.Y, p2.Z,
+            p2.X, p2.Y, p2.Z,
+            p3.X, p3.Y, p3.Z,
+            p0.X, p0.Y, p0.Z
+        };
+        GL.BindBuffer(BufferTarget.ArrayBuffer, _interactionPlaneVbo);
+        GL.BufferData(BufferTarget.ArrayBuffer, verts.Length * sizeof(float), verts, BufferUsageHint.DynamicDraw);
+        GL.BindBuffer(BufferTarget.ArrayBuffer, 0);
+
+        GL.Disable(EnableCap.DepthTest);
+        GL.UniformMatrix4(_modelLoc, false, ref modelMat);
+        GL.Uniform4(_colorLoc, new Vector4(0f, 1f, 0f, 0.3f));
+        GL.BindVertexArray(_interactionPlaneVao);
+        GL.DrawArrays(PrimitiveType.Triangles, 0, 6);
+        GL.BindVertexArray(0);
+        GL.Enable(EnableCap.DepthTest);
     }
 
     // スクリーン座標から最も近いボーンを選択
@@ -1188,6 +1297,15 @@ void main(){
             GL.BindVertexArray(0);
             GL.Enable(EnableCap.DepthTest);
         }
+
+        if (ShowIkBones && _ikBones.Count > 0)
+        {
+            DrawIkBones(modelMat);
+            if (IkManager.SelectedBoneIndex >= 0)
+            {
+                DrawInteractionPlane(IkManager.DragPlane, modelMat);
+            }
+        }
     }
 
     public void Dispose()
@@ -1203,9 +1321,13 @@ void main(){
         GL.DeleteBuffer(_gridVbo);
         GL.DeleteBuffer(_groundVbo);
         GL.DeleteBuffer(_boneVbo);
+        GL.DeleteBuffer(_ikBoneVbo);
+        GL.DeleteBuffer(_interactionPlaneVbo);
         GL.DeleteVertexArray(_gridVao);
         GL.DeleteVertexArray(_groundVao);
         GL.DeleteVertexArray(_boneVao);
+        GL.DeleteVertexArray(_ikBoneVao);
+        GL.DeleteVertexArray(_interactionPlaneVao);
         GL.DeleteProgram(_program);
         GL.DeleteProgram(_modelProgram);
     }
