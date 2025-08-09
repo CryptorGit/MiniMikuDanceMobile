@@ -187,6 +187,7 @@ public class PoseEstimator : IDisposable
             {
                 rotated.Mutate(ctx =>
                 {
+                    ctx.Clear(Color.Black);
                     ctx.DrawImage(patch, 1f);
                     if (Math.Abs(ang) > 0.1f)
                     {
