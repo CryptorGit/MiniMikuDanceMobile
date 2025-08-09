@@ -1,9 +1,7 @@
-using Microsoft.Maui.ApplicationModel;
 using Microsoft.Maui.Controls;
+using Microsoft.Maui.Dispatching;
 using System;
 using System.Collections.Generic;
-using System.Threading;
-using System.Threading.Tasks;
 using MiniMikuDance.Import;
 
 namespace MiniMikuDanceMaui;
@@ -11,8 +9,16 @@ namespace MiniMikuDanceMaui;
 public partial class MorphView : ContentView
 {
     public event Action<string, double>? MorphValueChanged;
-    private readonly Dictionary<string, CancellationTokenSource> _cancellationTokens = new(StringComparer.OrdinalIgnoreCase);
-    private readonly object _ctsLock = new();
+
+    private sealed class DebounceState
+    {
+        public required IDispatcherTimer Timer { get; init; }
+        public double Value { get; set; }
+        public required string Name { get; init; }
+    }
+
+    private readonly Dictionary<string, DebounceState> _debounceStates = new(StringComparer.OrdinalIgnoreCase);
+    private readonly object _timerLock = new();
 
     public MorphView()
     {
@@ -21,14 +27,13 @@ public partial class MorphView : ContentView
 
     public void SetMorphs(IEnumerable<MorphData> morphs)
     {
-        lock (_ctsLock)
+        lock (_timerLock)
         {
-            foreach (var cts in _cancellationTokens.Values)
+            foreach (var state in _debounceStates.Values)
             {
-                cts.Cancel();
-                cts.Dispose();
+                state.Timer.Stop();
             }
-            _cancellationTokens.Clear();
+            _debounceStates.Clear();
         }
 
         MorphList.Children.Clear();
@@ -73,62 +78,54 @@ public partial class MorphView : ContentView
             slider.ValueChanged += (s, e) =>
             {
                 valueLabel.Text = $"{e.NewValue:F2}";
-
-                CancellationTokenSource cts;
-                lock (_ctsLock)
-                {
-                    if (_cancellationTokens.TryGetValue(displayName, out var existingCts))
-                    {
-                        existingCts.Cancel();
-                        existingCts.Dispose();
-                    }
-
-                    cts = new CancellationTokenSource();
-                    _cancellationTokens[displayName] = cts;
-                }
-
-                _ = DebounceMorphAsync(displayName, originalName, e.NewValue, cts);
+                DebounceMorph(displayName, originalName, e.NewValue);
             };
             MorphList.Children.Add(slider);
         }
     }
 
-    private async Task DebounceMorphAsync(string displayName, string name, double value, CancellationTokenSource cts)
+    private void DebounceMorph(string displayName, string name, double value)
     {
-        try
+        DebounceState state;
+        lock (_timerLock)
         {
-            await Task.Delay(TimeSpan.FromMilliseconds(16), cts.Token);
-
-            try
+            if (!_debounceStates.TryGetValue(displayName, out state))
             {
-                await MainThread.InvokeOnMainThreadAsync(() =>
+                var dispatcher = Dispatcher.GetForCurrentThread();
+                if (dispatcher == null)
                 {
-                    MorphValueChanged?.Invoke(name, value);
-                });
-            }
-            catch (Exception ex)
-            {
-                LogService.WriteLine($"Error in MorphValueChanged: {ex}");
-            }
-        }
-        catch (TaskCanceledException)
-        {
-            // Ignored
-        }
-        catch (ObjectDisposedException)
-        {
-            // Ignored
-        }
-        finally
-        {
-            lock (_ctsLock)
-            {
-                if (_cancellationTokens.TryGetValue(displayName, out var existingCts) && existingCts == cts)
-                {
-                    _cancellationTokens.Remove(displayName);
+                    return;
                 }
+                var timer = dispatcher.CreateTimer();
+                timer.Interval = TimeSpan.FromMilliseconds(16);
+                timer.IsRepeating = false;
+                var key = displayName;
+                state = new DebounceState { Timer = timer, Name = name };
+                timer.Tick += (s, _) =>
+                {
+                    double latest;
+                    lock (_timerLock)
+                    {
+                        if (!_debounceStates.TryGetValue(key, out var st))
+                        {
+                            return;
+                        }
+                        latest = st.Value;
+                    }
+                    try
+                    {
+                        MorphValueChanged?.Invoke(state.Name, latest);
+                    }
+                    catch (Exception ex)
+                    {
+                        LogService.WriteLine($"Error in MorphValueChanged: {ex}");
+                    }
+                };
+                _debounceStates[displayName] = state;
             }
-            cts.Dispose();
+            state.Value = value;
         }
+        state.Timer.Stop();
+        state.Timer.Start();
     }
 }
