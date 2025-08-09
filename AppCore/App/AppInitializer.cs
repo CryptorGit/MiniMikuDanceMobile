@@ -157,6 +157,16 @@ public partial class AppInitializer : IDisposable
 
     public void Dispose()
     {
+        if (Viewer != null)
+        {
+            Viewer.Dispose();
+        }
+
+        if (Recorder is IDisposable recorderDisposable)
+        {
+            recorderDisposable.Dispose();
+        }
+
         PoseEstimator?.Dispose();
     }
 }
