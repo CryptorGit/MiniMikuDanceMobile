@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Numerics;
+using System.Reflection;
 using MiniMikuDance.Import;
 using MiniMikuDance.Util;
 
@@ -160,23 +161,68 @@ public static class IkManager
 
     public static void UpdateTarget(int boneIndex, Vector3 position)
     {
-        if (BonesDict.TryGetValue(boneIndex, out var bone))
+        try
         {
+            if (!BonesDict.TryGetValue(boneIndex, out var bone))
+                return;
+
             bone.Position = position;
             Trace.WriteLine($"UpdateTarget: index={boneIndex} pos={position}");
-            SetBoneTranslation?.Invoke(boneIndex, position.ToOpenTK());
-            if (Solvers.TryGetValue(boneIndex, out var solver))
+            if (SetBoneTranslation == null)
             {
-                solver.Chain[^1].Position = position;
-                solver.Solver.Solve(solver.Chain);
-                foreach (var b in solver.Chain)
-                {
-                    var delta = Quaternion.Inverse(b.BaseRotation) * b.Rotation;
-                    SetBoneRotation?.Invoke(b.PmxBoneIndex, delta.ToEulerDegrees().ToOpenTK());
-                    SetBoneTranslation?.Invoke(b.PmxBoneIndex, b.Position.ToOpenTK());
-                }
-                InvalidateViewer?.Invoke();
+                Trace.WriteLine("SetBoneTranslation delegate is null.");
+                return;
             }
+            SetBoneTranslation(boneIndex, position.ToOpenTK());
+            if (!Solvers.TryGetValue(boneIndex, out var solver))
+            {
+                Trace.WriteLine($"Solver not found for bone index {boneIndex}.");
+                return;
+            }
+
+            var chain = solver.Chain;
+            var ikSolver = solver.Solver;
+            int expected = chain.Length;
+            if (ikSolver is TwoBoneSolver)
+            {
+                expected = 3;
+            }
+            else if (ikSolver is FabrikSolver)
+            {
+                try
+                {
+                    var field = typeof(FabrikSolver).GetField("_lengths", BindingFlags.NonPublic | BindingFlags.Instance);
+                    if (field?.GetValue(ikSolver) is float[] lengths)
+                        expected = lengths.Length + 1;
+                }
+                catch (Exception ex)
+                {
+                    Trace.WriteLine($"Failed to inspect FabrikSolver: {ex}");
+                    return;
+                }
+            }
+
+            if (chain.Length != expected)
+            {
+                Trace.WriteLine($"Chain length mismatch for bone {boneIndex}: expected {expected}, actual {chain.Length}.");
+                return;
+            }
+
+            chain[^1].Position = position;
+            ikSolver.Solve(chain);
+            foreach (var b in chain)
+            {
+                var delta = Quaternion.Inverse(b.BaseRotation) * b.Rotation;
+                if (SetBoneRotation != null)
+                    SetBoneRotation(b.PmxBoneIndex, delta.ToEulerDegrees().ToOpenTK());
+                if (SetBoneTranslation != null)
+                    SetBoneTranslation(b.PmxBoneIndex, b.Position.ToOpenTK());
+            }
+            InvalidateViewer?.Invoke();
+        }
+        catch (Exception ex)
+        {
+            Trace.WriteLine($"UpdateTarget exception: {ex}");
         }
     }
 
