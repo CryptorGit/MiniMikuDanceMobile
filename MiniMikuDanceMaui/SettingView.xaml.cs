@@ -11,6 +11,7 @@ public partial class SettingView : ContentView
     public event Action<double>? ZoomSensitivityChanged;
     public event Action<double>? IkBoneSizeChanged;
     public event Action<double>? StageSizeChanged;
+    public event Action<double>? BonePickPixelsChanged;
     public event Action<bool>? BoneOutlineChanged;
     public event Action? ResetCameraRequested;
 
@@ -47,6 +48,12 @@ public partial class SettingView : ContentView
     {
         LogService.WriteLine($"IK bone size: {e.NewValue:F3}");
         IkBoneSizeChanged?.Invoke(e.NewValue);
+    }
+
+    private void OnBonePickPixelsChanged(object? sender, ValueChangedEventArgs e)
+    {
+        LogService.WriteLine($"Bone pick pixels: {e.NewValue:F1}");
+        BonePickPixelsChanged?.Invoke(e.NewValue);
     }
 
 
@@ -98,6 +105,12 @@ public partial class SettingView : ContentView
     {
         get => IkBoneSizeSlider.Value;
         set => IkBoneSizeSlider.Value = value;
+    }
+
+    public double BonePickPixels
+    {
+        get => BonePickSlider.Value;
+        set => BonePickSlider.Value = value;
     }
 
 

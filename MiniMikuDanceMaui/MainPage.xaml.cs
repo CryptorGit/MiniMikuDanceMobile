@@ -228,6 +228,13 @@ public partial class MainPage : ContentPage
                 _settings.IkBoneScale = (float)v;
                 _settings.Save();
             };
+            setting.BonePickPixels = _settings.BonePickPixels;
+            setting.BonePickPixelsChanged += v =>
+            {
+                _renderer.BonePickPixels = (float)v;
+                _settings.BonePickPixels = (float)v;
+                _settings.Save();
+            };
             setting.ShowBoneOutline = _renderer.ShowBoneOutline;
             setting.BoneOutlineChanged += show =>
             {
@@ -278,6 +285,7 @@ public partial class MainPage : ContentPage
             sv.RotateSensitivity = _renderer.RotateSensitivity;
             sv.PanSensitivity = _renderer.PanSensitivity;
             sv.IkBoneSize = _renderer.IkBoneScale;
+            sv.BonePickPixels = _renderer.BonePickPixels;
         }
         UpdateOverlay();
     }
