@@ -92,7 +92,14 @@ public class PmxRenderer : IDisposable
     public Matrix4 ModelTransform
     {
         get => _modelTransform;
-        set => _modelTransform = value;
+        set
+        {
+            if (!_modelTransform.Equals(value))
+            {
+                _modelTransform = value;
+                Viewer?.InvalidateSurface();
+            }
+        }
     }
     private int _width;
     private int _height;
@@ -504,7 +511,8 @@ void main(){
         GL.BindVertexArray(_ikBoneVao);
         for (int i = 0; i < _ikBones.Count; i++)
         {
-            var mat = Matrix4.CreateTranslation(_ikBones[i].Position.ToOpenTK()) * Matrix4.CreateScale(0.05f);
+            var worldPos = Vector3.TransformPosition(_ikBones[i].Position.ToOpenTK(), _modelTransform);
+            var mat = Matrix4.CreateTranslation(worldPos) * Matrix4.CreateScale(0.05f);
             GL.UniformMatrix4(_modelLoc, false, ref mat);
             var color = _ikBones[i].PmxBoneIndex == sel ? new Vector4(1f, 0f, 0f, 1f) : new Vector4(0f, 1f, 0f, 1f);
             GL.Uniform4(_colorLoc, color);
