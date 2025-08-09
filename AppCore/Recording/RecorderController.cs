@@ -46,7 +46,7 @@ public class RecorderController
         {
             img.Dispose();
         }
-        _frameChannel = Channel.CreateUnbounded<(Image<Rgba32> Image, string Path)>();
+        _frameChannel = Channel.CreateBounded<(Image<Rgba32> Image, string Path)>(60);
         _workerTask = Task.Run(async () =>
         {
             await foreach (var (img, path) in _frameChannel.Reader.ReadAllAsync())
@@ -85,9 +85,9 @@ public class RecorderController
 
     public bool IsRecording => _recording;
 
-    public void Capture(byte[] rgba, int width, int height)
+    public async Task Capture(byte[] rgba, int width, int height)
     {
-        if (!_recording) return;
+        if (!_recording || _frameChannel == null) return;
 
         if (!_imagePool.TryDequeue(out var image))
         {
@@ -96,7 +96,7 @@ public class RecorderController
 
         CopyToImage(rgba, image, width, height);
         string path = Path.Combine(_savedDir, $"frame_{_frameIndex:D04}.png");
-        _frameChannel?.Writer.TryWrite((image, path));
+        await _frameChannel.Writer.WriteAsync((image, path));
         if (_frameIndex == 0)
         {
             _thumbnailPath = path;

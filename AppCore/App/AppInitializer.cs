@@ -69,12 +69,12 @@ public partial class AppInitializer : IDisposable
         using var importer = new ModelImporter { Scale = settings.ModelScale };
         var model = importer.ImportModel(modelPath);
 
-        Viewer.FrameUpdated += dt =>
+        Viewer.FrameUpdated += async dt =>
         {
             if (Recorder != null && Recorder.IsRecording)
             {
                 var pixels = Viewer.CaptureFrame();
-                Recorder.Capture(pixels, Viewer.Size.X, Viewer.Size.Y);
+                await Recorder.Capture(pixels, Viewer.Size.X, Viewer.Size.Y);
             }
         };
     }
