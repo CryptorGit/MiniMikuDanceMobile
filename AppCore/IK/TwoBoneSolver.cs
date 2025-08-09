@@ -29,7 +29,7 @@ public class TwoBoneSolver : IIkSolver
         var dist = toTarget.Length();
         var maxReach = _length1 + _length2 - 1e-5f;
         var minReach = System.MathF.Abs(_length1 - _length2) + 1e-5f;
-        dist = System.MathF.Clamp(dist, minReach, maxReach);
+        dist = System.Math.Clamp(dist, minReach, maxReach);
         var dir = Vector3.Normalize(toTarget);
         target = rootPos + dir * dist;
         end.Position = target;
@@ -41,7 +41,7 @@ public class TwoBoneSolver : IIkSolver
         var planeTangent = Vector3.Normalize(Vector3.Cross(planeNormal, dir));
 
         var cos0 = (_length1 * _length1 + dist * dist - _length2 * _length2) / (2 * _length1 * dist);
-        cos0 = System.MathF.Clamp(cos0, -1f, 1f);
+        cos0 = System.Math.Clamp(cos0, -1f, 1f);
         var angle0 = System.MathF.Acos(cos0);
 
         var midPos = rootPos + dir * (System.MathF.Cos(angle0) * _length1) + planeTangent * (System.MathF.Sin(angle0) * _length1);
