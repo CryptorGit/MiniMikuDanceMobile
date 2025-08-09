@@ -454,9 +454,10 @@ public partial class MainPage : ContentPage
                         context.StartActivity(intent);
                     }
                 }
-                catch (Exception)
+                catch (Exception ex)
                 {
-                    // Handle exception if launching settings fails
+                    Console.WriteLine($"Failed to launch settings: {ex}");
+                    await DisplayAlert("Error", ex.Message, "OK");
                 }
             }
         }
@@ -737,9 +738,10 @@ public partial class MainPage : ContentPage
                                 .FirstOrDefault(d => d != null);
                         }
                     }
-                    catch
+                    catch (Exception ex)
                     {
                         dir = null;
+                        Console.WriteLine($"Error locating asset directory: {ex}");
                     }
                     data = importer.ImportModel(stream, dir);
                 }
