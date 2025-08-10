@@ -4,7 +4,6 @@ using Microsoft.Maui.Graphics;
 using Microsoft.Maui.Layouts;
 using Microsoft.Maui.Dispatching;
 using System;
-using System.Diagnostics;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using SkiaSharp.Views.Maui;
@@ -24,11 +23,6 @@ using MiniMikuDance.PoseEstimation;
 using MiniMikuDance.App;
 using SixLabors.ImageSharp.PixelFormats;
 using MiniMikuDance.IK;
-
-#if ANDROID
-using Android.OS;
-using Android.Provider;
-#endif
 
 namespace MiniMikuDanceMaui;
 
@@ -107,7 +101,7 @@ public partial class MainPage : ContentPage
 
     private void OnPoseModeToggled(object? sender, ToggledEventArgs e)
     {
-        Trace.WriteLine($"OnPoseModeToggled: value={e.Value}");
+        System.Diagnostics.Trace.WriteLine($"OnPoseModeToggled: value={e.Value}");
         _poseMode = e.Value;
         _touchPoints.Clear();
         if (_poseMode && _currentModel != null)
@@ -129,7 +123,7 @@ public partial class MainPage : ContentPage
             }
             catch (Exception ex)
             {
-                Trace.WriteLine($"SetIkBones failed: {ex.Message}");
+                System.Diagnostics.Trace.WriteLine($"SetIkBones failed: {ex.Message}");
             }
             IkManager.PickFunc = _renderer.PickBone;
             IkManager.GetBonePositionFunc = _renderer.GetBoneWorldPosition;
@@ -146,7 +140,7 @@ public partial class MainPage : ContentPage
         else
         {
             IkManager.Clear();
-            Trace.WriteLine($"IkManager cleared. SelectedBoneIndex={IkManager.SelectedBoneIndex}");
+            System.Diagnostics.Trace.WriteLine($"IkManager cleared. SelectedBoneIndex={IkManager.SelectedBoneIndex}");
             _renderer.ClearIkBones();
             IkManager.PickFunc = null;
             IkManager.GetBonePositionFunc = null;
@@ -158,7 +152,7 @@ public partial class MainPage : ContentPage
         }
         _renderer.ShowIkBones = _poseMode;
         Viewer?.InvalidateSurface();
-        Trace.WriteLine($"PoseMode={_poseMode} PickFuncNull={IkManager.PickFunc == null} InvalidateViewerNull={IkManager.InvalidateViewer == null}");
+        System.Diagnostics.Trace.WriteLine($"PoseMode={_poseMode} PickFuncNull={IkManager.PickFunc == null} InvalidateViewerNull={IkManager.InvalidateViewer == null}");
     }
 
 
@@ -487,7 +481,7 @@ public partial class MainPage : ContentPage
                     if (context != null)
                     {
                         var uri = Android.Net.Uri.Parse($"package:{context.PackageName}");
-                        var intent = new Android.Content.Intent(Settings.ActionManageAppAllFilesAccessPermission, uri);
+                        var intent = new Android.Content.Intent(Android.Provider.Settings.ActionManageAppAllFilesAccessPermission, uri);
                         intent.AddFlags(Android.Content.ActivityFlags.NewTask);
                         context.StartActivity(intent);
                     }
@@ -658,7 +652,7 @@ public partial class MainPage : ContentPage
 
     private void OnViewTouch(object? sender, SKTouchEventArgs e)
     {
-        Trace.WriteLine($"OnViewTouch: action={e.ActionType} poseMode={_poseMode} pickNull={IkManager.PickFunc == null} invalidateNull={IkManager.InvalidateViewer == null} selIdx={IkManager.SelectedBoneIndex}");
+        System.Diagnostics.Trace.WriteLine($"OnViewTouch: action={e.ActionType} poseMode={_poseMode} pickNull={IkManager.PickFunc == null} invalidateNull={IkManager.InvalidateViewer == null} selIdx={IkManager.SelectedBoneIndex}");
         if (_poseMode)
         {
             try
@@ -682,13 +676,13 @@ public partial class MainPage : ContentPage
                         break;
                 }
                 if (IkManager.InvalidateViewer == null)
-                    Trace.WriteLine("InvalidateViewer delegate is null in OnViewTouch.");
+                    System.Diagnostics.Trace.WriteLine("InvalidateViewer delegate is null in OnViewTouch.");
                 else
                     IkManager.InvalidateViewer();
             }
             catch (Exception ex)
             {
-                Trace.WriteLine($"OnViewTouch exception: {ex}");
+                System.Diagnostics.Trace.WriteLine($"OnViewTouch exception: {ex}");
                 IkManager.ReleaseSelection();
             }
             e.Handled = true;
