@@ -20,6 +20,7 @@ public static class IkManager
     public static System.Action<int, OpenTK.Mathematics.Vector3>? SetBoneRotation { get; set; }
     public static System.Action<int, OpenTK.Mathematics.Vector3>? SetBoneTranslation { get; set; }
     public static System.Func<Vector3, Vector3>? ToModelSpaceFunc { get; set; }
+    public static System.Func<Vector3, Vector3>? ToWorldSpaceFunc { get; set; }
     public static System.Action? InvalidateViewer { get; set; }
 
     private static int _selectedBoneIndex = -1;
@@ -178,7 +179,8 @@ public static class IkManager
                 Trace.WriteLine("SetBoneTranslation delegate is null.");
                 return;
             }
-            SetBoneTranslation(boneIndex, position.ToOpenTK());
+            var targetWorld = ToWorldSpaceFunc != null ? ToWorldSpaceFunc(position) : position;
+            SetBoneTranslation(boneIndex, targetWorld.ToOpenTK());
             if (!Solvers.TryGetValue(boneIndex, out var solver))
             {
                 Trace.WriteLine($"Solver not found for bone index {boneIndex}.");
@@ -215,13 +217,17 @@ public static class IkManager
 
             chain[^1].Position = position;
             ikSolver.Solve(chain);
+            var parentRot = Quaternion.Identity;
             foreach (var b in chain)
             {
-                var delta = Quaternion.Inverse(b.BaseRotation) * b.Rotation;
+                var localRot = parentRot == Quaternion.Identity ? b.Rotation : Quaternion.Inverse(parentRot) * b.Rotation;
+                var delta = Quaternion.Inverse(b.BaseRotation) * localRot;
                 if (SetBoneRotation != null)
                     SetBoneRotation(b.PmxBoneIndex, delta.ToEulerDegrees().ToOpenTK());
+                var worldPos = ToWorldSpaceFunc != null ? ToWorldSpaceFunc(b.Position) : b.Position;
                 if (SetBoneTranslation != null)
-                    SetBoneTranslation(b.PmxBoneIndex, b.Position.ToOpenTK());
+                    SetBoneTranslation(b.PmxBoneIndex, worldPos.ToOpenTK());
+                parentRot = b.Rotation;
             }
             InvalidateViewer?.Invoke();
         }

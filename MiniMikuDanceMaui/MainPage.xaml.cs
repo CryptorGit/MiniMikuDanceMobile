@@ -131,6 +131,7 @@ public partial class MainPage : ContentPage
             IkManager.SetBoneRotation = _renderer.SetBoneRotation;
             IkManager.SetBoneTranslation = _renderer.SetBoneTranslation;
             IkManager.ToModelSpaceFunc = _renderer.WorldToModel;
+            IkManager.ToWorldSpaceFunc = _renderer.ModelToWorld;
             IkManager.InvalidateViewer = () =>
             {
                 _needsRender = true;
@@ -148,6 +149,7 @@ public partial class MainPage : ContentPage
             IkManager.SetBoneRotation = null;
             IkManager.SetBoneTranslation = null;
             IkManager.ToModelSpaceFunc = null;
+            IkManager.ToWorldSpaceFunc = null;
             IkManager.InvalidateViewer = null;
         }
         _renderer.ShowIkBones = _poseMode;
@@ -646,6 +648,7 @@ public partial class MainPage : ContentPage
                 IkManager.SetBoneRotation = _renderer.SetBoneRotation;
                 IkManager.SetBoneTranslation = _renderer.SetBoneTranslation;
                 IkManager.ToModelSpaceFunc = _renderer.WorldToModel;
+                IkManager.ToWorldSpaceFunc = _renderer.ModelToWorld;
             }
         }
     }
