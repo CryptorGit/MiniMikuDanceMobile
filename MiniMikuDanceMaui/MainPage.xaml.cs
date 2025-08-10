@@ -140,9 +140,7 @@ public partial class MainPage : ContentPage
         }
         else
         {
-            IkManager.Clear();
-            System.Diagnostics.Trace.WriteLine($"IkManager cleared. SelectedBoneIndex={IkManager.SelectedBoneIndex}");
-            _renderer.ClearIkBones();
+            System.Diagnostics.Trace.WriteLine("Disabling pose mode. Clearing IK delegates...");
             IkManager.PickFunc = null;
             IkManager.GetBonePositionFunc = null;
             IkManager.GetCameraPositionFunc = null;
@@ -151,6 +149,9 @@ public partial class MainPage : ContentPage
             IkManager.ToModelSpaceFunc = null;
             IkManager.ToWorldSpaceFunc = null;
             IkManager.InvalidateViewer = null;
+            IkManager.Clear();
+            System.Diagnostics.Trace.WriteLine($"IkManager cleared. SelectedBoneIndex={IkManager.SelectedBoneIndex}");
+            _renderer.ClearIkBones();
         }
         _renderer.ShowIkBones = _poseMode;
         Viewer?.InvalidateSurface();
@@ -677,6 +678,12 @@ public partial class MainPage : ContentPage
                     case SKTouchAction.Cancelled:
                         IkManager.ReleaseSelection();
                         break;
+                }
+                if (!_poseMode)
+                {
+                    System.Diagnostics.Trace.WriteLine($"Pose mode became false during OnViewTouch; pickNull={IkManager.PickFunc == null} invalidateNull={IkManager.InvalidateViewer == null}");
+                    e.Handled = true;
+                    return;
                 }
                 if (IkManager.InvalidateViewer == null)
                     System.Diagnostics.Trace.WriteLine("InvalidateViewer delegate is null in OnViewTouch.");
