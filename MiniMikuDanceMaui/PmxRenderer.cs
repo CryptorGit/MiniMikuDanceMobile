@@ -698,18 +698,36 @@ void main(){
         Viewer?.InvalidateSurface();
     }
 
+    private System.Numerics.Matrix4x4[] CalculateWorldMatrices()
+    {
+        var worldMats = new System.Numerics.Matrix4x4[_bones.Count];
+        for (int i = 0; i < _bones.Count; i++)
+        {
+            var bone = _bones[i];
+            System.Numerics.Vector3 euler = i < _boneRotations.Count ? _boneRotations[i].ToNumerics() : System.Numerics.Vector3.Zero;
+            var rot = euler.FromEulerDegrees();
+            System.Numerics.Vector3 trans = bone.Translation;
+            if (i < _boneTranslations.Count)
+                trans += _boneTranslations[i].ToNumerics();
+            var local = System.Numerics.Matrix4x4.CreateFromQuaternion(bone.Rotation * rot) *
+                        System.Numerics.Matrix4x4.CreateTranslation(trans);
+            worldMats[i] = bone.Parent >= 0 ? local * worldMats[bone.Parent] : local;
+        }
+        return worldMats;
+    }
+
     public void SetBoneTranslation(int index, Vector3 worldPos)
     {
         if (index < 0 || index >= _bones.Count)
             return;
 
         var bone = _bones[index];
-        var parentBind = bone.Parent >= 0 && bone.Parent < _bones.Count
-            ? _bones[bone.Parent].BindMatrix
+        var worldMats = CalculateWorldMatrices();
+        var parentWorld = bone.Parent >= 0 && bone.Parent < _bones.Count
+            ? worldMats[bone.Parent]
             : System.Numerics.Matrix4x4.Identity;
-        System.Numerics.Matrix4x4.Invert(parentBind, out var invParent);
+        System.Numerics.Matrix4x4.Invert(parentWorld, out var invParent);
         var localPos = System.Numerics.Vector3.Transform(worldPos.ToNumerics(), invParent);
-        worldPos = System.Numerics.Vector3.Transform(localPos, parentBind).ToOpenTK();
         var delta = localPos - bone.Translation;
 
         while (_boneTranslations.Count <= index)
