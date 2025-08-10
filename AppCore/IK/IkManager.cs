@@ -68,27 +68,29 @@ public static class IkManager
         chainIndices.Reverse();
         chainIndices.Add(ik.Target);
 
-        var chain = new IkBone[chainIndices.Count];
+        var chain = new IkBone[chainIndices.Count + 1];
+        chain[0] = BonesDict[index];
         for (int j = 0; j < chainIndices.Count; j++)
         {
             var idx = chainIndices[j];
             var b = modelBones[idx];
             var pos = Vector3.Transform(Vector3.Zero, b.BindMatrix);
-            chain[j] = new IkBone(idx, pos, b.Rotation);
+            chain[j + 1] = new IkBone(idx, pos, b.Rotation);
         }
 
+        var solverChain = chain[1..];
         IIkSolver solver;
-        if (chain.Length == 3)
+        if (solverChain.Length == 3)
         {
-            float l1 = Vector3.Distance(chain[0].Position, chain[1].Position);
-            float l2 = Vector3.Distance(chain[1].Position, chain[2].Position);
+            float l1 = Vector3.Distance(solverChain[0].Position, solverChain[1].Position);
+            float l2 = Vector3.Distance(solverChain[1].Position, solverChain[2].Position);
             solver = new TwoBoneSolver(l1, l2);
         }
         else
         {
-            var lengths = new float[chain.Length - 1];
+            var lengths = new float[solverChain.Length - 1];
             for (int j = 0; j < lengths.Length; j++)
-                lengths[j] = Vector3.Distance(chain[j].Position, chain[j + 1].Position);
+                lengths[j] = Vector3.Distance(solverChain[j].Position, solverChain[j + 1].Position);
             solver = new FabrikSolver(lengths);
         }
         Solvers[index] = (solver, chain);
@@ -188,37 +190,20 @@ public static class IkManager
             }
 
             var chain = solver.Chain;
-            var ikSolver = solver.Solver;
-            int expected = chain.Length;
-            if (ikSolver is TwoBoneSolver)
-            {
-                expected = 3;
-            }
-            else if (ikSolver is FabrikSolver)
-            {
-                try
-                {
-                    var field = typeof(FabrikSolver).GetField("_lengths", BindingFlags.NonPublic | BindingFlags.Instance);
-                    if (field?.GetValue(ikSolver) is float[] lengths)
-                        expected = lengths.Length + 1;
-                }
-                catch (Exception ex)
-                {
-                    Trace.WriteLine($"Failed to inspect FabrikSolver: {ex}");
-                    return;
-                }
-            }
-
-            if (chain.Length != expected)
-            {
-                Trace.WriteLine($"Chain length mismatch for bone {boneIndex}: expected {expected}, actual {chain.Length}.");
+            if (chain.Length < 2)
                 return;
-            }
 
-            chain[^1].Position = position;
-            ikSolver.Solve(chain);
+            var root = chain[0];
+            var deltaRoot = root.Position - root.BasePosition;
+            for (int i = 1; i < chain.Length; i++)
+                chain[i].Position = chain[i].BasePosition + deltaRoot;
+
+            var solveChain = chain[1..];
+            var ikSolver = solver.Solver;
+            solveChain[^1].Position = position;
+            ikSolver.Solve(solveChain);
             var parentRot = Quaternion.Identity;
-            foreach (var b in chain)
+            foreach (var b in solveChain)
             {
                 var localRot = parentRot == Quaternion.Identity ? b.Rotation : Quaternion.Inverse(parentRot) * b.Rotation;
                 var delta = Quaternion.Inverse(b.BaseRotation) * localRot;
