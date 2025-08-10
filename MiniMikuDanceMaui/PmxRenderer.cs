@@ -653,6 +653,16 @@ void main(){
         return result;
     }
 
+    public System.Numerics.Vector3 ModelToWorld(System.Numerics.Vector3 modelPos)
+    {
+        var pos = modelPos.ToOpenTK();
+        pos.Z = -pos.Z;
+        pos = Vector3.TransformPosition(pos, _modelTransform);
+        var result = pos.ToNumerics();
+        System.Diagnostics.Trace.WriteLine($"ModelToWorld {modelPos} => {result}");
+        return result;
+    }
+
     public (System.Numerics.Vector3 Origin, System.Numerics.Vector3 Direction) ScreenPointToRay(float screenX, float screenY)
     {
         if (_width == 0 || _height == 0)
