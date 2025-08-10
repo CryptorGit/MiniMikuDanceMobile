@@ -107,6 +107,7 @@ public partial class MainPage : ContentPage
 
     private void OnPoseModeToggled(object? sender, ToggledEventArgs e)
     {
+        Trace.WriteLine($"OnPoseModeToggled: value={e.Value}");
         _poseMode = e.Value;
         _touchPoints.Clear();
         if (_poseMode && _currentModel != null)
@@ -128,7 +129,7 @@ public partial class MainPage : ContentPage
             }
             catch (Exception ex)
             {
-                System.Diagnostics.Trace.WriteLine($"SetIkBones failed: {ex.Message}");
+                Trace.WriteLine($"SetIkBones failed: {ex.Message}");
             }
             IkManager.PickFunc = _renderer.PickBone;
             IkManager.GetBonePositionFunc = _renderer.GetBoneWorldPosition;
@@ -145,6 +146,7 @@ public partial class MainPage : ContentPage
         else
         {
             IkManager.Clear();
+            Trace.WriteLine($"IkManager cleared. SelectedBoneIndex={IkManager.SelectedBoneIndex}");
             _renderer.ClearIkBones();
             IkManager.PickFunc = null;
             IkManager.GetBonePositionFunc = null;
@@ -156,6 +158,7 @@ public partial class MainPage : ContentPage
         }
         _renderer.ShowIkBones = _poseMode;
         Viewer?.InvalidateSurface();
+        Trace.WriteLine($"PoseMode={_poseMode} PickFuncNull={IkManager.PickFunc == null} InvalidateViewerNull={IkManager.InvalidateViewer == null}");
     }
 
 
@@ -655,27 +658,39 @@ public partial class MainPage : ContentPage
 
     private void OnViewTouch(object? sender, SKTouchEventArgs e)
     {
+        Trace.WriteLine($"OnViewTouch: action={e.ActionType} poseMode={_poseMode} pickNull={IkManager.PickFunc == null} invalidateNull={IkManager.InvalidateViewer == null} selIdx={IkManager.SelectedBoneIndex}");
         if (_poseMode)
         {
-            switch (e.ActionType)
+            try
             {
-                case SKTouchAction.Pressed:
-                    IkManager.PickBone(e.Location.X, e.Location.Y);
-                    break;
-                case SKTouchAction.Moved:
-                    var ray = _renderer.ScreenPointToRay(e.Location.X, e.Location.Y);
-                    var pos = IkManager.IntersectDragPlane(ray);
-                    if (pos.HasValue && IkManager.SelectedBoneIndex >= 0)
-                    {
-                        IkManager.UpdateTarget(IkManager.SelectedBoneIndex, pos.Value);
-                    }
-                    break;
-                case SKTouchAction.Released:
-                case SKTouchAction.Cancelled:
-                    IkManager.ReleaseSelection();
-                    break;
+                switch (e.ActionType)
+                {
+                    case SKTouchAction.Pressed:
+                        IkManager.PickBone(e.Location.X, e.Location.Y);
+                        break;
+                    case SKTouchAction.Moved:
+                        var ray = _renderer.ScreenPointToRay(e.Location.X, e.Location.Y);
+                        var pos = IkManager.IntersectDragPlane(ray);
+                        if (pos.HasValue && IkManager.SelectedBoneIndex >= 0)
+                        {
+                            IkManager.UpdateTarget(IkManager.SelectedBoneIndex, pos.Value);
+                        }
+                        break;
+                    case SKTouchAction.Released:
+                    case SKTouchAction.Cancelled:
+                        IkManager.ReleaseSelection();
+                        break;
+                }
+                if (IkManager.InvalidateViewer == null)
+                    Trace.WriteLine("InvalidateViewer delegate is null in OnViewTouch.");
+                else
+                    IkManager.InvalidateViewer();
             }
-            IkManager.InvalidateViewer?.Invoke();
+            catch (Exception ex)
+            {
+                Trace.WriteLine($"OnViewTouch exception: {ex}");
+                IkManager.ReleaseSelection();
+            }
             e.Handled = true;
             return;
         }

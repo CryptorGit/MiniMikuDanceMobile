@@ -244,6 +244,7 @@ public static class IkManager
         BonesDict.Clear();
         Solvers.Clear();
         ReleaseSelection();
+        Trace.WriteLine($"IkManager.Clear: SelectedBoneIndex={_selectedBoneIndex} Bones={BonesDict.Count}");
     }
 }
 
