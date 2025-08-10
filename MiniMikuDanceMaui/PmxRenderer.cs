@@ -709,6 +709,7 @@ void main(){
             : System.Numerics.Matrix4x4.Identity;
         System.Numerics.Matrix4x4.Invert(parentBind, out var invParent);
         var localPos = System.Numerics.Vector3.Transform(worldPos.ToNumerics(), invParent);
+        worldPos = System.Numerics.Vector3.Transform(localPos, parentBind).ToOpenTK();
         var delta = localPos - bone.Translation;
 
         while (_boneTranslations.Count <= index)
