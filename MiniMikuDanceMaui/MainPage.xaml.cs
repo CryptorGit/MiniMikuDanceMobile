@@ -149,9 +149,12 @@ public partial class MainPage : ContentPage
             IkManager.ToModelSpaceFunc = null;
             IkManager.ToWorldSpaceFunc = null;
             IkManager.InvalidateViewer = null;
-            IkManager.Clear();
-            System.Diagnostics.Trace.WriteLine($"IkManager cleared. SelectedBoneIndex={IkManager.SelectedBoneIndex}");
-            _renderer.ClearIkBones();
+            MainThread.BeginInvokeOnMainThread(() =>
+            {
+                _renderer.ClearIkBones();
+                IkManager.Clear();
+                System.Diagnostics.Trace.WriteLine($"IkManager cleared. SelectedBoneIndex={IkManager.SelectedBoneIndex}");
+            });
         }
         _renderer.ShowIkBones = _poseMode;
         Viewer?.InvalidateSurface();

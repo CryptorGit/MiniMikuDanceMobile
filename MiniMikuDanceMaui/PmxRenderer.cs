@@ -113,6 +113,7 @@ public class PmxRenderer : IDisposable
     private bool _morphDirty;
     private List<MiniMikuDance.Import.BoneData> _bones = new();
     private readonly List<IkBone> _ikBones = new();
+    private readonly object _ikBonesLock = new();
     private readonly Dictionary<int, string> _indexToHumanoidName = new();
     private float[] _tmpVertexBuffer = Array.Empty<float>();
     public BonesConfig? BonesConfig { get; set; }
@@ -453,27 +454,36 @@ void main(){
 
     public void SetIkBones(IEnumerable<IkBone> bones)
     {
-        _ikBones.Clear();
-        _ikBones.AddRange(bones);
-        foreach (var ik in _ikBones)
+        lock (_ikBonesLock)
         {
-            ik.Position = GetBoneWorldPosition(ik.PmxBoneIndex);
+            _ikBones.Clear();
+            _ikBones.AddRange(bones);
+            foreach (var ik in _ikBones)
+            {
+                ik.Position = GetBoneWorldPosition(ik.PmxBoneIndex);
+            }
         }
     }
 
     public void ClearIkBones()
     {
-        _ikBones.Clear();
+        lock (_ikBonesLock)
+        {
+            _ikBones.Clear();
+        }
     }
 
     private void UpdateIkBoneWorldPositions()
     {
-        if (_ikBones.Count == 0 || _worldMats.Length == 0)
-            return;
-
-        foreach (var ik in _ikBones)
+        lock (_ikBonesLock)
         {
-            ik.Position = GetBoneWorldPosition(ik.PmxBoneIndex);
+            if (_ikBones.Count == 0 || _worldMats.Length == 0)
+                return;
+
+            foreach (var ik in _ikBones)
+            {
+                ik.Position = GetBoneWorldPosition(ik.PmxBoneIndex);
+            }
         }
     }
 
@@ -537,30 +547,33 @@ void main(){
 
     private void DrawIkBones()
     {
-        UpdateIkBoneWorldPositions();
-        if (_ikBones.Count == 0)
-            return;
-        EnsureIkBoneMesh();
-
-        GL.Disable(EnableCap.DepthTest);
-        GL.Uniform1(_pointSizeLoc, 1f);
-
-        GL.BindVertexArray(_ikBoneVao);
-        for (int i = 0; i < _ikBones.Count; i++)
+        lock (_ikBonesLock)
         {
-            var ik = _ikBones[i];
-            var worldPos = ik.Position.ToOpenTK();
-            float scale = _ikBoneScale * _distance;
-            if (ik.IsSelected)
-                scale *= 1.4f;
-            var mat = Matrix4.CreateScale(scale) * Matrix4.CreateTranslation(worldPos);
-            GL.UniformMatrix4(_modelLoc, false, ref mat);
-            var color = ik.IsSelected ? new Vector4(1f, 0f, 0f, 1f) : new Vector4(0f, 1f, 0f, 1f);
-            GL.Uniform4(_colorLoc, color);
-            GL.DrawElements(PrimitiveType.Triangles, _ikBoneIndexCount, DrawElementsType.UnsignedShort, 0);
+            UpdateIkBoneWorldPositions();
+            if (_ikBones.Count == 0)
+                return;
+            EnsureIkBoneMesh();
+
+            GL.Disable(EnableCap.DepthTest);
+            GL.Uniform1(_pointSizeLoc, 1f);
+
+            GL.BindVertexArray(_ikBoneVao);
+            for (int i = 0; i < _ikBones.Count; i++)
+            {
+                var ik = _ikBones[i];
+                var worldPos = ik.Position.ToOpenTK();
+                float scale = _ikBoneScale * _distance;
+                if (ik.IsSelected)
+                    scale *= 1.4f;
+                var mat = Matrix4.CreateScale(scale) * Matrix4.CreateTranslation(worldPos);
+                GL.UniformMatrix4(_modelLoc, false, ref mat);
+                var color = ik.IsSelected ? new Vector4(1f, 0f, 0f, 1f) : new Vector4(0f, 1f, 0f, 1f);
+                GL.Uniform4(_colorLoc, color);
+                GL.DrawElements(PrimitiveType.Triangles, _ikBoneIndexCount, DrawElementsType.UnsignedShort, 0);
+            }
+            GL.BindVertexArray(0);
+            GL.Enable(EnableCap.DepthTest);
         }
-        GL.BindVertexArray(0);
-        GL.Enable(EnableCap.DepthTest);
     }
 
     // スクリーン座標から最も近いボーンを選択
@@ -1490,7 +1503,7 @@ void main(){
             GL.Enable(EnableCap.DepthTest);
         }
 
-        if (ShowIkBones && _ikBones.Count > 0)
+        if (ShowIkBones)
         {
             DrawIkBones();
         }
