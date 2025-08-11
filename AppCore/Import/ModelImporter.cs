@@ -184,6 +184,35 @@ public class ModelImporter : IDisposable
                 Rotation = System.Numerics.Quaternion.Identity,
                 Translation = pos
             };
+            var flags = b.BoneFlag;
+            if (flags.HasFlag(BoneFlag.LocalAxis))
+            {
+                var x = new System.Numerics.Vector3(b.XAxisVec.X, b.XAxisVec.Y, b.XAxisVec.Z);
+                var z = new System.Numerics.Vector3(b.ZAxisVec.X, b.ZAxisVec.Y, b.ZAxisVec.Z);
+                var y = System.Numerics.Vector3.Normalize(System.Numerics.Vector3.Cross(z, x));
+                var mat = new System.Numerics.Matrix4x4(
+                    x.X, x.Y, x.Z, 0,
+                    y.X, y.Y, y.Z, 0,
+                    z.X, z.Y, z.Z, 0,
+                    0,   0,   0,   1);
+                bd.Rotation = System.Numerics.Quaternion.CreateFromRotationMatrix(mat);
+            }
+            else if (flags.HasFlag(BoneFlag.FixedAxis))
+            {
+                var axis = new System.Numerics.Vector3(b.AxisVec.X, b.AxisVec.Y, b.AxisVec.Z);
+                var forward = System.Numerics.Vector3.Normalize(axis);
+                var cross = System.Numerics.Vector3.Cross(System.Numerics.Vector3.UnitY, forward);
+                if (System.Numerics.Vector3.LengthSquared(cross) < 1e-6f)
+                    cross = System.Numerics.Vector3.Cross(System.Numerics.Vector3.UnitZ, forward);
+                var right = System.Numerics.Vector3.Normalize(cross);
+                var up = System.Numerics.Vector3.Normalize(System.Numerics.Vector3.Cross(forward, right));
+                var mat = new System.Numerics.Matrix4x4(
+                    right.X, right.Y, right.Z, 0,
+                    up.X,    up.Y,    up.Z,    0,
+                    forward.X, forward.Y, forward.Z, 0,
+                    0,       0,    0,         1);
+                bd.Rotation = System.Numerics.Quaternion.CreateFromRotationMatrix(mat);
+            }
             if (b.IKLinkCount > 0)
             {
                 var ik = new IkInfo { Target = b.IKTarget };
