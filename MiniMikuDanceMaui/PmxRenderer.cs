@@ -721,7 +721,7 @@ void main(){
         _bonesDirty = true;
         Viewer?.InvalidateSurface();
         System.Diagnostics.Trace.WriteLine($"_bonesDirty={_bonesDirty} viewerInvalidated={Viewer != null}");
-        if (!IkManager.IsSolving)
+        if (!IkManager.IsSolving && IkManager.GetBonePositionFunc != null && IkManager.HasSolvers)
             IkManager.UpdateFromRotation(index);
     }
 
