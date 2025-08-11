@@ -36,7 +36,7 @@ public class TwoBoneSolver : IIkSolver
         end.Position = target;
 
         var poleDir = chain.Length > 3 ? chain[3].Position - rootPos : mid.Position - rootPos;
-        var cross = Vector3.Cross(dir, poleDir);
+        var cross = Vector3.Cross(poleDir, dir);
         var planeNormal = cross.LengthSquared() > Epsilon ? Vector3.Normalize(cross) : Vector3.UnitY;
         var tangentCross = Vector3.Cross(planeNormal, dir);
         var planeTangent = tangentCross.LengthSquared() > Epsilon ? Vector3.Normalize(tangentCross) : Vector3.UnitX;
