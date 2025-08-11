@@ -202,7 +202,7 @@ public class ModelImporter : IDisposable
                 var axis = new System.Numerics.Vector3(b.AxisVec.X, b.AxisVec.Y, b.AxisVec.Z);
                 var forward = System.Numerics.Vector3.Normalize(axis);
                 var cross = System.Numerics.Vector3.Cross(System.Numerics.Vector3.UnitY, forward);
-                if (System.Numerics.Vector3.LengthSquared(cross) < 1e-6f)
+                if (cross.LengthSquared() < 1e-6f)
                     cross = System.Numerics.Vector3.Cross(System.Numerics.Vector3.UnitZ, forward);
                 var right = System.Numerics.Vector3.Normalize(cross);
                 var up = System.Numerics.Vector3.Normalize(System.Numerics.Vector3.Cross(forward, right));
