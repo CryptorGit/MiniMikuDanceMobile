@@ -177,10 +177,13 @@ public class ModelImporter : IDisposable
             string name = string.IsNullOrEmpty(b.NameEnglish) ? b.Name : b.NameEnglish;
             var pos = new System.Numerics.Vector3(b.Position.X, b.Position.Y, b.Position.Z) * Scale;
             worldPositions[i] = pos;
+            int parent = b.ParentBone;
+            if (parent < 0 || parent >= bones.Length)
+                parent = -1;
             var bd = new BoneData
             {
                 Name = name,
-                Parent = b.ParentBone,
+                Parent = parent,
                 Rotation = System.Numerics.Quaternion.Identity,
                 Translation = pos
             };
