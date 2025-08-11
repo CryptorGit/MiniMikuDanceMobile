@@ -25,17 +25,26 @@ public partial class PoseEditorView : ContentView
     public void SetBones(IReadOnlyList<BoneData> bones)
     {
         _bones = bones;
-        _boneIndices = new int[bones.Count];
-        _rotations = new Vector3[bones.Count];
+
         var names = new List<string>(bones.Count);
+        var indices = new List<int>(bones.Count);
+        var rotations = new List<Vector3>(bones.Count);
+
         for (int i = 0; i < bones.Count; i++)
         {
-            names.Add(bones[i].Name);
-            _boneIndices[i] = i;
-            _rotations[i] = GetBoneRotation?.Invoke(i) ?? Vector3.Zero;
+            var bone = bones[i];
+            if (bone.Ik != null || bone.Name.Contains("IK", StringComparison.OrdinalIgnoreCase))
+                continue;
+
+            names.Add(bone.Name);
+            indices.Add(i);
+            rotations.Add(GetBoneRotation?.Invoke(i) ?? Vector3.Zero);
         }
+
+        _boneIndices = indices.ToArray();
+        _rotations = rotations.ToArray();
         BonePicker.ItemsSource = names;
-        if (bones.Count > 0)
+        if (names.Count > 0)
             BonePicker.SelectedIndex = 0;
     }
 
