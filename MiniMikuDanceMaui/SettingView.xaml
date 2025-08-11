@@ -31,6 +31,11 @@
                       CheckedChanged="OnBoneOutlineChanged"/>
             <Label Text="Show Bone Outline" TextColor="{StaticResource TextColor}" VerticalOptions="Center"/>
         </HorizontalStackLayout>
+        <HorizontalStackLayout Spacing="6" VerticalOptions="Center">
+            <CheckBox x:Name="BoneAxesCheck" Color="{StaticResource TextColor}"
+                      CheckedChanged="OnBoneAxesChanged"/>
+            <Label Text="Show Bone Axes" TextColor="{StaticResource TextColor}" VerticalOptions="Center"/>
+        </HorizontalStackLayout>
         <Button Text="Reset Camera" TextColor="{StaticResource TextColor}" Clicked="OnResetCameraClicked" />
     </VerticalStackLayout>
 </ContentView>

@@ -70,6 +70,8 @@ public class PmxRenderer : IDisposable
     private int _ikBoneVbo;
     private int _ikBoneEbo;
     private int _ikBoneIndexCount;
+    private int _axisVao;
+    private int _axisVbo;
     private System.Numerics.Matrix4x4[] _worldMats = Array.Empty<System.Numerics.Matrix4x4>();
     private System.Numerics.Matrix4x4[] _skinMats = Array.Empty<System.Numerics.Matrix4x4>();
     private float[] _boneLines = Array.Empty<float>();
@@ -151,6 +153,20 @@ public class PmxRenderer : IDisposable
             if (_showIkBones != value)
             {
                 _showIkBones = value;
+                Viewer?.InvalidateSurface();
+            }
+        }
+    }
+
+    private bool _showBoneAxes;
+    public bool ShowBoneAxes
+    {
+        get => _showBoneAxes;
+        set
+        {
+            if (_showBoneAxes != value)
+            {
+                _showBoneAxes = value;
                 Viewer?.InvalidateSurface();
             }
         }
@@ -576,6 +592,49 @@ void main(){
         }
     }
 
+    private void DrawBoneAxes()
+    {
+        int limit = Math.Min(_worldMats.Length, _bones.Count);
+        if (limit == 0)
+            return;
+        float len = 0.2f * _distance;
+        if (_axisVao == 0)
+        {
+            _axisVao = GL.GenVertexArray();
+            _axisVbo = GL.GenBuffer();
+        }
+        GL.BindVertexArray(_axisVao);
+        GL.BindBuffer(BufferTarget.ArrayBuffer, _axisVbo);
+        GL.VertexAttribPointer(0, 3, VertexAttribPointerType.Float, false, 3 * sizeof(float), 0);
+        GL.EnableVertexAttribArray(0);
+
+        void DrawAxis(Func<System.Numerics.Matrix4x4, System.Numerics.Vector3> selector, Vector4 color)
+        {
+            var verts = new float[limit * 6];
+            int idx = 0;
+            for (int i = 0; i < limit; i++)
+            {
+                var m = _worldMats[i];
+                var start = m.Translation;
+                var axis = selector(m);
+                axis = System.Numerics.Vector3.Normalize(axis);
+                var end = start + axis * len;
+                verts[idx++] = start.X; verts[idx++] = start.Y; verts[idx++] = start.Z;
+                verts[idx++] = end.X; verts[idx++] = end.Y; verts[idx++] = end.Z;
+            }
+            GL.BufferData(BufferTarget.ArrayBuffer, verts.Length * sizeof(float), verts, BufferUsageHint.StreamDraw);
+            GL.Uniform4(_colorLoc, color);
+            GL.DrawArrays(PrimitiveType.Lines, 0, limit * 2);
+        }
+
+        GL.Disable(EnableCap.DepthTest);
+        DrawAxis(m => new System.Numerics.Vector3(m.M31, m.M32, m.M33), new Vector4(1f, 0f, 0f, 1f));
+        DrawAxis(m => new System.Numerics.Vector3(m.M21, m.M22, m.M23), new Vector4(0f, 1f, 0f, 1f));
+        DrawAxis(m => new System.Numerics.Vector3(m.M11, m.M12, m.M13), new Vector4(0f, 0f, 1f, 1f));
+        GL.Enable(EnableCap.DepthTest);
+        GL.BindVertexArray(0);
+    }
+
     // スクリーン座標から最も近いボーンを選択
     public int PickBone(float screenX, float screenY)
     {
@@ -647,6 +706,19 @@ void main(){
         var result = pos.ToNumerics();
         System.Diagnostics.Trace.WriteLine($"GetBoneWorldPosition[{index}] => {result}");
         return result;
+    }
+
+    public System.Numerics.Vector2 ProjectToScreen(System.Numerics.Vector3 worldPos)
+    {
+        var v4 = new Vector4(worldPos.ToOpenTK(), 1f);
+        var clip = v4 * _viewMatrix;
+        clip = clip * _projMatrix;
+        if (clip.W <= 0)
+            return System.Numerics.Vector2.Zero;
+        var ndc = clip.Xyz / clip.W;
+        float sx = (ndc.X * 0.5f + 0.5f) * _width;
+        float sy = (-ndc.Y * 0.5f + 0.5f) * _height;
+        return new System.Numerics.Vector2(sx, sy);
     }
 
     public System.Numerics.Vector3 GetCameraPosition()
@@ -1507,6 +1579,11 @@ void main(){
         {
             DrawIkBones();
         }
+
+        if (ShowBoneAxes)
+        {
+            DrawBoneAxes();
+        }
     }
 
     public void Dispose()
@@ -1528,6 +1605,8 @@ void main(){
         GL.DeleteVertexArray(_groundVao);
         GL.DeleteVertexArray(_boneVao);
         GL.DeleteVertexArray(_ikBoneVao);
+        GL.DeleteBuffer(_axisVbo);
+        GL.DeleteVertexArray(_axisVao);
         GL.DeleteProgram(_program);
         GL.DeleteProgram(_modelProgram);
     }
