@@ -13,6 +13,7 @@ public static class IkManager
     private static readonly Dictionary<int, (IIkSolver Solver, IkBone[] Chain)> Solvers = new();
     private static bool _isSolving;
     public static bool IsSolving => _isSolving;
+    public static bool HasSolvers => Solvers.Count > 0;
 
     // レンダラーから提供される各種処理を委譲用デリゲートとして保持
     public static System.Func<float, float, int>? PickFunc { get; set; }
