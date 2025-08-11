@@ -939,8 +939,11 @@ public partial class MainPage : ContentPage
                 var pv = new PoseEditorView();
                 pv.GetBoneRotation = i => _renderer.GetBoneRotation(i).ToNumerics();
                 pv.SetBones((_currentModel?.Bones as IReadOnlyList<BoneData>) ?? Array.Empty<BoneData>());
+                System.Diagnostics.Trace.WriteLine($"PoseEditorView bones={_currentModel?.Bones.Count ?? 0} renderer bones={_renderer.BoneCount}");
                 pv.RotationChanged += (index, rotation) =>
                 {
+                    var name = _renderer.GetBoneName(index) ?? "Unknown";
+                    System.Diagnostics.Trace.WriteLine($"RotationChanged received: index={index} name={name} rot={rotation}");
                     _renderer.SetBoneRotation(index, rotation.ToOpenTK());
                 };
                 view = pv;
@@ -1045,6 +1048,7 @@ public partial class MainPage : ContentPage
         {
             pev.GetBoneRotation = i => _renderer.GetBoneRotation(i).ToNumerics();
             pev.SetBones((_currentModel?.Bones as IReadOnlyList<BoneData>) ?? Array.Empty<BoneData>());
+            System.Diagnostics.Trace.WriteLine($"PoseEditorView refreshed bones={_currentModel?.Bones.Count ?? 0} renderer bones={_renderer.BoneCount}");
         }
 
         SwitchBottomFeature(name);
