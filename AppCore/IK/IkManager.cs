@@ -209,9 +209,6 @@ public static class IkManager
                 var delta = Quaternion.Inverse(b.BaseRotation) * localRot;
                 if (SetBoneRotation != null)
                     SetBoneRotation(b.PmxBoneIndex, delta.ToEulerDegrees().ToOpenTK());
-                var worldPos = ToWorldSpaceFunc != null ? ToWorldSpaceFunc(b.Position) : b.Position;
-                if (SetBoneTranslation != null)
-                    SetBoneTranslation(b.PmxBoneIndex, worldPos.ToOpenTK());
                 parentRot = b.Rotation;
             }
             InvalidateViewer?.Invoke();
