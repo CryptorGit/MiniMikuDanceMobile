@@ -117,6 +117,13 @@ public class PmxRenderer : IDisposable
     private readonly Dictionary<int, string> _indexToHumanoidName = new();
     private float[] _tmpVertexBuffer = Array.Empty<float>();
     public BonesConfig? BonesConfig { get; set; }
+    public int BoneCount => _bones.Count;
+    public string? GetBoneName(int index)
+    {
+        if (index < 0 || index >= _bones.Count)
+            return null;
+        return _bones[index].Name;
+    }
     private Quaternion _externalRotation = Quaternion.Identity;
     // デフォルトのカメラ感度をスライダーの最小値に合わせる
     public float RotateSensitivity { get; set; } = 0.1f;
@@ -696,9 +703,13 @@ void main(){
 
     public void SetBoneRotation(int index, Vector3 degrees)
     {
-        if (index < 0)
+        if (index < 0 || index >= _bones.Count)
+        {
+            System.Diagnostics.Trace.WriteLine($"SetBoneRotation ignored: index={index} bones={_bones.Count}");
             return;
-        if (BonesConfig != null && index < _bones.Count)
+        }
+        System.Diagnostics.Trace.WriteLine($"SetBoneRotation called: index={index} name={_bones[index].Name} degrees={degrees}");
+        if (BonesConfig != null)
         {
             var name = _indexToHumanoidName.TryGetValue(index, out var n) ? n : _bones[index].Name;
             var clamped = BonesConfig.Clamp(name, degrees.ToNumerics());
@@ -709,6 +720,7 @@ void main(){
         _boneRotations[index] = degrees;
         _bonesDirty = true;
         Viewer?.InvalidateSurface();
+        System.Diagnostics.Trace.WriteLine($"_bonesDirty={_bonesDirty} viewerInvalidated={Viewer != null}");
     }
 
     private System.Numerics.Matrix4x4[] CalculateWorldMatrices()

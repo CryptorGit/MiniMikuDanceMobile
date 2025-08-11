@@ -80,7 +80,10 @@ public partial class PoseEditorView : ContentView
             {
                 int boneIndex = _boneIndices[pickerIndex];
                 if (boneIndex >= 0 && boneIndex < _bones.Count)
+                {
+                    System.Diagnostics.Trace.WriteLine($"RotationChanged fired: index={boneIndex} rot={rot}");
                     RotationChanged?.Invoke(boneIndex, rot);
+                }
             }
         }
     }
