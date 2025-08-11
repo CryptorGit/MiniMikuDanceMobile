@@ -218,11 +218,35 @@ public class ModelImporter : IDisposable
         data.Bones = boneDatas;
 
         // ヒューマノイドボーンのマッピング
+        var nameMap = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase)
+        {
+            ["下半身"] = "hips",
+            ["上半身"] = "spine",
+            ["上半身2"] = "chest",
+            ["首"] = "neck",
+            ["頭"] = "head",
+            ["左腕"] = "leftUpperArm",
+            ["左ひじ"] = "leftLowerArm",
+            ["左手首"] = "leftHand",
+            ["右腕"] = "rightUpperArm",
+            ["右ひじ"] = "rightLowerArm",
+            ["右手首"] = "rightHand",
+            ["左足"] = "leftUpperLeg",
+            ["左ひざ"] = "leftLowerLeg",
+            ["左足首"] = "leftFoot",
+            ["右足"] = "rightUpperLeg",
+            ["右ひざ"] = "rightLowerLeg",
+            ["右足首"] = "rightFoot"
+        };
+
         foreach (var hb in MiniMikuDance.Import.HumanoidBones.StandardOrder)
         {
             for (int i = 0; i < boneDatas.Count; i++)
             {
-                if (boneDatas[i].Name.Equals(hb, StringComparison.OrdinalIgnoreCase))
+                var name = boneDatas[i].Name;
+                if (nameMap.TryGetValue(name, out var mapped))
+                    name = mapped;
+                if (name.Equals(hb, StringComparison.OrdinalIgnoreCase))
                 {
                     data.HumanoidBones[hb] = i;
                     data.HumanoidBoneList.Add((hb, i));
