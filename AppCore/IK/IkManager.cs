@@ -11,6 +11,8 @@ public static class IkManager
 {
     private static readonly Dictionary<int, IkBone> BonesDict = new();
     private static readonly Dictionary<int, (IIkSolver Solver, IkBone[] Chain)> Solvers = new();
+    private static bool _isSolving;
+    public static bool IsSolving => _isSolving;
 
     // レンダラーから提供される各種処理を委譲用デリゲートとして保持
     public static System.Func<float, float, int>? PickFunc { get; set; }
@@ -169,8 +171,11 @@ public static class IkManager
 
     public static void UpdateTarget(int boneIndex, Vector3 position)
     {
+        if (_isSolving)
+            return;
         try
         {
+            _isSolving = true;
             if (!BonesDict.TryGetValue(boneIndex, out var bone))
                 return;
 
@@ -220,6 +225,10 @@ public static class IkManager
         {
             Trace.WriteLine($"UpdateTarget exception: {ex}");
         }
+        finally
+        {
+            _isSolving = false;
+        }
     }
 
     public static void ReleaseSelection()
@@ -228,6 +237,28 @@ public static class IkManager
             prev.IsSelected = false;
         _selectedBoneIndex = -1;
         InvalidateViewer?.Invoke();
+    }
+
+    public static void UpdateFromRotation(int boneIndex)
+    {
+        if (_isSolving || GetBonePositionFunc == null)
+            return;
+
+        foreach (var kv in Solvers)
+        {
+            var rootIndex = kv.Key;
+            var chain = kv.Value.Chain;
+            foreach (var b in chain)
+            {
+                if (b.PmxBoneIndex != boneIndex)
+                    continue;
+
+                var worldPos = GetBonePositionFunc(rootIndex);
+                var modelPos = ToModelSpaceFunc != null ? ToModelSpaceFunc(worldPos) : worldPos;
+                UpdateTarget(rootIndex, modelPos);
+                break;
+            }
+        }
     }
 
     public static void Clear()
