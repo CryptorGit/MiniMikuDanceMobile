@@ -5,20 +5,20 @@
              BackgroundColor="{StaticResource BackgroundColor}">
     <VerticalStackLayout Padding="10" Spacing="10">
         <Picker x:Name="BonePicker" Title="Bone" />
-        <HorizontalStackLayout Spacing="10">
-            <Label Text="X" TextColor="{StaticResource TextColor}" VerticalOptions="Center" />
-            <Slider x:Name="XSlider" Minimum="-180" Maximum="180" ValueChanged="OnSliderValueChanged" />
-            <Label x:Name="XValue" Text="0" TextColor="{StaticResource TextColor}" WidthRequest="40" HorizontalTextAlignment="End" VerticalOptions="Center" />
+        <HorizontalStackLayout Spacing="10" HorizontalOptions="FillAndExpand">
+            <Label Text="X" TextColor="{StaticResource TextColor}" VerticalOptions="Center" HorizontalOptions="Start" />
+            <Slider x:Name="XSlider" Minimum="-180" Maximum="180" ValueChanged="OnSliderValueChanged" HorizontalOptions="FillAndExpand" />
+            <Label x:Name="XValue" Text="0" TextColor="{StaticResource TextColor}" WidthRequest="40" HorizontalTextAlignment="End" VerticalOptions="Center" HorizontalOptions="End" />
         </HorizontalStackLayout>
-        <HorizontalStackLayout Spacing="10">
-            <Label Text="Y" TextColor="{StaticResource TextColor}" VerticalOptions="Center" />
-            <Slider x:Name="YSlider" Minimum="-180" Maximum="180" ValueChanged="OnSliderValueChanged" />
-            <Label x:Name="YValue" Text="0" TextColor="{StaticResource TextColor}" WidthRequest="40" HorizontalTextAlignment="End" VerticalOptions="Center" />
+        <HorizontalStackLayout Spacing="10" HorizontalOptions="FillAndExpand">
+            <Label Text="Y" TextColor="{StaticResource TextColor}" VerticalOptions="Center" HorizontalOptions="Start" />
+            <Slider x:Name="YSlider" Minimum="-180" Maximum="180" ValueChanged="OnSliderValueChanged" HorizontalOptions="FillAndExpand" />
+            <Label x:Name="YValue" Text="0" TextColor="{StaticResource TextColor}" WidthRequest="40" HorizontalTextAlignment="End" VerticalOptions="Center" HorizontalOptions="End" />
         </HorizontalStackLayout>
-        <HorizontalStackLayout Spacing="10">
-            <Label Text="Z" TextColor="{StaticResource TextColor}" VerticalOptions="Center" />
-            <Slider x:Name="ZSlider" Minimum="-180" Maximum="180" ValueChanged="OnSliderValueChanged" />
-            <Label x:Name="ZValue" Text="0" TextColor="{StaticResource TextColor}" WidthRequest="40" HorizontalTextAlignment="End" VerticalOptions="Center" />
+        <HorizontalStackLayout Spacing="10" HorizontalOptions="FillAndExpand">
+            <Label Text="Z" TextColor="{StaticResource TextColor}" VerticalOptions="Center" HorizontalOptions="Start" />
+            <Slider x:Name="ZSlider" Minimum="-180" Maximum="180" ValueChanged="OnSliderValueChanged" HorizontalOptions="FillAndExpand" />
+            <Label x:Name="ZValue" Text="0" TextColor="{StaticResource TextColor}" WidthRequest="40" HorizontalTextAlignment="End" VerticalOptions="Center" HorizontalOptions="End" />
         </HorizontalStackLayout>
     </VerticalStackLayout>
 </ContentView>
