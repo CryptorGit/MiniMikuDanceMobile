@@ -721,6 +721,8 @@ void main(){
         _bonesDirty = true;
         Viewer?.InvalidateSurface();
         System.Diagnostics.Trace.WriteLine($"_bonesDirty={_bonesDirty} viewerInvalidated={Viewer != null}");
+        if (!IkManager.IsSolving)
+            IkManager.UpdateFromRotation(index);
     }
 
     private System.Numerics.Matrix4x4[] CalculateWorldMatrices()
