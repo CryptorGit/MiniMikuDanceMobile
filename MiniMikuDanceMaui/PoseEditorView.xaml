@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentView xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             x:Class="MiniMikuDanceMaui.PoseEditorView"
+             BackgroundColor="{StaticResource BackgroundColor}">
+    <VerticalStackLayout Padding="10" Spacing="10">
+        <Picker x:Name="BonePicker" Title="Bone" />
+        <HorizontalStackLayout Spacing="10">
+            <Label Text="X" TextColor="{StaticResource TextColor}" VerticalOptions="Center" />
+            <Slider x:Name="XSlider" Minimum="-180" Maximum="180" ValueChanged="OnSliderValueChanged" />
+            <Label x:Name="XValue" Text="0" TextColor="{StaticResource TextColor}" WidthRequest="40" HorizontalTextAlignment="End" VerticalOptions="Center" />
+        </HorizontalStackLayout>
+        <HorizontalStackLayout Spacing="10">
+            <Label Text="Y" TextColor="{StaticResource TextColor}" VerticalOptions="Center" />
+            <Slider x:Name="YSlider" Minimum="-180" Maximum="180" ValueChanged="OnSliderValueChanged" />
+            <Label x:Name="YValue" Text="0" TextColor="{StaticResource TextColor}" WidthRequest="40" HorizontalTextAlignment="End" VerticalOptions="Center" />
+        </HorizontalStackLayout>
+        <HorizontalStackLayout Spacing="10">
+            <Label Text="Z" TextColor="{StaticResource TextColor}" VerticalOptions="Center" />
+            <Slider x:Name="ZSlider" Minimum="-180" Maximum="180" ValueChanged="OnSliderValueChanged" />
+            <Label x:Name="ZValue" Text="0" TextColor="{StaticResource TextColor}" WidthRequest="40" HorizontalTextAlignment="End" VerticalOptions="Center" />
+        </HorizontalStackLayout>
+    </VerticalStackLayout>
+</ContentView>

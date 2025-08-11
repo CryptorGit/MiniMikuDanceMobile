@@ -369,6 +369,12 @@ public partial class MainPage : ContentPage
         HideAllMenusAndLayout();
     }
 
+    private void OnPoseEditorClicked(object? sender, EventArgs e)
+    {
+        ShowBottomFeature("POSE");
+        HideAllMenusAndLayout();
+    }
+
     private void OnCloseBottomTapped(object? sender, TappedEventArgs e)
     {
         if (_currentFeature != null)
@@ -928,6 +934,16 @@ public partial class MainPage : ContentPage
                 };
                 view = mv;
             }
+            else if (name == "POSE")
+            {
+                var pv = new PoseEditorView();
+                pv.SetBones(_currentModel?.Bones ?? Array.Empty<BoneData>());
+                pv.RotationChanged += (index, rotation) =>
+                {
+                    _renderer.SetBoneRotation(index, rotation.ToOpenTK());
+                };
+                view = pv;
+            }
             else if (name == "SETTING")
             {
                 var sv = new SettingView();
@@ -1023,6 +1039,10 @@ public partial class MainPage : ContentPage
             {
                 morphView.SetMorphs(_currentModel.Morphs);
             }
+        }
+        else if (name == "POSE" && _bottomViews[name] is PoseEditorView pev)
+        {
+            pev.SetBones(_currentModel?.Bones ?? Array.Empty<BoneData>());
         }
 
         SwitchBottomFeature(name);
