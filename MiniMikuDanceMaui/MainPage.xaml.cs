@@ -141,6 +141,9 @@ public partial class MainPage : ContentPage
         else
         {
             System.Diagnostics.Trace.WriteLine("Disabling pose mode. Clearing IK delegates...");
+            IkManager.ReleaseSelection();
+            _renderer.ClearIkBones();
+            IkManager.Clear();
             IkManager.PickFunc = null;
             IkManager.GetBonePositionFunc = null;
             IkManager.GetCameraPositionFunc = null;
@@ -149,12 +152,7 @@ public partial class MainPage : ContentPage
             IkManager.ToModelSpaceFunc = null;
             IkManager.ToWorldSpaceFunc = null;
             IkManager.InvalidateViewer = null;
-            MainThread.BeginInvokeOnMainThread(() =>
-            {
-                _renderer.ClearIkBones();
-                IkManager.Clear();
-                System.Diagnostics.Trace.WriteLine($"IkManager cleared. SelectedBoneIndex={IkManager.SelectedBoneIndex}");
-            });
+            System.Diagnostics.Trace.WriteLine($"IkManager cleared. SelectedBoneIndex={IkManager.SelectedBoneIndex}");
         }
         _renderer.ShowIkBones = _poseMode;
         Viewer?.InvalidateSurface();
@@ -668,10 +666,25 @@ public partial class MainPage : ContentPage
                 {
                     case SKTouchAction.Pressed:
                         IkManager.PickBone(e.Location.X, e.Location.Y);
+                        if (!_poseMode)
+                        {
+                            e.Handled = true;
+                            return;
+                        }
                         break;
                     case SKTouchAction.Moved:
+                        if (!_poseMode)
+                        {
+                            e.Handled = true;
+                            return;
+                        }
                         var ray = _renderer.ScreenPointToRay(e.Location.X, e.Location.Y);
                         var pos = IkManager.IntersectDragPlane(ray);
+                        if (!_poseMode)
+                        {
+                            e.Handled = true;
+                            return;
+                        }
                         if (pos.HasValue && IkManager.SelectedBoneIndex >= 0)
                         {
                             IkManager.UpdateTarget(IkManager.SelectedBoneIndex, pos.Value);
@@ -680,6 +693,11 @@ public partial class MainPage : ContentPage
                     case SKTouchAction.Released:
                     case SKTouchAction.Cancelled:
                         IkManager.ReleaseSelection();
+                        if (!_poseMode)
+                        {
+                            e.Handled = true;
+                            return;
+                        }
                         break;
                 }
                 if (!_poseMode)
