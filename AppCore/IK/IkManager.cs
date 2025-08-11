@@ -2,7 +2,6 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Numerics;
-using System.Reflection;
 using MiniMikuDance.Import;
 using MiniMikuDance.Util;
 
@@ -64,8 +63,9 @@ public static class IkManager
         var rootPos = Vector3.Transform(Vector3.Zero, bRoot.BindMatrix);
         BonesDict[index] = new IkBone(index, rootPos, bRoot.Rotation);
 
-        var chainIndices = new List<int>(ik.Chain);
-        chainIndices.Reverse();
+        var chainIndices = new List<int>(ik.Chain.Count + 1);
+        for (int j = ik.Chain.Count - 1; j >= 0; j--)
+            chainIndices.Add(ik.Chain[j]);
         chainIndices.Add(ik.Target);
 
         var chain = new IkBone[chainIndices.Count + 1];
