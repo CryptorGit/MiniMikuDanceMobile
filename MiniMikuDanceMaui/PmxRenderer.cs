@@ -736,7 +736,7 @@ void main(){
                 trans += _boneTranslations[i].ToNumerics();
             var local = System.Numerics.Matrix4x4.CreateFromQuaternion(bone.Rotation * rot) *
                         System.Numerics.Matrix4x4.CreateTranslation(trans);
-            worldMats[i] = bone.Parent >= 0 ? local * worldMats[bone.Parent] : local;
+            worldMats[i] = bone.Parent >= 0 && bone.Parent < _bones.Count ? local * worldMats[bone.Parent] : local;
         }
         return worldMats;
     }
@@ -1244,7 +1244,7 @@ void main(){
                 if (i < _boneTranslations.Count)
                     trans += _boneTranslations[i].ToNumerics();
                 var local = System.Numerics.Matrix4x4.CreateFromQuaternion(bone.Rotation * delta) * System.Numerics.Matrix4x4.CreateTranslation(trans);
-                if (bone.Parent >= 0)
+                if (bone.Parent >= 0 && bone.Parent < _bones.Count)
                     _worldMats[i] = local * _worldMats[bone.Parent];
                 else
                     _worldMats[i] = local;
@@ -1373,7 +1373,7 @@ void main(){
                 for (int i = 0; i < _bones.Count; i++)
                 {
                     var bone = _bones[i];
-                    if (bone.Parent >= 0)
+                    if (bone.Parent >= 0 && bone.Parent < _bones.Count)
                     {
                         var pp = _worldMats[bone.Parent].Translation;
                         var cp = _worldMats[i].Translation;
