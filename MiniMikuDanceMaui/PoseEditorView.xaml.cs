@@ -12,6 +12,8 @@ public partial class PoseEditorView : ContentView
     private int[] _boneIndices = Array.Empty<int>();
     private Vector3[] _rotations = Array.Empty<Vector3>();
     private bool _updatingUI;
+    private readonly object _bonesLock = new();
+    private bool _bonesReady;
 
     public PoseEditorView()
     {
@@ -24,45 +26,60 @@ public partial class PoseEditorView : ContentView
 
     public void SetBones(IReadOnlyList<BoneData> bones)
     {
-        _bones = bones;
-
-        var names = new List<string>(bones.Count);
-        var indices = new List<int>(bones.Count);
-        var rotations = new List<Vector3>(bones.Count);
-
-        for (int i = 0; i < bones.Count; i++)
+        lock (_bonesLock)
         {
-            var bone = bones[i];
-            if (bone.Ik != null || bone.Name.Contains("IK", StringComparison.OrdinalIgnoreCase))
-                continue;
+            _bonesReady = false;
+            UpdateSliderEnabled(false);
 
-            names.Add(bone.Name);
-            indices.Add(i);
-            rotations.Add(GetBoneRotation?.Invoke(i) ?? Vector3.Zero);
+            _bones = bones;
+
+            var names = new List<string>(bones.Count);
+            var indices = new List<int>(bones.Count);
+            var rotations = new List<Vector3>(bones.Count);
+
+            for (int i = 0; i < bones.Count; i++)
+            {
+                var bone = bones[i];
+                if (bone.Ik != null || bone.Name.Contains("IK", StringComparison.OrdinalIgnoreCase))
+                    continue;
+
+                names.Add(bone.Name);
+                indices.Add(i);
+                rotations.Add(GetBoneRotation?.Invoke(i) ?? Vector3.Zero);
+            }
+
+            _boneIndices = indices.ToArray();
+            _rotations = rotations.ToArray();
+            BonePicker.ItemsSource = names;
+            if (names.Count > 0)
+                BonePicker.SelectedIndex = 0;
+
+            _bonesReady = _rotations.Length == _boneIndices.Length;
+            UpdateSliderEnabled(_bonesReady);
         }
-
-        _boneIndices = indices.ToArray();
-        _rotations = rotations.ToArray();
-        BonePicker.ItemsSource = names;
-        if (names.Count > 0)
-            BonePicker.SelectedIndex = 0;
     }
 
     private void OnBonePickerSelectedIndexChanged(object? sender, EventArgs e)
     {
-        int index = BonePicker.SelectedIndex;
-        if (index < 0 || index >= _boneIndices.Length)
-            return;
-        int boneIndex = _boneIndices[index];
-        if (boneIndex < 0 || boneIndex >= _bones.Count)
-            return;
-        var rot = GetBoneRotation?.Invoke(boneIndex) ?? _rotations[index];
-        _rotations[index] = rot;
-        _updatingUI = true;
-        XSlider.Value = rot.X;
-        YSlider.Value = rot.Y;
-        ZSlider.Value = rot.Z;
-        _updatingUI = false;
+        lock (_bonesLock)
+        {
+            if (!_bonesReady)
+                return;
+
+            int index = BonePicker.SelectedIndex;
+            if (index < 0 || index >= _boneIndices.Length || index >= _rotations.Length)
+                return;
+            int boneIndex = _boneIndices[index];
+            if (boneIndex < 0 || boneIndex >= _bones.Count)
+                return;
+            var rot = GetBoneRotation?.Invoke(boneIndex) ?? _rotations[index];
+            _rotations[index] = rot;
+            _updatingUI = true;
+            XSlider.Value = rot.X;
+            YSlider.Value = rot.Y;
+            ZSlider.Value = rot.Z;
+            _updatingUI = false;
+        }
     }
 
     private void OnSliderValueChanged(object? sender, ValueChangedEventArgs e)
@@ -80,26 +97,38 @@ public partial class PoseEditorView : ContentView
             ZValue.Text = e.NewValue.ToString("F0");
         }
 
-        if (_rotations.Length != _boneIndices.Length)
+        int boneIndex;
+        Vector3 rot;
+        lock (_bonesLock)
         {
-            System.Diagnostics.Trace.WriteLine($"Rotation and bone index length mismatch: rotations={_rotations.Length}, boneIndices={_boneIndices.Length}");
-            return;
+            if (!_bonesReady || _rotations.Length != _boneIndices.Length)
+            {
+                UpdateSliderEnabled(false);
+                return;
+            }
+
+            int pickerIndex = BonePicker.SelectedIndex;
+            if (pickerIndex < 0 || pickerIndex >= _boneIndices.Length || pickerIndex >= _rotations.Length)
+                return;
+
+            rot = new Vector3((float)XSlider.Value, (float)YSlider.Value, (float)ZSlider.Value);
+            _rotations[pickerIndex] = rot;
+            if (_updatingUI)
+                return;
+
+            boneIndex = _boneIndices[pickerIndex];
+            if (boneIndex < 0 || boneIndex >= _bones.Count)
+                return;
         }
 
-        int pickerIndex = BonePicker.SelectedIndex;
-        if (pickerIndex >= 0 && pickerIndex < _boneIndices.Length)
-        {
-            var rot = new Vector3((float)XSlider.Value, (float)YSlider.Value, (float)ZSlider.Value);
-            _rotations[pickerIndex] = rot;
-            if (!_updatingUI)
-            {
-                int boneIndex = _boneIndices[pickerIndex];
-                if (boneIndex >= 0 && boneIndex < _bones.Count)
-                {
-                    System.Diagnostics.Trace.WriteLine($"RotationChanged fired: index={boneIndex} rot={rot}");
-                    RotationChanged?.Invoke(boneIndex, rot);
-                }
-            }
-        }
+        System.Diagnostics.Trace.WriteLine($"RotationChanged fired: index={boneIndex} rot={rot}");
+        RotationChanged?.Invoke(boneIndex, rot);
+    }
+
+    private void UpdateSliderEnabled(bool enabled)
+    {
+        XSlider.IsEnabled = enabled;
+        YSlider.IsEnabled = enabled;
+        ZSlider.IsEnabled = enabled;
     }
 }
