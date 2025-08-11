@@ -171,6 +171,10 @@ public class ModelImporter : IDisposable
         var data = new ModelData();
         var boneDatas = new List<BoneData>(bones.Length);
         var worldPositions = new System.Numerics.Vector3[bones.Length];
+        var children = new List<int>[bones.Length];
+        for (int i = 0; i < bones.Length; i++)
+            children[i] = new List<int>();
+
         for (int i = 0; i < bones.Length; i++)
         {
             var b = bones[i];
@@ -184,6 +188,8 @@ public class ModelImporter : IDisposable
                 Rotation = System.Numerics.Quaternion.Identity,
                 Translation = pos
             };
+            if (b.ParentBone >= 0)
+                children[b.ParentBone].Add(i);
             if (b.IKLinkCount > 0)
             {
                 var ik = new IkInfo { Target = b.IKTarget };
@@ -192,6 +198,55 @@ public class ModelImporter : IDisposable
                 bd.Ik = ik;
             }
             boneDatas.Add(bd);
+        }
+
+        for (int i = 0; i < boneDatas.Count; i++)
+        {
+            var bd = boneDatas[i];
+            var bonePos = worldPositions[i];
+            System.Numerics.Vector3 forward;
+            if (children[i].Count > 0)
+            {
+                var childPos = worldPositions[children[i][0]];
+                var diff = childPos - bonePos;
+                forward = diff.LengthSquared() > 1e-6f ? System.Numerics.Vector3.Normalize(diff) : System.Numerics.Vector3.UnitZ;
+            }
+            else if (bd.Parent >= 0)
+            {
+                var parentPos = worldPositions[bd.Parent];
+                var diff = bonePos - parentPos;
+                forward = diff.LengthSquared() > 1e-6f ? System.Numerics.Vector3.Normalize(diff) : System.Numerics.Vector3.UnitZ;
+            }
+            else
+            {
+                forward = System.Numerics.Vector3.UnitZ;
+            }
+
+            var parentDir = System.Numerics.Vector3.UnitY;
+            if (bd.Parent >= 0)
+            {
+                var parentPos = worldPositions[bd.Parent];
+                var diff = bonePos - parentPos;
+                if (diff.LengthSquared() > 1e-6f)
+                    parentDir = System.Numerics.Vector3.Normalize(diff);
+            }
+
+            var right = System.Numerics.Vector3.Cross(parentDir, forward);
+            if (right.LengthSquared() < 1e-6f)
+            {
+                var fallback = System.Math.Abs(System.Numerics.Vector3.Dot(forward, System.Numerics.Vector3.UnitX)) < 0.99f
+                    ? System.Numerics.Vector3.UnitX : System.Numerics.Vector3.UnitY;
+                right = System.Numerics.Vector3.Cross(fallback, forward);
+            }
+            right = System.Numerics.Vector3.Normalize(right);
+            var up = System.Numerics.Vector3.Normalize(System.Numerics.Vector3.Cross(forward, right));
+            bd.BaseForward = forward;
+            bd.BaseUp = up;
+            bd.Rotation = System.Numerics.Quaternion.CreateFromRotationMatrix(new System.Numerics.Matrix4x4(
+                right.X, right.Y, right.Z, 0,
+                up.X, up.Y, up.Z, 0,
+                forward.X, forward.Y, forward.Z, 0,
+                0, 0, 0, 1));
         }
 
         for (int i = 0; i < boneDatas.Count; i++)

@@ -48,8 +48,8 @@ public class TwoBoneSolver : IIkSolver
         var midPos = rootPos + dir * (System.MathF.Cos(angle0) * _length1) + planeTangent * (System.MathF.Sin(angle0) * _length1);
         mid.Position = midPos;
 
-        root.Rotation = LookRotation(midPos - rootPos, planeNormal);
-        mid.Rotation = LookRotation(target - midPos, planeNormal);
+        root.Rotation = LookRotation(midPos - rootPos, root.BaseUp);
+        mid.Rotation = LookRotation(target - midPos, mid.BaseUp);
         end.Rotation = Quaternion.Identity;
     }
 
@@ -59,14 +59,17 @@ public class TwoBoneSolver : IIkSolver
             return Quaternion.Identity;
         forward = Vector3.Normalize(forward);
         up = Vector3.Normalize(up);
-        var right = Vector3.Cross(forward, up);
+        var right = Vector3.Cross(up, forward);
         if (right.LengthSquared() < Epsilon)
-            return Quaternion.Identity;
+        {
+            up = System.MathF.Abs(Vector3.Dot(forward, Vector3.UnitY)) < 0.99f ? Vector3.UnitY : Vector3.UnitZ;
+            right = Vector3.Cross(up, forward);
+        }
         right = Vector3.Normalize(right);
-        var newUp = Vector3.Cross(right, forward);
+        up = Vector3.Normalize(Vector3.Cross(forward, right));
         var m = new Matrix4x4(
             right.X, right.Y, right.Z, 0,
-            newUp.X, newUp.Y, newUp.Z, 0,
+            up.X, up.Y, up.Z, 0,
             forward.X, forward.Y, forward.Z, 0,
             0, 0, 0, 1);
         return Quaternion.CreateFromRotationMatrix(m);

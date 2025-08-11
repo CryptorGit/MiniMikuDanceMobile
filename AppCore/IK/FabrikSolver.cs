@@ -61,7 +61,7 @@ public class FabrikSolver : IIkSolver
         for (int i = 0; i < chain.Length - 1; i++)
         {
             var forward = chain[i + 1].Position - chain[i].Position;
-            chain[i].Rotation = LookRotation(forward, Vector3.UnitY);
+            chain[i].Rotation = LookRotation(forward, chain[i].BaseUp);
         }
         chain[^1].Rotation = Quaternion.Identity;
     }
@@ -72,14 +72,17 @@ public class FabrikSolver : IIkSolver
             return Quaternion.Identity;
         forward = Vector3.Normalize(forward);
         up = Vector3.Normalize(up);
-        var right = Vector3.Cross(forward, up);
+        var right = Vector3.Cross(up, forward);
         if (right.LengthSquared() < Epsilon)
-            return Quaternion.Identity;
+        {
+            up = System.MathF.Abs(Vector3.Dot(forward, Vector3.UnitY)) < 0.99f ? Vector3.UnitY : Vector3.UnitZ;
+            right = Vector3.Cross(up, forward);
+        }
         right = Vector3.Normalize(right);
-        var newUp = Vector3.Cross(right, forward);
+        up = Vector3.Normalize(Vector3.Cross(forward, right));
         var m = new Matrix4x4(
             right.X, right.Y, right.Z, 0,
-            newUp.X, newUp.Y, newUp.Z, 0,
+            up.X, up.Y, up.Z, 0,
             forward.X, forward.Y, forward.Z, 0,
             0, 0, 0, 1);
         return Quaternion.CreateFromRotationMatrix(m);
