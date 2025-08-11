@@ -113,3 +113,20 @@ IK 実装の現状調査メモと改善 TODO
 - `BodyIK.cs` 全体のアルゴリズムは未移植であり、現状は腕と脚の二関節 IK の組み合わせに留まっている。
 - 肩や指などの詳細な IK 処理、バランス計算、デバッグ機能は未実装。
 - Unity 特有の座標系・回転処理を `System.Numerics` へ置き換える際の正確性について要検証。
+
+### PMX ボーンと SAFullBodyIK BodyBones の対応
+- Hips -> hips
+- Chest -> chest
+- Head -> head
+- LeftElbow -> leftLowerArm
+- RightElbow -> rightLowerArm
+- LeftKnee -> leftLowerLeg
+- RightKnee -> rightLowerLeg
+- LeftWrist -> leftHand
+- RightWrist -> rightHand
+- LeftAnkle -> leftFoot
+- RightAnkle -> rightFoot
+- LeftToe -> TODO
+- RightToe -> TODO
+- LeftFingertip -> TODO
+- RightFingertip -> TODO

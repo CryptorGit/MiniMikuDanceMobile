@@ -23,6 +23,7 @@ public class ModelData
     public float ShadeShift { get; set; } = -0.1f;
     public float ShadeToony { get; set; } = 0.9f;
     public float RimIntensity { get; set; } = 0.5f;
+    public IkInfo FullBodyIk { get; set; } = new();
 }
 
 public class ModelImporter : IDisposable
@@ -174,21 +175,79 @@ public class ModelImporter : IDisposable
         for (int i = 0; i < bones.Length; i++)
         {
             var b = bones[i];
-            string name = string.IsNullOrEmpty(b.NameEnglish) ? b.Name : b.NameEnglish;
             var pos = new System.Numerics.Vector3(b.Position.X, b.Position.Y, b.Position.Z) * Scale;
             worldPositions[i] = pos;
+        }
+
+        var children = new List<int>[bones.Length];
+        for (int i = 0; i < bones.Length; i++)
+            children[i] = new List<int>();
+        for (int i = 0; i < bones.Length; i++)
+        {
+            int parent = bones[i].ParentBone;
+            if (parent >= 0)
+                children[parent].Add(i);
+        }
+
+        var baseForward = new System.Numerics.Vector3[bones.Length];
+        var baseUp = new System.Numerics.Vector3[bones.Length];
+        var baseRight = new System.Numerics.Vector3[bones.Length];
+        for (int i = 0; i < bones.Length; i++)
+        {
+            var f = System.Numerics.Vector3.UnitY;
+            if (children[i].Count > 0)
+            {
+                var childIdx = children[i][0];
+                f = System.Numerics.Vector3.Normalize(worldPositions[childIdx] - worldPositions[i]);
+            }
+            else if (bones[i].ParentBone >= 0)
+            {
+                var parentPos = worldPositions[bones[i].ParentBone];
+                f = System.Numerics.Vector3.Normalize(worldPositions[i] - parentPos);
+            }
+            var u = System.Numerics.Vector3.UnitY;
+            var r = System.Numerics.Vector3.Normalize(System.Numerics.Vector3.Cross(u, f));
+            u = System.Numerics.Vector3.Normalize(System.Numerics.Vector3.Cross(f, r));
+            baseForward[i] = f;
+            baseUp[i] = u;
+            baseRight[i] = r;
+        }
+
+        for (int i = 0; i < bones.Length; i++)
+        {
+            var b = bones[i];
+            string name = string.IsNullOrEmpty(b.NameEnglish) ? b.Name : b.NameEnglish;
             var bd = new BoneData
             {
                 Name = name,
                 Parent = b.ParentBone,
                 Rotation = System.Numerics.Quaternion.Identity,
-                Translation = pos
+                Translation = worldPositions[i],
+                BaseForward = baseForward[i],
+                BaseUp = baseUp[i],
+                BaseRight = baseRight[i]
             };
+            foreach (var c in children[i])
+                bd.Children.Add(c);
             if (b.IKLinkCount > 0)
             {
                 var ik = new IkInfo { Target = b.IKTarget };
                 foreach (var link in b.IKLinks.ToArray())
-                    ik.Chain.Add(link.Bone);
+                {
+                    var li = new IkLinkInfo
+                    {
+                        Bone = link.Bone,
+                        Parent = bones[link.Bone].ParentBone,
+                        BaseForward = baseForward[link.Bone],
+                        BaseUp = baseUp[link.Bone]
+                    };
+                    if (link.AngleLimited)
+                    {
+                        li.LimitMin = new System.Numerics.Vector3(link.LimitMin.X, link.LimitMin.Y, link.LimitMin.Z);
+                        li.LimitMax = new System.Numerics.Vector3(link.LimitMax.X, link.LimitMax.Y, link.LimitMax.Z);
+                    }
+                    ik.Chain.Add(li);
+                }
                 bd.Ik = ik;
             }
             boneDatas.Add(bd);
@@ -230,6 +289,23 @@ public class ModelImporter : IDisposable
                 }
             }
         }
+
+        void MapEffector(string effector, string humanoid)
+        {
+            if (data.HumanoidBones.TryGetValue(humanoid, out var idx))
+                data.FullBodyIk.Effectors[effector] = idx;
+        }
+        MapEffector("Hips", "hips");
+        MapEffector("Chest", "chest");
+        MapEffector("Head", "head");
+        MapEffector("LeftElbow", "leftLowerArm");
+        MapEffector("RightElbow", "rightLowerArm");
+        MapEffector("LeftKnee", "leftLowerLeg");
+        MapEffector("RightKnee", "rightLowerLeg");
+        MapEffector("LeftWrist", "leftHand");
+        MapEffector("RightWrist", "rightHand");
+        MapEffector("LeftAnkle", "leftFoot");
+        MapEffector("RightAnkle", "rightFoot");
         var morphDatas = new List<MorphData>(morphs.Length);
         var nameCounts = new Dictionary<string, int>(StringComparer.OrdinalIgnoreCase);
         var usedNames = new HashSet<string>(StringComparer.OrdinalIgnoreCase);

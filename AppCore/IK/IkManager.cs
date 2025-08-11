@@ -61,11 +61,11 @@ public static class IkManager
     private static void RegisterIkBone(int index, BoneData bRoot, IkInfo ik, IReadOnlyList<BoneData> modelBones)
     {
         var rootPos = Vector3.Transform(Vector3.Zero, bRoot.BindMatrix);
-        BonesDict[index] = new IkBone(index, rootPos, bRoot.Rotation);
+        BonesDict[index] = new IkBone(index, rootPos, bRoot.Rotation, bRoot.BaseForward, bRoot.BaseUp);
 
         var chainIndices = new List<int>(ik.Chain.Count + 1);
         for (int j = ik.Chain.Count - 1; j >= 0; j--)
-            chainIndices.Add(ik.Chain[j]);
+            chainIndices.Add(ik.Chain[j].Bone);
         chainIndices.Add(ik.Target);
 
         var chain = new IkBone[chainIndices.Count + 1];
@@ -75,7 +75,7 @@ public static class IkManager
             var idx = chainIndices[j];
             var b = modelBones[idx];
             var pos = Vector3.Transform(Vector3.Zero, b.BindMatrix);
-            chain[j + 1] = new IkBone(idx, pos, b.Rotation);
+            chain[j + 1] = new IkBone(idx, pos, b.Rotation, b.BaseForward, b.BaseUp);
         }
 
         var solverChain = chain[1..];
