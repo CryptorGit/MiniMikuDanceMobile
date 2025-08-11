@@ -130,3 +130,4 @@ IK 実装の現状調査メモと改善 TODO
 - RightToe -> TODO
 - LeftFingertip -> TODO
 - RightFingertip -> TODO
+- フルボディIKのエフェクタ登録は暫定実装。頭・手首・足首以外（つま先・指先など）は未対応で、骨名マッチングの違いによる未検出の可能性あり。
