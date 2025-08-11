@@ -80,6 +80,12 @@ public partial class PoseEditorView : ContentView
             ZValue.Text = e.NewValue.ToString("F0");
         }
 
+        if (_rotations.Length != _boneIndices.Length)
+        {
+            System.Diagnostics.Trace.WriteLine($"Rotation and bone index length mismatch: rotations={_rotations.Length}, boneIndices={_boneIndices.Length}");
+            return;
+        }
+
         int pickerIndex = BonePicker.SelectedIndex;
         if (pickerIndex >= 0 && pickerIndex < _boneIndices.Length)
         {
