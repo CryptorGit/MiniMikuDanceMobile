@@ -63,9 +63,7 @@ public static class IkManager
         var rootPos = Vector3.Transform(Vector3.Zero, bRoot.BindMatrix);
         BonesDict[index] = new IkBone(index, rootPos, bRoot.Rotation);
 
-        var chainIndices = new List<int>(ik.Chain.Count + 1);
-        for (int j = ik.Chain.Count - 1; j >= 0; j--)
-            chainIndices.Add(ik.Chain[j]);
+        var chainIndices = new List<int>(ik.Chain);
         chainIndices.Add(ik.Target);
 
         var chain = new IkBone[chainIndices.Count + 1];

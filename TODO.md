@@ -3,6 +3,7 @@ IK 実装の現状調査メモと改善 TODO
 概要
 - 対象コード: `AppCore/IK/*`（`IkManager`, `FabrikSolver`, `TwoBoneSolver`, `IkBone`, `IIkSolver`）と、それを呼ぶ `MiniMikuDanceMaui/PmxRenderer.cs`, `MiniMikuDanceMaui/MainPage.xaml.cs`、およびボーン/IK情報の取り込み部 `AppCore/Import/*`。
 - 症状: 肘・膝の曲がり方向が安定しない、鎖骨～手首などの三関節 IK が不自然にねじれる、カメラ角度によってドラッグの移動平面が反転・意図しない動きになる等。
+- RegisterIkBone のチェーン順序修正後、実機モデルで膝の曲がりを確認する。
 
 主な原因候補（読み取り）
 1) 2Bone の曲げ平面（ポールベクタ）未固定
