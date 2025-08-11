@@ -59,11 +59,11 @@ public class TwoBoneSolver : IIkSolver
             return Quaternion.Identity;
         forward = Vector3.Normalize(forward);
         up = Vector3.Normalize(up);
-        var right = Vector3.Cross(up, forward);
+        var right = Vector3.Cross(forward, up);
         if (right.LengthSquared() < Epsilon)
             return Quaternion.Identity;
         right = Vector3.Normalize(right);
-        var newUp = Vector3.Cross(forward, right);
+        var newUp = Vector3.Cross(right, forward);
         var m = new Matrix4x4(
             right.X, right.Y, right.Z, 0,
             newUp.X, newUp.Y, newUp.Z, 0,
