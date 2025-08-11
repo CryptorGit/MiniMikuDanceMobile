@@ -1,5 +1,6 @@
 ビルド関連
 - 現在、Android SDK がインストールされていないためビルド警告の確認は未完了。SDK セットアップ後に再確認すること。
+- `dotnet build` 実行時に `Microsoft.Build.Exceptions.InternalLoggerException` が発生するため、ビルド成功の確認が未完了。環境整備後に再試行すること。
 
 IK 実装の現状調査メモと改善 TODO
 

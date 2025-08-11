@@ -241,10 +241,10 @@ public class ModelImporter : IDisposable
                         BaseForward = baseForward[link.Bone],
                         BaseUp = baseUp[link.Bone]
                     };
-                    if (link.AngleLimited)
+                    if (link.IsEnableAngleLimited)
                     {
-                        li.LimitMin = new System.Numerics.Vector3(link.LimitMin.X, link.LimitMin.Y, link.LimitMin.Z);
-                        li.LimitMax = new System.Numerics.Vector3(link.LimitMax.X, link.LimitMax.Y, link.LimitMax.Z);
+                        li.LimitMin = new System.Numerics.Vector3(link.MinLimit.X, link.MinLimit.Y, link.MinLimit.Z);
+                        li.LimitMax = new System.Numerics.Vector3(link.MaxLimit.X, link.MaxLimit.Y, link.MaxLimit.Z);
                     }
                     ik.Chain.Add(li);
                 }
