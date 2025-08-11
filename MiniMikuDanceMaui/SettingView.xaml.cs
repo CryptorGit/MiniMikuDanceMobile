@@ -13,6 +13,7 @@ public partial class SettingView : ContentView
     public event Action<double>? StageSizeChanged;
     public event Action<double>? BonePickPixelsChanged;
     public event Action<bool>? BoneOutlineChanged;
+    public event Action<bool>? BoneAxesChanged;
     public event Action? ResetCameraRequested;
 
     public SettingView()
@@ -72,6 +73,12 @@ public partial class SettingView : ContentView
         BoneOutlineChanged?.Invoke(e.Value);
     }
 
+    private void OnBoneAxesChanged(object? sender, CheckedChangedEventArgs e)
+    {
+        LogService.WriteLine($"Bone axes: {e.Value}");
+        BoneAxesChanged?.Invoke(e.Value);
+    }
+
     private void OnResetCameraClicked(object? sender, EventArgs e)
     {
         ResetCameraRequested?.Invoke();
@@ -124,5 +131,11 @@ public partial class SettingView : ContentView
     {
         get => BoneOutlineCheck.IsChecked;
         set => BoneOutlineCheck.IsChecked = value;
+    }
+
+    public bool ShowBoneAxes
+    {
+        get => BoneAxesCheck.IsChecked;
+        set => BoneAxesCheck.IsChecked = value;
     }
 }

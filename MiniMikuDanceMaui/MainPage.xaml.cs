@@ -65,6 +65,8 @@ public partial class MainPage : ContentPage
     private readonly BonesConfig? _bonesConfig = App.Initializer.BonesConfig;
     private bool _needsRender;
     private readonly IDispatcherTimer _renderTimer;
+    private readonly HorizontalStackLayout _effectorBar = new() { Spacing = 4 };
+    private readonly Dictionary<int, Button> _effectorButtons = new();
     private void SetProgressVisibilityAndLayout(bool isVisible,
         bool showExtract,
         bool showPose)
@@ -137,6 +139,7 @@ public partial class MainPage : ContentPage
                 _needsRender = true;
                 Viewer?.InvalidateSurface();
             };
+            CreateEffectorButtons();
         }
         else
         {
@@ -153,6 +156,7 @@ public partial class MainPage : ContentPage
             IkManager.ToWorldSpaceFunc = null;
             IkManager.InvalidateViewer = null;
             System.Diagnostics.Trace.WriteLine($"IkManager cleared. SelectedBoneIndex={IkManager.SelectedBoneIndex}");
+            ClearEffectorButtons();
         }
         _renderer.ShowIkBones = _poseMode;
         Viewer?.InvalidateSurface();
@@ -175,6 +179,80 @@ public partial class MainPage : ContentPage
             return baseDir;
 
         return System.Environment.CurrentDirectory;
+    }
+
+    private static int FindBoneIndex(IReadOnlyList<BoneData> bones, params string[] keywords)
+    {
+        for (int i = 0; i < bones.Count; i++)
+        {
+            var name = bones[i].Name;
+            foreach (var k in keywords)
+            {
+                if (name.Contains(k, StringComparison.OrdinalIgnoreCase))
+                    return i;
+            }
+        }
+        return -1;
+    }
+
+    private void AddEffectorButton(string glyph, int index)
+    {
+        if (index < 0)
+            return;
+        var btn = new Button
+        {
+            Text = glyph,
+            FontFamily = "MaterialSymbolsOutlined",
+            FontSize = 24,
+            WidthRequest = 40,
+            HeightRequest = 40,
+            BackgroundColor = Colors.Transparent,
+            TextColor = Colors.White
+        };
+        var pan = new PanGestureRecognizer();
+        pan.PanUpdated += (s, e) =>
+        {
+            var baseScreen = _renderer.ProjectToScreen(_renderer.GetBoneWorldPosition(index));
+            if (e.StatusType == GestureStatus.Started)
+            {
+                IkManager.PickBone(baseScreen.X, baseScreen.Y);
+            }
+            else if (e.StatusType == GestureStatus.Running)
+            {
+                var screen = baseScreen + new System.Numerics.Vector2((float)e.TotalX, (float)e.TotalY);
+                var ray = _renderer.ScreenPointToRay(screen.X, screen.Y);
+                var pos = IkManager.IntersectDragPlane(ray);
+                if (pos.HasValue && IkManager.SelectedBoneIndex >= 0)
+                    IkManager.UpdateTarget(IkManager.SelectedBoneIndex, pos.Value);
+            }
+            else if (e.StatusType == GestureStatus.Canceled || e.StatusType == GestureStatus.Completed)
+            {
+                IkManager.ReleaseSelection();
+            }
+        };
+        btn.GestureRecognizers.Add(pan);
+        _effectorButtons[index] = btn;
+        _effectorBar.Children.Add(btn);
+    }
+
+    private void CreateEffectorButtons()
+    {
+        ClearEffectorButtons();
+        if (_currentModel == null)
+            return;
+        var bones = _currentModel.Bones;
+        AddEffectorButton("\ue87c", FindBoneIndex(bones, "頭", "head"));
+        AddEffectorButton("\ue764", FindBoneIndex(bones, "左手首", "leftwrist", "左手"));
+        AddEffectorButton("\ue769", FindBoneIndex(bones, "右手首", "rightwrist", "右手"));
+        AddEffectorButton("\ue536", FindBoneIndex(bones, "左足首", "leftankle", "左足"));
+        AddEffectorButton("\ue566", FindBoneIndex(bones, "右足首", "rightankle", "右足"));
+    }
+
+    private void ClearEffectorButtons()
+    {
+        foreach (var btn in _effectorButtons.Values)
+            _effectorBar.Children.Remove(btn);
+        _effectorButtons.Clear();
     }
 
 
@@ -201,6 +279,8 @@ public partial class MainPage : ContentPage
             glView.Touch += OnViewTouch;
             _renderer.Viewer = glView;
         }
+
+        TopMenu.Children.Add(_effectorBar);
 
         _renderTimer = Dispatcher.CreateTimer();
         _renderTimer.Interval = TimeSpan.FromMilliseconds(16);
@@ -258,6 +338,12 @@ public partial class MainPage : ContentPage
             setting.BoneOutlineChanged += show =>
             {
                 _renderer.ShowBoneOutline = show;
+                Viewer?.InvalidateSurface();
+            };
+            setting.ShowBoneAxes = _renderer.ShowBoneAxes;
+            setting.BoneAxesChanged += show =>
+            {
+                _renderer.ShowBoneAxes = show;
                 Viewer?.InvalidateSurface();
             };
             setting.ResetCameraRequested += () =>
