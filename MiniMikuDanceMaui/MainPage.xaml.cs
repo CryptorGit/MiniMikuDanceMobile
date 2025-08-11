@@ -937,6 +937,7 @@ public partial class MainPage : ContentPage
             else if (name == "POSE")
             {
                 var pv = new PoseEditorView();
+                pv.GetBoneRotation = i => _renderer.GetBoneRotation(i).ToNumerics();
                 pv.SetBones((_currentModel?.Bones as IReadOnlyList<BoneData>) ?? Array.Empty<BoneData>());
                 pv.RotationChanged += (index, rotation) =>
                 {
@@ -1042,6 +1043,7 @@ public partial class MainPage : ContentPage
         }
         else if (name == "POSE" && _bottomViews[name] is PoseEditorView pev)
         {
+            pev.GetBoneRotation = i => _renderer.GetBoneRotation(i).ToNumerics();
             pev.SetBones((_currentModel?.Bones as IReadOnlyList<BoneData>) ?? Array.Empty<BoneData>());
         }
 
