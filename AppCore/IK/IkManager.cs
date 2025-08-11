@@ -232,9 +232,9 @@ public static class IkManager
 
     public static void Clear()
     {
+        ReleaseSelection();
         BonesDict.Clear();
         Solvers.Clear();
-        ReleaseSelection();
         Trace.WriteLine($"IkManager.Clear: SelectedBoneIndex={_selectedBoneIndex} Bones={BonesDict.Count}");
     }
 }
