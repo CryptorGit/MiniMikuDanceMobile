@@ -45,20 +45,20 @@
                         </Trigger>
                     </Switch.Triggers>
                 </Switch>
-                <mi:MauiIcon Icon="{mi:Material Icon=PhotoCamera}"
+                <mi:MauiIcon Icon="{mmd:MaterialIcon Icon=PhotoCamera}"
                        IconColor="Gray"
                        x:Name="CameraIcon"
                        HorizontalOptions="End"
                        VerticalOptions="Center">
                     <mi:MauiIcon.Triggers>
                         <DataTrigger TargetType="mi:MauiIcon"
-                                    Binding="{Binding IsToggled, Source={x:Reference PoseModeSwitch}}"
+                                    Binding="{Binding IsToggled, Source={x:Reference PoseModeSwitch}, x:DataType={x:Type Switch}}"
                                     Value="True">
                             <Setter Property="IsVisible" Value="False" />
                         </DataTrigger>
                     </mi:MauiIcon.Triggers>
                 </mi:MauiIcon>
-                <mi:MauiIcon Icon="{mi:Material Icon=AccessibilityNew}"
+                <mi:MauiIcon Icon="{mmd:MaterialIcon Icon=AccessibilityNew}"
                        IconColor="Green"
                        x:Name="PoseIcon"
                        HorizontalOptions="End"
@@ -66,7 +66,7 @@
                        IsVisible="False">
                     <mi:MauiIcon.Triggers>
                         <DataTrigger TargetType="mi:MauiIcon"
-                                    Binding="{Binding IsToggled, Source={x:Reference PoseModeSwitch}}"
+                                    Binding="{Binding IsToggled, Source={x:Reference PoseModeSwitch}, x:DataType={x:Type Switch}}"
                                     Value="True">
                             <Setter Property="IsVisible" Value="True" />
                         </DataTrigger>

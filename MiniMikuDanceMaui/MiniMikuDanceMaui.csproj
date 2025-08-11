@@ -5,9 +5,10 @@
                 <TargetFrameworks Condition="'$(EnableiOS)' == 'true'">net9.0-android35.0;net9.0-ios17.0</TargetFrameworks>
 
 		<!-- MAUI シングルプロジェクト有効化 -->
-		<UseMaui>true</UseMaui>
-		<SingleProject>true</SingleProject>
-		<OutputType>Exe</OutputType>
+                <UseMaui>true</UseMaui>
+                <SingleProject>true</SingleProject>
+                <OutputType>Exe</OutputType>
+                <MauiEnableXamlCBindingWithSourceCompilation>true</MauiEnableXamlCBindingWithSourceCompilation>
 
 		<!-- Windows パッケージを無効化 -->
 		<WindowsPackageType>None</WindowsPackageType>
