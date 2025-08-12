@@ -182,7 +182,8 @@ public class ModelImporter : IDisposable
                 Name = name,
                 Parent = b.ParentBone,
                 Rotation = System.Numerics.Quaternion.Identity,
-                Translation = pos
+                Translation = pos,
+                BaseUp = System.Numerics.Vector3.UnitY
             };
             if (b.IKLinkCount > 0)
             {

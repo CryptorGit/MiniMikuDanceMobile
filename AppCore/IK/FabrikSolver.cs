@@ -58,14 +58,17 @@ public class FabrikSolver : IIkSolver
             }
         }
 
+        var prevRot = chain[0].Rotation;
         for (int i = 0; i < chain.Length - 1; i++)
         {
             var forward = chain[i + 1].Position - chain[i].Position;
-            chain[i].Rotation = LookRotation(forward, Vector3.UnitY);
+            var up = Vector3.Transform(chain[i].BaseUp, prevRot);
+            chain[i].Rotation = LookRotation(forward, up);
             if (i < links.Length && links[i].HasLimit)
                 ClampRotation(chain, i, links[i]);
+            prevRot = chain[i].Rotation;
         }
-        chain[^1].Rotation = Quaternion.Identity;
+        chain[^1].Rotation = prevRot;
     }
 
     private static Quaternion LookRotation(Vector3 forward, Vector3 up)
@@ -73,12 +76,16 @@ public class FabrikSolver : IIkSolver
         if (forward.LengthSquared() < Epsilon || up.LengthSquared() < Epsilon)
             return Quaternion.Identity;
         forward = Vector3.Normalize(forward);
+        var proj = Vector3.Dot(up, forward);
+        up -= proj * forward;
+        if (up.LengthSquared() < Epsilon)
+            return Quaternion.Identity;
         up = Vector3.Normalize(up);
-        var right = Vector3.Cross(forward, up);
+        var right = Vector3.Cross(up, forward);
         if (right.LengthSquared() < Epsilon)
             return Quaternion.Identity;
         right = Vector3.Normalize(right);
-        var newUp = Vector3.Cross(right, forward);
+        var newUp = Vector3.Cross(forward, right);
         var m = new Matrix4x4(
             right.X, right.Y, right.Z, 0,
             newUp.X, newUp.Y, newUp.Z, 0,
