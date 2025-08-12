@@ -72,7 +72,7 @@ public static class IkManager
             rootPlane = Vector3.Normalize(rootPlane);
         else
             rootPlane = Vector3.Zero;
-        BonesDict[index] = new IkBone(index, rootPos, bRoot.Rotation, bRoot.BaseForward, bRoot.BaseUp, rootPlane)
+        BonesDict[index] = new IkBone(index, rootPos, bRoot.Rotation, bRoot.Rotation, bRoot.BaseForward, bRoot.BaseUp, rootPlane)
         {
             RotationLimit = ik.RotationLimit
         };
@@ -99,7 +99,7 @@ public static class IkManager
                 plane = Vector3.Normalize(plane);
             else
                 plane = Vector3.Zero;
-            chain[j + 1] = new IkBone(idx, pos, b.Rotation, b.BaseForward, b.BaseUp, plane)
+            chain[j + 1] = new IkBone(idx, pos, b.Rotation, b.Rotation, b.BaseForward, b.BaseUp, plane)
             {
                 RotationLimit = ik.RotationLimit
             };
@@ -229,10 +229,10 @@ public static class IkManager
                 Trace.WriteLine("SetBoneTranslation delegate is null.");
             }
 
-            var parentRot = Quaternion.Identity;
+            var parentRot = root.Rotation;
             foreach (var b in solveChain)
             {
-                var localRot = parentRot == Quaternion.Identity ? b.Rotation : Quaternion.Inverse(parentRot) * b.Rotation;
+                var localRot = Quaternion.Inverse(parentRot) * b.Rotation;
                 var delta = Quaternion.Inverse(b.BaseRotation) * localRot;
                 if (FixedAxes.TryGetValue(b.PmxBoneIndex, out var axis))
                     delta = ProjectRotation(delta, axis);

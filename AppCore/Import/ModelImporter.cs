@@ -195,10 +195,7 @@ public class ModelImporter : IDisposable
             {
                 Name = name,
                 Parent = b.ParentBone,
-                Rotation = System.Numerics.Quaternion.Identity,
-                Translation = pos,
-                BaseForward = System.Numerics.Vector3.UnitY,
-                BaseUp = System.Numerics.Vector3.UnitY
+                Translation = pos
             };
             if (b.IKLinkCount > 0)
             {
@@ -311,6 +308,7 @@ public class ModelImporter : IDisposable
 
             bd.BaseForward = forward;
             bd.BaseUp = up;
+            bd.Rotation = LookRotation(forward, up);
         }
 
         // Bind/InverseBind 行列を計算
@@ -640,6 +638,28 @@ public class ModelImporter : IDisposable
         }
         data.Transform = System.Numerics.Matrix4x4.CreateScale(Scale);
         return data;
+    }
+
+    private static System.Numerics.Quaternion LookRotation(System.Numerics.Vector3 forward, System.Numerics.Vector3 up)
+    {
+        const float Epsilon = 1e-6f;
+        forward = System.Numerics.Vector3.Normalize(forward);
+        var proj = System.Numerics.Vector3.Dot(up, forward);
+        up -= proj * forward;
+        if (up.LengthSquared() < Epsilon)
+            up = System.Numerics.Vector3.UnitY;
+        up = System.Numerics.Vector3.Normalize(up);
+        var right = System.Numerics.Vector3.Cross(up, forward);
+        if (right.LengthSquared() < Epsilon)
+            right = System.Numerics.Vector3.UnitX;
+        right = System.Numerics.Vector3.Normalize(right);
+        up = System.Numerics.Vector3.Cross(forward, right);
+        var m = new System.Numerics.Matrix4x4(
+            right.X, right.Y, right.Z, 0,
+            up.X, up.Y, up.Z, 0,
+            forward.X, forward.Y, forward.Z, 0,
+            0, 0, 0, 1);
+        return System.Numerics.Quaternion.CreateFromRotationMatrix(m);
     }
     // 現在は PMX モデルのみに対応しています
 }
