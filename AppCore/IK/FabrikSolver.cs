@@ -1,20 +1,20 @@
 using System.Numerics;
+using MiniMikuDance.Import;
+using MiniMikuDance.Util;
 
 namespace MiniMikuDance.IK;
 
 public class FabrikSolver : IIkSolver
 {
     private readonly float[] _lengths;
-    private readonly int _iterations;
     private const float Epsilon = 1e-6f;
 
-    public FabrikSolver(float[] lengths, int iterations = 10)
+    public FabrikSolver(float[] lengths)
     {
         _lengths = lengths;
-        _iterations = iterations;
     }
 
-    public void Solve(IkBone[] chain)
+    public void Solve(IkBone[] chain, IkLink[] links, int iterations)
     {
         if (chain.Length != _lengths.Length + 1)
             return;
@@ -38,7 +38,7 @@ public class FabrikSolver : IIkSolver
         else
         {
             var basePos = rootPos;
-            for (int iter = 0; iter < _iterations; iter++)
+            for (int iter = 0; iter < iterations; iter++)
             {
                 chain[^1].Position = target;
                 for (int i = chain.Length - 2; i >= 0; i--)
@@ -62,6 +62,8 @@ public class FabrikSolver : IIkSolver
         {
             var forward = chain[i + 1].Position - chain[i].Position;
             chain[i].Rotation = LookRotation(forward, Vector3.UnitY);
+            if (i < links.Length && links[i].HasLimit)
+                ClampRotation(chain, i, links[i]);
         }
         chain[^1].Rotation = Quaternion.Identity;
     }
@@ -83,6 +85,16 @@ public class FabrikSolver : IIkSolver
             forward.X, forward.Y, forward.Z, 0,
             0, 0, 0, 1);
         return Quaternion.CreateFromRotationMatrix(m);
+    }
+
+    private static void ClampRotation(IkBone[] chain, int index, IkLink link)
+    {
+        var parent = index > 0 ? chain[index - 1].Rotation : Quaternion.Identity;
+        var local = Quaternion.Inverse(parent) * chain[index].Rotation;
+        var euler = local.ToEulerDegrees() * (MathF.PI / 180f);
+        var clamped = Vector3.Clamp(euler, link.MinAngle, link.MaxAngle);
+        var deg = clamped * (180f / MathF.PI);
+        chain[index].Rotation = parent * deg.FromEulerDegrees();
     }
 }
 

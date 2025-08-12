@@ -10,7 +10,7 @@ namespace MiniMikuDance.IK;
 public static class IkManager
 {
     private static readonly Dictionary<int, IkBone> BonesDict = new();
-    private static readonly Dictionary<int, (IIkSolver Solver, IkBone[] Chain)> Solvers = new();
+    private static readonly Dictionary<int, (IIkSolver Solver, IkBone[] Chain, IkLink[] Links, int Iterations)> Solvers = new();
 
     // レンダラーから提供される各種処理を委譲用デリゲートとして保持
     public static System.Func<float, float, int>? PickFunc { get; set; }
@@ -63,9 +63,14 @@ public static class IkManager
         var rootPos = Vector3.Transform(Vector3.Zero, bRoot.BindMatrix);
         BonesDict[index] = new IkBone(index, rootPos, bRoot.Rotation);
 
-        var chainIndices = new List<int>(ik.Chain.Count + 1);
-        for (int j = ik.Chain.Count - 1; j >= 0; j--)
-            chainIndices.Add(ik.Chain[j]);
+        var chainIndices = new List<int>(ik.Links.Count + 1);
+        var ikLinks = new IkLink[ik.Links.Count];
+        for (int j = ik.Links.Count - 1, k = 0; j >= 0; j--, k++)
+        {
+            var link = ik.Links[j];
+            chainIndices.Add(link.BoneIndex);
+            ikLinks[k] = link;
+        }
         chainIndices.Add(ik.Target);
 
         var chain = new IkBone[chainIndices.Count + 1];
@@ -93,7 +98,7 @@ public static class IkManager
                 lengths[j] = Vector3.Distance(solverChain[j].Position, solverChain[j + 1].Position);
             solver = new FabrikSolver(lengths);
         }
-        Solvers[index] = (solver, chain);
+        Solvers[index] = (solver, chain, ikLinks, ik.Iterations);
         Trace.WriteLine($"IKチェーンを構築しました: {index} -> {string.Join(" -> ", chainIndices)}");
     }
 
@@ -190,6 +195,8 @@ public static class IkManager
             }
 
             var chain = solver.Chain;
+            var links = solver.Links;
+            var iterations = solver.Iterations;
             if (chain.Length < 2)
                 return;
 
@@ -201,7 +208,7 @@ public static class IkManager
             var solveChain = chain[1..];
             var ikSolver = solver.Solver;
             solveChain[^1].Position = position;
-            ikSolver.Solve(solveChain);
+            ikSolver.Solve(solveChain, links, iterations);
             var parentRot = Quaternion.Identity;
             foreach (var b in solveChain)
             {
