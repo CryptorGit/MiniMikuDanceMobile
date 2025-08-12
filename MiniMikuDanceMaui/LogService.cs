@@ -1,6 +1,5 @@
 using System;
 using System.IO;
-using System.Text;
 using System.Threading.Channels;
 using System.Threading.Tasks;
 using Microsoft.Maui.Storage;
@@ -108,21 +107,36 @@ public static class LogService
     {
         while (await _logChannel.Reader.WaitToReadAsync())
         {
-            var builder = new StringBuilder();
+            var hasLines = false;
             while (_logChannel.Reader.TryRead(out var line))
             {
-                builder.AppendLine(line);
+                hasLines = true;
+                try
+                {
+                    await _logWriter.WriteLineAsync(line);
+                }
+                catch (Exception ex)
+                {
+                    System.Diagnostics.Debug.WriteLine($"Error writing to log file: {ex.Message}");
+                }
+
+                try
+                {
+                    await _terminalLogWriter.WriteLineAsync(line);
+                }
+                catch
+                {
+                    // ignore logging failures to external file
+                }
             }
 
-            string text = builder.ToString();
-            if (text.Length == 0)
+            if (!hasLines)
             {
                 continue;
             }
 
             try
             {
-                await _logWriter.WriteAsync(text);
                 await _logWriter.FlushAsync();
             }
             catch (Exception ex)
@@ -131,7 +145,6 @@ public static class LogService
             }
             try
             {
-                await _terminalLogWriter.WriteAsync(text);
                 await _terminalLogWriter.FlushAsync();
             }
             catch
