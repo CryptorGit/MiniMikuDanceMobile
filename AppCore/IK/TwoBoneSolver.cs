@@ -8,12 +8,14 @@ public class TwoBoneSolver : IIkSolver
 {
     private readonly float _length1;
     private readonly float _length2;
+    private readonly Vector3 _initialPlaneNormal;
     private const float Epsilon = 1e-6f;
 
-    public TwoBoneSolver(float length1, float length2)
+    public TwoBoneSolver(float length1, float length2, Vector3 initialPlaneNormal)
     {
         _length1 = length1;
         _length2 = length2;
+        _initialPlaneNormal = initialPlaneNormal;
     }
 
     public void Solve(IkBone[] chain, IkLink[] links, int iterations, float rotationLimit = 0f)
@@ -43,17 +45,19 @@ public class TwoBoneSolver : IIkSolver
             var planeNormal = root.PoleVector;
             if (planeNormal.LengthSquared() < Epsilon)
             {
-                planeNormal = root.DefaultPlaneNormal;
+                planeNormal = _initialPlaneNormal;
+                if (planeNormal.LengthSquared() < Epsilon)
+                    planeNormal = root.DefaultPlaneNormal;
                 if (planeNormal.LengthSquared() < Epsilon)
                 {
                     var cross = Vector3.Cross(dir, mid.Position - rootPos);
                     planeNormal = cross.LengthSquared() > Epsilon ? Vector3.Normalize(cross) : Vector3.UnitY;
                 }
             }
-            else
-            {
+            if (planeNormal.LengthSquared() > Epsilon)
                 planeNormal = Vector3.Normalize(planeNormal);
-            }
+            else
+                planeNormal = Vector3.UnitY;
             var tangentCross = Vector3.Cross(dir, planeNormal);
             var planeTangent = tangentCross.LengthSquared() > Epsilon ? Vector3.Normalize(tangentCross) : Vector3.UnitX;
 

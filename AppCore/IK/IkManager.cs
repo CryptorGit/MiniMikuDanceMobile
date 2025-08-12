@@ -113,7 +113,7 @@ public static class IkManager
         {
             float l1 = Vector3.Distance(solverChain[0].Position, solverChain[1].Position);
             float l2 = Vector3.Distance(solverChain[1].Position, solverChain[2].Position);
-            solver = new TwoBoneSolver(l1, l2);
+            solver = new TwoBoneSolver(l1, l2, ik.PoleVector);
         }
         else
         {
