@@ -1,6 +1,7 @@
 using System;
 using System.Diagnostics;
 using System.Collections.Generic;
+using System.Text;
 
 namespace MiniMikuDance.PoseEstimation;
 public class FfmpegFrameExtractor : IVideoFrameExtractor
@@ -80,8 +81,9 @@ public class FfmpegFrameExtractor : IVideoFrameExtractor
 
         var progressCb = onProgress ?? OnProgress;
 
-        // フレーム数計算
-        int totalFrames = await GetFrameCountInternalAsync(ffmpeg, videoPath, fps);
+        // ffmpegプロセスの起動と同時にフレーム数を取得するため、
+        // 標準エラー出力からDurationを解析して総フレーム数を算出する。
+        int totalFrames = 0;
 
         var startInfo = new ProcessStartInfo
         {
@@ -95,6 +97,9 @@ public class FfmpegFrameExtractor : IVideoFrameExtractor
         if (proc == null)
             throw new InvalidOperationException("Failed to start ffmpeg process.");
 
+        var errBuilder = new StringBuilder();
+
+        // 標準出力から進捗を、標準エラーからはDuration情報を取得する
         var progressTask = Task.Run(async () =>
         {
             string? line;
@@ -109,14 +114,34 @@ public class FfmpegFrameExtractor : IVideoFrameExtractor
                 }
             }
         });
-        // プロセス終了後に残りの出力を読み取るため、
-        // 先にプロセスの終了を待機し、その後でprogressTaskを待機する。
+
+        var stderrTask = Task.Run(async () =>
+        {
+            string? line;
+            while ((line = await proc.StandardError.ReadLineAsync()) != null)
+            {
+                errBuilder.AppendLine(line);
+                if (totalFrames == 0)
+                {
+                    var idx = line.IndexOf("Duration:");
+                    if (idx >= 0 && line.Length >= idx + 9 + 11)
+                    {
+                        var sub = line.Substring(idx + 9, 11);
+                        if (TimeSpan.TryParse(sub, out var dur))
+                        {
+                            totalFrames = (int)Math.Ceiling(dur.TotalSeconds * fps);
+                        }
+                    }
+                }
+            }
+        });
+
         await proc.WaitForExitAsync();
-        await progressTask;
+        await Task.WhenAll(progressTask, stderrTask);
+
         if (proc.ExitCode != 0)
         {
-            var err = await proc.StandardError.ReadToEndAsync();
-            throw new InvalidOperationException($"ffmpeg failed: {err}");
+            throw new InvalidOperationException($"ffmpeg failed: {errBuilder}");
         }
         var files = Directory.GetFiles(outputDir, "frame_*.png");
         Array.Sort(files);
