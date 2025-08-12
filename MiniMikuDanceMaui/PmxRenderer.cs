@@ -27,6 +27,7 @@ public class PmxRenderer : IDisposable
         public int Ebo;
         public int IndexCount;
         public Vector4 Color = Vector4.One;
+        public Vector4 BaseColor = Vector4.One;
         public int Texture;
         public bool HasTexture;
         public Vector3[] BaseVertices = Array.Empty<Vector3>();
@@ -45,6 +46,9 @@ public class PmxRenderer : IDisposable
     private readonly List<int> _changedVerticesList = new();
     private Vector3[] _vertexTotalOffsets = Array.Empty<Vector3>();
     private List<(string MorphName, Vector3 Offset)>?[] _vertexMorphOffsets = Array.Empty<List<(string MorphName, Vector3 Offset)>?>();
+    private string[] _morphIndexToName = Array.Empty<string>();
+    private System.Numerics.Vector3[] _boneMorphTranslations = Array.Empty<System.Numerics.Vector3>();
+    private System.Numerics.Quaternion[] _boneMorphRotations = Array.Empty<System.Numerics.Quaternion>();
     public SKGLView? Viewer { get; set; }
     private int _gridVao;
     private int _gridVbo;
@@ -711,6 +715,73 @@ void main(){
         Viewer?.InvalidateSurface();
     }
 
+    private void RecalculateBoneMorphs()
+    {
+        int count = _bones.Count;
+        if (_boneMorphTranslations.Length != count)
+        {
+            _boneMorphTranslations = new System.Numerics.Vector3[count];
+            _boneMorphRotations = new System.Numerics.Quaternion[count];
+            for (int i = 0; i < count; i++)
+                _boneMorphRotations[i] = System.Numerics.Quaternion.Identity;
+        }
+        else
+        {
+            Array.Clear(_boneMorphTranslations, 0, count);
+            for (int i = 0; i < count; i++)
+                _boneMorphRotations[i] = System.Numerics.Quaternion.Identity;
+        }
+
+        foreach (var (mName, mv) in _morphValues)
+        {
+            var m = _morphs[mName];
+            if (m.Type != MorphType.Bone || MathF.Abs(mv) < 1e-5f)
+                continue;
+            foreach (var off in m.Offsets)
+            {
+                int idx = off.Index;
+                if (idx < 0 || idx >= count) continue;
+                _boneMorphTranslations[idx] += off.Bone.Translation * mv;
+                var q = System.Numerics.Quaternion.Slerp(System.Numerics.Quaternion.Identity, off.Bone.Rotation, mv);
+                _boneMorphRotations[idx] = System.Numerics.Quaternion.Normalize(_boneMorphRotations[idx] * q);
+            }
+        }
+    }
+
+    private void RecalculateMaterialMorphs()
+    {
+        foreach (var rm in _meshes)
+            rm.Color = rm.BaseColor;
+
+        foreach (var (mName, mv) in _morphValues)
+        {
+            var m = _morphs[mName];
+            if (m.Type != MorphType.Material || MathF.Abs(mv) < 1e-5f)
+                continue;
+            foreach (var off in m.Offsets)
+            {
+                void Apply(RenderMesh mesh)
+                {
+                    var diff = new Vector4(off.Material.Diffuse.X, off.Material.Diffuse.Y, off.Material.Diffuse.Z, off.Material.Diffuse.W);
+                    if (off.Material.CalcMode == MaterialCalcMode.Mul)
+                        mesh.Color *= Vector4.One + diff * mv;
+                    else
+                        mesh.Color += diff * mv;
+                }
+
+                if (off.Material.IsAll)
+                {
+                    foreach (var mesh in _meshes)
+                        Apply(mesh);
+                }
+                else if (off.Index >= 0 && off.Index < _meshes.Count)
+                {
+                    Apply(_meshes[off.Index]);
+                }
+            }
+        }
+    }
+
     private System.Numerics.Matrix4x4[] CalculateWorldMatrices()
     {
         var worldMats = new System.Numerics.Matrix4x4[_bones.Count];
@@ -766,7 +837,7 @@ void main(){
 
     public void SetMorph(string name, float value)
     {
-        if (!_morphs.TryGetValue(name, out var morph) || morph.Type != MorphType.Vertex)
+        if (!_morphs.TryGetValue(name, out var morph))
             return;
 
         value = Math.Clamp(value, 0f, 1f);
@@ -781,38 +852,55 @@ void main(){
         else
             _morphValues[name] = value;
 
-        _morphDirty = true;
-
-        foreach (var off in morph.Offsets)
+        switch (morph.Type)
         {
-            int vid = off.Index;
-            Vector3 total = Vector3.Zero;
-
-            var contribs = _vertexMorphOffsets[vid];
-            if (contribs != null)
-            {
-                foreach (var (mName, vec) in contribs)
+            case MorphType.Vertex:
+                _morphDirty = true;
+                foreach (var off in morph.Offsets)
                 {
-                    if (_morphValues.TryGetValue(mName, out var mv) && MathF.Abs(mv) >= 1e-5f)
+                    int vid = off.Index;
+                    Vector3 total = Vector3.Zero;
+                    var contribs = _vertexMorphOffsets[vid];
+                    if (contribs != null)
                     {
-                        total += vec * mv;
+                        foreach (var (mName, vec) in contribs)
+                        {
+                            if (_morphValues.TryGetValue(mName, out var mv) && MathF.Abs(mv) >= 1e-5f)
+                                total += vec * mv;
+                        }
+                    }
+                    _vertexTotalOffsets[vid] = total;
+                    lock (_changedVerticesLock)
+                        _changedOriginalVertices.Add(vid);
+                    var list = _morphVertexMap[vid];
+                    if (list != null)
+                    {
+                        foreach (var (mesh, idx) in list)
+                            mesh.VertexOffsets[idx] = total;
                     }
                 }
-            }
-
-            _vertexTotalOffsets[vid] = total;
-
-            lock (_changedVerticesLock)
-            {
-                _changedOriginalVertices.Add(vid);
-            }
-
-            var list = _morphVertexMap[vid];
-            if (list != null)
-            {
-                foreach (var (mesh, idx) in list)
-                    mesh.VertexOffsets[idx] = total;
-            }
+                break;
+            case MorphType.Group:
+                foreach (var off in morph.Offsets)
+                {
+                    var target = _morphIndexToName.Length > off.Group.MorphIndex ? _morphIndexToName[off.Group.MorphIndex] : null;
+                    if (!string.IsNullOrEmpty(target))
+                        SetMorph(target, value * off.Group.Rate);
+                }
+                break;
+            case MorphType.Bone:
+                RecalculateBoneMorphs();
+                _bonesDirty = true;
+                break;
+            case MorphType.Material:
+                RecalculateMaterialMorphs();
+                _morphDirty = true;
+                break;
+            case MorphType.Uv:
+                // UV モーフは未対応
+                break;
+            default:
+                break;
         }
 
         Viewer?.InvalidateSurface();
@@ -936,7 +1024,8 @@ void main(){
             rm.Vao = GL.GenVertexArray();
             rm.Vbo = GL.GenBuffer();
             rm.Ebo = GL.GenBuffer();
-            rm.Color = sm.ColorFactor.ToVector4();
+            rm.BaseColor = sm.ColorFactor.ToVector4();
+            rm.Color = rm.BaseColor;
 
             GL.BindVertexArray(rm.Vao);
             GL.BindBuffer(BufferTarget.ArrayBuffer, rm.Vbo);
@@ -993,9 +1082,9 @@ void main(){
         _morphVertexMap = new List<(RenderMesh Mesh, int Index)>?[totalVertices];
         _vertexTotalOffsets = new Vector3[totalVertices];
         _vertexMorphOffsets = new List<(string MorphName, Vector3 Offset)>?[totalVertices];
+        _morphIndexToName = new string[data.Morphs.Count];
         foreach (var morph in data.Morphs)
         {
-            if (morph.Type != MorphType.Vertex) continue;
             var name = morph.Name;
             if (_morphs.ContainsKey(name))
             {
@@ -1011,13 +1100,16 @@ void main(){
                 name = newName;
             }
             _morphs[name] = morph;
+            if (morph.Index >= 0 && morph.Index < _morphIndexToName.Length)
+                _morphIndexToName[morph.Index] = name;
         }
 
         foreach (var (mName, mData) in _morphs)
         {
+            if (mData.Type != MorphType.Vertex) continue;
             foreach (var off in mData.Offsets)
             {
-                var vec = new Vector3(off.Offset.X, off.Offset.Y, off.Offset.Z);
+                var vec = new Vector3(off.Vertex.X, off.Vertex.Y, off.Vertex.Z);
                 var list = _vertexMorphOffsets[off.Index];
                 if (list == null)
                 {
@@ -1091,6 +1183,8 @@ void main(){
             }
         }
 
+        RecalculateMaterialMorphs();
+        RecalculateBoneMorphs();
         _bonesDirty = true;
 
         // Auto-fit camera using bone parents' bind positions (preferred),
@@ -1228,10 +1322,13 @@ void main(){
                 var bone = _bones[i];
                 System.Numerics.Vector3 euler = i < _boneRotations.Count ? _boneRotations[i].ToNumerics() : System.Numerics.Vector3.Zero;
                 var delta = euler.FromEulerDegrees();
+                System.Numerics.Quaternion morphRot = i < _boneMorphRotations.Length ? _boneMorphRotations[i] : System.Numerics.Quaternion.Identity;
                 System.Numerics.Vector3 trans = bone.Translation;
+                if (i < _boneMorphTranslations.Length)
+                    trans += _boneMorphTranslations[i];
                 if (i < _boneTranslations.Count)
                     trans += _boneTranslations[i].ToNumerics();
-                var local = System.Numerics.Matrix4x4.CreateFromQuaternion(bone.Rotation * delta) * System.Numerics.Matrix4x4.CreateTranslation(trans);
+                var local = System.Numerics.Matrix4x4.CreateFromQuaternion(bone.Rotation * morphRot * delta) * System.Numerics.Matrix4x4.CreateTranslation(trans);
                 if (bone.Parent >= 0)
                     _worldMats[i] = local * _worldMats[bone.Parent];
                 else
