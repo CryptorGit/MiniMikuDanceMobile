@@ -63,46 +63,46 @@ public class FabrikSolver : IIkSolver
         {
             var forward = chain[i + 1].Position - chain[i].Position;
             var baseForward = Vector3.Transform(chain[i].BaseForward, prevRot);
-            var rotDelta = FromToRotation(baseForward, forward);
+
+            var fNorm = forward.LengthSquared() > Epsilon ? Vector3.Normalize(forward) : Vector3.UnitX;
+            var bNorm = baseForward.LengthSquared() > Epsilon ? Vector3.Normalize(baseForward) : Vector3.UnitX;
+            var axis = Vector3.Cross(bNorm, fNorm);
+            var axisLen = axis.Length();
+            float angle = 0f;
+            if (axisLen > Epsilon)
+            {
+                axis /= axisLen;
+                angle = MathF.Acos(Math.Clamp(Vector3.Dot(bNorm, fNorm), -1f, 1f));
+            }
+            var rotVec = axis * angle;
+
             if (rotationLimit != 0f)
             {
-                var axis = new Vector3(rotDelta.X, rotDelta.Y, rotDelta.Z);
-                var axisLen = axis.Length();
-                if (axisLen > Epsilon)
-                {
-                    var angle = 2f * MathF.Acos(Math.Clamp(rotDelta.W, -1f, 1f));
-                    angle = Math.Clamp(angle, -rotationLimit, rotationLimit);
-                    rotDelta = Quaternion.CreateFromAxisAngle(axis / axisLen, angle);
-                }
+                var len = rotVec.Length();
+                var clamped = Math.Clamp(len, -rotationLimit, rotationLimit);
+                if (len > Epsilon)
+                    rotVec *= clamped / len;
             }
+
+            if (i < links.Length && links[i].HasLimit)
+                rotVec = Vector3.Clamp(rotVec, links[i].MinAngle, links[i].MaxAngle);
+
+            var rvLen = rotVec.Length();
+            var rotDelta = rvLen > Epsilon
+                ? Quaternion.CreateFromAxisAngle(rotVec / rvLen, rvLen)
+                : Quaternion.Identity;
+
             var up = Vector3.Transform(chain[i].BaseUp, prevRot);
             up = Vector3.Transform(up, rotDelta);
+            up -= Vector3.Dot(up, fNorm) * fNorm;
+            if (up.LengthSquared() > Epsilon)
+                up = Vector3.Normalize(up);
             chain[i].Rotation = LookRotation(forward, up);
             if (i < links.Length && links[i].HasLimit)
                 ClampRotation(chain, i, links[i]);
             prevRot = chain[i].Rotation;
         }
         chain[^1].Rotation = prevRot;
-    }
-
-    private static Quaternion FromToRotation(Vector3 from, Vector3 to)
-    {
-        var f = from.LengthSquared() > Epsilon ? Vector3.Normalize(from) : Vector3.UnitZ;
-        var t = to.LengthSquared() > Epsilon ? Vector3.Normalize(to) : Vector3.UnitZ;
-        var dot = Vector3.Dot(f, t);
-        if (dot > 1f - Epsilon)
-            return Quaternion.Identity;
-        if (dot < -1f + Epsilon)
-        {
-            var axis = Vector3.Cross(f, Vector3.UnitX);
-            if (axis.LengthSquared() < Epsilon)
-                axis = Vector3.Cross(f, Vector3.UnitY);
-            axis = Vector3.Normalize(axis);
-            return Quaternion.CreateFromAxisAngle(axis, MathF.PI);
-        }
-        var axisCross = Vector3.Cross(f, t);
-        var angle = MathF.Acos(Math.Clamp(dot, -1f, 1f));
-        return Quaternion.CreateFromAxisAngle(Vector3.Normalize(axisCross), angle);
     }
 
     private static Quaternion LookRotation(Vector3 forward, Vector3 up)
