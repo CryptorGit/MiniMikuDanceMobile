@@ -16,7 +16,6 @@ public static class IkManager
     // レンダラーから提供される各種処理を委譲用デリゲートとして保持
     public static System.Func<float, float, int>? PickFunc { get; set; }
     public static System.Func<int, Vector3>? GetBonePositionFunc { get; set; }
-    public static System.Func<Vector3>? GetCameraPositionFunc { get; set; }
     public static System.Action<int, OpenTK.Mathematics.Vector3>? SetBoneRotation { get; set; }
     public static System.Action<int, OpenTK.Mathematics.Vector3>? SetBoneTranslation { get; set; }
     public static System.Func<Vector3, Vector3>? ToModelSpaceFunc { get; set; }
@@ -127,9 +126,11 @@ public static class IkManager
     }
 
     // レンダラーから提供された情報を用いてボーン選択を行う
+    public static DragPlaneMode DragPlaneMode { get; set; } = DragPlaneMode.Initial;
+
     public static int PickBone(float screenX, float screenY)
     {
-        if (PickFunc == null || GetBonePositionFunc == null || GetCameraPositionFunc == null)
+        if (PickFunc == null || GetBonePositionFunc == null)
             return -1;
 
         if (_selectedBoneIndex >= 0 && BonesDict.TryGetValue(_selectedBoneIndex, out var prev))
@@ -139,18 +140,37 @@ public static class IkManager
         _selectedBoneIndex = idx;
         if (idx >= 0)
         {
-            if (BonesDict.TryGetValue(idx, out var sel))
-                sel.IsSelected = true;
+            IkBone? sel = null;
+            if (BonesDict.TryGetValue(idx, out var s))
+            {
+                s.IsSelected = true;
+                sel = s;
+            }
 
             var bonePos = GetBonePositionFunc(idx);
-            var camPos = GetCameraPositionFunc();
             if (ToModelSpaceFunc != null)
             {
                 // レンダラー提供の WorldToModel で座標系を揃える
                 bonePos = ToModelSpaceFunc(bonePos);
-                camPos = ToModelSpaceFunc(camPos);
             }
-            var normal = Vector3.Normalize(camPos - bonePos);
+
+            Vector3 normal;
+            if (DragPlaneMode == DragPlaneMode.XY)
+            {
+                normal = Vector3.UnitZ;
+            }
+            else if (sel != null)
+            {
+                var axis = sel.PoleVector != Vector3.Zero ? sel.PoleVector : sel.BaseUp;
+                normal = axis != Vector3.Zero
+                    ? Vector3.Normalize(Vector3.Cross(sel.BaseForward, axis))
+                    : (sel.DefaultPlaneNormal != Vector3.Zero ? sel.DefaultPlaneNormal : Vector3.UnitZ);
+            }
+            else
+            {
+                normal = Vector3.UnitZ;
+            }
+
             _dragPlane = new Plane(normal, -Vector3.Dot(normal, bonePos));
         }
         InvalidateViewer?.Invoke();

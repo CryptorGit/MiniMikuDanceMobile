@@ -1,5 +1,6 @@
 using Microsoft.Maui.Controls;
 using System;
+using MiniMikuDance.IK;
 
 namespace MiniMikuDanceMaui;
 
@@ -13,6 +14,7 @@ public partial class SettingView : ContentView
     public event Action<double>? StageSizeChanged;
     public event Action<double>? BonePickPixelsChanged;
     public event Action<bool>? BoneOutlineChanged;
+    public event Action<DragPlaneMode>? DragPlaneModeChanged;
     public event Action? ResetCameraRequested;
 
     public SettingView()
@@ -54,6 +56,13 @@ public partial class SettingView : ContentView
     {
         LogService.WriteLine($"Bone pick pixels: {e.NewValue:F1}");
         BonePickPixelsChanged?.Invoke(e.NewValue);
+    }
+
+    private void OnDragPlaneModeChanged(object? sender, EventArgs e)
+    {
+        var mode = DragPlanePicker.SelectedIndex == 1 ? DragPlaneMode.XY : DragPlaneMode.Initial;
+        LogService.WriteLine($"Drag plane mode: {mode}");
+        DragPlaneModeChanged?.Invoke(mode);
     }
 
 
@@ -111,6 +120,12 @@ public partial class SettingView : ContentView
     {
         get => BonePickSlider.Value;
         set => BonePickSlider.Value = value;
+    }
+
+    public DragPlaneMode DragPlaneMode
+    {
+        get => DragPlanePicker.SelectedIndex == 1 ? DragPlaneMode.XY : DragPlaneMode.Initial;
+        set => DragPlanePicker.SelectedIndex = value == DragPlaneMode.XY ? 1 : 0;
     }
 
 

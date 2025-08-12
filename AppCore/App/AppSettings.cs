@@ -1,4 +1,5 @@
 using MiniMikuDance.Util;
+using MiniMikuDance.IK;
 
 namespace MiniMikuDance.App;
 
@@ -55,6 +56,12 @@ public class AppSettings
 
     /// <summary>テクスチャキャッシュの最大数。</summary>
     public int TextureCacheSize { get; set; } = DefaultTextureCacheSize;
+
+    /// <summary>ドラッグ平面モードのデフォルト値。</summary>
+    public const DragPlaneMode DefaultDragPlaneMode = DragPlaneMode.Initial;
+
+    /// <summary>ドラッグ平面モード。</summary>
+    public DragPlaneMode DragPlaneMode { get; set; } = DefaultDragPlaneMode;
 
 
     private const string DefaultFile = "Configs/appsettings.json";

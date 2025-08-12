@@ -26,6 +26,13 @@
         <Label Text="Bone Pick Pixels" TextColor="{StaticResource TextColor}"/>
         <Slider x:Name="BonePickSlider" Minimum="10" Maximum="200" Value="60"
                 ValueChanged="OnBonePickPixelsChanged"/>
+        <Label Text="ドラッグ平面" TextColor="{StaticResource TextColor}"/>
+        <Picker x:Name="DragPlanePicker" SelectedIndexChanged="OnDragPlaneModeChanged">
+            <Picker.Items>
+                <x:String>初期平面</x:String>
+                <x:String>XY平面</x:String>
+            </Picker.Items>
+        </Picker>
         <HorizontalStackLayout Spacing="6" VerticalOptions="Center">
             <CheckBox x:Name="BoneOutlineCheck" Color="{StaticResource TextColor}"
                       CheckedChanged="OnBoneOutlineChanged"/>

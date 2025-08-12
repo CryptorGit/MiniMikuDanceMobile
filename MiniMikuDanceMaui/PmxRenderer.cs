@@ -694,11 +694,6 @@ void main(){
         return result;
     }
 
-    public System.Numerics.Vector3 GetCameraPosition()
-    {
-        return _cameraPos.ToNumerics();
-    }
-
     public System.Numerics.Vector3 WorldToModel(System.Numerics.Vector3 worldPos)
     {
         Matrix4.Invert(_modelTransform, out var inv);

@@ -127,7 +127,6 @@ public partial class MainPage : ContentPage
             }
             IkManager.PickFunc = _renderer.PickBone;
             IkManager.GetBonePositionFunc = _renderer.GetBoneWorldPosition;
-            IkManager.GetCameraPositionFunc = _renderer.GetCameraPosition;
             IkManager.SetBoneRotation = _renderer.SetBoneRotation;
             IkManager.SetBoneTranslation = _renderer.SetBoneTranslation;
             IkManager.ToModelSpaceFunc = _renderer.WorldToModel;
@@ -146,7 +145,6 @@ public partial class MainPage : ContentPage
             IkManager.Clear();
             IkManager.PickFunc = null;
             IkManager.GetBonePositionFunc = null;
-            IkManager.GetCameraPositionFunc = null;
             IkManager.SetBoneRotation = null;
             IkManager.SetBoneTranslation = null;
             IkManager.ToModelSpaceFunc = null;
@@ -194,6 +192,7 @@ public partial class MainPage : ContentPage
         _renderer.BonePickPixels = _settings.BonePickPixels;
         _renderer.ShowIkBones = _poseMode;
         _renderer.IkBoneScale = _settings.IkBoneScale;
+        IkManager.DragPlaneMode = _settings.DragPlaneMode;
 
         if (Viewer is SKGLView glView)
         {
@@ -254,6 +253,13 @@ public partial class MainPage : ContentPage
                 _settings.BonePickPixels = (float)v;
                 _settings.Save();
             };
+            setting.DragPlaneMode = _settings.DragPlaneMode;
+            setting.DragPlaneModeChanged += mode =>
+            {
+                IkManager.DragPlaneMode = mode;
+                _settings.DragPlaneMode = mode;
+                _settings.Save();
+            };
             setting.ShowBoneOutline = _renderer.ShowBoneOutline;
             setting.BoneOutlineChanged += show =>
             {
@@ -305,6 +311,7 @@ public partial class MainPage : ContentPage
             sv.PanSensitivity = _renderer.PanSensitivity;
             sv.IkBoneSize = _renderer.IkBoneScale;
             sv.BonePickPixels = _renderer.BonePickPixels;
+            sv.DragPlaneMode = IkManager.DragPlaneMode;
         }
         UpdateOverlay();
     }
@@ -444,6 +451,7 @@ public partial class MainPage : ContentPage
         sv.PanSensitivity = _panSensitivity;
         sv.ZoomSensitivity = _renderer.ZoomSensitivity;
         sv.ShowBoneOutline = _renderer.ShowBoneOutline;
+        sv.DragPlaneMode = IkManager.DragPlaneMode;
     }
 
     private void UpdateBoneViewProperties(BoneView? bv)
@@ -646,7 +654,6 @@ public partial class MainPage : ContentPage
                 }
                 IkManager.PickFunc = _renderer.PickBone;
                 IkManager.GetBonePositionFunc = _renderer.GetBoneWorldPosition;
-                IkManager.GetCameraPositionFunc = _renderer.GetCameraPosition;
                 IkManager.SetBoneRotation = _renderer.SetBoneRotation;
                 IkManager.SetBoneTranslation = _renderer.SetBoneTranslation;
                 IkManager.ToModelSpaceFunc = _renderer.WorldToModel;
@@ -946,6 +953,12 @@ public partial class MainPage : ContentPage
                 {
                     if (_renderer != null)
                         _renderer.PanSensitivity = (float)v;
+                };
+                sv.DragPlaneModeChanged += mode =>
+                {
+                    IkManager.DragPlaneMode = mode;
+                    _settings.DragPlaneMode = mode;
+                    _settings.Save();
                 };
                 sv.ResetCameraRequested += () =>
                 {
