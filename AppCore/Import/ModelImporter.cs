@@ -229,6 +229,23 @@ public class ModelImporter : IDisposable
                 }
                 bd.Ik = ik;
             }
+            bd.InheritParent = b.AttatchParent;
+            bd.InheritRatio = b.AttatchRatio;
+            bd.InheritRotation = (b.BoneFlag & BoneFlag.RotationAttach) != 0;
+            bd.InheritTranslation = (b.BoneFlag & BoneFlag.TranslationAttach) != 0;
+            if ((b.BoneFlag & BoneFlag.FixedAxis) != 0)
+            {
+                bd.HasFixedAxis = true;
+                bd.FixedAxis = new System.Numerics.Vector3(b.AxisVec.X, b.AxisVec.Y, b.AxisVec.Z);
+            }
+            if ((b.BoneFlag & BoneFlag.LocalAxis) != 0)
+            {
+                bd.HasLocalAxis = true;
+                bd.LocalAxisX = new System.Numerics.Vector3(b.XAxisVec.X, b.XAxisVec.Y, b.XAxisVec.Z);
+                bd.LocalAxisZ = new System.Numerics.Vector3(b.ZAxisVec.X, b.ZAxisVec.Y, b.ZAxisVec.Z);
+            }
+            if ((b.BoneFlag & BoneFlag.ExternalParentTransform) != 0)
+                bd.ExternalParent = b.Key;
             boneDatas.Add(bd);
         }
 
