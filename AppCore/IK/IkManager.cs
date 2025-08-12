@@ -183,13 +183,6 @@ public static class IkManager
 
             bone.Position = position;
             Trace.WriteLine($"UpdateTarget: index={boneIndex} pos={position}");
-            if (SetBoneTranslation == null)
-            {
-                Trace.WriteLine("SetBoneTranslation delegate is null.");
-                return;
-            }
-            var targetWorld = ToWorldSpaceFunc != null ? ToWorldSpaceFunc(position) : position;
-            SetBoneTranslation(boneIndex, targetWorld.ToOpenTK());
             if (!Solvers.TryGetValue(boneIndex, out var solver))
             {
                 Trace.WriteLine($"Solver not found for bone index {boneIndex}.");
@@ -212,6 +205,20 @@ public static class IkManager
             solveChain[^1].Position = position;
             ClampChainRotations(solveChain, links, chain[0].Rotation);
             ikSolver.Solve(solveChain, links, iterations);
+
+            if (SetBoneTranslation != null)
+            {
+                foreach (var b in chain)
+                {
+                    var worldPos = ToWorldSpaceFunc != null ? ToWorldSpaceFunc(b.Position) : b.Position;
+                    SetBoneTranslation(b.PmxBoneIndex, worldPos.ToOpenTK());
+                }
+            }
+            else
+            {
+                Trace.WriteLine("SetBoneTranslation delegate is null.");
+            }
+
             var parentRot = Quaternion.Identity;
             foreach (var b in solveChain)
             {
