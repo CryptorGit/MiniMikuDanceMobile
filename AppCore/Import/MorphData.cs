@@ -47,10 +47,10 @@ public enum MaterialCalcMode
 
 public enum MorphCategory
 {
-    Base = 0,
+    SystemReserved = 0,
     Eyebrow = 1,
     Eye = 2,
-    Lip = 3,
+    Mouth = 3,
     Other = 4
 }
 

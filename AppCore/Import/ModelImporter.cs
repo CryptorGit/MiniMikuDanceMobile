@@ -374,7 +374,7 @@ public class ModelImporter : IDisposable
                 }
             }
 
-            var md = new MorphData { Index = mi, Name = name, Type = m.MorphType, Category = (MorphCategory)m.Panel };
+            var md = new MorphData { Index = mi, Name = name, Type = m.MorphType, Category = (MorphCategory)m.MorphTarget };
             switch (m.MorphType)
             {
                 case MorphType.Vertex:
