@@ -388,6 +388,9 @@ public class ModelImporter : IDisposable
 
                     System.Numerics.Vector4 ji = System.Numerics.Vector4.Zero;
                     System.Numerics.Vector4 jw = System.Numerics.Vector4.Zero;
+                    System.Numerics.Vector3 sc = System.Numerics.Vector3.Zero;
+                    System.Numerics.Vector3 sr0 = System.Numerics.Vector3.Zero;
+                    System.Numerics.Vector3 sr1 = System.Numerics.Vector3.Zero;
                     switch (vv.WeightTransformType)
                     {
                         case WeightTransformType.BDEF1:
@@ -395,11 +398,19 @@ public class ModelImporter : IDisposable
                             jw.X = 1f;
                             break;
                         case WeightTransformType.BDEF2:
+                            ji.X = vv.BoneIndex1;
+                            ji.Y = vv.BoneIndex2;
+                            jw.X = vv.Weight1;
+                            jw.Y = 1f - vv.Weight1;
+                            break;
                         case WeightTransformType.SDEF:
                             ji.X = vv.BoneIndex1;
                             ji.Y = vv.BoneIndex2;
                             jw.X = vv.Weight1;
                             jw.Y = 1f - vv.Weight1;
+                            sc = new System.Numerics.Vector3(vv.C.X * Scale, vv.C.Y * Scale, vv.C.Z * Scale);
+                            sr0 = new System.Numerics.Vector3(vv.R0.X * Scale, vv.R0.Y * Scale, vv.R0.Z * Scale);
+                            sr1 = new System.Numerics.Vector3(vv.R1.X * Scale, vv.R1.Y * Scale, vv.R1.Z * Scale);
                             break;
                         case WeightTransformType.BDEF4:
                         case WeightTransformType.QDEF:
@@ -410,6 +421,9 @@ public class ModelImporter : IDisposable
                     }
                     smd.JointIndices.Add(ji);
                     smd.JointWeights.Add(jw);
+                    smd.SdefC.Add(sc);
+                    smd.SdefR0.Add(sr0);
+                    smd.SdefR1.Add(sr1);
                 }
                 var face = new Face();
                 face.Indices.Add(baseIndex);
