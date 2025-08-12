@@ -28,6 +28,18 @@ public class PmxRenderer : IDisposable
         public int IndexCount;
         public Vector4 Color = Vector4.One;
         public Vector4 BaseColor = Vector4.One;
+        public Vector3 Specular = Vector3.Zero;
+        public Vector3 BaseSpecular = Vector3.Zero;
+        public float SpecularPower;
+        public float BaseSpecularPower;
+        public Vector4 EdgeColor = Vector4.Zero;
+        public Vector4 BaseEdgeColor = Vector4.Zero;
+        public float EdgeSize;
+        public float BaseEdgeSize;
+        public Vector3 ToonColor = Vector3.Zero;
+        public Vector3 BaseToonColor = Vector3.Zero;
+        public Vector4 TextureTint = Vector4.One;
+        public Vector4 BaseTextureTint = Vector4.One;
         public int Texture;
         public bool HasTexture;
         public Vector3[] BaseVertices = Array.Empty<Vector3>();
@@ -95,6 +107,12 @@ public class PmxRenderer : IDisposable
     private int _modelShadeToonyLoc;
     private int _modelRimIntensityLoc;
     private int _modelAmbientLoc;
+    private int _modelSpecularLoc;
+    private int _modelSpecularPowerLoc;
+    private int _modelEdgeColorLoc;
+    private int _modelEdgeSizeLoc;
+    private int _modelToonColorLoc;
+    private int _modelTexTintLoc;
     private Matrix4 _modelTransform = Matrix4.Identity;
     public Matrix4 ModelTransform
     {
@@ -300,7 +318,7 @@ void main(){
     gl_Position = uProj * uView * pos;
     gl_PointSize = uPointSize;
 }";
-        const string modelFrag = @"#version 300 es
+const string modelFrag = @"#version 300 es
 precision mediump float;
 in vec3 vNormal;
 in vec2 vTex;
@@ -313,13 +331,23 @@ uniform float uShadeShift;
 uniform float uShadeToony;
 uniform float uRimIntensity;
 uniform float uAmbient;
+uniform vec3 uSpecular;
+uniform float uSpecularPower;
+uniform vec4 uEdgeColor;
+uniform float uEdgeSize;
+uniform vec3 uToonColor;
+uniform vec4 uTextureTint;
 out vec4 FragColor;
 void main(){
-    vec4 base = uUseTex ? texture(uTex, vTex) : uColor;
+    vec4 base = (uUseTex ? texture(uTex, vTex) : uColor) * uTextureTint;
     float ndotl = max(dot(normalize(vNormal), normalize(uLightDir)), 0.0);
     float light = clamp((ndotl + uShadeShift) * uShadeToony, 0.0, 1.0);
     float rim = pow(1.0 - max(dot(normalize(vNormal), normalize(uViewDir)), 0.0), 3.0) * uRimIntensity;
     vec3 color = base.rgb * (light + uAmbient) + base.rgb * rim;
+    vec3 reflectDir = reflect(-normalize(uLightDir), normalize(vNormal));
+    float spec = pow(max(dot(normalize(uViewDir), reflectDir), 0.0), uSpecularPower);
+    color += uSpecular * spec;
+    color *= uToonColor;
     FragColor = vec4(color, base.a);
 }";
         int mvs = GL.CreateShader(ShaderType.VertexShader);
@@ -346,6 +374,12 @@ void main(){
         _modelShadeToonyLoc = GL.GetUniformLocation(_modelProgram, "uShadeToony");
         _modelRimIntensityLoc = GL.GetUniformLocation(_modelProgram, "uRimIntensity");
         _modelAmbientLoc = GL.GetUniformLocation(_modelProgram, "uAmbient");
+        _modelSpecularLoc = GL.GetUniformLocation(_modelProgram, "uSpecular");
+        _modelSpecularPowerLoc = GL.GetUniformLocation(_modelProgram, "uSpecularPower");
+        _modelEdgeColorLoc = GL.GetUniformLocation(_modelProgram, "uEdgeColor");
+        _modelEdgeSizeLoc = GL.GetUniformLocation(_modelProgram, "uEdgeSize");
+        _modelToonColorLoc = GL.GetUniformLocation(_modelProgram, "uToonColor");
+        _modelTexTintLoc = GL.GetUniformLocation(_modelProgram, "uTextureTint");
 
         GenerateGrid();
     }
@@ -750,7 +784,15 @@ void main(){
     private void RecalculateMaterialMorphs()
     {
         foreach (var rm in _meshes)
+        {
             rm.Color = rm.BaseColor;
+            rm.Specular = rm.BaseSpecular;
+            rm.SpecularPower = rm.BaseSpecularPower;
+            rm.EdgeColor = rm.BaseEdgeColor;
+            rm.EdgeSize = rm.BaseEdgeSize;
+            rm.ToonColor = rm.BaseToonColor;
+            rm.TextureTint = rm.BaseTextureTint;
+        }
 
         foreach (var (mName, mv) in _morphValues)
         {
@@ -762,10 +804,30 @@ void main(){
                 void Apply(RenderMesh mesh)
                 {
                     var diff = new Vector4(off.Material.Diffuse.X, off.Material.Diffuse.Y, off.Material.Diffuse.Z, off.Material.Diffuse.W);
+                    var spec = new Vector3(off.Material.Specular.X, off.Material.Specular.Y, off.Material.Specular.Z);
+                    var edge = new Vector4(off.Material.EdgeColor.X, off.Material.EdgeColor.Y, off.Material.EdgeColor.Z, off.Material.EdgeColor.W);
+                    var toon = new Vector3(off.Material.ToonColor.X, off.Material.ToonColor.Y, off.Material.ToonColor.Z);
+                    var tex = new Vector4(off.Material.TextureTint.X, off.Material.TextureTint.Y, off.Material.TextureTint.Z, off.Material.TextureTint.W);
                     if (off.Material.CalcMode == MaterialCalcMode.Mul)
+                    {
                         mesh.Color *= Vector4.One + diff * mv;
+                        mesh.Specular *= Vector3.One + spec * mv;
+                        mesh.SpecularPower *= 1f + off.Material.SpecularPower * mv;
+                        mesh.EdgeColor *= Vector4.One + edge * mv;
+                        mesh.EdgeSize *= 1f + off.Material.EdgeSize * mv;
+                        mesh.ToonColor *= Vector3.One + toon * mv;
+                        mesh.TextureTint *= Vector4.One + tex * mv;
+                    }
                     else
+                    {
                         mesh.Color += diff * mv;
+                        mesh.Specular += spec * mv;
+                        mesh.SpecularPower += off.Material.SpecularPower * mv;
+                        mesh.EdgeColor += edge * mv;
+                        mesh.EdgeSize += off.Material.EdgeSize * mv;
+                        mesh.ToonColor += toon * mv;
+                        mesh.TextureTint += tex * mv;
+                    }
                 }
 
                 if (off.Material.IsAll)
@@ -1051,6 +1113,18 @@ void main(){
             rm.Ebo = GL.GenBuffer();
             rm.BaseColor = sm.ColorFactor.ToVector4();
             rm.Color = rm.BaseColor;
+            rm.BaseSpecular = sm.Specular.ToOpenTK();
+            rm.Specular = rm.BaseSpecular;
+            rm.BaseSpecularPower = sm.SpecularPower;
+            rm.SpecularPower = rm.BaseSpecularPower;
+            rm.BaseEdgeColor = sm.EdgeColor.ToVector4();
+            rm.EdgeColor = rm.BaseEdgeColor;
+            rm.BaseEdgeSize = sm.EdgeSize;
+            rm.EdgeSize = rm.BaseEdgeSize;
+            rm.BaseToonColor = sm.ToonColor.ToOpenTK();
+            rm.ToonColor = rm.BaseToonColor;
+            rm.BaseTextureTint = sm.TextureTint.ToVector4();
+            rm.TextureTint = rm.BaseTextureTint;
 
             GL.BindVertexArray(rm.Vao);
             GL.BindBuffer(BufferTarget.ArrayBuffer, rm.Vbo);
@@ -1609,6 +1683,12 @@ void main(){
         foreach (var rm in _meshes)
         {
             GL.Uniform4(_modelColorLoc, rm.Color);
+            GL.Uniform3(_modelSpecularLoc, rm.Specular);
+            GL.Uniform1(_modelSpecularPowerLoc, rm.SpecularPower);
+            GL.Uniform4(_modelEdgeColorLoc, rm.EdgeColor);
+            GL.Uniform1(_modelEdgeSizeLoc, rm.EdgeSize);
+            GL.Uniform3(_modelToonColorLoc, rm.ToonColor);
+            GL.Uniform4(_modelTexTintLoc, rm.TextureTint);
             if (rm.HasTexture)
             {
                 GL.ActiveTexture(TextureUnit.Texture0);

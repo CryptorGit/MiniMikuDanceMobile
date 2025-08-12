@@ -59,4 +59,10 @@ public struct MaterialOffset
     public bool IsAll { get; set; }
     public MaterialCalcMode CalcMode { get; set; }
     public System.Numerics.Vector4 Diffuse { get; set; }
+    public System.Numerics.Vector3 Specular { get; set; }
+    public float SpecularPower { get; set; }
+    public System.Numerics.Vector4 EdgeColor { get; set; }
+    public float EdgeSize { get; set; }
+    public System.Numerics.Vector3 ToonColor { get; set; }
+    public System.Numerics.Vector4 TextureTint { get; set; }
 }
