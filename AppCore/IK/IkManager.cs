@@ -192,9 +192,16 @@ public static class IkManager
                 return;
 
             var root = chain[0];
-            var deltaRoot = root.Position - root.BasePosition;
             for (int i = 1; i < chain.Length; i++)
-                chain[i].Position = chain[i].BasePosition + deltaRoot;
+            {
+                var offset = chain[i].BasePosition - root.BasePosition;
+                offset = Vector3.Transform(offset, root.Rotation);
+                chain[i].Position = root.Position + offset;
+
+                var baseLength = Vector3.Distance(chain[i].BasePosition, chain[i - 1].BasePosition);
+                var currentLength = Vector3.Distance(chain[i].Position, chain[i - 1].Position);
+                Trace.WriteLine($"Bone {i - 1}->{i} length: base={baseLength}, current={currentLength}");
+            }
 
             var solveChain = chain[1..];
             var ikSolver = solver.Solver;
