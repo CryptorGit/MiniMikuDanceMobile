@@ -7,12 +7,16 @@ public class TwoBoneSolver : IIkSolver
 {
     private readonly float _length1;
     private readonly float _length2;
+    private readonly Vector3 _basePlaneNormal;
     private const float Epsilon = 1e-6f;
 
-    public TwoBoneSolver(float length1, float length2)
+    public TwoBoneSolver(float length1, float length2, Vector3 basePlaneNormal)
     {
         _length1 = length1;
         _length2 = length2;
+        _basePlaneNormal = basePlaneNormal.LengthSquared() > Epsilon
+            ? Vector3.Normalize(basePlaneNormal)
+            : Vector3.UnitZ;
     }
 
     public void Solve(IkBone[] chain)
@@ -36,11 +40,16 @@ public class TwoBoneSolver : IIkSolver
         target = rootPos + dir * dist;
         end.Position = target;
 
-        var poleDir = chain.Length > 3 ? chain[3].Position - rootPos : mid.Position - rootPos;
+        var basePole = Vector3.Transform(mid.BasePosition - root.BasePosition, root.Rotation);
+        var poleDir = chain.Length > 3 ? chain[3].Position - rootPos : basePole;
         var cross = Vector3.Cross(poleDir, dir);
-        var planeNormal = cross.LengthSquared() > Epsilon ? Vector3.Normalize(cross) : Vector3.UnitY;
+        var fallbackNormal = Vector3.Transform(_basePlaneNormal, root.Rotation);
+        var planeNormal = cross.LengthSquared() > Epsilon ? Vector3.Normalize(cross) : fallbackNormal;
         var tangentCross = Vector3.Cross(planeNormal, dir);
-        var planeTangent = tangentCross.LengthSquared() > Epsilon ? Vector3.Normalize(tangentCross) : Vector3.UnitX;
+        var fallbackTangent = Vector3.Cross(fallbackNormal, dir);
+        var planeTangent = tangentCross.LengthSquared() > Epsilon
+            ? Vector3.Normalize(tangentCross)
+            : Vector3.Normalize(fallbackTangent);
 
         var cos0 = (_length1 * _length1 + dist * dist - _length2 * _length2) / (2 * _length1 * dist);
         cos0 = System.Math.Clamp(cos0, -1f, 1f);
