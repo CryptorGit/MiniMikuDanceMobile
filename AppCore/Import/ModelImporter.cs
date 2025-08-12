@@ -208,7 +208,9 @@ public class ModelImporter : IDisposable
                     Iterations = b.IterCount,
                     RotationLimit = b.MaxRadianPerIter
                 };
-                foreach (var link in b.IKLinks.ToArray())
+                var links = b.IKLinks.ToArray();
+                Array.Reverse(links);
+                foreach (var link in links)
                 {
                     var il = new IkLink
                     {
@@ -219,11 +221,10 @@ public class ModelImporter : IDisposable
                     };
                     ik.Links.Add(il);
                 }
-                if (b.IKLinkCount >= 2)
+                if (links.Length >= 2)
                 {
-                    var links = b.IKLinks.Span;
-                    int rIdx = links[0].Bone;
-                    int mIdx = links[1].Bone;
+                    int rIdx = links[^1].Bone;
+                    int mIdx = links[^2].Bone;
                     int tIdx = b.IKTarget;
                     var r = worldPositions[rIdx];
                     var m = worldPositions[mIdx];
