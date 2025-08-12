@@ -48,6 +48,7 @@ IK 実装の現状調査メモと改善 TODO
 
 3) LookRotation の見直し（右手系/左手系の統一）
    - [済] `right = Normalize(Cross(up, forward))`, `newUp = Cross(forward, right)` に統一。
+   - [済] `FabrikSolver.FromToRotation` 内の外積を `Vector3.Cross(f, t)` に変更し、回転方向を修正（目視確認未実施）。
    - 残課題: `WorldToModel/ModelToWorld` の Z 反転との整合を引き続き確認し、ライン描画などで可視化する。
 
 4) IKLink 角度制限の取り込みと拘束適用
