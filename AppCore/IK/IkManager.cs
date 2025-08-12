@@ -73,7 +73,13 @@ public static class IkManager
             var idx = chainIndices[j];
             var b = modelBones[idx];
             var pos = Vector3.Transform(Vector3.Zero, b.BindMatrix);
-            chain[j + 1] = new IkBone(idx, pos, b.Rotation);
+            var bone = new IkBone(idx, pos, b.Rotation);
+            if (j < ik.Chain.Count)
+            {
+                bone.LowerLimit = ik.LowerLimits[j];
+                bone.UpperLimit = ik.UpperLimits[j];
+            }
+            chain[j + 1] = bone;
         }
 
         var solverChain = chain[1..];

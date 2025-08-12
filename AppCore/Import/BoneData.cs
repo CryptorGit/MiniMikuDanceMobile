@@ -18,4 +18,6 @@ public class IkInfo
 {
     public int Target { get; set; } = -1;
     public List<int> Chain { get; } = new();
+    public List<Vector3?> LowerLimits { get; } = new();
+    public List<Vector3?> UpperLimits { get; } = new();
 }

@@ -1,3 +1,4 @@
+using System;
 using System.Numerics;
 
 namespace MiniMikuDance.IK;
@@ -50,6 +51,8 @@ public class TwoBoneSolver : IIkSolver
 
         root.Rotation = LookRotation(midPos - rootPos, planeNormal);
         mid.Rotation = LookRotation(target - midPos, planeNormal);
+        ClampBone(root);
+        ClampBone(mid);
         end.Rotation = Quaternion.Identity;
     }
 
@@ -70,6 +73,50 @@ public class TwoBoneSolver : IIkSolver
             forward.X, forward.Y, forward.Z, 0,
             0, 0, 0, 1);
         return Quaternion.CreateFromRotationMatrix(m);
+    }
+
+    private static void ClampBone(IkBone bone)
+    {
+        if (bone.LowerLimit == null || bone.UpperLimit == null)
+            return;
+        var delta = Quaternion.Inverse(bone.BaseRotation) * bone.Rotation;
+        var euler = ToEuler(delta);
+        var lower = bone.LowerLimit.Value;
+        var upper = bone.UpperLimit.Value;
+        var clamped = new Vector3(
+            System.Math.Clamp(euler.X, lower.X, upper.X),
+            System.Math.Clamp(euler.Y, lower.Y, upper.Y),
+            System.Math.Clamp(euler.Z, lower.Z, upper.Z));
+        bone.Rotation = bone.BaseRotation * FromEuler(clamped);
+    }
+
+    private static Quaternion FromEuler(Vector3 rad)
+    {
+        var qz = Quaternion.CreateFromAxisAngle(Vector3.UnitZ, rad.Z);
+        var qx = Quaternion.CreateFromAxisAngle(Vector3.UnitX, rad.X);
+        var qy = Quaternion.CreateFromAxisAngle(Vector3.UnitY, rad.Y);
+        return qy * qx * qz;
+    }
+
+    private static Vector3 ToEuler(Quaternion q)
+    {
+        var m = Matrix4x4.CreateFromQuaternion(q);
+        float sx = -m.M23;
+        float cx = MathF.Sqrt(1 - sx * sx);
+        float x, y, z;
+        if (cx > Epsilon)
+        {
+            x = MathF.Asin(sx);
+            y = MathF.Atan2(m.M13, m.M33);
+            z = MathF.Atan2(m.M21, m.M22);
+        }
+        else
+        {
+            x = MathF.Asin(sx);
+            y = MathF.Atan2(-m.M31, m.M11);
+            z = 0f;
+        }
+        return new Vector3(x, y, z);
     }
 }
 
