@@ -896,7 +896,7 @@ void main(){
                 RecalculateMaterialMorphs();
                 _morphDirty = true;
                 break;
-            case MorphType.Uv:
+            case MorphType.UV:
                 // UV モーフは未対応
                 break;
             default:
