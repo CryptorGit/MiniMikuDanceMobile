@@ -67,14 +67,10 @@ public static class IkManager
     private static void RegisterIkBone(int index, BoneData bRoot, IkInfo ik, IReadOnlyList<BoneData> modelBones)
     {
         var rootPos = Vector3.Transform(Vector3.Zero, bRoot.BindMatrix);
-        var rootPlane = Vector3.Cross(bRoot.BaseForward, bRoot.BaseUp);
-        if (rootPlane.LengthSquared() > 1e-6f)
-            rootPlane = Vector3.Normalize(rootPlane);
-        else
-            rootPlane = Vector3.Zero;
-        BonesDict[index] = new IkBone(index, rootPos, bRoot.Rotation, bRoot.BaseForward, bRoot.BaseUp, rootPlane)
+        BonesDict[index] = new IkBone(index, rootPos, bRoot.Rotation, bRoot.BaseForward, bRoot.BaseUp)
         {
-            RotationLimit = ik.RotationLimit
+            RotationLimit = ik.RotationLimit,
+            PoleVector = ik.PoleVector
         };
 
         var chainIndices = new List<int>(ik.Links.Count + 1);
@@ -94,20 +90,13 @@ public static class IkManager
             var idx = chainIndices[j];
             var b = modelBones[idx];
             var pos = Vector3.Transform(Vector3.Zero, b.BindMatrix);
-            var plane = Vector3.Cross(b.BaseForward, b.BaseUp);
-            if (plane.LengthSquared() > 1e-6f)
-                plane = Vector3.Normalize(plane);
-            else
-                plane = Vector3.Zero;
-            chain[j + 1] = new IkBone(idx, pos, b.Rotation, b.BaseForward, b.BaseUp, plane)
+            chain[j + 1] = new IkBone(idx, pos, b.Rotation, b.BaseForward, b.BaseUp)
             {
                 RotationLimit = ik.RotationLimit
             };
         }
 
         var solverChain = chain[1..];
-        if (ik.PoleVector != Vector3.Zero && solverChain.Length > 0)
-            solverChain[0].PoleVector = ik.PoleVector;
         IIkSolver solver;
         if (solverChain.Length == 3)
         {
