@@ -4,6 +4,7 @@ using MiniMikuDance.UI;
 using MiniMikuDance.Data;
 using MiniMikuDance.Util;
 using MiniMikuDance.PoseEstimation;
+using PoseJointData = MiniMikuDance.PoseEstimation.JointData;
 using System;
 using System.IO;
 using System.Threading.Tasks;
@@ -25,7 +26,7 @@ public partial class AppInitializer : IDisposable
     /// 動画フレームを抽出する実装。各プラットフォームで必要に応じて差し替える。
     /// </summary>
     public IVideoFrameExtractor FrameExtractor { get; set; } = new FfmpegFrameExtractor();
-    public JointData[]? Joints { get; private set; }
+    public PoseJointData[]? Joints { get; private set; }
     public BonesConfig? BonesConfig { get; set; }
     private string _poseModelPath = string.Empty;
     private string _poseOutputDir = string.Empty;
