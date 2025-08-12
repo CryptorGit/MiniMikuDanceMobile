@@ -247,8 +247,9 @@ public class ModelImporter : IDisposable
         var morphDatas = new List<MorphData>(morphs.Length);
         var nameCounts = new Dictionary<string, int>(StringComparer.OrdinalIgnoreCase);
         var usedNames = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
-        foreach (var m in morphs)
+        for (int mi = 0; mi < morphs.Length; mi++)
         {
+            var m = morphs[mi];
             string name = string.IsNullOrEmpty(m.NameEnglish) ? m.Name : m.NameEnglish;
             name = name.Trim();
             // Ensure unique morph names so left/right or duplicates are not collapsed later
@@ -273,17 +274,71 @@ public class ModelImporter : IDisposable
                     continue;
                 }
             }
-            var md = new MorphData { Name = name, Type = m.MorphType };
-            if (m.MorphType == MorphType.Vertex)
+
+            var md = new MorphData { Index = mi, Name = name, Type = m.MorphType };
+            switch (m.MorphType)
             {
-                foreach (var elem in m.VertexMorphElements.Span)
-                {
-                    md.Offsets.Add(new MorphOffset
+                case MorphType.Vertex:
+                    foreach (var elem in m.VertexMorphElements.Span)
                     {
-                        Index = elem.TargetVertex,
-                        Offset = new System.Numerics.Vector3(elem.PosOffset.X * Scale, elem.PosOffset.Y * Scale, elem.PosOffset.Z * Scale)
-                    });
-                }
+                        md.Offsets.Add(new MorphOffset
+                        {
+                            Index = elem.TargetVertex,
+                            Vertex = new System.Numerics.Vector3(elem.PosOffset.X * Scale, elem.PosOffset.Y * Scale, elem.PosOffset.Z * Scale)
+                        });
+                    }
+                    break;
+                case MorphType.Group:
+                    foreach (var elem in m.GroupMorphElements.Span)
+                    {
+                        md.Offsets.Add(new MorphOffset
+                        {
+                            Index = elem.TargetMorph,
+                            Group = new GroupOffset { MorphIndex = elem.TargetMorph, Rate = elem.MorphRatio }
+                        });
+                    }
+                    break;
+                case MorphType.Bone:
+                    foreach (var elem in m.BoneMorphElements.Span)
+                    {
+                        md.Offsets.Add(new MorphOffset
+                        {
+                            Index = elem.TargetBone,
+                            Bone = new BoneOffset
+                            {
+                                Translation = new System.Numerics.Vector3(elem.Translate.X * Scale, elem.Translate.Y * Scale, elem.Translate.Z * Scale),
+                                Rotation = new System.Numerics.Quaternion(elem.Quaternion.X, elem.Quaternion.Y, elem.Quaternion.Z, elem.Quaternion.W)
+                            }
+                        });
+                    }
+                    break;
+                case MorphType.UV:
+                    foreach (var elem in m.UVMorphElements.Span)
+                    {
+                        md.Offsets.Add(new MorphOffset
+                        {
+                            Index = elem.TargetVertex,
+                            Uv = new UvOffset { Offset = new System.Numerics.Vector4(elem.UVOffset.X, elem.UVOffset.Y, elem.UVOffset.Z, elem.UVOffset.W) }
+                        });
+                    }
+                    break;
+                case MorphType.Material:
+                    foreach (var elem in m.MaterialMorphElements.Span)
+                    {
+                        md.Offsets.Add(new MorphOffset
+                        {
+                            Index = elem.Material,
+                            Material = new MaterialOffset
+                            {
+                                IsAll = elem.IsAllMaterialTarget,
+                                CalcMode = (MaterialCalcMode)elem.CalcMode,
+                                Diffuse = new System.Numerics.Vector4(elem.Diffuse.R, elem.Diffuse.G, elem.Diffuse.B, elem.Diffuse.A)
+                            }
+                        });
+                    }
+                    break;
+                default:
+                    break;
             }
             morphDatas.Add(md);
         }
