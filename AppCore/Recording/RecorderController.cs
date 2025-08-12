@@ -131,9 +131,10 @@ public class RecorderController
         {
             image.ProcessPixelRows(accessor =>
             {
+                var source = MemoryMarshal.Cast<byte, Rgba32>(src);
                 for (int y = 0; y < height; y++)
                 {
-                    var srcRow = MemoryMarshal.Cast<byte, Rgba32>(src).Slice((height - 1 - y) * width, width);
+                    var srcRow = source.Slice((height - 1 - y) * width, width);
                     srcRow.CopyTo(accessor.GetRowSpan(y));
                 }
             });
