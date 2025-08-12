@@ -42,6 +42,7 @@ public class PmxRenderer : IDisposable
     }
     private readonly System.Collections.Generic.List<RenderMesh> _meshes = new();
     private readonly Dictionary<string, MorphData> _morphs = new(StringComparer.OrdinalIgnoreCase);
+    private readonly Dictionary<MorphCategory, List<MorphData>> _morphsByCategory = new();
     private readonly Dictionary<string, float> _morphValues = new(StringComparer.OrdinalIgnoreCase);
     private List<(RenderMesh Mesh, int Index)>?[] _morphVertexMap = Array.Empty<List<(RenderMesh Mesh, int Index)>?>();
     private readonly HashSet<int> _changedOriginalVertices = new();
@@ -909,6 +910,19 @@ void main(){
         Viewer?.InvalidateSurface();
     }
 
+    public IReadOnlyList<MorphData> GetMorphs(MorphCategory category)
+    {
+        return _morphsByCategory.TryGetValue(category, out var list) ? list : Array.Empty<MorphData>();
+    }
+
+    public void SetMorph(MorphCategory category, string name, float value)
+    {
+        if (_morphs.TryGetValue(name, out var morph) && morph.Category == category)
+        {
+            SetMorph(name, value);
+        }
+    }
+
     public void LoadModel(MiniMikuDance.Import.ModelData data)
     {
         foreach (var rm in _meshes)
@@ -1093,6 +1107,7 @@ void main(){
         _tmpVertexBuffer = new float[maxVertices * 8];
 
         _morphs.Clear();
+        _morphsByCategory.Clear();
         _morphValues.Clear();
         int totalVertices = data.Mesh.VertexCount;
         _morphVertexMap = new List<(RenderMesh Mesh, int Index)>?[totalVertices];
@@ -1116,6 +1131,12 @@ void main(){
                 name = newName;
             }
             _morphs[name] = morph;
+            if (!_morphsByCategory.TryGetValue(morph.Category, out var list))
+            {
+                list = new List<MorphData>();
+                _morphsByCategory[morph.Category] = list;
+            }
+            list.Add(morph);
             if (morph.Index >= 0 && morph.Index < _morphIndexToName.Length)
                 _morphIndexToName[morph.Index] = name;
         }

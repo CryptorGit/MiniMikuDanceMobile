@@ -8,6 +8,7 @@ public class MorphData
     public int Index { get; set; }
     public string Name { get; set; } = string.Empty;
     public MorphType Type { get; set; }
+    public MorphCategory Category { get; set; }
     public List<MorphOffset> Offsets { get; set; } = new();
 }
 
@@ -42,6 +43,15 @@ public enum MaterialCalcMode
 {
     Mul = 0,
     Add = 1
+}
+
+public enum MorphCategory
+{
+    Base = 0,
+    Eyebrow = 1,
+    Eye = 2,
+    Lip = 3,
+    Other = 4
 }
 
 public struct MaterialOffset

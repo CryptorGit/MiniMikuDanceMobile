@@ -2,6 +2,7 @@ using Microsoft.Maui.Controls;
 using Microsoft.Maui.Dispatching;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using MiniMikuDance.Import;
 
 namespace MiniMikuDanceMaui;
@@ -39,48 +40,53 @@ public partial class MorphView : ContentView
         MorphList.Children.Clear();
         var textColor = (Color)(Application.Current?.Resources?.TryGetValue("TextColor", out var color) == true ? color : Colors.Black);
         var usedNames = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
-        foreach (var morph in morphs)
+        foreach (var group in morphs.GroupBy(m => m.Category).OrderBy(g => g.Key))
         {
-            var originalName = morph.Name;
-            var displayName = originalName;
-            if (usedNames.Contains(displayName))
+            var header = new Label { Text = group.Key.ToString(), TextColor = textColor, FontAttributes = FontAttributes.Bold, Margin = new Thickness(0,10,0,0) };
+            MorphList.Children.Add(header);
+            foreach (var morph in group)
             {
-                LogService.WriteLine($"Duplicate morph name detected in view: {displayName}");
-                int suffix = 1;
-                string newName;
-                do
+                var originalName = morph.Name;
+                var displayName = originalName;
+                if (usedNames.Contains(displayName))
                 {
-                    newName = $"{displayName}_{suffix++}";
-                } while (usedNames.Contains(newName));
-                LogService.WriteLine($"Renaming morph '{displayName}' to '{newName}'");
-                displayName = newName;
+                    LogService.WriteLine($"Duplicate morph name detected in view: {displayName}");
+                    int suffix = 1;
+                    string newName;
+                    do
+                    {
+                        newName = $"{displayName}_{suffix++}";
+                    } while (usedNames.Contains(newName));
+                    LogService.WriteLine($"Renaming morph '{displayName}' to '{newName}'");
+                    displayName = newName;
+                }
+                usedNames.Add(displayName);
+                var grid = new Grid
+                {
+                    ColumnDefinitions = new ColumnDefinitionCollection
+                    {
+                        new ColumnDefinition { Width = GridLength.Star },
+                        new ColumnDefinition { Width = 60 }
+                    },
+                    RowSpacing = 2
+                };
+                var nameLabel = new Label { Text = displayName, TextColor = textColor };
+                grid.Add(nameLabel);
+                Grid.SetColumn(nameLabel, 0);
+                Grid.SetRow(nameLabel, 0);
+                var valueLabel = new Label { Text = "0", TextColor = textColor, HorizontalTextAlignment = TextAlignment.End };
+                grid.Add(valueLabel);
+                Grid.SetColumn(valueLabel, 1);
+                Grid.SetRow(valueLabel, 0);
+                MorphList.Children.Add(grid);
+                var slider = new Slider { Minimum = 0, Maximum = 1 };
+                slider.ValueChanged += (s, e) =>
+                {
+                    valueLabel.Text = $"{e.NewValue:F2}";
+                    DebounceMorph(displayName, originalName, e.NewValue);
+                };
+                MorphList.Children.Add(slider);
             }
-            usedNames.Add(displayName);
-            var grid = new Grid
-            {
-                ColumnDefinitions = new ColumnDefinitionCollection
-                {
-                    new ColumnDefinition { Width = GridLength.Star },
-                    new ColumnDefinition { Width = 60 }
-                },
-                RowSpacing = 2
-            };
-            var nameLabel = new Label { Text = displayName, TextColor = textColor };
-            grid.Add(nameLabel);
-            Grid.SetColumn(nameLabel, 0);
-            Grid.SetRow(nameLabel, 0);
-            var valueLabel = new Label { Text = "0", TextColor = textColor, HorizontalTextAlignment = TextAlignment.End };
-            grid.Add(valueLabel);
-            Grid.SetColumn(valueLabel, 1);
-            Grid.SetRow(valueLabel, 0);
-            MorphList.Children.Add(grid);
-            var slider = new Slider { Minimum = 0, Maximum = 1 };
-            slider.ValueChanged += (s, e) =>
-            {
-                valueLabel.Text = $"{e.NewValue:F2}";
-                DebounceMorph(displayName, originalName, e.NewValue);
-            };
-            MorphList.Children.Add(slider);
         }
     }
 
