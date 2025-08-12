@@ -36,6 +36,9 @@ public class PmxRenderer : IDisposable
         public Vector2[] TexCoords = Array.Empty<Vector2>();
         public Vector4[] JointIndices = Array.Empty<Vector4>();
         public Vector4[] JointWeights = Array.Empty<Vector4>();
+        public Vector3[] SdefC = Array.Empty<Vector3>();
+        public Vector3[] SdefR0 = Array.Empty<Vector3>();
+        public Vector3[] SdefR1 = Array.Empty<Vector3>();
     }
     private readonly System.Collections.Generic.List<RenderMesh> _meshes = new();
     private readonly Dictionary<string, MorphData> _morphs = new(StringComparer.OrdinalIgnoreCase);
@@ -1021,6 +1024,19 @@ void main(){
                 var w = sm.JointWeights[i];
                 rm.JointWeights[i] = new Vector4(w.X, w.Y, w.Z, w.W);
             }
+            int sdefCount = sm.SdefC.Count;
+            rm.SdefC = new Vector3[sdefCount];
+            rm.SdefR0 = new Vector3[sdefCount];
+            rm.SdefR1 = new Vector3[sdefCount];
+            for (int i = 0; i < sdefCount; i++)
+            {
+                var c = sm.SdefC[i];
+                rm.SdefC[i] = new Vector3(c.X, c.Y, c.Z);
+                var r0 = sm.SdefR0[i];
+                rm.SdefR0[i] = new Vector3(r0.X, r0.Y, r0.Z);
+                var r1 = sm.SdefR1[i];
+                rm.SdefR1[i] = new Vector3(r1.X, r1.Y, r1.Z);
+            }
             rm.Vao = GL.GenVertexArray();
             rm.Vbo = GL.GenBuffer();
             rm.Ebo = GL.GenBuffer();
@@ -1358,7 +1374,10 @@ void main(){
                         var jp = rm.JointIndices[vi];
                         var jw = rm.JointWeights[vi];
                         var basePos = (rm.BaseVertices[vi] + rm.VertexOffsets[vi]).ToNumerics();
-                        for (int k = 0; k < 4; k++)
+                        bool useSdef = rm.SdefC.Length > vi && rm.SdefR0.Length > vi && rm.SdefR1.Length > vi &&
+                            (rm.SdefC[vi] != Vector3.Zero || rm.SdefR0[vi] != Vector3.Zero || rm.SdefR1[vi] != Vector3.Zero);
+                        int loop = useSdef ? 2 : 4;
+                        for (int k = 0; k < loop; k++)
                         {
                             int bi = (int)jp[k];
                             float w = jw[k];
@@ -1368,6 +1387,10 @@ void main(){
                                 pos += System.Numerics.Vector3.Transform(basePos, m) * w;
                                 norm += System.Numerics.Vector3.TransformNormal(rm.Normals[vi].ToNumerics(), m) * w;
                             }
+                        }
+                        if (useSdef)
+                        {
+                            // TODO: 正しい SDEF スキニングを実装し C/R0/R1 を利用する
                         }
                         if (norm.LengthSquared() > 0)
                             norm = System.Numerics.Vector3.Normalize(norm);
@@ -1420,7 +1443,10 @@ void main(){
                             var jp = rm.JointIndices[vi];
                             var jw = rm.JointWeights[vi];
                             var basePos = (rm.BaseVertices[vi] + rm.VertexOffsets[vi]).ToNumerics();
-                            for (int k = 0; k < 4; k++)
+                            bool useSdef = rm.SdefC.Length > vi && rm.SdefR0.Length > vi && rm.SdefR1.Length > vi &&
+                                (rm.SdefC[vi] != Vector3.Zero || rm.SdefR0[vi] != Vector3.Zero || rm.SdefR1[vi] != Vector3.Zero);
+                            int loop = useSdef ? 2 : 4;
+                            for (int k = 0; k < loop; k++)
                             {
                                 int bi = (int)jp[k];
                                 float w = jw[k];
@@ -1430,6 +1456,10 @@ void main(){
                                     pos += System.Numerics.Vector3.Transform(basePos, m) * w;
                                     norm += System.Numerics.Vector3.TransformNormal(rm.Normals[vi].ToNumerics(), m) * w;
                                 }
+                            }
+                            if (useSdef)
+                            {
+                                // TODO: 正しい SDEF スキニングを実装し C/R0/R1 を利用する
                             }
                             if (norm.LengthSquared() > 0)
                                 norm = System.Numerics.Vector3.Normalize(norm);
