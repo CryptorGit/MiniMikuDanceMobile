@@ -14,7 +14,7 @@ public class FabrikSolver : IIkSolver
         _lengths = lengths;
     }
 
-    public void Solve(IkBone[] chain, IkLink[] links, int iterations)
+    public void Solve(IkBone[] chain, IkLink[] links, int iterations, float rotationLimit = 0f)
     {
         if (chain.Length != _lengths.Length + 1)
             return;
@@ -64,6 +64,17 @@ public class FabrikSolver : IIkSolver
             var forward = chain[i + 1].Position - chain[i].Position;
             var baseForward = Vector3.Transform(chain[i].BaseForward, prevRot);
             var rotDelta = FromToRotation(baseForward, forward);
+            if (rotationLimit != 0f)
+            {
+                var axis = new Vector3(rotDelta.X, rotDelta.Y, rotDelta.Z);
+                var axisLen = axis.Length();
+                if (axisLen > Epsilon)
+                {
+                    var angle = 2f * MathF.Acos(Math.Clamp(rotDelta.W, -1f, 1f));
+                    angle = Math.Clamp(angle, -rotationLimit, rotationLimit);
+                    rotDelta = Quaternion.CreateFromAxisAngle(axis / axisLen, angle);
+                }
+            }
             var up = Vector3.Transform(chain[i].BaseUp, prevRot);
             up = Vector3.Transform(up, rotDelta);
             chain[i].Rotation = LookRotation(forward, up);
