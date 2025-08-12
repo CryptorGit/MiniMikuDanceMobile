@@ -186,9 +186,23 @@ public class ModelImporter : IDisposable
             };
             if (b.IKLinkCount > 0)
             {
-                var ik = new IkInfo { Target = b.IKTarget };
+                var ik = new IkInfo
+                {
+                    Target = b.IKTarget,
+                    Iterations = b.IterCount,
+                    RotationLimit = b.MaxRadianPerIter
+                };
                 foreach (var link in b.IKLinks.ToArray())
-                    ik.Chain.Add(link.Bone);
+                {
+                    var il = new IkLink
+                    {
+                        BoneIndex = link.Bone,
+                        HasLimit = link.IsEnableAngleLimited,
+                        MinAngle = new System.Numerics.Vector3(link.MinLimit.X, link.MinLimit.Y, link.MinLimit.Z),
+                        MaxAngle = new System.Numerics.Vector3(link.MaxLimit.X, link.MaxLimit.Y, link.MaxLimit.Z)
+                    };
+                    ik.Links.Add(il);
+                }
                 bd.Ik = ik;
             }
             boneDatas.Add(bd);

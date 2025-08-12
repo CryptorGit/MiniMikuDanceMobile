@@ -1,4 +1,6 @@
 using System.Numerics;
+using MiniMikuDance.Import;
+using MiniMikuDance.Util;
 
 namespace MiniMikuDance.IK;
 
@@ -14,7 +16,7 @@ public class TwoBoneSolver : IIkSolver
         _length2 = length2;
     }
 
-    public void Solve(IkBone[] chain)
+    public void Solve(IkBone[] chain, IkLink[] links, int iterations)
     {
         if (chain.Length < 3)
             return;
@@ -23,34 +25,43 @@ public class TwoBoneSolver : IIkSolver
         var mid = chain[1];
         var end = chain[2];
 
-        var target = end.Position;
-        var rootPos = root.Position;
+        iterations = System.Math.Max(1, iterations);
+        for (int iter = 0; iter < iterations; iter++)
+        {
+            var target = end.Position;
+            var rootPos = root.Position;
 
-        var toTarget = target - rootPos;
-        var dist = toTarget.Length();
-        var maxReach = _length1 + _length2 - 1e-5f;
-        var minReach = System.MathF.Abs(_length1 - _length2) + 1e-5f;
-        dist = System.Math.Clamp(dist, minReach, maxReach);
-        var dir = toTarget.LengthSquared() > Epsilon ? Vector3.Normalize(toTarget) : Vector3.UnitX;
-        target = rootPos + dir * dist;
-        end.Position = target;
+            var toTarget = target - rootPos;
+            var dist = toTarget.Length();
+            var maxReach = _length1 + _length2 - 1e-5f;
+            var minReach = System.MathF.Abs(_length1 - _length2) + 1e-5f;
+            dist = System.Math.Clamp(dist, minReach, maxReach);
+            var dir = toTarget.LengthSquared() > Epsilon ? Vector3.Normalize(toTarget) : Vector3.UnitX;
+            target = rootPos + dir * dist;
+            end.Position = target;
 
-        var poleDir = chain.Length > 3 ? chain[3].Position - rootPos : mid.Position - rootPos;
-        var cross = Vector3.Cross(poleDir, dir);
-        var planeNormal = cross.LengthSquared() > Epsilon ? Vector3.Normalize(cross) : Vector3.UnitY;
-        var tangentCross = Vector3.Cross(planeNormal, dir);
-        var planeTangent = tangentCross.LengthSquared() > Epsilon ? Vector3.Normalize(tangentCross) : Vector3.UnitX;
+            var poleDir = chain.Length > 3 ? chain[3].Position - rootPos : mid.Position - rootPos;
+            var cross = Vector3.Cross(poleDir, dir);
+            var planeNormal = cross.LengthSquared() > Epsilon ? Vector3.Normalize(cross) : Vector3.UnitY;
+            var tangentCross = Vector3.Cross(planeNormal, dir);
+            var planeTangent = tangentCross.LengthSquared() > Epsilon ? Vector3.Normalize(tangentCross) : Vector3.UnitX;
 
-        var cos0 = (_length1 * _length1 + dist * dist - _length2 * _length2) / (2 * _length1 * dist);
-        cos0 = System.Math.Clamp(cos0, -1f, 1f);
-        var angle0 = System.MathF.Acos(cos0);
+            var cos0 = (_length1 * _length1 + dist * dist - _length2 * _length2) / (2 * _length1 * dist);
+            cos0 = System.Math.Clamp(cos0, -1f, 1f);
+            var angle0 = System.MathF.Acos(cos0);
 
-        var midPos = rootPos + dir * (System.MathF.Cos(angle0) * _length1) + planeTangent * (System.MathF.Sin(angle0) * _length1);
-        mid.Position = midPos;
+            var midPos = rootPos + dir * (System.MathF.Cos(angle0) * _length1) + planeTangent * (System.MathF.Sin(angle0) * _length1);
+            mid.Position = midPos;
 
-        root.Rotation = LookRotation(midPos - rootPos, planeNormal);
-        mid.Rotation = LookRotation(target - midPos, planeNormal);
+            root.Rotation = LookRotation(midPos - rootPos, planeNormal);
+            mid.Rotation = LookRotation(target - midPos, planeNormal);
+        }
+
         end.Rotation = Quaternion.Identity;
+        if (links.Length > 0 && links[0].HasLimit)
+            ClampRotation(chain, 0, links[0]);
+        if (links.Length > 1 && links[1].HasLimit)
+            ClampRotation(chain, 1, links[1]);
     }
 
     private static Quaternion LookRotation(Vector3 forward, Vector3 up)
@@ -70,6 +81,16 @@ public class TwoBoneSolver : IIkSolver
             forward.X, forward.Y, forward.Z, 0,
             0, 0, 0, 1);
         return Quaternion.CreateFromRotationMatrix(m);
+    }
+
+    private static void ClampRotation(IkBone[] chain, int index, IkLink link)
+    {
+        var parent = index > 0 ? chain[index - 1].Rotation : Quaternion.Identity;
+        var local = Quaternion.Inverse(parent) * chain[index].Rotation;
+        var euler = local.ToEulerDegrees() * (MathF.PI / 180f);
+        var clamped = Vector3.Clamp(euler, link.MinAngle, link.MaxAngle);
+        var deg = clamped * (180f / MathF.PI);
+        chain[index].Rotation = parent * deg.FromEulerDegrees();
     }
 }
 
