@@ -117,10 +117,7 @@ public static class IkManager
         }
         else
         {
-            var lengths = new float[solverChain.Length - 1];
-            for (int j = 0; j < lengths.Length; j++)
-                lengths[j] = Vector3.Distance(solverChain[j].Position, solverChain[j + 1].Position);
-            solver = new FabrikSolver(lengths);
+            solver = new CcdSolver();
         }
         Solvers[index] = (solver, chain, ikLinks, ik.Iterations);
         Trace.WriteLine($"IKチェーンを構築しました: {index} -> {string.Join(" -> ", chainIndices)}");
