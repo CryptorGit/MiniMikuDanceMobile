@@ -666,9 +666,6 @@ void main(){
     {
         Matrix4.Invert(_modelTransform, out var inv);
         var pos = Vector3.TransformPosition(worldPos.ToOpenTK(), inv);
-        // MMD(左手系)とOpenGL(右手系)の差異を吸収するため、Z軸のみ反転する。
-        // X/Y軸はそのまま保持する。
-        pos.Z = -pos.Z;
         var result = pos.ToNumerics();
         System.Diagnostics.Trace.WriteLine($"WorldToModel {worldPos} => {result}");
         return result;
@@ -676,9 +673,7 @@ void main(){
 
     public System.Numerics.Vector3 ModelToWorld(System.Numerics.Vector3 modelPos)
     {
-        var pos = modelPos.ToOpenTK();
-        pos.Z = -pos.Z;
-        pos = Vector3.TransformPosition(pos, _modelTransform);
+        var pos = Vector3.TransformPosition(modelPos.ToOpenTK(), _modelTransform);
         var result = pos.ToNumerics();
         System.Diagnostics.Trace.WriteLine($"ModelToWorld {modelPos} => {result}");
         return result;
