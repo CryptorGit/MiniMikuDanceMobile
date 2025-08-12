@@ -203,6 +203,17 @@ public class ModelImporter : IDisposable
                     };
                     ik.Links.Add(il);
                 }
+                if (b.IKLinkCount >= 2)
+                {
+                    int rIdx = b.IKLinks[0].Bone;
+                    int mIdx = b.IKLinks[1].Bone;
+                    int tIdx = b.IKTarget;
+                    var r = worldPositions[rIdx];
+                    var m = worldPositions[mIdx];
+                    var t = worldPositions[tIdx];
+                    var n = System.Numerics.Vector3.Cross(m - r, t - r);
+                    ik.PoleVector = n.LengthSquared() > 1e-6f ? System.Numerics.Vector3.Normalize(n) : System.Numerics.Vector3.UnitY;
+                }
                 bd.Ik = ik;
             }
             boneDatas.Add(bd);

@@ -10,6 +10,7 @@ public class IkBone
     public Vector3 BasePosition { get; }
     public int PmxBoneIndex { get; }
     public bool IsSelected { get; set; }
+    public Vector3 PoleVector { get; set; } = Vector3.Zero;
 
     public IkBone(int pmxBoneIndex, Vector3 position, Quaternion baseRotation)
     {

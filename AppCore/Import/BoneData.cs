@@ -19,6 +19,7 @@ public class IkInfo
     public int Target { get; set; } = -1;
     public int Iterations { get; set; } = 0;
     public float RotationLimit { get; set; } = 0f;
+    public Vector3 PoleVector { get; set; } = Vector3.Zero;
     public List<IkLink> Links { get; } = new();
 }
 
