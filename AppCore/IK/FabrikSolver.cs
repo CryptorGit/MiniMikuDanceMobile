@@ -83,13 +83,13 @@ public class FabrikSolver : IIkSolver
             return Quaternion.Identity;
         if (dot < -1f + Epsilon)
         {
-            var axis = Vector3.Cross(Vector3.UnitX, f);
+            var axis = Vector3.Cross(f, Vector3.UnitX);
             if (axis.LengthSquared() < Epsilon)
-                axis = Vector3.Cross(Vector3.UnitY, f);
+                axis = Vector3.Cross(f, Vector3.UnitY);
             axis = Vector3.Normalize(axis);
             return Quaternion.CreateFromAxisAngle(axis, MathF.PI);
         }
-        var axisCross = Vector3.Cross(f, t);
+        var axisCross = Vector3.Cross(t, f);
         var angle = MathF.Acos(Math.Clamp(dot, -1f, 1f));
         return Quaternion.CreateFromAxisAngle(Vector3.Normalize(axisCross), angle);
     }

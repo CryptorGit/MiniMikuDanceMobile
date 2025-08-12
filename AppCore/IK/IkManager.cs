@@ -124,9 +124,7 @@ public static class IkManager
             var camPos = GetCameraPositionFunc();
             if (ToModelSpaceFunc != null)
             {
-                // レンダラー側の WorldToModel ではZ軸のみが反転するため、
-                // ドラッグ平面は同一のモデル座標系(反転後)で構築される。
-                // X/Y軸はそのまま一致している。
+                // レンダラー提供の WorldToModel で座標系を揃える
                 bonePos = ToModelSpaceFunc(bonePos);
                 camPos = ToModelSpaceFunc(camPos);
             }
@@ -146,8 +144,7 @@ public static class IkManager
         var dir = ray.Direction;
         if (ToModelSpaceFunc != null)
         {
-            // レイの始点・方向ともにモデル座標系へ変換する。
-            // Z軸が反転するが、X/Y軸は反転しない。
+            // レイの始点・方向ともにモデル座標系へ変換する
             var originModel = ToModelSpaceFunc(origin);
             var dirEnd = ToModelSpaceFunc(origin + dir);
             dir = Vector3.Normalize(dirEnd - originModel);
@@ -160,16 +157,7 @@ public static class IkManager
 
         var t = -(Vector3.Dot(_dragPlane.Normal, origin) + _dragPlane.D) / denom;
         if (t < 0)
-        {
-            // Z 軸反転によりレイ方向が逆転した場合は補正する
-            dir = -dir;
-            denom = Vector3.Dot(_dragPlane.Normal, dir);
-            if (System.Math.Abs(denom) < 1e-6f)
-                return null;
-            t = -(Vector3.Dot(_dragPlane.Normal, origin) + _dragPlane.D) / denom;
-            if (t < 0)
-                return null;
-        }
+            return null;
 
         return origin + dir * t;
     }
