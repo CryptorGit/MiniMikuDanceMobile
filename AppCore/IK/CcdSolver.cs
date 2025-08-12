@@ -47,6 +47,15 @@ public class CcdSolver : IIkSolver
             var up = Vector3.Transform(chain[i].BaseUp, prevRot);
             up = Vector3.Transform(up, rotDelta);
             up -= Vector3.Dot(up, forward) * forward;
+
+            if (chain[i].PoleVector.LengthSquared() > Epsilon)
+            {
+                var pole = Vector3.Normalize(chain[i].PoleVector);
+                var poleUp = Vector3.Cross(pole, forward);
+                if (poleUp.LengthSquared() > Epsilon)
+                    up = poleUp;
+            }
+
             if (up.LengthSquared() < Epsilon)
             {
                 up = chain[i].PrevUp;
@@ -56,11 +65,6 @@ public class CcdSolver : IIkSolver
                     var plane = Vector3.Transform(chain[i].BasePlaneNormal, prevRot);
                     plane = Vector3.Transform(plane, rotDelta);
                     up = Vector3.Cross(plane, forward);
-                    if (up.LengthSquared() < Epsilon && chain[i].PoleVector.LengthSquared() > Epsilon)
-                    {
-                        var pole = Vector3.Normalize(chain[i].PoleVector);
-                        up = Vector3.Cross(pole, forward);
-                    }
                 }
             }
             if (up.LengthSquared() < Epsilon)

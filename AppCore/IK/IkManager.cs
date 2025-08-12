@@ -202,6 +202,9 @@ public static class IkManager
             }
 
             var solveChain = chain[1..];
+            // IKルートのポールベクトルをソルバー用チェーンへ継承する
+            if (solveChain.Length > 0)
+                solveChain[0].PoleVector = chain[0].PoleVector;
             var ikSolver = solver.Solver;
             solveChain[^1].Position = position;
             ClampChainRotations(solveChain, links, chain[0].Rotation);
