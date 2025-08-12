@@ -20,6 +20,8 @@ public class ModelData
     public Dictionary<string, int> HumanoidBones { get; set; } = new(StringComparer.OrdinalIgnoreCase);
     public List<(string Name, int Index)> HumanoidBoneList { get; set; } = new();
     public List<MorphData> Morphs { get; set; } = new();
+    public List<RigidBodyData> RigidBodies { get; set; } = new();
+    public List<JointData> Joints { get; set; } = new();
     public float ShadeShift { get; set; } = -0.1f;
     public float ShadeToony { get; set; } = 0.9f;
     public float RimIntensity { get; set; } = 0.5f;
@@ -166,6 +168,8 @@ public class ModelImporter : IDisposable
         var texList = pmx.TextureList.ToArray();
         var bones = pmx.BoneList.ToArray();
         var morphs = pmx.MorphList.ToArray();
+        var rigidBodies = pmx.RigidBodyList.ToArray();
+        var joints = pmx.JointList.ToArray();
 
         var childIndices = new List<int>[bones.Length];
         for (int i = 0; i < bones.Length; i++)
@@ -438,6 +442,36 @@ public class ModelImporter : IDisposable
             morphDatas.Add(md);
         }
         data.Morphs = morphDatas;
+
+        var rigidBodyDatas = new List<RigidBodyData>(rigidBodies.Length);
+        for (int i = 0; i < rigidBodies.Length; i++)
+        {
+            var rb = rigidBodies[i];
+            var rbd = new RigidBodyData
+            {
+                Name = string.IsNullOrEmpty(rb.NameEnglish) ? rb.Name : rb.NameEnglish,
+                BoneIndex = rb.Bone,
+                Mass = rb.Mass,
+                Shape = (RigidBodyShape)rb.Shape
+            };
+            rigidBodyDatas.Add(rbd);
+        }
+        data.RigidBodies = rigidBodyDatas;
+
+        var jointDatas = new List<JointData>(joints.Length);
+        for (int i = 0; i < joints.Length; i++)
+        {
+            var j = joints[i];
+            var type = j.GetType();
+            int rbA = type.GetProperty("RigidBodyA")?.GetValue(j) is object a ? Convert.ToInt32(a) : -1;
+            if (rbA < 0) rbA = type.GetProperty("RigidBody1")?.GetValue(j) is object a1 ? Convert.ToInt32(a1) : -1;
+            int rbB = type.GetProperty("RigidBodyB")?.GetValue(j) is object b ? Convert.ToInt32(b) : -1;
+            if (rbB < 0) rbB = type.GetProperty("RigidBody2")?.GetValue(j) is object b1 ? Convert.ToInt32(b1) : -1;
+            string name = string.IsNullOrEmpty(j.NameEnglish) ? j.Name : j.NameEnglish;
+            jointDatas.Add(new JointData { Name = name, RigidBodyA = rbA, RigidBodyB = rbB });
+        }
+        data.Joints = jointDatas;
+
         var combined = new Assimp.Mesh("pmx", Assimp.PrimitiveType.Triangle);
         for (int i = 0; i < verts.Length; i++)
         {
