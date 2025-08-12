@@ -139,4 +139,5 @@ SDEF 関連 TODO
 - `TwoBoneSolver` に中間角の計算と回転制限を追加した。モデルでの肘・膝の曲がり挙動は未確認。
 - `IkManager.ProjectRotation` でクォータニオン `W` を `[-1,1]` に Clamp し、`MathF.Acos` で `NaN` が発生しないよう修正した。
 - PoleVector 未指定の簡易モデルで、初期平面法線に沿って曲げ方向が安定することを確認した。
+- `CcdSolver` を導入したが、実モデルでの挙動確認は未実施。
 

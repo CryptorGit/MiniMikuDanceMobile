@@ -4,56 +4,33 @@ using MiniMikuDance.Util;
 
 namespace MiniMikuDance.IK;
 
-public class FabrikSolver : IIkSolver
+public class CcdSolver : IIkSolver
 {
-    private readonly float[] _lengths;
     private const float Epsilon = 1e-6f;
-
-    public FabrikSolver(float[] lengths)
-    {
-        _lengths = lengths;
-    }
 
     public void Solve(IkBone[] chain, IkLink[] links, int iterations, float rotationLimit = 0f)
     {
-        if (chain.Length != _lengths.Length + 1)
+        if (chain.Length < 2)
             return;
 
         var target = chain[^1].Position;
-        var rootPos = chain[0].Position;
-        var total = 0f;
-        foreach (var l in _lengths)
-            total += l;
-
-        if (Vector3.Distance(rootPos, target) > total)
+        for (int iter = 0; iter < iterations; iter++)
         {
-            var diff = target - rootPos;
-            var dir = diff.LengthSquared() > Epsilon ? Vector3.Normalize(diff) : Vector3.UnitX;
-            chain[0].Position = rootPos;
-            for (int i = 1; i < chain.Length; i++)
+            for (int i = chain.Length - 2; i >= 0; i--)
             {
-                chain[i].Position = chain[i - 1].Position + dir * _lengths[i - 1];
-            }
-        }
-        else
-        {
-            var basePos = rootPos;
-            for (int iter = 0; iter < iterations; iter++)
-            {
-                chain[^1].Position = target;
-                for (int i = chain.Length - 2; i >= 0; i--)
+                var jointPos = chain[i].Position;
+                var toEffector = chain[^1].Position - jointPos;
+                var toTarget = target - jointPos;
+                if (toEffector.LengthSquared() < Epsilon || toTarget.LengthSquared() < Epsilon)
+                    continue;
+                var rot = FromToRotation(toEffector, toTarget);
+                if (rotationLimit != 0f)
+                    rot = ClampAngle(rot, rotationLimit);
+                for (int j = i + 1; j < chain.Length; j++)
                 {
-                    var delta = chain[i].Position - chain[i + 1].Position;
-                    var dir = delta.LengthSquared() > Epsilon ? Vector3.Normalize(delta) : Vector3.UnitX;
-                    chain[i].Position = chain[i + 1].Position + dir * _lengths[i];
-                }
-
-                chain[0].Position = basePos;
-                for (int i = 1; i < chain.Length; i++)
-                {
-                    var delta = chain[i].Position - chain[i - 1].Position;
-                    var dir = delta.LengthSquared() > Epsilon ? Vector3.Normalize(delta) : Vector3.UnitX;
-                    chain[i].Position = chain[i - 1].Position + dir * _lengths[i - 1];
+                    var rel = chain[j].Position - jointPos;
+                    rel = Vector3.Transform(rel, rot);
+                    chain[j].Position = jointPos + rel;
                 }
             }
         }
@@ -65,16 +42,7 @@ public class FabrikSolver : IIkSolver
             var baseForward = Vector3.Transform(chain[i].BaseForward, prevRot);
             var rotDelta = FromToRotation(baseForward, forward);
             if (rotationLimit != 0f)
-            {
-                var axis = new Vector3(rotDelta.X, rotDelta.Y, rotDelta.Z);
-                var axisLen = axis.Length();
-                if (axisLen > Epsilon)
-                {
-                    var angle = 2f * MathF.Acos(Math.Clamp(rotDelta.W, -1f, 1f));
-                    angle = Math.Clamp(angle, -rotationLimit, rotationLimit);
-                    rotDelta = Quaternion.CreateFromAxisAngle(axis / axisLen, angle);
-                }
-            }
+                rotDelta = ClampAngle(rotDelta, rotationLimit);
             var up = Vector3.Transform(chain[i].BaseUp, prevRot);
             up = Vector3.Transform(up, rotDelta);
             chain[i].Rotation = LookRotation(forward, up);
@@ -83,6 +51,17 @@ public class FabrikSolver : IIkSolver
             prevRot = chain[i].Rotation;
         }
         chain[^1].Rotation = prevRot;
+    }
+
+    private static Quaternion ClampAngle(Quaternion q, float limit)
+    {
+        var axis = new Vector3(q.X, q.Y, q.Z);
+        var len = axis.Length();
+        if (len < Epsilon)
+            return Quaternion.Identity;
+        var angle = 2f * MathF.Acos(Math.Clamp(q.W, -1f, 1f));
+        angle = Math.Clamp(angle, -limit, limit);
+        return Quaternion.CreateFromAxisAngle(axis / len, angle);
     }
 
     private static Quaternion FromToRotation(Vector3 from, Vector3 to)
@@ -139,4 +118,3 @@ public class FabrikSolver : IIkSolver
         chain[index].Rotation = parent * deg.FromEulerDegrees();
     }
 }
-
