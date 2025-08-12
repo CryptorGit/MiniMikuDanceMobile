@@ -137,4 +137,5 @@ SDEF 関連 TODO
 
 進捗メモ
 - `TwoBoneSolver` に中間角の計算と回転制限を追加した。モデルでの肘・膝の曲がり挙動は未確認。
+- `IkManager.ProjectRotation` でクォータニオン `W` を `[-1,1]` に Clamp し、`MathF.Acos` で `NaN` が発生しないよう修正した。
 
