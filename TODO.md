@@ -120,3 +120,6 @@ Morph 関連 TODO
 
 SDEF 関連 TODO
 - `PmxRenderer` の SDEF スキニング計算を実装し、`C`/`R0`/`R1` を利用する。
+
+ボーン属性対応 TODO
+- `PmxRenderer` で `FixedAxis`・`LocalAxis`・`ExternalParent` を考慮した行列計算を実装する。

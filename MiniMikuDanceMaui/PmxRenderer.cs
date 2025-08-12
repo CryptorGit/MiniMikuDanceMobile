@@ -1344,7 +1344,19 @@ void main(){
                     trans += _boneMorphTranslations[i];
                 if (i < _boneTranslations.Count)
                     trans += _boneTranslations[i].ToNumerics();
-                var local = System.Numerics.Matrix4x4.CreateFromQuaternion(bone.Rotation * morphRot * delta) * System.Numerics.Matrix4x4.CreateTranslation(trans);
+                var rot = bone.Rotation * morphRot * delta;
+                if (bone.InheritParent >= 0 && bone.InheritParent < _worldMats.Length)
+                {
+                    var src = _worldMats[bone.InheritParent];
+                    if (bone.InheritRotation)
+                    {
+                        var srcRot = System.Numerics.Quaternion.CreateFromRotationMatrix(src);
+                        rot = System.Numerics.Quaternion.Normalize(System.Numerics.Quaternion.Slerp(System.Numerics.Quaternion.Identity, srcRot, bone.InheritRatio) * rot);
+                    }
+                    if (bone.InheritTranslation)
+                        trans += src.Translation * bone.InheritRatio;
+                }
+                var local = System.Numerics.Matrix4x4.CreateFromQuaternion(rot) * System.Numerics.Matrix4x4.CreateTranslation(trans);
                 if (bone.Parent >= 0)
                     _worldMats[i] = local * _worldMats[bone.Parent];
                 else
