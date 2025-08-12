@@ -185,6 +185,10 @@ public class ModelImporter : IDisposable
                 Rotation = System.Numerics.Quaternion.Identity,
                 Translation = pos
             };
+            if (b.ConnectedBone >= 0)
+                bd.TailBone = b.ConnectedBone;
+            else
+                bd.TailPosition = new System.Numerics.Vector3(b.PositionOffset.X, b.PositionOffset.Y, b.PositionOffset.Z) * Scale;
             var flags = b.BoneFlag;
             if (flags.HasFlag(BoneFlag.LocalAxis))
             {

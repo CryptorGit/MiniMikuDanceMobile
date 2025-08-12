@@ -84,10 +84,22 @@ public static class IkManager
 
         var solverChain = chain[1..];
         IIkSolver solver;
+        static float GetBoneLength(int idx, IReadOnlyList<BoneData> bones)
+        {
+            var b = bones[idx];
+            var start = Vector3.Transform(Vector3.Zero, b.BindMatrix);
+            if (b.TailBone >= 0 && b.TailBone < bones.Count)
+            {
+                var tail = Vector3.Transform(Vector3.Zero, bones[b.TailBone].BindMatrix);
+                return Vector3.Distance(start, tail);
+            }
+            return b.TailPosition?.Length() ?? 0f;
+        }
+
         if (solverChain.Length == 3)
         {
-            float l1 = Vector3.Distance(solverChain[0].Position, solverChain[1].Position);
-            float l2 = Vector3.Distance(solverChain[1].Position, solverChain[2].Position);
+            float l1 = GetBoneLength(chainIndices[0], modelBones);
+            float l2 = GetBoneLength(chainIndices[1], modelBones);
             var baseDir = solverChain[2].BasePosition - solverChain[0].BasePosition;
             var basePole = solverChain[1].BasePosition - solverChain[0].BasePosition;
             var baseNormal = Vector3.Cross(basePole, baseDir);
@@ -108,7 +120,7 @@ public static class IkManager
         {
             var lengths = new float[solverChain.Length - 1];
             for (int j = 0; j < lengths.Length; j++)
-                lengths[j] = Vector3.Distance(solverChain[j].Position, solverChain[j + 1].Position);
+                lengths[j] = GetBoneLength(chainIndices[j], modelBones);
             solver = new FabrikSolver(lengths);
         }
         Solvers[index] = (solver, chain);

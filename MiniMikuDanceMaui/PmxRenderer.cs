@@ -1361,13 +1361,27 @@ void main(){
                 for (int i = 0; i < _bones.Count; i++)
                 {
                     var bone = _bones[i];
-                    if (bone.Parent >= 0)
+                    var cp = _worldMats[i].Translation;
+                    System.Numerics.Vector3 tp;
+                    if (bone.TailBone >= 0 && bone.TailBone < _worldMats.Length)
                     {
-                        var pp = _worldMats[bone.Parent].Translation;
-                        var cp = _worldMats[i].Translation;
-                        _boneLines[lineIdx++] = pp.X; _boneLines[lineIdx++] = pp.Y; _boneLines[lineIdx++] = pp.Z;
-                        _boneLines[lineIdx++] = cp.X; _boneLines[lineIdx++] = cp.Y; _boneLines[lineIdx++] = cp.Z;
+                        tp = _worldMats[bone.TailBone].Translation;
                     }
+                    else if (bone.TailPosition.HasValue)
+                    {
+                        var tail = bone.TailPosition.Value;
+                        tp = cp + tail;
+                    }
+                    else if (bone.Parent >= 0)
+                    {
+                        tp = _worldMats[bone.Parent].Translation;
+                    }
+                    else
+                    {
+                        continue;
+                    }
+                    _boneLines[lineIdx++] = cp.X; _boneLines[lineIdx++] = cp.Y; _boneLines[lineIdx++] = cp.Z;
+                    _boneLines[lineIdx++] = tp.X; _boneLines[lineIdx++] = tp.Y; _boneLines[lineIdx++] = tp.Z;
                 }
                 _boneVertexCount = lineIdx / 3;
                 if (_boneVertexCount > 0)
