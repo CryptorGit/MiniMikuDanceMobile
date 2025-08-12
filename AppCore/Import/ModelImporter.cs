@@ -205,8 +205,9 @@ public class ModelImporter : IDisposable
                 }
                 if (b.IKLinkCount >= 2)
                 {
-                    int rIdx = b.IKLinks[0].Bone;
-                    int mIdx = b.IKLinks[1].Bone;
+                    var links = b.IKLinks.Span;
+                    int rIdx = links[0].Bone;
+                    int mIdx = links[1].Bone;
                     int tIdx = b.IKTarget;
                     var r = worldPositions[rIdx];
                     var m = worldPositions[mIdx];
