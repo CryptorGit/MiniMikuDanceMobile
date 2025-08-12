@@ -100,7 +100,7 @@ public class FabrikSolver : IIkSolver
             axis = Vector3.Normalize(axis);
             return Quaternion.CreateFromAxisAngle(axis, MathF.PI);
         }
-        var axisCross = Vector3.Cross(t, f);
+        var axisCross = Vector3.Cross(f, t);
         var angle = MathF.Acos(Math.Clamp(dot, -1f, 1f));
         return Quaternion.CreateFromAxisAngle(Vector3.Normalize(axisCross), angle);
     }
