@@ -431,7 +431,13 @@ public class ModelImporter : IDisposable
                             {
                                 IsAll = elem.IsAllMaterialTarget,
                                 CalcMode = (MaterialCalcMode)elem.CalcMode,
-                                Diffuse = new System.Numerics.Vector4(elem.Diffuse.R, elem.Diffuse.G, elem.Diffuse.B, elem.Diffuse.A)
+                                Diffuse = new System.Numerics.Vector4(elem.Diffuse.R, elem.Diffuse.G, elem.Diffuse.B, elem.Diffuse.A),
+                                Specular = new System.Numerics.Vector3(elem.Specular.R, elem.Specular.G, elem.Specular.B),
+                                SpecularPower = elem.Shininess,
+                                EdgeColor = new System.Numerics.Vector4(elem.EdgeColor.R, elem.EdgeColor.G, elem.EdgeColor.B, elem.EdgeColor.A),
+                                EdgeSize = elem.EdgeSize,
+                                ToonColor = new System.Numerics.Vector3(elem.ToonTextureCoef.R, elem.ToonTextureCoef.G, elem.ToonTextureCoef.B),
+                                TextureTint = new System.Numerics.Vector4(elem.TextureCoef.R, elem.TextureCoef.G, elem.TextureCoef.B, elem.TextureCoef.A)
                             }
                         });
                     }
@@ -498,7 +504,13 @@ public class ModelImporter : IDisposable
             var smd = new SubMeshData
             {
                 Mesh = sub,
-                ColorFactor = new System.Numerics.Vector4(mat.Diffuse.R, mat.Diffuse.G, mat.Diffuse.B, mat.Diffuse.A)
+                ColorFactor = new System.Numerics.Vector4(mat.Diffuse.R, mat.Diffuse.G, mat.Diffuse.B, mat.Diffuse.A),
+                Specular = new System.Numerics.Vector3(mat.Specular.R, mat.Specular.G, mat.Specular.B),
+                SpecularPower = mat.Shininess,
+                EdgeColor = new System.Numerics.Vector4(mat.EdgeColor.R, mat.EdgeColor.G, mat.EdgeColor.B, mat.EdgeColor.A),
+                EdgeSize = mat.EdgeSize,
+                ToonColor = System.Numerics.Vector3.One,
+                TextureTint = System.Numerics.Vector4.One
             };
 
             int faceCount = mat.VertexCount / 3;
