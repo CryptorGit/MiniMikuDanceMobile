@@ -128,6 +128,7 @@ SDEF 関連 TODO
 
 ボーン属性対応 TODO
 - `PmxRenderer` で `FixedAxis`・`LocalAxis`・`ExternalParent` を考慮した行列計算を実装する。
+- 固定軸・ローカル軸対応後のモデル検証（代表的なPMXモデルで肘やひざが正しく回転するか手動で確認する）。
 
 物理エンジン統合 TODO
 - RigidBodyData と JointData を用いた剛体・ジョイント生成処理を実装する。

@@ -11,6 +11,7 @@ public static class IkManager
 {
     private static readonly Dictionary<int, IkBone> BonesDict = new();
     private static readonly Dictionary<int, (IIkSolver Solver, IkBone[] Chain, IkLink[] Links, int Iterations)> Solvers = new();
+    private static readonly Dictionary<int, Vector3> FixedAxes = new();
 
     // レンダラーから提供される各種処理を委譲用デリゲートとして保持
     public static System.Func<float, float, int>? PickFunc { get; set; }
@@ -33,6 +34,11 @@ public static class IkManager
     public static void LoadPmxIkBones(IReadOnlyList<BoneData> modelBones)
     {
         Clear();
+        for (int i = 0; i < modelBones.Count; i++)
+        {
+            if (modelBones[i].HasFixedAxis)
+                FixedAxes[i] = Vector3.Normalize(modelBones[i].FixedAxis);
+        }
         for (int i = 0; i < modelBones.Count; i++)
         {
             var ik = modelBones[i].Ik;
@@ -218,6 +224,8 @@ public static class IkManager
             {
                 var localRot = parentRot == Quaternion.Identity ? b.Rotation : Quaternion.Inverse(parentRot) * b.Rotation;
                 var delta = Quaternion.Inverse(b.BaseRotation) * localRot;
+                if (FixedAxes.TryGetValue(b.PmxBoneIndex, out var axis))
+                    delta = ProjectRotation(delta, axis);
                 if (SetBoneRotation != null)
                     SetBoneRotation(b.PmxBoneIndex, delta.ToEulerDegrees().ToOpenTK());
                 parentRot = b.Rotation;
@@ -262,7 +270,21 @@ public static class IkManager
         ReleaseSelection();
         BonesDict.Clear();
         Solvers.Clear();
+        FixedAxes.Clear();
         Trace.WriteLine($"IkManager.Clear: SelectedBoneIndex={_selectedBoneIndex} Bones={BonesDict.Count}");
+    }
+
+    private static Quaternion ProjectRotation(Quaternion q, Vector3 axis)
+    {
+        axis = Vector3.Normalize(axis);
+        if (axis == Vector3.Zero)
+            return Quaternion.Identity;
+        q = Quaternion.Normalize(q);
+        float angle = 2f * MathF.Acos(q.W);
+        float s = MathF.Sqrt(MathF.Max(1f - q.W * q.W, 0f));
+        Vector3 qAxis = s < 1e-6f ? axis : new Vector3(q.X / s, q.Y / s, q.Z / s);
+        float proj = Vector3.Dot(qAxis, axis);
+        return Quaternion.CreateFromAxisAngle(axis, angle * proj);
     }
 }
 
