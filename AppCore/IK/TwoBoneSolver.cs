@@ -1,6 +1,5 @@
 using System.Numerics;
 using MiniMikuDance.Import;
-using MiniMikuDance.Util;
 
 namespace MiniMikuDance.IK;
 
@@ -98,11 +97,44 @@ public class TwoBoneSolver : IIkSolver
     private static void ClampRotation(IkBone[] chain, int index, IkLink link)
     {
         var parent = index > 0 ? chain[index - 1].Rotation : Quaternion.Identity;
-        var local = Quaternion.Inverse(parent) * chain[index].Rotation;
-        var euler = local.ToEulerDegrees() * (MathF.PI / 180f);
-        var clamped = Vector3.Clamp(euler, link.MinAngle, link.MaxAngle);
-        var deg = clamped * (180f / MathF.PI);
-        chain[index].Rotation = parent * deg.FromEulerDegrees();
+        var local = Quaternion.Normalize(Quaternion.Inverse(parent) * chain[index].Rotation);
+
+        float angle = 2f * MathF.Acos(Math.Clamp(local.W, -1f, 1f));
+        var s = MathF.Sqrt(1f - local.W * local.W);
+        Vector3 axis;
+        if (s < Epsilon)
+            axis = new Vector3(1f, 0f, 0f);
+        else
+            axis = new Vector3(local.X, local.Y, local.Z) / s;
+        if (angle > MathF.PI)
+        {
+            angle -= 2f * MathF.PI;
+            axis = -axis;
+        }
+        var rot = axis * angle;
+
+        rot.X = ClampAxis(rot.X, link.MinAngle.X, link.MaxAngle.X);
+        rot.Y = ClampAxis(rot.Y, link.MinAngle.Y, link.MaxAngle.Y);
+        rot.Z = ClampAxis(rot.Z, link.MinAngle.Z, link.MaxAngle.Z);
+
+        var clampedAngle = rot.Length();
+        Quaternion clampedQuat = clampedAngle < Epsilon
+            ? Quaternion.Identity
+            : Quaternion.CreateFromAxisAngle(Vector3.Normalize(rot), clampedAngle);
+
+        chain[index].Rotation = parent * clampedQuat;
+    }
+
+    private static float ClampAxis(float angle, float min, float max)
+    {
+        return Math.Clamp(NormalizeAngle(angle), min, max);
+    }
+
+    private static float NormalizeAngle(float angle)
+    {
+        while (angle < -MathF.PI) angle += 2f * MathF.PI;
+        while (angle > MathF.PI) angle -= 2f * MathF.PI;
+        return angle;
     }
 }
 
