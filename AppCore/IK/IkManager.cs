@@ -193,8 +193,13 @@ public static class IkManager
 
             var root = chain[0];
             var deltaRoot = root.Position - root.BasePosition;
+            var deltaRot = root.Rotation * Quaternion.Inverse(root.BaseRotation);
             for (int i = 1; i < chain.Length; i++)
-                chain[i].Position = chain[i].BasePosition + deltaRoot;
+            {
+                var relative = chain[i].BasePosition - root.BasePosition;
+                relative = Vector3.Transform(relative, deltaRot);
+                chain[i].Position = root.BasePosition + deltaRoot + relative;
+            }
 
             var solveChain = chain[1..];
             var ikSolver = solver.Solver;
