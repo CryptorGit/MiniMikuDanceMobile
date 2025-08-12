@@ -854,14 +854,43 @@ void main(){
             var bone = _bones[i];
             System.Numerics.Vector3 euler = i < _boneRotations.Count ? _boneRotations[i].ToNumerics() : System.Numerics.Vector3.Zero;
             var rot = euler.FromEulerDegrees();
+            if (bone.HasFixedAxis)
+                rot = ProjectRotation(rot, bone.FixedAxis);
             System.Numerics.Vector3 trans = bone.Translation;
             if (i < _boneTranslations.Count)
                 trans += _boneTranslations[i].ToNumerics();
-            var local = System.Numerics.Matrix4x4.CreateFromQuaternion(bone.Rotation * rot) *
+            var rotMat = System.Numerics.Matrix4x4.CreateFromQuaternion(rot);
+            if (bone.HasLocalAxis)
+            {
+                var x = System.Numerics.Vector3.Normalize(bone.LocalAxisX);
+                var z = System.Numerics.Vector3.Normalize(bone.LocalAxisZ);
+                var y = System.Numerics.Vector3.Normalize(System.Numerics.Vector3.Cross(z, x));
+                var basis = new System.Numerics.Matrix4x4(
+                    x.X, x.Y, x.Z, 0f,
+                    y.X, y.Y, y.Z, 0f,
+                    z.X, z.Y, z.Z, 0f,
+                    0f, 0f, 0f, 1f);
+                rotMat = basis * rotMat * System.Numerics.Matrix4x4.Transpose(basis);
+            }
+            var local = System.Numerics.Matrix4x4.CreateFromQuaternion(bone.Rotation) *
+                        rotMat *
                         System.Numerics.Matrix4x4.CreateTranslation(trans);
             worldMats[i] = bone.Parent >= 0 ? local * worldMats[bone.Parent] : local;
         }
         return worldMats;
+    }
+
+    private static System.Numerics.Quaternion ProjectRotation(System.Numerics.Quaternion q, System.Numerics.Vector3 axis)
+    {
+        axis = System.Numerics.Vector3.Normalize(axis);
+        if (axis == System.Numerics.Vector3.Zero)
+            return System.Numerics.Quaternion.Identity;
+        q = System.Numerics.Quaternion.Normalize(q);
+        float angle = 2f * MathF.Acos(q.W);
+        float s = MathF.Sqrt(MathF.Max(1f - q.W * q.W, 0f));
+        System.Numerics.Vector3 qAxis = s < 1e-6f ? axis : new System.Numerics.Vector3(q.X / s, q.Y / s, q.Z / s);
+        float proj = System.Numerics.Vector3.Dot(qAxis, axis);
+        return System.Numerics.Quaternion.CreateFromAxisAngle(axis, angle * proj);
     }
 
     public void SetBoneTranslation(int index, Vector3 worldPos)
