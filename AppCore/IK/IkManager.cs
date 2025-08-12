@@ -88,7 +88,21 @@ public static class IkManager
         {
             float l1 = Vector3.Distance(solverChain[0].Position, solverChain[1].Position);
             float l2 = Vector3.Distance(solverChain[1].Position, solverChain[2].Position);
-            solver = new TwoBoneSolver(l1, l2);
+            var baseDir = solverChain[2].BasePosition - solverChain[0].BasePosition;
+            var basePole = solverChain[1].BasePosition - solverChain[0].BasePosition;
+            var baseNormal = Vector3.Cross(basePole, baseDir);
+            if (baseNormal.LengthSquared() < 1e-6f)
+            {
+                var rootRight = Vector3.Transform(Vector3.UnitX, solverChain[0].BaseRotation);
+                baseNormal = Vector3.Cross(rootRight, baseDir);
+            }
+            if (baseNormal.LengthSquared() < 1e-6f)
+            {
+                var rootForward = Vector3.Transform(Vector3.UnitZ, solverChain[0].BaseRotation);
+                baseNormal = Vector3.Cross(baseDir, rootForward);
+            }
+            baseNormal = Vector3.Normalize(baseNormal);
+            solver = new TwoBoneSolver(l1, l2, baseNormal);
         }
         else
         {
