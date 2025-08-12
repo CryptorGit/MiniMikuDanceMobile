@@ -1,7 +1,6 @@
 using System;
 using System.Linq;
 using System.Numerics;
-using System.Collections.Generic;
 using System.Runtime.InteropServices;
 using System.Buffers;
 using SixLabors.ImageSharp;
@@ -292,17 +291,17 @@ public class PoseEstimator : IDisposable
                 tempDir,
                 p => extractProgress?.Report(p));
 
-            var results = new List<JointData>(files.Length);
+            var results = new JointData[files.Length];
             for (int i = 0; i < files.Length; i++)
             {
                 using var image = await Image.LoadAsync<Rgb24>(files[i]);
                 var jd = SearchBest(image, meta.Key, dims, jointCount, true);
                 jd.Timestamp = i / 30f;
-                results.Add(jd);
+                results[i] = jd;
                 poseProgress?.Report((i + 1) / (float)files.Length);
             }
 
-            return results.ToArray();
+            return results;
         }
         finally
         {
