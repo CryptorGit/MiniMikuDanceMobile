@@ -46,6 +46,7 @@ public class PmxRenderer : IDisposable
         public Vector3[] VertexOffsets = Array.Empty<Vector3>();
         public Vector3[] Normals = Array.Empty<Vector3>();
         public Vector2[] TexCoords = Array.Empty<Vector2>();
+        public Vector2[] UvOffsets = Array.Empty<Vector2>();
         public Vector4[] JointIndices = Array.Empty<Vector4>();
         public Vector4[] JointWeights = Array.Empty<Vector4>();
         public Vector3[] SdefC = Array.Empty<Vector3>();
@@ -62,6 +63,7 @@ public class PmxRenderer : IDisposable
     private readonly List<int> _changedVerticesList = new();
     private Vector3[] _vertexTotalOffsets = Array.Empty<Vector3>();
     private List<(string MorphName, Vector3 Offset)>?[] _vertexMorphOffsets = Array.Empty<List<(string MorphName, Vector3 Offset)>?>();
+    private List<(string MorphName, System.Numerics.Vector4 Offset)>?[] _uvMorphOffsets = Array.Empty<List<(string MorphName, System.Numerics.Vector4 Offset)>?>();
     private string[] _morphIndexToName = Array.Empty<string>();
     private System.Numerics.Vector3[] _boneMorphTranslations = Array.Empty<System.Numerics.Vector3>();
     private System.Numerics.Quaternion[] _boneMorphRotations = Array.Empty<System.Numerics.Quaternion>();
@@ -137,6 +139,7 @@ public class PmxRenderer : IDisposable
     private readonly List<Vector3> _boneTranslations = new();
     private bool _bonesDirty;
     private bool _morphDirty;
+    private bool _uvMorphDirty;
     private List<MiniMikuDance.Import.BoneData> _bones = new();
     private readonly List<IkBone> _ikBones = new();
     private readonly object _ikBonesLock = new();
@@ -958,7 +961,29 @@ void main(){
                 _morphDirty = true;
                 break;
             case MorphType.UV:
-                // UV モーフは未対応
+                _uvMorphDirty = true;
+                foreach (var off in morph.Offsets)
+                {
+                    int vid = off.Index;
+                    System.Numerics.Vector2 total = System.Numerics.Vector2.Zero;
+                    var contribs = _uvMorphOffsets[vid];
+                    if (contribs != null)
+                    {
+                        foreach (var (mName, vec) in contribs)
+                        {
+                            if (_morphValues.TryGetValue(mName, out var mv) && MathF.Abs(mv) >= 1e-5f)
+                                total += new System.Numerics.Vector2(vec.X, vec.Y) * mv;
+                        }
+                    }
+                    lock (_changedVerticesLock)
+                        _changedOriginalVertices.Add(vid);
+                    var list = _morphVertexMap[vid];
+                    if (list != null)
+                    {
+                        foreach (var (mesh, idx) in list)
+                            mesh.UvOffsets[idx] = new Vector2(total.X, total.Y);
+                    }
+                }
                 break;
             default:
                 break;
@@ -1074,6 +1099,7 @@ void main(){
 
             int texCount = sm.TexCoords.Count;
             rm.TexCoords = new Vector2[texCount];
+            rm.UvOffsets = new Vector2[texCount];
             for (int i = 0; i < texCount; i++)
             {
                 var t = sm.TexCoords[i];
@@ -1182,6 +1208,7 @@ void main(){
         _morphVertexMap = new List<(RenderMesh Mesh, int Index)>?[totalVertices];
         _vertexTotalOffsets = new Vector3[totalVertices];
         _vertexMorphOffsets = new List<(string MorphName, Vector3 Offset)>?[totalVertices];
+        _uvMorphOffsets = new List<(string MorphName, System.Numerics.Vector4 Offset)>?[totalVertices];
         _morphIndexToName = new string[data.Morphs.Count];
         foreach (var morph in data.Morphs)
         {
@@ -1221,6 +1248,22 @@ void main(){
                 {
                     list = new List<(string MorphName, Vector3 Offset)>();
                     _vertexMorphOffsets[off.Index] = list;
+                }
+                list.Add((mName, vec));
+            }
+        }
+
+        foreach (var (mName, mData) in _morphs)
+        {
+            if (mData.Type != MorphType.UV) continue;
+            foreach (var off in mData.Offsets)
+            {
+                var vec = off.Uv.Offset;
+                var list = _uvMorphOffsets[off.Index];
+                if (list == null)
+                {
+                    list = new List<(string MorphName, System.Numerics.Vector4 Offset)>();
+                    _uvMorphOffsets[off.Index] = list;
                 }
                 list.Add((mName, vec));
             }
@@ -1390,9 +1433,9 @@ void main(){
         }
         var modelMat = ModelTransform;
 
-        bool needsUpdate = _bonesDirty || _morphDirty;
+        bool needsUpdate = _bonesDirty || _morphDirty || _uvMorphDirty;
         List<int>? changedVerts = null;
-        if (_morphDirty)
+        if (_morphDirty || _uvMorphDirty)
         {
             lock (_changedVerticesLock)
             {
@@ -1505,8 +1548,11 @@ void main(){
                         _tmpVertexBuffer[vi * 8 + 5] = norm.Z;
                         if (vi < rm.TexCoords.Length)
                         {
-                            _tmpVertexBuffer[vi * 8 + 6] = rm.TexCoords[vi].X;
-                            _tmpVertexBuffer[vi * 8 + 7] = rm.TexCoords[vi].Y;
+                            var uv = rm.TexCoords[vi];
+                            if (vi < rm.UvOffsets.Length)
+                                uv += rm.UvOffsets[vi];
+                            _tmpVertexBuffer[vi * 8 + 6] = uv.X;
+                            _tmpVertexBuffer[vi * 8 + 7] = uv.Y;
                         }
                         else
                         {
@@ -1526,7 +1572,7 @@ void main(){
                     }
                 }
             }
-            else if (_morphDirty && changedVerts != null)
+            else if ((_morphDirty || _uvMorphDirty) && changedVerts != null)
             {
                 var small = new float[8];
                 var handleSmall = System.Runtime.InteropServices.GCHandle.Alloc(small, System.Runtime.InteropServices.GCHandleType.Pinned);
@@ -1569,7 +1615,12 @@ void main(){
                             small[0] = pos.X; small[1] = pos.Y; small[2] = pos.Z;
                             small[3] = norm.X; small[4] = norm.Y; small[5] = norm.Z;
                             if (vi < rm.TexCoords.Length)
-                            { small[6] = rm.TexCoords[vi].X; small[7] = rm.TexCoords[vi].Y; }
+                            {
+                                var uv = rm.TexCoords[vi];
+                                if (vi < rm.UvOffsets.Length)
+                                    uv += rm.UvOffsets[vi];
+                                small[6] = uv.X; small[7] = uv.Y;
+                            }
                             else { small[6] = 0f; small[7] = 0f; }
 
                             GL.BindBuffer(BufferTarget.ArrayBuffer, rm.Vbo);
@@ -1620,6 +1671,7 @@ void main(){
 
             _bonesDirty = false;
             _morphDirty = false;
+            _uvMorphDirty = false;
         }
         else if (needsUpdate)
         {
@@ -1643,8 +1695,11 @@ void main(){
                     _tmpVertexBuffer[vi * 8 + 5] = nor.Z;
                     if (vi < rm.TexCoords.Length)
                     {
-                        _tmpVertexBuffer[vi * 8 + 6] = rm.TexCoords[vi].X;
-                        _tmpVertexBuffer[vi * 8 + 7] = rm.TexCoords[vi].Y;
+                        var uv = rm.TexCoords[vi];
+                        if (vi < rm.UvOffsets.Length)
+                            uv += rm.UvOffsets[vi];
+                        _tmpVertexBuffer[vi * 8 + 6] = uv.X;
+                        _tmpVertexBuffer[vi * 8 + 7] = uv.Y;
                     }
                     else
                     {
@@ -1664,6 +1719,7 @@ void main(){
                 }
             }
             _morphDirty = false;
+            _uvMorphDirty = false;
         }
 
         GL.UseProgram(_modelProgram);
