@@ -59,11 +59,18 @@ public class TwoBoneSolver : IIkSolver
             if (rotationLimit != 0f)
                 angle0 = Math.Clamp(angle0, -rotationLimit, rotationLimit);
 
-            var midPos = rootPos + dir * (System.MathF.Cos(angle0) * _length1) + planeTangent * (System.MathF.Sin(angle0) * _length1);
-            mid.Position = midPos;
+            var cos1 = (_length1 * _length1 + _length2 * _length2 - dist * dist) / (2 * _length1 * _length2);
+            var angle1 = MathF.Acos(Math.Clamp(cos1, -1f, 1f));
+            if (rotationLimit != 0f)
+                angle1 = Math.Clamp(angle1, -rotationLimit, rotationLimit);
+            var midDir = dir * System.MathF.Cos(angle0) + planeTangent * System.MathF.Sin(angle0);
+            var bendDir = dir * System.MathF.Cos(angle1) - planeTangent * System.MathF.Sin(angle1);
 
-            root.Rotation = LookRotation(midPos - rootPos, planeNormal);
-            mid.Rotation = LookRotation(target - midPos, planeNormal);
+            mid.Position = rootPos + midDir * _length1;
+            end.Position = mid.Position + bendDir * _length2;
+
+            root.Rotation = LookRotation(midDir, planeNormal);
+            mid.Rotation = LookRotation(bendDir, planeNormal);
         }
 
         end.Rotation = Quaternion.Identity;
