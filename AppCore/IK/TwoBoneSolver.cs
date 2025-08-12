@@ -43,8 +43,12 @@ public class TwoBoneSolver : IIkSolver
             var planeNormal = root.PoleVector;
             if (planeNormal.LengthSquared() < Epsilon)
             {
-                var cross = Vector3.Cross(dir, mid.Position - rootPos);
-                planeNormal = cross.LengthSquared() > Epsilon ? Vector3.Normalize(cross) : Vector3.UnitY;
+                planeNormal = root.DefaultPlaneNormal;
+                if (planeNormal.LengthSquared() < Epsilon)
+                {
+                    var cross = Vector3.Cross(dir, mid.Position - rootPos);
+                    planeNormal = cross.LengthSquared() > Epsilon ? Vector3.Normalize(cross) : Vector3.UnitY;
+                }
             }
             else
             {

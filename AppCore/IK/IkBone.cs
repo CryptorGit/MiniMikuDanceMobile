@@ -10,12 +10,13 @@ public class IkBone
     public Vector3 BasePosition { get; }
     public Vector3 BaseForward { get; }
     public Vector3 BaseUp { get; }
+    public Vector3 DefaultPlaneNormal { get; }
     public int PmxBoneIndex { get; }
     public bool IsSelected { get; set; }
     public Vector3 PoleVector { get; set; } = Vector3.Zero;
     public float RotationLimit { get; set; }
 
-    public IkBone(int pmxBoneIndex, Vector3 position, Quaternion baseRotation, Vector3 baseForward, Vector3 baseUp)
+    public IkBone(int pmxBoneIndex, Vector3 position, Quaternion baseRotation, Vector3 baseForward, Vector3 baseUp, Vector3 defaultPlaneNormal)
     {
         PmxBoneIndex = pmxBoneIndex;
         Position = position;
@@ -24,5 +25,6 @@ public class IkBone
         Rotation = baseRotation;
         BaseForward = baseForward;
         BaseUp = baseUp;
+        DefaultPlaneNormal = defaultPlaneNormal;
     }
 }

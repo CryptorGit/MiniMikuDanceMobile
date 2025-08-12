@@ -67,7 +67,12 @@ public static class IkManager
     private static void RegisterIkBone(int index, BoneData bRoot, IkInfo ik, IReadOnlyList<BoneData> modelBones)
     {
         var rootPos = Vector3.Transform(Vector3.Zero, bRoot.BindMatrix);
-        BonesDict[index] = new IkBone(index, rootPos, bRoot.Rotation, bRoot.BaseForward, bRoot.BaseUp)
+        var rootPlane = Vector3.Cross(bRoot.BaseForward, bRoot.BaseUp);
+        if (rootPlane.LengthSquared() > 1e-6f)
+            rootPlane = Vector3.Normalize(rootPlane);
+        else
+            rootPlane = Vector3.Zero;
+        BonesDict[index] = new IkBone(index, rootPos, bRoot.Rotation, bRoot.BaseForward, bRoot.BaseUp, rootPlane)
         {
             RotationLimit = ik.RotationLimit
         };
@@ -89,7 +94,12 @@ public static class IkManager
             var idx = chainIndices[j];
             var b = modelBones[idx];
             var pos = Vector3.Transform(Vector3.Zero, b.BindMatrix);
-            chain[j + 1] = new IkBone(idx, pos, b.Rotation, b.BaseForward, b.BaseUp)
+            var plane = Vector3.Cross(b.BaseForward, b.BaseUp);
+            if (plane.LengthSquared() > 1e-6f)
+                plane = Vector3.Normalize(plane);
+            else
+                plane = Vector3.Zero;
+            chain[j + 1] = new IkBone(idx, pos, b.Rotation, b.BaseForward, b.BaseUp, plane)
             {
                 RotationLimit = ik.RotationLimit
             };
