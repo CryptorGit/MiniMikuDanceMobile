@@ -100,6 +100,30 @@ public class ModelImporter : IDisposable
         }
     }
 
+    private static System.Numerics.Quaternion LookRotation(System.Numerics.Vector3 forward, System.Numerics.Vector3 up)
+    {
+        const float Eps = 1e-6f;
+        if (forward.LengthSquared() < Eps || up.LengthSquared() < Eps)
+            return System.Numerics.Quaternion.Identity;
+        forward = System.Numerics.Vector3.Normalize(forward);
+        var proj = System.Numerics.Vector3.Dot(up, forward);
+        up -= proj * forward;
+        if (up.LengthSquared() < Eps)
+            return System.Numerics.Quaternion.Identity;
+        up = System.Numerics.Vector3.Normalize(up);
+        var right = System.Numerics.Vector3.Cross(up, forward);
+        if (right.LengthSquared() < Eps)
+            return System.Numerics.Quaternion.Identity;
+        right = System.Numerics.Vector3.Normalize(right);
+        var newUp = System.Numerics.Vector3.Cross(forward, right);
+        var m = new System.Numerics.Matrix4x4(
+            right.X, right.Y, right.Z, 0f,
+            newUp.X, newUp.Y, newUp.Z, 0f,
+            forward.X, forward.Y, forward.Z, 0f,
+            0f, 0f, 0f, 1f);
+        return System.Numerics.Quaternion.CreateFromRotationMatrix(m);
+    }
+
     public void Dispose()
     {
         _context.Dispose();
@@ -195,7 +219,6 @@ public class ModelImporter : IDisposable
             {
                 Name = name,
                 Parent = b.ParentBone,
-                Rotation = System.Numerics.Quaternion.Identity,
                 Translation = pos,
                 BaseForward = System.Numerics.Vector3.UnitY,
                 BaseUp = System.Numerics.Vector3.UnitY
@@ -312,6 +335,7 @@ public class ModelImporter : IDisposable
 
             bd.BaseForward = forward;
             bd.BaseUp = up;
+            bd.Rotation = LookRotation(forward, up);
         }
 
         // Bind/InverseBind 行列を計算

@@ -193,12 +193,13 @@ public static class IkManager
 
             var root = chain[0];
             var deltaRoot = root.Position - root.BasePosition;
-            var deltaRot = root.Rotation * Quaternion.Inverse(root.BaseRotation);
+            var deltaRot = root.Rotation * root.BaseRotationInv;
             for (int i = 1; i < chain.Length; i++)
             {
                 var relative = chain[i].BasePosition - root.BasePosition;
                 relative = Vector3.Transform(relative, deltaRot);
                 chain[i].Position = root.BasePosition + deltaRoot + relative;
+                chain[i].Rotation = deltaRot * chain[i].BaseRotation;
             }
 
             var solveChain = chain[1..];
@@ -220,11 +221,11 @@ public static class IkManager
                 Trace.WriteLine("SetBoneTranslation delegate is null.");
             }
 
-            var parentRot = Quaternion.Identity;
+            var parentRot = chain[0].Rotation;
             foreach (var b in solveChain)
             {
-                var localRot = parentRot == Quaternion.Identity ? b.Rotation : Quaternion.Inverse(parentRot) * b.Rotation;
-                var delta = Quaternion.Inverse(b.BaseRotation) * localRot;
+                var localRot = Quaternion.Inverse(parentRot) * b.Rotation;
+                var delta = b.BaseRotationInv * localRot;
                 if (FixedAxes.TryGetValue(b.PmxBoneIndex, out var axis))
                     delta = ProjectRotation(delta, axis);
                 if (SetBoneRotation != null)

@@ -7,6 +7,7 @@ public class IkBone
     public Vector3 Position { get; set; }
     public Quaternion Rotation { get; set; }
     public Quaternion BaseRotation { get; }
+    public Quaternion BaseRotationInv { get; }
     public Vector3 BasePosition { get; }
     public Vector3 BaseForward { get; }
     public Vector3 BaseUp { get; }
@@ -23,6 +24,7 @@ public class IkBone
         Position = position;
         BasePosition = position;
         BaseRotation = baseRotation;
+        BaseRotationInv = Quaternion.Inverse(baseRotation);
         Rotation = baseRotation;
         BaseForward = baseForward;
         BaseUp = baseUp;
