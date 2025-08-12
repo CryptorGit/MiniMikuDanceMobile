@@ -16,7 +16,7 @@ public class TwoBoneSolver : IIkSolver
         _length2 = length2;
     }
 
-    public void Solve(IkBone[] chain, IkLink[] links, int iterations)
+    public void Solve(IkBone[] chain, IkLink[] links, int iterations, float rotationLimit = 0f)
     {
         if (chain.Length < 3)
             return;
@@ -56,6 +56,8 @@ public class TwoBoneSolver : IIkSolver
             var cos0 = (_length1 * _length1 + dist * dist - _length2 * _length2) / (2 * _length1 * dist);
             cos0 = System.Math.Clamp(cos0, -1f, 1f);
             var angle0 = System.MathF.Acos(cos0);
+            if (rotationLimit != 0f)
+                angle0 = Math.Clamp(angle0, -rotationLimit, rotationLimit);
 
             var midPos = rootPos + dir * (System.MathF.Cos(angle0) * _length1) + planeTangent * (System.MathF.Sin(angle0) * _length1);
             mid.Position = midPos;

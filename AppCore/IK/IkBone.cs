@@ -13,6 +13,7 @@ public class IkBone
     public int PmxBoneIndex { get; }
     public bool IsSelected { get; set; }
     public Vector3 PoleVector { get; set; } = Vector3.Zero;
+    public float RotationLimit { get; set; }
 
     public IkBone(int pmxBoneIndex, Vector3 position, Quaternion baseRotation, Vector3 baseForward, Vector3 baseUp)
     {

@@ -83,6 +83,8 @@ IK 実装の現状調査メモと改善 TODO
 
 10) PMX の IKRotationLimit の活用
    - Import で値を保持しているが、ソルバでは未使用。回転制限として反映する処理を追加。
+   - RotationLimit が `0` の場合は回転制限を適用しない。非 `0` の場合は反復ごとの回転角度を `±RotationLimit` に Clamp する。
+   - 検証手順: 足IKなどで RotationLimit を変更し、制限値の有無で動作が変化することを手動で確認する。
 
 安全に進めるための段階的実装順（提案）
 1. `IkInfo` を拡張して IKLink の角度制限を保持（読み込みのみ）。
