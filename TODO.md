@@ -74,7 +74,7 @@ IK 実装の現状調査メモと改善 TODO
    - `IkManager.UpdateTarget` で `SetBoneTranslation` を即時呼ぶのではなく、解結果に応じて最後に反映 or ハンドル用ボーンを別管理。
 
 8) Import 時に基準軸を保持
-   - `BoneData`/`IkBone` に初期 `BaseForward`/`BaseUp` を保持（`BaseUp` は導入済み。`BaseForward` は未実装で、`BindMatrix` の親子差分から算出可）。
+   - `BoneData`/`IkBone` に初期 `BaseForward`/`BaseUp` を保持済み。子ボーンが存在しないボーンなど、適切な軸が得られないケースの調整が今後の課題。
    - ソルバ後の回転構築に使用し、ねじれを抑制。
 
 9) デバッグ支援

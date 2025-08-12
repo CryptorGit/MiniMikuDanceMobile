@@ -62,13 +62,36 @@ public class FabrikSolver : IIkSolver
         for (int i = 0; i < chain.Length - 1; i++)
         {
             var forward = chain[i + 1].Position - chain[i].Position;
+            var baseForward = Vector3.Transform(chain[i].BaseForward, prevRot);
+            var rotDelta = FromToRotation(baseForward, forward);
             var up = Vector3.Transform(chain[i].BaseUp, prevRot);
+            up = Vector3.Transform(up, rotDelta);
             chain[i].Rotation = LookRotation(forward, up);
             if (i < links.Length && links[i].HasLimit)
                 ClampRotation(chain, i, links[i]);
             prevRot = chain[i].Rotation;
         }
         chain[^1].Rotation = prevRot;
+    }
+
+    private static Quaternion FromToRotation(Vector3 from, Vector3 to)
+    {
+        var f = from.LengthSquared() > Epsilon ? Vector3.Normalize(from) : Vector3.UnitZ;
+        var t = to.LengthSquared() > Epsilon ? Vector3.Normalize(to) : Vector3.UnitZ;
+        var dot = Vector3.Dot(f, t);
+        if (dot > 1f - Epsilon)
+            return Quaternion.Identity;
+        if (dot < -1f + Epsilon)
+        {
+            var axis = Vector3.Cross(Vector3.UnitX, f);
+            if (axis.LengthSquared() < Epsilon)
+                axis = Vector3.Cross(Vector3.UnitY, f);
+            axis = Vector3.Normalize(axis);
+            return Quaternion.CreateFromAxisAngle(axis, MathF.PI);
+        }
+        var axisCross = Vector3.Cross(f, t);
+        var angle = MathF.Acos(Math.Clamp(dot, -1f, 1f));
+        return Quaternion.CreateFromAxisAngle(Vector3.Normalize(axisCross), angle);
     }
 
     private static Quaternion LookRotation(Vector3 forward, Vector3 up)
