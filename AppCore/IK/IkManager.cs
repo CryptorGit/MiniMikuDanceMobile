@@ -280,8 +280,9 @@ public static class IkManager
         if (axis == Vector3.Zero)
             return Quaternion.Identity;
         q = Quaternion.Normalize(q);
-        float angle = 2f * MathF.Acos(q.W);
-        float s = MathF.Sqrt(MathF.Max(1f - q.W * q.W, 0f));
+        var w = Math.Clamp(q.W, -1f, 1f);
+        float angle = 2f * MathF.Acos(w);
+        float s = MathF.Sqrt(MathF.Max(1f - w * w, 0f));
         Vector3 qAxis = s < 1e-6f ? axis : new Vector3(q.X / s, q.Y / s, q.Z / s);
         float proj = Vector3.Dot(qAxis, axis);
         return Quaternion.CreateFromAxisAngle(axis, angle * proj);
