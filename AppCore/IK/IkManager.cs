@@ -84,6 +84,8 @@ public static class IkManager
         }
 
         var solverChain = chain[1..];
+        if (ik.PoleVector != Vector3.Zero && solverChain.Length > 0)
+            solverChain[0].PoleVector = ik.PoleVector;
         IIkSolver solver;
         if (solverChain.Length == 3)
         {
