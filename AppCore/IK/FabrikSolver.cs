@@ -86,6 +86,7 @@ public class FabrikSolver : IIkSolver
             return Quaternion.Identity;
         right = Vector3.Normalize(right);
         var newUp = Vector3.Cross(forward, right);
+        IkDebug.LogAxes(forward, newUp, right);
         var m = new Matrix4x4(
             right.X, right.Y, right.Z, 0,
             newUp.X, newUp.Y, newUp.Z, 0,
