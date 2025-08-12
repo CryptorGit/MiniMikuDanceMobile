@@ -65,11 +65,11 @@ public static class IkManager
 
         var chainIndices = new List<int>(ik.Links.Count + 1);
         var ikLinks = new IkLink[ik.Links.Count];
-        for (int j = ik.Links.Count - 1, k = 0; j >= 0; j--, k++)
+        for (int j = 0; j < ik.Links.Count; j++)
         {
             var link = ik.Links[j];
             chainIndices.Add(link.BoneIndex);
-            ikLinks[k] = link;
+            ikLinks[j] = link;
         }
         chainIndices.Add(ik.Target);
 
@@ -208,6 +208,7 @@ public static class IkManager
             var solveChain = chain[1..];
             var ikSolver = solver.Solver;
             solveChain[^1].Position = position;
+            ClampChainRotations(solveChain, links, chain[0].Rotation);
             ikSolver.Solve(solveChain, links, iterations);
             var parentRot = Quaternion.Identity;
             foreach (var b in solveChain)
@@ -223,6 +224,25 @@ public static class IkManager
         catch (Exception ex)
         {
             Trace.WriteLine($"UpdateTarget exception: {ex}");
+        }
+    }
+
+    private static void ClampChainRotations(IkBone[] chain, IkLink[] links, Quaternion rootRot)
+    {
+        var parent = rootRot;
+        for (int i = 0; i < links.Length && i < chain.Length - 1; i++)
+        {
+            var link = links[i];
+            var bone = chain[i];
+            if (link.HasLimit)
+            {
+                var local = Quaternion.Inverse(parent) * bone.Rotation;
+                var euler = local.ToEulerDegrees() * (MathF.PI / 180f);
+                var clamped = Vector3.Clamp(euler, link.MinAngle, link.MaxAngle);
+                var deg = clamped * (180f / MathF.PI);
+                bone.Rotation = parent * deg.FromEulerDegrees();
+            }
+            parent = bone.Rotation;
         }
     }
 
