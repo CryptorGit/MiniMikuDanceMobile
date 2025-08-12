@@ -3,6 +3,7 @@ using System;
 using System.IO;
 using System.Collections.Generic;
 using System.Buffers;
+using System.Numerics;
 using SixLabors.ImageSharp;
 using SixLabors.ImageSharp.PixelFormats;
 using Vector3D = Assimp.Vector3D;
@@ -217,7 +218,21 @@ public class ModelImporter : IDisposable
             {
                 var ik = new IkInfo { Target = b.IKTarget };
                 foreach (var link in b.IKLinks.ToArray())
+                {
                     ik.Chain.Add(link.Bone);
+                    if (link.IsEnableAngleLimited)
+                    {
+                        var ll = link.MinLimit;
+                        var ul = link.MaxLimit;
+                        ik.LowerLimits.Add(new System.Numerics.Vector3(ll.X, ll.Y, ll.Z));
+                        ik.UpperLimits.Add(new System.Numerics.Vector3(ul.X, ul.Y, ul.Z));
+                    }
+                    else
+                    {
+                        ik.LowerLimits.Add(null);
+                        ik.UpperLimits.Add(null);
+                    }
+                }
                 bd.Ik = ik;
             }
             boneDatas.Add(bd);

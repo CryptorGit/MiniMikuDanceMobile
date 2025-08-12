@@ -10,6 +10,8 @@ public class IkBone
     public Vector3 BasePosition { get; }
     public int PmxBoneIndex { get; }
     public bool IsSelected { get; set; }
+    public Vector3? LowerLimit { get; set; }
+    public Vector3? UpperLimit { get; set; }
 
     public IkBone(int pmxBoneIndex, Vector3 position, Quaternion baseRotation)
     {
