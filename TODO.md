@@ -47,8 +47,8 @@ IK 実装の現状調査メモと改善 TODO
    - 代替として、前節点の回転（フレネフレーム）を引き継いでスムースにねじれを配分。
 
 3) LookRotation の見直し（右手系/左手系の統一）
-   - `right = Normalize(Cross(up, forward))`, `newUp = Cross(forward, right)` で統一する実装に差し替え、`WorldToModel/ModelToWorld` の Z 反転との整合を確認。
-   - 現行との差分は `TODO: 実装時に可視化（ボーン軸描画）で確認`。
+   - [済] `right = Normalize(Cross(up, forward))`, `newUp = Cross(forward, right)` に統一。
+   - 残課題: `WorldToModel/ModelToWorld` の Z 反転との整合を引き続き確認し、ライン描画などで可視化する。
 
 4) IKLink 角度制限の取り込みと拘束適用
    - `Import/ModelImporter` で `PMX IKLinks` の `LimitMin/Max` を読む。
