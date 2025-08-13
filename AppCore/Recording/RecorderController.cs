@@ -9,6 +9,7 @@ using System.Buffers;
 using SixLabors.ImageSharp;
 using SixLabors.ImageSharp.PixelFormats;
 using SixLabors.ImageSharp.Processing;
+using SixLabors.ImageSharp.Advanced;
 using SixLabors.ImageSharp.Formats.Png;
 
 namespace MiniMikuDance.Recording;
@@ -190,15 +191,12 @@ public class RecorderController : IDisposable
         }
         else
         {
-            image.ProcessPixelRows(accessor =>
+            for (int y = 0; y < height; y++)
             {
-                int offset = (height - 1) * width;
-                for (int y = 0; y < height; y++)
-                {
-                    source.Slice(offset, width).CopyTo(accessor.GetRowSpan(y));
-                    offset -= width;
-                }
-            });
+                var row = image.GetPixelRowSpan(y);
+                int offset = (height - 1 - y) * width;
+                source.Slice(offset, width).CopyTo(row);
+            }
         }
     }
 
@@ -224,4 +222,12 @@ public class RecorderController : IDisposable
     }
 
     public string GetSavedPath() => _savedDir;
+}
+
+static class ImageExtensionsCompat
+{
+    public static Span<Rgba32> GetPixelRowSpan(this Image<Rgba32> image, int y)
+    {
+        return image.DangerousGetPixelRowMemory(y).Span;
+    }
 }
