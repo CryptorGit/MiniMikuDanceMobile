@@ -83,6 +83,7 @@ public static class IkManager
             chainIndices.Add(link.BoneIndex);
             ikLinks[ik.Links.Count - 1 - j] = link;
         }
+        // chainIndicesにik.Targetが既に存在する場合は追加しない
         if (!chainIndices.Contains(ik.Target))
             chainIndices.Add(ik.Target);
 
