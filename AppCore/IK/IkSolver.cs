@@ -122,42 +122,56 @@ public class IkSolver : IIkSolver
     /// </summary>
     private void SolveFootIk(MmdModel model, FootIkChain chain)
     {
-        var ankleBone = model.Bones[chain.Ankle];
-        var anklePos = ankleBone.Translation;
-        var origin = anklePos + new Vector3(0, 0.5f, 0);
-        var direction = new Vector3(0, -1, 0);
+        var anklePos = model.Bones[chain.Ankle].Translation;
 
-        Vector3? hitPos = null;
-        Quaternion? hitRot = null;
+        const float sampleRadius = 0.05f;
+        const int sampleCount = 4;
+        var sumPos = Vector3.Zero;
+        var sumNormal = Vector3.Zero;
+        int hitCount = 0;
+        float maxOffsetY = 0f;
 
-        if (_physics.Raycast(origin, direction, 1.0f, out var hit) && hit.HasHit)
+        for (int i = 0; i < sampleCount; i++)
         {
-            hitPos = hit.Position;
-            var normal = Vector3.Normalize(hit.Normal);
-            var axis = Vector3.Cross(Vector3.UnitY, normal);
-            var axisLen = axis.Length();
-            if (axisLen > 1e-6f)
+            var angle = MathF.Tau * i / sampleCount;
+            var offset = new Vector3(MathF.Cos(angle), 0, MathF.Sin(angle)) * sampleRadius;
+            var origin = anklePos + offset + new Vector3(0, 0.5f, 0);
+            var direction = new Vector3(0, -1, 0);
+            if (_physics.Raycast(origin, direction, 1.0f, out var hit) && hit.HasHit)
             {
-                axis /= axisLen;
-                var angle = MathF.Acos(Math.Clamp(Vector3.Dot(Vector3.UnitY, normal), -1f, 1f));
-                hitRot = Quaternion.CreateFromAxisAngle(axis, angle);
-            }
-
-            var offsetY = hit.Position.Y - anklePos.Y;
-            if (offsetY > 0)
-            {
-                var root = model.Bones[0];
-                root.Translation += new Vector3(0, offsetY, 0);
-                anklePos.Y += offsetY;
+                sumPos += hit.Position;
+                sumNormal += Vector3.Normalize(hit.Normal);
+                hitCount++;
+                var offsetY = hit.Position.Y - anklePos.Y;
+                if (offsetY > maxOffsetY)
+                    maxOffsetY = offsetY;
             }
         }
 
-        if (hitPos.HasValue)
+        if (maxOffsetY > 0)
         {
+            var root = model.Bones[0];
+            root.Translation += new Vector3(0, maxOffsetY, 0);
+            anklePos.Y += maxOffsetY;
+        }
+
+        if (hitCount > 0)
+        {
+            var avgPos = sumPos / hitCount;
+            var avgNormal = Vector3.Normalize(sumNormal / hitCount);
+            var axis = Vector3.Cross(Vector3.UnitY, avgNormal);
+            var axisLen = axis.Length();
+            Quaternion hitRot = Quaternion.Identity;
+            if (axisLen > 1e-6f)
+            {
+                axis /= axisLen;
+                var angle = MathF.Acos(Math.Clamp(Vector3.Dot(Vector3.UnitY, avgNormal), -1f, 1f));
+                hitRot = Quaternion.CreateFromAxisAngle(axis, angle);
+            }
+
             var targetBone = model.Bones[chain.Target];
-            targetBone.Translation = hitPos.Value;
-            if (hitRot.HasValue)
-                targetBone.Rotation = hitRot.Value;
+            targetBone.Translation = avgPos;
+            targetBone.Rotation = hitRot;
         }
 
         SolveCcdChain(model, chain);
