@@ -46,7 +46,25 @@ public class PoseEstimator : IDisposable
     {
         if (File.Exists(modelPath))
         {
-            _session = new InferenceSession(modelPath);
+            try
+            {
+                _session = new InferenceSession(modelPath);
+            }
+            catch (Exception ex)
+            {
+                _session = null;
+                var msg = $"Pose estimation model load failed: {ex.Message}";
+                try
+                {
+                    var logService = Type.GetType("MiniMikuDanceMaui.LogService");
+                    logService?.GetMethod("WriteLine", new[] { typeof(string) })?.Invoke(null, new object[] { msg });
+                }
+                catch
+                {
+                    // ignore logging failures
+                }
+                System.Diagnostics.Debug.WriteLine(msg);
+            }
         }
         else
         {
