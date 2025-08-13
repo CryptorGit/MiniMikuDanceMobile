@@ -1,3 +1,4 @@
+using System;
 using System.Numerics;
 using MiniMikuDance.Data;
 using MiniMikuDance.Physix;
@@ -34,19 +35,79 @@ public class IkSolver : IIkSolver
     /// <inheritdoc />
     public void Solve(MmdModel model)
     {
-        // TODO: model.IkChains を走査し SolveCcdChain を適用する
-        // TODO: model.FootIkChains を走査し SolveFootIk を適用する
+        foreach (var chain in model.IkChains)
+            SolveCcdChain(chain);
+
+        foreach (var chain in model.FootIkChains)
+            SolveFootIk(model, chain);
     }
 
     /// <summary>
     /// CCD法で単一のIKチェーンを解決する。
     /// 到達不能な場合は胸部方向へチェーンを一時拡張して再試行する。
     /// </summary>
-    private void SolveCcdChain()
+    private void SolveCcdChain(IkChain chain)
     {
-        // TODO: CCDアルゴリズム実装
-        // 1. 末端から順にボーンを回転させターゲットに近づける
-        // 2. 収束しない場合は親方向へチェーンを拡張し追加反復する
+        var bones = chain.Bones;
+        if (bones.Length == 0)
+            return;
+
+        var target = chain.Target;
+        float thresholdSq = chain.Threshold * chain.Threshold;
+
+        for (int iter = 0; iter < chain.MaxIterations; iter++)
+        {
+            var endEffector = bones[^1];
+            if (Vector3.DistanceSquared(endEffector.Position, target) <= thresholdSq)
+                return;
+
+            for (int i = bones.Length - 2; i >= 0; i--)
+            {
+                var joint = bones[i];
+                var toEnd = bones[^1].Position - joint.Position;
+                var toTarget = target - joint.Position;
+
+                if (toEnd.LengthSquared() < 1e-8f || toTarget.LengthSquared() < 1e-8f)
+                    continue;
+
+                toEnd = Vector3.Normalize(toEnd);
+                toTarget = Vector3.Normalize(toTarget);
+
+                var axis = Vector3.Cross(toEnd, toTarget);
+                if (axis.LengthSquared() < 1e-8f)
+                    continue;
+                axis = Vector3.Normalize(axis);
+
+                var dot = Vector3.Dot(toEnd, toTarget);
+                dot = Math.Clamp(dot, -1f, 1f);
+                var angle = MathF.Acos(dot);
+                if (joint.RotationLimit > 0)
+                    angle = MathF.Min(angle, joint.RotationLimit);
+
+                var rot = Quaternion.CreateFromAxisAngle(axis, angle);
+                joint.Rotation = Quaternion.Normalize(rot * joint.Rotation);
+
+                for (int j = i + 1; j < bones.Length; j++)
+                {
+                    var child = bones[j];
+                    var rel = child.Position - joint.Position;
+                    rel = Vector3.Transform(rel, rot);
+                    child.Position = joint.Position + rel;
+                }
+            }
+        }
+
+        if (Vector3.DistanceSquared(bones[^1].Position, target) > thresholdSq && chain.ChestBone != null)
+        {
+            var extended = new IkChain(
+                new[] { chain.ChestBone }.Concat(bones).ToArray(),
+                target)
+            {
+                MaxIterations = chain.MaxIterations,
+                Threshold = chain.Threshold
+            };
+            SolveCcdChain(extended);
+        }
     }
 
     /// <summary>
@@ -54,11 +115,27 @@ public class IkSolver : IIkSolver
     /// 足首の位置から地面へレイキャストし、ターゲットを補正した上で CCD を適用する。
     /// 必要に応じてルートボーンを上方へ補正する。
     /// </summary>
-    private void SolveFootIk()
+    private void SolveFootIk(MmdModel model, IkChain chain)
     {
-        // TODO: 足首位置レイキャスト → ターゲット調整 → CCD解 → ルート補正
-        // 例:
-        // var origin = anklePos + new Vector3(0, 0.5f, 0);
-        // if (_physics.Raycast(origin, new Vector3(0, -1, 0), 1.0f, out var hit)) { ... }
+        var ankle = chain.Bones[^1];
+        var anklePos = ankle.Position;
+        var origin = anklePos + new Vector3(0, 0.5f, 0);
+
+        if (_physics.Raycast(origin, new Vector3(0, -1, 0), 1.0f, out var hit) && hit.HasHit)
+        {
+            chain.Target = hit.Position;
+            if (model.RootBone != null)
+            {
+                float delta = hit.Position.Y - anklePos.Y;
+                if (delta > 0)
+                    model.RootBone.Position += new Vector3(0, delta, 0);
+            }
+        }
+        else
+        {
+            chain.Target = anklePos;
+        }
+
+        SolveCcdChain(chain);
     }
 }
