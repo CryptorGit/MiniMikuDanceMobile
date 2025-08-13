@@ -19,11 +19,11 @@ public static class LogService
     private static readonly object _historyLock = new();
     private static string[]? _historySnapshot;
     private static bool _historyChanged = true;
-    private static readonly string _logFilePath;
-    private static readonly string _logDirectory;
-    private static readonly string _terminalLogFilePath;
-    private static readonly StreamWriter _logWriter;
-    private static readonly StreamWriter _terminalLogWriter;
+    private static string? _logFilePath;
+    private static string? _logDirectory;
+    private static string? _terminalLogFilePath;
+    private static StreamWriter? _logWriter;
+    private static StreamWriter? _terminalLogWriter;
     private static readonly Task _processingTask;
     private static bool _isShutdown;
     private static readonly Channel<string> _logChannel = Channel.CreateBounded<string>(
@@ -34,18 +34,11 @@ public static class LogService
             SingleWriter = false,
         });
     private static StringBuilder? _builder;
+    private static readonly object _initLock = new();
 
     static LogService()
     {
-        _logDirectory = Path.Combine(FileSystem.AppDataDirectory, "MikuMikuDance", "data", "Log");
-        Directory.CreateDirectory(_logDirectory);
-        _logFilePath = Path.Combine(_logDirectory, "log.txt");
-
-        var externalDir = MmdFileSystem.Ensure("Log");
-        _terminalLogFilePath = Path.Combine(externalDir, "tarminalLog.txt");
-
-        _logWriter = new StreamWriter(_logFilePath, append: true, Encoding.UTF8);
-        _terminalLogWriter = new StreamWriter(_terminalLogFilePath, append: true, Encoding.UTF8);
+        TryInitializeWriters();
 
         AppDomain.CurrentDomain.ProcessExit += (_, _) => Shutdown();
 
@@ -83,7 +76,15 @@ public static class LogService
             _historyChanged = true;
         }
         LineLogged?.Invoke(line);
-        _logChannel.Writer.TryWrite(line);
+        if (_logWriter == null && _terminalLogWriter == null)
+        {
+            TryInitializeWriters();
+        }
+
+        if (_logWriter != null || _terminalLogWriter != null)
+        {
+            _logChannel.Writer.TryWrite(line);
+        }
     }
 
     public static void WriteLine(string message)
@@ -137,27 +138,94 @@ public static class LogService
                 continue;
             }
 
-            try
+            if (_logWriter != null)
             {
-                await _logWriter.WriteAsync(text);
-                await _logWriter.FlushAsync();
+                try
+                {
+                    await _logWriter.WriteAsync(text);
+                    await _logWriter.FlushAsync();
+                }
+                catch (Exception ex)
+                {
+                    System.Diagnostics.Debug.WriteLine($"Error writing to log file: {ex.Message}");
+                }
             }
-            catch (Exception ex)
+            if (_terminalLogWriter != null)
             {
-                System.Diagnostics.Debug.WriteLine($"Error writing to log file: {ex.Message}");
-            }
-            try
-            {
-                await _terminalLogWriter.WriteAsync(text);
-                await _terminalLogWriter.FlushAsync();
-            }
-            catch
-            {
-                // ignore logging failures to external file
+                try
+                {
+                    await _terminalLogWriter.WriteAsync(text);
+                    await _terminalLogWriter.FlushAsync();
+                }
+                catch
+                {
+                    // ignore logging failures to external file
+                }
             }
         }
 
-        _logWriter.Dispose();
-        _terminalLogWriter.Dispose();
+        _logWriter?.Dispose();
+        _terminalLogWriter?.Dispose();
+    }
+
+    private static void TryInitializeWriters()
+    {
+        lock (_initLock)
+        {
+            if (_logWriter != null || _terminalLogWriter != null)
+            {
+                return;
+            }
+
+            try
+            {
+                _logDirectory = Path.Combine(FileSystem.AppDataDirectory, "MikuMikuDance", "data", "Log");
+                Directory.CreateDirectory(_logDirectory);
+                _logFilePath = Path.Combine(_logDirectory, "log.txt");
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"LogService: failed to create log directory: {ex.Message}");
+                _logDirectory = null;
+                _logFilePath = null;
+            }
+
+            try
+            {
+                var externalDir = MmdFileSystem.Ensure("Log");
+                _terminalLogFilePath = Path.Combine(externalDir, "tarminalLog.txt");
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"LogService: failed to create external log directory: {ex.Message}");
+                _terminalLogFilePath = null;
+            }
+
+            try
+            {
+                if (_logFilePath != null)
+                {
+                    _logWriter = new StreamWriter(_logFilePath, append: true, Encoding.UTF8);
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"LogService: failed to open log file: {ex.Message}");
+                _logWriter = null;
+            }
+
+            try
+            {
+                if (_terminalLogFilePath != null)
+                {
+                    _terminalLogWriter = new StreamWriter(_terminalLogFilePath, append: true, Encoding.UTF8);
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"LogService: failed to open terminal log file: {ex.Message}");
+                _terminalLogWriter = null;
+            }
+        }
     }
 }
