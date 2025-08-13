@@ -77,7 +77,7 @@ public class TwoBoneSolver : IIkSolver
 
         root.Rotation = IkMath.LookRotation(midDir, planeNormal);
         mid.Rotation = IkMath.LookRotation(bendDir, planeNormal);
-        end.Rotation = IkMath.LookRotation(bendDir, planeNormal);
+        end.Rotation = IkMath.LookRotation(dir, planeNormal);
 
         if (links.Length > 0 && links[0].HasLimit)
             RotationConstraints.ClampRotation(chain, 0, links[0]);
