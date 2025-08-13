@@ -68,7 +68,8 @@ public static class IkManager
     {
         var rootPos = Vector3.Transform(Vector3.Zero, bRoot.BindMatrix);
         float baseLimit = ik.ControlWeight != 0f ? ik.ControlWeight : ik.RotationLimit;
-        BonesDict[index] = new IkBone(index, rootPos, bRoot.Rotation, bRoot.BaseForward, bRoot.BaseUp)
+        var rootRole = DetermineRole(bRoot.Name);
+        BonesDict[index] = new IkBone(index, bRoot.Name, rootRole, rootPos, bRoot.Rotation, bRoot.BaseForward, bRoot.BaseUp)
         {
             RotationLimit = baseLimit,
             PoleVector = ik.PoleVector
@@ -91,7 +92,8 @@ public static class IkManager
             var idx = chainIndices[j];
             var b = modelBones[idx];
             var pos = Vector3.Transform(Vector3.Zero, b.BindMatrix);
-            chain[j + 1] = new IkBone(idx, pos, b.Rotation, b.BaseForward, b.BaseUp)
+            var role = DetermineRole(b.Name);
+            chain[j + 1] = new IkBone(idx, b.Name, role, pos, b.Rotation, b.BaseForward, b.BaseUp)
             {
                 RotationLimit = baseLimit
             };
@@ -280,6 +282,15 @@ public static class IkManager
         Solvers.Clear();
         FixedAxes.Clear();
         Trace.WriteLine($"IkManager.Clear: SelectedBoneIndex={_selectedBoneIndex} Bones={BonesDict.Count}");
+    }
+
+    private static BoneRole DetermineRole(string name)
+    {
+        if (name.Contains("足首", StringComparison.Ordinal))
+            return BoneRole.Ankle;
+        if (name.Contains("ひざ", StringComparison.Ordinal) || name.Contains("膝", StringComparison.Ordinal))
+            return BoneRole.Knee;
+        return BoneRole.None;
     }
 
     private static Quaternion ProjectRotation(Quaternion q, Vector3 axis)
