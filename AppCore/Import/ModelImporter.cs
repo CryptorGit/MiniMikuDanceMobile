@@ -10,6 +10,7 @@ using Vector3D = Assimp.Vector3D;
 using MMDTools;
 using MiniMikuDance.App;
 using MiniMikuDance.Data;
+using System.Numerics;
 
 namespace MiniMikuDance.Import;
 
@@ -522,6 +523,24 @@ public class ModelImporter : IDisposable, IImporter
         }
         data.RigidBodies = rigidBodyDatas;
 
+        System.Numerics.Vector3 GetVector3(Type t, object src, bool applyScale, params string[] names)
+        {
+            foreach (var n in names)
+            {
+                var prop = t.GetProperty(n);
+                if (prop == null) continue;
+                var val = prop.GetValue(src);
+                if (val == null) continue;
+                var vt = val.GetType();
+                float x = Convert.ToSingle(vt.GetProperty("X")?.GetValue(val) ?? 0f);
+                float y = Convert.ToSingle(vt.GetProperty("Y")?.GetValue(val) ?? 0f);
+                float z = Convert.ToSingle(vt.GetProperty("Z")?.GetValue(val) ?? 0f);
+                var v = new System.Numerics.Vector3(x, y, z);
+                return applyScale ? v * Scale : v;
+            }
+            return System.Numerics.Vector3.Zero;
+        }
+
         var jointDatas = new List<JointData>(joints.Length);
         for (int i = 0; i < joints.Length; i++)
         {
@@ -532,7 +551,24 @@ public class ModelImporter : IDisposable, IImporter
             int rbB = type.GetProperty("RigidBodyB")?.GetValue(j) is object b ? Convert.ToInt32(b) : -1;
             if (rbB < 0) rbB = type.GetProperty("RigidBody2")?.GetValue(j) is object b1 ? Convert.ToInt32(b1) : -1;
             string name = string.IsNullOrEmpty(j.NameEnglish) ? j.Name : j.NameEnglish;
-            jointDatas.Add(new JointData { Name = name, RigidBodyA = rbA, RigidBodyB = rbB });
+            var ll = GetVector3(type, j, true, "PositionMinimum", "PositionMin");
+            var lu = GetVector3(type, j, true, "PositionMaximum", "PositionMax");
+            var ls = GetVector3(type, j, true, "SpringPosition", "PositionSpring");
+            var al = GetVector3(type, j, false, "RotationMinimum", "RotationMin");
+            var au = GetVector3(type, j, false, "RotationMaximum", "RotationMax");
+            var aspr = GetVector3(type, j, false, "SpringRotation", "RotationSpring");
+            jointDatas.Add(new JointData
+            {
+                Name = name,
+                RigidBodyA = rbA,
+                RigidBodyB = rbB,
+                LinearLowerLimit = ll,
+                LinearUpperLimit = lu,
+                LinearSpring = ls,
+                AngularLowerLimit = al,
+                AngularUpperLimit = au,
+                AngularSpring = aspr
+            });
         }
         data.Joints = jointDatas;
 
@@ -795,7 +831,13 @@ public class ModelImporter : IDisposable, IImporter
             {
                 Name = j.Name,
                 RigidBodyA = MmdModel.NormalizeIndex(j.RigidBodyA, rigidCount, logger),
-                RigidBodyB = MmdModel.NormalizeIndex(j.RigidBodyB, rigidCount, logger)
+                RigidBodyB = MmdModel.NormalizeIndex(j.RigidBodyB, rigidCount, logger),
+                LinearLowerLimit = j.LinearLowerLimit,
+                LinearUpperLimit = j.LinearUpperLimit,
+                LinearSpring = j.LinearSpring,
+                AngularLowerLimit = j.AngularLowerLimit,
+                AngularUpperLimit = j.AngularUpperLimit,
+                AngularSpring = j.AngularSpring
             };
             model.Joints.Add(jd);
         }
