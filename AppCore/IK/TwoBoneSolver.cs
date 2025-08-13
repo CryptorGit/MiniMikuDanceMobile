@@ -63,12 +63,14 @@ public class TwoBoneSolver : IIkSolver
 
         root.Rotation = LookRotation(midDir, planeNormal);
         mid.Rotation = LookRotation(bendDir, planeNormal);
+        end.Rotation = LookRotation(bendDir, planeNormal);
 
-        end.Rotation = Quaternion.Identity;
         if (links.Length > 0 && links[0].HasLimit)
             ClampRotation(chain, 0, links[0]);
         if (links.Length > 1 && links[1].HasLimit)
             ClampRotation(chain, 1, links[1]);
+        if (links.Length > 2 && links[2].HasLimit)
+            ClampRotation(chain, 2, links[2]);
         for (int i = 0; i < chain.Length; i++)
             ApplyRoleConstraint(chain, i);
     }
