@@ -333,16 +333,22 @@ public class ModelImporter : IDisposable
         data.Bones = boneDatas;
 
         // ヒューマノイドボーンのマッピング
-        foreach (var hb in MiniMikuDance.Import.HumanoidBones.StandardOrder)
+        for (int i = 0; i < boneDatas.Count; i++)
         {
-            for (int i = 0; i < boneDatas.Count; i++)
+            var name = boneDatas[i].Name;
+            if (HumanoidBones.BoneNameMap.TryGetValue(name, out var humanoid))
             {
-                if (boneDatas[i].Name.Equals(hb, StringComparison.OrdinalIgnoreCase))
+                if (!data.HumanoidBones.ContainsKey(humanoid))
                 {
-                    data.HumanoidBones[hb] = i;
-                    data.HumanoidBoneList.Add((hb, i));
-                    break;
+                    data.HumanoidBones[humanoid] = i;
                 }
+            }
+        }
+        foreach (var hb in HumanoidBones.StandardOrder)
+        {
+            if (data.HumanoidBones.TryGetValue(hb, out var idx))
+            {
+                data.HumanoidBoneList.Add((hb, idx));
             }
         }
         var morphDatas = new List<MorphData>(morphs.Length);
@@ -499,7 +505,7 @@ public class ModelImporter : IDisposable
 
         data.Mesh = combined;
         int faceOffset = 0;
-        string dir = textureDir ?? string.Empty;
+        string baseDir = string.IsNullOrEmpty(textureDir) ? Environment.CurrentDirectory : textureDir;
         foreach (var mat in mats)
         {
             var sub = new Assimp.Mesh("pmx", Assimp.PrimitiveType.Triangle);
@@ -575,12 +581,11 @@ public class ModelImporter : IDisposable
                 sub.Faces.Add(face);
             }
 
-            if (!string.IsNullOrEmpty(dir) && mat.Texture >= 0 && mat.Texture < texList.Length)
+            if (mat.Texture >= 0 && mat.Texture < texList.Length)
             {
-                var texName = texList[mat.Texture]
-                    .Replace('\\', Path.DirectorySeparatorChar);
-                var texPath = Path.Combine(dir, texName);
-                smd.TextureFilePath = texName;
+                var texName = texList[mat.Texture].Replace('\\', Path.DirectorySeparatorChar);
+                var texPath = Path.GetFullPath(Path.Combine(baseDir, texName));
+                smd.TextureFilePath = Path.GetRelativePath(baseDir, texPath);
                 if (File.Exists(texPath))
                 {
                     CacheItem? item;

@@ -67,6 +67,10 @@ public class PmxRenderer : IDisposable
     private string[] _morphIndexToName = Array.Empty<string>();
     private System.Numerics.Vector3[] _boneMorphTranslations = Array.Empty<System.Numerics.Vector3>();
     private System.Numerics.Quaternion[] _boneMorphRotations = Array.Empty<System.Numerics.Quaternion>();
+    private List<RigidBodyData> _rigidBodies = new();
+    private List<JointData> _joints = new();
+    public IReadOnlyList<RigidBodyData> RigidBodies => _rigidBodies;
+    public IReadOnlyList<JointData> Joints => _joints;
     public SKGLView? Viewer { get; set; }
     private int _gridVao;
     private int _gridVbo;
@@ -1052,6 +1056,11 @@ void main(){
         _meshes.Clear();
         _indexToHumanoidName.Clear();
         _bones = data.Bones;
+        _rigidBodies = data.RigidBodies;
+        _joints = data.Joints;
+        ShadeShift = data.ShadeShift;
+        ShadeToony = data.ShadeToony;
+        RimIntensity = data.RimIntensity;
         _worldMats = new System.Numerics.Matrix4x4[_bones.Count];
         _skinMats = new System.Numerics.Matrix4x4[_bones.Count];
         foreach (var (name, idx) in data.HumanoidBoneList)
