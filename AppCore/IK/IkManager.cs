@@ -212,8 +212,35 @@ public static class IkManager
             solveChain[^1].Position = position;
             ClampChainRotations(solveChain, links, chain[0].Rotation);
             Func<int, float>? limitFunc = null;
-            if (chain[0].RotationLimit != 0f)
-                limitFunc = i => chain[0].RotationLimit * (i + 1);
+            bool hasLimit = chain[0].RotationLimit != 0f;
+            if (!hasLimit)
+            {
+                for (int i = 0; i < links.Length && !hasLimit; i++)
+                {
+                    if (links[i].RotationLimit != 0f)
+                        hasLimit = true;
+                }
+            }
+            if (!hasLimit)
+            {
+                for (int i = 0; i < solveChain.Length && !hasLimit; i++)
+                {
+                    if (solveChain[i].RotationLimit != 0f)
+                        hasLimit = true;
+                }
+            }
+            if (hasLimit)
+            {
+                limitFunc = i =>
+                {
+                    if (i < links.Length && links[i].RotationLimit != 0f)
+                        return links[i].RotationLimit;
+                    var limit = solveChain[i].RotationLimit;
+                    if (limit != 0f)
+                        return limit;
+                    return chain[0].RotationLimit;
+                };
+            }
             ikSolver.Solve(solveChain, links, iterations, limitFunc);
 
             if (SetBoneTranslation != null)

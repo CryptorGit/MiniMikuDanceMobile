@@ -42,4 +42,5 @@ public class IkLink
     public bool HasLimit { get; set; }
     public Vector3 MinAngle { get; set; } = Vector3.Zero;
     public Vector3 MaxAngle { get; set; } = Vector3.Zero;
+    public float RotationLimit { get; set; } = 0f;
 }
