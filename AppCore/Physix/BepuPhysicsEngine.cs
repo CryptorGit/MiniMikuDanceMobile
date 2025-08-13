@@ -20,7 +20,15 @@ public sealed class BepuPhysicsEngine : IPhysicsEngine, IDisposable
         _simulation?.Dispose();
         _simulation = Simulation.Create(SharedBufferPool, new NarrowPhaseCallbacks(),
             new PoseIntegratorCallbacks(new Vector3(0, -9.81f, 0)), new SolveDescription(8, 1));
-        // TODO: MmdModel から剛体・ジョイントを生成する
+        foreach (var _ in model.RigidBodies)
+        {
+            // TODO: 剛体生成
+        }
+
+        foreach (var _ in model.Joints)
+        {
+            // TODO: ジョイント生成
+        }
     }
 
     public void Step(float deltaTime)
