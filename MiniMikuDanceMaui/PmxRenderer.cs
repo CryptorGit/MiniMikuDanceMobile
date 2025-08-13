@@ -886,8 +886,9 @@ void main(){
         if (axis == System.Numerics.Vector3.Zero)
             return System.Numerics.Quaternion.Identity;
         q = System.Numerics.Quaternion.Normalize(q);
-        float angle = 2f * MathF.Acos(q.W);
-        float s = MathF.Sqrt(MathF.Max(1f - q.W * q.W, 0f));
+        var w = Math.Clamp(q.W, -1f, 1f);
+        float angle = 2f * MathF.Acos(w);
+        float s = MathF.Sqrt(MathF.Max(0f, 1f - w * w));
         System.Numerics.Vector3 qAxis = s < 1e-6f ? axis : new System.Numerics.Vector3(q.X / s, q.Y / s, q.Z / s);
         float proj = System.Numerics.Vector3.Dot(qAxis, axis);
         return System.Numerics.Quaternion.CreateFromAxisAngle(axis, angle * proj);
