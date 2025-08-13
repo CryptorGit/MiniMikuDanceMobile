@@ -218,54 +218,9 @@ public static class IkManager
             var ikSolver = solver.Solver;
             var solveChain = (ikSolver is TwoBoneSolver && chainNoRoot.Length == 2) ? chain : chainNoRoot;
 
-            Func<int, float>? limitFunc = null;
-            bool hasLimit = chain[0].RotationLimit != 0f;
-            if (!hasLimit)
-            {
-                for (int i = 0; i < links.Length && !hasLimit; i++)
-                {
-                    if (links[i].RotationLimit != 0f)
-                        hasLimit = true;
-                }
-            }
-            if (!hasLimit)
-            {
-                for (int i = 0; i < chainNoRoot.Length && !hasLimit; i++)
-                {
-                    if (chainNoRoot[i].RotationLimit != 0f)
-                        hasLimit = true;
-                }
-            }
-            if (hasLimit)
-            {
-                if (solveChain == chain)
-                {
-                    limitFunc = i =>
-                    {
-                        if (i == 0)
-                            return chain[0].RotationLimit;
-                        int linkIndex = i - 1;
-                        if (linkIndex < links.Length && links[linkIndex].RotationLimit != 0f)
-                            return links[linkIndex].RotationLimit;
-                        var limit = chainNoRoot[linkIndex].RotationLimit;
-                        if (limit != 0f)
-                            return limit;
-                        return chain[0].RotationLimit;
-                    };
-                }
-                else
-                {
-                    limitFunc = i =>
-                    {
-                        if (i < links.Length && links[i].RotationLimit != 0f)
-                            return links[i].RotationLimit;
-                        var limit = chainNoRoot[i].RotationLimit;
-                        if (limit != 0f)
-                            return limit;
-                        return chain[0].RotationLimit;
-                    };
-                }
-            }
+            var limitFunc = HasRotationLimit(chain, links, chainNoRoot)
+                ? CreateLimitFunc(chain, links, chainNoRoot, solveChain)
+                : null;
 
             ikSolver.Solve(solveChain, links, iterations, limitFunc);
 
@@ -299,6 +254,52 @@ public static class IkManager
         {
             Trace.WriteLine($"UpdateTarget exception: {ex}");
         }
+    }
+
+    private static bool HasRotationLimit(IkBone[] chain, IkLink[] links, IkBone[] chainNoRoot)
+    {
+        if (chain[0].RotationLimit != 0f)
+            return true;
+        for (int i = 0; i < links.Length; i++)
+        {
+            if (links[i].RotationLimit != 0f)
+                return true;
+        }
+        for (int i = 0; i < chainNoRoot.Length; i++)
+        {
+            if (chainNoRoot[i].RotationLimit != 0f)
+                return true;
+        }
+        return false;
+    }
+
+    private static Func<int, float> CreateLimitFunc(IkBone[] chain, IkLink[] links, IkBone[] chainNoRoot, IkBone[] solveChain)
+    {
+        if (solveChain == chain)
+        {
+            return i =>
+            {
+                if (i == 0)
+                    return chain[0].RotationLimit;
+                int linkIndex = i - 1;
+                if (linkIndex < links.Length && links[linkIndex].RotationLimit != 0f)
+                    return links[linkIndex].RotationLimit;
+                var limit = chainNoRoot[linkIndex].RotationLimit;
+                if (limit != 0f)
+                    return limit;
+                return chain[0].RotationLimit;
+            };
+        }
+
+        return i =>
+        {
+            if (i < links.Length && links[i].RotationLimit != 0f)
+                return links[i].RotationLimit;
+            var limit = chainNoRoot[i].RotationLimit;
+            if (limit != 0f)
+                return limit;
+            return chain[0].RotationLimit;
+        };
     }
 
     private static void ClampChainRotations(IkBone[] chain, IkLink[] links, Quaternion rootRot)
