@@ -145,4 +145,5 @@ SDEF 関連 TODO
 - ClampChainRotations を Axis-Angle 変換で再実装し、リンクの角度制限を直接比較する処理へ変更した。足IKなどで挙動を手動確認する（未実施）。
 - `IkManager.RegisterIkBone` で IKリンクの走査順をインデックス順に修正した。複数モデルでのチェーン挙動は未確認。
 - `CcdSolver` と `TwoBoneSolver` から反復ループを削除。足IK等で単回計算が自然に曲がるかは実機確認が必要。
+- `RotationConstraints` ヘルパーを導入し共通処理を集約した。足IKなどで従来どおり動作するか手動確認する（未実施）。
 
