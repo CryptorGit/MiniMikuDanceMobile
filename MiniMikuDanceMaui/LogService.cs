@@ -31,6 +31,7 @@ public static class LogService
             SingleReader = true,
             SingleWriter = false,
         });
+    private static StringBuilder? _builder;
 
     static LogService()
     {
@@ -104,13 +105,16 @@ public static class LogService
         {
             // ignore exceptions during shutdown
         }
+        _builder = null;
     }
 
     private static async Task ProcessLogQueue()
     {
+        var builder = _builder ??= new StringBuilder();
+
         while (await _logChannel.Reader.WaitToReadAsync())
         {
-            var builder = new StringBuilder();
+            builder.Clear();
             while (_logChannel.Reader.TryRead(out var line))
             {
                 builder.AppendLine(line);
