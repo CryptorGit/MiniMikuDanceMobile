@@ -2,8 +2,17 @@ using System.Numerics;
 
 namespace MiniMikuDance.IK;
 
+public enum BoneRole
+{
+    None,
+    Ankle,
+    Knee
+}
+
 public class IkBone
 {
+    public string Name { get; }
+    public BoneRole Role { get; }
     public Vector3 Position { get; set; }
     public Quaternion Rotation { get; set; }
     public Quaternion BaseRotation { get; }
@@ -17,9 +26,11 @@ public class IkBone
     public Vector3 PoleVector { get; set; } = Vector3.Zero;
     public float RotationLimit { get; set; }
 
-    public IkBone(int pmxBoneIndex, Vector3 position, Quaternion baseRotation, Vector3 baseForward, Vector3 baseUp)
+    public IkBone(int pmxBoneIndex, string name, BoneRole role, Vector3 position, Quaternion baseRotation, Vector3 baseForward, Vector3 baseUp)
     {
         PmxBoneIndex = pmxBoneIndex;
+        Name = name;
+        Role = role;
         Position = position;
         BasePosition = position;
         BaseRotation = baseRotation;
