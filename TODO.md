@@ -143,4 +143,5 @@ SDEF 関連 TODO
 - `CcdSolver` を導入したが、実モデルでの挙動確認は未実施。
 - ClampRotation を軸角表示に変更した。既存モデルで逆関節・ひねりが改善されるか手動確認する（未実施）。
 - `IkManager.RegisterIkBone` で IKリンクの走査順をインデックス順に修正した。複数モデルでのチェーン挙動は未確認。
+- `CcdSolver` と `TwoBoneSolver` から反復ループを削除。足IK等で単回計算が自然に曲がるかは実機確認が必要。
 

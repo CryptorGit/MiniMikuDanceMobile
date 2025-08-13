@@ -21,50 +21,48 @@ public class TwoBoneSolver : IIkSolver
         if (chain.Length < 3)
             return;
 
+        _ = iterations;
+
         var root = chain[0];
         var mid = chain[1];
         var end = chain[2];
 
-        iterations = System.Math.Max(1, iterations);
-        for (int iter = 0; iter < iterations; iter++)
-        {
-            var target = end.Position;
-            var rootPos = root.Position;
+        var target = end.Position;
+        var rootPos = root.Position;
 
-            var toTarget = target - rootPos;
-            var dist = toTarget.Length();
-            var maxReach = _length1 + _length2 - 1e-5f;
-            var minReach = System.MathF.Abs(_length1 - _length2) + 1e-5f;
-            dist = System.Math.Clamp(dist, minReach, maxReach);
-            var dir = toTarget.LengthSquared() > Epsilon ? Vector3.Normalize(toTarget) : Vector3.UnitX;
-            target = rootPos + dir * dist;
-            end.Position = target;
+        var toTarget = target - rootPos;
+        var dist = toTarget.Length();
+        var maxReach = _length1 + _length2 - 1e-5f;
+        var minReach = System.MathF.Abs(_length1 - _length2) + 1e-5f;
+        dist = System.Math.Clamp(dist, minReach, maxReach);
+        var dir = toTarget.LengthSquared() > Epsilon ? Vector3.Normalize(toTarget) : Vector3.UnitX;
+        target = rootPos + dir * dist;
+        end.Position = target;
 
-            var planeNormal = root.PoleVector.LengthSquared() > Epsilon ? Vector3.Normalize(root.PoleVector) : Vector3.UnitY;
-            var tangentCross = Vector3.Cross(dir, planeNormal);
-            var planeTangent = tangentCross.LengthSquared() > Epsilon ? Vector3.Normalize(tangentCross) : Vector3.UnitX;
+        var planeNormal = root.PoleVector.LengthSquared() > Epsilon ? Vector3.Normalize(root.PoleVector) : Vector3.UnitY;
+        var tangentCross = Vector3.Cross(dir, planeNormal);
+        var planeTangent = tangentCross.LengthSquared() > Epsilon ? Vector3.Normalize(tangentCross) : Vector3.UnitX;
 
-            var cos0 = (_length1 * _length1 + dist * dist - _length2 * _length2) / (2 * _length1 * dist);
-            cos0 = System.Math.Clamp(cos0, -1f, 1f);
-            var angle0 = System.MathF.Acos(cos0);
-            var limit0 = rotationLimitFunc?.Invoke(0) ?? 0f;
-            if (limit0 != 0f)
-                angle0 = Math.Clamp(angle0, -limit0, limit0);
+        var cos0 = (_length1 * _length1 + dist * dist - _length2 * _length2) / (2 * _length1 * dist);
+        cos0 = System.Math.Clamp(cos0, -1f, 1f);
+        var angle0 = System.MathF.Acos(cos0);
+        var limit0 = rotationLimitFunc?.Invoke(0) ?? 0f;
+        if (limit0 != 0f)
+            angle0 = Math.Clamp(angle0, -limit0, limit0);
 
-            var cos1 = (_length1 * _length1 + _length2 * _length2 - dist * dist) / (2 * _length1 * _length2);
-            var angle1 = MathF.Acos(Math.Clamp(cos1, -1f, 1f));
-            var limit1 = rotationLimitFunc?.Invoke(1) ?? 0f;
-            if (limit1 != 0f)
-                angle1 = Math.Clamp(angle1, -limit1, limit1);
-            var midDir = dir * System.MathF.Cos(angle0) + planeTangent * System.MathF.Sin(angle0);
-            var bendDir = dir * System.MathF.Cos(angle1) - planeTangent * System.MathF.Sin(angle1);
+        var cos1 = (_length1 * _length1 + _length2 * _length2 - dist * dist) / (2 * _length1 * _length2);
+        var angle1 = MathF.Acos(Math.Clamp(cos1, -1f, 1f));
+        var limit1 = rotationLimitFunc?.Invoke(1) ?? 0f;
+        if (limit1 != 0f)
+            angle1 = Math.Clamp(angle1, -limit1, limit1);
+        var midDir = dir * System.MathF.Cos(angle0) + planeTangent * System.MathF.Sin(angle0);
+        var bendDir = dir * System.MathF.Cos(angle1) - planeTangent * System.MathF.Sin(angle1);
 
-            mid.Position = rootPos + midDir * _length1;
-            end.Position = mid.Position + bendDir * _length2;
+        mid.Position = rootPos + midDir * _length1;
+        end.Position = mid.Position + bendDir * _length2;
 
-            root.Rotation = LookRotation(midDir, planeNormal);
-            mid.Rotation = LookRotation(bendDir, planeNormal);
-        }
+        root.Rotation = LookRotation(midDir, planeNormal);
+        mid.Rotation = LookRotation(bendDir, planeNormal);
 
         end.Rotation = Quaternion.Identity;
         if (links.Length > 0 && links[0].HasLimit)
