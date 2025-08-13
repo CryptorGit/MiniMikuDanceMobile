@@ -77,13 +77,14 @@ public static class IkManager
 
         var chainIndices = new List<int>(ik.Links.Count + 1);
         var ikLinks = new IkLink[ik.Links.Count];
-        for (int j = 0; j < ik.Links.Count; j++)
+        for (int j = ik.Links.Count - 1; j >= 0; j--)
         {
             var link = ik.Links[j];
             chainIndices.Add(link.BoneIndex);
-            ikLinks[j] = link;
+            ikLinks[ik.Links.Count - 1 - j] = link;
         }
-        chainIndices.Add(ik.Target);
+        if (!chainIndices.Contains(ik.Target))
+            chainIndices.Add(ik.Target);
 
         var chain = new IkBone[chainIndices.Count + 1];
         chain[0] = BonesDict[index];
