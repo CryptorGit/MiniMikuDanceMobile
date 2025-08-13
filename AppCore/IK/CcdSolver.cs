@@ -13,78 +13,83 @@ public class CcdSolver : IIkSolver
         if (chain.Length < 2)
             return;
 
-        _ = iterations;
-
         var target = chain[^1].Position;
-        for (int i = chain.Length - 2; i >= 0; i--)
+        for (var t = 0; t < iterations; t++)
         {
-            var jointPos = chain[i].Position;
-            var toEffector = chain[^1].Position - jointPos;
-            var toTarget = target - jointPos;
-            if (toEffector.LengthSquared() < Epsilon || toTarget.LengthSquared() < Epsilon)
-                continue;
-            var rot = FromToRotation(toEffector, toTarget);
-            var limit = rotationLimitFunc?.Invoke(i) ?? 0f;
-            if (limit != 0f)
-                rot = ClampAngle(rot, limit);
-            for (int j = i + 1; j < chain.Length; j++)
+            for (int i = chain.Length - 2; i >= 0; i--)
             {
-                var rel = chain[j].Position - jointPos;
-                rel = Vector3.Transform(rel, rot);
-                chain[j].Position = jointPos + rel;
-            }
-        }
-
-        var prevRot = chain[0].Rotation;
-        for (int i = 0; i < chain.Length - 1; i++)
-        {
-            var forward = chain[i + 1].Position - chain[i].Position;
-            var baseForward = Vector3.Transform(chain[i].BaseForward, prevRot);
-            var rotDelta = FromToRotation(baseForward, forward);
-            var limit = rotationLimitFunc?.Invoke(i) ?? 0f;
-            if (limit != 0f)
-                rotDelta = ClampAngle(rotDelta, limit);
-
-            forward = Vector3.Normalize(forward);
-            var up = Vector3.Transform(chain[i].BaseUp, prevRot);
-            up = Vector3.Transform(up, rotDelta);
-            up -= Vector3.Dot(up, forward) * forward;
-
-            if (chain[i].PoleVector.LengthSquared() > Epsilon)
-            {
-                var pole = Vector3.Normalize(chain[i].PoleVector);
-                var poleUp = Vector3.Cross(pole, forward);
-                if (poleUp.LengthSquared() > Epsilon)
-                    up = poleUp;
-            }
-
-            if (up.LengthSquared() < Epsilon)
-            {
-                up = chain[i].PrevUp;
-                up -= Vector3.Dot(up, forward) * forward;
-                if (up.LengthSquared() < Epsilon)
+                var jointPos = chain[i].Position;
+                var toEffector = chain[^1].Position - jointPos;
+                var toTarget = target - jointPos;
+                if (toEffector.LengthSquared() < Epsilon || toTarget.LengthSquared() < Epsilon)
+                    continue;
+                var rot = FromToRotation(toEffector, toTarget);
+                var limit = rotationLimitFunc?.Invoke(i) ?? 0f;
+                if (limit != 0f)
+                    rot = ClampAngle(rot, limit);
+                for (int j = i + 1; j < chain.Length; j++)
                 {
-                    var plane = Vector3.Transform(chain[i].BasePlaneNormal, prevRot);
-                    plane = Vector3.Transform(plane, rotDelta);
-                    up = Vector3.Cross(plane, forward);
+                    var rel = chain[j].Position - jointPos;
+                    rel = Vector3.Transform(rel, rot);
+                    chain[j].Position = jointPos + rel;
                 }
             }
-            if (up.LengthSquared() < Epsilon)
-            {
-                up = MathF.Abs(Vector3.Dot(forward, Vector3.UnitY)) > 0.99f ? Vector3.UnitX : Vector3.UnitY;
-                up -= Vector3.Dot(up, forward) * forward;
-            }
-            up = Vector3.Normalize(up);
-            chain[i].PrevUp = up;
 
-            chain[i].Rotation = IkMath.LookRotation(forward, up);
-            if (i < links.Length && links[i].HasLimit)
-                RotationConstraints.ClampRotation(chain, i, links[i]);
-            RotationConstraints.ApplyRoleConstraint(chain, i);
-            prevRot = chain[i].Rotation;
+            var prevRot = chain[0].Rotation;
+            for (int i = 0; i < chain.Length - 1; i++)
+            {
+                var forward = chain[i + 1].Position - chain[i].Position;
+                var baseForward = Vector3.Transform(chain[i].BaseForward, prevRot);
+                var rotDelta = FromToRotation(baseForward, forward);
+                var limit = rotationLimitFunc?.Invoke(i) ?? 0f;
+                if (limit != 0f)
+                    rotDelta = ClampAngle(rotDelta, limit);
+
+                forward = Vector3.Normalize(forward);
+                var up = Vector3.Transform(chain[i].BaseUp, prevRot);
+                up = Vector3.Transform(up, rotDelta);
+                up -= Vector3.Dot(up, forward) * forward;
+
+                if (chain[i].PoleVector.LengthSquared() > Epsilon)
+                {
+                    var pole = Vector3.Normalize(chain[i].PoleVector);
+                    var poleUp = Vector3.Cross(pole, forward);
+                    if (poleUp.LengthSquared() > Epsilon)
+                        up = poleUp;
+                }
+
+                if (up.LengthSquared() < Epsilon)
+                {
+                    up = chain[i].PrevUp;
+                    up -= Vector3.Dot(up, forward) * forward;
+                    if (up.LengthSquared() < Epsilon)
+                    {
+                        var plane = Vector3.Transform(chain[i].BasePlaneNormal, prevRot);
+                        plane = Vector3.Transform(plane, rotDelta);
+                        up = Vector3.Cross(plane, forward);
+                    }
+                }
+                if (up.LengthSquared() < Epsilon)
+                {
+                    up = MathF.Abs(Vector3.Dot(forward, Vector3.UnitY)) > 0.99f ? Vector3.UnitX : Vector3.UnitY;
+                    up -= Vector3.Dot(up, forward) * forward;
+                }
+                up = Vector3.Normalize(up);
+                chain[i].PrevUp = up;
+
+                chain[i].Rotation = IkMath.LookRotation(forward, up);
+                if (i < links.Length && links[i].HasLimit)
+                    RotationConstraints.ClampRotation(chain, i, links[i]);
+                RotationConstraints.ApplyRoleConstraint(chain, i);
+                prevRot = chain[i].Rotation;
+            }
+
+            chain[^1].Rotation = prevRot;
+            RotationConstraints.ApplyRoleConstraint(chain, chain.Length - 1);
+
+            if ((chain[^1].Position - target).LengthSquared() < Epsilon)
+                break;
         }
-        chain[^1].Rotation = prevRot;
-        RotationConstraints.ApplyRoleConstraint(chain, chain.Length - 1);
     }
 
     private static Quaternion ClampAngle(Quaternion q, float limit)
