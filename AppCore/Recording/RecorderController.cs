@@ -4,6 +4,7 @@ using System.Collections.Concurrent;
 using System.Runtime.InteropServices;
 using System.Threading.Tasks;
 using System.Threading.Channels;
+using System.Buffers;
 using SixLabors.ImageSharp;
 using SixLabors.ImageSharp.PixelFormats;
 using SixLabors.ImageSharp.Processing;
@@ -127,22 +128,28 @@ public class RecorderController
             {
                 var destBytes = MemoryMarshal.AsBytes(dest);
                 int rowBytes = width * 4;
-                Span<byte> tmp = stackalloc byte[rowBytes];
-
-                unsafe
+                byte[] tmp = ArrayPool<byte>.Shared.Rent(rowBytes);
+                try
                 {
-                    fixed (byte* destPtr = destBytes)
-                    fixed (byte* tmpPtr = tmp)
+                    unsafe
                     {
-                        for (int y = 0; y < height / 2; y++)
+                        fixed (byte* destPtr = destBytes)
+                        fixed (byte* tmpPtr = tmp)
                         {
-                            byte* top = destPtr + y * rowBytes;
-                            byte* bottom = destPtr + (height - 1 - y) * rowBytes;
-                            Buffer.MemoryCopy(top, tmpPtr, rowBytes, rowBytes);
-                            Buffer.MemoryCopy(bottom, top, rowBytes, rowBytes);
-                            Buffer.MemoryCopy(tmpPtr, bottom, rowBytes, rowBytes);
+                            for (int y = 0; y < height / 2; y++)
+                            {
+                                byte* top = destPtr + y * rowBytes;
+                                byte* bottom = destPtr + (height - 1 - y) * rowBytes;
+                                Buffer.MemoryCopy(top, tmpPtr, rowBytes, rowBytes);
+                                Buffer.MemoryCopy(bottom, top, rowBytes, rowBytes);
+                                Buffer.MemoryCopy(tmpPtr, bottom, rowBytes, rowBytes);
+                            }
                         }
                     }
+                }
+                finally
+                {
+                    ArrayPool<byte>.Shared.Return(tmp);
                 }
             }
         }
