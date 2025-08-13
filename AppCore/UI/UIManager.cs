@@ -106,16 +106,18 @@ public class UIManager : Singleton<UIManager>
 
     public void Render()
     {
-        foreach (var btn in Config.Buttons)
+        for (int i = 0, count = Config.Buttons.Count; i < count; i++)
         {
+            var btn = Config.Buttons[i];
             if (ImGui.Button(btn.Label))
             {
                 OnButtonPressed?.Invoke(btn.Message);
             }
         }
 
-        foreach (var toggle in Config.Toggles)
+        for (int i = 0, count = Config.Toggles.Count; i < count; i++)
         {
+            var toggle = Config.Toggles[i];
             bool value = GetToggle(toggle.Id);
             if (ImGui.Checkbox(toggle.Label, ref value))
             {
