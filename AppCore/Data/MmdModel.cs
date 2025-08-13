@@ -1,6 +1,9 @@
+using System.Collections.Generic;
+
 namespace MiniMikuDance.Data;
 
 public class MmdModel
 {
-    // 物理用の剛体・ジョイント定義は後で追加する
+    public List<Import.RigidBodyData> RigidBodies { get; } = new();
+    public List<Import.JointData> Joints { get; } = new();
 }

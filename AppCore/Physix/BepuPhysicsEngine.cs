@@ -2,11 +2,10 @@ using BepuPhysics;
 using BepuPhysics.Collidables;
 using BepuPhysics.CollisionDetection;
 using BepuPhysics.Constraints;
-using BepuPhysics.Trees;
-using BepuUtilities;
 using BepuUtilities.Memory;
 using MiniMikuDance.Data;
 using System.Numerics;
+using System.Collections.Generic;
 
 namespace MiniMikuDance.Physix;
 
@@ -14,23 +13,94 @@ public sealed class BepuPhysicsEngine : IPhysicsEngine, IDisposable
 {
     private static readonly BufferPool SharedBufferPool = new();
     private Simulation _simulation = null!;
+    private float _timeAccumulator;
 
     public void Setup(MmdModel model)
     {
         _simulation?.Dispose();
         _simulation = Simulation.Create(SharedBufferPool, new NarrowPhaseCallbacks(),
             new PoseIntegratorCallbacks(new Vector3(0, -9.81f, 0)), new SolveDescription(8, 1));
-        // TODO: MmdModel から剛体・ジョイントを生成する
+
+        var bodyHandles = new List<BodyHandle>(model.RigidBodies.Count);
+        foreach (var rb in model.RigidBodies)
+        {
+            CollidableDescription collidable;
+            BodyInertia inertia;
+            switch (rb.Shape)
+            {
+                case Import.RigidBodyShape.Sphere:
+                    var sphere = new Sphere(rb.Size.X);
+                    collidable = new CollidableDescription(_simulation.Shapes.Add(sphere));
+                    inertia = sphere.ComputeInertia(rb.Mass);
+                    break;
+                case Import.RigidBodyShape.Box:
+                    var box = new Box(rb.Size.X, rb.Size.Y, rb.Size.Z);
+                    collidable = new CollidableDescription(_simulation.Shapes.Add(box));
+                    inertia = box.ComputeInertia(rb.Mass);
+                    break;
+                case Import.RigidBodyShape.Capsule:
+                    var capsule = new Capsule(rb.Size.X, rb.Size.Y);
+                    collidable = new CollidableDescription(_simulation.Shapes.Add(capsule));
+                    inertia = capsule.ComputeInertia(rb.Mass);
+                    break;
+                default:
+                    continue;
+            }
+
+            var description = BodyDescription.CreateDynamic(new RigidPose(Vector3.Zero), inertia, collidable, new BodyActivityDescription(0.01f));
+            var handle = _simulation.Bodies.Add(description);
+            bodyHandles.Add(handle);
+        }
+
+        foreach (var j in model.Joints)
+        {
+            if (j.RigidBodyA < 0 || j.RigidBodyB < 0 || j.RigidBodyA >= bodyHandles.Count || j.RigidBodyB >= bodyHandles.Count)
+                continue;
+            var ha = bodyHandles[j.RigidBodyA];
+            var hb = bodyHandles[j.RigidBodyB];
+
+            var linearSpring = new SpringSettings(j.LinearSpring.Frequency, j.LinearSpring.DampingRatio);
+            _simulation.Solver.Add(ha, hb, new LinearAxisLimit
+            {
+                LocalAxis = Vector3.UnitX,
+                MinimumOffset = j.LinearLowerLimit.X,
+                MaximumOffset = j.LinearUpperLimit.X,
+                SpringSettings = linearSpring
+            });
+            _simulation.Solver.Add(ha, hb, new LinearAxisLimit
+            {
+                LocalAxis = Vector3.UnitY,
+                MinimumOffset = j.LinearLowerLimit.Y,
+                MaximumOffset = j.LinearUpperLimit.Y,
+                SpringSettings = linearSpring
+            });
+            _simulation.Solver.Add(ha, hb, new LinearAxisLimit
+            {
+                LocalAxis = Vector3.UnitZ,
+                MinimumOffset = j.LinearLowerLimit.Z,
+                MaximumOffset = j.LinearUpperLimit.Z,
+                SpringSettings = linearSpring
+            });
+
+            var angularSpring = new SpringSettings(j.AngularSpring.Frequency, j.AngularSpring.DampingRatio);
+            _simulation.Solver.Add(ha, hb, new AngularServo
+            {
+                TargetRelativeRotationLocalA = Quaternion.Identity,
+                SpringSettings = angularSpring,
+                ServoSettings = ServoSettings.Default
+            });
+            // TODO: Angular limits are not yet implemented
+        }
     }
 
     public void Step(float deltaTime)
     {
         const float step = 1f / 60f;
-        var substepCount = Math.Max(1, (int)MathF.Ceiling(deltaTime / step));
-        var substepDt = deltaTime / substepCount;
-        for (var i = 0; i < substepCount; i++)
+        _timeAccumulator += deltaTime;
+        while (_timeAccumulator >= step)
         {
-            _simulation.Timestep(substepDt);
+            _simulation.Timestep(step);
+            _timeAccumulator -= step;
         }
     }
 
