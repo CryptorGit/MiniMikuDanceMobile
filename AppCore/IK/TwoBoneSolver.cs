@@ -62,9 +62,9 @@ public class TwoBoneSolver : IIkSolver
         mid.Position = rootPos + midDir * _length1;
         end.Position = mid.Position + bendDir * _length2;
 
-        root.Rotation = LookRotation(midDir, planeNormal);
-        mid.Rotation = LookRotation(bendDir, planeNormal);
-        end.Rotation = LookRotation(bendDir, planeNormal);
+        root.Rotation = IkMath.LookRotation(midDir, planeNormal);
+        mid.Rotation = IkMath.LookRotation(bendDir, planeNormal);
+        end.Rotation = IkMath.LookRotation(bendDir, planeNormal);
 
         if (links.Length > 0 && links[0].HasLimit)
             ClampRotation(chain, 0, links[0]);
@@ -74,30 +74,6 @@ public class TwoBoneSolver : IIkSolver
             ClampRotation(chain, 2, links[2]);
         for (int i = 0; i < chain.Length; i++)
             ApplyRoleConstraint(chain, i);
-    }
-
-    private static Quaternion LookRotation(Vector3 forward, Vector3 up)
-    {
-        if (forward.LengthSquared() < Epsilon || up.LengthSquared() < Epsilon)
-            return Quaternion.Identity;
-        forward = Vector3.Normalize(forward);
-        var proj = Vector3.Dot(up, forward);
-        up -= proj * forward;
-        if (up.LengthSquared() < Epsilon)
-            return Quaternion.Identity;
-        up = Vector3.Normalize(up);
-        var right = Vector3.Cross(up, forward);
-        if (right.LengthSquared() < Epsilon)
-            return Quaternion.Identity;
-        right = Vector3.Normalize(right);
-        var newUp = Vector3.Cross(forward, right);
-        IkDebug.LogAxes(forward, newUp, right);
-        var m = new Matrix4x4(
-            right.X, right.Y, right.Z, 0,
-            newUp.X, newUp.Y, newUp.Z, 0,
-            forward.X, forward.Y, forward.Z, 0,
-            0, 0, 0, 1);
-        return Quaternion.CreateFromRotationMatrix(m);
     }
 
     private static void ClampRotation(IkBone[] chain, int index, IkLink link)
