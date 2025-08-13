@@ -187,11 +187,10 @@ public class RecorderController : IDisposable
         {
             image.ProcessPixelRows(accessor =>
             {
-                var srcSpan = MemoryMarshal.Cast<byte, Rgba32>(src);
                 int offset = (height - 1) * width;
                 for (int y = 0; y < height; y++)
                 {
-                    srcSpan.Slice(offset, width).CopyTo(accessor.GetRowSpan(y));
+                    source.Slice(offset, width).CopyTo(accessor.GetRowSpan(y));
                     offset -= width;
                 }
             });
