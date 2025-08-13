@@ -116,9 +116,11 @@ public sealed class BepuPhysicsEngine : IPhysicsEngine, IDisposable
             var bodyB = _simulation.Bodies.GetBodyReference(handleB);
             var poseA = bodyA.Pose;
             var poseB = bodyB.Pose;
-            var location = (poseA.Position + poseB.Position) * 0.5f;
-            var offsetA = location - poseA.Position;
-            var offsetB = location - poseB.Position;
+            var anchorPosition = joint.Position;
+            var offsetA = Vector3.Transform(anchorPosition - poseA.Position, Quaternion.Conjugate(poseA.Orientation));
+            var offsetB = Vector3.Transform(anchorPosition - poseB.Position, Quaternion.Conjugate(poseB.Orientation));
+            var orientationA = Quaternion.Concatenate(Quaternion.Conjugate(poseA.Orientation), joint.Rotation);
+            var orientationB = Quaternion.Concatenate(Quaternion.Conjugate(poseB.Orientation), joint.Rotation);
             var socket = new BallSocket
             {
                 LocalOffsetA = offsetA,
@@ -138,13 +140,62 @@ public sealed class BepuPhysicsEngine : IPhysicsEngine, IDisposable
                     {
                         LocalOffsetA = offsetA,
                         LocalOffsetB = offsetB,
-                        LocalAxis = axes[axis],
+                        LocalAxis = Vector3.Transform(axes[axis], orientationA),
                         MinimumOffset = min,
                         MaximumOffset = max,
                         SpringSettings = new SpringSettings(MathF.Max(1e-3f, joint.LinearSpring[axis]), 1f)
                     };
                     _simulation.Solver.Add(handleA, handleB, limit);
                 }
+            }
+
+            float xMin = joint.AngularLowerLimit.X;
+            float xMax = joint.AngularUpperLimit.X;
+            if (xMin != 0f || xMax != 0f)
+            {
+                var axisA = Vector3.Transform(Vector3.UnitX, orientationA);
+                var axisB = Vector3.Transform(Vector3.UnitX, orientationB);
+                var twist = new TwistLimit
+                {
+                    LocalAxisA = axisA,
+                    LocalAxisB = axisB,
+                    MinimumAngle = xMin,
+                    MaximumAngle = xMax,
+                    SpringSettings = new SpringSettings(MathF.Max(1e-3f, joint.AngularSpring.X), 1f)
+                };
+                _simulation.Solver.Add(handleA, handleB, twist);
+            }
+
+            float yMin = joint.AngularLowerLimit.Y;
+            float yMax = joint.AngularUpperLimit.Y;
+            if (yMin != 0f || yMax != 0f)
+            {
+                var axisA = Vector3.Transform(Vector3.UnitY, orientationA);
+                var axisB = Vector3.Transform(Vector3.UnitY, orientationB);
+                var swing = new SwingLimit
+                {
+                    LocalAxisA = axisA,
+                    LocalAxisB = axisB,
+                    MaximumAngle = MathF.Max(MathF.Abs(yMin), MathF.Abs(yMax)),
+                    SpringSettings = new SpringSettings(MathF.Max(1e-3f, joint.AngularSpring.Y), 1f)
+                };
+                _simulation.Solver.Add(handleA, handleB, swing);
+            }
+
+            float zMin = joint.AngularLowerLimit.Z;
+            float zMax = joint.AngularUpperLimit.Z;
+            if (zMin != 0f || zMax != 0f)
+            {
+                var axisA = Vector3.Transform(Vector3.UnitZ, orientationA);
+                var axisB = Vector3.Transform(Vector3.UnitZ, orientationB);
+                var swing = new SwingLimit
+                {
+                    LocalAxisA = axisA,
+                    LocalAxisB = axisB,
+                    MaximumAngle = MathF.Max(MathF.Abs(zMin), MathF.Abs(zMax)),
+                    SpringSettings = new SpringSettings(MathF.Max(1e-3f, joint.AngularSpring.Z), 1f)
+                };
+                _simulation.Solver.Add(handleA, handleB, swing);
             }
         }
     }
