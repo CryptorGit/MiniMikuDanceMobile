@@ -149,53 +149,63 @@ public sealed class BepuPhysicsEngine : IPhysicsEngine, IDisposable
                 }
             }
 
-            float xMin = joint.AngularLowerLimit.X;
-            float xMax = joint.AngularUpperLimit.X;
-            if (xMin != 0f || xMax != 0f)
+            var angLower = joint.AngularLowerLimit;
+            var angUpper = joint.AngularUpperLimit;
+            var angSpring = joint.AngularSpring;
+            if (angLower != Vector3.Zero || angUpper != Vector3.Zero || angSpring != Vector3.Zero)
             {
-                var axisA = Vector3.Transform(Vector3.UnitX, orientationA);
-                var axisB = Vector3.Transform(Vector3.UnitX, orientationB);
-                var twist = new TwistLimit
+                if (angLower.X != 0f || angUpper.X != 0f)
                 {
-                    LocalAxisA = axisA,
-                    LocalAxisB = axisB,
-                    MinimumAngle = xMin,
-                    MaximumAngle = xMax,
-                    SpringSettings = new SpringSettings(MathF.Max(1e-3f, joint.AngularSpring.X), 1f)
-                };
-                _simulation.Solver.Add(handleA, handleB, twist);
-            }
+                    var twist = new TwistLimit
+                    {
+                        LocalBasisA = orientationA,
+                        LocalBasisB = orientationB,
+                        MinimumAngle = angLower.X,
+                        MaximumAngle = angUpper.X,
+                        SpringSettings = new SpringSettings(MathF.Max(1e-3f, angSpring.X), 1f)
+                    };
+                    _simulation.Solver.Add(handleA, handleB, twist);
+                }
+                if (angSpring.X != 0f)
+                {
+                    var servo = new TwistServo
+                    {
+                        LocalBasisA = orientationA,
+                        LocalBasisB = orientationB,
+                        TargetAngle = 0f,
+                        SpringSettings = new SpringSettings(MathF.Max(1e-3f, angSpring.X), 1f),
+                        ServoSettings = ServoSettings.Default
+                    };
+                    _simulation.Solver.Add(handleA, handleB, servo);
+                }
 
-            float yMin = joint.AngularLowerLimit.Y;
-            float yMax = joint.AngularUpperLimit.Y;
-            if (yMin != 0f || yMax != 0f)
-            {
-                var axisA = Vector3.Transform(Vector3.UnitY, orientationA);
-                var axisB = Vector3.Transform(Vector3.UnitY, orientationB);
-                var swing = new SwingLimit
+                if (angLower.Y != 0f || angUpper.Y != 0f)
                 {
-                    LocalAxisA = axisA,
-                    LocalAxisB = axisB,
-                    MaximumAngle = MathF.Max(MathF.Abs(yMin), MathF.Abs(yMax)),
-                    SpringSettings = new SpringSettings(MathF.Max(1e-3f, joint.AngularSpring.Y), 1f)
-                };
-                _simulation.Solver.Add(handleA, handleB, swing);
-            }
+                    var axisA = Vector3.Transform(Vector3.UnitY, orientationA);
+                    var axisB = Vector3.Transform(Vector3.UnitY, orientationB);
+                    var swingY = new SwingLimit
+                    {
+                        AxisLocalA = axisA,
+                        AxisLocalB = axisB,
+                        MaximumSwingAngle = MathF.Max(MathF.Abs(angLower.Y), MathF.Abs(angUpper.Y)),
+                        SpringSettings = new SpringSettings(MathF.Max(1e-3f, angSpring.Y), 1f)
+                    };
+                    _simulation.Solver.Add(handleA, handleB, swingY);
+                }
 
-            float zMin = joint.AngularLowerLimit.Z;
-            float zMax = joint.AngularUpperLimit.Z;
-            if (zMin != 0f || zMax != 0f)
-            {
-                var axisA = Vector3.Transform(Vector3.UnitZ, orientationA);
-                var axisB = Vector3.Transform(Vector3.UnitZ, orientationB);
-                var swing = new SwingLimit
+                if (angLower.Z != 0f || angUpper.Z != 0f)
                 {
-                    LocalAxisA = axisA,
-                    LocalAxisB = axisB,
-                    MaximumAngle = MathF.Max(MathF.Abs(zMin), MathF.Abs(zMax)),
-                    SpringSettings = new SpringSettings(MathF.Max(1e-3f, joint.AngularSpring.Z), 1f)
-                };
-                _simulation.Solver.Add(handleA, handleB, swing);
+                    var axisA = Vector3.Transform(Vector3.UnitZ, orientationA);
+                    var axisB = Vector3.Transform(Vector3.UnitZ, orientationB);
+                    var swingZ = new SwingLimit
+                    {
+                        AxisLocalA = axisA,
+                        AxisLocalB = axisB,
+                        MaximumSwingAngle = MathF.Max(MathF.Abs(angLower.Z), MathF.Abs(angUpper.Z)),
+                        SpringSettings = new SpringSettings(MathF.Max(1e-3f, angSpring.Z), 1f)
+                    };
+                    _simulation.Solver.Add(handleA, handleB, swingZ);
+                }
             }
         }
     }
