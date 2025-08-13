@@ -52,24 +52,11 @@ public static class LogService
         _processingTask = Task.Run(ProcessLogQueue);
     }
 
-    public static IEnumerable<string> History
-    {
-        get
-        {
-            lock (_historyLock)
-            {
-                if (_historySnapshot == null || _historyChanged)
-                {
-                    _historySnapshot = _history.Reverse().ToArray();
-                    _historyChanged = false;
-                }
+    public static IReadOnlyList<string> History => Array.AsReadOnly(GetHistorySnapshotInternal());
 
-                return _historySnapshot;
-            }
-        }
-    }
+    public static string[] GetHistorySnapshot() => GetHistorySnapshotInternal().ToArray();
 
-    public static string[] GetHistorySnapshot()
+    private static string[] GetHistorySnapshotInternal()
     {
         lock (_historyLock)
         {
@@ -79,7 +66,7 @@ public static class LogService
                 _historyChanged = false;
             }
 
-            return _historySnapshot.ToArray();
+            return _historySnapshot;
         }
     }
 
