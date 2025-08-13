@@ -144,7 +144,6 @@ public class PmxRenderer : IDisposable
     private readonly List<IkBone> _ikBones = new();
     private readonly object _ikBonesLock = new();
     private readonly Dictionary<int, string> _indexToHumanoidName = new();
-    private float[] _tmpVertexBuffer = Array.Empty<float>();
     public BonesConfig? BonesConfig { get; set; }
     private Quaternion _externalRotation = Quaternion.Identity;
     // デフォルトのカメラ感度をスライダーの最小値に合わせる
@@ -1234,8 +1233,6 @@ void main(){
             _meshes.Add(rm);
         }
 
-        int maxVertices = _meshes.Count > 0 ? _meshes.Max(m => m.BaseVertices.Length) : 0;
-        _tmpVertexBuffer = new float[maxVertices * 8];
 
         _morphs.Clear();
         _morphsByCategory.Clear();
@@ -1539,73 +1536,88 @@ void main(){
 
             if (_bonesDirty)
             {
-                foreach (var rm in _meshes)
+                float[]? tmpVertexBuffer = null;
+                try
                 {
-                    if (rm.JointIndices.Length != rm.BaseVertices.Length)
-                        continue;
-                    int required = rm.BaseVertices.Length * 8;
-                    if (_tmpVertexBuffer.Length < required)
-                        _tmpVertexBuffer = new float[required];
-                    else
-                        Array.Clear(_tmpVertexBuffer, 0, required);
-                    for (int vi = 0; vi < rm.BaseVertices.Length; vi++)
+                    foreach (var rm in _meshes)
                     {
-                        var pos = System.Numerics.Vector3.Zero;
-                        var norm = System.Numerics.Vector3.Zero;
-                        var jp = rm.JointIndices[vi];
-                        var jw = rm.JointWeights[vi];
-                        var basePos = (rm.BaseVertices[vi] + rm.VertexOffsets[vi]).ToNumerics();
-                        bool useSdef = rm.SdefC.Length > vi && rm.SdefR0.Length > vi && rm.SdefR1.Length > vi &&
-                            (rm.SdefC[vi] != Vector3.Zero || rm.SdefR0[vi] != Vector3.Zero || rm.SdefR1[vi] != Vector3.Zero);
-                        int loop = useSdef ? 2 : 4;
-                        for (int k = 0; k < loop; k++)
+                        if (rm.JointIndices.Length != rm.BaseVertices.Length)
+                            continue;
+                        int required = rm.BaseVertices.Length * 8;
+                        if (tmpVertexBuffer == null || tmpVertexBuffer.Length < required)
                         {
-                            int bi = (int)jp[k];
-                            float w = jw[k];
-                            if (bi >= 0 && bi < _skinMats.Length && w > 0f)
-                            {
-                                var m = _skinMats[bi];
-                                pos += System.Numerics.Vector3.Transform(basePos, m) * w;
-                                norm += System.Numerics.Vector3.TransformNormal(rm.Normals[vi].ToNumerics(), m) * w;
-                            }
-                        }
-                        if (useSdef)
-                        {
-                            // TODO: 正しい SDEF スキニングを実装し C/R0/R1 を利用する
-                        }
-                        if (norm.LengthSquared() > 0)
-                            norm = System.Numerics.Vector3.Normalize(norm);
-
-                        _tmpVertexBuffer[vi * 8 + 0] = pos.X;
-                        _tmpVertexBuffer[vi * 8 + 1] = pos.Y;
-                        _tmpVertexBuffer[vi * 8 + 2] = pos.Z;
-                        _tmpVertexBuffer[vi * 8 + 3] = norm.X;
-                        _tmpVertexBuffer[vi * 8 + 4] = norm.Y;
-                        _tmpVertexBuffer[vi * 8 + 5] = norm.Z;
-                        if (vi < rm.TexCoords.Length)
-                        {
-                            var uv = rm.TexCoords[vi];
-                            if (vi < rm.UvOffsets.Length)
-                                uv += rm.UvOffsets[vi];
-                            _tmpVertexBuffer[vi * 8 + 6] = uv.X;
-                            _tmpVertexBuffer[vi * 8 + 7] = uv.Y;
+                            if (tmpVertexBuffer != null)
+                                ArrayPool<float>.Shared.Return(tmpVertexBuffer);
+                            tmpVertexBuffer = ArrayPool<float>.Shared.Rent(required);
                         }
                         else
                         {
-                            _tmpVertexBuffer[vi * 8 + 6] = 0f;
-                            _tmpVertexBuffer[vi * 8 + 7] = 0f;
+                            Array.Clear(tmpVertexBuffer, 0, required);
+                        }
+                        for (int vi = 0; vi < rm.BaseVertices.Length; vi++)
+                        {
+                            var pos = System.Numerics.Vector3.Zero;
+                            var norm = System.Numerics.Vector3.Zero;
+                            var jp = rm.JointIndices[vi];
+                            var jw = rm.JointWeights[vi];
+                            var basePos = (rm.BaseVertices[vi] + rm.VertexOffsets[vi]).ToNumerics();
+                            bool useSdef = rm.SdefC.Length > vi && rm.SdefR0.Length > vi && rm.SdefR1.Length > vi &&
+                                (rm.SdefC[vi] != Vector3.Zero || rm.SdefR0[vi] != Vector3.Zero || rm.SdefR1[vi] != Vector3.Zero);
+                            int loop = useSdef ? 2 : 4;
+                            for (int k = 0; k < loop; k++)
+                            {
+                                int bi = (int)jp[k];
+                                float w = jw[k];
+                                if (bi >= 0 && bi < _skinMats.Length && w > 0f)
+                                {
+                                    var m = _skinMats[bi];
+                                    pos += System.Numerics.Vector3.Transform(basePos, m) * w;
+                                    norm += System.Numerics.Vector3.TransformNormal(rm.Normals[vi].ToNumerics(), m) * w;
+                                }
+                            }
+                            if (useSdef)
+                            {
+                                // TODO: 正しい SDEF スキニングを実装し C/R0/R1 を利用する
+                            }
+                            if (norm.LengthSquared() > 0)
+                                norm = System.Numerics.Vector3.Normalize(norm);
+
+                            tmpVertexBuffer[vi * 8 + 0] = pos.X;
+                            tmpVertexBuffer[vi * 8 + 1] = pos.Y;
+                            tmpVertexBuffer[vi * 8 + 2] = pos.Z;
+                            tmpVertexBuffer[vi * 8 + 3] = norm.X;
+                            tmpVertexBuffer[vi * 8 + 4] = norm.Y;
+                            tmpVertexBuffer[vi * 8 + 5] = norm.Z;
+                            if (vi < rm.TexCoords.Length)
+                            {
+                                var uv = rm.TexCoords[vi];
+                                if (vi < rm.UvOffsets.Length)
+                                    uv += rm.UvOffsets[vi];
+                                tmpVertexBuffer[vi * 8 + 6] = uv.X;
+                                tmpVertexBuffer[vi * 8 + 7] = uv.Y;
+                            }
+                            else
+                            {
+                                tmpVertexBuffer[vi * 8 + 6] = 0f;
+                                tmpVertexBuffer[vi * 8 + 7] = 0f;
+                            }
+                        }
+                        GL.BindBuffer(BufferTarget.ArrayBuffer, rm.Vbo);
+                        var handle = System.Runtime.InteropServices.GCHandle.Alloc(tmpVertexBuffer, System.Runtime.InteropServices.GCHandleType.Pinned);
+                        try
+                        {
+                            GL.BufferSubData(BufferTarget.ArrayBuffer, IntPtr.Zero, required * sizeof(float), handle.AddrOfPinnedObject());
+                        }
+                        finally
+                        {
+                            handle.Free();
                         }
                     }
-                    GL.BindBuffer(BufferTarget.ArrayBuffer, rm.Vbo);
-                    var handle = System.Runtime.InteropServices.GCHandle.Alloc(_tmpVertexBuffer, System.Runtime.InteropServices.GCHandleType.Pinned);
-                    try
-                    {
-                        GL.BufferSubData(BufferTarget.ArrayBuffer, IntPtr.Zero, required * sizeof(float), handle.AddrOfPinnedObject());
-                    }
-                    finally
-                    {
-                        handle.Free();
-                    }
+                }
+                finally
+                {
+                    if (tmpVertexBuffer != null)
+                        ArrayPool<float>.Shared.Return(tmpVertexBuffer);
                 }
             }
             else if ((_morphDirty || _uvMorphDirty) && changedVerts != null)
@@ -1712,47 +1724,62 @@ void main(){
         else if (needsUpdate)
         {
             // No bones: just push morphed (or base) vertices to GPU
-            foreach (var rm in _meshes)
+            float[]? tmpVertexBuffer = null;
+            try
             {
-                int required = rm.BaseVertices.Length * 8;
-                if (_tmpVertexBuffer.Length < required)
-                    _tmpVertexBuffer = new float[required];
-                else
-                    Array.Clear(_tmpVertexBuffer, 0, required);
-                for (int vi = 0; vi < rm.BaseVertices.Length; vi++)
+                foreach (var rm in _meshes)
                 {
-                    var pos = rm.BaseVertices[vi] + rm.VertexOffsets[vi];
-                    var nor = vi < rm.Normals.Length ? rm.Normals[vi] : new Vector3(0, 0, 1);
-                    _tmpVertexBuffer[vi * 8 + 0] = pos.X;
-                    _tmpVertexBuffer[vi * 8 + 1] = pos.Y;
-                    _tmpVertexBuffer[vi * 8 + 2] = pos.Z;
-                    _tmpVertexBuffer[vi * 8 + 3] = nor.X;
-                    _tmpVertexBuffer[vi * 8 + 4] = nor.Y;
-                    _tmpVertexBuffer[vi * 8 + 5] = nor.Z;
-                    if (vi < rm.TexCoords.Length)
+                    int required = rm.BaseVertices.Length * 8;
+                    if (tmpVertexBuffer == null || tmpVertexBuffer.Length < required)
                     {
-                        var uv = rm.TexCoords[vi];
-                        if (vi < rm.UvOffsets.Length)
-                            uv += rm.UvOffsets[vi];
-                        _tmpVertexBuffer[vi * 8 + 6] = uv.X;
-                        _tmpVertexBuffer[vi * 8 + 7] = uv.Y;
+                        if (tmpVertexBuffer != null)
+                            ArrayPool<float>.Shared.Return(tmpVertexBuffer);
+                        tmpVertexBuffer = ArrayPool<float>.Shared.Rent(required);
                     }
                     else
                     {
-                        _tmpVertexBuffer[vi * 8 + 6] = 0f;
-                        _tmpVertexBuffer[vi * 8 + 7] = 0f;
+                        Array.Clear(tmpVertexBuffer, 0, required);
+                    }
+                    for (int vi = 0; vi < rm.BaseVertices.Length; vi++)
+                    {
+                        var pos = rm.BaseVertices[vi] + rm.VertexOffsets[vi];
+                        var nor = vi < rm.Normals.Length ? rm.Normals[vi] : new Vector3(0, 0, 1);
+                        tmpVertexBuffer[vi * 8 + 0] = pos.X;
+                        tmpVertexBuffer[vi * 8 + 1] = pos.Y;
+                        tmpVertexBuffer[vi * 8 + 2] = pos.Z;
+                        tmpVertexBuffer[vi * 8 + 3] = nor.X;
+                        tmpVertexBuffer[vi * 8 + 4] = nor.Y;
+                        tmpVertexBuffer[vi * 8 + 5] = nor.Z;
+                        if (vi < rm.TexCoords.Length)
+                        {
+                            var uv = rm.TexCoords[vi];
+                            if (vi < rm.UvOffsets.Length)
+                                uv += rm.UvOffsets[vi];
+                            tmpVertexBuffer[vi * 8 + 6] = uv.X;
+                            tmpVertexBuffer[vi * 8 + 7] = uv.Y;
+                        }
+                        else
+                        {
+                            tmpVertexBuffer[vi * 8 + 6] = 0f;
+                            tmpVertexBuffer[vi * 8 + 7] = 0f;
+                        }
+                    }
+                    GL.BindBuffer(BufferTarget.ArrayBuffer, rm.Vbo);
+                    var handle = System.Runtime.InteropServices.GCHandle.Alloc(tmpVertexBuffer, System.Runtime.InteropServices.GCHandleType.Pinned);
+                    try
+                    {
+                        GL.BufferSubData(BufferTarget.ArrayBuffer, IntPtr.Zero, required * sizeof(float), handle.AddrOfPinnedObject());
+                    }
+                    finally
+                    {
+                        handle.Free();
                     }
                 }
-                GL.BindBuffer(BufferTarget.ArrayBuffer, rm.Vbo);
-                var handle = System.Runtime.InteropServices.GCHandle.Alloc(_tmpVertexBuffer, System.Runtime.InteropServices.GCHandleType.Pinned);
-                try
-                {
-                    GL.BufferSubData(BufferTarget.ArrayBuffer, IntPtr.Zero, required * sizeof(float), handle.AddrOfPinnedObject());
-                }
-                finally
-                {
-                    handle.Free();
-                }
+            }
+            finally
+            {
+                if (tmpVertexBuffer != null)
+                    ArrayPool<float>.Shared.Return(tmpVertexBuffer);
             }
             _morphDirty = false;
             _uvMorphDirty = false;
