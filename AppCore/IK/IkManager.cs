@@ -9,8 +9,6 @@ namespace MiniMikuDance.IK;
 public static class IkManager
 {
     private static readonly Dictionary<int, IkBone> BonesDict = new();
-    // IKアルゴリズム関連の処理を削除したため、ソルバーや固定軸の管理は不要
-
     // レンダラーから提供される各種処理を委譲用デリゲートとして保持
     public static System.Func<float, float, int>? PickFunc { get; set; }
     public static System.Func<int, Vector3>? GetBonePositionFunc { get; set; }

@@ -20,7 +20,6 @@ public class IkBone
     public Vector3 BaseForward { get; }
     public Vector3 BaseUp { get; }
     public Vector3 BasePlaneNormal { get; }
-    public Vector3 PrevUp { get; set; }
     public int PmxBoneIndex { get; }
     public bool IsSelected { get; set; }
     public Vector3 PoleVector { get; set; } = Vector3.Zero;
@@ -38,6 +37,5 @@ public class IkBone
         BaseForward = baseForward;
         BaseUp = baseUp;
         BasePlaneNormal = Vector3.Normalize(Vector3.Cross(baseForward, baseUp));
-        PrevUp = baseUp;
     }
 }
