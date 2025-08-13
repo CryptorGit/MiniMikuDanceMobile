@@ -5,6 +5,7 @@ using Microsoft.Maui.Layouts;
 using Microsoft.Maui.Dispatching;
 using System;
 using System.Collections.Generic;
+using System.Threading;
 using System.Threading.Tasks;
 using SkiaSharp.Views.Maui;
 using SkiaSharp.Views.Maui.Controls;
@@ -1212,35 +1213,51 @@ public partial class MainPage : ContentPage
 
             if (!string.IsNullOrEmpty(_modelDir))
             {
-                foreach (var kvp in textureMap)
+                using var semaphore = new SemaphoreSlim(Environment.ProcessorCount);
+
+                async Task ProcessTextureAsync(string rel, List<int> indices)
                 {
-                    var rel = kvp.Key;
-                    var indices = kvp.Value;
-                    var path = Path.Combine(_modelDir, rel.Replace('/', Path.DirectorySeparatorChar));
-                    if (!File.Exists(path))
+                    await semaphore.WaitAsync();
+                    try
                     {
-                        var fileName = Path.GetFileName(rel);
-                        var found = Directory.GetFiles(_modelDir, fileName, SearchOption.AllDirectories).FirstOrDefault();
-                        if (found == null)
-                            continue;
-                        rel = Path.GetRelativePath(_modelDir, found).Replace(Path.DirectorySeparatorChar, '/');
-                        path = found;
+                        var localRel = rel;
+                        var path = Path.Combine(_modelDir, localRel.Replace('/', Path.DirectorySeparatorChar));
+                        if (!File.Exists(path))
+                        {
+                            var fileName = Path.GetFileName(localRel);
+                            var found = Directory.GetFiles(_modelDir, fileName, SearchOption.AllDirectories).FirstOrDefault();
+                            if (found == null)
+                                return;
+                            localRel = Path.GetRelativePath(_modelDir, found).Replace(Path.DirectorySeparatorChar, '/');
+                            path = found;
+                        }
+
+                        await using var stream = File.OpenRead(path);
+                        using var image = await SixLabors.ImageSharp.Image.LoadAsync<Rgba32>(stream);
+
+                        foreach (var idx in indices)
+                        {
+                            var sm = data.SubMeshes[idx];
+                            sm.TextureBytes = new byte[image.Width * image.Height * 4];
+                            image.CopyPixelDataTo(sm.TextureBytes);
+                            sm.TextureWidth = image.Width;
+                            sm.TextureHeight = image.Height;
+                            sm.TextureFilePath = localRel;
+                        }
+                        LogService.WriteLine($"Texture {localRel} mapped to indices: {string.Join(",", indices)}");
                     }
-
-                    await using var stream = File.OpenRead(path);
-                    using var image = await SixLabors.ImageSharp.Image.LoadAsync<Rgba32>(stream);
-
-                    foreach (var idx in indices)
+                    catch (Exception ex)
                     {
-                        var sm = data.SubMeshes[idx];
-                        sm.TextureBytes = new byte[image.Width * image.Height * 4];
-                        image.CopyPixelDataTo(sm.TextureBytes);
-                        sm.TextureWidth = image.Width;
-                        sm.TextureHeight = image.Height;
-                        sm.TextureFilePath = rel;
+                        LogService.WriteLine($"Error loading texture {rel}: {ex.Message}");
                     }
-                    LogService.WriteLine($"Texture {rel} mapped to indices: {string.Join(",", indices)}");
+                    finally
+                    {
+                        semaphore.Release();
+                    }
                 }
+
+                var tasks = textureMap.Select(kvp => ProcessTextureAsync(kvp.Key, kvp.Value));
+                await Task.WhenAll(tasks);
             }
 
             _pendingModel = data;
