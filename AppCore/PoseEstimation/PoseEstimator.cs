@@ -2,7 +2,6 @@ using System;
 using System.Linq;
 using System.Numerics;
 using System.Collections.Generic;
-using System.Runtime.InteropServices;
 using System.Buffers;
 using SixLabors.ImageSharp;
 using SixLabors.ImageSharp.PixelFormats;
@@ -93,12 +92,53 @@ public class PoseEstimator : IDisposable
         img.CopyPixelDataTo(pixels);
 
         float inv = 1f / 255f;
-        var dst = MemoryMarshal.Cast<float, Vector3>(tensor.Buffer.Span);
+        var src = pixels.AsSpan();
+        var dstSpan = tensor.Buffer.Span;
+        int pixelCount = src.Length;
+        int vecSize = Vector<float>.Count;
+        var invVec = new Vector<float>(inv);
+        int blockStride = vecSize * 3;
+        int i = 0;
 
-        for (int i = 0; i < pixels.Length; i++)
+        unsafe
         {
-            var p = pixels[i];
-            dst[i] = new Vector3(p.R, p.G, p.B) * inv;
+            var tmp = stackalloc float[blockStride];
+            var tmpSpan = new Span<float>(tmp, blockStride);
+            while (i <= pixelCount - vecSize)
+            {
+                for (int j = 0; j < vecSize; j++)
+                {
+                    var p = src[i + j];
+                    int idx = j * 3;
+                    tmp[idx] = p.R;
+                    tmp[idx + 1] = p.G;
+                    tmp[idx + 2] = p.B;
+                }
+
+                for (int k = 0; k < blockStride; k += vecSize)
+                {
+                    (new Vector<float>(tmpSpan.Slice(k, vecSize)) * invVec)
+                        .CopyTo(tmpSpan.Slice(k, vecSize));
+                }
+
+                fixed (float* destPtr = dstSpan.Slice(i * 3))
+                {
+                    Buffer.MemoryCopy(tmp, destPtr,
+                        (long)(dstSpan.Length - i * 3) * sizeof(float),
+                        (long)blockStride * sizeof(float));
+                }
+
+                i += vecSize;
+            }
+        }
+
+        for (; i < pixelCount; i++)
+        {
+            var p = src[i];
+            int idx = i * 3;
+            dstSpan[idx] = p.R * inv;
+            dstSpan[idx + 1] = p.G * inv;
+            dstSpan[idx + 2] = p.B * inv;
         }
 
         using var output = _session!.Run(new[] { NamedOnnxValue.CreateFromTensor(inputName, tensor) });
