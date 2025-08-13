@@ -63,8 +63,15 @@ internal static class RotationConstraints
         switch (role)
         {
             case BoneRole.Ankle:
-                rot.Z = 0f;
+            {
+                var parentBase = index > 0 ? chain[index - 1].BaseRotation : Quaternion.Identity;
+                var invParentBase = Quaternion.Inverse(parentBase);
+                var planeNormal = Vector3.Normalize(Vector3.Transform(chain[index].BasePlaneNormal, invParentBase));
+                var up = Vector3.Normalize(Vector3.Transform(chain[index].BaseUp, invParentBase));
+                var forward = Vector3.Normalize(Vector3.Cross(planeNormal, up));
+                rot -= Vector3.Dot(rot, forward) * forward;
                 break;
+            }
             case BoneRole.Knee:
                 rot.X = MathF.Max(rot.X, 0f);
                 break;
