@@ -192,6 +192,8 @@ public class PmxRenderer : IDisposable
         }
     }
 
+    public bool IsPhysicsEnabled { get; set; } = true;
+
     private float _ikBoneScale = AppSettings.DefaultIkBoneScale;
     public float IkBoneScale
     {
@@ -1486,7 +1488,10 @@ void main(){
             var now = _timer.Elapsed.TotalSeconds;
             float dt = (float)(now - _lastTime);
             _lastTime = now;
-            _physics.Step(dt);
+            if (IsPhysicsEnabled)
+            {
+                _physics.Step(dt);
+            }
             _ikSolver.Solve(_model);
             _bonesDirty = true;
         }

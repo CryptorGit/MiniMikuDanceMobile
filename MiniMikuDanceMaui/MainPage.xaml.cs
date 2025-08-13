@@ -100,6 +100,13 @@ public partial class MainPage : ContentPage
         PoseProgressLabel.Text = $"姿勢推定: {current}/{_poseTotalFrames} ({p * 100:0}%)";
     }
 
+    private void OnPhysicsToggled(object? sender, ToggledEventArgs e)
+    {
+        System.Diagnostics.Trace.WriteLine($"OnPhysicsToggled: value={e.Value}");
+        _renderer.IsPhysicsEnabled = e.Value;
+        Viewer?.InvalidateSurface();
+    }
+
     private void OnPoseModeToggled(object? sender, ToggledEventArgs e)
     {
         System.Diagnostics.Trace.WriteLine($"OnPoseModeToggled: value={e.Value}");
