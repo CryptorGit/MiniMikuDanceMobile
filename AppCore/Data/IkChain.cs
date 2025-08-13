@@ -1,11 +1,12 @@
 using System.Collections.Generic;
+using MiniMikuDance.Import;
 
 namespace MiniMikuDance.Data;
 
 public class IkChain
 {
     public int Target { get; set; } = -1;
-    public List<int> Links { get; } = new();
+    public List<IkLink> Links { get; } = new();
     public int Iterations { get; set; }
         = 0;
     public float ControlWeight { get; set; }

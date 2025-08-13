@@ -720,12 +720,21 @@ public class ModelImporter : IDisposable
 
             int targetIdx = MmdModel.NormalizeIndex(ik.Target, data.Bones.Count, logger);
             if (targetIdx >= 0)
-                chain.Links.Add(targetIdx);
+                chain.Links.Add(new IkLink { BoneIndex = targetIdx, RotationLimit = ik.RotationLimit });
             foreach (var link in ik.Links)
             {
                 int idx = MmdModel.NormalizeIndex(link.BoneIndex, data.Bones.Count, logger);
                 if (idx >= 0)
-                    chain.Links.Add(idx);
+                {
+                    chain.Links.Add(new IkLink
+                    {
+                        BoneIndex = idx,
+                        HasLimit = link.HasLimit,
+                        MinAngle = link.MinAngle,
+                        MaxAngle = link.MaxAngle,
+                        RotationLimit = link.RotationLimit
+                    });
+                }
             }
 
             if (chain.Links.Count == 0)

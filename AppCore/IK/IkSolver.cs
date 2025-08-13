@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Numerics;
 using MiniMikuDance.Data;
+using MiniMikuDance.Import;
 using MiniMikuDance.Physix;
 
 namespace MiniMikuDance.IK;
@@ -50,11 +51,11 @@ public class IkSolver : IIkSolver
     private void SolveCcdChain(MmdModel model, IkChain chain)
     {
         const float epsilon = 1e-3f;
-        void ExecuteCcd(List<int> links, int iterations)
+        void ExecuteCcd(List<IkLink> links, int iterations)
         {
             for (int i = 0; i < iterations; i++)
             {
-                var effectorIndex = links[0];
+                var effectorIndex = links[0].BoneIndex;
                 var targetPos = model.Bones[chain.Target].Translation;
                 var effectorPos = model.Bones[effectorIndex].Translation;
                 if (Vector3.Distance(effectorPos, targetPos) <= epsilon)
@@ -62,7 +63,8 @@ public class IkSolver : IIkSolver
 
                 for (int j = 0; j < links.Count; j++)
                 {
-                    var boneIndex = links[j];
+                    var link = links[j];
+                    var boneIndex = link.BoneIndex;
                     var bone = model.Bones[boneIndex];
                     var bonePos = bone.Translation;
                     var toEffector = effectorPos - bonePos;
@@ -76,8 +78,18 @@ public class IkSolver : IIkSolver
                         continue;
                     axis /= axisLen;
                     var angle = MathF.Acos(Math.Clamp(Vector3.Dot(Vector3.Normalize(toEffector), Vector3.Normalize(toTarget)), -1f, 1f));
+                    angle *= chain.ControlWeight;
+                    if (link.RotationLimit > 0f && angle > link.RotationLimit)
+                        angle = link.RotationLimit;
                     var rot = Quaternion.CreateFromAxisAngle(axis, angle);
-                    bone.Rotation = Quaternion.Normalize(rot * bone.Rotation);
+                    var newRot = Quaternion.Normalize(rot * bone.Rotation);
+                    if (link.HasLimit)
+                    {
+                        var euler = ToEuler(newRot);
+                        euler = Vector3.Clamp(euler, link.MinAngle, link.MaxAngle);
+                        newRot = Quaternion.CreateFromYawPitchRoll(euler.Y, euler.X, euler.Z);
+                    }
+                    bone.Rotation = newRot;
                     effectorPos = bonePos + Vector3.Transform(toEffector, rot);
                 }
 
@@ -86,18 +98,18 @@ public class IkSolver : IIkSolver
             }
         }
 
-        var links = new List<int>(chain.Links);
+        var links = new List<IkLink>(chain.Links);
         ExecuteCcd(links, chain.Iterations);
 
-        var effectorIndexFinal = links[0];
+        var effectorIndexFinal = links[0].BoneIndex;
         var effectorPosFinal = model.Bones[effectorIndexFinal].Translation;
         var targetPosFinal = model.Bones[chain.Target].Translation;
         if (Vector3.Distance(effectorPosFinal, targetPosFinal) > epsilon)
         {
-            int parent = model.Bones[links[^1]].Parent;
+            int parent = model.Bones[links[^1].BoneIndex].Parent;
             if (parent >= 0)
             {
-                links.Add(parent);
+                links.Add(new IkLink { BoneIndex = parent });
                 ExecuteCcd(links, Math.Min(10, chain.Iterations));
             }
         }
@@ -149,5 +161,24 @@ public class IkSolver : IIkSolver
         }
 
         SolveCcdChain(model, chain);
+    }
+
+    private static Vector3 ToEuler(Quaternion q)
+    {
+        var ysqr = q.Y * q.Y;
+
+        var t0 = 2f * (q.W * q.X + q.Y * q.Z);
+        var t1 = 1f - 2f * (q.X * q.X + ysqr);
+        var pitch = MathF.Atan2(t0, t1);
+
+        var t2 = 2f * (q.W * q.Y - q.Z * q.X);
+        t2 = Math.Clamp(t2, -1f, 1f);
+        var yaw = MathF.Asin(t2);
+
+        var t3 = 2f * (q.W * q.Z + q.X * q.Y);
+        var t4 = 1f - 2f * (ysqr + q.Z * q.Z);
+        var roll = MathF.Atan2(t3, t4);
+
+        return new Vector3(pitch, yaw, roll);
     }
 }
