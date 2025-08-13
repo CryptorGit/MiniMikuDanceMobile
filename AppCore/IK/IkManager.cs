@@ -285,10 +285,19 @@ public static class IkManager
             if (link.HasLimit)
             {
                 var local = Quaternion.Inverse(parent) * bone.Rotation;
-                var euler = local.ToEulerDegrees() * (MathF.PI / 180f);
-                var clamped = Vector3.Clamp(euler, link.MinAngle, link.MaxAngle);
-                var deg = clamped * (180f / MathF.PI);
-                bone.Rotation = parent * deg.FromEulerDegrees();
+                local = Quaternion.Normalize(local);
+                var w = Math.Clamp(local.W, -1f, 1f);
+                float angle = 2f * MathF.Acos(w);
+                float s = MathF.Sqrt(MathF.Max(0f, 1f - w * w));
+                Vector3 axis = s < 1e-6f ? Vector3.UnitX : new Vector3(local.X / s, local.Y / s, local.Z / s);
+                var rot = axis * angle;
+                rot = new Vector3(
+                    Math.Clamp(rot.X, link.MinAngle.X, link.MaxAngle.X),
+                    Math.Clamp(rot.Y, link.MinAngle.Y, link.MaxAngle.Y),
+                    Math.Clamp(rot.Z, link.MinAngle.Z, link.MaxAngle.Z));
+                float clampedAngle = rot.Length();
+                var clampedAxis = clampedAngle < 1e-6f ? Vector3.UnitX : Vector3.Normalize(rot);
+                bone.Rotation = parent * Quaternion.CreateFromAxisAngle(clampedAxis, clampedAngle);
             }
             parent = bone.Rotation;
         }

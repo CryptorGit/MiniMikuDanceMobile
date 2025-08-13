@@ -142,6 +142,7 @@ SDEF 関連 TODO
 - PoleVector 未指定の簡易モデルで、初期平面法線に沿って曲げ方向が安定することを確認した。
 - `CcdSolver` を導入したが、実モデルでの挙動確認は未実施。
 - ClampRotation を軸角表示に変更した。既存モデルで逆関節・ひねりが改善されるか手動確認する（未実施）。
+- ClampChainRotations を Axis-Angle 変換で再実装し、リンクの角度制限を直接比較する処理へ変更した。足IKなどで挙動を手動確認する（未実施）。
 - `IkManager.RegisterIkBone` で IKリンクの走査順をインデックス順に修正した。複数モデルでのチェーン挙動は未確認。
 - `CcdSolver` と `TwoBoneSolver` から反復ループを削除。足IK等で単回計算が自然に曲がるかは実機確認が必要。
 
