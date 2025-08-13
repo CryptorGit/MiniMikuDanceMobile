@@ -60,21 +60,30 @@ internal static class RotationConstraints
         }
         var rot = axis * angle;
 
-        switch (role)
+        var constraint = RoleConstraintTable.Get(role);
+        if (constraint != null)
         {
-            case BoneRole.Ankle:
+            if (constraint.RemoveAxis != null)
             {
                 var parentBase = index > 0 ? chain[index - 1].BaseRotation : Quaternion.Identity;
                 var invParentBase = Quaternion.Inverse(parentBase);
-                var planeNormal = Vector3.Normalize(Vector3.Transform(chain[index].BasePlaneNormal, invParentBase));
-                var up = Vector3.Normalize(Vector3.Transform(chain[index].BaseUp, invParentBase));
-                var forward = Vector3.Normalize(Vector3.Cross(planeNormal, up));
-                rot -= Vector3.Dot(rot, forward) * forward;
-                break;
+                var axisToRemove = Vector3.Normalize(Vector3.Transform(constraint.RemoveAxis.ToVector3(0f), invParentBase));
+                rot -= Vector3.Dot(rot, axisToRemove) * axisToRemove;
             }
-            case BoneRole.Knee:
-                rot.X = MathF.Max(rot.X, 0f);
-                break;
+            if (constraint.Min != null)
+            {
+                var min = constraint.Min.ToVector3(float.NegativeInfinity);
+                rot.X = MathF.Max(rot.X, min.X);
+                rot.Y = MathF.Max(rot.Y, min.Y);
+                rot.Z = MathF.Max(rot.Z, min.Z);
+            }
+            if (constraint.Max != null)
+            {
+                var max = constraint.Max.ToVector3(float.PositiveInfinity);
+                rot.X = MathF.Min(rot.X, max.X);
+                rot.Y = MathF.Min(rot.Y, max.Y);
+                rot.Z = MathF.Min(rot.Z, max.Z);
+            }
         }
 
         var clampedAngle = rot.Length();

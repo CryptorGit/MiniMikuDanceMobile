@@ -1,0 +1,10 @@
+{
+  "constraints": {
+    "Ankle": {
+      "removeAxis": { "x": 0, "y": 0, "z": 1 }
+    },
+    "Knee": {
+      "min": { "x": 0 }
+    }
+  }
+}
