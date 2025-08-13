@@ -1,19 +1,19 @@
 using System.Linq;
 using Microsoft.Maui.Controls;
-using MiniMikuDance.Import;
+using MiniMikuDance.Data;
 
 namespace MiniMikuDanceMaui;
 
 public partial class PmxView : ContentView
 {
-    private ModelData? _model;
+    private MmdModel? _model;
 
     public PmxView()
     {
         InitializeComponent();
     }
 
-    public void SetModel(ModelData? model)
+    public void SetModel(MmdModel? model)
     {
         _model = model;
         UpdateView();

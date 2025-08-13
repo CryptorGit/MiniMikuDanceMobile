@@ -9,6 +9,7 @@ using SixLabors.ImageSharp.PixelFormats;
 using Vector3D = Assimp.Vector3D;
 using MMDTools;
 using MiniMikuDance.App;
+using MiniMikuDance.Data;
 
 namespace MiniMikuDance.Import;
 
@@ -121,7 +122,7 @@ public class ModelImporter : IDisposable
         GC.SuppressFinalize(this);
     }
 
-    public ModelData ImportModel(Stream stream, string? textureDir = null)
+    public MmdModel ImportModel(Stream stream, string? textureDir = null)
     {
         Span<byte> header = stackalloc byte[4];
         int read = stream.Read(header);
@@ -152,7 +153,7 @@ public class ModelImporter : IDisposable
         throw new NotSupportedException("PMX 以外の形式には対応していません。");
     }
 
-    public ModelData ImportModel(string path)
+    public MmdModel ImportModel(string path)
     {
 
 
@@ -171,10 +172,10 @@ public class ModelImporter : IDisposable
 
         var scene = _context.ImportFile(path, PostProcessSteps.Triangulate | PostProcessSteps.GenerateNormals);
 
-        return new ModelData { Mesh = scene.Meshes[0] };
+        return ToMmdModel(new ModelData { Mesh = scene.Meshes[0] });
     }
 
-    private ModelData ImportPmx(Stream stream, string? textureDir = null)
+    private MmdModel ImportPmx(Stream stream, string? textureDir = null)
     {
         var pmx = PMXParser.Parse(stream);
         var verts = pmx.VertexList.ToArray();
@@ -187,6 +188,7 @@ public class ModelImporter : IDisposable
         var joints = pmx.JointList.ToArray();
         var displayFrames = pmx.DisplayFrameList.ToArray();
         var softBodies = pmx.SoftBodyList.ToArray();
+        bool qdefWarned = false;
 
         var childIndices = new List<int>[bones.Length];
         for (int i = 0; i < bones.Length; i++)
@@ -348,20 +350,6 @@ public class ModelImporter : IDisposable
             bd.InverseBindMatrix = inv;
         }
         data.Bones = boneDatas;
-
-        // ヒューマノイドボーンのマッピング
-        foreach (var hb in MiniMikuDance.Import.HumanoidBones.StandardOrder)
-        {
-            for (int i = 0; i < boneDatas.Count; i++)
-            {
-                if (boneDatas[i].Name.Equals(hb, StringComparison.OrdinalIgnoreCase))
-                {
-                    data.HumanoidBones[hb] = i;
-                    data.HumanoidBoneList.Add((hb, i));
-                    break;
-                }
-            }
-        }
         var morphDatas = new List<MorphData>(morphs.Length);
         var nameCounts = new Dictionary<string, int>(StringComparer.OrdinalIgnoreCase);
         var usedNames = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
@@ -462,6 +450,7 @@ public class ModelImporter : IDisposable
                     }
                     break;
                 default:
+                    Console.Error.WriteLine($"モーフタイプ {m.Type} は未対応のためスキップします。");
                     break;
             }
             morphDatas.Add(md);
@@ -485,6 +474,9 @@ public class ModelImporter : IDisposable
                         break;
                     case DisplayFrameElementTarget.Morph:
                         dfd.Morphs.Add(elem.TargetIndex);
+                        break;
+                    default:
+                        Console.Error.WriteLine($"DisplayFrame 要素 {elem.TargetType} は未対応です。");
                         break;
                 }
             }
@@ -601,8 +593,14 @@ public class ModelImporter : IDisposable
                             sr0 = new System.Numerics.Vector3(vv.R0.X * Scale, vv.R0.Y * Scale, vv.R0.Z * Scale);
                             sr1 = new System.Numerics.Vector3(vv.R1.X * Scale, vv.R1.Y * Scale, vv.R1.Z * Scale);
                             break;
-                        case WeightTransformType.BDEF4:
                         case WeightTransformType.QDEF:
+                            if (!qdefWarned)
+                            {
+                                Console.Error.WriteLine("QDEF スキニングは未対応のため BDEF4 として処理します。");
+                                qdefWarned = true;
+                            }
+                            goto case WeightTransformType.BDEF4;
+                        case WeightTransformType.BDEF4:
                         default:
                             ji = new System.Numerics.Vector4(vv.BoneIndex1, vv.BoneIndex2, vv.BoneIndex3, vv.BoneIndex4);
                             jw = new System.Numerics.Vector4(vv.Weight1, vv.Weight2, vv.Weight3, vv.Weight4);
@@ -687,7 +685,45 @@ public class ModelImporter : IDisposable
             faceOffset += faceCount;
         }
         data.Transform = System.Numerics.Matrix4x4.CreateScale(Scale);
-        return data;
+        return ToMmdModel(data);
+    }
+
+    private static MmdModel ToMmdModel(ModelData data)
+    {
+        var model = new MmdModel
+        {
+            SubMeshes = data.SubMeshes,
+            Mesh = data.Mesh,
+            Transform = data.Transform,
+            Bones = data.Bones,
+            Morphs = data.Morphs,
+            RigidBodies = data.RigidBodies,
+            Joints = data.Joints,
+            DisplayFrames = data.DisplayFrames,
+            ShadeShift = data.ShadeShift,
+            ShadeToony = data.ShadeToony,
+            RimIntensity = data.RimIntensity
+        };
+        MapHumanoidBones(model);
+        return model;
+    }
+
+    private static void MapHumanoidBones(MmdModel model)
+    {
+        model.HumanoidBones.Clear();
+        model.HumanoidBoneList.Clear();
+        foreach (var hb in HumanoidBones.StandardOrder)
+        {
+            for (int i = 0; i < model.Bones.Count; i++)
+            {
+                if (model.Bones[i].Name.Equals(hb, StringComparison.OrdinalIgnoreCase))
+                {
+                    model.HumanoidBones[hb] = i;
+                    model.HumanoidBoneList.Add((hb, i));
+                    break;
+                }
+            }
+        }
     }
     // 現在は PMX モデルのみに対応しています
 }

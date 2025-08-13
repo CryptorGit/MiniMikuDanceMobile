@@ -7,6 +7,7 @@ using System.Runtime.InteropServices;
 using System.Collections.Generic;
 using MiniMikuDance.Util;
 using MiniMikuDance.Import;
+using MiniMikuDance.Data;
 using MiniMikuDance.App;
 using MiniMikuDance.IK;
 using MMDTools;
@@ -1040,7 +1041,7 @@ void main(){
         }
     }
 
-    public void LoadModel(MiniMikuDance.Import.ModelData data)
+    public void LoadModel(MmdModel data)
     {
         foreach (var rm in _meshes)
         {

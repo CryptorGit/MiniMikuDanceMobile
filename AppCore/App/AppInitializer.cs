@@ -68,7 +68,7 @@ public partial class AppInitializer : IDisposable
         Viewer = ViewerFactory(modelPath, settings.ModelScale);
         ModelImporter.CacheCapacity = settings.TextureCacheSize;
         using var importer = new ModelImporter { Scale = settings.ModelScale };
-        var model = importer.ImportModel(modelPath);
+        importer.ImportModel(modelPath);
 
         Viewer.FrameUpdated += async dt =>
         {

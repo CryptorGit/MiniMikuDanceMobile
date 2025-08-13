@@ -18,6 +18,7 @@ using System.IO;
 using System.Linq;
 using System.Reflection;
 using MiniMikuDance.Import;
+using MiniMikuDance.Data;
 using OpenTK.Mathematics;
 using MiniMikuDance.Util;
 using MiniMikuDance.PoseEstimation;
@@ -59,8 +60,8 @@ public partial class MainPage : ContentPage
     // bottomWidth is no longer used; bottom region spans full screen width
     // private double bottomWidth = 0;
     private bool _glInitialized;
-    private ModelData? _pendingModel;
-    private ModelData? _currentModel;
+    private MmdModel? _pendingModel;
+    private MmdModel? _currentModel;
     private readonly Dictionary<long, SKPoint> _touchPoints = new();
     private readonly long[] _touchIds = new long[2];
     private readonly BonesConfig? _bonesConfig = App.Initializer.BonesConfig;
@@ -806,7 +807,7 @@ public partial class MainPage : ContentPage
 
                 MiniMikuDance.Import.ModelImporter.CacheCapacity = _settings.TextureCacheSize;
                 using var importer = new MiniMikuDance.Import.ModelImporter();
-                MiniMikuDance.Import.ModelData data;
+                MmdModel data;
                 if (!string.IsNullOrEmpty(result.FullPath))
                 {
                     data = importer.ImportModel(result.FullPath);
