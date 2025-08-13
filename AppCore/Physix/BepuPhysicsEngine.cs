@@ -6,6 +6,7 @@ using BepuPhysics.Trees;
 using BepuUtilities;
 using BepuUtilities.Memory;
 using MiniMikuDance.Data;
+using MiniMikuDance.Import;
 using System.Numerics;
 
 namespace MiniMikuDance.Physix;
@@ -14,31 +15,140 @@ public sealed class BepuPhysicsEngine : IPhysicsEngine, IDisposable
 {
     private static readonly BufferPool SharedBufferPool = new();
     private Simulation _simulation = null!;
+    private MmdModel? _model;
+    private BodyHandle[] _bodyHandles = Array.Empty<BodyHandle>();
 
     public void Setup(MmdModel model)
     {
+        _model = model;
         _simulation?.Dispose();
         _simulation = Simulation.Create(SharedBufferPool, new NarrowPhaseCallbacks(),
             new PoseIntegratorCallbacks(new Vector3(0, -9.81f, 0)), new SolveDescription(8, 1));
-        foreach (var _ in model.RigidBodies)
+
+        _bodyHandles = new BodyHandle[model.RigidBodies.Count];
+        for (int i = 0; i < model.RigidBodies.Count; i++)
         {
-            // TODO: 剛体生成
+            var rb = model.RigidBodies[i];
+            var pose = rb.BoneIndex >= 0 && rb.BoneIndex < model.Bones.Count
+                ? new RigidPose(model.Bones[rb.BoneIndex].Translation, model.Bones[rb.BoneIndex].Rotation)
+                : new RigidPose(Vector3.Zero, Quaternion.Identity);
+
+            BodyDescription description;
+            switch (rb.Shape)
+            {
+                case RigidBodyShape.Box:
+                    var box = new Box(0.5f, 0.5f, 0.5f);
+                    var boxIndex = _simulation.Shapes.Add(box);
+                    if (rb.Mass <= 0)
+                    {
+                        description = BodyDescription.CreateKinematic(pose,
+                            new CollidableDescription(boxIndex, 0.1f), new BodyActivityDescription(0.01f));
+                    }
+                    else
+                    {
+                        var boxInertia = box.ComputeInertia(rb.Mass);
+                        description = BodyDescription.CreateDynamic(pose, boxInertia,
+                            new CollidableDescription(boxIndex, 0.1f), new BodyActivityDescription(0.01f));
+                    }
+                    break;
+                case RigidBodyShape.Capsule:
+                    var capsule = new Capsule(0.25f, 0.5f);
+                    var capIndex = _simulation.Shapes.Add(capsule);
+                    if (rb.Mass <= 0)
+                    {
+                        description = BodyDescription.CreateKinematic(pose,
+                            new CollidableDescription(capIndex, 0.1f), new BodyActivityDescription(0.01f));
+                    }
+                    else
+                    {
+                        var capInertia = capsule.ComputeInertia(rb.Mass);
+                        description = BodyDescription.CreateDynamic(pose, capInertia,
+                            new CollidableDescription(capIndex, 0.1f), new BodyActivityDescription(0.01f));
+                    }
+                    break;
+                default:
+                    var sphere = new Sphere(0.5f);
+                    var sphereIndex = _simulation.Shapes.Add(sphere);
+                    if (rb.Mass <= 0)
+                    {
+                        description = BodyDescription.CreateKinematic(pose,
+                            new CollidableDescription(sphereIndex, 0.1f), new BodyActivityDescription(0.01f));
+                    }
+                    else
+                    {
+                        var sphereInertia = sphere.ComputeInertia(rb.Mass);
+                        description = BodyDescription.CreateDynamic(pose, sphereInertia,
+                            new CollidableDescription(sphereIndex, 0.1f), new BodyActivityDescription(0.01f));
+                    }
+                    break;
+            }
+            _bodyHandles[i] = _simulation.Bodies.Add(description);
         }
 
-        foreach (var _ in model.Joints)
+        foreach (var joint in model.Joints)
         {
-            // TODO: ジョイント生成
+            if (joint.RigidBodyA < 0 || joint.RigidBodyB < 0 ||
+                joint.RigidBodyA >= _bodyHandles.Length || joint.RigidBodyB >= _bodyHandles.Length)
+                continue;
+            var handleA = _bodyHandles[joint.RigidBodyA];
+            var handleB = _bodyHandles[joint.RigidBodyB];
+            var bodyA = _simulation.Bodies.GetBodyReference(handleA);
+            var bodyB = _simulation.Bodies.GetBodyReference(handleB);
+            var poseA = bodyA.Pose;
+            var poseB = bodyB.Pose;
+            var location = (poseA.Position + poseB.Position) * 0.5f;
+            var constraint = new BallSocket
+            {
+                LocalOffsetA = location - poseA.Position,
+                LocalOffsetB = location - poseB.Position,
+                SpringSettings = new SpringSettings(30f, 1f)
+            };
+            _simulation.Solver.Add(handleA, handleB, constraint);
         }
     }
 
     public void Step(float deltaTime)
     {
+        PreStep();
         const float step = 1f / 60f;
         var substepCount = Math.Max(1, (int)MathF.Ceiling(deltaTime / step));
         var substepDt = deltaTime / substepCount;
         for (var i = 0; i < substepCount; i++)
         {
             _simulation.Timestep(substepDt);
+        }
+        PostStep();
+    }
+
+    private void PreStep()
+    {
+        if (_model == null) return;
+        for (int i = 0; i < _model.RigidBodies.Count; i++)
+        {
+            var rb = _model.RigidBodies[i];
+            if (rb.Mass > 0 || rb.BoneIndex < 0 || rb.BoneIndex >= _model.Bones.Count)
+                continue;
+            var body = _simulation.Bodies.GetBodyReference(_bodyHandles[i]);
+            var bone = _model.Bones[rb.BoneIndex];
+            body.Pose.Position = bone.Translation;
+            body.Pose.Orientation = bone.Rotation;
+            body.Velocity.Linear = Vector3.Zero;
+            body.Velocity.Angular = Vector3.Zero;
+        }
+    }
+
+    private void PostStep()
+    {
+        if (_model == null) return;
+        for (int i = 0; i < _model.RigidBodies.Count; i++)
+        {
+            var rb = _model.RigidBodies[i];
+            if (rb.Mass <= 0 || rb.BoneIndex < 0 || rb.BoneIndex >= _model.Bones.Count)
+                continue;
+            var body = _simulation.Bodies.GetBodyReference(_bodyHandles[i]);
+            var bone = _model.Bones[rb.BoneIndex];
+            bone.Translation = body.Pose.Position;
+            bone.Rotation = body.Pose.Orientation;
         }
     }
 
