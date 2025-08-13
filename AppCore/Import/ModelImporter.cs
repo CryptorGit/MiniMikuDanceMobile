@@ -9,6 +9,7 @@ using SixLabors.ImageSharp.PixelFormats;
 using Vector3D = Assimp.Vector3D;
 using MMDTools;
 using MiniMikuDance.App;
+using MiniMikuDance.Data;
 
 namespace MiniMikuDance.Import;
 
@@ -688,6 +689,100 @@ public class ModelImporter : IDisposable
         }
         data.Transform = System.Numerics.Matrix4x4.CreateScale(Scale);
         return data;
+    }
+
+    public static MmdModel ToMmdModel(ModelData data, Action<string>? logger = null)
+    {
+        logger ??= s => Console.Error.WriteLine(s);
+
+        var model = new MmdModel();
+        model.Bones.AddRange(data.Bones);
+
+        for (int i = 0; i < data.Bones.Count; i++)
+        {
+            var b = data.Bones[i];
+            var ik = b.Ik;
+            if (ik is null) continue;
+
+            var chain = new IkChain
+            {
+                Target = i,
+                Iterations = ik.Iterations,
+                ControlWeight = ik.ControlWeight
+            };
+
+            int targetIdx = MmdModel.NormalizeIndex(ik.Target, data.Bones.Count, logger);
+            if (targetIdx >= 0)
+                chain.Links.Add(targetIdx);
+            foreach (var link in ik.Links)
+            {
+                int idx = MmdModel.NormalizeIndex(link.BoneIndex, data.Bones.Count, logger);
+                if (idx >= 0)
+                    chain.Links.Add(idx);
+            }
+
+            if (chain.Links.Count == 0)
+            {
+                logger($"IK bone '{b.Name}' のリンクが無効なためスキップします。");
+                continue;
+            }
+
+            bool isFoot = false;
+            foreach (var (name, idx) in data.HumanoidBoneList)
+            {
+                if (idx == targetIdx &&
+                    (name.Equals("leftFoot", StringComparison.OrdinalIgnoreCase) ||
+                     name.Equals("rightFoot", StringComparison.OrdinalIgnoreCase)))
+                {
+                    isFoot = true;
+                    break;
+                }
+            }
+
+            if (isFoot)
+            {
+                var foot = new FootIkChain
+                {
+                    Target = chain.Target,
+                    Ankle = targetIdx,
+                    Iterations = chain.Iterations,
+                    ControlWeight = chain.ControlWeight
+                };
+                foreach (var l in chain.Links)
+                    foot.Links.Add(l);
+                model.FootIkChains.Add(foot);
+            }
+            else
+            {
+                model.IkChains.Add(chain);
+            }
+        }
+
+        foreach (var rb in data.RigidBodies)
+        {
+            var rbd = new RigidBodyData
+            {
+                Name = rb.Name,
+                Mass = rb.Mass,
+                Shape = rb.Shape,
+                BoneIndex = MmdModel.NormalizeIndex(rb.BoneIndex, data.Bones.Count, logger)
+            };
+            model.RigidBodies.Add(rbd);
+        }
+
+        int rigidCount = model.RigidBodies.Count;
+        foreach (var j in data.Joints)
+        {
+            var jd = new JointData
+            {
+                Name = j.Name,
+                RigidBodyA = MmdModel.NormalizeIndex(j.RigidBodyA, rigidCount, logger),
+                RigidBodyB = MmdModel.NormalizeIndex(j.RigidBodyB, rigidCount, logger)
+            };
+            model.Joints.Add(jd);
+        }
+
+        return model;
     }
     // 現在は PMX モデルのみに対応しています
 }
