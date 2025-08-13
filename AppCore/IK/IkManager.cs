@@ -67,9 +67,10 @@ public static class IkManager
     private static void RegisterIkBone(int index, BoneData bRoot, IkInfo ik, IReadOnlyList<BoneData> modelBones)
     {
         var rootPos = Vector3.Transform(Vector3.Zero, bRoot.BindMatrix);
+        float baseLimit = ik.ControlWeight != 0f ? ik.ControlWeight : ik.RotationLimit;
         BonesDict[index] = new IkBone(index, rootPos, bRoot.Rotation, bRoot.BaseForward, bRoot.BaseUp)
         {
-            RotationLimit = ik.RotationLimit,
+            RotationLimit = baseLimit,
             PoleVector = ik.PoleVector
         };
 
@@ -92,7 +93,7 @@ public static class IkManager
             var pos = Vector3.Transform(Vector3.Zero, b.BindMatrix);
             chain[j + 1] = new IkBone(idx, pos, b.Rotation, b.BaseForward, b.BaseUp)
             {
-                RotationLimit = ik.RotationLimit
+                RotationLimit = baseLimit
             };
         }
 
@@ -208,7 +209,10 @@ public static class IkManager
             var ikSolver = solver.Solver;
             solveChain[^1].Position = position;
             ClampChainRotations(solveChain, links, chain[0].Rotation);
-            ikSolver.Solve(solveChain, links, iterations, rotationLimit: chain[0].RotationLimit);
+            Func<int, float>? limitFunc = null;
+            if (chain[0].RotationLimit != 0f)
+                limitFunc = i => chain[0].RotationLimit * (i + 1);
+            ikSolver.Solve(solveChain, links, iterations, limitFunc);
 
             if (SetBoneTranslation != null)
             {

@@ -1,3 +1,4 @@
+using System;
 using System.Numerics;
 using MiniMikuDance.Import;
 
@@ -7,7 +8,7 @@ public class CcdSolver : IIkSolver
 {
     private const float Epsilon = 1e-6f;
 
-    public void Solve(IkBone[] chain, IkLink[] links, int iterations, float rotationLimit = 0f)
+    public void Solve(IkBone[] chain, IkLink[] links, int iterations, Func<int, float>? rotationLimitFunc = null)
     {
         if (chain.Length < 2)
             return;
@@ -23,8 +24,9 @@ public class CcdSolver : IIkSolver
                 if (toEffector.LengthSquared() < Epsilon || toTarget.LengthSquared() < Epsilon)
                     continue;
                 var rot = FromToRotation(toEffector, toTarget);
-                if (rotationLimit != 0f)
-                    rot = ClampAngle(rot, rotationLimit);
+                var limit = rotationLimitFunc?.Invoke(i) ?? 0f;
+                if (limit != 0f)
+                    rot = ClampAngle(rot, limit);
                 for (int j = i + 1; j < chain.Length; j++)
                 {
                     var rel = chain[j].Position - jointPos;
@@ -40,8 +42,9 @@ public class CcdSolver : IIkSolver
             var forward = chain[i + 1].Position - chain[i].Position;
             var baseForward = Vector3.Transform(chain[i].BaseForward, prevRot);
             var rotDelta = FromToRotation(baseForward, forward);
-            if (rotationLimit != 0f)
-                rotDelta = ClampAngle(rotDelta, rotationLimit);
+            var limit = rotationLimitFunc?.Invoke(i) ?? 0f;
+            if (limit != 0f)
+                rotDelta = ClampAngle(rotDelta, limit);
 
             forward = Vector3.Normalize(forward);
             var up = Vector3.Transform(chain[i].BaseUp, prevRot);

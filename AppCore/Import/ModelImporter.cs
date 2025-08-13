@@ -206,7 +206,8 @@ public class ModelImporter : IDisposable
                 {
                     Target = b.IKTarget,
                     Iterations = b.IterCount,
-                    RotationLimit = b.MaxRadianPerIter
+                    RotationLimit = b.MaxRadianPerIter,
+                    ControlWeight = b.MaxRadianPerIter
                 };
                 var links = b.IKLinks.ToArray();
                 foreach (var link in links)
