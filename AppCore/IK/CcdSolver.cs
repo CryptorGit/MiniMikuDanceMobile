@@ -77,7 +77,7 @@ public class CcdSolver : IIkSolver
             up = Vector3.Normalize(up);
             chain[i].PrevUp = up;
 
-            chain[i].Rotation = LookRotation(forward, up);
+            chain[i].Rotation = IkMath.LookRotation(forward, up);
             if (i < links.Length && links[i].HasLimit)
                 ClampRotation(chain, i, links[i]);
             ApplyRoleConstraint(chain, i);
@@ -116,18 +116,6 @@ public class CcdSolver : IIkSolver
         var axisCross = Vector3.Cross(f, t);
         var angle = MathF.Acos(Math.Clamp(dot, -1f, 1f));
         return Quaternion.CreateFromAxisAngle(Vector3.Normalize(axisCross), angle);
-    }
-
-    private static Quaternion LookRotation(Vector3 forward, Vector3 up)
-    {
-        var right = Vector3.Cross(up, forward);
-        IkDebug.LogAxes(forward, up, right);
-        var m = new Matrix4x4(
-            right.X, right.Y, right.Z, 0,
-            up.X, up.Y, up.Z, 0,
-            forward.X, forward.Y, forward.Z, 0,
-            0, 0, 0, 1);
-        return Quaternion.CreateFromRotationMatrix(m);
     }
 
     private static void ClampRotation(IkBone[] chain, int index, IkLink link)
