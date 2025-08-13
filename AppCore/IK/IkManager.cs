@@ -81,6 +81,8 @@ public static class IkManager
         {
             var link = ik.Links[j];
             chainIndices.Add(link.BoneIndex);
+            if (link.RotationLimit == 0f)
+                link.RotationLimit = baseLimit;
             ikLinks[ik.Links.Count - 1 - j] = link;
         }
         // chainIndicesにik.Targetが既に存在する場合は追加しない
@@ -301,30 +303,19 @@ public static class IkManager
 
     private static void ClampChainRotations(IkBone[] chain, IkLink[] links, Quaternion rootRot)
     {
-        var parent = rootRot;
-        for (int i = 0; i < links.Length && i < chain.Length - 1; i++)
+        var extended = new IkBone[chain.Length + 1];
+        extended[0] = new IkBone(-1, string.Empty, BoneRole.None, Vector3.Zero, rootRot, Vector3.UnitY, Vector3.UnitY)
         {
-            var link = links[i];
-            var bone = chain[i];
-            if (link.HasLimit)
-            {
-                var local = Quaternion.Inverse(parent) * bone.Rotation;
-                local = Quaternion.Normalize(local);
-                var w = Math.Clamp(local.W, -1f, 1f);
-                float angle = 2f * MathF.Acos(w);
-                float s = MathF.Sqrt(MathF.Max(0f, 1f - w * w));
-                Vector3 axis = s < 1e-6f ? Vector3.UnitX : new Vector3(local.X / s, local.Y / s, local.Z / s);
-                var rot = axis * angle;
-                rot = new Vector3(
-                    Math.Clamp(rot.X, link.MinAngle.X, link.MaxAngle.X),
-                    Math.Clamp(rot.Y, link.MinAngle.Y, link.MaxAngle.Y),
-                    Math.Clamp(rot.Z, link.MinAngle.Z, link.MaxAngle.Z));
-                float clampedAngle = rot.Length();
-                var clampedAxis = clampedAngle < 1e-6f ? Vector3.UnitX : Vector3.Normalize(rot);
-                bone.Rotation = parent * Quaternion.CreateFromAxisAngle(clampedAxis, clampedAngle);
-            }
-            parent = bone.Rotation;
+            Rotation = rootRot
+        };
+        Array.Copy(chain, 0, extended, 1, chain.Length);
+        for (int i = 0; i < links.Length && i < chain.Length; i++)
+        {
+            if (links[i].HasLimit)
+                RotationConstraints.ClampRotation(extended, i + 1, links[i]);
         }
+        for (int i = 0; i < chain.Length; i++)
+            chain[i].Rotation = extended[i + 1].Rotation;
     }
 
     public static void ReleaseSelection()
