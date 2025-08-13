@@ -1,3 +1,4 @@
+using System;
 using System.IO;
 
 namespace MiniMikuDance.Data;
@@ -28,9 +29,9 @@ public partial class DataManager : Util.Singleton<DataManager>
                 {
                     File.Copy(src, path);
                 }
-                catch
+                catch (Exception ex)
                 {
-                    // ignore copy failures
+                    Console.WriteLine($"Failed to copy config from '{src}' to '{path}': {ex.Message}");
                 }
             }
         }
