@@ -50,9 +50,6 @@
       <MauiAsset Include="..\Configs\style_tokens_light.json">
         <Link>Configs\style_tokens_light.json</Link>
       </MauiAsset>
-      <MauiAsset Include="..\Configs\RoleConstraints.json">
-        <Link>Configs\RoleConstraints.json</Link>
-      </MauiAsset>
       <MauiAsset Include="..\StreamingAssets\PoseEstimation\pose_landmark_full.onnx">
         <Link>StreamingAssets\PoseEstimation\pose_landmark_full.onnx</Link>
       </MauiAsset>

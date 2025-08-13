@@ -128,7 +128,6 @@ public partial class MainPage : ContentPage
             IkManager.PickFunc = _renderer.PickBone;
             IkManager.GetBonePositionFunc = _renderer.GetBoneWorldPosition;
             IkManager.GetCameraPositionFunc = _renderer.GetCameraPosition;
-            IkManager.SetBoneRotation = _renderer.SetBoneRotation;
             IkManager.SetBoneTranslation = _renderer.SetBoneTranslation;
             IkManager.ToModelSpaceFunc = _renderer.WorldToModel;
             IkManager.ToWorldSpaceFunc = _renderer.ModelToWorld;
@@ -147,7 +146,6 @@ public partial class MainPage : ContentPage
             IkManager.PickFunc = null;
             IkManager.GetBonePositionFunc = null;
             IkManager.GetCameraPositionFunc = null;
-            IkManager.SetBoneRotation = null;
             IkManager.SetBoneTranslation = null;
             IkManager.ToModelSpaceFunc = null;
             IkManager.ToWorldSpaceFunc = null;
@@ -647,7 +645,6 @@ public partial class MainPage : ContentPage
                 IkManager.PickFunc = _renderer.PickBone;
                 IkManager.GetBonePositionFunc = _renderer.GetBoneWorldPosition;
                 IkManager.GetCameraPositionFunc = _renderer.GetCameraPosition;
-                IkManager.SetBoneRotation = _renderer.SetBoneRotation;
                 IkManager.SetBoneTranslation = _renderer.SetBoneTranslation;
                 IkManager.ToModelSpaceFunc = _renderer.WorldToModel;
                 IkManager.ToWorldSpaceFunc = _renderer.ModelToWorld;

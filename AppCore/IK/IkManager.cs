@@ -10,14 +10,12 @@ namespace MiniMikuDance.IK;
 public static class IkManager
 {
     private static readonly Dictionary<int, IkBone> BonesDict = new();
-    private static readonly Dictionary<int, (IIkSolver Solver, IkBone[] Chain, IkLink[] Links, int Iterations)> Solvers = new();
-    private static readonly Dictionary<int, Vector3> FixedAxes = new();
+    // IKアルゴリズム関連の処理を削除したため、ソルバーや固定軸の管理は不要
 
     // レンダラーから提供される各種処理を委譲用デリゲートとして保持
     public static System.Func<float, float, int>? PickFunc { get; set; }
     public static System.Func<int, Vector3>? GetBonePositionFunc { get; set; }
     public static System.Func<Vector3>? GetCameraPositionFunc { get; set; }
-    public static System.Action<int, OpenTK.Mathematics.Vector3>? SetBoneRotation { get; set; }
     public static System.Action<int, OpenTK.Mathematics.Vector3>? SetBoneTranslation { get; set; }
     public static System.Func<Vector3, Vector3>? ToModelSpaceFunc { get; set; }
     public static System.Func<Vector3, Vector3>? ToWorldSpaceFunc { get; set; }
@@ -36,16 +34,11 @@ public static class IkManager
         Clear();
         for (int i = 0; i < modelBones.Count; i++)
         {
-            if (modelBones[i].HasFixedAxis)
-                FixedAxes[i] = Vector3.Normalize(modelBones[i].FixedAxis);
-        }
-        for (int i = 0; i < modelBones.Count; i++)
-        {
             var ik = modelBones[i].Ik;
             if (ik == null)
                 continue;
 
-            RegisterIkBone(i, modelBones[i], ik, modelBones);
+            RegisterIkBone(i, modelBones[i]);
         }
 
         // "足IK" ボーンが取りこぼされていないか確認する
@@ -57,66 +50,16 @@ public static class IkManager
             if (name.Contains("足", StringComparison.Ordinal) &&
                 (name.Contains("IK", StringComparison.OrdinalIgnoreCase) || name.Contains("ＩＫ")))
             {
-                var ik = modelBones[i].Ik;
-                if (ik != null)
-                    RegisterIkBone(i, modelBones[i], ik, modelBones);
+                RegisterIkBone(i, modelBones[i]);
             }
         }
     }
 
-    private static void RegisterIkBone(int index, BoneData bRoot, IkInfo ik, IReadOnlyList<BoneData> modelBones)
+    private static void RegisterIkBone(int index, BoneData bRoot)
     {
         var rootPos = Vector3.Transform(Vector3.Zero, bRoot.BindMatrix);
-        float baseLimit = ik.ControlWeight != 0f ? ik.ControlWeight : ik.RotationLimit;
         var rootRole = DetermineRole(bRoot.Name);
-        BonesDict[index] = new IkBone(index, bRoot.Name, rootRole, rootPos, bRoot.Rotation, bRoot.BaseForward, bRoot.BaseUp)
-        {
-            RotationLimit = baseLimit,
-            PoleVector = ik.PoleVector
-        };
-
-        var chainIndices = new List<int>(ik.Links.Count + 1);
-        var ikLinks = new IkLink[ik.Links.Count];
-        for (int j = ik.Links.Count - 1; j >= 0; j--)
-        {
-            var link = ik.Links[j];
-            chainIndices.Add(link.BoneIndex);
-            if (link.RotationLimit == 0f)
-                link.RotationLimit = baseLimit;
-            ikLinks[ik.Links.Count - 1 - j] = link;
-        }
-        // chainIndicesにik.Targetが既に存在する場合は追加しない
-        if (!chainIndices.Contains(ik.Target))
-            chainIndices.Add(ik.Target);
-
-        var chain = new IkBone[chainIndices.Count + 1];
-        chain[0] = BonesDict[index];
-        for (int j = 0; j < chainIndices.Count; j++)
-        {
-            var idx = chainIndices[j];
-            var b = modelBones[idx];
-            var pos = Vector3.Transform(Vector3.Zero, b.BindMatrix);
-            var role = DetermineRole(b.Name);
-            chain[j + 1] = new IkBone(idx, b.Name, role, pos, b.Rotation, b.BaseForward, b.BaseUp)
-            {
-                RotationLimit = baseLimit
-            };
-        }
-
-        var solverChain = chain[1..];
-        IIkSolver solver;
-        if (solverChain.Length == 2)
-        {
-            float l1 = Vector3.Distance(chain[0].Position, chain[1].Position);
-            float l2 = Vector3.Distance(chain[1].Position, chain[2].Position);
-            solver = new TwoBoneSolver(l1, l2);
-        }
-        else
-        {
-            solver = new CcdSolver();
-        }
-        Solvers[index] = (solver, chain, ikLinks, ik.Iterations);
-        Trace.WriteLine($"IKチェーンを構築しました: {index} -> {string.Join(" -> ", chainIndices)}");
+        BonesDict[index] = new IkBone(index, bRoot.Name, rootRole, rootPos, bRoot.Rotation, bRoot.BaseForward, bRoot.BaseUp);
     }
 
     // レンダラーから提供された情報を用いてボーン選択を行う
@@ -186,137 +129,19 @@ public static class IkManager
 
             bone.Position = position;
             Trace.WriteLine($"UpdateTarget: index={boneIndex} pos={position}");
-            if (!Solvers.TryGetValue(boneIndex, out var solver))
-            {
-                Trace.WriteLine($"Solver not found for bone index {boneIndex}.");
-                return;
-            }
-
-            var chain = solver.Chain;
-            var links = solver.Links;
-            var iterations = solver.Iterations;
-            if (chain.Length < 2)
-                return;
-
-            var root = chain[0];
-            var deltaRoot = root.Position - root.BasePosition;
-            var deltaRot = root.Rotation * Quaternion.Inverse(root.BaseRotation);
-            for (int i = 1; i < chain.Length; i++)
-            {
-                var relative = chain[i].BasePosition - root.BasePosition;
-                relative = Vector3.Transform(relative, deltaRot);
-                chain[i].Position = root.BasePosition + deltaRoot + relative;
-            }
-
-            var chainNoRoot = chain[1..];
-            // IKルートのポールベクトルをソルバー用チェーンへ継承する
-            if (chainNoRoot.Length > 0)
-                chainNoRoot[0].PoleVector = chain[0].PoleVector;
-            chainNoRoot[^1].Position = position;
-            ClampChainRotations(chainNoRoot, links, chain[0].Rotation);
-
-            var ikSolver = solver.Solver;
-            var solveChain = (ikSolver is TwoBoneSolver && chainNoRoot.Length == 2) ? chain : chainNoRoot;
-
-            var limitFunc = HasRotationLimit(chain, links, chainNoRoot)
-                ? CreateLimitFunc(chain, links, chainNoRoot, solveChain)
-                : null;
-
-            ikSolver.Solve(solveChain, links, iterations, limitFunc);
 
             if (SetBoneTranslation != null)
             {
-                foreach (var b in chain)
-                {
-                    var worldPos = ToWorldSpaceFunc != null ? ToWorldSpaceFunc(b.Position) : b.Position;
-                    SetBoneTranslation(b.PmxBoneIndex, worldPos.ToOpenTK());
-                }
-            }
-            else
-            {
-                Trace.WriteLine("SetBoneTranslation delegate is null.");
+                var worldPos = ToWorldSpaceFunc != null ? ToWorldSpaceFunc(bone.Position) : bone.Position;
+                SetBoneTranslation(bone.PmxBoneIndex, worldPos.ToOpenTK());
             }
 
-            var parentRot = Quaternion.Identity;
-            foreach (var b in solveChain)
-            {
-                var localRot = parentRot == Quaternion.Identity ? b.Rotation : Quaternion.Inverse(parentRot) * b.Rotation;
-                var delta = Quaternion.Inverse(b.BaseRotation) * localRot;
-                if (FixedAxes.TryGetValue(b.PmxBoneIndex, out var axis))
-                    delta = ProjectRotation(delta, axis);
-                if (SetBoneRotation != null)
-                    SetBoneRotation(b.PmxBoneIndex, delta.ToEulerDegrees().ToOpenTK());
-                parentRot = b.Rotation;
-            }
             InvalidateViewer?.Invoke();
         }
         catch (Exception ex)
         {
             Trace.WriteLine($"UpdateTarget exception: {ex}");
         }
-    }
-
-    private static bool HasRotationLimit(IkBone[] chain, IkLink[] links, IkBone[] chainNoRoot)
-    {
-        if (chain[0].RotationLimit != 0f)
-            return true;
-        for (int i = 0; i < links.Length; i++)
-        {
-            if (links[i].RotationLimit != 0f)
-                return true;
-        }
-        for (int i = 0; i < chainNoRoot.Length; i++)
-        {
-            if (chainNoRoot[i].RotationLimit != 0f)
-                return true;
-        }
-        return false;
-    }
-
-    private static Func<int, float> CreateLimitFunc(IkBone[] chain, IkLink[] links, IkBone[] chainNoRoot, IkBone[] solveChain)
-    {
-        if (solveChain == chain)
-        {
-            return i =>
-            {
-                if (i == 0)
-                    return chain[0].RotationLimit;
-                int linkIndex = i - 1;
-                if (linkIndex < links.Length && links[linkIndex].RotationLimit != 0f)
-                    return links[linkIndex].RotationLimit;
-                var limit = chainNoRoot[linkIndex].RotationLimit;
-                if (limit != 0f)
-                    return limit;
-                return chain[0].RotationLimit;
-            };
-        }
-
-        return i =>
-        {
-            if (i < links.Length && links[i].RotationLimit != 0f)
-                return links[i].RotationLimit;
-            var limit = chainNoRoot[i].RotationLimit;
-            if (limit != 0f)
-                return limit;
-            return chain[0].RotationLimit;
-        };
-    }
-
-    private static void ClampChainRotations(IkBone[] chain, IkLink[] links, Quaternion rootRot)
-    {
-        var extended = new IkBone[chain.Length + 1];
-        extended[0] = new IkBone(-1, string.Empty, BoneRole.None, Vector3.Zero, rootRot, Vector3.UnitY, Vector3.UnitY)
-        {
-            Rotation = rootRot
-        };
-        Array.Copy(chain, 0, extended, 1, chain.Length);
-        for (int i = 0; i < links.Length && i < chain.Length; i++)
-        {
-            if (links[i].HasLimit)
-                RotationConstraints.ClampRotation(extended, i + 1, links[i]);
-        }
-        for (int i = 0; i < chain.Length; i++)
-            chain[i].Rotation = extended[i + 1].Rotation;
     }
 
     public static void ReleaseSelection()
@@ -331,8 +156,6 @@ public static class IkManager
     {
         ReleaseSelection();
         BonesDict.Clear();
-        Solvers.Clear();
-        FixedAxes.Clear();
         Trace.WriteLine($"IkManager.Clear: SelectedBoneIndex={_selectedBoneIndex} Bones={BonesDict.Count}");
     }
 
@@ -345,18 +168,5 @@ public static class IkManager
         return BoneRole.None;
     }
 
-    private static Quaternion ProjectRotation(Quaternion q, Vector3 axis)
-    {
-        axis = Vector3.Normalize(axis);
-        if (axis == Vector3.Zero)
-            return Quaternion.Identity;
-        q = Quaternion.Normalize(q);
-        var w = Math.Clamp(q.W, -1f, 1f);
-        float angle = 2f * MathF.Acos(w);
-        float s = MathF.Sqrt(MathF.Max(0f, 1f - w * w));
-        Vector3 qAxis = s < 1e-6f ? axis : new Vector3(q.X / s, q.Y / s, q.Z / s);
-        float proj = Vector3.Dot(qAxis, axis);
-        return Quaternion.CreateFromAxisAngle(axis, angle * proj);
-    }
 }
 
