@@ -194,6 +194,11 @@ public class PoseEstimator : IDisposable
 
         var center = (cx: W * 0.5f, cy: H * 0.55f);
 
+        var drawOpts = new GraphicsOptions
+        {
+            AlphaCompositionMode = PixelAlphaCompositionMode.Src
+        };
+
         float bestScore = float.NegativeInfinity;
         var bestPos = ArrayPool<Vector3>.Shared.Rent(jointCount);
         var bestConf = ArrayPool<float>.Shared.Rent(jointCount);
@@ -213,17 +218,13 @@ public class PoseEstimator : IDisposable
                 using var cropped = frame.Clone(ctx => ctx.Crop(rect));
                 cropped.Mutate(ctx => ctx.Resize(dstW, dstH));
 
-                patch.Mutate(ctx =>
-                {
-                    ctx.Clear(Color.Black);
-                    ctx.DrawImage(cropped, 1f);
-                });
+                patch.Mutate(ctx => ctx.DrawImage(cropped, drawOpts));
 
                 foreach (var ang in Angles)
                 {
                     rotated.Mutate(ctx =>
                     {
-                        ctx.DrawImage(patch, 1f);
+                        ctx.DrawImage(patch, drawOpts);
                         if (Math.Abs(ang) > 0.1f)
                         {
                             ctx.Rotate((float)ang);
@@ -246,11 +247,8 @@ public class PoseEstimator : IDisposable
                     {
                         ArrayPool<Vector3>.Shared.Return(pos);
                         ArrayPool<float>.Shared.Return(conf);
-                        rotated.Mutate(ctx => ctx.Clear(Color.Black));
                     }
                 }
-
-                patch.Mutate(ctx => ctx.Clear(Color.Black));
             }
 
             var finalPos = new Vector3[jointCount];
