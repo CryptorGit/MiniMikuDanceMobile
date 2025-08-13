@@ -103,10 +103,10 @@ public static class IkManager
 
         var solverChain = chain[1..];
         IIkSolver solver;
-        if (solverChain.Length == 3)
+        if (solverChain.Length == 2)
         {
-            float l1 = Vector3.Distance(solverChain[0].Position, solverChain[1].Position);
-            float l2 = Vector3.Distance(solverChain[1].Position, solverChain[2].Position);
+            float l1 = Vector3.Distance(chain[0].Position, chain[1].Position);
+            float l2 = Vector3.Distance(chain[1].Position, chain[2].Position);
             solver = new TwoBoneSolver(l1, l2);
         }
         else
@@ -206,13 +206,16 @@ public static class IkManager
                 chain[i].Position = root.BasePosition + deltaRoot + relative;
             }
 
-            var solveChain = chain[1..];
+            var chainNoRoot = chain[1..];
             // IKルートのポールベクトルをソルバー用チェーンへ継承する
-            if (solveChain.Length > 0)
-                solveChain[0].PoleVector = chain[0].PoleVector;
+            if (chainNoRoot.Length > 0)
+                chainNoRoot[0].PoleVector = chain[0].PoleVector;
+            chainNoRoot[^1].Position = position;
+            ClampChainRotations(chainNoRoot, links, chain[0].Rotation);
+
             var ikSolver = solver.Solver;
-            solveChain[^1].Position = position;
-            ClampChainRotations(solveChain, links, chain[0].Rotation);
+            var solveChain = (ikSolver is TwoBoneSolver && chainNoRoot.Length == 2) ? chain : chainNoRoot;
+
             Func<int, float>? limitFunc = null;
             bool hasLimit = chain[0].RotationLimit != 0f;
             if (!hasLimit)
@@ -225,24 +228,43 @@ public static class IkManager
             }
             if (!hasLimit)
             {
-                for (int i = 0; i < solveChain.Length && !hasLimit; i++)
+                for (int i = 0; i < chainNoRoot.Length && !hasLimit; i++)
                 {
-                    if (solveChain[i].RotationLimit != 0f)
+                    if (chainNoRoot[i].RotationLimit != 0f)
                         hasLimit = true;
                 }
             }
             if (hasLimit)
             {
-                limitFunc = i =>
+                if (solveChain == chain)
                 {
-                    if (i < links.Length && links[i].RotationLimit != 0f)
-                        return links[i].RotationLimit;
-                    var limit = solveChain[i].RotationLimit;
-                    if (limit != 0f)
-                        return limit;
-                    return chain[0].RotationLimit;
-                };
+                    limitFunc = i =>
+                    {
+                        if (i == 0)
+                            return chain[0].RotationLimit;
+                        int linkIndex = i - 1;
+                        if (linkIndex < links.Length && links[linkIndex].RotationLimit != 0f)
+                            return links[linkIndex].RotationLimit;
+                        var limit = chainNoRoot[linkIndex].RotationLimit;
+                        if (limit != 0f)
+                            return limit;
+                        return chain[0].RotationLimit;
+                    };
+                }
+                else
+                {
+                    limitFunc = i =>
+                    {
+                        if (i < links.Length && links[i].RotationLimit != 0f)
+                            return links[i].RotationLimit;
+                        var limit = chainNoRoot[i].RotationLimit;
+                        if (limit != 0f)
+                            return limit;
+                        return chain[0].RotationLimit;
+                    };
+                }
             }
+
             ikSolver.Solve(solveChain, links, iterations, limitFunc);
 
             if (SetBoneTranslation != null)
