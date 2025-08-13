@@ -53,6 +53,10 @@ public class RecorderController : IDisposable
         {
             img.Dispose();
         }
+        for (int i = 0; i < ChannelCapacity; i++)
+        {
+            _imagePool.Enqueue(new Image<Rgba32>(_width, _height));
+        }
         var options = new BoundedChannelOptions(ChannelCapacity)
         {
             FullMode = BoundedChannelFullMode.DropOldest,
@@ -117,11 +121,16 @@ public class RecorderController : IDisposable
             {
                 oldImage.Dispose();
             }
+            for (int i = 0; i < ChannelCapacity; i++)
+            {
+                _imagePool.Enqueue(new Image<Rgba32>(_width, _height));
+            }
         }
 
         if (!_imagePool.TryDequeue(out var image))
         {
-            image = new Image<Rgba32>(width, height);
+            Interlocked.Increment(ref _droppedFrames);
+            return Task.CompletedTask;
         }
 
         CopyToImage(rgba, image, width, height);
