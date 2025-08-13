@@ -38,7 +38,7 @@ public class DisplayFrameData
     public List<int> Morphs { get; } = new();
 }
 
-public class ModelImporter : IDisposable
+public class ModelImporter : IDisposable, IImporter
 {
     static ModelImporter()
     {
@@ -122,7 +122,7 @@ public class ModelImporter : IDisposable
         GC.SuppressFinalize(this);
     }
 
-    public ModelData ImportModel(Stream stream, string? textureDir = null)
+    public ModelData LoadModel(Stream stream, string? textureDir = null)
     {
         Span<byte> header = stackalloc byte[4];
         int read = stream.Read(header);
@@ -153,7 +153,7 @@ public class ModelImporter : IDisposable
         throw new NotSupportedException("PMX 以外の形式には対応していません。");
     }
 
-    public ModelData ImportModel(string path)
+    public ModelData LoadModel(string path)
     {
 
 
@@ -167,7 +167,7 @@ public class ModelImporter : IDisposable
         if (ext == ".pmx")
         {
             using var fs = File.OpenRead(path);
-            return ImportModel(fs, Path.GetDirectoryName(path));
+            return LoadModel(fs, Path.GetDirectoryName(path));
         }
 
         var scene = _context.ImportFile(path, PostProcessSteps.Triangulate | PostProcessSteps.GenerateNormals);
@@ -800,5 +800,10 @@ public class ModelImporter : IDisposable
 
         return model;
     }
+
+    MmdModel IImporter.LoadModel(string path) => ToMmdModel(LoadModel(path));
+
+    MmdMotion IImporter.LoadMotion(string path) => throw new NotSupportedException("VMD には未対応です。");
+
     // 現在は PMX モデルのみに対応しています
 }

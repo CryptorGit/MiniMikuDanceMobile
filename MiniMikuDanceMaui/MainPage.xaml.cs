@@ -816,7 +816,7 @@ public partial class MainPage : ContentPage
                 MiniMikuDance.Import.ModelData data;
                 if (!string.IsNullOrEmpty(result.FullPath))
                 {
-                    data = importer.ImportModel(result.FullPath);
+                    data = importer.LoadModel(result.FullPath);
                 }
                 else
                 {
@@ -838,7 +838,7 @@ public partial class MainPage : ContentPage
                         dir = null;
                         Console.WriteLine($"Error locating asset directory: {ex}");
                     }
-                    data = importer.ImportModel(stream, dir);
+                    data = importer.LoadModel(stream, dir);
                 }
                 _renderer.LoadModel(data);
                 _currentModel = data;
@@ -1200,7 +1200,7 @@ public partial class MainPage : ContentPage
             _modelScale = 1f;
             ModelImporter.CacheCapacity = _settings.TextureCacheSize;
             using var importer = new ModelImporter { Scale = _modelScale };
-            var data = await Task.Run(() => importer.ImportModel(_selectedModelPath));
+            var data = await Task.Run(() => importer.LoadModel(_selectedModelPath));
 
             // PMX内のテクスチャ相対パスとサブメッシュインデックスの対応表を作成
             var textureMap = new Dictionary<string, List<int>>(StringComparer.OrdinalIgnoreCase);
