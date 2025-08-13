@@ -16,6 +16,8 @@ public class RigidBodyData
     public float Mass { get; set; }
     public RigidBodyShape Shape { get; set; }
     public Vector3 Size { get; set; }
+    public Vector3 Position { get; set; }
+    public Quaternion Rotation { get; set; } = Quaternion.Identity;
     public float TranslationDamping { get; set; }
     public float RotationDamping { get; set; }
     public float Restitution { get; set; }
