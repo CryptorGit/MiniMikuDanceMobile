@@ -7,6 +7,8 @@ using BepuUtilities;
 using BepuUtilities.Memory;
 using MiniMikuDance.Data;
 using MiniMikuDance.Import;
+using System;
+using System.Collections.Generic;
 using System.Numerics;
 
 namespace MiniMikuDance.Physix;
@@ -17,12 +19,16 @@ public sealed class BepuPhysicsEngine : IPhysicsEngine, IDisposable
     private Simulation _simulation = null!;
     private MmdModel? _model;
     private BodyHandle[] _bodyHandles = Array.Empty<BodyHandle>();
+    private CollidableProperty<PmxFilter> _collisionFilters = null!;
 
     public void Setup(MmdModel model)
     {
         _model = model;
         _simulation?.Dispose();
-        _simulation = Simulation.Create(SharedBufferPool, new NarrowPhaseCallbacks(),
+        _collisionFilters?.Dispose();
+        _collisionFilters = new CollidableProperty<PmxFilter>();
+        _simulation = Simulation.Create(SharedBufferPool,
+            new NarrowPhaseCallbacks(model.RigidBodies, _collisionFilters),
             new PoseIntegratorCallbacks(new Vector3(0, -9.81f, 0)), new SolveDescription(8, 1));
 
         _bodyHandles = new BodyHandle[model.RigidBodies.Count];
@@ -34,55 +40,59 @@ public sealed class BepuPhysicsEngine : IPhysicsEngine, IDisposable
                 : new RigidPose(Vector3.Zero, Quaternion.Identity);
 
             BodyDescription description;
+            var activity = new BodyActivityDescription(MathF.Max(0.01f, rb.TranslationDamping));
             switch (rb.Shape)
             {
                 case RigidBodyShape.Box:
-                    var box = new Box(0.5f, 0.5f, 0.5f);
+                    var box = new Box(rb.Size.X, rb.Size.Y, rb.Size.Z);
                     var boxIndex = _simulation.Shapes.Add(box);
                     if (rb.Mass <= 0)
                     {
                         description = BodyDescription.CreateKinematic(pose,
-                            new CollidableDescription(boxIndex, 0.1f), new BodyActivityDescription(0.01f));
+                            new CollidableDescription(boxIndex, 0.1f), activity);
                     }
                     else
                     {
                         var boxInertia = box.ComputeInertia(rb.Mass);
                         description = BodyDescription.CreateDynamic(pose, boxInertia,
-                            new CollidableDescription(boxIndex, 0.1f), new BodyActivityDescription(0.01f));
+                            new CollidableDescription(boxIndex, 0.1f), activity);
                     }
                     break;
                 case RigidBodyShape.Capsule:
-                    var capsule = new Capsule(0.25f, 0.5f);
+                    var capsule = new Capsule(rb.Size.X, rb.Size.Y);
                     var capIndex = _simulation.Shapes.Add(capsule);
                     if (rb.Mass <= 0)
                     {
                         description = BodyDescription.CreateKinematic(pose,
-                            new CollidableDescription(capIndex, 0.1f), new BodyActivityDescription(0.01f));
+                            new CollidableDescription(capIndex, 0.1f), activity);
                     }
                     else
                     {
                         var capInertia = capsule.ComputeInertia(rb.Mass);
                         description = BodyDescription.CreateDynamic(pose, capInertia,
-                            new CollidableDescription(capIndex, 0.1f), new BodyActivityDescription(0.01f));
+                            new CollidableDescription(capIndex, 0.1f), activity);
                     }
                     break;
                 default:
-                    var sphere = new Sphere(0.5f);
+                    var sphere = new Sphere(rb.Size.X);
                     var sphereIndex = _simulation.Shapes.Add(sphere);
                     if (rb.Mass <= 0)
                     {
                         description = BodyDescription.CreateKinematic(pose,
-                            new CollidableDescription(sphereIndex, 0.1f), new BodyActivityDescription(0.01f));
+                            new CollidableDescription(sphereIndex, 0.1f), activity);
                     }
                     else
                     {
                         var sphereInertia = sphere.ComputeInertia(rb.Mass);
                         description = BodyDescription.CreateDynamic(pose, sphereInertia,
-                            new CollidableDescription(sphereIndex, 0.1f), new BodyActivityDescription(0.01f));
+                            new CollidableDescription(sphereIndex, 0.1f), activity);
                     }
                     break;
             }
-            _bodyHandles[i] = _simulation.Bodies.Add(description);
+            var handle = _simulation.Bodies.Add(description);
+            _bodyHandles[i] = handle;
+            ref var filter = ref _collisionFilters.Allocate(handle);
+            filter = new PmxFilter { Group = rb.CollisionGroup, Mask = rb.CollisionMask };
         }
 
         foreach (var joint in model.Joints)
@@ -174,23 +184,59 @@ public sealed class BepuPhysicsEngine : IPhysicsEngine, IDisposable
     public void Dispose()
     {
         _simulation.Dispose();
+        _collisionFilters?.Dispose();
     }
 
     private struct NarrowPhaseCallbacks : INarrowPhaseCallbacks
     {
-        public void Initialize(Simulation simulation) { }
+        private Simulation _simulation;
+        private readonly IReadOnlyList<RigidBodyData> _rigidBodies;
+        public CollidableProperty<PmxFilter> Filters;
+
+        public NarrowPhaseCallbacks(IReadOnlyList<RigidBodyData> rigidBodies, CollidableProperty<PmxFilter> filters)
+        {
+            _rigidBodies = rigidBodies;
+            Filters = filters;
+            _simulation = null!;
+        }
+
+        public void Initialize(Simulation simulation)
+        {
+            _simulation = simulation;
+            Filters.Initialize(simulation);
+        }
+
         public bool AllowContactGeneration(int workerIndex, CollidableReference a, CollidableReference b, ref float speculativeMargin)
-            => a.Mobility == CollidableMobility.Dynamic || b.Mobility == CollidableMobility.Dynamic;
+            => (a.Mobility == CollidableMobility.Dynamic || b.Mobility == CollidableMobility.Dynamic) &&
+               PmxFilter.Allow(Filters[a], Filters[b]);
+
         public bool AllowContactGeneration(int workerIndex, CollidablePair pair, int childIndexA, int childIndexB) => true;
+
         public bool ConfigureContactManifold<TManifold>(int workerIndex, CollidablePair pair, ref TManifold manifold, out PairMaterialProperties pairMaterial) where TManifold : unmanaged, IContactManifold<TManifold>
         {
-            pairMaterial.FrictionCoefficient = 1f;
-            pairMaterial.MaximumRecoveryVelocity = 2f;
+            int indexA = _simulation.Bodies.HandleToLocation[pair.A.BodyHandle.Value].Index;
+            int indexB = _simulation.Bodies.HandleToLocation[pair.B.BodyHandle.Value].Index;
+            var rbA = _rigidBodies[indexA];
+            var rbB = _rigidBodies[indexB];
+            pairMaterial.FrictionCoefficient = (rbA.Friction + rbB.Friction) * 0.5f;
+            pairMaterial.MaximumRecoveryVelocity = MathF.Max(rbA.Restitution, rbB.Restitution);
             pairMaterial.SpringSettings = new SpringSettings(30f, 1f);
             return true;
         }
+
         public bool ConfigureContactManifold(int workerIndex, CollidablePair pair, int childIndexA, int childIndexB, ref ConvexContactManifold manifold) => true;
         public void Dispose() { }
+    }
+
+    private struct PmxFilter
+    {
+        public byte Group;
+        public ushort Mask;
+
+        public static bool Allow(in PmxFilter a, in PmxFilter b)
+        {
+            return (a.Mask & (1 << b.Group)) == 0 && (b.Mask & (1 << a.Group)) == 0;
+        }
     }
 
     private struct PoseIntegratorCallbacks : IPoseIntegratorCallbacks
