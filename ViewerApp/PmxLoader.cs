@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Buffers;
 using MMDTools;
 using SixLabors.ImageSharp;
 using SixLabors.ImageSharp.PixelFormats;
@@ -32,6 +33,7 @@ internal sealed class TextureData
     public int Width;
     public int Height;
     public byte[] Pixels = Array.Empty<byte>();
+    public int BufferSize;
 }
 
 internal static class PmxLoader
@@ -108,13 +110,16 @@ internal static class PmxLoader
                     if (!s_textureCache.TryGetValue(texPath, out var tex))
                     {
                         using var image = Image.Load<Rgba32>(texPath);
+                        int size = image.Width * image.Height * 4;
+                        var pixels = ArrayPool<byte>.Shared.Rent(size);
+                        image.CopyPixelDataTo(pixels.AsSpan(0, size));
                         tex = new TextureData
                         {
                             Width = image.Width,
                             Height = image.Height,
-                            Pixels = new byte[image.Width * image.Height * 4]
+                            Pixels = pixels,
+                            BufferSize = pixels.Length
                         };
-                        image.CopyPixelDataTo(tex.Pixels);
                         s_textureCache[texPath] = tex;
                         TouchTexture(texPath);
                         TrimCache();
@@ -158,7 +163,9 @@ internal static class PmxLoader
             s_textureNodes.Remove(oldKey);
             if (s_textureCache.TryGetValue(oldKey, out var tex))
             {
+                ArrayPool<byte>.Shared.Return(tex.Pixels);
                 tex.Pixels = Array.Empty<byte>();
+                tex.BufferSize = 0;
                 s_textureCache.Remove(oldKey);
             }
         }
