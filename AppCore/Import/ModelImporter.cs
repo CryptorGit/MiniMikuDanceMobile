@@ -209,7 +209,6 @@ public class ModelImporter : IDisposable
                     RotationLimit = b.MaxRadianPerIter
                 };
                 var links = b.IKLinks.ToArray();
-                Array.Reverse(links);
                 foreach (var link in links)
                 {
                     var il = new IkLink
