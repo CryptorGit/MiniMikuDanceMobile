@@ -9,6 +9,9 @@ using MiniMikuDance.Util;
 using MiniMikuDance.Import;
 using MiniMikuDance.App;
 using MiniMikuDance.IK;
+using MiniMikuDance.Data;
+using MiniMikuDance.Physix;
+using System.Diagnostics;
 using MMDTools;
 using SkiaSharp.Views.Maui.Controls;
 using Vector2 = OpenTK.Mathematics.Vector2;
@@ -96,6 +99,11 @@ public class PmxRenderer : IDisposable
     private System.Numerics.Matrix4x4[] _skinMats = Array.Empty<System.Numerics.Matrix4x4>();
     private float[] _boneLines = Array.Empty<float>();
     private int _boneCapacity;
+    private MmdModel? _model;
+    private readonly BepuPhysicsEngine _physics = new();
+    private IIkSolver? _ikSolver;
+    private readonly Stopwatch _timer = Stopwatch.StartNew();
+    private double _lastTime;
     private int _modelProgram;
     private int _modelViewLoc;
     private int _modelProjLoc;
@@ -1054,6 +1062,10 @@ void main(){
         _bones = data.Bones;
         _worldMats = new System.Numerics.Matrix4x4[_bones.Count];
         _skinMats = new System.Numerics.Matrix4x4[_bones.Count];
+        _model = ModelImporter.ToMmdModel(data);
+        _physics.Setup(_model);
+        _ikSolver = new IkSolver(_physics);
+        _lastTime = _timer.Elapsed.TotalSeconds;
         foreach (var (name, idx) in data.HumanoidBoneList)
         {
             _indexToHumanoidName[idx] = name;
@@ -1468,6 +1480,16 @@ void main(){
             _viewProjDirty = false;
         }
         var modelMat = ModelTransform;
+
+        if (_model != null && _ikSolver != null)
+        {
+            var now = _timer.Elapsed.TotalSeconds;
+            float dt = (float)(now - _lastTime);
+            _lastTime = now;
+            _physics.Step(dt);
+            _ikSolver.Solve(_model);
+            _bonesDirty = true;
+        }
 
         bool needsUpdate = _bonesDirty || _morphDirty || _uvMorphDirty;
         List<int>? changedVerts = null;
@@ -1887,5 +1909,6 @@ void main(){
         GL.DeleteVertexArray(_ikBoneVao);
         GL.DeleteProgram(_program);
         GL.DeleteProgram(_modelProgram);
+        _physics.Dispose();
     }
 }
