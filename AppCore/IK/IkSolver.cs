@@ -75,7 +75,7 @@ public class IkSolver : IIkSolver
                     if (axisLen < 1e-6f)
                         continue;
                     axis /= axisLen;
-                    var angle = MathF.Acos(MathF.Clamp(Vector3.Dot(Vector3.Normalize(toEffector), Vector3.Normalize(toTarget)), -1f, 1f));
+                    var angle = MathF.Acos(Math.Clamp(Vector3.Dot(Vector3.Normalize(toEffector), Vector3.Normalize(toTarget)), -1f, 1f));
                     var rot = Quaternion.CreateFromAxisAngle(axis, angle);
                     bone.Rotation = Quaternion.Normalize(rot * bone.Rotation);
                     effectorPos = bonePos + Vector3.Transform(toEffector, rot);
@@ -127,7 +127,7 @@ public class IkSolver : IIkSolver
             if (axisLen > 1e-6f)
             {
                 axis /= axisLen;
-                var angle = MathF.Acos(MathF.Clamp(Vector3.Dot(Vector3.UnitY, normal), -1f, 1f));
+                var angle = MathF.Acos(Math.Clamp(Vector3.Dot(Vector3.UnitY, normal), -1f, 1f));
                 hitRot = Quaternion.CreateFromAxisAngle(axis, angle);
             }
 
