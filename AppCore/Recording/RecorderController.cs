@@ -116,25 +116,46 @@ public class RecorderController
 
     private static void CopyToImage(byte[] src, Image<Rgba32> image, int width, int height)
     {
+        var source = MemoryMarshal.Cast<byte, Rgba32>(src);
+
         if (image.DangerousTryGetSinglePixelMemory(out var mem))
         {
             var dest = mem.Span;
-            var source = MemoryMarshal.Cast<byte, Rgba32>(src);
-            for (int y = 0; y < height; y++)
+            source.CopyTo(dest);
+
+            if (height > 1)
             {
-                var srcRow = source.Slice((height - 1 - y) * width, width);
-                var dstRow = dest.Slice(y * width, width);
-                srcRow.CopyTo(dstRow);
+                var destBytes = MemoryMarshal.AsBytes(dest);
+                int rowBytes = width * 4;
+                Span<byte> tmp = stackalloc byte[rowBytes];
+
+                unsafe
+                {
+                    fixed (byte* destPtr = destBytes)
+                    fixed (byte* tmpPtr = tmp)
+                    {
+                        for (int y = 0; y < height / 2; y++)
+                        {
+                            byte* top = destPtr + y * rowBytes;
+                            byte* bottom = destPtr + (height - 1 - y) * rowBytes;
+                            Buffer.MemoryCopy(top, tmpPtr, rowBytes, rowBytes);
+                            Buffer.MemoryCopy(bottom, top, rowBytes, rowBytes);
+                            Buffer.MemoryCopy(tmpPtr, bottom, rowBytes, rowBytes);
+                        }
+                    }
+                }
             }
         }
         else
         {
             image.ProcessPixelRows(accessor =>
             {
+                var srcSpan = MemoryMarshal.Cast<byte, Rgba32>(src);
+                int offset = (height - 1) * width;
                 for (int y = 0; y < height; y++)
                 {
-                    var srcRow = MemoryMarshal.Cast<byte, Rgba32>(src).Slice((height - 1 - y) * width, width);
-                    srcRow.CopyTo(accessor.GetRowSpan(y));
+                    srcSpan.Slice(offset, width).CopyTo(accessor.GetRowSpan(y));
+                    offset -= width;
                 }
             });
         }
