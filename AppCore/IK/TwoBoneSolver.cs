@@ -105,8 +105,9 @@ public class TwoBoneSolver : IIkSolver
         var parent = index > 0 ? chain[index - 1].Rotation : Quaternion.Identity;
         var local = Quaternion.Normalize(Quaternion.Inverse(parent) * chain[index].Rotation);
 
-        float angle = 2f * MathF.Acos(Math.Clamp(local.W, -1f, 1f));
-        var s = MathF.Sqrt(1f - local.W * local.W);
+        local.W = Math.Clamp(local.W, -1f, 1f);
+        float angle = 2f * MathF.Acos(local.W);
+        var s = MathF.Sqrt(MathF.Max(0f, 1f - local.W * local.W));
         Vector3 axis;
         if (s < Epsilon)
             axis = new Vector3(1f, 0f, 0f);
@@ -152,8 +153,9 @@ public class TwoBoneSolver : IIkSolver
         var parent = index > 0 ? chain[index - 1].Rotation : Quaternion.Identity;
         var local = Quaternion.Normalize(Quaternion.Inverse(parent) * chain[index].Rotation);
 
-        float angle = 2f * MathF.Acos(Math.Clamp(local.W, -1f, 1f));
-        var s = MathF.Sqrt(MathF.Max(1f - local.W * local.W, 0f));
+        local.W = Math.Clamp(local.W, -1f, 1f);
+        float angle = 2f * MathF.Acos(local.W);
+        var s = MathF.Sqrt(MathF.Max(0f, 1f - local.W * local.W));
         Vector3 axis = s < Epsilon ? new Vector3(1f, 0f, 0f) : new Vector3(local.X, local.Y, local.Z) / s;
         if (angle > MathF.PI)
         {
