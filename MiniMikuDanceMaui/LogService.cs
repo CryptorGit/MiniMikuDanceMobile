@@ -17,6 +17,8 @@ public static class LogService
     private const int LogChannelCapacity = 100;
     private static readonly Queue<string> _history = new();
     private static readonly object _historyLock = new();
+    private static string[]? _historySnapshot;
+    private static bool _historyChanged = true;
     private static readonly string _logFilePath;
     private static readonly string _logDirectory;
     private static readonly string _terminalLogFilePath;
@@ -49,14 +51,34 @@ public static class LogService
         _processingTask = Task.Run(ProcessLogQueue);
     }
 
-    public static IReadOnlyList<string> History
+    public static IEnumerable<string> History
     {
         get
         {
             lock (_historyLock)
             {
-                return _history.Reverse().ToArray();
+                if (_historySnapshot == null || _historyChanged)
+                {
+                    _historySnapshot = _history.Reverse().ToArray();
+                    _historyChanged = false;
+                }
+
+                return _historySnapshot;
             }
+        }
+    }
+
+    public static string[] GetHistorySnapshot()
+    {
+        lock (_historyLock)
+        {
+            if (_historySnapshot == null || _historyChanged)
+            {
+                _historySnapshot = _history.Reverse().ToArray();
+                _historyChanged = false;
+            }
+
+            return _historySnapshot.ToArray();
         }
     }
 
@@ -69,6 +91,8 @@ public static class LogService
             {
                 _history.Dequeue();
             }
+
+            _historyChanged = true;
         }
         LineLogged?.Invoke(line);
         _logChannel.Writer.TryWrite(line);
