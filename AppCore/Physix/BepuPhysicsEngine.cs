@@ -29,7 +29,8 @@ public sealed class BepuPhysicsEngine : IPhysicsEngine, IDisposable
         _collisionFilters = new CollidableProperty<PmxFilter>();
         _simulation = Simulation.Create(SharedBufferPool,
             new NarrowPhaseCallbacks(model.RigidBodies, _collisionFilters),
-            new PoseIntegratorCallbacks(new Vector3(0, -9.81f, 0)), new SolveDescription(8, 1));
+            new PoseIntegratorCallbacks(new Vector3(0, -9.81f, 0), model.RigidBodies.ToArray()),
+            new SolveDescription(8, 1));
 
         _bodyHandles = new BodyHandle[model.RigidBodies.Count];
         for (int i = 0; i < model.RigidBodies.Count; i++)
@@ -40,7 +41,7 @@ public sealed class BepuPhysicsEngine : IPhysicsEngine, IDisposable
                 : new RigidPose(Vector3.Zero, Quaternion.Identity);
 
             BodyDescription description;
-            var activity = new BodyActivityDescription(MathF.Max(0.01f, rb.TranslationDamping));
+            var activity = new BodyActivityDescription(0.01f);
             switch (rb.Shape)
             {
                 case RigidBodyShape.Box:
@@ -107,13 +108,35 @@ public sealed class BepuPhysicsEngine : IPhysicsEngine, IDisposable
             var poseA = bodyA.Pose;
             var poseB = bodyB.Pose;
             var location = (poseA.Position + poseB.Position) * 0.5f;
-            var constraint = new BallSocket
+            var offsetA = location - poseA.Position;
+            var offsetB = location - poseB.Position;
+            var socket = new BallSocket
             {
-                LocalOffsetA = location - poseA.Position,
-                LocalOffsetB = location - poseB.Position,
+                LocalOffsetA = offsetA,
+                LocalOffsetB = offsetB,
                 SpringSettings = new SpringSettings(30f, 1f)
             };
-            _simulation.Solver.Add(handleA, handleB, constraint);
+            _simulation.Solver.Add(handleA, handleB, socket);
+
+            Vector3[] axes = { Vector3.UnitX, Vector3.UnitY, Vector3.UnitZ };
+            for (int axis = 0; axis < 3; axis++)
+            {
+                float min = joint.LinearLowerLimit[axis];
+                float max = joint.LinearUpperLimit[axis];
+                if (min != 0f || max != 0f)
+                {
+                    var limit = new LinearAxisLimit
+                    {
+                        LocalOffsetA = offsetA,
+                        LocalOffsetB = offsetB,
+                        LocalAxis = axes[axis],
+                        MinimumOffset = min,
+                        MaximumOffset = max,
+                        SpringSettings = new SpringSettings(MathF.Max(1e-3f, joint.LinearSpring[axis]), 1f)
+                    };
+                    _simulation.Solver.Add(handleA, handleB, limit);
+                }
+            }
         }
     }
 
@@ -243,7 +266,12 @@ public sealed class BepuPhysicsEngine : IPhysicsEngine, IDisposable
     {
         private Vector3 _gravity;
         private Vector3Wide _gravityDt;
-        public PoseIntegratorCallbacks(Vector3 gravity) : this() => _gravity = gravity;
+        private RigidBodyData[] _rigidBodies;
+        public PoseIntegratorCallbacks(Vector3 gravity, RigidBodyData[] rigidBodies) : this()
+        {
+            _gravity = gravity;
+            _rigidBodies = rigidBodies;
+        }
         public AngularIntegrationMode AngularIntegrationMode => AngularIntegrationMode.Nonconserving;
         public bool AllowSubstepsForUnconstrainedBodies => false;
         public bool IntegrateVelocityForKinematics => false;
@@ -252,6 +280,20 @@ public sealed class BepuPhysicsEngine : IPhysicsEngine, IDisposable
         public void IntegrateVelocity(Vector<int> bodyIndices, Vector3Wide position, QuaternionWide orientation, BodyInertiaWide localInertia, Vector<int> integrationMask, int workerIndex, Vector<float> dt, ref BodyVelocityWide velocity)
         {
             velocity.Linear += _gravityDt;
+            for (int lane = 0; lane < Vector<float>.Count; lane++)
+            {
+                int index = GatherScatter.Get(ref bodyIndices, lane);
+                if (index < 0 || index >= _rigidBodies.Length) continue;
+                var rb = _rigidBodies[index];
+                float dl = 1f - rb.TranslationDamping * GatherScatter.Get(ref dt, lane);
+                float da = 1f - rb.RotationDamping * GatherScatter.Get(ref dt, lane);
+                GatherScatter.Get(ref velocity.Linear.X, lane) *= dl;
+                GatherScatter.Get(ref velocity.Linear.Y, lane) *= dl;
+                GatherScatter.Get(ref velocity.Linear.Z, lane) *= dl;
+                GatherScatter.Get(ref velocity.Angular.X, lane) *= da;
+                GatherScatter.Get(ref velocity.Angular.Y, lane) *= da;
+                GatherScatter.Get(ref velocity.Angular.Z, lane) *= da;
+            }
         }
     }
 
