@@ -215,15 +215,19 @@ public class PoseEstimator : IDisposable
                 int y0 = (int)Math.Round(center.cy - half);
                 var rect = new Rectangle(x0, y0, size, size);
 
-                using var cropped = frame.Clone(ctx => ctx.Crop(rect));
-                cropped.Mutate(ctx => ctx.Resize(dstW, dstH));
-
-                patch.Mutate(ctx => ctx.DrawImage(cropped, drawOpts));
+                patch.Mutate(ctx =>
+                {
+                    ctx.Resize(size, size);
+                    ctx.Clear(Color.Black);
+                    ctx.DrawImage(frame, new Point(0, 0), rect, drawOpts);
+                    ctx.Resize(dstW, dstH);
+                });
 
                 foreach (var ang in Angles)
                 {
                     rotated.Mutate(ctx =>
                     {
+                        ctx.Clear(Color.Black);
                         ctx.DrawImage(patch, drawOpts);
                         if (Math.Abs(ang) > 0.1f)
                         {
