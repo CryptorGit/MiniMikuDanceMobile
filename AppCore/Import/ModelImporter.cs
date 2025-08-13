@@ -3,6 +3,7 @@ using System;
 using System.IO;
 using System.Collections.Generic;
 using System.Buffers;
+using System.Text;
 using SixLabors.ImageSharp;
 using SixLabors.ImageSharp.PixelFormats;
 using Vector3D = Assimp.Vector3D;
@@ -22,13 +23,27 @@ public class ModelData
     public List<MorphData> Morphs { get; set; } = new();
     public List<RigidBodyData> RigidBodies { get; set; } = new();
     public List<JointData> Joints { get; set; } = new();
+    public List<DisplayFrameData> DisplayFrames { get; set; } = new();
     public float ShadeShift { get; set; } = -0.1f;
     public float ShadeToony { get; set; } = 0.9f;
     public float RimIntensity { get; set; } = 0.5f;
 }
 
+public class DisplayFrameData
+{
+    public string Name { get; set; } = string.Empty;
+    public bool IsSpecial { get; set; }
+    public List<int> Bones { get; } = new();
+    public List<int> Morphs { get; } = new();
+}
+
 public class ModelImporter : IDisposable
 {
+    static ModelImporter()
+    {
+        Encoding.RegisterProvider(CodePagesEncodingProvider.Instance);
+    }
+
     private readonly AssimpContext _context = new();
     private sealed class TextureData
     {
@@ -170,6 +185,8 @@ public class ModelImporter : IDisposable
         var morphs = pmx.MorphList.ToArray();
         var rigidBodies = pmx.RigidBodyList.ToArray();
         var joints = pmx.JointList.ToArray();
+        var displayFrames = pmx.DisplayFrameList.ToArray();
+        var softBodies = pmx.SoftBodyList.ToArray();
 
         var childIndices = new List<int>[bones.Length];
         for (int i = 0; i < bones.Length; i++)
@@ -450,6 +467,35 @@ public class ModelImporter : IDisposable
             morphDatas.Add(md);
         }
         data.Morphs = morphDatas;
+
+        var displayFrameDatas = new List<DisplayFrameData>(displayFrames.Length);
+        foreach (var df in displayFrames)
+        {
+            var dfd = new DisplayFrameData
+            {
+                Name = string.IsNullOrEmpty(df.NameEnglish) ? df.Name : df.NameEnglish,
+                IsSpecial = df.Type == DisplayFrameType.Special
+            };
+            foreach (var elem in df.Elements.Span)
+            {
+                switch (elem.TargetType)
+                {
+                    case DisplayFrameElementTarget.Bone:
+                        dfd.Bones.Add(elem.TargetIndex);
+                        break;
+                    case DisplayFrameElementTarget.Morph:
+                        dfd.Morphs.Add(elem.TargetIndex);
+                        break;
+                }
+            }
+            displayFrameDatas.Add(dfd);
+        }
+        data.DisplayFrames = displayFrameDatas;
+
+        if (softBodies.Length > 0)
+        {
+            Console.Error.WriteLine($"SoftBody {softBodies.Length} 個は未対応のため読み込みをスキップします。");
+        }
 
         var rigidBodyDatas = new List<RigidBodyData>(rigidBodies.Length);
         for (int i = 0; i < rigidBodies.Length; i++)
