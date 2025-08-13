@@ -1,6 +1,5 @@
 using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.Numerics;
 using MiniMikuDance.Import;
 using MiniMikuDance.Util;
@@ -128,7 +127,9 @@ public static class IkManager
                 return;
 
             bone.Position = position;
-            Trace.WriteLine($"UpdateTarget: index={boneIndex} pos={position}");
+#if DEBUG
+            System.Diagnostics.Trace.WriteLine($"UpdateTarget: index={boneIndex} pos={position}");
+#endif
 
             if (SetBoneTranslation != null)
             {
@@ -138,10 +139,16 @@ public static class IkManager
 
             InvalidateViewer?.Invoke();
         }
+#if DEBUG
         catch (Exception ex)
         {
-            Trace.WriteLine($"UpdateTarget exception: {ex}");
+            System.Diagnostics.Trace.WriteLine($"UpdateTarget exception: {ex}");
         }
+#else
+        catch (Exception)
+        {
+        }
+#endif
     }
 
     public static void ReleaseSelection()
@@ -156,7 +163,9 @@ public static class IkManager
     {
         ReleaseSelection();
         BonesDict.Clear();
-        Trace.WriteLine($"IkManager.Clear: SelectedBoneIndex={_selectedBoneIndex} Bones={BonesDict.Count}");
+#if DEBUG
+        System.Diagnostics.Trace.WriteLine($"IkManager.Clear: SelectedBoneIndex={_selectedBoneIndex} Bones={BonesDict.Count}");
+#endif
     }
 
     private static BoneRole DetermineRole(string name)
