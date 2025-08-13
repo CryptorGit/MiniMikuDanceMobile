@@ -13,26 +13,25 @@ public class CcdSolver : IIkSolver
         if (chain.Length < 2)
             return;
 
+        _ = iterations;
+
         var target = chain[^1].Position;
-        for (int iter = 0; iter < iterations; iter++)
+        for (int i = chain.Length - 2; i >= 0; i--)
         {
-            for (int i = chain.Length - 2; i >= 0; i--)
+            var jointPos = chain[i].Position;
+            var toEffector = chain[^1].Position - jointPos;
+            var toTarget = target - jointPos;
+            if (toEffector.LengthSquared() < Epsilon || toTarget.LengthSquared() < Epsilon)
+                continue;
+            var rot = FromToRotation(toEffector, toTarget);
+            var limit = rotationLimitFunc?.Invoke(i) ?? 0f;
+            if (limit != 0f)
+                rot = ClampAngle(rot, limit);
+            for (int j = i + 1; j < chain.Length; j++)
             {
-                var jointPos = chain[i].Position;
-                var toEffector = chain[^1].Position - jointPos;
-                var toTarget = target - jointPos;
-                if (toEffector.LengthSquared() < Epsilon || toTarget.LengthSquared() < Epsilon)
-                    continue;
-                var rot = FromToRotation(toEffector, toTarget);
-                var limit = rotationLimitFunc?.Invoke(i) ?? 0f;
-                if (limit != 0f)
-                    rot = ClampAngle(rot, limit);
-                for (int j = i + 1; j < chain.Length; j++)
-                {
-                    var rel = chain[j].Position - jointPos;
-                    rel = Vector3.Transform(rel, rot);
-                    chain[j].Position = jointPos + rel;
-                }
+                var rel = chain[j].Position - jointPos;
+                rel = Vector3.Transform(rel, rot);
+                chain[j].Position = jointPos + rel;
             }
         }
 
