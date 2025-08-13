@@ -31,6 +31,8 @@ public class JointData
     public string Name { get; set; } = string.Empty;
     public int RigidBodyA { get; set; } = -1;
     public int RigidBodyB { get; set; } = -1;
+    public Vector3 Position { get; set; }
+    public Quaternion Rotation { get; set; } = Quaternion.Identity;
     public Vector3 LinearLowerLimit { get; set; }
     public Vector3 LinearUpperLimit { get; set; }
     public Vector3 LinearSpring { get; set; }

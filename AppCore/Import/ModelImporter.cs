@@ -553,6 +553,9 @@ public class ModelImporter : IDisposable, IImporter
             int rbB = type.GetProperty("RigidBodyB")?.GetValue(j) is object b ? Convert.ToInt32(b) : -1;
             if (rbB < 0) rbB = type.GetProperty("RigidBody2")?.GetValue(j) is object b1 ? Convert.ToInt32(b1) : -1;
             string name = string.IsNullOrEmpty(j.NameEnglish) ? j.Name : j.NameEnglish;
+            var pos = GetVector3(type, j, true, "Position");
+            var rotVec = GetVector3(type, j, false, "Rotation");
+            var rot = Quaternion.CreateFromYawPitchRoll(rotVec.Y, rotVec.X, rotVec.Z);
             var ll = GetVector3(type, j, true, "PositionMinimum", "PositionMin");
             var lu = GetVector3(type, j, true, "PositionMaximum", "PositionMax");
             var ls = GetVector3(type, j, true, "SpringPosition", "PositionSpring");
@@ -564,6 +567,8 @@ public class ModelImporter : IDisposable, IImporter
                 Name = name,
                 RigidBodyA = rbA,
                 RigidBodyB = rbB,
+                Position = pos,
+                Rotation = rot,
                 LinearLowerLimit = ll,
                 LinearUpperLimit = lu,
                 LinearSpring = ls,
