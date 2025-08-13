@@ -42,7 +42,20 @@ public class TwoBoneSolver : IIkSolver
         var planeNormal = root.PoleVector.LengthSquared() > Epsilon
             ? Vector3.Normalize(root.PoleVector)
             : Vector3.Normalize(Vector3.Cross(mid.BasePosition - root.BasePosition, end.BasePosition - root.BasePosition));
-        var planeTangent = Vector3.Normalize(Vector3.Cross(dir, planeNormal));
+        var planeTangent = Vector3.Cross(dir, planeNormal);
+        if (planeTangent.LengthSquared() <= Epsilon)
+        {
+            var projectedPole = root.PoleVector - dir * Vector3.Dot(root.PoleVector, dir);
+            var fallback = projectedPole.LengthSquared() > Epsilon
+                ? Vector3.Normalize(projectedPole)
+                : (System.MathF.Abs(dir.Y) < 0.99f ? Vector3.UnitY : Vector3.UnitX);
+            planeTangent = Vector3.Normalize(Vector3.Cross(dir, fallback));
+            planeNormal = Vector3.Normalize(Vector3.Cross(planeTangent, dir));
+        }
+        else
+        {
+            planeTangent = Vector3.Normalize(planeTangent);
+        }
 
         var cos0 = (_length1 * _length1 + dist * dist - _length2 * _length2) / (2 * _length1 * dist);
         cos0 = System.Math.Clamp(cos0, -1f, 1f);
