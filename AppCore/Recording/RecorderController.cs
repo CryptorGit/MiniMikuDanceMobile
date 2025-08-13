@@ -13,7 +13,7 @@ using SixLabors.ImageSharp.Formats.Png;
 
 namespace MiniMikuDance.Recording;
 
-public class RecorderController
+public class RecorderController : IDisposable
 {
     private bool _recording;
     private string _savedDir = string.Empty;
@@ -27,6 +27,7 @@ public class RecorderController
     private int _width;
     private int _height;
     private int _droppedFrames;
+    private byte[]? _rowBuffer;
 
     private const int ChannelCapacity = 60;
 
@@ -96,6 +97,7 @@ public class RecorderController
         }
         _frameChannel = null;
         _workerTask = null;
+        ReleaseRowBuffer();
         return _savedDir;
     }
 
@@ -142,7 +144,7 @@ public class RecorderController
         return Task.CompletedTask;
     }
 
-    private static void CopyToImage(byte[] src, Image<Rgba32> image, int width, int height)
+    private void CopyToImage(byte[] src, Image<Rgba32> image, int width, int height)
     {
         var source = MemoryMarshal.Cast<byte, Rgba32>(src);
 
@@ -155,28 +157,29 @@ public class RecorderController
             {
                 var destBytes = MemoryMarshal.AsBytes(dest);
                 int rowBytes = width * 4;
-                byte[] tmp = ArrayPool<byte>.Shared.Rent(rowBytes);
-                try
+                if (_rowBuffer == null || _rowBuffer.Length < rowBytes)
                 {
-                    unsafe
+                    if (_rowBuffer != null)
                     {
-                        fixed (byte* destPtr = destBytes)
-                        fixed (byte* tmpPtr = tmp)
+                        ArrayPool<byte>.Shared.Return(_rowBuffer);
+                    }
+                    _rowBuffer = ArrayPool<byte>.Shared.Rent(rowBytes);
+                }
+                var tmp = _rowBuffer;
+                unsafe
+                {
+                    fixed (byte* destPtr = destBytes)
+                    fixed (byte* tmpPtr = tmp)
+                    {
+                        for (int y = 0; y < height / 2; y++)
                         {
-                            for (int y = 0; y < height / 2; y++)
-                            {
-                                byte* top = destPtr + y * rowBytes;
-                                byte* bottom = destPtr + (height - 1 - y) * rowBytes;
-                                Buffer.MemoryCopy(top, tmpPtr, rowBytes, rowBytes);
-                                Buffer.MemoryCopy(bottom, top, rowBytes, rowBytes);
-                                Buffer.MemoryCopy(tmpPtr, bottom, rowBytes, rowBytes);
-                            }
+                            byte* top = destPtr + y * rowBytes;
+                            byte* bottom = destPtr + (height - 1 - y) * rowBytes;
+                            Buffer.MemoryCopy(top, tmpPtr, rowBytes, rowBytes);
+                            Buffer.MemoryCopy(bottom, top, rowBytes, rowBytes);
+                            Buffer.MemoryCopy(tmpPtr, bottom, rowBytes, rowBytes);
                         }
                     }
-                }
-                finally
-                {
-                    ArrayPool<byte>.Shared.Return(tmp);
                 }
             }
         }
@@ -192,6 +195,27 @@ public class RecorderController
                     offset -= width;
                 }
             });
+        }
+    }
+
+    private void ReleaseRowBuffer()
+    {
+        if (_rowBuffer != null)
+        {
+            ArrayPool<byte>.Shared.Return(_rowBuffer);
+            _rowBuffer = null;
+        }
+    }
+
+    public void Dispose()
+    {
+        if (_recording)
+        {
+            StopRecording().GetAwaiter().GetResult();
+        }
+        else
+        {
+            ReleaseRowBuffer();
         }
     }
 
