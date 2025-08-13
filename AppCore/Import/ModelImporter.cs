@@ -177,7 +177,7 @@ public class ModelImporter : IDisposable, IImporter
 
     private ModelData ImportPmx(Stream stream, string? textureDir = null)
     {
-        var pmx = PMXParser.Parse(stream);
+        var pmx = PmxStreamReader.Parse(stream);
         var verts = pmx.VertexList.ToArray();
         var faces = pmx.SurfaceList.ToArray();
         var mats = pmx.MaterialList.ToArray();
@@ -188,6 +188,8 @@ public class ModelImporter : IDisposable, IImporter
         var joints = pmx.JointList.ToArray();
         var displayFrames = pmx.DisplayFrameList.ToArray();
         var softBodies = pmx.SoftBodyList.ToArray();
+        if (softBodies.Length > 0)
+            Console.Error.WriteLine("ソフトボディは未対応のため読み込まれません。");
 
         var childIndices = new List<int>[bones.Length];
         for (int i = 0; i < bones.Length; i++)
