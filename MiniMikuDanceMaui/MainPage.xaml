@@ -4,6 +4,7 @@
              xmlns:skia="clr-namespace:SkiaSharp.Views.Maui.Controls;assembly=SkiaSharp.Views.Maui.Controls"
              xmlns:mmd="clr-namespace:MiniMikuDanceMaui"
              xmlns:mi="http://www.aathifmahir.com/dotnet/2022/maui/icons"
+             xmlns:extensions="clr-namespace:MiniMikuDanceMaui.Extensions"
              x:Class="MiniMikuDanceMaui.MainPage"
              BackgroundColor="Transparent">
 
@@ -45,7 +46,7 @@
                         </Trigger>
                     </Switch.Triggers>
                 </Switch>
-                <mi:MauiIcon Icon="{mi:Material Icon=PhotoCamera}"
+                <mi:MauiIcon Icon="{extensions:Material Icon=PhotoCamera}"
                        IconColor="Gray"
                        x:Name="CameraIcon"
                        HorizontalOptions="End"
@@ -58,7 +59,7 @@
                         </DataTrigger>
                     </mi:MauiIcon.Triggers>
                 </mi:MauiIcon>
-                <mi:MauiIcon Icon="{mi:Material Icon=AccessibilityNew}"
+                <mi:MauiIcon Icon="{extensions:Material Icon=AccessibilityNew}"
                        IconColor="Green"
                        x:Name="PoseIcon"
                        HorizontalOptions="End"
