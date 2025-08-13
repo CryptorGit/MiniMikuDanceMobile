@@ -1,5 +1,7 @@
 using System;
+using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Text;
 using System.Threading.Channels;
 using System.Threading.Tasks;
@@ -13,7 +15,7 @@ public static class LogService
 
     private const int MaxHistory = 1000;
     private const int LogChannelCapacity = 100;
-    private static readonly List<string> _history = new();
+    private static readonly Queue<string> _history = new();
     private static readonly object _historyLock = new();
     private static readonly string _logFilePath;
     private static readonly string _logDirectory;
@@ -53,7 +55,7 @@ public static class LogService
         {
             lock (_historyLock)
             {
-                return _history.ToArray();
+                return _history.Reverse().ToArray();
             }
         }
     }
@@ -62,10 +64,10 @@ public static class LogService
     {
         lock (_historyLock)
         {
-            _history.Add(line);
+            _history.Enqueue(line);
             if (_history.Count > MaxHistory)
             {
-                _history.RemoveAt(0);
+                _history.Dequeue();
             }
         }
         LineLogged?.Invoke(line);
