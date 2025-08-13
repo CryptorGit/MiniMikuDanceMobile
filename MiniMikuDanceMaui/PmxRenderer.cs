@@ -538,8 +538,10 @@ void main(){
 
         const int lat = 8;
         const int lon = 8;
-        var vertices = new List<float>();
-        var indices = new List<ushort>();
+        int vertexCount = (lat + 1) * (lon + 1);
+        int indexCount = lat * lon * 6;
+        var vertices = new List<float>(vertexCount * 3);
+        var indices = new List<ushort>(indexCount);
 
         for (int y = 0; y <= lat; y++)
         {
@@ -574,18 +576,18 @@ void main(){
             }
         }
 
-        _ikBoneIndexCount = indices.Count;
+        _ikBoneIndexCount = indexCount;
         _ikBoneVao = GL.GenVertexArray();
         _ikBoneVbo = GL.GenBuffer();
         _ikBoneEbo = GL.GenBuffer();
 
         GL.BindVertexArray(_ikBoneVao);
         GL.BindBuffer(BufferTarget.ArrayBuffer, _ikBoneVbo);
-        GL.BufferData(BufferTarget.ArrayBuffer, vertices.Count * sizeof(float), vertices.ToArray(), BufferUsageHint.StaticDraw);
+        GL.BufferData(BufferTarget.ArrayBuffer, vertexCount * 3 * sizeof(float), vertices.ToArray(), BufferUsageHint.StaticDraw);
         GL.VertexAttribPointer(0, 3, VertexAttribPointerType.Float, false, 3 * sizeof(float), 0);
         GL.EnableVertexAttribArray(0);
         GL.BindBuffer(BufferTarget.ElementArrayBuffer, _ikBoneEbo);
-        GL.BufferData(BufferTarget.ElementArrayBuffer, indices.Count * sizeof(ushort), indices.ToArray(), BufferUsageHint.StaticDraw);
+        GL.BufferData(BufferTarget.ElementArrayBuffer, indexCount * sizeof(ushort), indices.ToArray(), BufferUsageHint.StaticDraw);
         GL.BindVertexArray(0);
     }
 
