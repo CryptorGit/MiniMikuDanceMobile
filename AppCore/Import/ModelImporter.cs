@@ -217,7 +217,8 @@ public class ModelImporter : IDisposable
                         BoneIndex = link.Bone,
                         HasLimit = link.IsEnableAngleLimited,
                         MinAngle = new System.Numerics.Vector3(link.MinLimit.X, link.MinLimit.Y, link.MinLimit.Z),
-                        MaxAngle = new System.Numerics.Vector3(link.MaxLimit.X, link.MaxLimit.Y, link.MaxLimit.Z)
+                        MaxAngle = new System.Numerics.Vector3(link.MaxLimit.X, link.MaxLimit.Y, link.MaxLimit.Z),
+                        RotationLimit = b.MaxRadianPerIter
                     };
                     ik.Links.Add(il);
                 }
