@@ -507,7 +507,14 @@ public class ModelImporter : IDisposable
                 Name = string.IsNullOrEmpty(rb.NameEnglish) ? rb.Name : rb.NameEnglish,
                 BoneIndex = rb.Bone,
                 Mass = rb.Mass,
-                Shape = (RigidBodyShape)rb.Shape
+                Shape = (RigidBodyShape)rb.Shape,
+                Size = new System.Numerics.Vector3(rb.Size.X, rb.Size.Y, rb.Size.Z) * Scale,
+                TranslationDamping = rb.TranslationAttenuation,
+                RotationDamping = rb.RotationAttenuation,
+                Restitution = rb.Recoil,
+                Friction = rb.Friction,
+                CollisionGroup = rb.Group,
+                CollisionMask = rb.GroupTarget
             };
             rigidBodyDatas.Add(rbd);
         }
