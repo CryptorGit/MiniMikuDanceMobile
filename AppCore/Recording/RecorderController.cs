@@ -2,6 +2,7 @@ using System;
 using System.IO;
 using System.Collections.Concurrent;
 using System.Runtime.InteropServices;
+using System.Threading;
 using System.Threading.Tasks;
 using System.Threading.Channels;
 using System.Buffers;
@@ -25,6 +26,9 @@ public class RecorderController
     private Task? _workerTask;
     private int _width;
     private int _height;
+    private int _droppedFrames;
+
+    private const int ChannelCapacity = 60;
 
     public RecorderController(string baseDir = "Recordings")
     {
@@ -43,11 +47,18 @@ public class RecorderController
         _recording = true;
         _width = width;
         _height = height;
+        _droppedFrames = 0;
         while (_imagePool.TryDequeue(out var img))
         {
             img.Dispose();
         }
-        _frameChannel = Channel.CreateBounded<(Image<Rgba32> Image, string Path)>(60);
+        var options = new BoundedChannelOptions(ChannelCapacity)
+        {
+            FullMode = BoundedChannelFullMode.DropOldest,
+            SingleReader = true,
+            SingleWriter = true,
+        };
+        _frameChannel = Channel.CreateBounded<(Image<Rgba32> Image, string Path)>(options);
         _workerTask = Task.Run(async () =>
         {
             await foreach (var (img, path) in _frameChannel.Reader.ReadAllAsync())
@@ -73,6 +84,12 @@ public class RecorderController
         {
             await _workerTask;
         }
+        if (_droppedFrames > 0)
+        {
+            string msg = $"Dropped frames:{_droppedFrames}\n";
+            File.AppendAllText(_infoPath, msg);
+            Console.WriteLine(msg.Trim());
+        }
         while (_imagePool.TryDequeue(out var img))
         {
             img.Dispose();
@@ -86,9 +103,9 @@ public class RecorderController
 
     public bool IsRecording => _recording;
 
-    public async Task Capture(byte[] rgba, int width, int height)
+    public Task Capture(byte[] rgba, int width, int height)
     {
-        if (!_recording || _frameChannel == null) return;
+        if (!_recording || _frameChannel == null) return Task.CompletedTask;
 
         if (_width != width || _height != height)
         {
@@ -107,12 +124,22 @@ public class RecorderController
 
         CopyToImage(rgba, image, width, height);
         string path = Path.Combine(_savedDir, $"frame_{_frameIndex:D04}.png");
-        await _frameChannel.Writer.WriteAsync((image, path));
+        bool wasFull = _frameChannel.Reader.Count >= ChannelCapacity;
+        if (!_frameChannel.Writer.TryWrite((image, path)))
+        {
+            _imagePool.Enqueue(image);
+            return Task.CompletedTask;
+        }
+        if (wasFull)
+        {
+            Interlocked.Increment(ref _droppedFrames);
+        }
         if (_frameIndex == 0)
         {
             _thumbnailPath = path;
         }
         _frameIndex++;
+        return Task.CompletedTask;
     }
 
     private static void CopyToImage(byte[] src, Image<Rgba32> image, int width, int height)
