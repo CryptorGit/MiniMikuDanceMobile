@@ -512,6 +512,8 @@ public class ModelImporter : IDisposable, IImporter
                 Mass = rb.Mass,
                 Shape = (RigidBodyShape)rb.Shape,
                 Size = new System.Numerics.Vector3(rb.Size.X, rb.Size.Y, rb.Size.Z) * Scale,
+                Position = new System.Numerics.Vector3(rb.Position.X, rb.Position.Y, rb.Position.Z) * Scale,
+                Rotation = System.Numerics.Quaternion.CreateFromYawPitchRoll(rb.RotationRadian.Y, rb.RotationRadian.X, rb.RotationRadian.Z),
                 TranslationDamping = rb.TranslationAttenuation,
                 RotationDamping = rb.RotationAttenuation,
                 Restitution = rb.Recoil,
@@ -819,7 +821,16 @@ public class ModelImporter : IDisposable, IImporter
                 Name = rb.Name,
                 Mass = rb.Mass,
                 Shape = rb.Shape,
-                BoneIndex = MmdModel.NormalizeIndex(rb.BoneIndex, data.Bones.Count, logger)
+                BoneIndex = MmdModel.NormalizeIndex(rb.BoneIndex, data.Bones.Count, logger),
+                Size = rb.Size,
+                Position = rb.Position,
+                Rotation = rb.Rotation,
+                TranslationDamping = rb.TranslationDamping,
+                RotationDamping = rb.RotationDamping,
+                Restitution = rb.Restitution,
+                Friction = rb.Friction,
+                CollisionGroup = rb.CollisionGroup,
+                CollisionMask = rb.CollisionMask
             };
             model.RigidBodies.Add(rbd);
         }

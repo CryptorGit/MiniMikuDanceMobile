@@ -36,9 +36,18 @@ public sealed class BepuPhysicsEngine : IPhysicsEngine, IDisposable
         for (int i = 0; i < model.RigidBodies.Count; i++)
         {
             var rb = model.RigidBodies[i];
-            var pose = rb.BoneIndex >= 0 && rb.BoneIndex < model.Bones.Count
-                ? new RigidPose(model.Bones[rb.BoneIndex].Translation, model.Bones[rb.BoneIndex].Rotation)
-                : new RigidPose(Vector3.Zero, Quaternion.Identity);
+            RigidPose pose;
+            if (rb.BoneIndex >= 0 && rb.BoneIndex < model.Bones.Count)
+            {
+                var bone = model.Bones[rb.BoneIndex];
+                var orientation = bone.Rotation * rb.Rotation;
+                var position = bone.Translation + Vector3.Transform(rb.Position, bone.Rotation);
+                pose = new RigidPose(position, orientation);
+            }
+            else
+            {
+                pose = new RigidPose(rb.Position, rb.Rotation);
+            }
 
             BodyDescription description;
             var activity = new BodyActivityDescription(0.01f);
@@ -163,8 +172,8 @@ public sealed class BepuPhysicsEngine : IPhysicsEngine, IDisposable
                 continue;
             var body = _simulation.Bodies.GetBodyReference(_bodyHandles[i]);
             var bone = _model.Bones[rb.BoneIndex];
-            body.Pose.Position = bone.Translation;
-            body.Pose.Orientation = bone.Rotation;
+            body.Pose.Orientation = bone.Rotation * rb.Rotation;
+            body.Pose.Position = bone.Translation + Vector3.Transform(rb.Position, bone.Rotation);
             body.Velocity.Linear = Vector3.Zero;
             body.Velocity.Angular = Vector3.Zero;
         }
@@ -180,8 +189,10 @@ public sealed class BepuPhysicsEngine : IPhysicsEngine, IDisposable
                 continue;
             var body = _simulation.Bodies.GetBodyReference(_bodyHandles[i]);
             var bone = _model.Bones[rb.BoneIndex];
-            bone.Translation = body.Pose.Position;
-            bone.Rotation = body.Pose.Orientation;
+            var invRot = Quaternion.Inverse(rb.Rotation);
+            bone.Rotation = body.Pose.Orientation * invRot;
+            bone.Rotation = Quaternion.Normalize(bone.Rotation);
+            bone.Translation = body.Pose.Position - Vector3.Transform(rb.Position, bone.Rotation);
         }
     }
 
