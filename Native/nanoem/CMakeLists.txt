@@ -29,8 +29,8 @@ add_library(nanoem_core
     emapp/Grid.cc
     emapp/PerspectiveCamera.cc
     emapp/CommonInclude.cc
-    emapp/PhysicsEngine.cc
-    emapp/physics.c
+    emapp/physics/PhysicsEngine.cc
+    emapp/physics/physics.c
     emapp/ik.c
     core/physics/physics_bullet.cc
     core/import/document.c

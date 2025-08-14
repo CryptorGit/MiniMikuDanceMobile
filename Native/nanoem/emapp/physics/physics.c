@@ -4,7 +4,7 @@
    This file is part of emapp component and it's licensed under Mozilla Public License. see LICENSE.md for more details.
  */
 
-#include "../ext/physics.h"
+#include "../../ext/physics.h"
 
 #include <stdlib.h>
 
