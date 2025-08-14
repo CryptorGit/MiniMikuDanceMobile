@@ -160,6 +160,33 @@ internal static partial class Nanoem
     [DllImport(NativeLibName, CallingConvention = CallingConvention.Cdecl)]
     private static extern float nanoemModelGetMorphInitialWeight(IntPtr model, uint index);
 
+    [StructLayout(LayoutKind.Sequential)]
+    internal struct VertexState
+    {
+        public float PX;
+        public float PY;
+        public float PZ;
+        public float NX;
+        public float NY;
+        public float NZ;
+        public float U;
+        public float V;
+        public int BoneIndex0;
+        public int BoneIndex1;
+        public int BoneIndex2;
+        public int BoneIndex3;
+        public float Weight0;
+        public float Weight1;
+        public float Weight2;
+        public float Weight3;
+    }
+
+    [DllImport(NativeLibName, CallingConvention = CallingConvention.Cdecl)]
+    private static extern IntPtr nanoemModelGetVertexBuffer(IntPtr model, out uint length);
+
+    [DllImport(NativeLibName, CallingConvention = CallingConvention.Cdecl)]
+    private static extern IntPtr nanoemModelGetIndexBuffer(IntPtr model, out uint length);
+
     public static uint ModelGetTextureCount(IntPtr model)
     {
         return nanoemModelGetTextureCount(model);
@@ -185,5 +212,43 @@ internal static partial class Nanoem
     public static float ModelGetMorphInitialWeight(IntPtr model, uint index)
     {
         return nanoemModelGetMorphInitialWeight(model, index);
+    }
+
+    public static VertexState[] ModelGetVertexBuffer(IntPtr model)
+    {
+        IntPtr ptr = nanoemModelGetVertexBuffer(model, out uint length);
+        try
+        {
+            var result = new VertexState[length];
+            unsafe
+            {
+                var span = new ReadOnlySpan<VertexState>(ptr.ToPointer(), (int)length);
+                span.CopyTo(result);
+            }
+            return result;
+        }
+        finally
+        {
+            nanoemModelIOFree(ptr);
+        }
+    }
+
+    public static uint[] ModelGetIndexBuffer(IntPtr model)
+    {
+        IntPtr ptr = nanoemModelGetIndexBuffer(model, out uint length);
+        try
+        {
+            var result = new uint[length];
+            unsafe
+            {
+                var span = new ReadOnlySpan<uint>(ptr.ToPointer(), (int)length);
+                span.CopyTo(result);
+            }
+            return result;
+        }
+        finally
+        {
+            nanoemModelIOFree(ptr);
+        }
     }
 }

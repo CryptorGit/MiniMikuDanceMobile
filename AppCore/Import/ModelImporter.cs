@@ -17,6 +17,10 @@ namespace MiniMikuDance.Import;
     {
         public List<Vector3> Vertices { get; } = new();
         public List<Vector3> Normals { get; } = new();
+        public List<Vector2> TexCoords { get; } = new();
+        public List<int> Indices { get; } = new();
+        public List<Vector4> JointIndices { get; } = new();
+        public List<Vector4> JointWeights { get; } = new();
         public List<FaceData> Faces { get; } = new();
         public int VertexCount => Vertices.Count;
     }
@@ -25,6 +29,11 @@ namespace MiniMikuDance.Import;
     {
         public MeshData Mesh { get; set; } = new();
         public List<Vector2> TexCoords { get; } = new();
+        public List<Vector4> JointIndices { get; } = new();
+        public List<Vector4> JointWeights { get; } = new();
+        public List<Vector3> SdefC { get; } = new();
+        public List<Vector3> SdefR0 { get; } = new();
+        public List<Vector3> SdefR1 { get; } = new();
         public string TextureFilePath { get; set; } = string.Empty;
     }
 
@@ -53,7 +62,7 @@ namespace MiniMikuDance.Import;
         public float RimIntensity { get; set; }
     }
 
-public class ModelImporter : IDisposable
+public partial class ModelImporter : IDisposable
 {
     private readonly ILogger<ModelImporter> _logger;
 
@@ -152,6 +161,7 @@ public class ModelImporter : IDisposable
             });
         }
 
+        LoadMesh(model, data);
         Nanoem.ModelDestroy(model);
         return data;
     }
