@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using OpenTK.Mathematics;
 using MiniMikuDance.Util;
 using MiniMikuDance.Import;
+using MMDTools;
 using Vector2 = OpenTK.Mathematics.Vector2;
 using Vector3 = OpenTK.Mathematics.Vector3;
 using Vector4 = OpenTK.Mathematics.Vector4;
