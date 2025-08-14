@@ -118,6 +118,7 @@ public partial class PmxRenderer
 
         RecalculateMaterialMorphs();
         RecalculateBoneMorphs();
+        UpdateBoneMatricesFromModel();
     }
 
     private void RecalculateMaterialMorphs()

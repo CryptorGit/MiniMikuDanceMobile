@@ -86,7 +86,7 @@ public partial class PmxRenderer
                 var worldPos = ModelToWorld(solved);
                 SetBoneTranslation(ik.PmxBoneIndex, worldPos.ToOpenTK());
             }
-            _worldMats = CalculateWorldMatrices();
+            UpdateBoneMatricesFromModel();
             foreach (var ik in _ikBones)
             {
                 ik.Position = GetBoneWorldPosition(ik.PmxBoneIndex);
