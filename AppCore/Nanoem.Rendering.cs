@@ -12,6 +12,9 @@ internal static partial class Nanoem
     [DllImport(NativeLibName, CallingConvention = CallingConvention.Cdecl, EntryPoint = "nanoemRenderingUpdateFrame")]
     private static extern void RenderingUpdateFrameNative();
 
+    [DllImport(NativeLibName, CallingConvention = CallingConvention.Cdecl, EntryPoint = "nanoemRenderingShutdown")]
+    private static extern void RenderingShutdownNative();
+
     public static void RenderingInitialize(int width, int height)
     {
         RenderingInitializeNative(width, height);
@@ -20,5 +23,10 @@ internal static partial class Nanoem
     public static void RenderingUpdateFrame()
     {
         RenderingUpdateFrameNative();
+    }
+
+    public static void RenderingShutdown()
+    {
+        RenderingShutdownNative();
     }
 }

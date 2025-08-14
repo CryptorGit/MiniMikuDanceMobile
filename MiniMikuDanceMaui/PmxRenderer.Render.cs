@@ -86,18 +86,7 @@ public partial class PmxRenderer
         }
 
         Nanoem.RenderingUpdateFrame();
-
-        UpdateViewProjection();
-
-        bool needsUpdate = _bonesDirty || _morphDirty || _uvMorphDirty;
-        if (needsUpdate)
-        {
-            if (_bones.Count > 0)
-                CpuSkinning();
-            UpdateVertexBuffers();
-        }
-
-        DrawScene();
+        // TODO: integrate nanoem rendering pipeline
     }
 
     private void UpdateViewProjection()
