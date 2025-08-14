@@ -74,10 +74,21 @@ typedef struct nanoem_global_allocator_t {
 #endif
 #endif /* NANOEM_RSIZE_MAX */
 
+#ifndef NANOEM_DECL_API
+#define NANOEM_DECL_API
+#endif
+#ifndef NANOEM_DECL_OPAQUE
+#define NANOEM_DECL_OPAQUE(type) typedef struct type type;
+#endif
+
 const nanoem_global_allocator_t *APIENTRY nanoemGlobalGetCustomAllocator(void);
 void APIENTRY nanoemGlobalSetCustomAllocator(const nanoem_global_allocator_t *allocator);
 
+void APIENTRY nanoemGlobalAllocatorInitialize(void);
+void APIENTRY nanoemGlobalAllocatorTerminate(void);
+
 const char *APIENTRY nanoemGetVersionString(void);
+int32_t APIENTRY nanoemAdd(int32_t left, int32_t right);
 
 #ifdef __cplusplus
 }

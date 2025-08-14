@@ -2,6 +2,7 @@
 - [ ] 必要に応じて例外処理を再検討し、呼び出し元へ例外を委ねる
 - [ ] ディレクトリ取得失敗時の挙動を実環境で確認する
 - [ ] `Documents/nanoem-main` の該当ソースを調査し Native への取り込み可否を検討（データ構造・UI・ライセンス影響含む）
+- [ ] 他プラットフォーム向けビルドスクリプトへのエクスポート設定の追加
 
 ## nanoem 手作業移植の未完了項目
 - [ ] 残りの nanoem core ソースの移植
@@ -9,12 +10,18 @@
 - [ ] C# からの P/Invoke 実装およびビルドスクリプト整備
 - [ ] nanoem グローバルアロケータ周辺の詳細実装
 - [ ] `NANOEM_ENABLE_DEBUG_ALLOCATOR` を利用したメモリ追跡の検証
+- [ ] 物理エンジン拡張（physics_bullet.cc 移植済み、残りソースの移植と実装）
+- [ ] nanoemGlobalAllocatorInitialize/Terminate の P/Invoke 呼び出しとリーク検証
+- [ ] アロケータのメモリリーク検出ログ出力実装
 - [ ] 物理エンジン拡張 (physics.h 以外) の移植と実装
 - [ ] IK 制御関連コンポーネントの移植
 - [ ] IK ソルバー本体の移植と P/Invoke 実装
+- [ ] ConstraintSolver の transform 対応など IK 計算の詳細実装
 - [ ] モデル/モーション等のインポート機能の移植
 - [ ] PMX/VMD ネイティブインポートのデータ取得処理拡張
+- [ ] ネイティブインポートで頂点情報やキーフレーム詳細を取得する実装
 - [ ] Assimp 依存削除と既存 ModelImporter の置き換え
 - [ ] 未対応形式 (PMD, VPD など) のサポート検討
 - [ ] iOS 用のネイティブライブラリビルド対応
 - [ ] protobuf-c ランタイムの最小実装と motion.pb-c.c のビルド統合
+- [ ] 文字コード変換関連 (cfstring.c, mbwc.c, icu.c) のビルド対応

@@ -7,6 +7,7 @@
 #pragma once
 
 #include "nanoem.h"
+#include "khash.h"
 
 #include <stdlib.h>
 
