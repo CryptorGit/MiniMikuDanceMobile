@@ -1,0 +1,37 @@
+[package]
+name = "plugin_wasm"
+authors.workspace = true
+edition.workspace = true
+license.workspace = true
+version.workspace = true
+
+[dependencies]
+anyhow = "1"
+nanoem-protobuf = { version = "35", path = "../protobuf" }
+notify = { version = "6", default-features = false, features = [
+    "macos_kqueue",
+] }
+parking_lot = "0.12"
+tracing = { version = "0.1", default-features = false, features = ["std"] }
+tracing-subscriber = "0.3"
+wasmtime = { version = "28", default-features = false, features = [
+    "cranelift",
+] }
+wasmtime-wasi = { version = "28" }
+wasi-common = { version = "28" }
+walkdir = "2"
+zerocopy = "0.8"
+
+[dev-dependencies]
+serde.workspace = true
+serde_json.workspace = true
+maplit = "1"
+rand = "0.8"
+pretty_assertions = "1"
+assert_matches = "1"
+async-trait = { version = "0.1" }
+futures = { version = "0.3" }
+
+[lib]
+path = "src/lib.rs"
+crate-type = ["cdylib"]

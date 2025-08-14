@@ -1,0 +1,18 @@
+[package]
+name = "nanoem-protobuf"
+version = "35.0.0"
+authors = ["hkrn <129939+hkrn@users.noreply.github.com>"]
+edition = "2021"
+build = "build.rs"
+license = "MIT OR Apache-2.0"
+
+[dependencies]
+bytes = "1"
+prost = "0.13"
+
+[build-dependencies]
+prost-build = "0.13"
+
+[lib]
+name = "nanoem_protobuf"
+path = "src/protobuf/lib.rs"

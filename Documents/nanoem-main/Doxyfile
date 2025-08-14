@@ -1,0 +1,28 @@
+# Doxyfile 1.9.1
+
+DOXYFILE_ENCODING      = UTF-8
+PROJECT_NAME           = "nanoem"
+OUTPUT_LANGUAGE        = English
+ABBREVIATE_BRIEF       = "The $name class" \
+                         "The $name widget" \
+                         "The $name file" \
+                         is \
+                         provides \
+                         specifies \
+                         contains \
+                         represents \
+                         a \
+                         an \
+                         the
+EXTRACT_ALL            = NO
+INPUT                  = nanoem/nanoem.h \
+                         nanoem/ext/converter.h \
+                         nanoem/ext/document.h \
+                         nanoem/ext/motion.h \
+                         nanoem/ext/mutable.h \
+                         nanoem/ext/physics.h \
+                         emapp/include/emapp/sdk
+FILE_PATTERNS          = *.h
+RECURSIVE              = YES
+GENERATE_LATEX         = NO
+MACRO_EXPANSION        = YES
