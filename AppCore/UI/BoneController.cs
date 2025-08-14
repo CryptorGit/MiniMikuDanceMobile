@@ -87,9 +87,9 @@ public static class BoneController
             var bone = NanoemBone.nanoemModelGetBoneObject(model, index);
             if (bone != IntPtr.Zero)
             {
-                var translation = value.Translation;
+                Matrix4x4.Decompose(value, out _, out var rotation, out var translation);
                 NanoemBone.nanoemModelBoneSetTranslation(bone, in translation);
-                var rotation = Quaternion.CreateFromRotationMatrix(value);
+                rotation = Quaternion.Normalize(rotation);
                 NanoemBone.nanoemModelBoneSetOrientation(bone, in rotation);
             }
         }
