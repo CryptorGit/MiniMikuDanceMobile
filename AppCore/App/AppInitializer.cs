@@ -19,6 +19,7 @@ public partial class AppInitializer : IDisposable
     public IViewer? Viewer { get; private set; }
     public RecorderController? Recorder { get; private set; }
     public BonesConfig? BonesConfig { get; set; }
+    private Action<float>? _frameUpdatedHandler;
 
 
     public void Initialize(UIConfig uiConfig, string? modelPath, string baseDir)
@@ -51,14 +52,15 @@ public partial class AppInitializer : IDisposable
         Viewer = ViewerFactory(modelPath, settings.ModelScale);
         ModelImporter.CacheCapacity = settings.TextureCacheSize;
 
-        Viewer.FrameUpdated += async dt =>
+        _frameUpdatedHandler = async dt =>
         {
-            if (Recorder != null && Recorder.IsRecording)
+            if (Recorder != null && Recorder.IsRecording && Viewer != null)
             {
                 var pixels = Viewer.CaptureFrame();
                 await Recorder.Capture(pixels, Viewer.Size.X, Viewer.Size.Y);
             }
         };
+        Viewer.FrameUpdated += _frameUpdatedHandler;
     }
 
     public async Task ToggleRecord()
@@ -89,6 +91,10 @@ public partial class AppInitializer : IDisposable
     {
         if (Viewer != null)
         {
+            if (_frameUpdatedHandler != null)
+            {
+                Viewer.FrameUpdated -= _frameUpdatedHandler;
+            }
             Viewer.Dispose();
         }
 
