@@ -142,6 +142,8 @@ internal static partial class Nanoem
         return s;
     }
 
+    public static void ModelIOFree(IntPtr ptr) => nanoemModelIOFree(ptr);
+
     public static void ModelDestroy(IntPtr model)
     {
         nanoemModelDestroy(model);
