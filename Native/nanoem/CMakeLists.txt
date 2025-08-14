@@ -38,6 +38,7 @@ add_library(nanoem_core
     emapp/physics/PhysicsEngine.cc
     emapp/physics/physics.c
     emapp/ik.c
+    emapp/pmx_import.c
     core/physics/physics_bullet.cc
     core/import/document.c
     core/import/mutable.c

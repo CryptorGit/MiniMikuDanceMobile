@@ -31,6 +31,30 @@ typedef struct nanoem_model_morph_uv_offset_t {
     float offset[4];
 } nanoem_model_morph_uv_offset_t;
 
+typedef struct nanoem_model_morph_group_offset_t {
+    int morphIndex;
+    float weight;
+} nanoem_model_morph_group_offset_t;
+
+typedef struct nanoem_model_morph_bone_offset_t {
+    int boneIndex;
+    float translation[3];
+    float orientation[4];
+} nanoem_model_morph_bone_offset_t;
+
+typedef struct nanoem_model_morph_material_offset_t {
+    int materialIndex;
+    int isAll;
+    int operation;
+    float diffuse[4];
+    float specular[3];
+    float specularPower;
+    float edgeColor[4];
+    float edgeSize;
+    float toonColor[3];
+    float textureTint[4];
+} nanoem_model_morph_material_offset_t;
+
 static char *
 unicodeStringToUtf8(const nanoem_unicode_string_t *s)
 {
@@ -126,7 +150,6 @@ nanoemModelGetMorphInitialWeight(const nanoem_model_t *model, nanoem_rsize_t ind
     (void) model;
     (void) index;
     (void) numMorphs;
-    /* TODO: expose actual morph weight from nanoem */
     return 0.0f;
 }
 
@@ -190,6 +213,156 @@ nanoemModelMorphGetUVOffsets(const nanoem_model_t *model, nanoem_rsize_t index, 
                     }
                     else {
                         memset(offsets[i].offset, 0, sizeof(offsets[i].offset));
+                    }
+                }
+            }
+        }
+        if (num_offsets) {
+            *num_offsets = count;
+        }
+    }
+    else if (num_offsets) {
+        *num_offsets = 0;
+    }
+    return offsets;
+}
+
+NANOEM_DECL_API nanoem_model_morph_group_offset_t *APIENTRY
+nanoemModelMorphGetGroupOffsets(const nanoem_model_t *model, nanoem_rsize_t index, nanoem_rsize_t *num_offsets)
+{
+    nanoem_model_morph_group_offset_t *offsets = NULL;
+    nanoem_rsize_t numMorphs = 0;
+    const nanoem_model_morph_t *const *morphs = nanoemModelGetAllMorphObjects(model, &numMorphs);
+    if (index < numMorphs) {
+        const nanoem_model_morph_t *morph = morphs[index];
+        nanoem_rsize_t count = 0;
+        nanoem_model_morph_group_t *const *items = nanoemModelMorphGetAllGroupMorphObjects(morph, &count);
+        if (count > 0) {
+            offsets = (nanoem_model_morph_group_offset_t *) malloc(sizeof(*offsets) * count);
+            if (offsets) {
+                for (nanoem_rsize_t i = 0; i < count; i++) {
+                    const nanoem_model_morph_group_t *g = items[i];
+                    const nanoem_model_morph_t *target = nanoemModelMorphGroupGetMorphObject(g);
+                    offsets[i].morphIndex = target ? (int) nanoemModelObjectGetIndex(nanoemModelMorphGetModelObject(target)) : -1;
+                    offsets[i].weight = nanoemModelMorphGroupGetWeight(g);
+                }
+            }
+        }
+        if (num_offsets) {
+            *num_offsets = count;
+        }
+    }
+    else if (num_offsets) {
+        *num_offsets = 0;
+    }
+    return offsets;
+}
+
+NANOEM_DECL_API nanoem_model_morph_bone_offset_t *APIENTRY
+nanoemModelMorphGetBoneOffsets(const nanoem_model_t *model, nanoem_rsize_t index, nanoem_rsize_t *num_offsets)
+{
+    nanoem_model_morph_bone_offset_t *offsets = NULL;
+    nanoem_rsize_t numMorphs = 0;
+    const nanoem_model_morph_t *const *morphs = nanoemModelGetAllMorphObjects(model, &numMorphs);
+    if (index < numMorphs) {
+        const nanoem_model_morph_t *morph = morphs[index];
+        nanoem_rsize_t count = 0;
+        nanoem_model_morph_bone_t *const *items = nanoemModelMorphGetAllBoneMorphObjects(morph, &count);
+        if (count > 0) {
+            offsets = (nanoem_model_morph_bone_offset_t *) malloc(sizeof(*offsets) * count);
+            if (offsets) {
+                for (nanoem_rsize_t i = 0; i < count; i++) {
+                    const nanoem_model_morph_bone_t *b = items[i];
+                    const nanoem_model_bone_t *bone = nanoemModelMorphBoneGetBoneObject(b);
+                    offsets[i].boneIndex = bone ? (int) nanoemModelObjectGetIndex(nanoemModelBoneGetModelObject(bone)) : -1;
+                    const nanoem_f32_t *t = nanoemModelMorphBoneGetTranslation(b);
+                    const nanoem_f32_t *o = nanoemModelMorphBoneGetOrientation(b);
+                    if (t) {
+                        memcpy(offsets[i].translation, t, sizeof(offsets[i].translation));
+                    }
+                    else {
+                        memset(offsets[i].translation, 0, sizeof(offsets[i].translation));
+                    }
+                    if (o) {
+                        memcpy(offsets[i].orientation, o, sizeof(offsets[i].orientation));
+                    }
+                    else {
+                        memset(offsets[i].orientation, 0, sizeof(offsets[i].orientation));
+                        offsets[i].orientation[3] = 1.0f;
+                    }
+                }
+            }
+        }
+        if (num_offsets) {
+            *num_offsets = count;
+        }
+    }
+    else if (num_offsets) {
+        *num_offsets = 0;
+    }
+    return offsets;
+}
+
+NANOEM_DECL_API nanoem_model_morph_material_offset_t *APIENTRY
+nanoemModelMorphGetMaterialOffsets(const nanoem_model_t *model, nanoem_rsize_t index, nanoem_rsize_t *num_offsets)
+{
+    nanoem_model_morph_material_offset_t *offsets = NULL;
+    nanoem_rsize_t numMorphs = 0;
+    const nanoem_model_morph_t *const *morphs = nanoemModelGetAllMorphObjects(model, &numMorphs);
+    if (index < numMorphs) {
+        const nanoem_model_morph_t *morph = morphs[index];
+        nanoem_rsize_t count = 0;
+        nanoem_model_morph_material_t *const *items = nanoemModelMorphGetAllMaterialMorphObjects(morph, &count);
+        if (count > 0) {
+            offsets = (nanoem_model_morph_material_offset_t *) malloc(sizeof(*offsets) * count);
+            if (offsets) {
+                for (nanoem_rsize_t i = 0; i < count; i++) {
+                    const nanoem_model_morph_material_t *m = items[i];
+                    const nanoem_model_material_t *material = nanoemModelMorphMaterialGetMaterialObject(m);
+                    offsets[i].isAll = material ? 0 : 1;
+                    offsets[i].materialIndex = -1;
+                    if (material) {
+                        nanoem_rsize_t numMaterials = 0;
+                        const nanoem_model_material_t *const *materials = nanoemModelGetAllMaterialObjects(model, &numMaterials);
+                        for (nanoem_rsize_t j = 0; j < numMaterials; j++) {
+                            if (materials[j] == material) {
+                                offsets[i].materialIndex = (int) j;
+                                break;
+                            }
+                        }
+                    }
+                    offsets[i].operation = (int) nanoemModelMorphMaterialGetOperationType(m);
+                    const nanoem_f32_t *v = nanoemModelMorphMaterialGetDiffuseColor(m);
+                    if (v) {
+                        memcpy(offsets[i].diffuse, v, sizeof(offsets[i].diffuse));
+                    } else {
+                        memset(offsets[i].diffuse, 0, sizeof(offsets[i].diffuse));
+                    }
+                    v = nanoemModelMorphMaterialGetSpecularColor(m);
+                    if (v) {
+                        memcpy(offsets[i].specular, v, sizeof(offsets[i].specular));
+                    } else {
+                        memset(offsets[i].specular, 0, sizeof(offsets[i].specular));
+                    }
+                    offsets[i].specularPower = nanoemModelMorphMaterialGetSpecularPower(m);
+                    v = nanoemModelMorphMaterialGetEdgeColor(m);
+                    if (v) {
+                        memcpy(offsets[i].edgeColor, v, sizeof(offsets[i].edgeColor));
+                    } else {
+                        memset(offsets[i].edgeColor, 0, sizeof(offsets[i].edgeColor));
+                    }
+                    offsets[i].edgeSize = nanoemModelMorphMaterialGetEdgeSize(m);
+                    v = nanoemModelMorphMaterialGetToonTextureBlend(m);
+                    if (v) {
+                        memcpy(offsets[i].toonColor, v, sizeof(offsets[i].toonColor));
+                    } else {
+                        memset(offsets[i].toonColor, 0, sizeof(offsets[i].toonColor));
+                    }
+                    v = nanoemModelMorphMaterialGetDiffuseTextureBlend(m);
+                    if (v) {
+                        memcpy(offsets[i].textureTint, v, sizeof(offsets[i].textureTint));
+                    } else {
+                        memset(offsets[i].textureTint, 0, sizeof(offsets[i].textureTint));
                     }
                 }
             }
