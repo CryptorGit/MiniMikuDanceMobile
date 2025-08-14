@@ -20,10 +20,8 @@ using System.Reflection;
 using MiniMikuDance.Import;
 using OpenTK.Mathematics;
 using MiniMikuDance.Util;
-using MiniMikuDance.PoseEstimation;
 using MiniMikuDance.App;
 using SixLabors.ImageSharp.PixelFormats;
-using MiniMikuDance.IK;
 
 namespace MiniMikuDanceMaui;
 
@@ -42,7 +40,6 @@ public partial class MainPage : ContentPage
     private readonly Dictionary<string, Border> _bottomTabs = new();
     private string? _currentFeature;
     private string? _selectedModelPath;
-    private string? _selectedVideoPath;
     private string? _modelDir;
     private float _modelScale = 1f;
     private readonly AppSettings _settings = AppSettings.Load();
@@ -53,9 +50,6 @@ public partial class MainPage : ContentPage
     private float _shadeShift = -0.1f;
     private float _shadeToony = 0.9f;
     private float _rimIntensity = 0.5f;
-    private int _extractTotalFrames;
-    private int _poseTotalFrames;
-    private bool _poseMode;
     // bottomWidth is no longer used; bottom region spans full screen width
     // private double bottomWidth = 0;
     private bool _glInitialized;
@@ -66,97 +60,6 @@ public partial class MainPage : ContentPage
     private readonly BonesConfig? _bonesConfig = App.Initializer.BonesConfig;
     private bool _needsRender;
     private readonly IDispatcherTimer _renderTimer;
-    private void SetProgressVisibilityAndLayout(bool isVisible,
-        bool showExtract,
-        bool showPose)
-    {
-        ProgressFrame.IsVisible = isVisible;
-        ExtractProgressBar.IsVisible = showExtract;
-        ExtractProgressLabel.IsVisible = showExtract;
-        PoseProgressBar.IsVisible = showPose;
-        PoseProgressLabel.IsVisible = showPose;
-
-        if (!isVisible)
-        {
-            ExtractProgressBar.Progress = 0;
-            PoseProgressBar.Progress = 0;
-            ExtractProgressLabel.Text = string.Empty;
-            PoseProgressLabel.Text = string.Empty;
-        }
-        UpdateLayout();
-    }
-
-    private void UpdateExtractProgress(double p)
-    {
-        int current = (int)(_extractTotalFrames * p);
-        ExtractProgressBar.Progress = p;
-        ExtractProgressLabel.Text = $"動画抽出: {current}/{_extractTotalFrames} ({p * 100:0}%)";
-    }
-
-    private void UpdatePoseProgress(double p)
-    {
-        int current = (int)(_poseTotalFrames * p);
-        PoseProgressBar.Progress = p;
-        PoseProgressLabel.Text = $"姿勢推定: {current}/{_poseTotalFrames} ({p * 100:0}%)";
-    }
-
-    private void OnPoseModeToggled(object? sender, ToggledEventArgs e)
-    {
-        System.Diagnostics.Trace.WriteLine($"OnPoseModeToggled: value={e.Value}");
-        _poseMode = e.Value;
-        _touchPoints.Clear();
-        if (_poseMode && _currentModel != null)
-        {
-            _renderer.SetExternalRotation(Quaternion.Identity);
-            _renderer.ModelTransform = Matrix4.Identity;
-            IkManager.LoadPmxIkBones(_currentModel.Bones);
-            try
-            {
-                var ikBones = IkManager.Bones.Values;
-                if (ikBones.Any())
-                {
-                    _renderer.SetIkBones(ikBones);
-                }
-                else
-                {
-                    _renderer.ClearIkBones();
-                }
-            }
-            catch (Exception ex)
-            {
-                System.Diagnostics.Trace.WriteLine($"SetIkBones failed: {ex.Message}");
-            }
-            IkManager.PickFunc = _renderer.PickBone;
-            IkManager.GetBonePositionFunc = _renderer.GetBoneWorldPosition;
-            IkManager.GetCameraPositionFunc = _renderer.GetCameraPosition;
-            IkManager.SetBoneTranslation = _renderer.SetBoneTranslation;
-            IkManager.ToModelSpaceFunc = _renderer.WorldToModel;
-            IkManager.ToWorldSpaceFunc = _renderer.ModelToWorld;
-            IkManager.InvalidateViewer = () =>
-            {
-                _needsRender = true;
-                Viewer?.InvalidateSurface();
-            };
-        }
-        else
-        {
-            System.Diagnostics.Trace.WriteLine("Disabling pose mode. Clearing IK delegates...");
-            IkManager.ReleaseSelection();
-            _renderer.ClearIkBones();
-            IkManager.Clear();
-            IkManager.PickFunc = null;
-            IkManager.GetBonePositionFunc = null;
-            IkManager.GetCameraPositionFunc = null;
-            IkManager.SetBoneTranslation = null;
-            IkManager.ToModelSpaceFunc = null;
-            IkManager.ToWorldSpaceFunc = null;
-            IkManager.InvalidateViewer = null;
-            System.Diagnostics.Trace.WriteLine($"IkManager cleared. SelectedBoneIndex={IkManager.SelectedBoneIndex}");
-        }
-        _renderer.ShowIkBones = _poseMode;
-        Viewer?.InvalidateSurface();
-        System.Diagnostics.Trace.WriteLine($"PoseMode={_poseMode} PickFuncNull={IkManager.PickFunc == null} InvalidateViewerNull={IkManager.InvalidateViewer == null}");
-    }
 
 
     private static string GetAppPackageDirectory()
@@ -191,8 +94,6 @@ public partial class MainPage : ContentPage
         _renderer.DefaultCameraDistance = _settings.CameraDistance;
         _renderer.DefaultCameraTargetY = _settings.CameraTargetY;
         _renderer.BonePickPixels = _settings.BonePickPixels;
-        _renderer.ShowIkBones = _poseMode;
-        _renderer.IkBoneScale = _settings.IkBoneScale;
 
         if (Viewer is SKGLView glView)
         {
@@ -238,13 +139,6 @@ public partial class MainPage : ContentPage
             setting.ZoomSensitivityChanged += v =>
             {
                 _renderer.ZoomSensitivity = (float)v;
-            };
-            setting.IkBoneSize = _settings.IkBoneScale;
-            setting.IkBoneSizeChanged += v =>
-            {
-                _renderer.IkBoneScale = (float)v;
-                _settings.IkBoneScale = (float)v;
-                _settings.Save();
             };
             setting.BonePickPixels = _settings.BonePickPixels;
             setting.BonePickPixelsChanged += v =>
@@ -302,7 +196,6 @@ public partial class MainPage : ContentPage
             sv.HeightRatio = _bottomHeightRatio;
             sv.RotateSensitivity = _renderer.RotateSensitivity;
             sv.PanSensitivity = _renderer.PanSensitivity;
-            sv.IkBoneSize = _renderer.IkBoneScale;
             sv.BonePickPixels = _renderer.BonePickPixels;
         }
         UpdateOverlay();
@@ -510,8 +403,7 @@ public partial class MainPage : ContentPage
     private void UpdateLayout()
     {
         if (TopMenu == null || ViewMenu == null || FileMenu == null || SettingMenu == null ||
-            MenuOverlay == null || PmxImportDialog == null || PoseSelectMessage == null ||
-            Viewer == null || BottomRegion == null)
+            MenuOverlay == null || PmxImportDialog == null || Viewer == null || BottomRegion == null)
             return;
 
         double W = this.Width;
@@ -542,24 +434,6 @@ public partial class MainPage : ContentPage
                 AbsoluteLayout.AutoSize,
                 PmxImportDialog.IsVisible ? AbsoluteLayout.AutoSize : 0));
         AbsoluteLayout.SetLayoutFlags(PmxImportDialog, AbsoluteLayoutFlags.XProportional);
-
-        AbsoluteLayout.SetLayoutBounds(
-            PoseSelectMessage,
-            new Rect(
-                0.5,
-                TopMenuHeight + 20,
-                AbsoluteLayout.AutoSize,
-                PoseSelectMessage.IsVisible ? AbsoluteLayout.AutoSize : 0));
-        AbsoluteLayout.SetLayoutFlags(PoseSelectMessage, AbsoluteLayoutFlags.XProportional);
-
-        AbsoluteLayout.SetLayoutBounds(
-            ProgressFrame,
-            new Rect(
-                0.5,
-                TopMenuHeight + 20,
-                AbsoluteLayout.AutoSize,
-                ProgressFrame.IsVisible ? AbsoluteLayout.AutoSize : 0));
-        AbsoluteLayout.SetLayoutFlags(ProgressFrame, AbsoluteLayoutFlags.XProportional);
 
         AbsoluteLayout.SetLayoutBounds(LoadingIndicator, new Rect(0.5, 0.5, 40, 40));
         AbsoluteLayout.SetLayoutFlags(LoadingIndicator, AbsoluteLayoutFlags.PositionProportional);
@@ -613,8 +487,6 @@ public partial class MainPage : ContentPage
     {
         if (_pendingModel != null)
         {
-            IkManager.Clear();
-            _renderer.ClearIkBones();
             _renderer.ClearBoneRotations();
             _renderer.LoadModel(_pendingModel);
             _currentModel = _pendingModel;
@@ -623,101 +495,11 @@ public partial class MainPage : ContentPage
             _rimIntensity = _pendingModel.RimIntensity;
             UpdateRendererLightingProperties();
             _pendingModel = null;
-
-            if (_poseMode && _currentModel != null)
-            {
-                IkManager.LoadPmxIkBones(_currentModel.Bones);
-                try
-                {
-                    var ikBones = IkManager.Bones.Values;
-                    if (ikBones.Any())
-                    {
-                        _renderer.SetIkBones(ikBones);
-                    }
-                    else
-                    {
-                        _renderer.ClearIkBones();
-                    }
-                }
-                catch (Exception ex)
-                {
-                    System.Diagnostics.Trace.WriteLine($"SetIkBones failed: {ex.Message}");
-                }
-                IkManager.PickFunc = _renderer.PickBone;
-                IkManager.GetBonePositionFunc = _renderer.GetBoneWorldPosition;
-                IkManager.GetCameraPositionFunc = _renderer.GetCameraPosition;
-                IkManager.SetBoneTranslation = _renderer.SetBoneTranslation;
-                IkManager.ToModelSpaceFunc = _renderer.WorldToModel;
-                IkManager.ToWorldSpaceFunc = _renderer.ModelToWorld;
-            }
         }
     }
 
     private void OnViewTouch(object? sender, SKTouchEventArgs e)
     {
-        System.Diagnostics.Trace.WriteLine($"OnViewTouch: action={e.ActionType} poseMode={_poseMode} pickNull={IkManager.PickFunc == null} invalidateNull={IkManager.InvalidateViewer == null} selIdx={IkManager.SelectedBoneIndex}");
-        if (_poseMode)
-        {
-            try
-            {
-                switch (e.ActionType)
-                {
-                    case SKTouchAction.Pressed:
-                        IkManager.PickBone(e.Location.X, e.Location.Y);
-                        if (!_poseMode)
-                        {
-                            e.Handled = true;
-                            return;
-                        }
-                        break;
-                    case SKTouchAction.Moved:
-                        if (!_poseMode)
-                        {
-                            e.Handled = true;
-                            return;
-                        }
-                        var ray = _renderer.ScreenPointToRay(e.Location.X, e.Location.Y);
-                        var pos = IkManager.IntersectDragPlane(ray);
-                        if (!_poseMode)
-                        {
-                            e.Handled = true;
-                            return;
-                        }
-                        if (pos.HasValue && IkManager.SelectedBoneIndex >= 0)
-                        {
-                            IkManager.UpdateTarget(IkManager.SelectedBoneIndex, pos.Value);
-                        }
-                        break;
-                    case SKTouchAction.Released:
-                    case SKTouchAction.Cancelled:
-                        IkManager.ReleaseSelection();
-                        if (!_poseMode)
-                        {
-                            e.Handled = true;
-                            return;
-                        }
-                        break;
-                }
-                if (!_poseMode)
-                {
-                    System.Diagnostics.Trace.WriteLine($"Pose mode became false during OnViewTouch; pickNull={IkManager.PickFunc == null} invalidateNull={IkManager.InvalidateViewer == null}");
-                    e.Handled = true;
-                    return;
-                }
-                if (IkManager.InvalidateViewer == null)
-                    System.Diagnostics.Trace.WriteLine("InvalidateViewer delegate is null in OnViewTouch.");
-                else
-                    IkManager.InvalidateViewer();
-            }
-            catch (Exception ex)
-            {
-                System.Diagnostics.Trace.WriteLine($"OnViewTouch exception: {ex}");
-                IkManager.ReleaseSelection();
-            }
-            e.Handled = true;
-            return;
-        }
-
         if (_viewMenuOpen || _settingMenuOpen)
         {
             HideViewMenu();
@@ -1126,14 +908,7 @@ public partial class MainPage : ContentPage
         _selectedModelPath = null;
         _modelDir = null;
         _modelScale = 1f;
-        // Use the same mechanism as Estimate Pose: show bottom explorer and dialog overlay together
         ShowExplorer("Open", PmxImportDialog, SelectedModelPath, ref _selectedModelPath);
-    }
-
-    private void OnEstimatePoseClicked(object? sender, EventArgs e)
-    {
-        HideAllMenusAndLayout();
-        ShowPoseExplorer();
     }
 
     private async void ShowModelExplorer()
@@ -1291,65 +1066,6 @@ public partial class MainPage : ContentPage
         _modelDir = null;
         SetLoadingIndicatorVisibilityAndLayout(false);
         UpdateLayout();
-    }
-
-    private void ShowPoseExplorer()
-    {
-        ShowExplorer("Analyze", PoseSelectMessage, SelectedVideoPath, ref _selectedVideoPath);
-    }
-
-    private void OnAnalyzeExplorerFileSelected(object? sender, string path)
-    {
-        var ext = Path.GetExtension(path).ToLowerInvariant();
-        var ok = ext == ".png" || ext == ".jpg" || ext == ".jpeg" || ext == ".bmp" || ext == ".webp";
-        if (!ok) return;
-        _selectedVideoPath = path;
-        SelectedVideoPath.Text = path;
-    }
-
-    private async void OnStartEstimateClicked(object? sender, EventArgs e)
-    {
-        if (string.IsNullOrEmpty(_selectedVideoPath))
-        {
-            await DisplayAlert("Error", "ファイルが選択されていません", "OK");
-            return;
-        }
-
-        RemoveBottomFeature("Analyze");
-        PoseSelectMessage.IsVisible = false;
-        // Photo mode: only show pose progress
-        _extractTotalFrames = 0;
-        _poseTotalFrames = 1;
-        SetProgressVisibilityAndLayout(true, false, true);
-
-        try
-        {
-            UpdatePoseProgress(0);
-            string? path = await App.Initializer.AnalyzePhotoAsync(
-                _selectedVideoPath,
-                new Progress<float>(p => MainThread.BeginInvokeOnMainThread(() => UpdatePoseProgress(p))));
-            if (!string.IsNullOrEmpty(path))
-            {
-                await DisplayAlert("Saved", $"{Path.GetFileName(path)} を保存しました", "OK");
-            }
-        }
-        catch (Exception ex)
-        {
-            await DisplayAlert("Error", ex.Message, "OK");
-        }
-        finally
-        {
-            SetProgressVisibilityAndLayout(false, false, true);
-            _selectedVideoPath = null;
-        }
-    }
-
-    private void OnCancelEstimateClicked(object? sender, EventArgs e)
-    {
-        _selectedVideoPath = null;
-        PoseSelectMessage.IsVisible = false;
-        SelectedVideoPath.Text = string.Empty;
-        SetProgressVisibilityAndLayout(false, true, true);
     }
 
     private Vector3 ClampRotation(string bone, Vector3 rot)
