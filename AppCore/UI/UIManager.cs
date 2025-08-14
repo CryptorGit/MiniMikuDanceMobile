@@ -27,16 +27,26 @@ public class UIManager : Singleton<UIManager>
     public event Action<string, bool>? OnToggleChanged;
     private TextureLoaderDelegate? _textureLoader;
 
-    public void LoadConfig(string path)
-    {
+    /// <summary>
+    /// 指定されたパスから UI 設定を読み込みます。
+    /// <see cref="LoadConfigCore"/> を呼び出す薄いラッパーです。
+    /// </summary>
+    /// <param name="path">設定ファイルのパス。</param>
+    public void LoadConfig(string path) =>
         LoadConfigCore(JSONUtil.Load<UIConfig>(path));
-    }
 
-    public void LoadConfig(UIConfig config)
-    {
-        LoadConfigCore(config);
-    }
+    /// <summary>
+    /// テストなどで直接構築した <see cref="UIConfig"/> を読み込みます。
+    /// </summary>
+    /// <param name="config">UI 設定。</param>
+    public void LoadConfig(UIConfig config) => LoadConfigCore(config);
 
+    /// <summary>
+    /// UI 設定を内部状態に反映します。
+    /// 通常は <see cref="LoadConfig(string)"/> または <see cref="LoadConfig(UIConfig)"/>
+    /// を利用してください。
+    /// </summary>
+    /// <param name="config">UI 設定。</param>
     private void LoadConfigCore(UIConfig config)
     {
         Config = config;
