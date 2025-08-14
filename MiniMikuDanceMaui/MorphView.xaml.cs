@@ -4,6 +4,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using MiniMikuDance.Import;
+using MiniMikuDance.Util;
 
 namespace MiniMikuDanceMaui;
 
@@ -47,19 +48,7 @@ public partial class MorphView : ContentView
             foreach (var morph in group)
             {
                 var originalName = morph.Name;
-                var displayName = originalName;
-                if (usedNames.Contains(displayName))
-                {
-                    LogService.WriteLine($"Duplicate morph name detected in view: {displayName}");
-                    int suffix = 1;
-                    string newName;
-                    do
-                    {
-                        newName = $"{displayName}_{suffix++}";
-                    } while (usedNames.Contains(newName));
-                    LogService.WriteLine($"Renaming morph '{displayName}' to '{newName}'");
-                    displayName = newName;
-                }
+                var displayName = MorphNameUtil.EnsureUniqueName(originalName, usedNames.Contains, LogService.WriteLine);
                 usedNames.Add(displayName);
                 var grid = new Grid
                 {

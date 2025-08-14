@@ -1248,20 +1248,8 @@ void main(){
         _morphIndexToName = new string[data.Morphs.Count];
         foreach (var morph in data.Morphs)
         {
-            var name = morph.Name;
-            if (_morphs.ContainsKey(name))
-            {
-                LogService.WriteLine($"Duplicate morph name detected: {name}");
-                int suffix = 1;
-                string newName;
-                do
-                {
-                    newName = $"{name}_{suffix++}";
-                } while (_morphs.ContainsKey(newName));
-                LogService.WriteLine($"Renaming morph '{name}' to '{newName}'");
-                morph.Name = newName;
-                name = newName;
-            }
+            var name = MorphNameUtil.EnsureUniqueName(morph.Name, _morphs.ContainsKey, LogService.WriteLine);
+            morph.Name = name;
             _morphs[name] = morph;
             if (!_morphsByCategory.TryGetValue(morph.Category, out var list))
             {
