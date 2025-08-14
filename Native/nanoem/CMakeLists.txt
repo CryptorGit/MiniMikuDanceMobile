@@ -17,6 +17,9 @@ add_library(nanoem_core
     core/ext/mutable.c
     core/ext/motion.c
     core/ext/parson/parson.c
+    emapp/DirectionalLight.cc
+    emapp/Grid.cc
+    emapp/PerspectiveCamera.cc
 )
 
 target_include_directories(nanoem_core PUBLIC
