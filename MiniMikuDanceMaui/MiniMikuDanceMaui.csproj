@@ -1,5 +1,8 @@
 <Project Sdk="Microsoft.NET.Sdk">
-	<PropertyGroup>
+        <PropertyGroup>
+                <CMakeCommand Condition="'$(CMakeCommand)'==''">cmake</CMakeCommand>
+        </PropertyGroup>
+        <PropertyGroup>
                 <!-- デフォルトでは Android のみを対象。EnableiOS=true を指定した場合は iOS も含める -->
                 <TargetFrameworks>net9.0-android35.0</TargetFrameworks>
                 <TargetFrameworks Condition="'$(EnableiOS)' == 'true'">net9.0-android35.0;net9.0-ios17.0</TargetFrameworks>
@@ -68,7 +71,11 @@
     <NativeReference Include="..\\Native\\ios\\libnanoem.a" Kind="Static" />
   </ItemGroup>
   <Target Name="BuildNativeNanoem" BeforeTargets="BeforeBuild">
-    <Exec Command="cmake -S $(MSBuildProjectDirectory)/../Native -B $(MSBuildProjectDirectory)/../Native/build -DCMAKE_BUILD_TYPE=$(Configuration)" />
-    <Exec Command="cmake --build $(MSBuildProjectDirectory)/../Native/build --config $(Configuration)" />
+    <Exec Command="$(CMakeCommand) --version" IgnoreExitCode="true">
+      <Output TaskParameter="ExitCode" PropertyName="CMakeExitCode" />
+    </Exec>
+    <Warning Text="CMake が見つかりません。CMake をインストールしてください。" Condition="'$(CMakeExitCode)' != '0'" />
+    <Exec Command="$(CMakeCommand) -S $(MSBuildProjectDirectory)/../Native -B $(MSBuildProjectDirectory)/../Native/build -DCMAKE_BUILD_TYPE=$(Configuration)" Condition="'$(CMakeExitCode)' == '0'" />
+    <Exec Command="$(CMakeCommand) --build $(MSBuildProjectDirectory)/../Native/build --config $(Configuration)" Condition="'$(CMakeExitCode)' == '0'" />
   </Target>
 </Project>
