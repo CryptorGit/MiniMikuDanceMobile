@@ -20,14 +20,4 @@
     <Color x:Key="TabBackgroundColor">#444444</Color>
     <Color x:Key="TabActiveColor">#333333</Color>
     <Color x:Key="TabInactiveColor">#666666</Color>
-
-
-    <!-- default font style -->
-    <Style TargetType="Label">
-        <Setter Property="FontSize" Value="14" />
-    </Style>
-    <Style TargetType="Button">
-        <Setter Property="FontSize" Value="14" />
-    </Style>
-
 </ResourceDictionary>
