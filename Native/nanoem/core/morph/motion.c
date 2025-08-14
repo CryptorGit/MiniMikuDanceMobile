@@ -7,6 +7,18 @@
 #include "../nanoem_p.h"
 #include "../ext/mutable_p.h"
 #include "../ext/motion.pb-c.c"
+#include <stdlib.h>
+#include <string.h>
+
+typedef struct nanoem_morph_weight_t {
+    nanoem_f32_t weight;
+} nanoem_morph_weight_t;
+
+static void
+destroy_morph_weight(void *opaque, nanoem_model_object_t * /* object */)
+{
+    free(opaque);
+}
 
 NANOEM_DECL_API int APIENTRY
 nanoemModelGetMorphCount(const nanoem_model_t *model)
@@ -52,9 +64,28 @@ nanoemModelGetMorphType(const nanoem_model_t *model, int index)
 NANOEM_DECL_API void APIENTRY
 nanoemModelSetMorphWeight(nanoem_model_t *model, int index, nanoem_f32_t weight)
 {
-    nanoem_mark_unused(model);
-    nanoem_mark_unused(index);
-    nanoem_mark_unused(weight);
+    nanoem_rsize_t num = 0;
+    nanoem_model_morph_t *const *morphs = nanoemModelGetAllMorphObjects(model, &num);
+    if (morphs && index >= 0 && (nanoem_rsize_t) index < num) {
+        nanoem_model_morph_t *morph = morphs[index];
+        nanoem_model_object_t *object = nanoemModelMorphGetModelObjectMutable(morph);
+        nanoem_user_data_t *ud = nanoemModelObjectGetUserData(object);
+        nanoem_morph_weight_t *state = ud ? (nanoem_morph_weight_t *) nanoemUserDataGetOpaqueData(ud) : NULL;
+        if (!state) {
+            nanoem_status_t status = NANOEM_STATUS_SUCCESS;
+            ud = nanoemUserDataCreate(&status);
+            state = (nanoem_morph_weight_t *) malloc(sizeof(*state));
+            if (ud && state) {
+                memset(state, 0, sizeof(*state));
+                nanoemUserDataSetOpaqueData(ud, state);
+                nanoemUserDataSetOnDestroyModelObjectCallback(ud, destroy_morph_weight);
+                nanoemModelObjectSetUserData(object, ud);
+            }
+        }
+        if (state) {
+            state->weight = weight;
+        }
+    }
 }
 
 void
