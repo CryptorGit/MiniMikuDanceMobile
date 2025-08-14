@@ -31,10 +31,11 @@ add_library(nanoem_core
     emapp/PerspectiveCamera.cc
     emapp/CommonInclude.cc
     emapp/PhysicsEngine.cc
-    core/physics/physics_bullet.cc
     core/import/document.c
     core/import/mutable.c
 )
+
+add_subdirectory(core/physics)
 
 target_include_directories(nanoem_core PUBLIC
     ${CMAKE_CURRENT_SOURCE_DIR}
