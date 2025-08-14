@@ -28,6 +28,8 @@
 - [ ] PMX インポートの nanoem 呼び出しへの完全移行（頂点数以外は未対応）
 - [ ] ネイティブインポートで頂点情報やキーフレーム詳細を取得する実装
 - [ ] Assimp 依存削除と既存 ModelImporter の置き換え
+- [ ] nanoem P/Invoke によるボーン・モーフ情報取得の公開 API 整備
+- [ ] ModelImporter を nanoem API ベースに再実装し MMDTools/Assimp を排除
 - [ ] 未対応形式 (PMD, VPD など) のサポート検討
 - [ ] iOS 用のネイティブライブラリビルド対応
   - [x] CMake 設定追加
