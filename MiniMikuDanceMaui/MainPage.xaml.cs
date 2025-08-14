@@ -41,9 +41,7 @@ public partial class MainPage : ContentPage
     private readonly Dictionary<string, Border> _bottomTabs = new();
     private string? _currentFeature;
     private string? _selectedModelPath;
-    private string? _selectedVideoPath;
     private static readonly string[] ModelExtensions = { ".pmx", ".pmd" };
-    private static readonly string[] ImageExtensions = { ".png", ".jpg", ".jpeg", ".bmp", ".webp" };
     private string? _modelDir;
     private float _modelScale = 1f;
     private readonly AppSettings _settings = AppSettings.Load();
@@ -54,7 +52,6 @@ public partial class MainPage : ContentPage
     private float _shadeShift = -0.1f;
     private float _shadeToony = 0.9f;
     private float _rimIntensity = 0.5f;
-    private int _extractTotalFrames;
     private bool _poseMode;
     // bottomWidth is no longer used; bottom region spans full screen width
     // private double bottomWidth = 0;
@@ -66,27 +63,6 @@ public partial class MainPage : ContentPage
     private readonly BonesConfig? _bonesConfig = App.Initializer.BonesConfig;
     private bool _needsRender;
     private readonly IDispatcherTimer _renderTimer;
-    private void SetProgressVisibilityAndLayout(bool isVisible)
-    {
-        ProgressFrame.IsVisible = isVisible;
-        ExtractProgressBar.IsVisible = isVisible;
-        ExtractProgressLabel.IsVisible = isVisible;
-
-        if (!isVisible)
-        {
-            ExtractProgressBar.Progress = 0;
-            ExtractProgressLabel.Text = string.Empty;
-        }
-        UpdateLayout();
-    }
-
-    private void UpdateExtractProgress(double p)
-    {
-        int current = (int)(_extractTotalFrames * p);
-        ExtractProgressBar.Progress = p;
-        ExtractProgressLabel.Text = $"動画抽出: {current}/{_extractTotalFrames} ({p * 100:0}%)";
-    }
-
     private void OnPoseModeToggled(object? sender, ToggledEventArgs e)
     {
 #if DEBUG
@@ -515,7 +491,7 @@ public partial class MainPage : ContentPage
     private void UpdateLayout()
     {
         if (TopMenu == null || ViewMenu == null || FileMenu == null || SettingMenu == null ||
-            MenuOverlay == null || PmxImportDialog == null || PoseSelectMessage == null ||
+            MenuOverlay == null || PmxImportDialog == null ||
             Viewer == null || BottomRegion == null)
             return;
 
@@ -547,24 +523,6 @@ public partial class MainPage : ContentPage
                 AbsoluteLayout.AutoSize,
                 PmxImportDialog.IsVisible ? AbsoluteLayout.AutoSize : 0));
         AbsoluteLayout.SetLayoutFlags(PmxImportDialog, AbsoluteLayoutFlags.XProportional);
-
-        AbsoluteLayout.SetLayoutBounds(
-            PoseSelectMessage,
-            new Rect(
-                0.5,
-                TopMenuHeight + 20,
-                AbsoluteLayout.AutoSize,
-                PoseSelectMessage.IsVisible ? AbsoluteLayout.AutoSize : 0));
-        AbsoluteLayout.SetLayoutFlags(PoseSelectMessage, AbsoluteLayoutFlags.XProportional);
-
-        AbsoluteLayout.SetLayoutBounds(
-            ProgressFrame,
-            new Rect(
-                0.5,
-                TopMenuHeight + 20,
-                AbsoluteLayout.AutoSize,
-                ProgressFrame.IsVisible ? AbsoluteLayout.AutoSize : 0));
-        AbsoluteLayout.SetLayoutFlags(ProgressFrame, AbsoluteLayoutFlags.XProportional);
 
         AbsoluteLayout.SetLayoutBounds(LoadingIndicator, new Rect(0.5, 0.5, 40, 40));
         AbsoluteLayout.SetLayoutFlags(LoadingIndicator, AbsoluteLayoutFlags.PositionProportional);
@@ -889,14 +847,6 @@ public partial class MainPage : ContentPage
                 ev.LoadDirectory(modelsPath);
                 view = ev;
             }
-            else if (name == "Analyze")
-            {
-                var imagesPath = MmdFileSystem.Ensure("Movie");
-                var ev = new ExplorerView(imagesPath, ImageExtensions);
-                ev.FileSelected += OnAnalyzeExplorerFileSelected;
-                ev.LoadDirectory(imagesPath);
-                view = ev;
-            }
             else if (name == "BONE")
             {
                 var bv = new BoneView();
@@ -1025,11 +975,6 @@ public partial class MainPage : ContentPage
             var modelsPath = MmdFileSystem.Ensure("Models");
             oev.LoadDirectory(modelsPath);
         }
-        else if (name == "Analyze" && _bottomViews[name] is ExplorerView aev)
-        {
-            var imagesPath = MmdFileSystem.Ensure("Movie");
-            aev.LoadDirectory(imagesPath);
-        }
         else if (name == "MTOON" && _bottomViews[name] is LightingView mv)
         {
             mv.ShadeShift = _renderer.ShadeShift;
@@ -1147,14 +1092,8 @@ public partial class MainPage : ContentPage
         _selectedModelPath = null;
         _modelDir = null;
         _modelScale = 1f;
-        // Use the same mechanism as Estimate Pose: show bottom explorer and dialog overlay together
+        // Show bottom explorer and dialog overlay together
         ShowExplorer("Open", PmxImportDialog, SelectedModelPath, ref _selectedModelPath);
-    }
-
-    private void OnEstimatePoseClicked(object? sender, EventArgs e)
-    {
-        HideAllMenusAndLayout();
-        ShowPoseExplorer();
     }
 
     private async void ShowModelExplorer()
@@ -1311,18 +1250,6 @@ public partial class MainPage : ContentPage
         _modelDir = null;
         SetLoadingIndicatorVisibilityAndLayout(false);
         UpdateLayout();
-    }
-
-    private void ShowPoseExplorer()
-    {
-        ShowExplorer("Analyze", PoseSelectMessage, SelectedVideoPath, ref _selectedVideoPath);
-    }
-
-    private void OnAnalyzeExplorerFileSelected(object? sender, string path)
-    {
-        if (!HasAllowedExtension(path, ImageExtensions)) return;
-        _selectedVideoPath = path;
-        SelectedVideoPath.Text = path;
     }
 
 
