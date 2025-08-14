@@ -1,11 +1,14 @@
 using System;
 using System.Collections.Generic;
+using System.Runtime.InteropServices;
 using MiniMikuDance.Morph;
+using OpenTK.Graphics.ES30;
 using Vector2 = OpenTK.Mathematics.Vector2;
 using Vector3 = OpenTK.Mathematics.Vector3;
 using Vector4 = OpenTK.Mathematics.Vector4;
 using NumericsVector3 = System.Numerics.Vector3;
 using NumericsQuaternion = System.Numerics.Quaternion;
+using GL = OpenTK.Graphics.ES30.GL;
 
 namespace MiniMikuDanceMaui.Renderers.Pmx;
 
@@ -117,8 +120,10 @@ public partial class PmxRenderer
         }
 
         RecalculateMaterialMorphs();
+        UploadMaterialMorphUniforms();
         RecalculateBoneMorphs();
         UpdateBoneMatricesFromModel();
+        UploadChangedVertices();
     }
 
     private void RecalculateMaterialMorphs()
@@ -165,6 +170,73 @@ public partial class PmxRenderer
                 rm.TextureTint += new Vector4(off.TextureBlendR, off.TextureBlendG, off.TextureBlendB, off.TextureBlendA) * mv;
                 rm.ToonColor += new Vector3(off.ToonTextureBlendR, off.ToonTextureBlendG, off.ToonTextureBlendB) * mv;
             }
+        }
+
+    }
+
+    private void UploadMaterialMorphUniforms()
+    {
+        if (_modelProgram == 0)
+            return;
+
+        GL.UseProgram(_modelProgram);
+        foreach (var rm in _meshes)
+        {
+            GL.Uniform4(_modelColorLoc, rm.Color);
+            GL.Uniform3(_modelSpecularLoc, rm.Specular);
+            GL.Uniform1(_modelSpecularPowerLoc, rm.SpecularPower);
+            GL.Uniform4(_modelEdgeColorLoc, rm.EdgeColor);
+            GL.Uniform1(_modelEdgeSizeLoc, rm.EdgeSize);
+            GL.Uniform3(_modelToonColorLoc, rm.ToonColor);
+            GL.Uniform4(_modelTexTintLoc, rm.TextureTint);
+        }
+    }
+
+    private void UploadChangedVertices()
+    {
+        List<int>? changedVerts;
+        lock (_changedVerticesLock)
+        {
+            if (_changedOriginalVertices.Count == 0)
+                return;
+            changedVerts = _changedVerticesList;
+            changedVerts.Clear();
+            changedVerts.EnsureCapacity(_changedOriginalVertices.Count);
+            foreach (var idx in _changedOriginalVertices)
+                changedVerts.Add(idx);
+            _changedOriginalVertices.Clear();
+        }
+
+        var small = new float[8];
+        var handleSmall = GCHandle.Alloc(small, GCHandleType.Pinned);
+        try
+        {
+            foreach (var origIdx in changedVerts)
+            {
+                var mapped = _morphVertexMap[origIdx];
+                if (mapped == null) continue;
+                foreach (var (rm, vi) in mapped)
+                {
+                    var pos = rm.BaseVertices[vi] + rm.VertexOffsets[vi];
+                    var nor = vi < rm.Normals.Length ? rm.Normals[vi] : new Vector3(0, 0, 1);
+                    Vector2 uv = vi < rm.TexCoords.Length ? rm.TexCoords[vi] : Vector2.Zero;
+                    if (vi < rm.UvOffsets.Length)
+                        uv += rm.UvOffsets[vi];
+
+                    small[0] = pos.X; small[1] = pos.Y; small[2] = pos.Z;
+                    small[3] = nor.X; small[4] = nor.Y; small[5] = nor.Z;
+                    small[6] = uv.X; small[7] = uv.Y;
+
+                    GL.BindBuffer(BufferTarget.ArrayBuffer, rm.Vbo);
+                    IntPtr offset = new IntPtr(vi * 8 * sizeof(float));
+                    GL.BufferSubData(BufferTarget.ArrayBuffer, offset, 8 * sizeof(float), handleSmall.AddrOfPinnedObject());
+                }
+            }
+        }
+        finally
+        {
+            handleSmall.Free();
+            GL.BindBuffer(BufferTarget.ArrayBuffer, 0);
         }
     }
 
