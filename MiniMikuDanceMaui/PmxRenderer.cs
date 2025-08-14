@@ -1248,7 +1248,7 @@ void main(){
         _morphIndexToName = new string[data.Morphs.Count];
         foreach (var morph in data.Morphs)
         {
-            var name = MorphNameUtil.EnsureUniqueName(morph.Name, _morphs.ContainsKey, LogService.WriteLine);
+            var name = MorphNameUtil.EnsureUniqueName(morph.Name, _morphs.ContainsKey);
             morph.Name = name;
             _morphs[name] = morph;
             if (!_morphsByCategory.TryGetValue(morph.Category, out var list))

@@ -19,7 +19,6 @@ using System.Linq;
 using System.Reflection;
 using MiniMikuDance.Import;
 using OpenTK.Mathematics;
-using MiniMikuDance.Util;
 using MiniMikuDance.App;
 using SixLabors.ImageSharp.PixelFormats;
 using MiniMikuDance.IK;
@@ -1264,11 +1263,10 @@ public partial class MainPage : ContentPage
                             sm.TextureHeight = image.Height;
                             sm.TextureFilePath = localRel;
                         }
-                        LogService.WriteLine($"Texture {localRel} mapped to indices: {string.Join(",", indices)}");
                     }
-                    catch (Exception ex)
+                    catch (Exception)
                     {
-                        LogService.WriteLine($"Error loading texture {rel}: {ex.Message}");
+                        // intentionally left blank
                     }
                     finally
                     {
@@ -1290,7 +1288,6 @@ public partial class MainPage : ContentPage
         catch (Exception ex)
         {
             await DisplayAlert("Error", ex.Message, "OK");
-            LogService.WriteLine($"Import failed: {ex.Message}");
         }
         finally
         {
