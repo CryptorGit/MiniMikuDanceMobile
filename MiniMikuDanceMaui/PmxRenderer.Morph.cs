@@ -15,19 +15,22 @@ public partial class PmxRenderer
     private void RecalculateBoneMorphs()
     {
         int count = _bones.Count;
+
         if (_boneMorphTranslations.Length != count)
         {
             _boneMorphTranslations = new System.Numerics.Vector3[count];
-            _boneMorphRotations = new System.Numerics.Quaternion[count];
-            for (int i = 0; i < count; i++)
-                _boneMorphRotations[i] = System.Numerics.Quaternion.Identity;
         }
         else
         {
             Array.Clear(_boneMorphTranslations, 0, count);
-            for (int i = 0; i < count; i++)
-                _boneMorphRotations[i] = System.Numerics.Quaternion.Identity;
         }
+
+        if (_boneMorphRotations.Length != count)
+        {
+            _boneMorphRotations = new System.Numerics.Quaternion[count];
+        }
+
+        Array.Fill(_boneMorphRotations, System.Numerics.Quaternion.Identity);
 
         foreach (var (mName, mv) in _morphValues)
         {
