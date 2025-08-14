@@ -22,6 +22,7 @@ public class ModelData
     public Dictionary<string, int> HumanoidBones { get; set; } = new(StringComparer.OrdinalIgnoreCase);
     public List<(string Name, int Index)> HumanoidBoneList { get; set; } = new();
     public List<MorphData> Morphs { get; set; } = new();
+    public int MorphCount { get; set; }
     public List<RigidBodyData> RigidBodies { get; set; } = new();
     public List<JointData> Joints { get; set; } = new();
     public float ShadeShift { get; set; } = -0.1f;
@@ -552,7 +553,14 @@ public class ModelImporter : IDisposable
                 }
             }
 
-            var md = new MorphData { Index = mi, Name = name, Type = m.MorphType, Category = (MorphCategory)m.MorphTarget };
+            var md = new MorphData
+            {
+                Index = mi,
+                Name = name,
+                OriginalName = m.Name,
+                Type = m.MorphType,
+                Category = (MorphCategory)m.MorphTarget
+            };
             switch (m.MorphType)
             {
                 case MorphType.Vertex:
@@ -626,6 +634,7 @@ public class ModelImporter : IDisposable
             morphDatas.Add(md);
         }
         data.Morphs = morphDatas;
+        data.MorphCount = morphDatas.Count;
 
         var rigidBodyDatas = new List<RigidBodyData>(rigidBodies.Length);
         for (int i = 0; i < rigidBodies.Length; i++)

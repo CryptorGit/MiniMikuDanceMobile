@@ -33,6 +33,14 @@ nanoemModelGetVertexCount(const nanoem_model_t *model)
     return count;
 }
 
+NANOEM_DECL_API nanoem_rsize_t APIENTRY
+nanoemModelGetMorphCount(const nanoem_model_t *model)
+{
+    nanoem_rsize_t count = 0;
+    nanoemModelGetAllMorphObjects(model, &count);
+    return count;
+}
+
 NANOEM_DECL_API void APIENTRY
 nanoemModelDestroy(nanoem_model_t *model)
 {
@@ -61,6 +69,14 @@ nanoemMotionGetBoneKeyframeCount(const nanoem_motion_t *motion)
 {
     nanoem_rsize_t count = 0;
     nanoemMotionGetAllBoneKeyframeObjects(motion, &count);
+    return count;
+}
+
+NANOEM_DECL_API nanoem_rsize_t APIENTRY
+nanoemMotionGetMorphKeyframeCount(const nanoem_motion_t *motion)
+{
+    nanoem_rsize_t count = 0;
+    nanoemMotionGetAllMorphKeyframeObjects(motion, &count);
     return count;
 }
 

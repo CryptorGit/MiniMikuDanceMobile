@@ -7,6 +7,7 @@ public class MorphData
 {
     public int Index { get; set; }
     public string Name { get; set; } = string.Empty;
+    public string OriginalName { get; set; } = string.Empty;
     public MorphType Type { get; set; }
     public MorphCategory Category { get; set; }
     public List<MorphOffset> Offsets { get; set; } = new();

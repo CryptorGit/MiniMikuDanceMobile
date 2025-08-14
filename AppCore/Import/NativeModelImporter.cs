@@ -14,9 +14,18 @@ public static class NativeModelImporter
     private static extern UIntPtr nanoemModelGetVertexCount(IntPtr model);
 
     [DllImport(LibraryName, CallingConvention = CallingConvention.Cdecl)]
+    private static extern UIntPtr nanoemModelGetMorphCount(IntPtr model);
+
+    [DllImport(LibraryName, CallingConvention = CallingConvention.Cdecl)]
     private static extern void nanoemModelDestroy(IntPtr model);
 
-    public static int GetVertexCount(ReadOnlySpan<byte> data)
+    public struct ModelCounts
+    {
+        public int VertexCount { get; set; }
+        public int MorphCount { get; set; }
+    }
+
+    public static ModelCounts GetCounts(ReadOnlySpan<byte> data)
     {
         int status;
         IntPtr factory = IntPtr.Zero;
@@ -25,9 +34,13 @@ public static class NativeModelImporter
         {
             throw new InvalidOperationException($"PMX import failed: {status}");
         }
-        var count = (int)nanoemModelGetVertexCount(model);
+        var counts = new ModelCounts
+        {
+            VertexCount = (int)nanoemModelGetVertexCount(model),
+            MorphCount = (int)nanoemModelGetMorphCount(model)
+        };
         nanoemModelDestroy(model);
-        return count;
+        return counts;
     }
 }
 
@@ -42,9 +55,18 @@ public static class NativeMotionImporter
     private static extern UIntPtr nanoemMotionGetBoneKeyframeCount(IntPtr motion);
 
     [DllImport(LibraryName, CallingConvention = CallingConvention.Cdecl)]
+    private static extern UIntPtr nanoemMotionGetMorphKeyframeCount(IntPtr motion);
+
+    [DllImport(LibraryName, CallingConvention = CallingConvention.Cdecl)]
     private static extern void nanoemMotionDestroy(IntPtr motion);
 
-    public static int GetBoneKeyframeCount(ReadOnlySpan<byte> data)
+    public struct MotionCounts
+    {
+        public int BoneKeyframeCount { get; set; }
+        public int MorphKeyframeCount { get; set; }
+    }
+
+    public static MotionCounts GetCounts(ReadOnlySpan<byte> data)
     {
         int status;
         IntPtr factory = IntPtr.Zero;
@@ -53,8 +75,12 @@ public static class NativeMotionImporter
         {
             throw new InvalidOperationException($"VMD import failed: {status}");
         }
-        var count = (int)nanoemMotionGetBoneKeyframeCount(motion);
+        var counts = new MotionCounts
+        {
+            BoneKeyframeCount = (int)nanoemMotionGetBoneKeyframeCount(motion),
+            MorphKeyframeCount = (int)nanoemMotionGetMorphKeyframeCount(motion)
+        };
         nanoemMotionDestroy(motion);
-        return count;
+        return counts;
     }
 }
