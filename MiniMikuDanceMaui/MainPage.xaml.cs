@@ -458,6 +458,11 @@ public partial class MainPage : ContentPage
                 }
             }
         }
+
+        if (MmdFileSystem.FallbackToInternalStorage)
+        {
+            await DisplayAlert("ストレージ", "外部ストレージへのアクセスに失敗したため、内部ストレージを使用します。", "OK");
+        }
 #endif
         Viewer?.InvalidateSurface();
     }

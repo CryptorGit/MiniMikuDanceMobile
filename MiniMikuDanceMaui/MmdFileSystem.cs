@@ -1,3 +1,4 @@
+using System;
 using System.IO;
 using SystemPath = System.IO.Path;
 using Microsoft.Maui.Storage;
@@ -8,6 +9,7 @@ public static class MmdFileSystem
 {
     public static readonly string BaseDir;
     public static bool UsingInternalStorage { get; private set; }
+    public static bool FallbackToInternalStorage { get; private set; }
 
     static MmdFileSystem()
     {
@@ -22,14 +24,16 @@ public static class MmdFileSystem
             Directory.CreateDirectory(baseDir);
             UsingInternalStorage = false;
         }
-        catch
+        catch (Exception ex)
         {
+            Console.Error.WriteLine(ex);
             // 権限不足などで外部ストレージへ書き込めない場合は
             // アプリ専用のデータフォルダを使用する
             var root = FileSystem.AppDataDirectory;
             baseDir = SystemPath.Combine(root, "MiniMikuDance", "data");
             Directory.CreateDirectory(baseDir);
             UsingInternalStorage = true;
+            FallbackToInternalStorage = true;
         }
         BaseDir = baseDir;
 #else
