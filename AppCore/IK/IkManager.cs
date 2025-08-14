@@ -60,8 +60,7 @@ public static class IkManager
     private static void RegisterIkBone(int constraintIndex, int index, BoneData bRoot)
     {
         var rootPos = Vector3.Transform(Vector3.Zero, bRoot.BindMatrix);
-        var rootRole = DetermineRole(bRoot.Name);
-        BonesDict[index] = new IkBone(index, constraintIndex, bRoot.Name, rootRole, rootPos, bRoot.Rotation, bRoot.BaseForward, bRoot.BaseUp);
+        BonesDict[index] = new IkBone(index, constraintIndex, bRoot.Name, rootPos);
     }
 
     // レンダラーから提供された情報を用いてボーン選択を行う
@@ -162,15 +161,5 @@ public static class IkManager
         ReleaseSelection();
         BonesDict.Clear();
     }
-
-    private static BoneRole DetermineRole(string name)
-    {
-        if (name.Contains("足首", StringComparison.Ordinal))
-            return BoneRole.Ankle;
-        if (name.Contains("ひざ", StringComparison.Ordinal) || name.Contains("膝", StringComparison.Ordinal))
-            return BoneRole.Knee;
-        return BoneRole.None;
-    }
-
 }
 
