@@ -250,21 +250,25 @@ public partial class MainPage : ContentPage
 
     }
 
+    private void SetMenuVisibility(ref bool flag, View menu, bool visible)
+    {
+        flag = visible;
+        menu.IsVisible = visible;
+        UpdateOverlay();
+    }
+
     private void ShowViewMenu()
     {
-        HideSettingMenu();
-        HideFileMenu();
-        _viewMenuOpen = true;
-        ViewMenu.IsVisible = true;
-        UpdateOverlay();
+        SetMenuVisibility(ref _settingMenuOpen, SettingMenu, false);
+        SetMenuVisibility(ref _fileMenuOpen, FileMenu, false);
+        SetMenuVisibility(ref _viewMenuOpen, ViewMenu, true);
     }
 
     private void OnViewMenuTapped(object? sender, TappedEventArgs e)
     {
+        var visible = !_viewMenuOpen;
         HideAllMenus();
-        _viewMenuOpen = !_viewMenuOpen;
-        ViewMenu.IsVisible = _viewMenuOpen;
-        UpdateOverlay();
+        SetMenuVisibility(ref _viewMenuOpen, ViewMenu, visible);
         UpdateLayout();
     }
 
@@ -275,10 +279,9 @@ public partial class MainPage : ContentPage
 
     private void ShowSettingMenu()
     {
-        HideViewMenu();
-        HideFileMenu();
-        _settingMenuOpen = true;
-        SettingMenu.IsVisible = true;
+        SetMenuVisibility(ref _viewMenuOpen, ViewMenu, false);
+        SetMenuVisibility(ref _fileMenuOpen, FileMenu, false);
+        SetMenuVisibility(ref _settingMenuOpen, SettingMenu, true);
         if (SettingContent is SettingView sv)
         {
             sv.HeightRatio = _bottomHeightRatio;
@@ -287,40 +290,28 @@ public partial class MainPage : ContentPage
             sv.IkBoneSize = _renderer.IkBoneScale;
             sv.BonePickPixels = _renderer.BonePickPixels;
         }
-        UpdateOverlay();
     }
 
     private void OnSettingMenuTapped(object? sender, EventArgs e)
     {
+        var visible = !_settingMenuOpen;
         HideAllMenus();
-        _settingMenuOpen = !_settingMenuOpen;
-        SettingMenu.IsVisible = _settingMenuOpen;
-        UpdateOverlay();
+        SetMenuVisibility(ref _settingMenuOpen, SettingMenu, visible);
         UpdateLayout();
     }
 
     private void ShowFileMenu()
     {
-        HideViewMenu();
-        HideSettingMenu();
-        _fileMenuOpen = true;
-        FileMenu.IsVisible = true;
-        UpdateOverlay();
-    }
-
-    private void HideFileMenu()
-    {
-        _fileMenuOpen = false;
-        FileMenu.IsVisible = false;
-        UpdateOverlay();
+        SetMenuVisibility(ref _viewMenuOpen, ViewMenu, false);
+        SetMenuVisibility(ref _settingMenuOpen, SettingMenu, false);
+        SetMenuVisibility(ref _fileMenuOpen, FileMenu, true);
     }
 
     private void OnFileMenuTapped(object? sender, TappedEventArgs e)
     {
+        var visible = !_fileMenuOpen;
         HideAllMenus();
-        _fileMenuOpen = !_fileMenuOpen;
-        FileMenu.IsVisible = _fileMenuOpen;
-        UpdateOverlay();
+        SetMenuVisibility(ref _fileMenuOpen, FileMenu, visible);
         UpdateLayout();
     }
 
@@ -375,21 +366,10 @@ public partial class MainPage : ContentPage
 
     private void HideAllMenus()
     {
-        _viewMenuOpen = false;
-        ViewMenu.IsVisible = false;
-        _settingMenuOpen = false;
-        SettingMenu.IsVisible = false;
-        _fileMenuOpen = false;
-        FileMenu.IsVisible = false;
-        UpdateOverlay();
+        SetMenuVisibility(ref _viewMenuOpen, ViewMenu, false);
+        SetMenuVisibility(ref _settingMenuOpen, SettingMenu, false);
+        SetMenuVisibility(ref _fileMenuOpen, FileMenu, false);
         UpdateLayout();
-    }
-
-    private void HideViewMenu()
-    {
-        _viewMenuOpen = false;
-        ViewMenu.IsVisible = false;
-        UpdateOverlay();
     }
 
     private void HideBottomRegion()
@@ -400,18 +380,11 @@ public partial class MainPage : ContentPage
 
     }
 
-    private void HideSettingMenu()
-    {
-        _settingMenuOpen = false;
-        SettingMenu.IsVisible = false;
-        UpdateOverlay();
-    }
-
     private void HideAllMenusAndLayout()
     {
-        HideViewMenu();
-        HideSettingMenu();
-        HideFileMenu();
+        SetMenuVisibility(ref _viewMenuOpen, ViewMenu, false);
+        SetMenuVisibility(ref _settingMenuOpen, SettingMenu, false);
+        SetMenuVisibility(ref _fileMenuOpen, FileMenu, false);
         UpdateLayout();
     }
 
@@ -687,8 +660,8 @@ public partial class MainPage : ContentPage
 
         if (_viewMenuOpen || _settingMenuOpen)
         {
-            HideViewMenu();
-            HideSettingMenu();
+            SetMenuVisibility(ref _viewMenuOpen, ViewMenu, false);
+            SetMenuVisibility(ref _settingMenuOpen, SettingMenu, false);
             UpdateLayout();
         }
 
@@ -1034,7 +1007,7 @@ public partial class MainPage : ContentPage
     private async void OnAddToLibraryClicked(object? sender, EventArgs e)
     {
 
-        HideFileMenu();
+        SetMenuVisibility(ref _fileMenuOpen, FileMenu, false);
         await AddToLibraryAsync();
     }
 
