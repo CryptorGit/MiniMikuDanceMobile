@@ -454,9 +454,6 @@ public partial class MainPage : ContentPage
                 }
                 catch (Exception ex)
                 {
-#if DEBUG
-                    Console.WriteLine($"Failed to launch settings: {ex}");
-#endif
                     await DisplayAlert("Error", ex.Message, "OK");
                 }
             }
@@ -769,12 +766,9 @@ public partial class MainPage : ContentPage
                                 .FirstOrDefault(d => d != null);
                         }
                     }
-                    catch (Exception ex)
+                    catch (Exception)
                     {
                         dir = null;
-#if DEBUG
-                        Console.WriteLine($"Error locating asset directory: {ex}");
-#endif
                     }
                     data = importer.ImportModel(stream, dir);
                 }
