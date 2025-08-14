@@ -11,14 +11,18 @@
 - [ ] nanoem グローバルアロケータ周辺の詳細実装
 - [ ] `NANOEM_ENABLE_DEBUG_ALLOCATOR` を利用したメモリ追跡の検証
 - [ ] 物理エンジン拡張（physics_bullet.cc 移植済み、残りソースの移植と実装）
+- [ ] 物理シミュレーションの挙動検証
+- [ ] 物理演算のパフォーマンス調整
 - [ ] nanoemGlobalAllocatorInitialize/Terminate の P/Invoke 呼び出しとリーク検証
 - [ ] アロケータのメモリリーク検出ログ出力実装
 - [ ] 物理エンジン拡張 (physics.h 以外) の移植と実装
 - [ ] IK 制御関連コンポーネントの移植
 - [ ] IK ソルバー本体の移植と P/Invoke 実装
 - [ ] ConstraintSolver の transform 対応など IK 計算の詳細実装
+- [ ] ボーン編集機能の実装と UI への連携
 - [ ] モデル/モーション等のインポート機能の移植
 - [ ] PMX/VMD ネイティブインポートのデータ取得処理拡張
+- [ ] PMX インポートの nanoem 呼び出しへの完全移行（頂点数以外は未対応）
 - [ ] ネイティブインポートで頂点情報やキーフレーム詳細を取得する実装
 - [ ] Assimp 依存削除と既存 ModelImporter の置き換え
 - [ ] 未対応形式 (PMD, VPD など) のサポート検討
