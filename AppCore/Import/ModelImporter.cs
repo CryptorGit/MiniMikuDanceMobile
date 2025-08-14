@@ -10,7 +10,6 @@ using Vector3D = Assimp.Vector3D;
 using MMDTools;
 using MiniMikuDance.App;
 using MiniMikuDance.Data;
-using System.Numerics;
 
 namespace MiniMikuDance.Import;
 
@@ -555,7 +554,7 @@ public class ModelImporter : IDisposable, IImporter
             string name = string.IsNullOrEmpty(j.NameEnglish) ? j.Name : j.NameEnglish;
             var pos = GetVector3(type, j, true, "Position");
             var rotVec = GetVector3(type, j, false, "Rotation");
-            var rot = Quaternion.CreateFromYawPitchRoll(rotVec.Y, rotVec.X, rotVec.Z);
+            var rot = System.Numerics.Quaternion.CreateFromYawPitchRoll(rotVec.Y, rotVec.X, rotVec.Z);
             var ll = GetVector3(type, j, true, "PositionMinimum", "PositionMin");
             var lu = GetVector3(type, j, true, "PositionMaximum", "PositionMax");
             var ls = GetVector3(type, j, true, "SpringPosition", "PositionSpring");
