@@ -11,4 +11,6 @@
 NANOEM_DECL_API const nanoem_model_bone_t *APIENTRY nanoemModelGetBoneObject(const nanoem_model_t *model, int index);
 NANOEM_DECL_API void APIENTRY nanoemModelBoneGetTransformMatrix(const nanoem_model_bone_t *bone, nanoem_f32_t *value);
 NANOEM_DECL_API void APIENTRY nanoemModelBoneSetTransformMatrix(nanoem_model_bone_t *bone, const nanoem_f32_t *value);
+NANOEM_DECL_API void APIENTRY nanoemModelBoneGetTranslation(const nanoem_model_bone_t *bone, nanoem_f32_t *value);
+NANOEM_DECL_API void APIENTRY nanoemModelBoneSetTranslation(nanoem_model_bone_t *bone, const nanoem_f32_t *value);
 
