@@ -11,3 +11,9 @@ nanoemGetVersionString(void)
 {
     return "0.0.0";
 }
+
+int32_t APIENTRY
+nanoemAdd(int32_t left, int32_t right)
+{
+    return left + right;
+}

@@ -7,6 +7,10 @@ file(GLOB EXT_SRC nanoem/ext/*.c nanoem/ext/*.cc)
 
 add_library(nanoem SHARED ${CORE_SRC} ${EMAPP_SRC} ${EXT_SRC})
 
+if (WIN32)
+    set_target_properties(nanoem PROPERTIES WINDOWS_EXPORT_ALL_SYMBOLS ON)
+endif ()
+
 target_include_directories(nanoem PUBLIC
     ${CMAKE_CURRENT_SOURCE_DIR}/nanoem/core
     ${CMAKE_CURRENT_SOURCE_DIR}/nanoem/emapp

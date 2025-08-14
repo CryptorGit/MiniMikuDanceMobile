@@ -81,6 +81,7 @@ void APIENTRY nanoemGlobalAllocatorInitialize(void);
 void APIENTRY nanoemGlobalAllocatorTerminate(void);
 
 const char *APIENTRY nanoemGetVersionString(void);
+int32_t APIENTRY nanoemAdd(int32_t left, int32_t right);
 
 #ifdef __cplusplus
 }
