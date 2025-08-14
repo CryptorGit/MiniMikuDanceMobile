@@ -42,7 +42,7 @@ public partial class MainPage : ContentPage
     private readonly Dictionary<string, Border> _bottomTabs = new();
     private string? _currentFeature;
     private string? _selectedModelPath;
-    private static readonly string[] ModelExtensions = { ".pmx", ".pmd" };
+    private static readonly HashSet<string> ModelExtensions = new() { ".pmx", ".pmd" };
     private string? _modelDir;
     private float _modelScale = 1f;
     private readonly AppSettings _settings = AppSettings.Load();
@@ -71,52 +71,62 @@ public partial class MainPage : ContentPage
         _touchPoints.Clear();
         if (_poseMode && _currentModel != null)
         {
-            _renderer.SetExternalRotation(Quaternion.Identity);
-            _renderer.ModelTransform = Matrix4.Identity;
-            IkManager.LoadPmxIkBones(_currentModel.Bones);
-            try
-            {
-                var ikBones = IkManager.Bones.Values;
-                if (ikBones.Any())
-                {
-                    _renderer.SetIkBones(ikBones);
-                }
-                else
-                {
-                    _renderer.ClearIkBones();
-                }
-            }
-            catch (Exception ex)
-            {
-                Debug.WriteLine(ex);
-            }
-            IkManager.PickFunc = _renderer.PickBone;
-            IkManager.GetBonePositionFunc = _renderer.GetBoneWorldPosition;
-            IkManager.GetCameraPositionFunc = _renderer.GetCameraPosition;
-            IkManager.SetBoneTranslation = _renderer.SetBoneTranslation;
-            IkManager.ToModelSpaceFunc = _renderer.WorldToModel;
-            IkManager.ToWorldSpaceFunc = _renderer.ModelToWorld;
-            IkManager.InvalidateViewer = () =>
-            {
-                _needsRender = true;
-                Viewer?.InvalidateSurface();
-            };
+            EnablePoseMode();
         }
         else
         {
-            IkManager.ReleaseSelection();
-            _renderer.ClearIkBones();
-            IkManager.Clear();
-            IkManager.PickFunc = null;
-            IkManager.GetBonePositionFunc = null;
-            IkManager.GetCameraPositionFunc = null;
-            IkManager.SetBoneTranslation = null;
-            IkManager.ToModelSpaceFunc = null;
-            IkManager.ToWorldSpaceFunc = null;
-            IkManager.InvalidateViewer = null;
+            DisablePoseMode();
         }
         _renderer.ShowIkBones = _poseMode;
         Viewer?.InvalidateSurface();
+    }
+
+    private void EnablePoseMode()
+    {
+        _renderer.SetExternalRotation(Quaternion.Identity);
+        _renderer.ModelTransform = Matrix4.Identity;
+        IkManager.LoadPmxIkBones(_currentModel!.Bones);
+        try
+        {
+            var ikBones = IkManager.Bones.Values;
+            if (ikBones.Any())
+            {
+                _renderer.SetIkBones(ikBones);
+            }
+            else
+            {
+                _renderer.ClearIkBones();
+            }
+        }
+        catch (Exception ex)
+        {
+            Debug.WriteLine(ex);
+        }
+        IkManager.PickFunc = _renderer.PickBone;
+        IkManager.GetBonePositionFunc = _renderer.GetBoneWorldPosition;
+        IkManager.GetCameraPositionFunc = _renderer.GetCameraPosition;
+        IkManager.SetBoneTranslation = _renderer.SetBoneTranslation;
+        IkManager.ToModelSpaceFunc = _renderer.WorldToModel;
+        IkManager.ToWorldSpaceFunc = _renderer.ModelToWorld;
+        IkManager.InvalidateViewer = () =>
+        {
+            _needsRender = true;
+            Viewer?.InvalidateSurface();
+        };
+    }
+
+    private void DisablePoseMode()
+    {
+        IkManager.ReleaseSelection();
+        _renderer.ClearIkBones();
+        IkManager.Clear();
+        IkManager.PickFunc = null;
+        IkManager.GetBonePositionFunc = null;
+        IkManager.GetCameraPositionFunc = null;
+        IkManager.SetBoneTranslation = null;
+        IkManager.ToModelSpaceFunc = null;
+        IkManager.ToWorldSpaceFunc = null;
+        IkManager.InvalidateViewer = null;
     }
 
 
@@ -137,7 +147,7 @@ public partial class MainPage : ContentPage
         return System.Environment.CurrentDirectory;
     }
 
-    private static bool HasAllowedExtension(string path, string[] allowed)
+    private static bool HasAllowedExtension(string path, HashSet<string> allowed)
     {
         var ext = Path.GetExtension(path).ToLowerInvariant();
         return allowed.Contains(ext);
