@@ -29,15 +29,15 @@ public class UIManager : Singleton<UIManager>
 
     public void LoadConfig(string path)
     {
-        Config = JSONUtil.Load<UIConfig>(path);
-        _toggleStates.Clear();
-        foreach (var t in Config.Toggles)
-        {
-            _toggleStates[t.Id] = t.DefaultValue;
-        }
+        LoadConfigCore(JSONUtil.Load<UIConfig>(path));
     }
 
     public void LoadConfig(UIConfig config)
+    {
+        LoadConfigCore(config);
+    }
+
+    private void LoadConfigCore(UIConfig config)
     {
         Config = config;
         _toggleStates.Clear();
