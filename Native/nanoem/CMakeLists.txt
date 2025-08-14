@@ -16,6 +16,12 @@ add_library(nanoem_core
     core/version.c
     core/ext/converter.c
     core/ext/json.c
+    core/ext/mutable.c
+    core/ext/parson/parson.c
+    core/ik/ConstraintSolver.cc
+    core/ik/IKSolver.cc
+    core/ik/motion.c
+    core/ik/motion.pb-c.c
     core/ext/motion.c
     core/morph/motion.c
     core/ext/parson/parson.c
@@ -26,6 +32,7 @@ add_library(nanoem_core
 
 target_include_directories(nanoem_core PUBLIC
     ${CMAKE_CURRENT_SOURCE_DIR}/core
+    ${CMAKE_CURRENT_SOURCE_DIR}/core/ik
     ${CMAKE_CURRENT_SOURCE_DIR}/core/morph
     ${BULLET_INCLUDE_DIRS}
 )
