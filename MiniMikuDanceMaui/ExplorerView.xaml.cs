@@ -94,11 +94,11 @@ public partial class ExplorerView : ContentView
         {
             if (item.IsDirectory)
             {
-                LoadDirectory(item.Path);
+                LoadDirectory(item.FullPath);
             }
             else
             {
-                FileSelected?.Invoke(this, item.Path);
+                FileSelected?.Invoke(this, item.FullPath);
             }
             FileList.SelectedItem = null;
         }

@@ -5,22 +5,22 @@ namespace MiniMikuDanceMaui;
 
 public class FileItem
 {
-    public FileItem(string path)
+    public FileItem(string fullPath)
     {
-        Path = path;
-        Name = System.IO.Path.GetFileName(path);
-        IsDirectory = Directory.Exists(path);
+        FullPath = fullPath;
+        Name = System.IO.Path.GetFileName(fullPath);
+        IsDirectory = Directory.Exists(fullPath);
         if (IsDirectory)
         {
-            Modified = Directory.GetLastWriteTime(path);
+            Modified = Directory.GetLastWriteTime(fullPath);
             SizeText = "";
         }
         else
         {
-            Modified = File.GetLastWriteTime(path);
+            Modified = File.GetLastWriteTime(fullPath);
             try
             {
-                long size = new FileInfo(path).Length;
+                long size = new FileInfo(fullPath).Length;
                 SizeText = size.ToString();
             }
             catch
@@ -30,7 +30,7 @@ public class FileItem
         }
     }
 
-    public string Path { get; }
+    public string FullPath { get; }
     public string Name { get; }
     public bool IsDirectory { get; }
     public DateTime Modified { get; }
