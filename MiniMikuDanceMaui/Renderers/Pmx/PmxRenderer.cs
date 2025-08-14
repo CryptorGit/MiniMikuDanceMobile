@@ -9,6 +9,7 @@ using MiniMikuDance.Util;
 using MiniMikuDance.Import;
 using MiniMikuDance.App;
 using MiniMikuDance;
+using MiniMikuDance.UI;
 using MMDTools;
 using SkiaSharp.Views.Maui.Controls;
 using Vector2 = OpenTK.Mathematics.Vector2;
@@ -658,6 +659,7 @@ void main(){
         System.Numerics.Matrix4x4.Invert(parentWorld, out var invParent);
         var localPos = System.Numerics.Vector3.Transform(worldPos.ToNumerics(), invParent);
         var delta = localPos - bone.Translation;
+        BoneController.SetTranslation(_modelHandle, index, localPos);
 
         while (_boneTranslations.Count <= index)
             _boneTranslations.Add(Vector3.Zero);
