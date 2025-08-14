@@ -6,15 +6,12 @@ find_package(glm REQUIRED)
 
 add_library(nanoem SHARED)
 
-file(GLOB EMAPP_SRC nanoem/emapp/*.cc nanoem/emapp/*.c)
+file(GLOB_RECURSE EMAPP_SRC nanoem/emapp/*.cc nanoem/emapp/*.c)
 target_sources(nanoem PRIVATE
     nanoem/core/allocator.c
     nanoem/core/nanoem.c
     nanoem/core/version.c
     ${EMAPP_SRC}
-# viewer begin
-    nanoem/emapp/viewer.cc
-# viewer end
 )
 
 add_subdirectory(nanoem/core/bone)
