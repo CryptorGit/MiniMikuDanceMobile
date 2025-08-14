@@ -85,6 +85,10 @@ public partial class PmxRenderer
             _renderingInitialized = true;
         }
 
+        if (_modelHandle != IntPtr.Zero)
+        {
+            Nanoem.ModelUpdateMorph(_modelHandle);
+        }
         Nanoem.RenderingUpdateFrame();
         // TODO: integrate nanoem rendering pipeline
     }
