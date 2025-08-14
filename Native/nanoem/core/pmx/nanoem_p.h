@@ -382,6 +382,7 @@ struct nanoem_model_bone_t {
     nanoem_unicode_string_t *name_en;
     nanoem_model_constraint_t *constraint;
     nanoem_f128_t origin;
+    nanoem_f128_t orientation;
     nanoem_f128_t destination_origin;
     nanoem_f128_t fixed_axis;
     nanoem_f128_t local_x_axis;

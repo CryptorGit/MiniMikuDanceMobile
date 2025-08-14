@@ -195,3 +195,26 @@ nanoemModelBoneSetTranslation(nanoem_model_bone_t *bone, const nanoem_f32_t *val
     }
 }
 
+void APIENTRY
+nanoemModelBoneGetOrientation(const nanoem_model_bone_t *bone, nanoem_f32_t *value)
+{
+    if (nanoem_is_not_null(bone) && nanoem_is_not_null(value)) {
+        const nanoem_f32_t *orientation = bone->orientation.values;
+        value[0] = orientation[0];
+        value[1] = orientation[1];
+        value[2] = orientation[2];
+        value[3] = orientation[3];
+    }
+}
+
+void APIENTRY
+nanoemModelBoneSetOrientation(nanoem_model_bone_t *bone, const nanoem_f32_t *value)
+{
+    if (nanoem_is_not_null(bone) && nanoem_is_not_null(value)) {
+        bone->orientation.values[0] = value[0];
+        bone->orientation.values[1] = value[1];
+        bone->orientation.values[2] = value[2];
+        bone->orientation.values[3] = value[3];
+    }
+}
+
