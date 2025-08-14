@@ -15,7 +15,11 @@ public partial class PmxRenderer
     public IntPtr ModelHandle
     {
         get => _modelHandle;
-        set => _modelHandle = value;
+        set
+        {
+            _modelHandle = value;
+            UpdateBonesFromNanoem();
+        }
     }
 
     public IReadOnlyList<BoneData> GetBones() => _bones;
@@ -52,6 +56,23 @@ public partial class PmxRenderer
         _bones[_selectedBone].Transform = BoneController.GetTransform(_modelHandle, _selectedBone, _bones[_selectedBone].Transform);
         _bonesDirty = true;
         Viewer?.InvalidateSurface();
+    }
+
+    private void UpdateBonesFromNanoem()
+    {
+        if (_modelHandle == IntPtr.Zero || _bones.Count == 0)
+            return;
+        NanoemBone.nanoemModelBoneUpdateAll(_modelHandle);
+        for (int i = 0; i < _bones.Count; i++)
+        {
+            var bonePtr = NanoemBone.nanoemModelGetBoneObject(_modelHandle, i);
+            if (bonePtr != IntPtr.Zero)
+            {
+                NanoemBone.nanoemModelBoneGetTransformMatrix(bonePtr, out var m);
+                _bones[i].Transform = m;
+            }
+        }
+        _bonesDirty = true;
     }
 }
 

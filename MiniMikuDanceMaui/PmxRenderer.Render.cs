@@ -85,6 +85,7 @@ public partial class PmxRenderer
             _renderingInitialized = true;
         }
 
+        UpdateBonesFromNanoem();
         Nanoem.RenderingUpdateFrame();
         // TODO: integrate nanoem rendering pipeline
     }
