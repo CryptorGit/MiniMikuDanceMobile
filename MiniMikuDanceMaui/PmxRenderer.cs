@@ -689,9 +689,6 @@ void main(){
         var pos = _worldMats[index].Translation.ToOpenTK();
         pos = Vector3.TransformPosition(pos, _modelTransform);
         var result = pos.ToNumerics();
-#if DEBUG
-        System.Diagnostics.Trace.WriteLine($"GetBoneWorldPosition[{index}] => {result}");
-#endif
         return result;
     }
 
@@ -705,9 +702,6 @@ void main(){
         Matrix4.Invert(_modelTransform, out var inv);
         var pos = Vector3.TransformPosition(worldPos.ToOpenTK(), inv);
         var result = pos.ToNumerics();
-#if DEBUG
-        System.Diagnostics.Trace.WriteLine($"WorldToModel {worldPos} => {result}");
-#endif
         return result;
     }
 
@@ -715,9 +709,6 @@ void main(){
     {
         var pos = Vector3.TransformPosition(modelPos.ToOpenTK(), _modelTransform);
         var result = pos.ToNumerics();
-#if DEBUG
-        System.Diagnostics.Trace.WriteLine($"ModelToWorld {modelPos} => {result}");
-#endif
         return result;
     }
 

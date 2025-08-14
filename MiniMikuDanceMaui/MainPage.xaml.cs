@@ -88,9 +88,6 @@ public partial class MainPage : ContentPage
 
     private void OnPoseModeToggled(object? sender, ToggledEventArgs e)
     {
-#if DEBUG
-        System.Diagnostics.Trace.WriteLine($"OnPoseModeToggled: value={e.Value}");
-#endif
         _poseMode = e.Value;
         _touchPoints.Clear();
         if (_poseMode && _currentModel != null)
@@ -110,11 +107,8 @@ public partial class MainPage : ContentPage
                     _renderer.ClearIkBones();
                 }
             }
-            catch (Exception ex)
+            catch (Exception)
             {
-#if DEBUG
-                System.Diagnostics.Trace.WriteLine($"SetIkBones failed: {ex.Message}");
-#endif
             }
             IkManager.PickFunc = _renderer.PickBone;
             IkManager.GetBonePositionFunc = _renderer.GetBoneWorldPosition;
@@ -130,9 +124,6 @@ public partial class MainPage : ContentPage
         }
         else
         {
-#if DEBUG
-            System.Diagnostics.Trace.WriteLine("Disabling pose mode. Clearing IK delegates...");
-#endif
             IkManager.ReleaseSelection();
             _renderer.ClearIkBones();
             IkManager.Clear();
@@ -143,15 +134,9 @@ public partial class MainPage : ContentPage
             IkManager.ToModelSpaceFunc = null;
             IkManager.ToWorldSpaceFunc = null;
             IkManager.InvalidateViewer = null;
-#if DEBUG
-            System.Diagnostics.Trace.WriteLine($"IkManager cleared. SelectedBoneIndex={IkManager.SelectedBoneIndex}");
-#endif
         }
         _renderer.ShowIkBones = _poseMode;
         Viewer?.InvalidateSurface();
-#if DEBUG
-        System.Diagnostics.Trace.WriteLine($"PoseMode={_poseMode} PickFuncNull={IkManager.PickFunc == null} InvalidateViewerNull={IkManager.InvalidateViewer == null}");
-#endif
     }
 
 
@@ -643,11 +628,8 @@ public partial class MainPage : ContentPage
                         _renderer.ClearIkBones();
                     }
                 }
-                catch (Exception ex)
+                catch (Exception)
                 {
-#if DEBUG
-                    System.Diagnostics.Trace.WriteLine($"SetIkBones failed: {ex.Message}");
-#endif
                 }
                 IkManager.PickFunc = _renderer.PickBone;
                 IkManager.GetBonePositionFunc = _renderer.GetBoneWorldPosition;
@@ -661,9 +643,6 @@ public partial class MainPage : ContentPage
 
     private void OnViewTouch(object? sender, SKTouchEventArgs e)
     {
-#if DEBUG
-        System.Diagnostics.Trace.WriteLine($"OnViewTouch: action={e.ActionType} poseMode={_poseMode} pickNull={IkManager.PickFunc == null} invalidateNull={IkManager.InvalidateViewer == null} selIdx={IkManager.SelectedBoneIndex}");
-#endif
         if (_poseMode)
         {
             try
@@ -708,27 +687,15 @@ public partial class MainPage : ContentPage
                 }
                 if (!_poseMode)
                 {
-#if DEBUG
-                    System.Diagnostics.Trace.WriteLine($"Pose mode became false during OnViewTouch; pickNull={IkManager.PickFunc == null} invalidateNull={IkManager.InvalidateViewer == null}");
-#endif
                     e.Handled = true;
                     return;
                 }
-                if (IkManager.InvalidateViewer == null)
-                {
-#if DEBUG
-                    System.Diagnostics.Trace.WriteLine("InvalidateViewer delegate is null in OnViewTouch.");
-#endif
-                }
-                else
+                if (IkManager.InvalidateViewer != null)
                     IkManager.InvalidateViewer();
             }
             catch (Exception ex)
             {
                 IkManager.ReleaseSelection();
-#if DEBUG
-                System.Diagnostics.Trace.WriteLine($"OnViewTouch exception: {ex}");
-#endif
                 MainThread.BeginInvokeOnMainThread(async () =>
                     await DisplayAlert("Error", ex.Message, "OK"));
             }
