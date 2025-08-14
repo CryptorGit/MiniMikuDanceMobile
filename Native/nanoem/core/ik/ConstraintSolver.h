@@ -22,6 +22,13 @@ int nanoem_emapp_constraint_solve_axis_angle(
     const float target_position[3],
     nanoem_constraint_joint_t *result);
 
+int nanoem_emapp_constraint_solve_axis_angle_chain(
+    const float *transforms,
+    int32_t num_joints,
+    const float effector_position[3],
+    const float target_position[3],
+    nanoem_constraint_joint_t *results);
+
 #ifdef __cplusplus
 }
 #endif
