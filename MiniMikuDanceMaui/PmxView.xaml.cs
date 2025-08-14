@@ -1,41 +1,24 @@
-using System.Linq;
+using System;
 using Microsoft.Maui.Controls;
-using MiniMikuDance.Import;
 
 namespace MiniMikuDanceMaui;
 
 public partial class PmxView : ContentView
 {
-    private ModelData? _model;
-
     public PmxView()
     {
         InitializeComponent();
+        Loaded += OnLoaded;
     }
 
-    public void SetModel(ModelData? model)
+    private void OnLoaded(object? sender, EventArgs e)
     {
-        _model = model;
-        UpdateView();
-    }
-
-    private void UpdateView()
-    {
-        if (_model == null)
+        Nanoem.RenderingInitialize((int)Viewport.Width, (int)Viewport.Height);
+        Dispatcher.StartTimer(TimeSpan.FromMilliseconds(16), () =>
         {
-            WarningLabel.IsVisible = true;
-            SubMeshList.IsVisible = false;
-            return;
-        }
-
-        WarningLabel.IsVisible = false;
-        var items = _model.SubMeshes.Select((s, i) => new SubMeshInfo
-        {
-            Index = i,
-            Texture = s.TextureFilePath ?? "(none)",
-            Size = $"{s.TextureWidth}x{s.TextureHeight}"
-        }).ToList();
-        SubMeshList.ItemsSource = items;
-        SubMeshList.IsVisible = true;
+            Nanoem.RenderingUpdateFrame();
+            Viewport.Invalidate();
+            return true;
+        });
     }
 }

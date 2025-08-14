@@ -25,6 +25,9 @@ add_library(nanoem_core
     core/ext/motion.c
     core/morph/motion.c
     core/ext/parson/parson.c
+    emapp/DirectionalLight.cc
+    emapp/Grid.cc
+    emapp/PerspectiveCamera.cc
     core/physics/physics_bullet.cc
     core/import/document.c
     core/import/mutable.c
