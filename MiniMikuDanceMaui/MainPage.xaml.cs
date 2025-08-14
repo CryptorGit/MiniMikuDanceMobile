@@ -36,6 +36,7 @@ public partial class MainPage : ContentPage
     private bool _viewMenuOpen;
     private bool _settingMenuOpen;
     private bool _fileMenuOpen;
+    private enum MenuType { None, View, Setting, File }
 
     private void UpdateOverlay() => MenuOverlay.IsVisible = _viewMenuOpen || _settingMenuOpen || _fileMenuOpen;
     private readonly Dictionary<string, View> _bottomViews = new();
@@ -54,8 +55,6 @@ public partial class MainPage : ContentPage
     private float _shadeToony = 0.9f;
     private float _rimIntensity = 0.5f;
     private bool _poseMode;
-    // bottomWidth is no longer used; bottom region spans full screen width
-    // private double bottomWidth = 0;
     private bool _glInitialized;
     private ModelData? _pendingModel;
     private ModelData? _currentModel;
@@ -267,32 +266,13 @@ public partial class MainPage : ContentPage
         UpdateOverlay();
     }
 
-    private void ShowViewMenu()
+    private void ShowMenu(MenuType menuType)
     {
-        SetMenuVisibility(ref _settingMenuOpen, SettingMenu, false);
-        SetMenuVisibility(ref _fileMenuOpen, FileMenu, false);
-        SetMenuVisibility(ref _viewMenuOpen, ViewMenu, true);
-    }
+        SetMenuVisibility(ref _viewMenuOpen, ViewMenu, menuType == MenuType.View);
+        SetMenuVisibility(ref _settingMenuOpen, SettingMenu, menuType == MenuType.Setting);
+        SetMenuVisibility(ref _fileMenuOpen, FileMenu, menuType == MenuType.File);
 
-    private void OnViewMenuTapped(object? sender, TappedEventArgs e)
-    {
-        var visible = !_viewMenuOpen;
-        HideAllMenus();
-        SetMenuVisibility(ref _viewMenuOpen, ViewMenu, visible);
-        UpdateLayout();
-    }
-
-
-
-
-
-
-    private void ShowSettingMenu()
-    {
-        SetMenuVisibility(ref _viewMenuOpen, ViewMenu, false);
-        SetMenuVisibility(ref _fileMenuOpen, FileMenu, false);
-        SetMenuVisibility(ref _settingMenuOpen, SettingMenu, true);
-        if (SettingContent is SettingView sv)
+        if (menuType == MenuType.Setting && SettingContent is SettingView sv)
         {
             sv.HeightRatio = _bottomHeightRatio;
             sv.RotateSensitivity = _renderer.RotateSensitivity;
@@ -300,55 +280,54 @@ public partial class MainPage : ContentPage
             sv.IkBoneSize = _renderer.IkBoneScale;
             sv.BonePickPixels = _renderer.BonePickPixels;
         }
-    }
 
-    private void OnSettingMenuTapped(object? sender, EventArgs e)
-    {
-        var visible = !_settingMenuOpen;
-        HideAllMenus();
-        SetMenuVisibility(ref _settingMenuOpen, SettingMenu, visible);
         UpdateLayout();
     }
 
-    private void ShowFileMenu()
+    private void OnViewMenuTapped(object? sender, TappedEventArgs e)
     {
-        SetMenuVisibility(ref _viewMenuOpen, ViewMenu, false);
-        SetMenuVisibility(ref _settingMenuOpen, SettingMenu, false);
-        SetMenuVisibility(ref _fileMenuOpen, FileMenu, true);
+        ShowMenu(_viewMenuOpen ? MenuType.None : MenuType.View);
+    }
+
+
+
+
+
+
+    private void OnSettingMenuTapped(object? sender, EventArgs e)
+    {
+        ShowMenu(_settingMenuOpen ? MenuType.None : MenuType.Setting);
     }
 
     private void OnFileMenuTapped(object? sender, TappedEventArgs e)
     {
-        var visible = !_fileMenuOpen;
-        HideAllMenus();
-        SetMenuVisibility(ref _fileMenuOpen, FileMenu, visible);
-        UpdateLayout();
+        ShowMenu(_fileMenuOpen ? MenuType.None : MenuType.File);
     }
 
 
     private async void OnSelectClicked(object? sender, EventArgs e)
     {
-        HideAllMenusAndLayout();
+        ShowMenu(MenuType.None);
         await ShowModelSelector();
     }
 
     private void OnBoneClicked(object? sender, EventArgs e)
     {
         ShowBottomFeature("BONE");
-        HideAllMenusAndLayout();
+        ShowMenu(MenuType.None);
     }
 
 
     private void OnLightingClicked(object? sender, EventArgs e)
     {
         ShowBottomFeature("MTOON");
-        HideAllMenusAndLayout();
+        ShowMenu(MenuType.None);
     }
 
     private void OnMorphClicked(object? sender, EventArgs e)
     {
         ShowBottomFeature("MORPH");
-        HideAllMenusAndLayout();
+        ShowMenu(MenuType.None);
     }
 
     private void OnCloseBottomTapped(object? sender, TappedEventArgs e)
@@ -361,26 +340,19 @@ public partial class MainPage : ContentPage
         {
             HideBottomRegion();
         }
-        HideAllMenusAndLayout();
+        ShowMenu(MenuType.None);
     }
 
     private void OnOverlayTapped(object? sender, TappedEventArgs e)
     {
-        HideAllMenusAndLayout();
+        ShowMenu(MenuType.None);
     }
 
     private void OnBottomRegionTapped(object? sender, TappedEventArgs e)
     {
-        HideAllMenusAndLayout();
+        ShowMenu(MenuType.None);
     }
 
-    private void HideAllMenus()
-    {
-        SetMenuVisibility(ref _viewMenuOpen, ViewMenu, false);
-        SetMenuVisibility(ref _settingMenuOpen, SettingMenu, false);
-        SetMenuVisibility(ref _fileMenuOpen, FileMenu, false);
-        UpdateLayout();
-    }
 
     private void HideBottomRegion()
     {
@@ -390,13 +362,6 @@ public partial class MainPage : ContentPage
 
     }
 
-    private void HideAllMenusAndLayout()
-    {
-        SetMenuVisibility(ref _viewMenuOpen, ViewMenu, false);
-        SetMenuVisibility(ref _settingMenuOpen, SettingMenu, false);
-        SetMenuVisibility(ref _fileMenuOpen, FileMenu, false);
-        UpdateLayout();
-    }
 
     private void UpdateSettingViewProperties(SettingView? sv)
     {
@@ -928,7 +893,7 @@ public partial class MainPage : ContentPage
             tap.Tapped += (s, e) =>
             {
                 SwitchBottomFeature(captured);
-                HideAllMenusAndLayout();
+                ShowMenu(MenuType.None);
             };
             border.GestureRecognizers.Add(tap);
             BottomTabBar.Add(border);
@@ -1063,7 +1028,7 @@ public partial class MainPage : ContentPage
 
     private void OnOpenInViewerClicked(object? sender, EventArgs e)
     {
-        HideAllMenusAndLayout();
+        ShowMenu(MenuType.None);
         SelectedModelPath.Text = string.Empty;
         _selectedModelPath = null;
         _modelDir = null;
