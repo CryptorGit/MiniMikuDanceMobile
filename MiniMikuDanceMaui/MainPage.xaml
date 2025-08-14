@@ -9,9 +9,6 @@
 
     <ContentPage.MenuBarItems>
         <MenuBarItem Text="File" />
-        <MenuBarItem Text="View">
-
-        </MenuBarItem>
         <MenuBarItem Text="Setting">
             <MenuFlyoutItem Text="Open" Clicked="OnSettingMenuTapped" />
         </MenuBarItem>
