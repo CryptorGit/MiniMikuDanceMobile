@@ -7,12 +7,14 @@
 cmake_minimum_required(VERSION 3.16)
 project(nanoem_core C CXX)
 
+find_package(Bullet REQUIRED)
+find_package(glm REQUIRED)
+
 add_library(nanoem_core
     core/allocator.c
     core/nanoem.c
     core/version.c
     core/ext/converter.c
-    core/ext/document.c
     core/ext/json.c
     core/ext/mutable.c
     core/ext/parson/parson.c
@@ -20,11 +22,24 @@ add_library(nanoem_core
     core/ik/IKSolver.cc
     core/ik/motion.c
     core/ik/motion.pb-c.c
+    core/ext/motion.c
+    core/morph/motion.c
+    core/ext/parson/parson.c
+    core/physics/physics_bullet.cc
+    core/import/document.c
+    core/import/mutable.c
 )
 
 target_include_directories(nanoem_core PUBLIC
     ${CMAKE_CURRENT_SOURCE_DIR}/core
     ${CMAKE_CURRENT_SOURCE_DIR}/core/ik
+    ${CMAKE_CURRENT_SOURCE_DIR}/core/morph
+    ${BULLET_INCLUDE_DIRS}
+)
+
+target_link_libraries(nanoem_core PRIVATE
+    ${BULLET_LIBRARIES}
+    glm::glm
 )
 
 target_compile_definitions(nanoem_core PRIVATE
@@ -32,5 +47,6 @@ target_compile_definitions(nanoem_core PRIVATE
     NANOEM_ENABLE_DOCUMENT
     NANOEM_ENABLE_JSON
     NANOEM_ENABLE_NMD
+    NANOEM_ENABLE_BULLET
 )
 
