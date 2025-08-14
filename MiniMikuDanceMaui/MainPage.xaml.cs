@@ -23,6 +23,7 @@ using OpenTK.Mathematics;
 using MiniMikuDance.App;
 using SixLabors.ImageSharp.PixelFormats;
 using MiniMikuDance.IK;
+using MiniMikuDance.Util;
 
 namespace MiniMikuDanceMaui;
 
