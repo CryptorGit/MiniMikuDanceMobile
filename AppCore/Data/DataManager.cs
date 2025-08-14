@@ -25,14 +25,7 @@ public partial class DataManager : Util.Singleton<DataManager>
                 var dir = Path.GetDirectoryName(path);
                 if (!string.IsNullOrEmpty(dir) && !Directory.Exists(dir))
                     Directory.CreateDirectory(dir);
-                try
-                {
-                    File.Copy(src, path);
-                }
-                catch (Exception ex)
-                {
-                    Console.Error.WriteLine(ex);
-                }
+                File.Copy(src, path);
             }
         }
         return Util.JSONUtil.Load<T>(path);

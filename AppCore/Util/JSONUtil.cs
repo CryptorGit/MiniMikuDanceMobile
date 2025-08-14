@@ -21,28 +21,14 @@ public static class JSONUtil
 
     public static T LoadFromStream<T>(Stream stream) where T : new()
     {
-        try
-        {
-            var result = JsonSerializer.Deserialize<T>(stream, Options);
-            return result ?? new T();
-        }
-        catch
-        {
-            return new T();
-        }
+        var result = JsonSerializer.Deserialize<T>(stream, Options);
+        return result ?? new T();
     }
 
     public static async Task<T> LoadFromStreamAsync<T>(Stream stream) where T : new()
     {
-        try
-        {
-            var result = await JsonSerializer.DeserializeAsync<T>(stream, Options);
-            return result ?? new T();
-        }
-        catch
-        {
-            return new T();
-        }
+        var result = await JsonSerializer.DeserializeAsync<T>(stream, Options);
+        return result ?? new T();
     }
 
     public static T Load<T>(string path) where T : new()
@@ -54,16 +40,9 @@ public static class JSONUtil
             return placeholder;
         }
 
-        try
-        {
-            using var fs = File.OpenRead(path);
-            var result = JsonSerializer.Deserialize<T>(fs, Options);
-            return result ?? new T();
-        }
-        catch
-        {
-            return new T();
-        }
+        using var fs = File.OpenRead(path);
+        var result = JsonSerializer.Deserialize<T>(fs, Options);
+        return result ?? new T();
     }
 
     public static async Task<T> LoadAsync<T>(string path) where T : new()
@@ -75,16 +54,9 @@ public static class JSONUtil
             return placeholder;
         }
 
-        try
-        {
-            await using var fs = new FileStream(path, FileMode.Open, FileAccess.Read, FileShare.Read, 4096, FileOptions.Asynchronous);
-            var result = await JsonSerializer.DeserializeAsync<T>(fs, Options);
-            return result ?? new T();
-        }
-        catch
-        {
-            return new T();
-        }
+        await using var fs = new FileStream(path, FileMode.Open, FileAccess.Read, FileShare.Read, 4096, FileOptions.Asynchronous);
+        var result = await JsonSerializer.DeserializeAsync<T>(fs, Options);
+        return result ?? new T();
     }
 
     public static void Save<T>(string path, T data)

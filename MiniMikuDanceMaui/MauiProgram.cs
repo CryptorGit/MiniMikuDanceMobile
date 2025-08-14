@@ -17,17 +17,7 @@ public static class MauiProgram
         var builder = MauiApp.CreateBuilder();
 
         DataManager.OpenPackageFileFunc = path =>
-        {
-            try
-            {
-                return FileSystem.OpenAppPackageFileAsync(path).GetAwaiter().GetResult();
-            }
-            catch (Exception ex)
-            {
-                System.Diagnostics.Debug.WriteLine(ex);
-                return null;
-            }
-        };
+            FileSystem.OpenAppPackageFileAsync(path).GetAwaiter().GetResult();
 
         builder
             // ← 型パラメータで自分の App クラスを渡す
