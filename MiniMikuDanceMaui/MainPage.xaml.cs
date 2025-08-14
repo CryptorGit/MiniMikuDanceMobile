@@ -230,82 +230,6 @@ public partial class MainPage : ContentPage
         }
 
     }
-
-    private void ShowViewMenu()
-    {
-        HideSettingMenu();
-        HideFileMenu();
-        _viewMenuOpen = true;
-        ViewMenu.IsVisible = true;
-        UpdateOverlay();
-    }
-
-    private void OnViewMenuTapped(object? sender, TappedEventArgs e)
-    {
-        HideAllMenus();
-        _viewMenuOpen = !_viewMenuOpen;
-        ViewMenu.IsVisible = _viewMenuOpen;
-        UpdateOverlay();
-        UpdateLayout();
-    }
-
-
-
-
-
-
-    private void ShowSettingMenu()
-    {
-        HideViewMenu();
-        HideFileMenu();
-        _settingMenuOpen = true;
-        SettingMenu.IsVisible = true;
-        if (SettingContent is SettingView sv)
-        {
-            sv.HeightRatio = _bottomHeightRatio;
-            sv.RotateSensitivity = _renderer.RotateSensitivity;
-            sv.PanSensitivity = _renderer.PanSensitivity;
-            sv.IkBoneSize = _renderer.IkBoneScale;
-            sv.BonePickPixels = _renderer.BonePickPixels;
-        }
-        UpdateOverlay();
-    }
-
-    private void OnSettingMenuTapped(object? sender, EventArgs e)
-    {
-        HideAllMenus();
-        _settingMenuOpen = !_settingMenuOpen;
-        SettingMenu.IsVisible = _settingMenuOpen;
-        UpdateOverlay();
-        UpdateLayout();
-    }
-
-    private void ShowFileMenu()
-    {
-        HideViewMenu();
-        HideSettingMenu();
-        _fileMenuOpen = true;
-        FileMenu.IsVisible = true;
-        UpdateOverlay();
-    }
-
-    private void HideFileMenu()
-    {
-        _fileMenuOpen = false;
-        FileMenu.IsVisible = false;
-        UpdateOverlay();
-    }
-
-    private void OnFileMenuTapped(object? sender, TappedEventArgs e)
-    {
-        HideAllMenus();
-        _fileMenuOpen = !_fileMenuOpen;
-        FileMenu.IsVisible = _fileMenuOpen;
-        UpdateOverlay();
-        UpdateLayout();
-    }
-
-
     private async void OnSelectClicked(object? sender, EventArgs e)
     {
         HideAllMenusAndLayout();
@@ -343,59 +267,6 @@ public partial class MainPage : ContentPage
         }
         HideAllMenusAndLayout();
     }
-
-    private void OnOverlayTapped(object? sender, TappedEventArgs e)
-    {
-        HideAllMenusAndLayout();
-    }
-
-    private void OnBottomRegionTapped(object? sender, TappedEventArgs e)
-    {
-        HideAllMenusAndLayout();
-    }
-
-    private void HideAllMenus()
-    {
-        _viewMenuOpen = false;
-        ViewMenu.IsVisible = false;
-        _settingMenuOpen = false;
-        SettingMenu.IsVisible = false;
-        _fileMenuOpen = false;
-        FileMenu.IsVisible = false;
-        UpdateOverlay();
-        UpdateLayout();
-    }
-
-    private void HideViewMenu()
-    {
-        _viewMenuOpen = false;
-        ViewMenu.IsVisible = false;
-        UpdateOverlay();
-    }
-
-    private void HideBottomRegion()
-    {
-        BottomRegion.IsVisible = false;
-        _currentFeature = null;
-        UpdateTabColors();
-
-    }
-
-    private void HideSettingMenu()
-    {
-        _settingMenuOpen = false;
-        SettingMenu.IsVisible = false;
-        UpdateOverlay();
-    }
-
-    private void HideAllMenusAndLayout()
-    {
-        HideViewMenu();
-        HideSettingMenu();
-        HideFileMenu();
-        UpdateLayout();
-    }
-
     private void UpdateSettingViewProperties(SettingView? sv)
     {
         if (sv == null || _renderer == null)
@@ -660,8 +531,9 @@ public partial class MainPage : ContentPage
 
         if (_viewMenuOpen || _settingMenuOpen)
         {
-            HideViewMenu();
-            HideSettingMenu();
+            SetMenuVisibility(ViewMenu, ref _viewMenuOpen, false);
+            SetMenuVisibility(SettingMenu, ref _settingMenuOpen, false);
+            UpdateOverlay();
             UpdateLayout();
         }
 
@@ -1006,7 +878,8 @@ public partial class MainPage : ContentPage
     private async void OnAddToLibraryClicked(object? sender, EventArgs e)
     {
 
-        HideFileMenu();
+        SetMenuVisibility(FileMenu, ref _fileMenuOpen, false);
+        UpdateOverlay();
         await AddToLibraryAsync();
     }
 
@@ -1164,9 +1037,11 @@ public partial class MainPage : ContentPage
                             sm.TextureFilePath = localRel;
                         }
                     }
-                    catch (Exception)
+                    catch (Exception ex)
                     {
-                        // intentionally left blank
+                        Console.WriteLine($"Texture load error for {rel}: {ex}");
+                        await Dispatcher.DispatchAsync(async () =>
+                            await DisplayAlert("Texture Load Error", ex.Message, "OK"));
                     }
                     finally
                     {
