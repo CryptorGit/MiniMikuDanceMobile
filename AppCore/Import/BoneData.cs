@@ -22,4 +22,5 @@ public class BoneData
     public Matrix4x4 Transform { get; set; } = Matrix4x4.Identity;
     public Matrix4x4 BindMatrix { get; set; } = Matrix4x4.Identity;
     public Matrix4x4 InverseBindMatrix { get; set; } = Matrix4x4.Identity;
+    public IkConstraintData? IkConstraint { get; set; }
 }

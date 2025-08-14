@@ -38,6 +38,29 @@ internal static partial class Nanoem
         public int Type;
     }
 
+    [StructLayout(LayoutKind.Sequential)]
+    internal struct IKConstraintLink
+    {
+        public int BoneIndex;
+        public int HasLimit;
+        public float LowerLimitX;
+        public float LowerLimitY;
+        public float LowerLimitZ;
+        public float UpperLimitX;
+        public float UpperLimitY;
+        public float UpperLimitZ;
+    }
+
+    [StructLayout(LayoutKind.Sequential)]
+    internal struct IKConstraintInfo
+    {
+        public int TargetBoneIndex;
+        public float AngleLimit;
+        public int Iterations;
+        public int LinkCount;
+        public IntPtr Links;
+    }
+
     [DllImport(NativeLibName, CallingConvention = CallingConvention.Cdecl)]
     private static extern void nanoemModelGetInfo(IntPtr model, out ModelInfo info);
 
@@ -52,6 +75,9 @@ internal static partial class Nanoem
 
     [DllImport(NativeLibName, CallingConvention = CallingConvention.Cdecl)]
     private static extern void nanoemModelGetMorphInfo(IntPtr model, uint index, out MorphInfo info);
+
+    [DllImport(NativeLibName, CallingConvention = CallingConvention.Cdecl)]
+    private static extern void nanoemModelGetIKConstraintInfo(IntPtr model, uint boneIndex, out IKConstraintInfo info);
 
     [DllImport(NativeLibName, CallingConvention = CallingConvention.Cdecl)]
     private static extern void nanoemModelIOFree(IntPtr ptr);
@@ -100,6 +126,12 @@ internal static partial class Nanoem
     public static MorphInfo ModelGetMorphInfo(IntPtr model, uint index)
     {
         nanoemModelGetMorphInfo(model, index, out var info);
+        return info;
+    }
+
+    public static IKConstraintInfo ModelGetIKConstraintInfo(IntPtr model, uint boneIndex)
+    {
+        nanoemModelGetIKConstraintInfo(model, boneIndex, out var info);
         return info;
     }
 

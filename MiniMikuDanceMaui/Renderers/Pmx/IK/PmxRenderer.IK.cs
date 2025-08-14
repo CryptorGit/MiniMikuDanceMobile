@@ -52,7 +52,7 @@ public partial class PmxRenderer
         {
             _ikBones.Clear();
             _ikBones.AddRange(bones);
-            Nanoem.InitializeIk(_ikBones.Count);
+            Nanoem.InitializeIk(_ikBones);
             foreach (var ik in _ikBones)
             {
                 ik.Position = GetBoneWorldPosition(ik.PmxBoneIndex);
@@ -65,7 +65,7 @@ public partial class PmxRenderer
         lock (_ikBonesLock)
         {
             _ikBones.Clear();
-            Nanoem.InitializeIk(0);
+            Nanoem.InitializeIk();
         }
     }
 
@@ -81,7 +81,7 @@ public partial class PmxRenderer
             {
                 var target = WorldToModel(ik.Position);
                 var pos = new float[] { target.X, target.Y, target.Z };
-                Nanoem.SolveIk(ik.ConstraintIndex, ik.PmxBoneIndex, pos);
+                Nanoem.SolveIk(ik.ConstraintIndex, pos);
                 var solved = new Vector3(pos[0], pos[1], pos[2]);
                 var worldPos = ModelToWorld(solved);
                 ik.Position = worldPos;
