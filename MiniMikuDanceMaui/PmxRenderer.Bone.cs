@@ -3,12 +3,20 @@ using System.Collections.Generic;
 using System.Numerics;
 using MiniMikuDance;
 using MiniMikuDance.Import;
+using MiniMikuDance.UI;
 
 namespace MiniMikuDanceMaui;
 
 public partial class PmxRenderer
 {
     private int _selectedBone = -1;
+    private IntPtr _modelHandle = IntPtr.Zero;
+
+    public IntPtr ModelHandle
+    {
+        get => _modelHandle;
+        set => _modelHandle = value;
+    }
 
     public IReadOnlyList<BoneData> GetBones() => _bones;
 
@@ -23,24 +31,14 @@ public partial class PmxRenderer
     {
         if (index < 0 || index >= _bones.Count)
             return Matrix4x4.Identity;
-        var bone = NanoemBone.nanoemModelGetBoneObject(IntPtr.Zero, index);
-        if (bone != IntPtr.Zero)
-        {
-            NanoemBone.nanoemModelBoneGetTransformMatrix(bone, out var m);
-            return m;
-        }
-        return _bones[index].Transform;
+        return BoneController.GetTransform(_modelHandle, index, _bones[index].Transform);
     }
 
     public void SetBoneMatrix(int index, Matrix4x4 value)
     {
         if (index < 0 || index >= _bones.Count)
             return;
-        var bonePtr = NanoemBone.nanoemModelGetBoneObject(IntPtr.Zero, index);
-        if (bonePtr != IntPtr.Zero)
-        {
-            NanoemBone.nanoemModelBoneSetTransformMatrix(bonePtr, value);
-        }
+        BoneController.SetTransform(_modelHandle, index, value);
         _bones[index].Transform = value;
         _bonesDirty = true;
         Viewer?.InvalidateSurface();
@@ -50,9 +48,10 @@ public partial class PmxRenderer
     {
         if (_selectedBone < 0 || _selectedBone >= _bones.Count)
             return;
-        var current = GetBoneMatrix(_selectedBone);
-        var m = Matrix4x4.CreateTranslation(delta) * current;
-        SetBoneMatrix(_selectedBone, m);
+        BoneController.Translate(_modelHandle, _selectedBone, delta);
+        _bones[_selectedBone].Transform = BoneController.GetTransform(_modelHandle, _selectedBone, _bones[_selectedBone].Transform);
+        _bonesDirty = true;
+        Viewer?.InvalidateSurface();
     }
 }
 

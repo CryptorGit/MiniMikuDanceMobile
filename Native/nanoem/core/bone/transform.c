@@ -6,6 +6,13 @@
 
 #include "../nanoem_p.h"
 
+const nanoem_model_bone_t *APIENTRY
+nanoemModelGetBoneObject(const nanoem_model_t *model, int index)
+{
+    return nanoem_is_not_null(model) && index >= 0 && (nanoem_rsize_t) index < model->num_bones ?
+        model->bones[index] : NULL;
+}
+
 void APIENTRY
 nanoemModelBoneGetTransformMatrix(const nanoem_model_bone_t *bone, nanoem_f32_t *value)
 {
