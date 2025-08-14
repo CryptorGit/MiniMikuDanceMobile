@@ -8,7 +8,6 @@ public partial class PmxRenderer
 {
     private readonly List<IntPtr> _rigidBodies = new();
     private readonly List<IntPtr> _joints = new();
-    private DateTime _lastPhysicsUpdate = DateTime.UtcNow;
 
     private void RegisterPhysics(IList<RigidBodyData> rigidBodies, IList<JointData> joints)
     {

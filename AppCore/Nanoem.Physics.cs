@@ -8,28 +8,6 @@ internal static class NanoemPhysics
     private const string NativeLibName = "nanoem";
     private static IntPtr _world;
 
-    internal enum PhysicsShape
-    {
-        Sphere,
-        Box,
-        Capsule
-    }
-
-    [StructLayout(LayoutKind.Sequential)]
-    internal struct RigidBodyDefinition
-    {
-        public int BoneIndex;
-        public float Mass;
-        public PhysicsShape Shape;
-    }
-
-    [StructLayout(LayoutKind.Sequential)]
-    internal struct JointDefinition
-    {
-        public int RigidBodyA;
-        public int RigidBodyB;
-    }
-
     [DllImport(NativeLibName, CallingConvention = CallingConvention.Cdecl)]
     private static extern IntPtr nanoemEmappPhysicsRigidBodyCreate(IntPtr value, IntPtr world, out int status);
 
@@ -173,6 +151,6 @@ internal static class NanoemPhysics
         if (_world != IntPtr.Zero)
         {
             nanoemEmappPhysicsWorldSetActive(_world, value);
+        }
     }
-}
 }
