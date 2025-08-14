@@ -21,6 +21,16 @@ typedef struct nanoem_model_material_info_t {
     int textureIndex;
 } nanoem_model_material_info_t;
 
+typedef struct nanoem_model_morph_vertex_offset_t {
+    int vertexIndex;
+    float offset[3];
+} nanoem_model_morph_vertex_offset_t;
+
+typedef struct nanoem_model_morph_uv_offset_t {
+    int vertexIndex;
+    float offset[4];
+} nanoem_model_morph_uv_offset_t;
+
 static char *
 unicodeStringToUtf8(const nanoem_unicode_string_t *s)
 {
@@ -118,6 +128,80 @@ nanoemModelGetMorphInitialWeight(const nanoem_model_t *model, nanoem_rsize_t ind
     (void) numMorphs;
     /* TODO: expose actual morph weight from nanoem */
     return 0.0f;
+}
+
+NANOEM_DECL_API nanoem_model_morph_vertex_offset_t *APIENTRY
+nanoemModelMorphGetVertexOffsets(const nanoem_model_t *model, nanoem_rsize_t index, nanoem_rsize_t *num_offsets)
+{
+    nanoem_model_morph_vertex_offset_t *offsets = NULL;
+    nanoem_rsize_t numMorphs = 0;
+    const nanoem_model_morph_t *const *morphs = nanoemModelGetAllMorphObjects(model, &numMorphs);
+    if (index < numMorphs) {
+        const nanoem_model_morph_t *morph = morphs[index];
+        nanoem_rsize_t count = 0;
+        nanoem_model_morph_vertex_t *const *items = nanoemModelMorphGetAllVertexMorphObjects(morph, &count);
+        if (count > 0) {
+            offsets = (nanoem_model_morph_vertex_offset_t *) malloc(sizeof(*offsets) * count);
+            if (offsets) {
+                for (nanoem_rsize_t i = 0; i < count; i++) {
+                    const nanoem_model_morph_vertex_t *v = items[i];
+                    const nanoem_model_vertex_t *vertex = nanoemModelMorphVertexGetVertexObject(v);
+                    offsets[i].vertexIndex = vertex ? (int) nanoemModelObjectGetIndex(nanoemModelVertexGetModelObject(vertex)) : -1;
+                    const nanoem_f32_t *pos = nanoemModelMorphVertexGetPosition(v);
+                    if (pos) {
+                        memcpy(offsets[i].offset, pos, sizeof(offsets[i].offset));
+                    }
+                    else {
+                        memset(offsets[i].offset, 0, sizeof(offsets[i].offset));
+                    }
+                }
+            }
+        }
+        if (num_offsets) {
+            *num_offsets = count;
+        }
+    }
+    else if (num_offsets) {
+        *num_offsets = 0;
+    }
+    return offsets;
+}
+
+NANOEM_DECL_API nanoem_model_morph_uv_offset_t *APIENTRY
+nanoemModelMorphGetUVOffsets(const nanoem_model_t *model, nanoem_rsize_t index, nanoem_rsize_t *num_offsets)
+{
+    nanoem_model_morph_uv_offset_t *offsets = NULL;
+    nanoem_rsize_t numMorphs = 0;
+    const nanoem_model_morph_t *const *morphs = nanoemModelGetAllMorphObjects(model, &numMorphs);
+    if (index < numMorphs) {
+        const nanoem_model_morph_t *morph = morphs[index];
+        nanoem_rsize_t count = 0;
+        nanoem_model_morph_uv_t *const *items = nanoemModelMorphGetAllUVMorphObjects(morph, &count);
+        if (count > 0) {
+            offsets = (nanoem_model_morph_uv_offset_t *) malloc(sizeof(*offsets) * count);
+            if (offsets) {
+                for (nanoem_rsize_t i = 0; i < count; i++) {
+                    const nanoem_model_morph_uv_t *v = items[i];
+                    const nanoem_model_vertex_t *vertex = nanoemModelMorphUVGetVertexObject(v);
+                    offsets[i].vertexIndex = vertex ? (int) nanoemModelObjectGetIndex(nanoemModelVertexGetModelObject(vertex)) : -1;
+                    const nanoem_f32_t *pos = nanoemModelMorphUVGetPosition(v);
+                    if (pos) {
+                        memcpy(offsets[i].offset, pos, sizeof(offsets[i].offset));
+                    }
+                    else {
+                        memset(offsets[i].offset, 0, sizeof(offsets[i].offset));
+                    }
+                }
+            }
+        }
+        if (num_offsets) {
+            *num_offsets = count;
+        }
+    }
+    else if (num_offsets) {
+        *num_offsets = 0;
+    }
+    return offsets;
 }
 
 #ifdef __cplusplus
