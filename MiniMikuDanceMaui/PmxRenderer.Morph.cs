@@ -4,6 +4,7 @@ using OpenTK.Mathematics;
 using MiniMikuDance.Util;
 using MiniMikuDance.Import;
 using MiniMikuDance;
+using MiniMikuDance.Morph;
 using MMDTools;
 using Vector2 = OpenTK.Mathematics.Vector2;
 using Vector3 = OpenTK.Mathematics.Vector3;
@@ -130,7 +131,7 @@ public partial class PmxRenderer
 
         if (_modelHandle != IntPtr.Zero)
         {
-            Nanoem.SetMorphWeight(_modelHandle, morph.Index, value);
+            MorphController.SetWeight(_modelHandle, morph.Index, value);
         }
 
         switch (morph.Type)
