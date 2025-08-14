@@ -4,8 +4,6 @@ namespace MiniMikuDance;
 
 internal static partial class Nanoem
 {
-    private const string NativeLibName = "nanoem";
-
     [DllImport(NativeLibName, CallingConvention = CallingConvention.Cdecl, EntryPoint = "nanoemRenderingInitialize")]
     private static extern void RenderingInitializeNative(int width, int height);
 

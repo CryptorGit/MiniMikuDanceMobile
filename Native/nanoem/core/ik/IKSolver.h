@@ -11,8 +11,8 @@
 extern "C" {
 #endif
 
-void nanoem_emapp_initialize_ik(void);
-void nanoem_emapp_solve_ik(int32_t bone_index, float position[3]);
+void nanoem_emapp_initialize_ik(int32_t num_constraints);
+void nanoem_emapp_solve_ik(int32_t constraint_index, int32_t bone_index, float position[3]);
 
 #ifdef __cplusplus
 }
