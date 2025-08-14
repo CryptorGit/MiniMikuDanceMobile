@@ -3,8 +3,9 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using Microsoft.Maui.Controls;
+using MiniMikuDanceMaui.FileSystem;
 
-namespace MiniMikuDanceMaui;
+namespace MiniMikuDanceMaui.Views;
 
 public partial class ExplorerView : ContentView
 {

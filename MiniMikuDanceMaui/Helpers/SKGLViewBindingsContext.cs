@@ -1,7 +1,7 @@
 using OpenTK;
 using System;
 
-namespace MiniMikuDanceMaui;
+namespace MiniMikuDanceMaui.Helpers;
 
 internal class SKGLViewBindingsContext : IBindingsContext
 {

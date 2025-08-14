@@ -24,8 +24,11 @@ using MiniMikuDance.App;
 using SixLabors.ImageSharp.PixelFormats;
 using MiniMikuDance.IK;
 using MiniMikuDance.Util;
+using MiniMikuDanceMaui.FileSystem;
+using MiniMikuDanceMaui.Helpers;
+using MiniMikuDanceMaui.Rendering;
 
-namespace MiniMikuDanceMaui;
+namespace MiniMikuDanceMaui.Views;
 
 public partial class MainPage : ContentPage
 {

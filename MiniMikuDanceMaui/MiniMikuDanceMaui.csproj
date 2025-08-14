@@ -46,4 +46,15 @@
         <Link>Configs\UIConfig.json</Link>
       </MauiAsset>
     </ItemGroup>
+  <ItemGroup>
+    <Compile Update="Views\**\*.xaml.cs">
+      <DependentUpon>%(Filename).xaml</DependentUpon>
+    </Compile>
+    <MauiXaml Update="Views\**\*.xaml">
+      <Generator>MSBuild:UpdateDesignTimeXaml</Generator>
+    </MauiXaml>
+    <Compile Update="Rendering\**\*.cs" />
+    <Compile Update="FileSystem\**\*.cs" />
+    <Compile Update="Helpers\**\*.cs" />
+  </ItemGroup>
   </Project>
