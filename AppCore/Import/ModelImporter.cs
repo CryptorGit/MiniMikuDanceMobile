@@ -9,6 +9,9 @@ using SixLabors.ImageSharp;
 using SixLabors.ImageSharp.PixelFormats;
 using Vector3D = Assimp.Vector3D;
 using MMDTools;
+using MMDVertex = MMDTools.Vertex; // PMX頂点
+using MMDMaterial = MMDTools.Material; // PMX材質
+using MMDVector3 = MMDTools.Vector3; // PMX座標ベクトル
 using MiniMikuDance.App;
 
 namespace MiniMikuDance.Import;
@@ -157,12 +160,12 @@ public class ModelImporter : IDisposable
         return ms;
     }
 
-    private System.Numerics.Vector3 ScaleVector(dynamic v)
+    private System.Numerics.Vector3 ScaleVector(MMDVector3 v) // PMXParser.Vector3
     {
         return new System.Numerics.Vector3(v.X * Scale, v.Y * Scale, v.Z * Scale);
     }
 
-    private SubMeshData CreateSubMesh(dynamic mat)
+    private SubMeshData CreateSubMesh(MMDMaterial mat) // PMXParser.Material
     {
         var sub = new Assimp.Mesh("pmx", Assimp.PrimitiveType.Triangle);
         return new SubMeshData
@@ -178,7 +181,7 @@ public class ModelImporter : IDisposable
         };
     }
 
-    private void ProcessVertex(Assimp.Mesh mesh, SubMeshData smd, dynamic vertex)
+    private void ProcessVertex(Assimp.Mesh mesh, SubMeshData smd, MMDVertex vertex) // PMXParser.Vertex
     {
         var pos = ScaleVector(vertex.Position);
         mesh.Vertices.Add(new Vector3D(pos.X, pos.Y, pos.Z));
@@ -226,7 +229,7 @@ public class ModelImporter : IDisposable
         smd.SdefR1.Add(sr1);
     }
 
-    private void AddFace(Assimp.Mesh mesh, SubMeshData smd, dynamic[] verts, Surface face)
+    private void AddFace(Assimp.Mesh mesh, SubMeshData smd, MMDVertex[] verts, Surface face) // verts: PMXParser.Vertex[]
     {
         int[] idxs = { (int)face.V1, (int)face.V2, (int)face.V3 };
         int baseIndex = mesh.Vertices.Count;
@@ -241,7 +244,7 @@ public class ModelImporter : IDisposable
         mesh.Faces.Add(f);
     }
 
-    private void GenerateSubMeshes(ModelData data, dynamic[] verts, Surface[] faces, dynamic[] mats, string[] texList, string? textureDir)
+    private void GenerateSubMeshes(ModelData data, MMDVertex[] verts, Surface[] faces, MMDMaterial[] mats, string[] texList, string? textureDir) // PMXParser配列
     {
         int faceOffset = 0;
         string dir = textureDir ?? string.Empty;
@@ -529,7 +532,6 @@ public class ModelImporter : IDisposable
                 if (boneDatas[i].Name.Equals(hb, StringComparison.OrdinalIgnoreCase))
                 {
                     data.HumanoidBones[hb] = i;
-                    data.HumanoidBoneList.Add((hb, i));
                     break;
                 }
             }
