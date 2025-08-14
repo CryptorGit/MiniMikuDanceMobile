@@ -5,6 +5,7 @@ using MiniMikuDance.UI;
 using System;
 using System.IO;
 using MiniMikuDanceMaui.Helpers;
+using MiniMikuDanceMaui.Views;
 
 namespace MiniMikuDanceMaui;
 
