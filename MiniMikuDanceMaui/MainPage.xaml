@@ -4,8 +4,13 @@
              xmlns:skia="clr-namespace:SkiaSharp.Views.Maui.Controls;assembly=SkiaSharp.Views.Maui.Controls"
              xmlns:mmd="clr-namespace:MiniMikuDanceMaui"
              xmlns:mi="http://www.aathifmahir.com/dotnet/2022/maui/icons"
+             xmlns:vm="clr-namespace:MiniMikuDanceMaui.ViewModels"
              x:Class="MiniMikuDanceMaui.MainPage"
              BackgroundColor="Transparent">
+
+    <ContentPage.BindingContext>
+        <vm:MainPageViewModel />
+    </ContentPage.BindingContext>
 
     <ContentPage.MenuBarItems>
         <MenuBarItem Text="File" />
@@ -76,17 +81,17 @@
                 
                 <Label Text="Bone" TextColor="{StaticResource TextColor}">
                     <Label.GestureRecognizers>
-                        <TapGestureRecognizer Tapped="OnBoneClicked" />
+                        <TapGestureRecognizer Command="{Binding ShowBoneCommand}" />
                     </Label.GestureRecognizers>
                 </Label>
                 <Label Text="Lighting" TextColor="{StaticResource TextColor}">
                     <Label.GestureRecognizers>
-                        <TapGestureRecognizer Tapped="OnLightingClicked" />
+                        <TapGestureRecognizer Command="{Binding ShowLightingCommand}" />
                     </Label.GestureRecognizers>
                 </Label>
                 <Label Text="Morph" TextColor="{StaticResource TextColor}">
                     <Label.GestureRecognizers>
-                        <TapGestureRecognizer Tapped="OnMorphClicked" />
+                        <TapGestureRecognizer Command="{Binding ShowMorphCommand}" />
                     </Label.GestureRecognizers>
                 </Label>
             </VerticalStackLayout>
@@ -114,7 +119,8 @@
         <Border x:Name="PmxImportDialog" IsVisible="False" Background="{StaticResource BackgroundColor}" Padding="8" ZIndex="30">
             <VerticalStackLayout Spacing="6">
                 <Label Text="モデルファイルを以下から選択してください" TextColor="{StaticResource TextColor}" />
-                <Label x:Name="SelectedModelPath"
+                <Label x:Name="SelectedModelPathLabel"
+                       Text="{Binding SelectedModelName}"
                        TextColor="{StaticResource TextColor}"
                        FontSize="14"
                        HorizontalOptions="FillAndExpand"
@@ -144,7 +150,7 @@
                 </ScrollView>
                 <Label Text="×" Grid.Column="1" TextColor="{StaticResource TextColor}" HorizontalTextAlignment="Center" VerticalTextAlignment="Center">
                     <Label.GestureRecognizers>
-                        <TapGestureRecognizer Tapped="OnCloseBottomTapped" />
+                        <TapGestureRecognizer Command="{Binding CloseBottomCommand}" />
                     </Label.GestureRecognizers>
                 </Label>
             </Grid>

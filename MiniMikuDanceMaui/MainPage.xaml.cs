@@ -26,6 +26,7 @@ using MiniMikuDance.IK;
 using MiniMikuDance.Util;
 using MiniMikuDanceMaui.Renderers;
 using MiniMikuDanceMaui.Helpers;
+using MiniMikuDanceMaui.ViewModels;
 
 namespace MiniMikuDanceMaui;
 
@@ -43,7 +44,8 @@ public partial class MainPage : ContentPage
     private readonly Dictionary<string, View> _bottomViews = new();
     private readonly Dictionary<string, Border> _bottomTabs = new();
     private string? _currentFeature;
-    private string? _selectedModelPath;
+
+    private MainPageViewModel ViewModel => (MainPageViewModel)BindingContext;
     private static readonly HashSet<string> ModelExtensions = new() { ".pmx", ".pmd" };
     private string? _modelDir;
     private float _modelScale = 1f;
@@ -160,6 +162,23 @@ public partial class MainPage : ContentPage
     {
         InitializeComponent();
         NavigationPage.SetHasNavigationBar(this, false);
+        ViewModel.ShowFeatureRequested += name =>
+        {
+            ShowBottomFeature(name);
+            HideAllMenusAndLayout();
+        };
+        ViewModel.CloseBottomRequested += () =>
+        {
+            if (_currentFeature != null)
+            {
+                RemoveBottomFeature(_currentFeature);
+            }
+            else
+            {
+                HideBottomRegion();
+            }
+            HideAllMenusAndLayout();
+        };
         this.SizeChanged += OnSizeChanged;
         _renderer.RotateSensitivity = 0.1f;
         _renderer.PanSensitivity = 1f;
@@ -328,44 +347,6 @@ public partial class MainPage : ContentPage
         UpdateLayout();
     }
 
-
-    private async void OnSelectClicked(object? sender, EventArgs e)
-    {
-        HideAllMenusAndLayout();
-        await ShowModelSelector();
-    }
-
-    private void OnBoneClicked(object? sender, EventArgs e)
-    {
-        ShowBottomFeature("BONE");
-        HideAllMenusAndLayout();
-    }
-
-
-    private void OnLightingClicked(object? sender, EventArgs e)
-    {
-        ShowBottomFeature("MTOON");
-        HideAllMenusAndLayout();
-    }
-
-    private void OnMorphClicked(object? sender, EventArgs e)
-    {
-        ShowBottomFeature("MORPH");
-        HideAllMenusAndLayout();
-    }
-
-    private void OnCloseBottomTapped(object? sender, TappedEventArgs e)
-    {
-        if (_currentFeature != null)
-        {
-            RemoveBottomFeature(_currentFeature);
-        }
-        else
-        {
-            HideBottomRegion();
-        }
-        HideAllMenusAndLayout();
-    }
 
     private void OnOverlayTapped(object? sender, TappedEventArgs e)
     {
@@ -1067,12 +1048,11 @@ public partial class MainPage : ContentPage
     private void OnOpenInViewerClicked(object? sender, EventArgs e)
     {
         HideAllMenusAndLayout();
-        SelectedModelPath.Text = string.Empty;
-        _selectedModelPath = null;
+        ViewModel.SelectedModelPath = null;
         _modelDir = null;
         _modelScale = 1f;
         // Show bottom explorer and dialog overlay together
-        ShowExplorer("Open", PmxImportDialog, SelectedModelPath, ref _selectedModelPath);
+        ShowExplorer("Open", PmxImportDialog);
     }
 
     private async void ShowModelExplorer()
@@ -1097,7 +1077,7 @@ public partial class MainPage : ContentPage
             return;
         }
 
-        ShowExplorer("Open", PmxImportDialog, SelectedModelPath, ref _selectedModelPath);
+        ShowExplorer("Open", PmxImportDialog);
     }
 
     private void OnOpenExplorerFileSelected(object? sender, string path)
@@ -1107,15 +1087,14 @@ public partial class MainPage : ContentPage
             return;
         }
 
-        _selectedModelPath = path;
+        ViewModel.SelectedModelPath = path;
         _modelDir = Path.GetDirectoryName(path);
-        SelectedModelPath.Text = Path.GetFileName(path);
     }
 
     private async void OnImportPmxClicked(object? sender, EventArgs e)
     {
 
-        if (string.IsNullOrEmpty(_selectedModelPath))
+        if (string.IsNullOrEmpty(ViewModel.SelectedModelPath))
         {
             await DisplayAlert("Error", "ファイルが選択されていません", "OK");
             return;
@@ -1133,7 +1112,7 @@ public partial class MainPage : ContentPage
             _modelScale = 1f;
             ModelImporter.CacheCapacity = _settings.TextureCacheSize;
             using var importer = new ModelImporter { Scale = _modelScale };
-            var data = await Task.Run(() => importer.ImportModel(_selectedModelPath));
+            var data = await Task.Run(() => importer.ImportModel(ViewModel.SelectedModelPath));
 
             // PMX内のテクスチャ相対パスとサブメッシュインデックスの対応表を作成
             var textureMap = new Dictionary<string, List<int>>(StringComparer.OrdinalIgnoreCase);
@@ -1210,27 +1189,26 @@ public partial class MainPage : ContentPage
         catch (Exception ex)
         {
             Debug.WriteLine(ex);
-            SelectedModelPath.Text = "モデルの読み込みに失敗しました";
+            ViewModel.SelectedModelPath = null;
             await DisplayAlert("Error", "モデルの読み込みに失敗しました", "OK");
         }
         finally
         {
             Viewer.HasRenderLoop = true;
             SetLoadingIndicatorVisibilityAndLayout(false);
-            _selectedModelPath = null;
+            ViewModel.SelectedModelPath = null;
             _modelDir = null;
             if (success)
             {
-                SelectedModelPath.Text = string.Empty;
+                ViewModel.SelectedModelPath = null;
             }
         }
     }
 
     private void OnCancelImportClicked(object? sender, EventArgs e)
     {
-        _selectedModelPath = null;
+        ViewModel.SelectedModelPath = null;
         PmxImportDialog.IsVisible = false;
-        SelectedModelPath.Text = string.Empty;
         _modelScale = 1f;
         _modelDir = null;
         SetLoadingIndicatorVisibilityAndLayout(false);
@@ -1263,12 +1241,11 @@ public partial class MainPage : ContentPage
         UpdateLayout();
     }
 
-    private void ShowExplorer(string featureName, Border messageFrame, Label pathLabel, ref string? selectedPath)
+    private void ShowExplorer(string featureName, Border messageFrame)
     {
         ShowBottomFeature(featureName);
         messageFrame.IsVisible = true;
-        pathLabel.Text = string.Empty;
-        selectedPath = null;
+        ViewModel.SelectedModelPath = null;
         UpdateLayout();
     }
 
