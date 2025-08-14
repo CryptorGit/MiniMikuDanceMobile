@@ -4,7 +4,9 @@ using System.Numerics;
 using MiniMikuDance;
 using MiniMikuDance.App;
 using MiniMikuDance.IK;
+using MiniMikuDance.Import;
 using MiniMikuDance.Util;
+using MiniMikuDance.UI;
 using OpenTK.Graphics.ES30;
 using GL = OpenTK.Graphics.ES30.GL;
 
@@ -77,14 +79,22 @@ public partial class PmxRenderer
             {
                 return;
             }
+            Nanoem.ResetIk();
             foreach (var ik in _ikBones)
             {
-                var target = WorldToModel(ik.Position);
-                var pos = new float[] { target.X, target.Y, target.Z };
+                var transform = BoneController.GetWorldTransform(_modelHandle, ik.PmxBoneIndex, _worldMats[ik.PmxBoneIndex]);
+                var pos = new float[] { transform.Translation.X, transform.Translation.Y, transform.Translation.Z };
                 Nanoem.SolveIk(ik.ConstraintIndex, pos);
                 var solved = new Vector3(pos[0], pos[1], pos[2]);
                 var worldPos = ModelToWorld(solved);
                 SetBoneTranslation(ik.PmxBoneIndex, worldPos.ToOpenTK());
+                var bone = NanoemBone.nanoemModelGetBoneObject(_modelHandle, ik.PmxBoneIndex);
+                if (bone != IntPtr.Zero)
+                {
+                    NanoemBone.nanoemModelBoneGetTransform(bone, out var m);
+                    _worldMats[ik.PmxBoneIndex] = m;
+                    ik.Position = ModelToWorld(m.Translation);
+                }
             }
             UpdateBoneMatricesFromModel();
             foreach (var ik in _ikBones)

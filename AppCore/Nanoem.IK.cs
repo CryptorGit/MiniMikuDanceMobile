@@ -13,6 +13,9 @@ internal static partial class Nanoem
     [DllImport(NativeLibName, CallingConvention = CallingConvention.Cdecl)]
     private static extern void nanoem_emapp_solve_ik(int constraintIndex, [In, Out] float[] position);
 
+    [DllImport(NativeLibName, CallingConvention = CallingConvention.Cdecl)]
+    private static extern void nanoem_emapp_reset_ik();
+
     public static void InitializeIk(IReadOnlyList<IkBone> bones)
     {
         var infos = new IKConstraintInfo[bones.Count];
@@ -71,5 +74,10 @@ internal static partial class Nanoem
     public static void SolveIk(int constraintIndex, float[] position)
     {
         nanoem_emapp_solve_ik(constraintIndex, position);
+    }
+
+    public static void ResetIk()
+    {
+        nanoem_emapp_reset_ik();
     }
 }

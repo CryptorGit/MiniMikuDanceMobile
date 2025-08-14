@@ -96,3 +96,13 @@ nanoem_emapp_solve_ik(int32_t constraint_index, float position[3])
     constraint->effector_position[2] = position[2];
 }
 
+void
+nanoem_emapp_reset_ik(void)
+{
+    for (int32_t i = 0; i < g_num_constraints; i++) {
+        g_constraints[i].effector_position[0] = 0.0f;
+        g_constraints[i].effector_position[1] = 0.0f;
+        g_constraints[i].effector_position[2] = 0.0f;
+    }
+}
+
