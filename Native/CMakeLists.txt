@@ -12,6 +12,9 @@ target_sources(nanoem PRIVATE
     nanoem/core/nanoem.c
     nanoem/core/version.c
     ${EMAPP_SRC}
+# viewer begin
+    nanoem/emapp/viewer.cc
+# viewer end
 )
 
 add_subdirectory(nanoem/core/bone)

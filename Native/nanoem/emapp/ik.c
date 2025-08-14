@@ -4,8 +4,8 @@
    This file is part of emapp component and it's licensed under Mozilla Public License. see LICENSE.md for more details.
 */
 
-#include "IKSolver.h"
-#include "ConstraintSolver.h"
+#include "core/ik/IKSolver.h"
+#include "core/ik/ConstraintSolver.h"
 
 #include <stdlib.h>
 

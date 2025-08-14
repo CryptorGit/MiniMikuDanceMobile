@@ -20,7 +20,6 @@ add_library(nanoem_core
     core/ext/mutable.c
     core/ext/parson/parson.c
     core/ik/ConstraintSolver.cc
-    core/ik/IKSolver.cc
     core/ik/motion.c
     core/ik/motion.pb-c.c
     core/ext/motion.c
@@ -32,6 +31,7 @@ add_library(nanoem_core
     emapp/CommonInclude.cc
     emapp/PhysicsEngine.cc
     emapp/physics.c
+    emapp/ik.c
     core/physics/physics_bullet.cc
     core/import/document.c
     core/import/mutable.c
