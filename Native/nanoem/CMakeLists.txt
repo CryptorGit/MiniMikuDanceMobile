@@ -33,7 +33,7 @@ add_library(nanoem_core
     emapp/render/PerspectiveCamera.cc
     emapp/CommonInclude.cc
     emapp/PhysicsEngine.cc
-    emapp/morph.c
+    emapp/morph.cc
     emapp/physics.c
     emapp/physics/PhysicsEngine.cc
     emapp/physics/physics.c
