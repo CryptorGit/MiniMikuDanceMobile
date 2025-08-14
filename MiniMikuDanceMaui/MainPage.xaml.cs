@@ -914,8 +914,13 @@ public partial class MainPage : ContentPage
             }
             else
             {
-                var textColor = (Color)(Application.Current?.Resources?.TryGetValue("TextColor", out var textColorValue) == true ? textColorValue : Colors.Black);
-                view = new Label { Text = $"{name} view", TextColor = textColor, HorizontalTextAlignment = TextAlignment.Center, VerticalTextAlignment = TextAlignment.Center };
+                view = new Label
+                {
+                    Text = $"{name} view",
+                    TextColor = ResourceHelper.GetColor("TextColor"),
+                    HorizontalTextAlignment = TextAlignment.Center,
+                    VerticalTextAlignment = TextAlignment.Center
+                };
             }
             _bottomViews[name] = view;
 
@@ -929,7 +934,7 @@ public partial class MainPage : ContentPage
             var label = new Label
             {
                 Text = name,
-                TextColor = (Color)(Application.Current?.Resources?.TryGetValue("TextColor", out var textColorValue2) == true ? textColorValue2 : Colors.Black),
+                TextColor = ResourceHelper.GetColor("TextColor"),
                 FontSize = 16,
                 HorizontalTextAlignment = TextAlignment.Center,
                 VerticalTextAlignment = TextAlignment.Center
