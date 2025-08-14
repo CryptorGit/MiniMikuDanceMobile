@@ -13,10 +13,8 @@ public partial class PmxView : ContentView
 
     private void OnLoaded(object? sender, EventArgs e)
     {
-        Nanoem.RenderingInitialize((int)Viewport.Width, (int)Viewport.Height);
         Dispatcher.StartTimer(TimeSpan.FromMilliseconds(16), () =>
         {
-            Nanoem.RenderingUpdateFrame();
             Viewport.Invalidate();
             return true;
         });

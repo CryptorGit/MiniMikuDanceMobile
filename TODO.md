@@ -6,6 +6,7 @@
 
 - [ ] nanoem 描画初期化およびフレーム更新処理の実装と View への適用
 - [ ] nanoem API とボーン変形の完全統合（現在はダミー実装）
+- [ ] nanoem 描画初期化およびフレーム更新処理の詳細実装（現在はスタブ）
 
 ## nanoem 手作業移植の未完了項目
 - [ ] 残りの nanoem core ソースの移植
@@ -23,16 +24,21 @@
 - [ ] IK ソルバー本体の移植と P/Invoke 実装
 - [ ] ConstraintSolver の transform 対応など IK 計算の詳細実装
 - [ ] IKSolver の初期化処理と複数制約への対応実装
+- [ ] IK ソルバーでのボーン階層対応と複数制約解決の精度向上
 - [ ] ボーン編集機能の実装と UI への連携
 - [ ] モデル/モーション等のインポート機能の移植
 - [ ] PMX/VMD ネイティブインポートのデータ取得処理拡張
 - [ ] PMX インポートの nanoem 呼び出しへの完全移行（頂点数以外は未対応）
 - [ ] ネイティブインポートで頂点情報やキーフレーム詳細を取得する実装
 - [ ] Assimp 依存削除と既存 ModelImporter の置き換え
+- [ ] nanoem P/Invoke によるボーン・モーフ情報取得の公開 API 整備
+- [ ] ModelImporter を nanoem API ベースに再実装し MMDTools/Assimp を排除
 - [ ] 未対応形式 (PMD, VPD など) のサポート検討
 - [ ] iOS 用のネイティブライブラリビルド対応
-  - [x] CMake 設定追加
   - [ ] iOS ビルド環境での実機検証
 - [ ] protobuf-c ランタイムの最小実装と motion.pb-c.c のビルド統合
 - [ ] 文字コード変換関連 (cfstring.c, mbwc.c, icu.c) のビルド対応
 - [ ] モーフアニメーションの未実装部分の対応
+- [ ] `Documents/nanoem-main/nanoem/morph` からモーフ関連ソースを確認し、`Native/nanoem/core/morph` へ追加
+- [ ] `AppCore/Nanoem.Morph.cs` の P/Invoke を拡張し、頂点変形・材質変化をネイティブで適用
+- [ ] `MiniMikuDanceMaui/PmxRenderer.Morph.cs` をネイティブ呼び出し方式へ改修し再計算処理を削減

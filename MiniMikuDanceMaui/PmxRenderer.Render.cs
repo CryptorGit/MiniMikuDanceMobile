@@ -16,6 +16,7 @@ namespace MiniMikuDanceMaui;
 
 public partial class PmxRenderer
 {
+    private bool _renderingInitialized;
     private void EnsureBoneCapacity()
     {
         if (_boneCapacity == _bones.Count)
@@ -78,6 +79,14 @@ public partial class PmxRenderer
 
     public void Render()
     {
+        if (!_renderingInitialized)
+        {
+            Nanoem.RenderingInitialize(_width, _height);
+            _renderingInitialized = true;
+        }
+
+        Nanoem.RenderingUpdateFrame();
+
         UpdateViewProjection();
 
         lock (_physicsLock)

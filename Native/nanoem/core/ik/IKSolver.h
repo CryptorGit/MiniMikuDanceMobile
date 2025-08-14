@@ -12,7 +12,7 @@ extern "C" {
 #endif
 
 void nanoem_emapp_initialize_ik(void);
-void nanoem_emapp_solve_ik(int32_t bone_index, const float position[3]);
+void nanoem_emapp_solve_ik(int32_t bone_index, float position[3]);
 
 #ifdef __cplusplus
 }

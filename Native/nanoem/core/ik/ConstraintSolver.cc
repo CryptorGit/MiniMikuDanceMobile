@@ -60,3 +60,26 @@ nanoem_emapp_constraint_solve_axis_angle(
     return 0;
 }
 
+int
+nanoem_emapp_constraint_solve_axis_angle_chain(
+    const float *transforms,
+    int32_t num_joints,
+    const float effector_position[3],
+    const float target_position[3],
+    nanoem_constraint_joint_t *results)
+{
+    if (!transforms || !results || num_joints <= 0) {
+        return 1;
+    }
+    int rc = 0;
+    for (int32_t i = 0; i < num_joints; i++) {
+        const float *transform = &transforms[i * 16];
+        rc = nanoem_emapp_constraint_solve_axis_angle(
+            transform, effector_position, target_position, &results[i]);
+        if (rc != 0) {
+            break;
+        }
+    }
+    return rc;
+}
+

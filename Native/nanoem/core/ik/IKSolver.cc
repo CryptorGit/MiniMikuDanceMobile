@@ -7,14 +7,18 @@
 #include "IKSolver.h"
 #include "ConstraintSolver.h"
 
+static float g_effector_position[3];
+
 void
 nanoem_emapp_initialize_ik(void)
 {
-    /* TODO: solver initialization */
+    g_effector_position[0] = 0.0f;
+    g_effector_position[1] = 0.0f;
+    g_effector_position[2] = 0.0f;
 }
 
 void
-nanoem_emapp_solve_ik(int32_t bone_index, const float position[3])
+nanoem_emapp_solve_ik(int32_t bone_index, float position[3])
 {
     (void) bone_index;
     nanoem_constraint_joint_t joint;
@@ -24,8 +28,9 @@ nanoem_emapp_solve_ik(int32_t bone_index, const float position[3])
         0.0f, 0.0f, 1.0f, 0.0f,
         0.0f, 0.0f, 0.0f, 1.0f
     };
-    const float origin[3] = { 0.0f, 0.0f, 0.0f };
-    nanoem_emapp_constraint_solve_axis_angle(transform, origin, position, &joint);
-    (void) joint;
+    nanoem_emapp_constraint_solve_axis_angle(transform, g_effector_position, position, &joint);
+    g_effector_position[0] = position[0];
+    g_effector_position[1] = position[1];
+    g_effector_position[2] = position[2];
 }
 
