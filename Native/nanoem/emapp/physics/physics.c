@@ -8,6 +8,29 @@
 
 #include <stdlib.h>
 
+typedef struct nanoem_emapp_physics_rigid_body_config_t {
+    nanoem_f32_t mass;
+    int shape;
+    nanoem_f32_t size[3];
+    nanoem_f32_t position[3];
+    nanoem_f32_t rotation[3];
+    nanoem_f32_t linear_lower[3];
+    nanoem_f32_t linear_upper[3];
+    nanoem_f32_t angular_lower[3];
+    nanoem_f32_t angular_upper[3];
+} nanoem_emapp_physics_rigid_body_config_t;
+
+typedef struct nanoem_emapp_physics_joint_config_t {
+    nanoem_physics_rigid_body_t *body_a;
+    nanoem_physics_rigid_body_t *body_b;
+    nanoem_f32_t position[3];
+    nanoem_f32_t rotation[3];
+    nanoem_f32_t translation_lower[3];
+    nanoem_f32_t translation_upper[3];
+    nanoem_f32_t rotation_lower[3];
+    nanoem_f32_t rotation_upper[3];
+} nanoem_emapp_physics_joint_config_t;
+
 struct nanoem_emapp_physics_world_t {
     nanoem_physics_world_t *world;
 };
@@ -40,6 +63,16 @@ nanoemEmappPhysicsRigidBodyCreate(
     return nanoemPhysicsRigidBodyCreate(value, NULL, status);
 }
 
+nanoem_physics_rigid_body_t *APIENTRY
+nanoemEmappPhysicsRigidBodyCreateWithConfig(
+    const nanoem_emapp_physics_rigid_body_config_t *config, nanoem_emapp_physics_world_t *world, nanoem_status_t *status)
+{
+    (void) config;
+    (void) world;
+    (void) status;
+    return NULL;
+}
+
 void APIENTRY
 nanoemEmappPhysicsRigidBodyDestroy(nanoem_physics_rigid_body_t *body)
 {
@@ -69,6 +102,16 @@ nanoemEmappPhysicsJointCreate(
     const nanoem_model_joint_t *value, nanoem_emapp_physics_world_t *world, nanoem_status_t *status)
 {
     return world ? nanoemPhysicsJointCreate(value, world->world, status) : NULL;
+}
+
+nanoem_physics_joint_t *APIENTRY
+nanoemEmappPhysicsJointCreateWithConfig(
+    const nanoem_emapp_physics_joint_config_t *config, nanoem_emapp_physics_world_t *world, nanoem_status_t *status)
+{
+    (void) config;
+    (void) world;
+    (void) status;
+    return NULL;
 }
 
 void APIENTRY
@@ -125,5 +168,11 @@ nanoemEmappPhysicsWorldSetActive(nanoem_emapp_physics_world_t *world, nanoem_boo
     if (world) {
         nanoemPhysicsWorldSetActive(world->world, value);
     }
+}
+
+void APIENTRY
+nanoemEmappPhysicsRigidBodyGetWorldTransform(const nanoem_physics_rigid_body_t *body, nanoem_f32_t *value)
+{
+    nanoemPhysicsRigidBodyGetWorldTransform(body, value);
 }
 
