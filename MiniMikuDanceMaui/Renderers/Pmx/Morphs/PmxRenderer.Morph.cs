@@ -1,6 +1,11 @@
 using System;
 using System.Collections.Generic;
 using MiniMikuDance.Morph;
+using Vector2 = OpenTK.Mathematics.Vector2;
+using Vector3 = OpenTK.Mathematics.Vector3;
+using Vector4 = OpenTK.Mathematics.Vector4;
+using NumericsVector3 = System.Numerics.Vector3;
+using NumericsQuaternion = System.Numerics.Quaternion;
 
 namespace MiniMikuDanceMaui.Renderers.Pmx;
 
@@ -33,6 +38,7 @@ public partial class PmxRenderer
                 pairs[i++] = (_morphs[mName].Index, mv);
             }
             MorphController.SetWeight(_modelHandle, pairs);
+            UpdateMorphResults();
         }
 
         _morphDirty = true;
@@ -61,5 +67,134 @@ public partial class PmxRenderer
 
     private class MorphModule : PmxRendererModuleBase
     {
+    }
+
+    private void UpdateMorphResults()
+    {
+        if (_modelHandle == IntPtr.Zero)
+            return;
+
+        foreach (var rm in _meshes)
+        {
+            Array.Clear(rm.VertexOffsets, 0, rm.VertexOffsets.Length);
+            Array.Clear(rm.UvOffsets, 0, rm.UvOffsets.Length);
+        }
+
+        lock (_changedVerticesLock)
+            _changedOriginalVertices.Clear();
+
+        foreach (var (mName, mv) in _morphValues)
+        {
+            int idx = _morphs[mName].Index;
+            var vo = NanoemMorph.GetVertexOffsets(_modelHandle, idx);
+            foreach (var off in vo)
+            {
+                var mapped = _morphVertexMap[off.VertexIndex];
+                if (mapped == null) continue;
+                var vec = new Vector3(off.X, off.Y, off.Z) * mv;
+                foreach (var (rm, vi) in mapped)
+                {
+                    rm.VertexOffsets[vi] += vec;
+                }
+                lock (_changedVerticesLock)
+                    _changedOriginalVertices.Add(off.VertexIndex);
+            }
+
+            var uo = NanoemMorph.GetUvOffsets(_modelHandle, idx);
+            foreach (var off in uo)
+            {
+                var mapped = _morphVertexMap[off.VertexIndex];
+                if (mapped == null) continue;
+                var vec = new Vector2(off.X, off.Y) * mv;
+                foreach (var (rm, vi) in mapped)
+                {
+                    if (vi < rm.UvOffsets.Length)
+                        rm.UvOffsets[vi] += vec;
+                }
+                lock (_changedVerticesLock)
+                    _changedOriginalVertices.Add(off.VertexIndex);
+            }
+        }
+
+        RecalculateMaterialMorphs();
+        RecalculateBoneMorphs();
+    }
+
+    private void RecalculateMaterialMorphs()
+    {
+        foreach (var rm in _meshes)
+        {
+            rm.Color = rm.BaseColor;
+            rm.Specular = rm.BaseSpecular;
+            rm.SpecularPower = rm.BaseSpecularPower;
+            rm.EdgeColor = rm.BaseEdgeColor;
+            rm.EdgeSize = rm.BaseEdgeSize;
+            rm.ToonColor = rm.BaseToonColor;
+            rm.TextureTint = rm.BaseTextureTint;
+        }
+
+        if (_modelHandle == IntPtr.Zero)
+            return;
+
+        foreach (var (mName, mv) in _morphValues)
+        {
+            int idx = _morphs[mName].Index;
+            var offs = NanoemMorph.GetMaterialOffsets(_modelHandle, idx);
+            foreach (var off in offs)
+            {
+                if (off.MaterialIndex < 0 || off.MaterialIndex >= _meshes.Count)
+                    continue;
+                var rm = _meshes[off.MaterialIndex];
+                if (off.OperationType == 0)
+                {
+                    rm.Color *= new Vector4(1f + off.DiffuseR * mv, 1f + off.DiffuseG * mv, 1f + off.DiffuseB * mv, 1f + off.DiffuseA * mv);
+                    rm.Specular *= new Vector3(1f + off.SpecularR * mv, 1f + off.SpecularG * mv, 1f + off.SpecularB * mv);
+                    rm.EdgeColor *= new Vector4(1f + off.EdgeColorR * mv, 1f + off.EdgeColorG * mv, 1f + off.EdgeColorB * mv, 1f + off.EdgeColorA * mv);
+                    rm.SpecularPower *= 1f + off.SpecularPower * mv;
+                    rm.EdgeSize *= 1f + off.EdgeSize * mv;
+                }
+                else
+                {
+                    rm.Color += new Vector4(off.DiffuseR, off.DiffuseG, off.DiffuseB, off.DiffuseA) * mv;
+                    rm.Specular += new Vector3(off.SpecularR, off.SpecularG, off.SpecularB) * mv;
+                    rm.EdgeColor += new Vector4(off.EdgeColorR, off.EdgeColorG, off.EdgeColorB, off.EdgeColorA) * mv;
+                    rm.SpecularPower += off.SpecularPower * mv;
+                    rm.EdgeSize += off.EdgeSize * mv;
+                }
+                rm.TextureTint += new Vector4(off.TextureBlendR, off.TextureBlendG, off.TextureBlendB, off.TextureBlendA) * mv;
+                rm.ToonColor += new Vector3(off.ToonTextureBlendR, off.ToonTextureBlendG, off.ToonTextureBlendB) * mv;
+            }
+        }
+    }
+
+    private void RecalculateBoneMorphs()
+    {
+        if (_boneMorphTranslations.Length < _bones.Count)
+            Array.Resize(ref _boneMorphTranslations, _bones.Count);
+        if (_boneMorphRotations.Length < _bones.Count)
+            Array.Resize(ref _boneMorphRotations, _bones.Count);
+
+        Array.Clear(_boneMorphTranslations, 0, _boneMorphTranslations.Length);
+        for (int i = 0; i < _boneMorphRotations.Length; i++)
+            _boneMorphRotations[i] = NumericsQuaternion.Identity;
+
+        if (_modelHandle == IntPtr.Zero)
+            return;
+
+        foreach (var (mName, mv) in _morphValues)
+        {
+            int idx = _morphs[mName].Index;
+            var offs = NanoemMorph.GetBoneOffsets(_modelHandle, idx);
+            foreach (var off in offs)
+            {
+                int bi = off.BoneIndex;
+                if (bi < 0 || bi >= _boneMorphTranslations.Length)
+                    continue;
+                _boneMorphTranslations[bi] += new NumericsVector3(off.TranslationX, off.TranslationY, off.TranslationZ) * mv;
+                var q = new NumericsQuaternion(off.OrientationX, off.OrientationY, off.OrientationZ, off.OrientationW);
+                q = NumericsQuaternion.Slerp(NumericsQuaternion.Identity, q, mv);
+                _boneMorphRotations[bi] = NumericsQuaternion.Normalize(_boneMorphRotations[bi] * q);
+            }
+        }
     }
 }
