@@ -72,6 +72,13 @@
     <NativeReference Include="..\\Native\\ios\\libnanoem.a" Kind="Static" />
   </ItemGroup>
   <Target Name="BuildNativeNanoem" BeforeTargets="BeforeBuild">
+    <Exec Command="where cl" IgnoreExitCode="true">
+      <Output TaskParameter="ExitCode" PropertyName="ClExitCode" />
+    </Exec>
+    <Exec Command="where gcc" IgnoreExitCode="true">
+      <Output TaskParameter="ExitCode" PropertyName="GccExitCode" />
+    </Exec>
+    <Warning Text="C/C++ コンパイラが見つかりません。Visual Studio Build Tools などをインストールしてください。" Condition="'$(ClExitCode)' != '0' And '$(GccExitCode)' != '0'" />
     <Exec Command="$(CMakeCommand) --version" IgnoreExitCode="true">
       <Output TaskParameter="ExitCode" PropertyName="CMakeExitCode" />
     </Exec>
