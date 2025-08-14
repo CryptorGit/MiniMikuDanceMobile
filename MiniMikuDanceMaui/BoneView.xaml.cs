@@ -2,6 +2,7 @@ using Microsoft.Maui.Controls;
 using System.Collections.Generic;
 using System.Numerics;
 using MiniMikuDance.Import;
+using MiniMikuDanceMaui.Renderers;
 using MauiIcons.Core;
 using MauiIcons.Material;
 
