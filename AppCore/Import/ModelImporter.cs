@@ -51,9 +51,10 @@ namespace MiniMikuDance.Import;
         public float ShadeShift { get; set; }
         public float ShadeToony { get; set; }
         public float RimIntensity { get; set; }
+        public List<int> IkBoneIndices { get; } = new();
     }
 
-public class ModelImporter : IDisposable
+public partial class ModelImporter : IDisposable
 {
     private readonly ILogger<ModelImporter> _logger;
 
@@ -152,7 +153,13 @@ public class ModelImporter : IDisposable
             });
         }
 
+        LoadPhysics(model, data);
+        LoadIK(model, data);
+
         Nanoem.ModelDestroy(model);
         return data;
     }
+
+    partial void LoadPhysics(IntPtr model, ModelData data);
+    partial void LoadIK(IntPtr model, ModelData data);
 }

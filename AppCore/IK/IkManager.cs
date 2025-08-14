@@ -27,23 +27,13 @@ public static class IkManager
 
     public static IReadOnlyDictionary<int, IkBone> Bones => BonesDict;
 
-    public static void LoadPmxIkBones(IReadOnlyList<BoneData> modelBones)
+    public static void LoadPmxIkBones(IReadOnlyList<BoneData> modelBones, IReadOnlyList<int> ikBoneIndices)
     {
         Clear();
-        var indices = new List<int>();
-        for (int i = 0; i < modelBones.Count; i++)
+        Nanoem.InitializeIk(ikBoneIndices.Count);
+        for (int c = 0; c < ikBoneIndices.Count; c++)
         {
-            var name = modelBones[i].Name;
-            if (name.Contains("足", StringComparison.Ordinal) &&
-                (name.Contains("IK", StringComparison.OrdinalIgnoreCase) || name.Contains("ＩＫ")))
-            {
-                indices.Add(i);
-            }
-        }
-        Nanoem.InitializeIk(indices.Count);
-        for (int c = 0; c < indices.Count; c++)
-        {
-            int idx = indices[c];
+            int idx = ikBoneIndices[c];
             RegisterIkBone(c, idx, modelBones[idx]);
         }
     }

@@ -38,6 +38,74 @@ internal static partial class Nanoem
         public int Type;
     }
 
+    [StructLayout(LayoutKind.Sequential)]
+    internal struct RigidBodyInfo
+    {
+        public IntPtr Name;
+        public IntPtr EnglishName;
+        public int BoneIndex;
+        public float OriginX;
+        public float OriginY;
+        public float OriginZ;
+        public float OrientationX;
+        public float OrientationY;
+        public float OrientationZ;
+        public float SizeX;
+        public float SizeY;
+        public float SizeZ;
+        public float Mass;
+        public float LinearDamping;
+        public float AngularDamping;
+        public float Restitution;
+        public float Friction;
+        public int Group;
+        public int Mask;
+        public int ShapeType;
+        public int TransformType;
+    }
+
+    [StructLayout(LayoutKind.Sequential)]
+    internal struct JointInfo
+    {
+        public IntPtr Name;
+        public IntPtr EnglishName;
+        public int RigidBodyA;
+        public int RigidBodyB;
+        public float OriginX;
+        public float OriginY;
+        public float OriginZ;
+        public float OrientationX;
+        public float OrientationY;
+        public float OrientationZ;
+        public float LinearLowerLimitX;
+        public float LinearLowerLimitY;
+        public float LinearLowerLimitZ;
+        public float LinearUpperLimitX;
+        public float LinearUpperLimitY;
+        public float LinearUpperLimitZ;
+        public float AngularLowerLimitX;
+        public float AngularLowerLimitY;
+        public float AngularLowerLimitZ;
+        public float AngularUpperLimitX;
+        public float AngularUpperLimitY;
+        public float AngularUpperLimitZ;
+        public float LinearStiffnessX;
+        public float LinearStiffnessY;
+        public float LinearStiffnessZ;
+        public float AngularStiffnessX;
+        public float AngularStiffnessY;
+        public float AngularStiffnessZ;
+    }
+
+    [StructLayout(LayoutKind.Sequential)]
+    internal struct IkConstraintInfo
+    {
+        public int EffectorBoneIndex;
+        public int TargetBoneIndex;
+        public int NumIterations;
+        public float AngleLimit;
+    }
+
     [DllImport(NativeLibName, CallingConvention = CallingConvention.Cdecl)]
     private static extern void nanoemModelGetInfo(IntPtr model, out ModelInfo info);
 
@@ -52,6 +120,24 @@ internal static partial class Nanoem
 
     [DllImport(NativeLibName, CallingConvention = CallingConvention.Cdecl)]
     private static extern void nanoemModelGetMorphInfo(IntPtr model, uint index, out MorphInfo info);
+
+    [DllImport(NativeLibName, CallingConvention = CallingConvention.Cdecl)]
+    private static extern uint nanoemModelGetRigidBodyCount(IntPtr model);
+
+    [DllImport(NativeLibName, CallingConvention = CallingConvention.Cdecl)]
+    private static extern void nanoemModelGetRigidBodyInfo(IntPtr model, uint index, out RigidBodyInfo info);
+
+    [DllImport(NativeLibName, CallingConvention = CallingConvention.Cdecl)]
+    private static extern uint nanoemModelGetJointCount(IntPtr model);
+
+    [DllImport(NativeLibName, CallingConvention = CallingConvention.Cdecl)]
+    private static extern void nanoemModelGetJointInfo(IntPtr model, uint index, out JointInfo info);
+
+    [DllImport(NativeLibName, CallingConvention = CallingConvention.Cdecl)]
+    private static extern uint nanoemModelGetIKConstraintCount(IntPtr model);
+
+    [DllImport(NativeLibName, CallingConvention = CallingConvention.Cdecl)]
+    private static extern void nanoemModelGetIKConstraintInfo(IntPtr model, uint index, out IkConstraintInfo info);
 
     [DllImport(NativeLibName, CallingConvention = CallingConvention.Cdecl)]
     private static extern void nanoemModelIOFree(IntPtr ptr);
@@ -100,6 +186,39 @@ internal static partial class Nanoem
     public static MorphInfo ModelGetMorphInfo(IntPtr model, uint index)
     {
         nanoemModelGetMorphInfo(model, index, out var info);
+        return info;
+    }
+
+    public static uint ModelGetRigidBodyCount(IntPtr model)
+    {
+        return nanoemModelGetRigidBodyCount(model);
+    }
+
+    public static RigidBodyInfo ModelGetRigidBodyInfo(IntPtr model, uint index)
+    {
+        nanoemModelGetRigidBodyInfo(model, index, out var info);
+        return info;
+    }
+
+    public static uint ModelGetJointCount(IntPtr model)
+    {
+        return nanoemModelGetJointCount(model);
+    }
+
+    public static JointInfo ModelGetJointInfo(IntPtr model, uint index)
+    {
+        nanoemModelGetJointInfo(model, index, out var info);
+        return info;
+    }
+
+    public static uint ModelGetIKConstraintCount(IntPtr model)
+    {
+        return nanoemModelGetIKConstraintCount(model);
+    }
+
+    public static IkConstraintInfo ModelGetIKConstraintInfo(IntPtr model, uint index)
+    {
+        nanoemModelGetIKConstraintInfo(model, index, out var info);
         return info;
     }
 

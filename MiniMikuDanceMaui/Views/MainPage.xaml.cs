@@ -92,7 +92,7 @@ public partial class MainPage : ContentPage
     {
         _renderer.SetExternalRotation(Quaternion.Identity);
         _renderer.ModelTransform = Matrix4.Identity;
-        IkManager.LoadPmxIkBones(_currentModel!.Bones);
+        IkManager.LoadPmxIkBones(_currentModel!.Bones, _currentModel!.IkBoneIndices);
         try
         {
             var ikBones = IkManager.Bones.Values;
@@ -584,12 +584,12 @@ public partial class MainPage : ContentPage
             UpdateRendererLightingProperties();
             _pendingModel = null;
 
-            if (_poseMode && _currentModel != null)
-            {
-                IkManager.LoadPmxIkBones(_currentModel.Bones);
-                try
+                if (_poseMode && _currentModel != null)
                 {
-                    var ikBones = IkManager.Bones.Values;
+                    IkManager.LoadPmxIkBones(_currentModel.Bones, _currentModel.IkBoneIndices);
+                    try
+                    {
+                        var ikBones = IkManager.Bones.Values;
                     if (ikBones.Any())
                     {
                         _renderer.SetIkBones(ikBones);

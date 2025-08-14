@@ -21,6 +21,46 @@ typedef struct nanoem_model_material_info_t {
     int textureIndex;
 } nanoem_model_material_info_t;
 
+typedef struct nanoem_model_rigid_body_info_t {
+    char *name;
+    char *englishName;
+    int boneIndex;
+    float origin[3];
+    float orientation[3];
+    float size[3];
+    float mass;
+    float linearDamping;
+    float angularDamping;
+    float restitution;
+    float friction;
+    int group;
+    int mask;
+    int shapeType;
+    int transformType;
+} nanoem_model_rigid_body_info_t;
+
+typedef struct nanoem_model_joint_info_t {
+    char *name;
+    char *englishName;
+    int rigidBodyA;
+    int rigidBodyB;
+    float origin[3];
+    float orientation[3];
+    float linearLowerLimit[3];
+    float linearUpperLimit[3];
+    float angularLowerLimit[3];
+    float angularUpperLimit[3];
+    float linearStiffness[3];
+    float angularStiffness[3];
+} nanoem_model_joint_info_t;
+
+typedef struct nanoem_model_ik_constraint_info_t {
+    int effectorBoneIndex;
+    int targetBoneIndex;
+    int numIterations;
+    float angleLimit;
+} nanoem_model_ik_constraint_info_t;
+
 static char *
 unicodeStringToUtf8(const nanoem_unicode_string_t *s)
 {
@@ -118,6 +158,148 @@ nanoemModelGetMorphInitialWeight(const nanoem_model_t *model, nanoem_rsize_t ind
     (void) numMorphs;
     /* TODO: expose actual morph weight from nanoem */
     return 0.0f;
+}
+
+static int
+findBoneIndex(const nanoem_model_t *model, const nanoem_model_bone_t *bone)
+{
+    nanoem_rsize_t numBones = 0;
+    const nanoem_model_bone_t *const *bones = nanoemModelGetAllBoneObjects(model, &numBones);
+    for (nanoem_rsize_t i = 0; i < numBones; i++) {
+        if (bones[i] == bone) {
+            return (int) i;
+        }
+    }
+    return -1;
+}
+
+static int
+findRigidBodyIndex(const nanoem_model_t *model, const nanoem_model_rigid_body_t *body)
+{
+    nanoem_rsize_t numBodies = 0;
+    const nanoem_model_rigid_body_t *const *bodies = nanoemModelGetAllRigidBodyObjects(model, &numBodies);
+    for (nanoem_rsize_t i = 0; i < numBodies; i++) {
+        if (bodies[i] == body) {
+            return (int) i;
+        }
+    }
+    return -1;
+}
+
+NANOEM_DECL_API nanoem_rsize_t APIENTRY
+nanoemModelGetRigidBodyCount(const nanoem_model_t *model)
+{
+    nanoem_rsize_t count = 0;
+    nanoemModelGetAllRigidBodyObjects(model, &count);
+    return count;
+}
+
+NANOEM_DECL_API void APIENTRY
+nanoemModelGetRigidBodyInfo(const nanoem_model_t *model, nanoem_rsize_t index, nanoem_model_rigid_body_info_t *info)
+{
+    if (!info) {
+        return;
+    }
+    nanoem_rsize_t numBodies = 0;
+    const nanoem_model_rigid_body_t *const *bodies = nanoemModelGetAllRigidBodyObjects(model, &numBodies);
+    if (index >= numBodies) {
+        memset(info, 0, sizeof(*info));
+        info->boneIndex = -1;
+        info->group = 0;
+        info->mask = 0;
+        info->shapeType = 0;
+        info->transformType = 0;
+        info->name = NULL;
+        info->englishName = NULL;
+        return;
+    }
+    const nanoem_model_rigid_body_t *body = bodies[index];
+    info->name = unicodeStringToUtf8(nanoemModelRigidBodyGetName(body, NANOEM_LANGUAGE_TYPE_JAPANESE));
+    info->englishName = unicodeStringToUtf8(nanoemModelRigidBodyGetName(body, NANOEM_LANGUAGE_TYPE_ENGLISH));
+    info->boneIndex = findBoneIndex(model, nanoemModelRigidBodyGetBoneObject(body));
+    memcpy(info->origin, nanoemModelRigidBodyGetOrigin(body), sizeof(info->origin));
+    memcpy(info->orientation, nanoemModelRigidBodyGetOrientation(body), sizeof(info->orientation));
+    memcpy(info->size, nanoemModelRigidBodyGetShapeSize(body), sizeof(info->size));
+    info->mass = nanoemModelRigidBodyGetMass(body);
+    info->linearDamping = nanoemModelRigidBodyGetLinearDamping(body);
+    info->angularDamping = nanoemModelRigidBodyGetAngularDamping(body);
+    info->restitution = nanoemModelRigidBodyGetRestitution(body);
+    info->friction = nanoemModelRigidBodyGetFriction(body);
+    info->group = nanoemModelRigidBodyGetCollisionGroupId(body);
+    info->mask = nanoemModelRigidBodyGetCollisionMask(body);
+    info->shapeType = (int) nanoemModelRigidBodyGetShapeType(body);
+    info->transformType = (int) nanoemModelRigidBodyGetTransformType(body);
+}
+
+NANOEM_DECL_API nanoem_rsize_t APIENTRY
+nanoemModelGetJointCount(const nanoem_model_t *model)
+{
+    nanoem_rsize_t count = 0;
+    nanoemModelGetAllJointObjects(model, &count);
+    return count;
+}
+
+NANOEM_DECL_API void APIENTRY
+nanoemModelGetJointInfo(const nanoem_model_t *model, nanoem_rsize_t index, nanoem_model_joint_info_t *info)
+{
+    if (!info) {
+        return;
+    }
+    nanoem_rsize_t numJoints = 0;
+    const nanoem_model_joint_t *const *joints = nanoemModelGetAllJointObjects(model, &numJoints);
+    if (index >= numJoints) {
+        memset(info, 0, sizeof(*info));
+        info->rigidBodyA = -1;
+        info->rigidBodyB = -1;
+        info->name = NULL;
+        info->englishName = NULL;
+        return;
+    }
+    const nanoem_model_joint_t *joint = joints[index];
+    info->name = unicodeStringToUtf8(nanoemModelJointGetName(joint, NANOEM_LANGUAGE_TYPE_JAPANESE));
+    info->englishName = unicodeStringToUtf8(nanoemModelJointGetName(joint, NANOEM_LANGUAGE_TYPE_ENGLISH));
+    info->rigidBodyA = findRigidBodyIndex(model, nanoemModelJointGetRigidBodyAObject(joint));
+    info->rigidBodyB = findRigidBodyIndex(model, nanoemModelJointGetRigidBodyBObject(joint));
+    memcpy(info->origin, nanoemModelJointGetOrigin(joint), sizeof(info->origin));
+    memcpy(info->orientation, nanoemModelJointGetOrientation(joint), sizeof(info->orientation));
+    memcpy(info->linearLowerLimit, nanoemModelJointGetLinearLowerLimit(joint), sizeof(info->linearLowerLimit));
+    memcpy(info->linearUpperLimit, nanoemModelJointGetLinearUpperLimit(joint), sizeof(info->linearUpperLimit));
+    memcpy(info->angularLowerLimit, nanoemModelJointGetAngularLowerLimit(joint), sizeof(info->angularLowerLimit));
+    memcpy(info->angularUpperLimit, nanoemModelJointGetAngularUpperLimit(joint), sizeof(info->angularUpperLimit));
+    memcpy(info->linearStiffness, nanoemModelJointGetLinearStiffness(joint), sizeof(info->linearStiffness));
+    memcpy(info->angularStiffness, nanoemModelJointGetAngularStiffness(joint), sizeof(info->angularStiffness));
+}
+
+NANOEM_DECL_API nanoem_rsize_t APIENTRY
+nanoemModelGetIKConstraintCount(const nanoem_model_t *model)
+{
+    nanoem_rsize_t count = 0;
+    nanoemModelGetAllConstraintObjects(model, &count);
+    return count;
+}
+
+NANOEM_DECL_API void APIENTRY
+nanoemModelGetIKConstraintInfo(
+    const nanoem_model_t *model, nanoem_rsize_t index, nanoem_model_ik_constraint_info_t *info)
+{
+    if (!info) {
+        return;
+    }
+    nanoem_rsize_t numConstraints = 0;
+    const nanoem_model_constraint_t *const *constraints =
+        nanoemModelGetAllConstraintObjects(model, &numConstraints);
+    if (index >= numConstraints) {
+        memset(info, 0, sizeof(*info));
+        info->effectorBoneIndex = -1;
+        info->targetBoneIndex = -1;
+        return;
+    }
+    const nanoem_model_constraint_t *constraint = constraints[index];
+    info->effectorBoneIndex =
+        findBoneIndex(model, nanoemModelConstraintGetEffectorBoneObject(constraint));
+    info->targetBoneIndex = findBoneIndex(model, nanoemModelConstraintGetTargetBoneObject(constraint));
+    info->numIterations = nanoemModelConstraintGetNumIterations(constraint);
+    info->angleLimit = nanoemModelConstraintGetAngleLimit(constraint);
 }
 
 #ifdef __cplusplus
