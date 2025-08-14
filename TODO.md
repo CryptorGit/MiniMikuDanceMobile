@@ -35,3 +35,6 @@
 - [ ] protobuf-c ランタイムの最小実装と motion.pb-c.c のビルド統合
 - [ ] 文字コード変換関連 (cfstring.c, mbwc.c, icu.c) のビルド対応
 - [ ] モーフアニメーションの未実装部分の対応
+- [ ] `Documents/nanoem-main/nanoem/morph` からモーフ関連ソースを確認し、`Native/nanoem/core/morph` へ追加
+- [ ] `AppCore/Nanoem.Morph.cs` の P/Invoke を拡張し、頂点変形・材質変化をネイティブで適用
+- [ ] `MiniMikuDanceMaui/PmxRenderer.Morph.cs` をネイティブ呼び出し方式へ改修し再計算処理を削減
