@@ -14,6 +14,17 @@ nanoem エンジンのソースはリポジトリ内の `Native/nanoem` に含�
 - CMake 3.26 以上
 - C++ コンパイラ (Clang や MSVC)
 
+### CMake のインストール
+
+#### Ubuntu/Debian 系
+
+```sh
+sudo apt update
+sudo apt install -y cmake
+```
+
+`cmake --version` を実行し、CMake が PATH に追加されていることを確認してください。
+
 ## ビルド手順
 
 1. ネイティブライブラリのビルド
