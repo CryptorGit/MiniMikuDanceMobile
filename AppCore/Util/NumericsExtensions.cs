@@ -44,27 +44,4 @@ public static class NumericsExtensions
     {
         return new System.Numerics.Vector3(v.X, v.Y, v.Z);
     }
-
-    // Z→X→Y 順を使用する
-    public static System.Numerics.Vector3 ToEulerDegrees(this System.Numerics.Quaternion q)
-    {
-        var m = System.Numerics.Matrix4x4.CreateFromQuaternion(q);
-        float sx = -m.M23;
-        float cx = MathF.Sqrt(1 - sx * sx);
-        float x, y, z;
-        if (cx > 1e-6f)
-        {
-            x = MathF.Asin(sx);
-            y = MathF.Atan2(m.M13, m.M33);
-            z = MathF.Atan2(m.M21, m.M22);
-        }
-        else
-        {
-            x = MathF.Asin(sx);
-            y = MathF.Atan2(-m.M31, m.M11);
-            z = 0f;
-        }
-        const float rad2deg = 180f / MathF.PI;
-        return new System.Numerics.Vector3(x * rad2deg, y * rad2deg, z * rad2deg);
-    }
 }
