@@ -31,6 +31,7 @@ add_library(nanoem_core
     emapp/PerspectiveCamera.cc
     emapp/CommonInclude.cc
     emapp/PhysicsEngine.cc
+    emapp/physics.c
     core/physics/physics_bullet.cc
     core/import/document.c
     core/import/mutable.c
