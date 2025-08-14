@@ -31,6 +31,7 @@ public partial class PmxRenderer
     {
         if (index < 0 || index >= _bones.Count)
             return Matrix4x4.Identity;
+        _bones[index].Rotation = BoneController.GetRotation(_modelHandle, index, _bones[index].Rotation);
         return BoneController.GetTransform(_modelHandle, index, _bones[index].Transform);
     }
 
@@ -40,6 +41,7 @@ public partial class PmxRenderer
             return;
         BoneController.SetTransform(_modelHandle, index, value);
         _bones[index].Transform = value;
+        _bones[index].Rotation = Quaternion.CreateFromRotationMatrix(value);
         _bonesDirty = true;
         Viewer?.InvalidateSurface();
     }
@@ -50,8 +52,36 @@ public partial class PmxRenderer
             return;
         BoneController.Translate(_modelHandle, _selectedBone, delta);
         _bones[_selectedBone].Transform = BoneController.GetTransform(_modelHandle, _selectedBone, _bones[_selectedBone].Transform);
+        _bones[_selectedBone].Rotation = BoneController.GetRotation(_modelHandle, _selectedBone, _bones[_selectedBone].Rotation);
         _bonesDirty = true;
         Viewer?.InvalidateSurface();
+    }
+
+    public Quaternion GetBoneRotation(int index)
+    {
+        if (index < 0 || index >= _bones.Count)
+            return Quaternion.Identity;
+        return BoneController.GetRotation(_modelHandle, index, _bones[index].Rotation);
+    }
+
+    public void SetBoneRotation(int index, Quaternion value)
+    {
+        if (index < 0 || index >= _bones.Count)
+            return;
+        BoneController.SetRotation(_modelHandle, index, value);
+        _bones[index].Rotation = value;
+        _bones[index].Transform = BoneController.GetTransform(_modelHandle, index, _bones[index].Transform);
+        _bonesDirty = true;
+        Viewer?.InvalidateSurface();
+    }
+
+    public void RotateSelectedBone(Quaternion delta)
+    {
+        if (_selectedBone < 0 || _selectedBone >= _bones.Count)
+            return;
+        var current = GetBoneRotation(_selectedBone);
+        var next = Quaternion.Normalize(delta * current);
+        SetBoneRotation(_selectedBone, next);
     }
 
     partial void InitializeBoneModule()

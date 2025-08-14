@@ -39,3 +39,32 @@ nanoemModelBoneSetTransformMatrix(nanoem_model_bone_t *bone, const nanoem_f32_t 
     }
 }
 
+void APIENTRY
+nanoemModelBoneGetTransform(const nanoem_model_bone_t *bone, nanoem_f32_t *value)
+{
+    if (nanoem_is_not_null(bone) && nanoem_is_not_null(value)) {
+        const nanoem_f32_t *q = bone->orientation.values;
+        nanoem_f32_t x = q[0], y = q[1], z = q[2], w = q[3];
+        nanoem_f32_t xx = x * x, yy = y * y, zz = z * z;
+        nanoem_f32_t xy = x * y, xz = x * z, yz = y * z;
+        nanoem_f32_t wx = w * x, wy = w * y, wz = w * z;
+        value[0] = 1.0f - 2.0f * (yy + zz);
+        value[1] = 2.0f * (xy + wz);
+        value[2] = 2.0f * (xz - wy);
+        value[3] = 0.0f;
+        value[4] = 2.0f * (xy - wz);
+        value[5] = 1.0f - 2.0f * (xx + zz);
+        value[6] = 2.0f * (yz + wx);
+        value[7] = 0.0f;
+        value[8] = 2.0f * (xz + wy);
+        value[9] = 2.0f * (yz - wx);
+        value[10] = 1.0f - 2.0f * (xx + yy);
+        value[11] = 0.0f;
+        const nanoem_f32_t *origin = bone->origin.values;
+        value[12] = origin[0];
+        value[13] = origin[1];
+        value[14] = origin[2];
+        value[15] = 1.0f;
+    }
+}
+
