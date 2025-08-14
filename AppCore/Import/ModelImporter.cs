@@ -157,100 +157,119 @@ public class ModelImporter : IDisposable
         return ms;
     }
 
+    private System.Numerics.Vector3 ScaleVector(dynamic v)
+    {
+        return new System.Numerics.Vector3(v.X * Scale, v.Y * Scale, v.Z * Scale);
+    }
+
+    private SubMeshData CreateSubMesh(dynamic mat)
+    {
+        var sub = new Assimp.Mesh("pmx", Assimp.PrimitiveType.Triangle);
+        return new SubMeshData
+        {
+            Mesh = sub,
+            ColorFactor = new System.Numerics.Vector4(mat.Diffuse.R, mat.Diffuse.G, mat.Diffuse.B, mat.Diffuse.A),
+            Specular = new System.Numerics.Vector3(mat.Specular.R, mat.Specular.G, mat.Specular.B),
+            SpecularPower = mat.Shininess,
+            EdgeColor = new System.Numerics.Vector4(mat.EdgeColor.R, mat.EdgeColor.G, mat.EdgeColor.B, mat.EdgeColor.A),
+            EdgeSize = mat.EdgeSize,
+            ToonColor = System.Numerics.Vector3.One,
+            TextureTint = System.Numerics.Vector4.One
+        };
+    }
+
+    private void ProcessVertex(Assimp.Mesh mesh, SubMeshData smd, dynamic vertex)
+    {
+        var pos = ScaleVector(vertex.Position);
+        mesh.Vertices.Add(new Vector3D(pos.X, pos.Y, pos.Z));
+        mesh.Normals.Add(new Vector3D(vertex.Normal.X, vertex.Normal.Y, vertex.Normal.Z));
+        mesh.TextureCoordinateChannels[0].Add(new Vector3D(vertex.UV.X, vertex.UV.Y, 0));
+        smd.TexCoords.Add(new System.Numerics.Vector2(vertex.UV.X, vertex.UV.Y));
+
+        System.Numerics.Vector4 ji = System.Numerics.Vector4.Zero;
+        System.Numerics.Vector4 jw = System.Numerics.Vector4.Zero;
+        System.Numerics.Vector3 sc = System.Numerics.Vector3.Zero;
+        System.Numerics.Vector3 sr0 = System.Numerics.Vector3.Zero;
+        System.Numerics.Vector3 sr1 = System.Numerics.Vector3.Zero;
+        switch ((WeightTransformType)vertex.WeightTransformType)
+        {
+            case WeightTransformType.BDEF1:
+                ji.X = vertex.BoneIndex1;
+                jw.X = 1f;
+                break;
+            case WeightTransformType.BDEF2:
+                ji.X = vertex.BoneIndex1;
+                ji.Y = vertex.BoneIndex2;
+                jw.X = vertex.Weight1;
+                jw.Y = 1f - vertex.Weight1;
+                break;
+            case WeightTransformType.SDEF:
+                ji.X = vertex.BoneIndex1;
+                ji.Y = vertex.BoneIndex2;
+                jw.X = vertex.Weight1;
+                jw.Y = 1f - vertex.Weight1;
+                sc = ScaleVector(vertex.C);
+                sr0 = ScaleVector(vertex.R0);
+                sr1 = ScaleVector(vertex.R1);
+                break;
+            case WeightTransformType.BDEF4:
+            case WeightTransformType.QDEF:
+            default:
+                ji = new System.Numerics.Vector4(vertex.BoneIndex1, vertex.BoneIndex2, vertex.BoneIndex3, vertex.BoneIndex4);
+                jw = new System.Numerics.Vector4(vertex.Weight1, vertex.Weight2, vertex.Weight3, vertex.Weight4);
+                break;
+        }
+        smd.JointIndices.Add(ji);
+        smd.JointWeights.Add(jw);
+        smd.SdefC.Add(sc);
+        smd.SdefR0.Add(sr0);
+        smd.SdefR1.Add(sr1);
+    }
+
+    private void AddFace(Assimp.Mesh mesh, SubMeshData smd, dynamic[] verts, Surface face)
+    {
+        int[] idxs = { (int)face.V1, (int)face.V2, (int)face.V3 };
+        int baseIndex = mesh.Vertices.Count;
+        for (int j = 0; j < 3; j++)
+        {
+            ProcessVertex(mesh, smd, verts[idxs[j]]);
+        }
+        var f = new Face();
+        f.Indices.Add(baseIndex);
+        f.Indices.Add(baseIndex + 1);
+        f.Indices.Add(baseIndex + 2);
+        mesh.Faces.Add(f);
+    }
+
     private void GenerateSubMeshes(ModelData data, dynamic[] verts, Surface[] faces, dynamic[] mats, string[] texList, string? textureDir)
     {
         int faceOffset = 0;
         string dir = textureDir ?? string.Empty;
         foreach (var mat in mats)
         {
-            var sub = new Assimp.Mesh("pmx", Assimp.PrimitiveType.Triangle);
-            var smd = new SubMeshData
-            {
-                Mesh = sub,
-                ColorFactor = new System.Numerics.Vector4(mat.Diffuse.R, mat.Diffuse.G, mat.Diffuse.B, mat.Diffuse.A),
-                Specular = new System.Numerics.Vector3(mat.Specular.R, mat.Specular.G, mat.Specular.B),
-                SpecularPower = mat.Shininess,
-                EdgeColor = new System.Numerics.Vector4(mat.EdgeColor.R, mat.EdgeColor.G, mat.EdgeColor.B, mat.EdgeColor.A),
-                EdgeSize = mat.EdgeSize,
-                ToonColor = System.Numerics.Vector3.One,
-                TextureTint = System.Numerics.Vector4.One
-            };
-
+            var smd = CreateSubMesh(mat);
+            var sub = smd.Mesh;
             int faceCount = mat.VertexCount / 3;
             for (int i = 0; i < faceCount; i++)
             {
                 var sf = faces[faceOffset + i];
-                int[] idxs = { (int)sf.V1, (int)sf.V2, (int)sf.V3 };
-                int baseIndex = sub.Vertices.Count;
-                for (int j = 0; j < 3; j++)
-                {
-                    var vv = verts[idxs[j]];
-                    sub.Vertices.Add(new Vector3D(vv.Position.X * Scale, vv.Position.Y * Scale, vv.Position.Z * Scale));
-                    sub.Normals.Add(new Vector3D(vv.Normal.X, vv.Normal.Y, vv.Normal.Z));
-                    sub.TextureCoordinateChannels[0].Add(new Vector3D(vv.UV.X, vv.UV.Y, 0));
-                    smd.TexCoords.Add(new System.Numerics.Vector2(vv.UV.X, vv.UV.Y));
-
-                    System.Numerics.Vector4 ji = System.Numerics.Vector4.Zero;
-                    System.Numerics.Vector4 jw = System.Numerics.Vector4.Zero;
-                    System.Numerics.Vector3 sc = System.Numerics.Vector3.Zero;
-                    System.Numerics.Vector3 sr0 = System.Numerics.Vector3.Zero;
-                    System.Numerics.Vector3 sr1 = System.Numerics.Vector3.Zero;
-                    switch ((WeightTransformType)vv.WeightTransformType)
-                    {
-                        case WeightTransformType.BDEF1:
-                            ji.X = vv.BoneIndex1;
-                            jw.X = 1f;
-                            break;
-                        case WeightTransformType.BDEF2:
-                            ji.X = vv.BoneIndex1;
-                            ji.Y = vv.BoneIndex2;
-                            jw.X = vv.Weight1;
-                            jw.Y = 1f - vv.Weight1;
-                            break;
-                        case WeightTransformType.SDEF:
-                            ji.X = vv.BoneIndex1;
-                            ji.Y = vv.BoneIndex2;
-                            jw.X = vv.Weight1;
-                            jw.Y = 1f - vv.Weight1;
-                            sc = new System.Numerics.Vector3(vv.C.X * Scale, vv.C.Y * Scale, vv.C.Z * Scale);
-                            sr0 = new System.Numerics.Vector3(vv.R0.X * Scale, vv.R0.Y * Scale, vv.R0.Z * Scale);
-                            sr1 = new System.Numerics.Vector3(vv.R1.X * Scale, vv.R1.Y * Scale, vv.R1.Z * Scale);
-                            break;
-                        case WeightTransformType.BDEF4:
-                        case WeightTransformType.QDEF:
-                        default:
-                            ji = new System.Numerics.Vector4(vv.BoneIndex1, vv.BoneIndex2, vv.BoneIndex3, vv.BoneIndex4);
-                            jw = new System.Numerics.Vector4(vv.Weight1, vv.Weight2, vv.Weight3, vv.Weight4);
-                            break;
-                    }
-                    smd.JointIndices.Add(ji);
-                    smd.JointWeights.Add(jw);
-                    smd.SdefC.Add(sc);
-                    smd.SdefR0.Add(sr0);
-                    smd.SdefR1.Add(sr1);
-                }
-                var face = new Face();
-                face.Indices.Add(baseIndex);
-                face.Indices.Add(baseIndex + 1);
-                face.Indices.Add(baseIndex + 2);
-                sub.Faces.Add(face);
+                AddFace(sub, smd, verts, sf);
             }
 
             if (!string.IsNullOrEmpty(dir) && mat.Texture >= 0 && mat.Texture < texList.Length)
             {
-                LoadTexture(smd, texList[mat.Texture], dir);
+                TryLoadTexture(smd, texList[mat.Texture], dir);
             }
 
             data.SubMeshes.Add(smd);
             faceOffset += faceCount;
         }
     }
-
-    private void LoadTexture(SubMeshData smd, string texName, string dir)
+    private void TryLoadTexture(SubMeshData subMeshData, string textureName, string directory)
     {
-        var normalized = texName.Replace('\\', Path.DirectorySeparatorChar);
-        var texPath = Path.Combine(dir, normalized);
-        smd.TextureFilePath = normalized;
+        var normalized = textureName.Replace('\\', Path.DirectorySeparatorChar);
+        var texPath = Path.Combine(directory, normalized);
+        subMeshData.TextureFilePath = normalized;
         if (!File.Exists(texPath))
             return;
 
@@ -262,9 +281,9 @@ public class ModelImporter : IDisposable
                 var node = item.Node;
                 s_lruList.Remove(node);
                 s_lruList.AddFirst(node);
-                smd.TextureWidth = item.Texture.Width;
-                smd.TextureHeight = item.Texture.Height;
-                smd.TextureBytes = item.Texture.Pixels;
+                subMeshData.TextureWidth = item.Texture.Width;
+                subMeshData.TextureHeight = item.Texture.Height;
+                subMeshData.TextureBytes = item.Texture.Pixels;
             }
         }
 
@@ -300,9 +319,9 @@ public class ModelImporter : IDisposable
                     s_lruList.Remove(node);
                     s_lruList.AddFirst(node);
                 }
-                smd.TextureWidth = item.Texture.Width;
-                smd.TextureHeight = item.Texture.Height;
-                smd.TextureBytes = item.Texture.Pixels;
+                subMeshData.TextureWidth = item.Texture.Width;
+                subMeshData.TextureHeight = item.Texture.Height;
+                subMeshData.TextureBytes = item.Texture.Pixels;
             }
         }
     }
