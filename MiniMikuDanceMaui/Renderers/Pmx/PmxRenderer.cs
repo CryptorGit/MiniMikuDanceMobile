@@ -15,10 +15,17 @@ using Vector2 = OpenTK.Mathematics.Vector2;
 using Vector3 = OpenTK.Mathematics.Vector3;
 using Vector4 = OpenTK.Mathematics.Vector4;
 
-namespace MiniMikuDanceMaui.Renderers;
+namespace MiniMikuDanceMaui.Renderers.Pmx;
 
 public partial class PmxRenderer : IDisposable
 {
+    private readonly List<IPmxRendererModule> _modules = new();
+
+    public void RegisterModule(IPmxRendererModule module)
+    {
+        module.Initialize(this);
+        _modules.Add(module);
+    }
     private int _program;
     private class RenderMesh
     {
@@ -204,7 +211,23 @@ public partial class PmxRenderer : IDisposable
     public PmxRenderer()
     {
         NanoemPhysics.Start();
+        InitializeModules();
     }
+
+    private void InitializeModules()
+    {
+        InitializeBoneModule();
+        InitializeIkModule();
+        InitializeMorphModule();
+        InitializePhysicsModule();
+        InitializeRenderModule();
+    }
+
+    partial void InitializeBoneModule();
+    partial void InitializeIkModule();
+    partial void InitializeMorphModule();
+    partial void InitializePhysicsModule();
+    partial void InitializeRenderModule();
 
     // EnsureBoneCapacity は PmxRenderer.Render.cs へ移動
 

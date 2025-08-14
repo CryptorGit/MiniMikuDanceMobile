@@ -8,7 +8,7 @@ using MiniMikuDance.Util;
 using OpenTK.Graphics.ES30;
 using GL = OpenTK.Graphics.ES30.GL;
 
-namespace MiniMikuDanceMaui.Renderers;
+namespace MiniMikuDanceMaui.Renderers.Pmx;
 
 public partial class PmxRenderer
 {
@@ -144,5 +144,14 @@ public partial class PmxRenderer
         GL.BindBuffer(BufferTarget.ElementArrayBuffer, _ikBoneEbo);
         GL.BufferData(BufferTarget.ElementArrayBuffer, indices.Count * sizeof(ushort), indices.ToArray(), BufferUsageHint.StaticDraw);
         GL.BindVertexArray(0);
+    }
+
+    partial void InitializeIkModule()
+    {
+        RegisterModule(new IkModule());
+    }
+
+    private class IkModule : PmxRendererModuleBase
+    {
     }
 }
