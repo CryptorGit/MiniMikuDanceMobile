@@ -3,7 +3,6 @@
     { "label": "Load Model", "message": "load_model" },
     { "label": "Analyze Video", "message": "analyze_video" }
   ],
-  "showProgressBar": true,
   "showMessage": true,
   "showThumbnail": true
 }
