@@ -48,7 +48,7 @@ public partial class MorphView : ContentView
             foreach (var morph in group)
             {
                 var originalName = morph.Name;
-                var displayName = MorphNameUtil.EnsureUniqueName(originalName, usedNames.Contains, LogService.WriteLine);
+                var displayName = MorphNameUtil.EnsureUniqueName(originalName, usedNames.Contains);
                 usedNames.Add(displayName);
                 var grid = new Grid
                 {
@@ -111,9 +111,9 @@ public partial class MorphView : ContentView
                     {
                         MorphValueChanged?.Invoke(state.Name, latest);
                     }
-                    catch (Exception ex)
+                    catch (Exception)
                     {
-                        LogService.WriteLine($"Error in MorphValueChanged: {ex}");
+                        // intentionally left blank
                     }
                 };
                 _debounceStates[displayName] = state;
