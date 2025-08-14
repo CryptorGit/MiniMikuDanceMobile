@@ -43,6 +43,8 @@ public partial class MainPage : ContentPage
     private string? _currentFeature;
     private string? _selectedModelPath;
     private string? _selectedVideoPath;
+    private static readonly string[] ModelExtensions = { ".pmx", ".pmd" };
+    private static readonly string[] ImageExtensions = { ".png", ".jpg", ".jpeg", ".bmp", ".webp" };
     private string? _modelDir;
     private float _modelScale = 1f;
     private readonly AppSettings _settings = AppSettings.Load();
@@ -174,6 +176,12 @@ public partial class MainPage : ContentPage
             return baseDir;
 
         return System.Environment.CurrentDirectory;
+    }
+
+    private static bool HasAllowedExtension(string path, string[] allowed)
+    {
+        var ext = Path.GetExtension(path).ToLowerInvariant();
+        return allowed.Contains(ext);
     }
 
 
@@ -863,7 +871,7 @@ public partial class MainPage : ContentPage
             else if (name == "Open")
             {
                 var modelsPath = MmdFileSystem.Ensure("Models");
-                var ev = new ExplorerView(modelsPath, new[] { ".pmx", ".pmd" });
+                var ev = new ExplorerView(modelsPath, ModelExtensions);
                 ev.FileSelected += OnOpenExplorerFileSelected;
                 ev.LoadDirectory(modelsPath);
                 view = ev;
@@ -871,7 +879,7 @@ public partial class MainPage : ContentPage
             else if (name == "Analyze")
             {
                 var imagesPath = MmdFileSystem.Ensure("Movie");
-                var ev = new ExplorerView(imagesPath, new[] { ".png", ".jpg", ".jpeg", ".bmp", ".webp" });
+                var ev = new ExplorerView(imagesPath, ImageExtensions);
                 ev.FileSelected += OnAnalyzeExplorerFileSelected;
                 ev.LoadDirectory(imagesPath);
                 view = ev;
@@ -1163,8 +1171,7 @@ public partial class MainPage : ContentPage
 
     private void OnOpenExplorerFileSelected(object? sender, string path)
     {
-        var ext = Path.GetExtension(path).ToLowerInvariant();
-        if (ext != ".pmx" && ext != ".pmd")
+        if (!HasAllowedExtension(path, ModelExtensions))
         {
             return;
         }
@@ -1300,9 +1307,7 @@ public partial class MainPage : ContentPage
 
     private void OnAnalyzeExplorerFileSelected(object? sender, string path)
     {
-        var ext = Path.GetExtension(path).ToLowerInvariant();
-        var ok = ext == ".png" || ext == ".jpg" || ext == ".jpeg" || ext == ".bmp" || ext == ".webp";
-        if (!ok) return;
+        if (!HasAllowedExtension(path, ImageExtensions)) return;
         _selectedVideoPath = path;
         SelectedVideoPath.Text = path;
     }
