@@ -45,4 +45,9 @@
         <Link>Configs\UIConfig.json</Link>
       </MauiAsset>
     </ItemGroup>
-  </Project>
+  <ItemGroup>
+    <None Include="..\Native\nanoem\**\*.*">
+      <Link>Native\%(RecursiveDir)%(Filename)%(Extension)</Link>
+    </None>
+  </ItemGroup>
+</Project>
