@@ -1,1 +1,0 @@
-Each model in LibMMD.Tests/assets has its own license. Check the corresponding readme and license files for more information.
