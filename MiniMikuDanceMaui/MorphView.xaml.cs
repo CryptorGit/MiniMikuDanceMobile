@@ -111,9 +111,9 @@ public partial class MorphView : ContentView
                     {
                         MorphValueChanged?.Invoke(state.Name, latest);
                     }
-                    catch (Exception)
+                    catch (Exception ex)
                     {
-                        // intentionally left blank
+                        Console.Error.WriteLine(ex);
                     }
                 };
                 _debounceStates[displayName] = state;

@@ -62,6 +62,7 @@ public partial class MainPage : ContentPage
     private readonly BonesConfig? _bonesConfig = App.Initializer.BonesConfig;
     private bool _needsRender;
     private readonly IDispatcherTimer _renderTimer;
+    private int _renderTimerErrorCount;
     private void OnPoseModeToggled(object? sender, ToggledEventArgs e)
     {
         _poseMode = e.Value;
@@ -168,9 +169,24 @@ public partial class MainPage : ContentPage
         _renderTimer.Interval = TimeSpan.FromMilliseconds(16);
         _renderTimer.Tick += (s, e) =>
         {
-            if (_needsRender)
+            try
             {
-                Viewer?.InvalidateSurface();
+                if (_needsRender)
+                {
+                    Viewer?.InvalidateSurface();
+                }
+                _renderTimerErrorCount = 0;
+            }
+            catch (Exception ex)
+            {
+                _renderTimerErrorCount++;
+                Console.Error.WriteLine(ex);
+                if (_renderTimerErrorCount >= 3)
+                {
+                    _renderTimer.Stop();
+                    MainThread.BeginInvokeOnMainThread(async () =>
+                        await DisplayAlert("Error", "Rendering stopped due to repeated errors.", "OK"));
+                }
             }
         };
         _renderTimer.Start();
