@@ -5,7 +5,7 @@
 #
 
 cmake_minimum_required(VERSION 3.16)
-project(nanoem_core C)
+project(nanoem_core C CXX)
 
 add_library(nanoem_core
     core/nanoem.c
@@ -15,4 +15,6 @@ add_library(nanoem_core
 target_include_directories(nanoem_core PUBLIC
     ${CMAKE_CURRENT_SOURCE_DIR}/core
 )
+
+add_subdirectory(emapp)
 

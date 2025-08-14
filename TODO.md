@@ -5,6 +5,7 @@
 ## nanoem 手作業移植の未完了項目
 - [ ] 残りの nanoem core ソースの移植
 - [ ] emapp コンポーネントの追加ファイルと依存解決
+- [ ] Archiver の完全実装と minizip 依存の導入
 - [ ] C# からの P/Invoke 実装およびビルドスクリプト整備
 - [ ] nanoem グローバルアロケータ周辺の詳細実装
 - [ ] `NANOEM_ENABLE_DEBUG_ALLOCATOR` を利用したメモリ追跡の検証

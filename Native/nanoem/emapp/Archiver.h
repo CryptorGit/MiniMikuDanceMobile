@@ -8,7 +8,8 @@
 #ifndef NANOEM_EMAPP_ARCHIVER_H_
 #define NANOEM_EMAPP_ARCHIVER_H_
 
-#include "emapp/Forward.h"
+#include "Forward.h"
+#include <vector>
 
 namespace nanoem {
 
@@ -27,12 +28,12 @@ public:
         ByteArray m_globalExtraField;
         String m_comment;
         String m_password;
-        nanoem_u32_t m_crc;
-        nanoem_u64_t m_compressedSize;
-        nanoem_u64_t m_uncompressedSize;
-        nanoem_u16_t m_method;
-        nanoem_i16_t m_level;
-        nanoem_u8_t m_raw;
+        std::uint32_t m_crc;
+        std::uint64_t m_compressedSize;
+        std::uint64_t m_uncompressedSize;
+        std::uint16_t m_method;
+        std::int16_t m_level;
+        std::uint8_t m_raw;
         Entry();
         String basePath() const;
         String lastPathComponent() const;
@@ -40,7 +41,7 @@ public:
         const char *extensionPtr() const NANOEM_DECL_NOEXCEPT;
         bool isDirectory() const NANOEM_DECL_NOEXCEPT;
     };
-    typedef tinystl::vector<Entry, TinySTLAllocator> EntryList;
+    typedef std::vector<Entry> EntryList;
 
     Archiver(ISeekableReader *reader);
     Archiver(ISeekableWriter *writer);
