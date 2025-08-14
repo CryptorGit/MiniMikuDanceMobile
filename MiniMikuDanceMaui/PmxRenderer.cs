@@ -9,6 +9,7 @@ using MiniMikuDance.Util;
 using MiniMikuDance.Import;
 using MiniMikuDance.App;
 using MiniMikuDance.IK;
+using MiniMikuDance;
 using MMDTools;
 using SkiaSharp.Views.Maui.Controls;
 using Vector2 = OpenTK.Mathematics.Vector2;
@@ -143,6 +144,7 @@ public partial class PmxRenderer : IDisposable
     private List<MiniMikuDance.Import.BoneData> _bones = new();
     private readonly List<IkBone> _ikBones = new();
     private readonly object _ikBonesLock = new();
+    private readonly object _physicsLock = new();
     private readonly Dictionary<int, string> _indexToHumanoidName = new();
     public BonesConfig? BonesConfig { get; set; }
     private Quaternion _externalRotation = Quaternion.Identity;
@@ -232,6 +234,11 @@ public partial class PmxRenderer : IDisposable
     {
         get => _bonePickPixels;
         set => _bonePickPixels = value;
+    }
+
+    public PmxRenderer()
+    {
+        NanoemPhysics.Start();
     }
 
     // EnsureBoneCapacity は PmxRenderer.Render.cs へ移動
@@ -1177,6 +1184,10 @@ void main(){
 
     public void Dispose()
     {
+        lock (_physicsLock)
+        {
+            NanoemPhysics.Stop();
+        }
         foreach (var rm in _meshes)
         {
             if (rm.Vao != 0) GL.DeleteVertexArray(rm.Vao);
