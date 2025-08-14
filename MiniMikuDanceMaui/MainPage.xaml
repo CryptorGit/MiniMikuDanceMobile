@@ -101,11 +101,6 @@
                         <TapGestureRecognizer Tapped="OnOpenInViewerClicked" />
                     </Label.GestureRecognizers>
                 </Label>
-                <Label Text="Estimate Pose" TextColor="{StaticResource TextColor}">
-                    <Label.GestureRecognizers>
-                        <TapGestureRecognizer Tapped="OnEstimatePoseClicked" />
-                    </Label.GestureRecognizers>
-                </Label>
             </VerticalStackLayout>
         </Border>
         <Border x:Name="SettingMenu" IsVisible="False" Background="{StaticResource BackgroundColor}" Padding="8" ZIndex="20">
@@ -132,18 +127,6 @@
                     <Button Text="インポート" Clicked="OnImportPmxClicked" />
                     <Button Text="キャンセル" Clicked="OnCancelImportClicked" />
                 </HorizontalStackLayout>
-            </VerticalStackLayout>
-        </Border>
-        <Border x:Name="PoseSelectMessage" IsVisible="False" Background="{StaticResource BackgroundColor}" Padding="8" ZIndex="30">
-            <VerticalStackLayout Spacing="6">
-                <Label Text="画像ファイルを以下から選択してください" TextColor="{StaticResource TextColor}" />
-                <Label x:Name="SelectedVideoPath" TextColor="{StaticResource TextColor}" FontSize="14" />
-            </VerticalStackLayout>
-        </Border>
-        <Border x:Name="ProgressFrame" IsVisible="False" Background="{StaticResource BackgroundColor}" Padding="8" ZIndex="30">
-            <VerticalStackLayout Spacing="4">
-                <Label x:Name="ExtractProgressLabel" Text="" TextColor="{StaticResource TextColor}" HorizontalTextAlignment="Center" />
-                <ProgressBar x:Name="ExtractProgressBar" Progress="0" HeightRequest="4" />
             </VerticalStackLayout>
         </Border>
         <ActivityIndicator x:Name="LoadingIndicator" IsRunning="True" IsVisible="False" Color="{StaticResource IndicatorColor}" ZIndex="30" />
