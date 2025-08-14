@@ -17,6 +17,7 @@ using Microsoft.Maui.Devices;
 using System.IO;
 using System.Linq;
 using System.Reflection;
+using System.Diagnostics;
 using MiniMikuDance.Import;
 using OpenTK.Mathematics;
 using MiniMikuDance.App;
@@ -83,8 +84,10 @@ public partial class MainPage : ContentPage
                     _renderer.ClearIkBones();
                 }
             }
-            catch (Exception)
+            catch (Exception ex)
             {
+                Debug.WriteLine(ex);
+                throw;
             }
             IkManager.PickFunc = _renderer.PickBone;
             IkManager.GetBonePositionFunc = _renderer.GetBoneWorldPosition;
@@ -454,7 +457,9 @@ public partial class MainPage : ContentPage
                 }
                 catch (Exception ex)
                 {
+                    Debug.WriteLine(ex);
                     await DisplayAlert("Error", ex.Message, "OK");
+                    throw;
                 }
             }
         }
@@ -583,8 +588,10 @@ public partial class MainPage : ContentPage
                         _renderer.ClearIkBones();
                     }
                 }
-                catch (Exception)
+                catch (Exception ex)
                 {
+                    Debug.WriteLine(ex);
+                    throw;
                 }
                 IkManager.PickFunc = _renderer.PickBone;
                 IkManager.GetBonePositionFunc = _renderer.GetBoneWorldPosition;
@@ -651,8 +658,10 @@ public partial class MainPage : ContentPage
             catch (Exception ex)
             {
                 IkManager.ReleaseSelection();
+                Debug.WriteLine(ex);
                 MainThread.BeginInvokeOnMainThread(async () =>
                     await DisplayAlert("Error", ex.Message, "OK"));
+                throw;
             }
             e.Handled = true;
             return;
@@ -766,8 +775,9 @@ public partial class MainPage : ContentPage
                                 .FirstOrDefault(d => d != null);
                         }
                     }
-                    catch (Exception)
+                    catch (Exception ex)
                     {
+                        Debug.WriteLine(ex);
                         dir = null;
                     }
                     data = importer.ImportModel(stream, dir);
@@ -783,8 +793,9 @@ public partial class MainPage : ContentPage
         }
         catch (Exception ex)
         {
+            Debug.WriteLine(ex);
             await DisplayAlert("Error", ex.Message, "OK");
-
+            throw;
         }
     }
 
@@ -1040,8 +1051,9 @@ public partial class MainPage : ContentPage
         }
         catch (Exception ex)
         {
-
+            Debug.WriteLine(ex);
             await DisplayAlert("Error", ex.Message, "OK");
+            throw;
         }
     }
 
@@ -1164,9 +1176,10 @@ public partial class MainPage : ContentPage
                             sm.TextureFilePath = localRel;
                         }
                     }
-                    catch (Exception)
+                    catch (Exception ex)
                     {
-                        // intentionally left blank
+                        Debug.WriteLine(ex);
+                        throw;
                     }
                     finally
                     {
@@ -1187,7 +1200,9 @@ public partial class MainPage : ContentPage
         }
         catch (Exception ex)
         {
+            Debug.WriteLine(ex);
             await DisplayAlert("Error", ex.Message, "OK");
+            throw;
         }
         finally
         {

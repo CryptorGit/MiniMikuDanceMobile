@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Numerics;
+using System.Diagnostics;
 using MiniMikuDance.Import;
 using MiniMikuDance.Util;
 
@@ -136,8 +137,10 @@ public static class IkManager
 
             InvalidateViewer?.Invoke();
         }
-        catch (Exception)
+        catch (Exception ex)
         {
+            Debug.WriteLine(ex);
+            throw;
         }
     }
 

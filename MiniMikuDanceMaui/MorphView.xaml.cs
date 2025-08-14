@@ -3,6 +3,7 @@ using Microsoft.Maui.Dispatching;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Diagnostics;
 using MiniMikuDance.Import;
 using MiniMikuDance.Util;
 
@@ -111,9 +112,10 @@ public partial class MorphView : ContentView
                     {
                         MorphValueChanged?.Invoke(state.Name, latest);
                     }
-                    catch (Exception)
+                    catch (Exception ex)
                     {
-                        // intentionally left blank
+                        Debug.WriteLine(ex);
+                        throw;
                     }
                 };
                 _debounceStates[displayName] = state;
