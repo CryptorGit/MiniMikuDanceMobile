@@ -50,4 +50,9 @@
       <Link>Native\%(RecursiveDir)%(Filename)%(Extension)</Link>
     </None>
   </ItemGroup>
+  <ItemGroup>
+    <None Include="..\Native\build\**\*nanoem*.so" CopyToOutputDirectory="PreserveNewest" />
+    <None Include="..\Native\build\**\*nanoem*.dll" CopyToOutputDirectory="PreserveNewest" />
+    <None Include="..\Native\build\**\*nanoem*.dylib" CopyToOutputDirectory="PreserveNewest" />
+  </ItemGroup>
 </Project>
