@@ -127,7 +127,7 @@ public static class IkManager
                 return;
 
             // ネイティブ IK ソルバーを呼び出してボーン位置を更新
-            NativeMethods.nanoem_emapp_solve_ik(boneIndex, ref position);
+            NativeMethods.SolveIk(boneIndex, ref position);
             bone.Position = position;
 
             if (SetBoneTranslation != null)
@@ -151,6 +151,13 @@ public static class IkManager
             prev.IsSelected = false;
         _selectedBoneIndex = -1;
         InvalidateViewer?.Invoke();
+    }
+
+    // サンプル: ネイティブ IK ソルバーの呼び出し
+    public static Vector3 SolveSample(int boneIndex, Vector3 target)
+    {
+        NativeMethods.SolveIk(boneIndex, ref target);
+        return target;
     }
 
     public static void Clear()
