@@ -17,12 +17,11 @@ add_library(nanoem_core
     core/bone/transform.c
     core/ext/converter.c
     core/ext/json.c
-    core/ext/mutable.c
     core/ext/parson/parson.c
     core/ik/ConstraintSolver.cc
+    core/ik/mutable.c
     core/ik/motion.c
     core/ik/motion.pb-c.c
-    core/ext/motion.c
     core/morph/motion.c
     core/render/Rendering.cc
     emapp/DirectionalLight.cc
