@@ -77,27 +77,127 @@ public partial class PmxRenderer
 
     public void Render()
     {
-        GL.Enable(EnableCap.DepthTest);
-        GL.Enable(EnableCap.CullFace);
-        GL.Enable(EnableCap.Blend); // 半透明描画のためブレンドを有効化
-        GL.FrontFace(FrontFaceDirection.Ccw);
-        GL.ClearColor(1f, 1f, 1f, 1f);
-        GL.Clear(ClearBufferMask.ColorBufferBit | ClearBufferMask.DepthBufferBit);
-
-        if (_viewProjDirty)
-        {
-            _cameraRot = Matrix4.CreateFromQuaternion(_externalRotation) *
-                         Matrix4.CreateRotationX(_orbitX) *
-                         Matrix4.CreateRotationY(_orbitY);
-            _cameraPos = Vector3.TransformPosition(new Vector3(0, 0, _distance), _cameraRot) + _target;
-            _viewMatrix = Matrix4.LookAt(_cameraPos, _target, Vector3.UnitY);
-            float aspect = _width == 0 || _height == 0 ? 1f : _width / (float)_height;
-            _projMatrix = Matrix4.CreatePerspectiveFieldOfView(MathHelper.PiOver4, aspect, 0.1f, 100f);
-            _viewProjDirty = false;
-        }
-        var modelMat = ModelTransform;
+        UpdateViewProjection();
 
         bool needsUpdate = _bonesDirty || _morphDirty || _uvMorphDirty;
+        if (needsUpdate)
+        {
+            if (_bones.Count > 0)
+                CpuSkinning();
+            UpdateVertexBuffers();
+        }
+
+        DrawScene();
+    }
+
+    private void UpdateViewProjection()
+    {
+        if (!_viewProjDirty)
+            return;
+
+        _cameraRot = Matrix4.CreateFromQuaternion(_externalRotation) *
+                     Matrix4.CreateRotationX(_orbitX) *
+                     Matrix4.CreateRotationY(_orbitY);
+        _cameraPos = Vector3.TransformPosition(new Vector3(0, 0, _distance), _cameraRot) + _target;
+        _viewMatrix = Matrix4.LookAt(_cameraPos, _target, Vector3.UnitY);
+        float aspect = _width == 0 || _height == 0 ? 1f : _width / (float)_height;
+        _projMatrix = Matrix4.CreatePerspectiveFieldOfView(MathHelper.PiOver4, aspect, 0.1f, 100f);
+        _viewProjDirty = false;
+    }
+
+    private void CpuSkinning()
+    {
+        if (_bones.Count == 0)
+            return;
+
+        EnsureBoneCapacity();
+
+        if (_worldMats.Length != _bones.Count)
+            _worldMats = new System.Numerics.Matrix4x4[_bones.Count];
+        else
+            Array.Clear(_worldMats, 0, _worldMats.Length);
+
+        if (_skinMats.Length != _bones.Count)
+            _skinMats = new System.Numerics.Matrix4x4[_bones.Count];
+        else
+            Array.Clear(_skinMats, 0, _skinMats.Length);
+
+        for (int i = 0; i < _bones.Count; i++)
+        {
+            var bone = _bones[i];
+            System.Numerics.Vector3 euler = i < _boneRotations.Count ? _boneRotations[i].ToNumerics() : System.Numerics.Vector3.Zero;
+            var delta = euler.FromEulerDegrees();
+            System.Numerics.Quaternion morphRot = i < _boneMorphRotations.Length ? _boneMorphRotations[i] : System.Numerics.Quaternion.Identity;
+            System.Numerics.Vector3 trans = bone.Translation;
+            if (i < _boneMorphTranslations.Length)
+                trans += _boneMorphTranslations[i];
+            if (i < _boneTranslations.Count)
+                trans += _boneTranslations[i].ToNumerics();
+            var rot = bone.Rotation * morphRot * delta;
+            if (bone.InheritParent >= 0 && bone.InheritParent < _worldMats.Length)
+            {
+                var src = _worldMats[bone.InheritParent];
+                if (bone.InheritRotation)
+                {
+                    var srcRot = System.Numerics.Quaternion.CreateFromRotationMatrix(src);
+                    rot = System.Numerics.Quaternion.Normalize(System.Numerics.Quaternion.Slerp(System.Numerics.Quaternion.Identity, srcRot, bone.InheritRatio) * rot);
+                }
+                if (bone.InheritTranslation)
+                    trans += src.Translation * bone.InheritRatio;
+            }
+            var local = System.Numerics.Matrix4x4.CreateFromQuaternion(rot) * System.Numerics.Matrix4x4.CreateTranslation(trans);
+            if (bone.Parent >= 0)
+                _worldMats[i] = local * _worldMats[bone.Parent];
+            else
+                _worldMats[i] = local;
+        }
+
+        for (int i = 0; i < _bones.Count; i++)
+            _skinMats[i] = _bones[i].InverseBindMatrix * _worldMats[i];
+
+        UpdateIkBoneWorldPositions();
+
+        if (ShowBoneOutline)
+        {
+            int lineIdx = 0;
+            for (int i = 0; i < _bones.Count; i++)
+            {
+                var bone = _bones[i];
+                if (bone.Parent >= 0)
+                {
+                    var pp = _worldMats[bone.Parent].Translation;
+                    var cp = _worldMats[i].Translation;
+                    _boneLines[lineIdx++] = pp.X; _boneLines[lineIdx++] = pp.Y; _boneLines[lineIdx++] = pp.Z;
+                    _boneLines[lineIdx++] = cp.X; _boneLines[lineIdx++] = cp.Y; _boneLines[lineIdx++] = cp.Z;
+                }
+            }
+            _boneVertexCount = lineIdx / 3;
+            if (_boneVertexCount > 0)
+            {
+                GL.BindBuffer(BufferTarget.ArrayBuffer, _boneVbo);
+                var handle = System.Runtime.InteropServices.GCHandle.Alloc(_boneLines, System.Runtime.InteropServices.GCHandleType.Pinned);
+                try
+                {
+                    GL.BufferSubData(BufferTarget.ArrayBuffer, IntPtr.Zero, lineIdx * sizeof(float), handle.AddrOfPinnedObject());
+                }
+                finally
+                {
+                    handle.Free();
+                }
+            }
+        }
+        else
+        {
+            _boneVertexCount = 0;
+        }
+    }
+
+    private void UpdateVertexBuffers()
+    {
+        bool needsUpdate = _bonesDirty || _morphDirty || _uvMorphDirty;
+        if (!needsUpdate)
+            return;
+
         List<int>? changedVerts = null;
         if (_morphDirty || _uvMorphDirty)
         {
@@ -115,56 +215,8 @@ public partial class PmxRenderer
             }
         }
 
-        // CPU スキニングと頂点バッファ更新
-        if (needsUpdate && _bones.Count > 0)
+        if (_bones.Count > 0)
         {
-            EnsureBoneCapacity();
-
-            if (_worldMats.Length != _bones.Count)
-                _worldMats = new System.Numerics.Matrix4x4[_bones.Count];
-            else
-                Array.Clear(_worldMats, 0, _worldMats.Length);
-
-            if (_skinMats.Length != _bones.Count)
-                _skinMats = new System.Numerics.Matrix4x4[_bones.Count];
-            else
-                Array.Clear(_skinMats, 0, _skinMats.Length);
-
-            for (int i = 0; i < _bones.Count; i++)
-            {
-                var bone = _bones[i];
-                System.Numerics.Vector3 euler = i < _boneRotations.Count ? _boneRotations[i].ToNumerics() : System.Numerics.Vector3.Zero;
-                var delta = euler.FromEulerDegrees();
-                System.Numerics.Quaternion morphRot = i < _boneMorphRotations.Length ? _boneMorphRotations[i] : System.Numerics.Quaternion.Identity;
-                System.Numerics.Vector3 trans = bone.Translation;
-                if (i < _boneMorphTranslations.Length)
-                    trans += _boneMorphTranslations[i];
-                if (i < _boneTranslations.Count)
-                    trans += _boneTranslations[i].ToNumerics();
-                var rot = bone.Rotation * morphRot * delta;
-                if (bone.InheritParent >= 0 && bone.InheritParent < _worldMats.Length)
-                {
-                    var src = _worldMats[bone.InheritParent];
-                    if (bone.InheritRotation)
-                    {
-                        var srcRot = System.Numerics.Quaternion.CreateFromRotationMatrix(src);
-                        rot = System.Numerics.Quaternion.Normalize(System.Numerics.Quaternion.Slerp(System.Numerics.Quaternion.Identity, srcRot, bone.InheritRatio) * rot);
-                    }
-                    if (bone.InheritTranslation)
-                        trans += src.Translation * bone.InheritRatio;
-                }
-                var local = System.Numerics.Matrix4x4.CreateFromQuaternion(rot) * System.Numerics.Matrix4x4.CreateTranslation(trans);
-                if (bone.Parent >= 0)
-                    _worldMats[i] = local * _worldMats[bone.Parent];
-                else
-                    _worldMats[i] = local;
-            }
-
-            for (int i = 0; i < _bones.Count; i++)
-                _skinMats[i] = _bones[i].InverseBindMatrix * _worldMats[i];
-
-            UpdateIkBoneWorldPositions();
-
             if (_bonesDirty)
             {
                 float[]? tmpVertexBuffer = null;
@@ -357,48 +409,9 @@ public partial class PmxRenderer
                     handleSmall.Free();
                 }
             }
-
-            if (ShowBoneOutline)
-            {
-                int lineIdx = 0;
-                for (int i = 0; i < _bones.Count; i++)
-                {
-                    var bone = _bones[i];
-                    if (bone.Parent >= 0)
-                    {
-                        var pp = _worldMats[bone.Parent].Translation;
-                        var cp = _worldMats[i].Translation;
-                        _boneLines[lineIdx++] = pp.X; _boneLines[lineIdx++] = pp.Y; _boneLines[lineIdx++] = pp.Z;
-                        _boneLines[lineIdx++] = cp.X; _boneLines[lineIdx++] = cp.Y; _boneLines[lineIdx++] = cp.Z;
-                    }
-                }
-                _boneVertexCount = lineIdx / 3;
-                if (_boneVertexCount > 0)
-                {
-                    GL.BindBuffer(BufferTarget.ArrayBuffer, _boneVbo);
-                    var handle = System.Runtime.InteropServices.GCHandle.Alloc(_boneLines, System.Runtime.InteropServices.GCHandleType.Pinned);
-                    try
-                    {
-                        GL.BufferSubData(BufferTarget.ArrayBuffer, IntPtr.Zero, lineIdx * sizeof(float), handle.AddrOfPinnedObject());
-                    }
-                    finally
-                    {
-                        handle.Free();
-                    }
-                }
-            }
-            else
-            {
-                _boneVertexCount = 0;
-            }
-
-            _bonesDirty = false;
-            _morphDirty = false;
-            _uvMorphDirty = false;
         }
-        else if (needsUpdate)
+        else
         {
-            // No bones: just push morphed (or base) vertices to GPU
             float[]? tmpVertexBuffer = null;
             try
             {
@@ -456,14 +469,27 @@ public partial class PmxRenderer
                 if (tmpVertexBuffer != null)
                     ArrayPool<float>.Shared.Return(tmpVertexBuffer);
             }
-            _morphDirty = false;
-            _uvMorphDirty = false;
         }
+
+        _bonesDirty = false;
+        _morphDirty = false;
+        _uvMorphDirty = false;
+    }
+
+    private void DrawScene()
+    {
+        GL.Enable(EnableCap.DepthTest);
+        GL.Enable(EnableCap.CullFace);
+        GL.Enable(EnableCap.Blend); // 半透明描画のためブレンドを有効化
+        GL.FrontFace(FrontFaceDirection.Ccw);
+        GL.ClearColor(1f, 1f, 1f, 1f);
+        GL.Clear(ClearBufferMask.ColorBufferBit | ClearBufferMask.DepthBufferBit);
+
+        var modelMat = ModelTransform;
 
         GL.UseProgram(_modelProgram);
         GL.UniformMatrix4(_modelViewLoc, false, ref _viewMatrix);
         GL.UniformMatrix4(_modelProjLoc, false, ref _projMatrix);
-        // ライトと視線方向をカメラ角度に合わせて更新
         Vector3 light = Vector3.Normalize(new Vector3(0.3f, 0.6f, -0.7f));
         light = Vector3.TransformNormal(light, _cameraRot);
         GL.Uniform3(_modelLightDirLoc, ref light);
