@@ -3,6 +3,8 @@ using System;
 using System.IO;
 using System.Collections.Generic;
 using System.Buffers;
+using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Logging.Abstractions;
 using SixLabors.ImageSharp;
 using SixLabors.ImageSharp.PixelFormats;
 using Vector3D = Assimp.Vector3D;
@@ -30,6 +32,7 @@ public class ModelData
 public class ModelImporter : IDisposable
 {
     private readonly AssimpContext _context = new();
+    private readonly ILogger<ModelImporter> _logger;
     private sealed class TextureData
     {
         public int Width;
@@ -100,6 +103,11 @@ public class ModelImporter : IDisposable
         }
     }
 
+    public ModelImporter(ILogger<ModelImporter>? logger = null)
+    {
+        _logger = logger ?? NullLogger<ModelImporter>.Instance;
+    }
+
     public void Dispose()
     {
         _context.Dispose();
@@ -108,33 +116,195 @@ public class ModelImporter : IDisposable
 
     public ModelData ImportModel(Stream stream, string? textureDir = null)
     {
-        Span<byte> header = stackalloc byte[4];
-        int read = stream.Read(header);
+        var header = ReadHeader(stream);
+        if (IsPmx(header))
+        {
+            if (stream.CanSeek)
+            {
+                stream.Position = 0;
+                return ImportPmx(stream, textureDir);
+            }
+
+            using var ms = CopyToMemoryStream(stream, header);
+            return ImportPmx(ms, textureDir);
+        }
+
+        throw new NotSupportedException("PMX 以外の形式には対応していません。");
+    }
+
+    private static byte[] ReadHeader(Stream stream)
+    {
+        var header = new byte[4];
+        int read = stream.Read(header, 0, 4);
         if (read < 4)
         {
             throw new NotSupportedException("PMX 以外の形式には対応していません。");
         }
+        return header;
+    }
 
-        Stream src = stream;
-        if (stream.CanSeek)
+    private static bool IsPmx(byte[] header)
+    {
+        return header.Length >= 4 && header[0] == 'P' && header[1] == 'M' && header[2] == 'X' && header[3] == ' ';
+    }
+
+    private static MemoryStream CopyToMemoryStream(Stream stream, byte[] header)
+    {
+        var ms = new MemoryStream();
+        ms.Write(header, 0, header.Length);
+        stream.CopyTo(ms);
+        ms.Position = 0;
+        return ms;
+    }
+
+    private void GenerateSubMeshes(ModelData data, dynamic[] verts, dynamic[] faces, dynamic[] mats, string[] texList, string? textureDir)
+    {
+        int faceOffset = 0;
+        string dir = textureDir ?? string.Empty;
+        foreach (var mat in mats)
         {
-            stream.Position = 0;
+            var sub = new Assimp.Mesh("pmx", Assimp.PrimitiveType.Triangle);
+            var smd = new SubMeshData
+            {
+                Mesh = sub,
+                ColorFactor = new System.Numerics.Vector4(mat.Diffuse.R, mat.Diffuse.G, mat.Diffuse.B, mat.Diffuse.A),
+                Specular = new System.Numerics.Vector3(mat.Specular.R, mat.Specular.G, mat.Specular.B),
+                SpecularPower = mat.Shininess,
+                EdgeColor = new System.Numerics.Vector4(mat.EdgeColor.R, mat.EdgeColor.G, mat.EdgeColor.B, mat.EdgeColor.A),
+                EdgeSize = mat.EdgeSize,
+                ToonColor = System.Numerics.Vector3.One,
+                TextureTint = System.Numerics.Vector4.One
+            };
+
+            int faceCount = mat.VertexCount / 3;
+            for (int i = 0; i < faceCount; i++)
+            {
+                var sf = faces[faceOffset + i];
+                int[] idxs = { (int)sf.V1, (int)sf.V2, (int)sf.V3 };
+                int baseIndex = sub.Vertices.Count;
+                for (int j = 0; j < 3; j++)
+                {
+                    var vv = verts[idxs[j]];
+                    sub.Vertices.Add(new Vector3D(vv.Position.X * Scale, vv.Position.Y * Scale, vv.Position.Z * Scale));
+                    sub.Normals.Add(new Vector3D(vv.Normal.X, vv.Normal.Y, vv.Normal.Z));
+                    sub.TextureCoordinateChannels[0].Add(new Vector3D(vv.UV.X, vv.UV.Y, 0));
+                    smd.TexCoords.Add(new System.Numerics.Vector2(vv.UV.X, vv.UV.Y));
+
+                    System.Numerics.Vector4 ji = System.Numerics.Vector4.Zero;
+                    System.Numerics.Vector4 jw = System.Numerics.Vector4.Zero;
+                    System.Numerics.Vector3 sc = System.Numerics.Vector3.Zero;
+                    System.Numerics.Vector3 sr0 = System.Numerics.Vector3.Zero;
+                    System.Numerics.Vector3 sr1 = System.Numerics.Vector3.Zero;
+                    switch ((WeightTransformType)vv.WeightTransformType)
+                    {
+                        case WeightTransformType.BDEF1:
+                            ji.X = vv.BoneIndex1;
+                            jw.X = 1f;
+                            break;
+                        case WeightTransformType.BDEF2:
+                            ji.X = vv.BoneIndex1;
+                            ji.Y = vv.BoneIndex2;
+                            jw.X = vv.Weight1;
+                            jw.Y = 1f - vv.Weight1;
+                            break;
+                        case WeightTransformType.SDEF:
+                            ji.X = vv.BoneIndex1;
+                            ji.Y = vv.BoneIndex2;
+                            jw.X = vv.Weight1;
+                            jw.Y = 1f - vv.Weight1;
+                            sc = new System.Numerics.Vector3(vv.C.X * Scale, vv.C.Y * Scale, vv.C.Z * Scale);
+                            sr0 = new System.Numerics.Vector3(vv.R0.X * Scale, vv.R0.Y * Scale, vv.R0.Z * Scale);
+                            sr1 = new System.Numerics.Vector3(vv.R1.X * Scale, vv.R1.Y * Scale, vv.R1.Z * Scale);
+                            break;
+                        case WeightTransformType.BDEF4:
+                        case WeightTransformType.QDEF:
+                        default:
+                            ji = new System.Numerics.Vector4(vv.BoneIndex1, vv.BoneIndex2, vv.BoneIndex3, vv.BoneIndex4);
+                            jw = new System.Numerics.Vector4(vv.Weight1, vv.Weight2, vv.Weight3, vv.Weight4);
+                            break;
+                    }
+                    smd.JointIndices.Add(ji);
+                    smd.JointWeights.Add(jw);
+                    smd.SdefC.Add(sc);
+                    smd.SdefR0.Add(sr0);
+                    smd.SdefR1.Add(sr1);
+                }
+                var face = new Face();
+                face.Indices.Add(baseIndex);
+                face.Indices.Add(baseIndex + 1);
+                face.Indices.Add(baseIndex + 2);
+                sub.Faces.Add(face);
+            }
+
+            if (!string.IsNullOrEmpty(dir) && mat.Texture >= 0 && mat.Texture < texList.Length)
+            {
+                LoadTexture(smd, texList[mat.Texture], dir);
+            }
+
+            data.SubMeshes.Add(smd);
+            faceOffset += faceCount;
         }
-        else
+    }
+
+    private void LoadTexture(SubMeshData smd, string texName, string dir)
+    {
+        var normalized = texName.Replace('\\', Path.DirectorySeparatorChar);
+        var texPath = Path.Combine(dir, normalized);
+        smd.TextureFilePath = normalized;
+        if (!File.Exists(texPath))
+            return;
+
+        CacheItem? item;
+        lock (s_cacheLock)
         {
-            var ms = new MemoryStream();
-            ms.Write(header);
-            stream.CopyTo(ms);
-            ms.Position = 0;
-            src = ms;
+            if (s_textureCache.TryGetValue(texPath, out item))
+            {
+                var node = item.Node;
+                s_lruList.Remove(node);
+                s_lruList.AddFirst(node);
+                smd.TextureWidth = item.Texture.Width;
+                smd.TextureHeight = item.Texture.Height;
+                smd.TextureBytes = item.Texture.Pixels;
+            }
         }
 
-        if (header[0] == 'P' && header[1] == 'M' && header[2] == 'X' && header[3] == ' ')
+        if (item is null)
         {
-            return ImportPmx(src, textureDir);
-        }
+            using var image = Image.Load<Rgba32>(texPath);
+            int width = image.Width;
+            int height = image.Height;
+            int size = width * height * 4;
+            var pool = ArrayPool<byte>.Shared;
+            var pixels = pool.Rent(size);
+            image.CopyPixelDataTo(pixels);
 
-        throw new NotSupportedException("PMX 以外の形式には対応していません。");
+            lock (s_cacheLock)
+            {
+                if (!s_textureCache.TryGetValue(texPath, out item))
+                {
+                    var tex = new TextureData
+                    {
+                        Width = width,
+                        Height = height,
+                        Pixels = pixels
+                    };
+                    var node = s_lruList.AddFirst(texPath);
+                    item = new CacheItem { Texture = tex, Node = node };
+                    s_textureCache[texPath] = item;
+                    TrimCache();
+                }
+                else
+                {
+                    pool.Return(pixels);
+                    var node = item.Node;
+                    s_lruList.Remove(node);
+                    s_lruList.AddFirst(node);
+                }
+                smd.TextureWidth = item.Texture.Width;
+                smd.TextureHeight = item.Texture.Height;
+                smd.TextureBytes = item.Texture.Pixels;
+            }
+        }
     }
 
     public ModelData ImportModel(string path)
@@ -361,7 +531,7 @@ public class ModelImporter : IDisposable
                 var candidate = $"{name}_{cnt}";
                 if (!usedNames.Add(candidate))
                 {
-                    Console.Error.WriteLine($"モーフ名 '{name}' のユニーク化に失敗しました。後続処理で無視されます。");
+                    _logger.LogError("モーフ名 '{Name}' のユニーク化に失敗しました。後続処理で無視されます。", name);
                     continue;
                 }
                 name = candidate;
@@ -371,7 +541,7 @@ public class ModelImporter : IDisposable
                 nameCounts[name] = 0;
                 if (!usedNames.Add(name))
                 {
-                    Console.Error.WriteLine($"モーフ名 '{name}' のユニーク化に失敗しました。後続処理で無視されます。");
+                    _logger.LogError("モーフ名 '{Name}' のユニーク化に失敗しました。後続処理で無視されます。", name);
                     continue;
                 }
             }
@@ -498,148 +668,7 @@ public class ModelImporter : IDisposable
         }
 
         data.Mesh = combined;
-        int faceOffset = 0;
-        string dir = textureDir ?? string.Empty;
-        foreach (var mat in mats)
-        {
-            var sub = new Assimp.Mesh("pmx", Assimp.PrimitiveType.Triangle);
-            var smd = new SubMeshData
-            {
-                Mesh = sub,
-                ColorFactor = new System.Numerics.Vector4(mat.Diffuse.R, mat.Diffuse.G, mat.Diffuse.B, mat.Diffuse.A),
-                Specular = new System.Numerics.Vector3(mat.Specular.R, mat.Specular.G, mat.Specular.B),
-                SpecularPower = mat.Shininess,
-                EdgeColor = new System.Numerics.Vector4(mat.EdgeColor.R, mat.EdgeColor.G, mat.EdgeColor.B, mat.EdgeColor.A),
-                EdgeSize = mat.EdgeSize,
-                ToonColor = System.Numerics.Vector3.One,
-                TextureTint = System.Numerics.Vector4.One
-            };
-
-            int faceCount = mat.VertexCount / 3;
-            for (int i = 0; i < faceCount; i++)
-            {
-                var sf = faces[faceOffset + i];
-                int[] idxs = { sf.V1, sf.V2, sf.V3 };
-                int baseIndex = sub.Vertices.Count;
-                for (int j = 0; j < 3; j++)
-                {
-                    var vv = verts[idxs[j]];
-                    sub.Vertices.Add(new Vector3D(vv.Position.X * Scale, vv.Position.Y * Scale, vv.Position.Z * Scale));
-                    sub.Normals.Add(new Vector3D(vv.Normal.X, vv.Normal.Y, vv.Normal.Z));
-                    sub.TextureCoordinateChannels[0].Add(new Vector3D(vv.UV.X, vv.UV.Y, 0));
-                    smd.TexCoords.Add(new System.Numerics.Vector2(vv.UV.X, vv.UV.Y));
-
-                    System.Numerics.Vector4 ji = System.Numerics.Vector4.Zero;
-                    System.Numerics.Vector4 jw = System.Numerics.Vector4.Zero;
-                    System.Numerics.Vector3 sc = System.Numerics.Vector3.Zero;
-                    System.Numerics.Vector3 sr0 = System.Numerics.Vector3.Zero;
-                    System.Numerics.Vector3 sr1 = System.Numerics.Vector3.Zero;
-                    switch (vv.WeightTransformType)
-                    {
-                        case WeightTransformType.BDEF1:
-                            ji.X = vv.BoneIndex1;
-                            jw.X = 1f;
-                            break;
-                        case WeightTransformType.BDEF2:
-                            ji.X = vv.BoneIndex1;
-                            ji.Y = vv.BoneIndex2;
-                            jw.X = vv.Weight1;
-                            jw.Y = 1f - vv.Weight1;
-                            break;
-                        case WeightTransformType.SDEF:
-                            ji.X = vv.BoneIndex1;
-                            ji.Y = vv.BoneIndex2;
-                            jw.X = vv.Weight1;
-                            jw.Y = 1f - vv.Weight1;
-                            sc = new System.Numerics.Vector3(vv.C.X * Scale, vv.C.Y * Scale, vv.C.Z * Scale);
-                            sr0 = new System.Numerics.Vector3(vv.R0.X * Scale, vv.R0.Y * Scale, vv.R0.Z * Scale);
-                            sr1 = new System.Numerics.Vector3(vv.R1.X * Scale, vv.R1.Y * Scale, vv.R1.Z * Scale);
-                            break;
-                        case WeightTransformType.BDEF4:
-                        case WeightTransformType.QDEF:
-                        default:
-                            ji = new System.Numerics.Vector4(vv.BoneIndex1, vv.BoneIndex2, vv.BoneIndex3, vv.BoneIndex4);
-                            jw = new System.Numerics.Vector4(vv.Weight1, vv.Weight2, vv.Weight3, vv.Weight4);
-                            break;
-                    }
-                    smd.JointIndices.Add(ji);
-                    smd.JointWeights.Add(jw);
-                    smd.SdefC.Add(sc);
-                    smd.SdefR0.Add(sr0);
-                    smd.SdefR1.Add(sr1);
-                }
-                var face = new Face();
-                face.Indices.Add(baseIndex);
-                face.Indices.Add(baseIndex + 1);
-                face.Indices.Add(baseIndex + 2);
-                sub.Faces.Add(face);
-            }
-
-            if (!string.IsNullOrEmpty(dir) && mat.Texture >= 0 && mat.Texture < texList.Length)
-            {
-                var texName = texList[mat.Texture]
-                    .Replace('\\', Path.DirectorySeparatorChar);
-                var texPath = Path.Combine(dir, texName);
-                smd.TextureFilePath = texName;
-                if (File.Exists(texPath))
-                {
-                    CacheItem? item;
-                    lock (s_cacheLock)
-                    {
-                        if (s_textureCache.TryGetValue(texPath, out item))
-                        {
-                            var node = item.Node;
-                            s_lruList.Remove(node);
-                            s_lruList.AddFirst(node);
-                            smd.TextureWidth = item.Texture.Width;
-                            smd.TextureHeight = item.Texture.Height;
-                            smd.TextureBytes = item.Texture.Pixels;
-                        }
-                    }
-
-                    if (item is null)
-                    {
-                        using var image = Image.Load<Rgba32>(texPath);
-                        int width = image.Width;
-                        int height = image.Height;
-                        int size = width * height * 4;
-                        var pool = ArrayPool<byte>.Shared;
-                        var pixels = pool.Rent(size);
-                        image.CopyPixelDataTo(pixels);
-
-                        lock (s_cacheLock)
-                        {
-                            if (!s_textureCache.TryGetValue(texPath, out item))
-                            {
-                                var tex = new TextureData
-                                {
-                                    Width = width,
-                                    Height = height,
-                                    Pixels = pixels
-                                };
-                                var node = s_lruList.AddFirst(texPath);
-                                item = new CacheItem { Texture = tex, Node = node };
-                                s_textureCache[texPath] = item;
-                                TrimCache();
-                            }
-                            else
-                            {
-                                pool.Return(pixels);
-                                var node = item.Node;
-                                s_lruList.Remove(node);
-                                s_lruList.AddFirst(node);
-                            }
-                            smd.TextureWidth = item.Texture.Width;
-                            smd.TextureHeight = item.Texture.Height;
-                            smd.TextureBytes = item.Texture.Pixels;
-                        }
-                    }
-                }
-            }
-
-            data.SubMeshes.Add(smd);
-            faceOffset += faceCount;
-        }
+        GenerateSubMeshes(data, verts, faces, mats, texList, textureDir);
         data.Transform = System.Numerics.Matrix4x4.CreateScale(Scale);
         return data;
     }
