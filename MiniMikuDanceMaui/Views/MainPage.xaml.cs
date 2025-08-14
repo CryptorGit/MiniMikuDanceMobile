@@ -24,6 +24,10 @@ using MiniMikuDance.App;
 using SixLabors.ImageSharp.PixelFormats;
 using MiniMikuDance.IK;
 using MiniMikuDance.Util;
+using MiniMikuDanceMaui.Renderers;
+using MiniMikuDanceMaui.Services;
+using MiniMikuDanceMaui.Utilities;
+using MiniMikuDanceMaui.Platform.Bindings;
 using MiniMikuDanceMaui.Renderers.Pmx;
 using MiniMikuDanceMaui.Helpers;
 using MiniMikuDanceMaui.ViewModels;
@@ -466,7 +470,7 @@ public partial class MainPage : ContentPage
             }
         }
 
-        if (MmdFileSystem.FallbackToInternalStorage)
+        if (FileSystemService.FallbackToInternalStorage)
         {
             await DisplayAlert("ストレージ", "外部ストレージへのアクセスに失敗したため、内部ストレージを使用します。", "OK");
         }
@@ -810,13 +814,13 @@ public partial class MainPage : ContentPage
             View view;
             if (name == "Explorer")
             {
-                var ev = new ExplorerView(MmdFileSystem.BaseDir);
-                ev.LoadDirectory(MmdFileSystem.BaseDir);
+                var ev = new ExplorerView(FileSystemService.BaseDir);
+                ev.LoadDirectory(FileSystemService.BaseDir);
                 view = ev;
             }
             else if (name == "Open")
             {
-                var modelsPath = MmdFileSystem.Ensure("Models");
+                var modelsPath = FileSystemService.Ensure("Models");
                 var ev = new ExplorerView(modelsPath, ModelExtensions);
                 ev.FileSelected += OnOpenExplorerFileSelected;
                 ev.LoadDirectory(modelsPath);
@@ -953,7 +957,7 @@ public partial class MainPage : ContentPage
         }
         else if (name == "Open" && _bottomViews[name] is ExplorerView oev)
         {
-            var modelsPath = MmdFileSystem.Ensure("Models");
+            var modelsPath = FileSystemService.Ensure("Models");
             oev.LoadDirectory(modelsPath);
         }
         else if (name == "MTOON" && _bottomViews[name] is LightingView mv)
@@ -1049,7 +1053,7 @@ public partial class MainPage : ContentPage
 
             if (result == null) return;
 
-            string dstDir = MmdFileSystem.Ensure("Models");
+            string dstDir = FileSystemService.Ensure("Models");
             string dstPath = Path.Combine(dstDir, Path.GetFileName(result.FullPath));
             await using Stream src = await result.OpenReadAsync();
             await using FileStream dst = File.Create(dstPath);
@@ -1079,7 +1083,7 @@ public partial class MainPage : ContentPage
 
     private async void ShowModelExplorer()
     {
-        var modelsPath = MmdFileSystem.Ensure("Models");
+        var modelsPath = FileSystemService.Ensure("Models");
 
 #if ANDROID
         var readStatus = await Permissions.CheckStatusAsync<Permissions.StorageRead>();

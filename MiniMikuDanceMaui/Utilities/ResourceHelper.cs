@@ -1,4 +1,4 @@
-namespace MiniMikuDanceMaui.Helpers;
+namespace MiniMikuDanceMaui.Utilities;
 
 using Microsoft.Maui.Controls;
 using Microsoft.Maui.Graphics;

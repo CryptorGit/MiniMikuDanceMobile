@@ -3,15 +3,15 @@ using System.IO;
 using SystemPath = System.IO.Path;
 using Microsoft.Maui.Storage;
 
-namespace MiniMikuDanceMaui.Helpers;
+namespace MiniMikuDanceMaui.Services;
 
-public static class MmdFileSystem
+public static class FileSystemService
 {
     public static readonly string BaseDir;
     public static bool UsingInternalStorage { get; private set; }
     public static bool FallbackToInternalStorage { get; private set; }
 
-    static MmdFileSystem()
+    static FileSystemService()
     {
 #if ANDROID
         string baseDir;
