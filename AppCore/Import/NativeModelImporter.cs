@@ -3,6 +3,8 @@ using System.Runtime.InteropServices;
 
 namespace MiniMikuDance.Import;
 
+public readonly record struct NativeModelInfo(int VertexCount);
+
 public static class NativeModelImporter
 {
     private const string LibraryName = "nanoem";
@@ -16,7 +18,7 @@ public static class NativeModelImporter
     [DllImport(LibraryName, CallingConvention = CallingConvention.Cdecl)]
     private static extern void nanoemModelDestroy(IntPtr model);
 
-    public static int GetVertexCount(ReadOnlySpan<byte> data)
+    public static NativeModelInfo Import(ReadOnlySpan<byte> data)
     {
         int status;
         IntPtr factory = IntPtr.Zero;
@@ -25,11 +27,13 @@ public static class NativeModelImporter
         {
             throw new InvalidOperationException($"PMX import failed: {status}");
         }
-        var count = (int)nanoemModelGetVertexCount(model);
+        var info = new NativeModelInfo((int)nanoemModelGetVertexCount(model));
         nanoemModelDestroy(model);
-        return count;
+        return info;
     }
 }
+
+public readonly record struct NativeMotionInfo(int BoneKeyframeCount);
 
 public static class NativeMotionImporter
 {
@@ -44,7 +48,7 @@ public static class NativeMotionImporter
     [DllImport(LibraryName, CallingConvention = CallingConvention.Cdecl)]
     private static extern void nanoemMotionDestroy(IntPtr motion);
 
-    public static int GetBoneKeyframeCount(ReadOnlySpan<byte> data)
+    public static NativeMotionInfo Import(ReadOnlySpan<byte> data)
     {
         int status;
         IntPtr factory = IntPtr.Zero;
@@ -53,8 +57,8 @@ public static class NativeMotionImporter
         {
             throw new InvalidOperationException($"VMD import failed: {status}");
         }
-        var count = (int)nanoemMotionGetBoneKeyframeCount(motion);
+        var info = new NativeMotionInfo((int)nanoemMotionGetBoneKeyframeCount(motion));
         nanoemMotionDestroy(motion);
-        return count;
+        return info;
     }
 }
