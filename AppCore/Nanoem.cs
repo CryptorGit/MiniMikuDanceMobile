@@ -3,7 +3,7 @@ using System.Runtime.InteropServices;
 
 namespace MiniMikuDance;
 
-internal static class Nanoem
+internal static partial class Nanoem
 {
     private const string NativeLibName = "nanoem";
 

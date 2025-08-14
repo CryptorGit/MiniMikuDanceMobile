@@ -16,11 +16,13 @@ add_library(nanoem_core
     core/ext/json.c
     core/ext/mutable.c
     core/ext/motion.c
+    core/morph/motion.c
     core/ext/parson/parson.c
 )
 
 target_include_directories(nanoem_core PUBLIC
     ${CMAKE_CURRENT_SOURCE_DIR}/core
+    ${CMAKE_CURRENT_SOURCE_DIR}/core/morph
 )
 
 target_compile_definitions(nanoem_core PRIVATE
