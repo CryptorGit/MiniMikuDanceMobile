@@ -46,14 +46,15 @@
                             </Trigger>
                         </Switch.Triggers>
                     </Switch>
-                    <mi:MauiIcon Icon="{mi:Material Icon=Science}"
+                    <mi:MauiIcon Icon="{mmd:Material Icon=Science}"
                            IconColor="Gray"
                            HorizontalOptions="End"
                            VerticalOptions="Center">
                         <mi:MauiIcon.Triggers>
                             <DataTrigger TargetType="mi:MauiIcon"
                                         Binding="{Binding IsToggled, Source={x:Reference PhysicsSwitch}}"
-                                        Value="True">
+                                        Value="True"
+                                        x:DataType="Switch">
                                 <Setter Property="IconColor" Value="Green" />
                             </DataTrigger>
                         </mi:MauiIcon.Triggers>
@@ -70,7 +71,7 @@
                             </Trigger>
                         </Switch.Triggers>
                     </Switch>
-                    <mi:MauiIcon Icon="{mi:Material Icon=PhotoCamera}"
+                    <mi:MauiIcon Icon="{mmd:Material Icon=PhotoCamera}"
                            IconColor="Gray"
                            x:Name="CameraIcon"
                            HorizontalOptions="End"
@@ -78,12 +79,13 @@
                         <mi:MauiIcon.Triggers>
                             <DataTrigger TargetType="mi:MauiIcon"
                                         Binding="{Binding IsToggled, Source={x:Reference PoseModeSwitch}}"
-                                        Value="True">
+                                        Value="True"
+                                        x:DataType="Switch">
                                 <Setter Property="IsVisible" Value="False" />
                             </DataTrigger>
                         </mi:MauiIcon.Triggers>
                     </mi:MauiIcon>
-                    <mi:MauiIcon Icon="{mi:Material Icon=AccessibilityNew}"
+                    <mi:MauiIcon Icon="{mmd:Material Icon=AccessibilityNew}"
                            IconColor="Green"
                            x:Name="PoseIcon"
                            HorizontalOptions="End"
@@ -92,7 +94,8 @@
                         <mi:MauiIcon.Triggers>
                             <DataTrigger TargetType="mi:MauiIcon"
                                         Binding="{Binding IsToggled, Source={x:Reference PoseModeSwitch}}"
-                                        Value="True">
+                                        Value="True"
+                                        x:DataType="Switch">
                                 <Setter Property="IsVisible" Value="True" />
                             </DataTrigger>
                         </mi:MauiIcon.Triggers>
