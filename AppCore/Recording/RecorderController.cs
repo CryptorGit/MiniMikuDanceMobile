@@ -5,7 +5,6 @@ using System.Runtime.InteropServices;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Threading.Channels;
-using System.Buffers;
 using SixLabors.ImageSharp;
 using SixLabors.ImageSharp.PixelFormats;
 using SixLabors.ImageSharp.Processing;
@@ -27,7 +26,6 @@ public class RecorderController : IDisposable
     private int _width;
     private int _height;
     private int _droppedFrames;
-    private byte[]? _rowBuffer;
 
     private const int ChannelCapacity = 60;
 
@@ -96,7 +94,6 @@ public class RecorderController : IDisposable
         }
         _frameChannel = null;
         _workerTask = null;
-        ReleaseRowBuffer();
         return _savedDir;
     }
 
@@ -151,36 +148,7 @@ public class RecorderController : IDisposable
         {
             var dest = mem.Span;
             source.CopyTo(dest);
-
-            if (height > 1)
-            {
-                var destBytes = MemoryMarshal.AsBytes(dest);
-                int rowBytes = width * 4;
-                if (_rowBuffer == null || _rowBuffer.Length < rowBytes)
-                {
-                    if (_rowBuffer != null)
-                    {
-                        ArrayPool<byte>.Shared.Return(_rowBuffer);
-                    }
-                    _rowBuffer = ArrayPool<byte>.Shared.Rent(rowBytes);
-                }
-                var tmp = _rowBuffer;
-                unsafe
-                {
-                    fixed (byte* destPtr = destBytes)
-                    fixed (byte* tmpPtr = tmp)
-                    {
-                        for (int y = 0; y < height / 2; y++)
-                        {
-                            byte* top = destPtr + y * rowBytes;
-                            byte* bottom = destPtr + (height - 1 - y) * rowBytes;
-                            Buffer.MemoryCopy(top, tmpPtr, rowBytes, rowBytes);
-                            Buffer.MemoryCopy(bottom, top, rowBytes, rowBytes);
-                            Buffer.MemoryCopy(tmpPtr, bottom, rowBytes, rowBytes);
-                        }
-                    }
-                }
-            }
+            image.Mutate(x => x.Flip(FlipMode.Vertical));
         }
         else
         {
@@ -197,24 +165,11 @@ public class RecorderController : IDisposable
         }
     }
 
-    private void ReleaseRowBuffer()
-    {
-        if (_rowBuffer != null)
-        {
-            ArrayPool<byte>.Shared.Return(_rowBuffer);
-            _rowBuffer = null;
-        }
-    }
-
     public void Dispose()
     {
         if (_recording)
         {
             StopRecording().GetAwaiter().GetResult();
-        }
-        else
-        {
-            ReleaseRowBuffer();
         }
     }
 
