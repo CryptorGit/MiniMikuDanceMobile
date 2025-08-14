@@ -10,7 +10,7 @@ using Vector2 = OpenTK.Mathematics.Vector2;
 using Vector3 = OpenTK.Mathematics.Vector3;
 using Vector4 = OpenTK.Mathematics.Vector4;
 
-namespace MiniMikuDanceMaui.Renderers;
+namespace MiniMikuDanceMaui.Renderers.Pmx;
 
 public partial class PmxRenderer
 {
@@ -221,5 +221,14 @@ public partial class PmxRenderer
         {
             SetMorph(name, value);
         }
+    }
+
+    partial void InitializeMorphModule()
+    {
+        RegisterModule(new MorphModule());
+    }
+
+    private class MorphModule : PmxRendererModuleBase
+    {
     }
 }

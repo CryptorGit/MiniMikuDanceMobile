@@ -2,7 +2,7 @@ using System;
 using System.Collections.Generic;
 using MiniMikuDance.Import;
 
-namespace MiniMikuDanceMaui.Renderers;
+namespace MiniMikuDanceMaui.Renderers.Pmx;
 
 public partial class PmxRenderer
 {
@@ -52,5 +52,14 @@ public partial class PmxRenderer
         {
             NanoemPhysics.Step(delta);
         }
+    }
+
+    partial void InitializePhysicsModule()
+    {
+        RegisterModule(new PhysicsModule());
+    }
+
+    private class PhysicsModule : PmxRendererModuleBase
+    {
     }
 }

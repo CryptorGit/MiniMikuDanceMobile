@@ -5,7 +5,7 @@ using MiniMikuDance;
 using MiniMikuDance.Import;
 using MiniMikuDance.UI;
 
-namespace MiniMikuDanceMaui.Renderers;
+namespace MiniMikuDanceMaui.Renderers.Pmx;
 
 public partial class PmxRenderer
 {
@@ -52,6 +52,15 @@ public partial class PmxRenderer
         _bones[_selectedBone].Transform = BoneController.GetTransform(_modelHandle, _selectedBone, _bones[_selectedBone].Transform);
         _bonesDirty = true;
         Viewer?.InvalidateSurface();
+    }
+
+    partial void InitializeBoneModule()
+    {
+        RegisterModule(new BoneModule());
+    }
+
+    private class BoneModule : PmxRendererModuleBase
+    {
     }
 }
 
