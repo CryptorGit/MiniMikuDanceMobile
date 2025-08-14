@@ -1,4 +1,5 @@
 target_sources(nanoem PRIVATE
+    bone.c
     mutable.c
     transform.c
 )
