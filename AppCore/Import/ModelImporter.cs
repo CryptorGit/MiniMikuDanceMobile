@@ -131,12 +131,19 @@ public class ModelImporter : IDisposable
                 using var temp = CopyToMemoryStream(stream, header);
                 bytes = temp.ToArray();
             }
-            var nativeInfo = NativeModelImporter.Import(bytes);
+            int status;
+            IntPtr model = Nanoem.ModelImportPmx(bytes, out status);
+            if (model == IntPtr.Zero || status != 0)
+            {
+                throw new InvalidOperationException($"PMX import failed: {status}");
+            }
+            int nativeVertexCount = (int)Nanoem.ModelGetVertexCount(model);
+            Nanoem.ModelDestroy(model);
             using var ms = new MemoryStream(bytes);
             var result = ImportPmx(ms, textureDir);
-            if (result.Mesh.VertexCount != nativeInfo.VertexCount)
+            if (result.Mesh.VertexCount != nativeVertexCount)
             {
-                throw new InvalidOperationException($"ネイティブとマネージドの頂点数が一致しません: {result.Mesh.VertexCount} != {nativeInfo.VertexCount}");
+                throw new InvalidOperationException($"ネイティブとマネージドの頂点数が一致しません: {result.Mesh.VertexCount} != {nativeVertexCount}");
             }
             return result;
         }
