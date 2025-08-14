@@ -2,9 +2,6 @@ using MiniMikuDance.Import;
 using MiniMikuDance.Recording;
 using MiniMikuDance.UI;
 using MiniMikuDance.Data;
-using MiniMikuDance.Util;
-using MiniMikuDance.PoseEstimation;
-using PoseJointData = MiniMikuDance.PoseEstimation.JointData;
 using System;
 using System.IO;
 using System.Threading.Tasks;
@@ -21,28 +18,11 @@ public partial class AppInitializer : IDisposable
 
     public IViewer? Viewer { get; private set; }
     public RecorderController? Recorder { get; private set; }
-    public PoseEstimator? PoseEstimator { get; private set; }
-    /// <summary>
-    /// 動画フレームを抽出する実装。各プラットフォームで必要に応じて差し替える。
-    /// </summary>
-    public IVideoFrameExtractor FrameExtractor { get; set; } = new FfmpegFrameExtractor();
-    public PoseJointData[]? Joints { get; private set; }
     public BonesConfig? BonesConfig { get; set; }
-    private string _poseModelPath = string.Empty;
-    private string _poseOutputDir = string.Empty;
 
-
-    public void Initialize(UIConfig uiConfig, string? modelPath, string poseModelPath, string baseDir)
+    public void Initialize(UIConfig uiConfig, string? modelPath, string baseDir)
     {
-
         UIManager.Instance.LoadConfig(uiConfig);
-        _poseModelPath = poseModelPath;
-        // FrameExtractor はプラットフォーム側で差し替えられる
-        PoseEstimator = new PoseEstimator(poseModelPath, FrameExtractor);
-
-        _poseOutputDir = Path.Combine(baseDir, "Poses");
-        Directory.CreateDirectory(_poseOutputDir);
-
         Recorder = new RecorderController(Path.Combine(baseDir, "Recordings"));
         if (!string.IsNullOrEmpty(modelPath) && File.Exists(modelPath))
         {
@@ -80,51 +60,6 @@ public partial class AppInitializer : IDisposable
         };
     }
 
-    public async Task<string?> AnalyzeVideoAsync(string videoPath,
-        IProgress<float>? extractProgress = null,
-        IProgress<float>? poseProgress = null)
-    {
-        if (PoseEstimator == null)
-            return null;
-        DataManager.Instance.CleanupTemp();
-        UIManager.Instance.SetMessage("Analyzing video...");
-        Joints = await PoseEstimator.EstimateAsync(
-            videoPath,
-            DataManager.Instance.TempDir,
-            new Progress<float>(p =>
-            {
-                extractProgress?.Report(p);
-            }),
-            new Progress<float>(p =>
-            {
-                poseProgress?.Report(p);
-            }));
-        string outPath = Path.Combine(_poseOutputDir,
-            Path.GetFileNameWithoutExtension(videoPath) + ".json");
-        JSONUtil.Save(outPath, Joints);
-        UIManager.Instance.SetMessage("Analyze complete");
-        return outPath;
-    }
-
-    public async Task<string?> AnalyzePhotoAsync(string imagePath,
-        IProgress<float>? poseProgress = null)
-    {
-        if (PoseEstimator == null)
-            return null;
-        DataManager.Instance.CleanupTemp();
-        UIManager.Instance.SetMessage("Analyzing photo...");
-        Joints = await PoseEstimator.EstimateImageAsync(
-            imagePath,
-            new Progress<float>(p =>
-            {
-                poseProgress?.Report(p);
-            }));
-        string outPath = Path.Combine(_poseOutputDir,
-            Path.GetFileNameWithoutExtension(imagePath) + ".json");
-        JSONUtil.Save(outPath, Joints);
-        UIManager.Instance.SetMessage("Analyze complete");
-        return outPath;
-    }
 
     public async Task ToggleRecord()
     {
@@ -161,7 +96,5 @@ public partial class AppInitializer : IDisposable
         {
             recorderDisposable.Dispose();
         }
-
-        PoseEstimator?.Dispose();
     }
 }
