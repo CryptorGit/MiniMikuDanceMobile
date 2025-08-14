@@ -6,7 +6,7 @@ find_package(glm REQUIRED)
 
 add_library(nanoem SHARED)
 
-file(GLOB EMAPP_SRC nanoem/emapp/*.cc)
+file(GLOB EMAPP_SRC nanoem/emapp/*.cc nanoem/emapp/*.c)
 target_sources(nanoem PRIVATE
     nanoem/core/allocator.c
     nanoem/core/nanoem.c
