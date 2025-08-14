@@ -62,6 +62,7 @@ nanoem_emapp_solve_ik(int32_t constraint_index, float position[3])
     if (!position || constraint_index < 0 || constraint_index >= g_num_constraints) {
         return;
     }
+    nanoem_emapp_constraint_t *constraint = &g_constraints[constraint_index];
     nanoem_constraint_joint_t joint;
     const float transform[16] = {
         1.0f, 0.0f, 0.0f, 0.0f,
@@ -69,9 +70,29 @@ nanoem_emapp_solve_ik(int32_t constraint_index, float position[3])
         0.0f, 0.0f, 1.0f, 0.0f,
         0.0f, 0.0f, 0.0f, 1.0f
     };
-    nanoem_emapp_constraint_solve_axis_angle(transform, g_constraints[constraint_index].effector_position, position, &joint);
-    g_constraints[constraint_index].effector_position[0] = position[0];
-    g_constraints[constraint_index].effector_position[1] = position[1];
-    g_constraints[constraint_index].effector_position[2] = position[2];
+    nanoem_emapp_constraint_solve_axis_angle(transform, constraint->effector_position, position, &joint);
+    for (int32_t i = 0; i < constraint->num_links; i++) {
+        const nanoem_model_ik_constraint_link_t *link = &constraint->links[i];
+        if (link->has_limit) {
+            if (position[0] < link->lower_limit[0]) {
+                position[0] = link->lower_limit[0];
+            } else if (position[0] > link->upper_limit[0]) {
+                position[0] = link->upper_limit[0];
+            }
+            if (position[1] < link->lower_limit[1]) {
+                position[1] = link->lower_limit[1];
+            } else if (position[1] > link->upper_limit[1]) {
+                position[1] = link->upper_limit[1];
+            }
+            if (position[2] < link->lower_limit[2]) {
+                position[2] = link->lower_limit[2];
+            } else if (position[2] > link->upper_limit[2]) {
+                position[2] = link->upper_limit[2];
+            }
+        }
+    }
+    constraint->effector_position[0] = position[0];
+    constraint->effector_position[1] = position[1];
+    constraint->effector_position[2] = position[2];
 }
 

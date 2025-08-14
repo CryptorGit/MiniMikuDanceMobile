@@ -84,8 +84,12 @@ public partial class PmxRenderer
                 Nanoem.SolveIk(ik.ConstraintIndex, pos);
                 var solved = new Vector3(pos[0], pos[1], pos[2]);
                 var worldPos = ModelToWorld(solved);
-                ik.Position = worldPos;
                 SetBoneTranslation(ik.PmxBoneIndex, worldPos.ToOpenTK());
+            }
+            _worldMats = CalculateWorldMatrices();
+            foreach (var ik in _ikBones)
+            {
+                ik.Position = GetBoneWorldPosition(ik.PmxBoneIndex);
             }
         }
     }

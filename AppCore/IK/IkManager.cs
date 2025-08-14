@@ -46,7 +46,6 @@ public static class IkManager
                 ikBones.Add(ikBone);
             }
         }
-        Nanoem.InitializeIk(ikBones);
     }
 
     // レンダラーから提供された情報を用いてボーン選択を行う
