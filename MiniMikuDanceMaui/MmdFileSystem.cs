@@ -21,7 +21,6 @@ public static class MmdFileSystem
             Directory.CreateDirectory(path);
             BaseDir = path;
             UsingInternalStorage = false;
-            Console.WriteLine($"[MmdFileSystem] Using external storage: {BaseDir}");
             Directory.CreateDirectory(SystemPath.Combine(BaseDir, "Movie"));
         }
         catch
@@ -33,7 +32,6 @@ public static class MmdFileSystem
             Directory.CreateDirectory(path);
             BaseDir = path;
             UsingInternalStorage = true;
-            Console.WriteLine($"[MmdFileSystem] Fallback to internal storage: {BaseDir}");
             Directory.CreateDirectory(SystemPath.Combine(BaseDir, "Movie"));
         }
 #else
@@ -41,7 +39,6 @@ public static class MmdFileSystem
         BaseDir = SystemPath.Combine(root, "MiniMikuDance", "data");
         Directory.CreateDirectory(BaseDir);
         UsingInternalStorage = true;
-        Console.WriteLine($"[MmdFileSystem] Using internal storage: {BaseDir}");
         Directory.CreateDirectory(SystemPath.Combine(BaseDir, "Movie"));
 #endif
     }
@@ -51,19 +48,5 @@ public static class MmdFileSystem
         var path = SystemPath.Combine(BaseDir, subdir);
         Directory.CreateDirectory(path);
         return path;
-    }
-
-    public static void AppendAccessLog(string directory)
-    {
-        try
-        {
-            var logPath = SystemPath.Combine(directory, "log.txt");
-            File.AppendAllText(logPath,
-                $"Connected: {DateTime.Now:yyyy-MM-dd HH:mm:ss}{Environment.NewLine}");
-        }
-        catch
-        {
-            // ignore logging failures
-        }
     }
 }

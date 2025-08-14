@@ -22,37 +22,31 @@ public partial class SettingView : ContentView
 
     private void OnHeightChanged(object? sender, ValueChangedEventArgs e)
     {
-        LogService.WriteLine($"Height slider: {e.NewValue:F2}");
         HeightRatioChanged?.Invoke(e.NewValue);
     }
 
     private void OnRotateChanged(object? sender, ValueChangedEventArgs e)
     {
-        LogService.WriteLine($"Rotate sensitivity: {e.NewValue:F2}");
         RotateSensitivityChanged?.Invoke(e.NewValue);
     }
 
     private void OnPanChanged(object? sender, ValueChangedEventArgs e)
     {
-        LogService.WriteLine($"Pan sensitivity: {e.NewValue:F2}");
         PanSensitivityChanged?.Invoke(e.NewValue);
     }
 
     private void OnZoomChanged(object? sender, ValueChangedEventArgs e)
     {
-        LogService.WriteLine($"Zoom sensitivity: {e.NewValue:F2}");
         ZoomSensitivityChanged?.Invoke(e.NewValue);
     }
 
     private void OnIkBoneSizeChanged(object? sender, ValueChangedEventArgs e)
     {
-        LogService.WriteLine($"IK bone size: {e.NewValue:F3}");
         IkBoneSizeChanged?.Invoke(e.NewValue);
     }
 
     private void OnBonePickPixelsChanged(object? sender, ValueChangedEventArgs e)
     {
-        LogService.WriteLine($"Bone pick pixels: {e.NewValue:F1}");
         BonePickPixelsChanged?.Invoke(e.NewValue);
     }
 
@@ -68,7 +62,6 @@ public partial class SettingView : ContentView
 
     private void OnBoneOutlineChanged(object? sender, CheckedChangedEventArgs e)
     {
-        LogService.WriteLine($"Bone outline: {e.Value}");
         BoneOutlineChanged?.Invoke(e.Value);
     }
 

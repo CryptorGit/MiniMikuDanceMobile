@@ -89,7 +89,6 @@ public class RecorderController : IDisposable
         {
             string msg = $"Dropped frames:{_droppedFrames}\n";
             File.AppendAllText(_infoPath, msg);
-            Console.WriteLine(msg.Trim());
         }
         while (_imagePool.TryDequeue(out var img))
         {

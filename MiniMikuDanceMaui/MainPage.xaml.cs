@@ -102,7 +102,6 @@ public partial class MainPage : ContentPage
 
     private void OnPoseModeToggled(object? sender, ToggledEventArgs e)
     {
-        System.Diagnostics.Trace.WriteLine($"OnPoseModeToggled: value={e.Value}");
         _poseMode = e.Value;
         _touchPoints.Clear();
         if (_poseMode && _currentModel != null)
@@ -122,9 +121,8 @@ public partial class MainPage : ContentPage
                     _renderer.ClearIkBones();
                 }
             }
-            catch (Exception ex)
+            catch (Exception)
             {
-                System.Diagnostics.Trace.WriteLine($"SetIkBones failed: {ex.Message}");
             }
             IkManager.PickFunc = _renderer.PickBone;
             IkManager.GetBonePositionFunc = _renderer.GetBoneWorldPosition;
@@ -140,7 +138,6 @@ public partial class MainPage : ContentPage
         }
         else
         {
-            System.Diagnostics.Trace.WriteLine("Disabling pose mode. Clearing IK delegates...");
             IkManager.ReleaseSelection();
             _renderer.ClearIkBones();
             IkManager.Clear();
@@ -151,11 +148,9 @@ public partial class MainPage : ContentPage
             IkManager.ToModelSpaceFunc = null;
             IkManager.ToWorldSpaceFunc = null;
             IkManager.InvalidateViewer = null;
-            System.Diagnostics.Trace.WriteLine($"IkManager cleared. SelectedBoneIndex={IkManager.SelectedBoneIndex}");
         }
         _renderer.ShowIkBones = _poseMode;
         Viewer?.InvalidateSurface();
-        System.Diagnostics.Trace.WriteLine($"PoseMode={_poseMode} PickFuncNull={IkManager.PickFunc == null} InvalidateViewerNull={IkManager.InvalidateViewer == null}");
     }
 
 
@@ -491,7 +486,6 @@ public partial class MainPage : ContentPage
                 }
                 catch (Exception ex)
                 {
-                    Console.WriteLine($"Failed to launch settings: {ex}");
                     await DisplayAlert("Error", ex.Message, "OK");
                 }
             }
@@ -639,9 +633,8 @@ public partial class MainPage : ContentPage
                         _renderer.ClearIkBones();
                     }
                 }
-                catch (Exception ex)
+                catch (Exception)
                 {
-                    System.Diagnostics.Trace.WriteLine($"SetIkBones failed: {ex.Message}");
                 }
                 IkManager.PickFunc = _renderer.PickBone;
                 IkManager.GetBonePositionFunc = _renderer.GetBoneWorldPosition;
@@ -655,7 +648,6 @@ public partial class MainPage : ContentPage
 
     private void OnViewTouch(object? sender, SKTouchEventArgs e)
     {
-        System.Diagnostics.Trace.WriteLine($"OnViewTouch: action={e.ActionType} poseMode={_poseMode} pickNull={IkManager.PickFunc == null} invalidateNull={IkManager.InvalidateViewer == null} selIdx={IkManager.SelectedBoneIndex}");
         if (_poseMode)
         {
             try
@@ -700,18 +692,14 @@ public partial class MainPage : ContentPage
                 }
                 if (!_poseMode)
                 {
-                    System.Diagnostics.Trace.WriteLine($"Pose mode became false during OnViewTouch; pickNull={IkManager.PickFunc == null} invalidateNull={IkManager.InvalidateViewer == null}");
                     e.Handled = true;
                     return;
                 }
-                if (IkManager.InvalidateViewer == null)
-                    System.Diagnostics.Trace.WriteLine("InvalidateViewer delegate is null in OnViewTouch.");
-                else
+                if (IkManager.InvalidateViewer != null)
                     IkManager.InvalidateViewer();
             }
-            catch (Exception ex)
+            catch (Exception)
             {
-                System.Diagnostics.Trace.WriteLine($"OnViewTouch exception: {ex}");
                 IkManager.ReleaseSelection();
             }
             e.Handled = true;
@@ -826,10 +814,9 @@ public partial class MainPage : ContentPage
                                 .FirstOrDefault(d => d != null);
                         }
                     }
-                    catch (Exception ex)
+                    catch (Exception)
                     {
                         dir = null;
-                        Console.WriteLine($"Error locating asset directory: {ex}");
                     }
                     data = importer.ImportModel(stream, dir);
                 }
@@ -1244,11 +1231,9 @@ public partial class MainPage : ContentPage
                             sm.TextureHeight = image.Height;
                             sm.TextureFilePath = localRel;
                         }
-                        LogService.WriteLine($"Texture {localRel} mapped to indices: {string.Join(",", indices)}");
                     }
-                    catch (Exception ex)
+                    catch (Exception)
                     {
-                        LogService.WriteLine($"Error loading texture {rel}: {ex.Message}");
                     }
                     finally
                     {
@@ -1270,7 +1255,6 @@ public partial class MainPage : ContentPage
         catch (Exception ex)
         {
             await DisplayAlert("Error", ex.Message, "OK");
-            LogService.WriteLine($"Import failed: {ex.Message}");
         }
         finally
         {

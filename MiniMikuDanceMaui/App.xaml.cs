@@ -51,9 +51,8 @@ public partial class App : Application, IDisposable
                     throw new FileNotFoundException($"Package file not found: {packagePath}");
                 }
             }
-            catch (Exception ex)
+            catch (Exception)
             {
-                Console.WriteLine($"Error copying pose model: {ex}");
             }
         }
 
