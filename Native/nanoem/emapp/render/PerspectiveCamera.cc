@@ -4,7 +4,7 @@
    This file is part of emapp component and it's licensed under Mozilla Public License. see LICENSE.md for more details.
  */
 
-#include "emapp/PerspectiveCamera.h"
+#include "emapp/render/PerspectiveCamera.h"
 
 #include "emapp/Constants.h"
 #include "emapp/Model.h"

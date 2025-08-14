@@ -93,7 +93,7 @@ public partial class PmxRenderer
         {
             Nanoem.ModelUpdateMorph(_modelHandle);
         }
-        Nanoem.RenderingUpdateFrame();
+        Nanoem.RenderingRenderFrame();
     }
 
     private void UpdateViewProjection()

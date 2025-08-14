@@ -4,11 +4,11 @@
    This file is part of emapp component and it's licensed under Mozilla Public License. see LICENSE.md for more details.
  */
 
-#include "emapp/DirectionalLight.h"
+#include "emapp/render/DirectionalLight.h"
 
 #include "emapp/Constants.h"
 #include "emapp/Motion.h"
-#include "emapp/PerspectiveCamera.h"
+#include "emapp/render/PerspectiveCamera.h"
 #include "emapp/Project.h"
 
 #include "glm/gtc/type_ptr.hpp"
