@@ -12,44 +12,33 @@ public static class MmdFileSystem
     static MmdFileSystem()
     {
 #if ANDROID
-        var root = Android.OS.Environment.ExternalStorageDirectory?.AbsolutePath;
-        if (string.IsNullOrEmpty(root))
-            root = FileSystem.AppDataDirectory;
-        var path = SystemPath.Combine(root, "MiniMikuDance", "data");
+        string baseDir;
         try
         {
-            Directory.CreateDirectory(path);
-            BaseDir = path;
+            var root = Android.OS.Environment.ExternalStorageDirectory?.AbsolutePath;
+            if (string.IsNullOrEmpty(root))
+                root = FileSystem.AppDataDirectory;
+            baseDir = SystemPath.Combine(root, "MiniMikuDance", "data");
+            Directory.CreateDirectory(baseDir);
             UsingInternalStorage = false;
-#if DEBUG
-            Console.WriteLine($"[MmdFileSystem] Using external storage: {BaseDir}");
-#endif
-            Directory.CreateDirectory(SystemPath.Combine(BaseDir, "Movie"));
         }
         catch
         {
             // 権限不足などで外部ストレージへ書き込めない場合は
             // アプリ専用のデータフォルダを使用する
-            root = FileSystem.AppDataDirectory;
-            path = SystemPath.Combine(root, "MiniMikuDance", "data");
-            Directory.CreateDirectory(path);
-            BaseDir = path;
+            var root = FileSystem.AppDataDirectory;
+            baseDir = SystemPath.Combine(root, "MiniMikuDance", "data");
+            Directory.CreateDirectory(baseDir);
             UsingInternalStorage = true;
-#if DEBUG
-            Console.WriteLine($"[MmdFileSystem] Fallback to internal storage: {BaseDir}");
-#endif
-            Directory.CreateDirectory(SystemPath.Combine(BaseDir, "Movie"));
         }
+        BaseDir = baseDir;
 #else
         var root = FileSystem.AppDataDirectory;
         BaseDir = SystemPath.Combine(root, "MiniMikuDance", "data");
         Directory.CreateDirectory(BaseDir);
         UsingInternalStorage = true;
-#if DEBUG
-        Console.WriteLine($"[MmdFileSystem] Using internal storage: {BaseDir}");
 #endif
         Directory.CreateDirectory(SystemPath.Combine(BaseDir, "Movie"));
-#endif
     }
 
     public static string Ensure(string subdir)
