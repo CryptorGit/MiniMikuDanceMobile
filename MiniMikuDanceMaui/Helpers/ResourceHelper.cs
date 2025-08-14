@@ -1,7 +1,7 @@
-namespace MiniMikuDanceMaui;
-
 using Microsoft.Maui.Controls;
 using Microsoft.Maui.Graphics;
+
+namespace MiniMikuDanceMaui.Helpers;
 
 public static class ResourceHelper
 {

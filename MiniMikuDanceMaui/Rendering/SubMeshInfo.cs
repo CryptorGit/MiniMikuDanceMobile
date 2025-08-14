@@ -1,4 +1,4 @@
-namespace MiniMikuDanceMaui;
+namespace MiniMikuDanceMaui.Rendering;
 
 public class SubMeshInfo
 {
