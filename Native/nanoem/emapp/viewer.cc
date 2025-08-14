@@ -7,9 +7,9 @@
 #include <cstdint>
 
 #include "emapp/Allocator.h"
-#include "emapp/DirectionalLight.h"
-#include "emapp/Grid.h"
-#include "emapp/PerspectiveCamera.h"
+#include "emapp/render/DirectionalLight.h"
+#include "emapp/render/Grid.h"
+#include "emapp/render/PerspectiveCamera.h"
 
 using namespace nanoem;
 

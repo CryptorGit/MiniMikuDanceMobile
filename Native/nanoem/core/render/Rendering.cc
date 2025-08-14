@@ -33,6 +33,14 @@ nanoemRenderingUpdateFrame()
 }
 
 void
+nanoemRenderingRenderFrame()
+{
+    (void) g_width;
+    (void) g_height;
+    ++g_frameIndex;
+}
+
+void
 nanoemRenderingShutdown()
 {
     g_width = g_height = 0;

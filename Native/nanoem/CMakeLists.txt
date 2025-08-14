@@ -29,9 +29,9 @@ add_library(nanoem_core
     core/morph/model.c
     core/morph/motion.c
     core/render/Rendering.cc
-    emapp/DirectionalLight.cc
-    emapp/Grid.cc
-    emapp/PerspectiveCamera.cc
+    emapp/render/DirectionalLight.cc
+    emapp/render/Grid.cc
+    emapp/render/PerspectiveCamera.cc
     emapp/CommonInclude.cc
     emapp/PhysicsEngine.cc
     emapp/morph.c
