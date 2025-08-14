@@ -67,4 +67,8 @@
   <ItemGroup Condition="'$(TargetFramework)' == 'net9.0-ios17.0'">
     <NativeReference Include="..\\Native\\ios\\libnanoem.a" Kind="Static" />
   </ItemGroup>
+  <Target Name="BuildNativeNanoem" BeforeTargets="BeforeBuild">
+    <Exec Command="cmake -S $(MSBuildProjectDirectory)/../Native -B $(MSBuildProjectDirectory)/../Native/build -DCMAKE_BUILD_TYPE=$(Configuration)" />
+    <Exec Command="cmake --build $(MSBuildProjectDirectory)/../Native/build --config $(Configuration)" />
+  </Target>
 </Project>

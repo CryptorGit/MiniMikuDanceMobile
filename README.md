@@ -6,13 +6,7 @@ MiniMikuDance は、スマートフォン上で PMX 形式の MMD 互換モデ�
 
 ## nanoem エンジンのビルド
 
-nanoem エンジンはネイティブライブラリとして利用します。公式リポジトリのソースコードを `Documents/nanoem-main` に配置し、ビルド時は `Native/nanoem` として参照してください。配置されていない場合は次のいずれかの方法で用意します。
-
-```sh
-cp -r Documents/nanoem-main Native/nanoem
-# または
-ln -s ../../Documents/nanoem-main Native/nanoem
-```
+nanoem エンジンのソースはリポジトリ内の `Native/nanoem` に含まれており、ネイティブライブラリとして利用します。
 
 ### 前提条件
 
@@ -23,8 +17,6 @@ ln -s ../../Documents/nanoem-main Native/nanoem
 ## ビルド手順
 
 1. ネイティブライブラリのビルド
-
-   `Documents/nanoem-main` から `Native/nanoem` にソースをコピーまたはシンボリックリンクで配置してから、次を実行します。
 
    ```sh
    cmake -S Native -B Native/build

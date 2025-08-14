@@ -154,6 +154,71 @@ nanoemModelGetMorphInfo(const nanoem_model_t *model, nanoem_rsize_t index, nanoe
     info->type = (int) nanoemModelMorphGetType(morph);
 }
 
+typedef struct nanoem_model_vertex_state_t {
+    float position[3];
+    float normal[3];
+    float uv[2];
+    int bone_indices[4];
+    float bone_weights[4];
+} nanoem_model_vertex_state_t;
+
+NANOEM_DECL_API nanoem_model_vertex_state_t *APIENTRY
+nanoemModelGetVertexBuffer(const nanoem_model_t *model, nanoem_rsize_t *num_vertices)
+{
+    nanoem_rsize_t count = 0;
+    const nanoem_model_vertex_t *const *vertices = nanoemModelGetAllVertexObjects(model, &count);
+    nanoem_model_vertex_state_t *buffer = NULL;
+    if (vertices && count > 0) {
+        buffer = (nanoem_model_vertex_state_t *) malloc(sizeof(nanoem_model_vertex_state_t) * count);
+        if (buffer) {
+            for (nanoem_rsize_t i = 0; i < count; i++) {
+                const nanoem_model_vertex_t *vertex = vertices[i];
+                const nanoem_f32_t *origin = nanoemModelVertexGetOrigin(vertex);
+                const nanoem_f32_t *normal = nanoemModelVertexGetNormal(vertex);
+                const nanoem_f32_t *uv = nanoemModelVertexGetTexCoord(vertex);
+                buffer[i].position[0] = origin[0];
+                buffer[i].position[1] = origin[1];
+                buffer[i].position[2] = origin[2];
+                buffer[i].normal[0] = normal[0];
+                buffer[i].normal[1] = normal[1];
+                buffer[i].normal[2] = normal[2];
+                buffer[i].uv[0] = uv[0];
+                buffer[i].uv[1] = uv[1];
+                for (int j = 0; j < 4; j++) {
+                    const nanoem_model_bone_t *bone = nanoemModelVertexGetBoneObject(vertex, j);
+                    int index = -1;
+                    if (bone) {
+                        index = nanoemModelObjectGetIndex(nanoemModelBoneGetModelObject(bone));
+                    }
+                    buffer[i].bone_indices[j] = index;
+                    buffer[i].bone_weights[j] = nanoemModelVertexGetBoneWeight(vertex, j);
+                }
+            }
+            if (num_vertices) {
+                *num_vertices = count;
+            }
+        }
+    }
+    else if (num_vertices) {
+        *num_vertices = 0;
+    }
+    return buffer;
+}
+
+NANOEM_DECL_API nanoem_u32_t *APIENTRY
+nanoemModelGetIndexBuffer(const nanoem_model_t *model, nanoem_rsize_t *num_indices)
+{
+    const nanoem_u32_t *indices = nanoemModelGetAllVertexIndices(model, num_indices);
+    nanoem_u32_t *buffer = NULL;
+    if (indices && num_indices && *num_indices > 0) {
+        buffer = (nanoem_u32_t *) malloc(sizeof(nanoem_u32_t) * (*num_indices));
+        if (buffer) {
+            memcpy(buffer, indices, sizeof(nanoem_u32_t) * (*num_indices));
+        }
+    }
+    return buffer;
+}
+
 NANOEM_DECL_API void APIENTRY
 nanoemModelIOFree(void *ptr)
 {
