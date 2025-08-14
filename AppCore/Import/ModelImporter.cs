@@ -4,17 +4,20 @@ using System.IO;
 using System.Numerics;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
+using MiniMikuDance.App;
 
 namespace MiniMikuDance.Import;
 
-public class ModelData
-{
-    public string Name { get; set; } = string.Empty;
-    public string EnglishName { get; set; } = string.Empty;
-    public int VertexCount { get; set; }
-    public List<BoneData> Bones { get; } = new();
-    public List<MorphData> Morphs { get; } = new();
-}
+    public class ModelData
+    {
+        public string Name { get; set; } = string.Empty;
+        public string EnglishName { get; set; } = string.Empty;
+        public int VertexCount { get; set; }
+        public List<BoneData> Bones { get; } = new();
+        public List<MorphData> Morphs { get; } = new();
+        public List<string> Textures { get; } = new();
+        public List<MaterialData> Materials { get; } = new();
+    }
 
 public class ModelImporter
 {
@@ -48,6 +51,27 @@ public class ModelImporter
         data.EnglishName = Nanoem.PtrToStringAndFree(info.EnglishName);
         data.VertexCount = (int)Nanoem.ModelGetVertexCount(model);
 
+        uint textureCount = Nanoem.ModelGetTextureCount(model);
+        for (uint i = 0; i < textureCount; i++)
+        {
+            data.Textures.Add(Nanoem.ModelGetTexturePath(model, i));
+        }
+
+        uint materialCount = Nanoem.ModelGetMaterialCount(model);
+        for (uint i = 0; i < materialCount; i++)
+        {
+            var m = Nanoem.ModelGetMaterialInfo(model, i);
+            data.Materials.Add(new MaterialData
+            {
+                Name = Nanoem.PtrToStringAndFree(m.Name),
+                EnglishName = Nanoem.PtrToStringAndFree(m.EnglishName),
+                Diffuse = new Vector4(m.DiffuseR, m.DiffuseG, m.DiffuseB, m.DiffuseA),
+                Specular = new Vector4(m.SpecularR, m.SpecularG, m.SpecularB, m.SpecularA),
+                Ambient = new Vector4(m.AmbientR, m.AmbientG, m.AmbientB, m.AmbientA),
+                TextureIndex = m.TextureIndex
+            });
+        }
+
         uint boneCount = Nanoem.ModelGetBoneCount(model);
         for (uint i = 0; i < boneCount; i++)
         {
@@ -69,7 +93,8 @@ public class ModelImporter
                 Index = (int)i,
                 Name = Nanoem.PtrToStringAndFree(m.Name),
                 Category = (MorphCategory)m.Category,
-                Type = (MorphType)m.Type
+                Type = (MorphType)m.Type,
+                DefaultWeight = Nanoem.ModelGetMorphInitialWeight(model, i)
             });
         }
 

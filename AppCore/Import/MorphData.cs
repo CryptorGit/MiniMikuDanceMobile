@@ -8,6 +8,7 @@ public class MorphData
     public string Name { get; set; } = string.Empty;
     public MorphType Type { get; set; }
     public MorphCategory Category { get; set; }
+    public float DefaultWeight { get; set; }
     public List<MorphOffset> Offsets { get; set; } = new();
 }
 
