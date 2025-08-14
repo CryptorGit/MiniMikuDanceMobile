@@ -2,7 +2,7 @@ using System;
 using System.Collections.Generic;
 using MiniMikuDance.Import;
 
-namespace MiniMikuDanceMaui;
+namespace MiniMikuDanceMaui.Renderers;
 
 public partial class PmxRenderer
 {

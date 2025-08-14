@@ -8,7 +8,7 @@ using MiniMikuDance.Util;
 using OpenTK.Graphics.ES30;
 using GL = OpenTK.Graphics.ES30.GL;
 
-namespace MiniMikuDanceMaui;
+namespace MiniMikuDanceMaui.Renderers;
 
 public partial class PmxRenderer
 {

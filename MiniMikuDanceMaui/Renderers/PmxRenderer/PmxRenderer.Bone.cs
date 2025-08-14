@@ -5,7 +5,7 @@ using MiniMikuDance;
 using MiniMikuDance.Import;
 using MiniMikuDance.UI;
 
-namespace MiniMikuDanceMaui;
+namespace MiniMikuDanceMaui.Renderers;
 
 public partial class PmxRenderer
 {
