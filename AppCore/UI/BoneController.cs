@@ -1,5 +1,7 @@
 using System;
+using System.Collections.Generic;
 using System.Numerics;
+using MiniMikuDance.Import;
 
 namespace MiniMikuDance.UI;
 
@@ -64,7 +66,7 @@ public static class BoneController
         }
     }
 
-    public static Matrix4x4 GetTransform(IntPtr model, int index, Matrix4x4 fallback)
+    public static Matrix4x4 GetWorldTransform(IntPtr model, int index, Matrix4x4 fallback)
     {
         if (model != IntPtr.Zero)
         {
@@ -91,5 +93,25 @@ public static class BoneController
                 NanoemBone.nanoemModelBoneSetOrientation(bone, in rotation);
             }
         }
+    }
+
+    public static bool ValidateBoneIndices(IntPtr model, IReadOnlyList<BoneData> bones)
+    {
+        if (model == IntPtr.Zero)
+            return false;
+        uint count = NanoemBone.nanoemModelGetBoneCount(model);
+        if (bones.Count != count)
+            return false;
+        for (int i = 0; i < bones.Count; i++)
+        {
+            var bone = NanoemBone.nanoemModelGetBoneObject(model, i);
+            if (bone == IntPtr.Zero)
+                return false;
+            NanoemBone.nanoemModelBoneGetTranslation(bone, out var t);
+            NanoemBone.nanoemModelBoneGetOrientation(bone, out var r);
+            if (!t.Equals(bones[i].Translation) || !r.Equals(bones[i].Rotation))
+                return false;
+        }
+        return true;
     }
 }
