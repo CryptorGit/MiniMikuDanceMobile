@@ -55,6 +55,10 @@ typedef struct nanoem_model_morph_material_offset_t {
     float textureTint[4];
 } nanoem_model_morph_material_offset_t;
 
+typedef struct nanoem_morph_weight_t {
+    float weight;
+} nanoem_morph_weight_t;
+
 static char *
 unicodeStringToUtf8(const nanoem_unicode_string_t *s)
 {
@@ -146,10 +150,16 @@ NANOEM_DECL_API float APIENTRY
 nanoemModelGetMorphInitialWeight(const nanoem_model_t *model, nanoem_rsize_t index)
 {
     nanoem_rsize_t numMorphs = 0;
-    nanoemModelGetAllMorphObjects(model, &numMorphs);
-    (void) model;
-    (void) index;
-    (void) numMorphs;
+    const nanoem_model_morph_t *const *morphs = nanoemModelGetAllMorphObjects(model, &numMorphs);
+    if (index < numMorphs) {
+        const nanoem_model_morph_t *morph = morphs[index];
+        const nanoem_user_data_t *ud = nanoemModelObjectGetUserData(nanoemModelMorphGetModelObject(morph));
+        const nanoem_morph_weight_t *state =
+            ud ? (const nanoem_morph_weight_t *) nanoemUserDataGetOpaqueData(ud) : NULL;
+        if (state) {
+            return state->weight;
+        }
+    }
     return 0.0f;
 }
 
