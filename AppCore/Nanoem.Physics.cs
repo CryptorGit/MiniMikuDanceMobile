@@ -53,12 +53,18 @@ internal static class NanoemPhysics
     public static void Start()
     {
         _world = nanoemEmappPhysicsWorldCreate(IntPtr.Zero, out _);
+        if (_world != IntPtr.Zero)
+        {
+            nanoemEmappPhysicsWorldSetPreferredFPS(_world, 60);
+            nanoemEmappPhysicsWorldSetActive(_world, true);
+        }
     }
 
     public static void Stop()
     {
         if (_world != IntPtr.Zero)
         {
+            nanoemEmappPhysicsWorldSetActive(_world, false);
             nanoemEmappPhysicsWorldDestroy(_world);
             _world = IntPtr.Zero;
         }

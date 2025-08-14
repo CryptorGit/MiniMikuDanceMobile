@@ -48,11 +48,6 @@ public partial class PmxRenderer
 
     public void FrameUpdated(float delta)
     {
-        // 物理演算は Render で更新するため何もしない
-    }
-
-    private void UpdatePhysics(float delta)
-    {
         lock (_physicsLock)
         {
             NanoemPhysics.Step(delta);
