@@ -53,17 +53,4 @@ public static class MmdFileSystem
         return path;
     }
 
-    public static void AppendAccessLog(string directory)
-    {
-        try
-        {
-            var logPath = SystemPath.Combine(directory, "log.txt");
-            File.AppendAllText(logPath,
-                $"Connected: {DateTime.Now:yyyy-MM-dd HH:mm:ss}{Environment.NewLine}");
-        }
-        catch
-        {
-            // ignore logging failures
-        }
-    }
 }

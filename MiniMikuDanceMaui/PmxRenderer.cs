@@ -1251,14 +1251,12 @@ void main(){
             var name = morph.Name;
             if (_morphs.ContainsKey(name))
             {
-                LogService.WriteLine($"Duplicate morph name detected: {name}");
                 int suffix = 1;
                 string newName;
                 do
                 {
                     newName = $"{name}_{suffix++}";
                 } while (_morphs.ContainsKey(newName));
-                LogService.WriteLine($"Renaming morph '{name}' to '{newName}'");
                 morph.Name = newName;
                 name = newName;
             }

@@ -1244,11 +1244,10 @@ public partial class MainPage : ContentPage
                             sm.TextureHeight = image.Height;
                             sm.TextureFilePath = localRel;
                         }
-                        LogService.WriteLine($"Texture {localRel} mapped to indices: {string.Join(",", indices)}");
                     }
-                    catch (Exception ex)
+                    catch (Exception)
                     {
-                        LogService.WriteLine($"Error loading texture {rel}: {ex.Message}");
+                        // テクスチャの読み込みエラーは無視する
                     }
                     finally
                     {
@@ -1270,7 +1269,6 @@ public partial class MainPage : ContentPage
         catch (Exception ex)
         {
             await DisplayAlert("Error", ex.Message, "OK");
-            LogService.WriteLine($"Import failed: {ex.Message}");
         }
         finally
         {

@@ -50,14 +50,12 @@ public partial class MorphView : ContentView
                 var displayName = originalName;
                 if (usedNames.Contains(displayName))
                 {
-                    LogService.WriteLine($"Duplicate morph name detected in view: {displayName}");
                     int suffix = 1;
                     string newName;
                     do
                     {
                         newName = $"{displayName}_{suffix++}";
                     } while (usedNames.Contains(newName));
-                    LogService.WriteLine($"Renaming morph '{displayName}' to '{newName}'");
                     displayName = newName;
                 }
                 usedNames.Add(displayName);
@@ -122,9 +120,9 @@ public partial class MorphView : ContentView
                     {
                         MorphValueChanged?.Invoke(state.Name, latest);
                     }
-                    catch (Exception ex)
+                    catch (Exception)
                     {
-                        LogService.WriteLine($"Error in MorphValueChanged: {ex}");
+                        // MorphValueChanged 内のエラーは無視する
                     }
                 };
                 _debounceStates[displayName] = state;
