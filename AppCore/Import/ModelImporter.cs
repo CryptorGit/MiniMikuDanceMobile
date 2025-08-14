@@ -157,7 +157,7 @@ public class ModelImporter : IDisposable
         return ms;
     }
 
-    private void GenerateSubMeshes(ModelData data, dynamic[] verts, dynamic[] faces, dynamic[] mats, string[] texList, string? textureDir)
+    private void GenerateSubMeshes(ModelData data, dynamic[] verts, Surface[] faces, dynamic[] mats, string[] texList, string? textureDir)
     {
         int faceOffset = 0;
         string dir = textureDir ?? string.Empty;
@@ -333,7 +333,7 @@ public class ModelImporter : IDisposable
     {
         var pmx = PMXParser.Parse(stream);
         var verts = pmx.VertexList.ToArray();
-        var faces = pmx.SurfaceList.ToArray();
+        Surface[] faces = pmx.SurfaceList.ToArray();
         var mats = pmx.MaterialList.ToArray();
         var texList = pmx.TextureList.ToArray();
         var bones = pmx.BoneList.ToArray();
