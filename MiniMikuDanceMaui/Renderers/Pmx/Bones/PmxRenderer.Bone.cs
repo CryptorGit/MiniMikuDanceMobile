@@ -31,8 +31,8 @@ public partial class PmxRenderer
     {
         if (index < 0 || index >= _bones.Count)
             return Matrix4x4.Identity;
-        _bones[index].Rotation = BoneController.GetRotation(_modelHandle, index, _bones[index].Rotation);
-        return BoneController.GetTransform(_modelHandle, index, _bones[index].Transform);
+        UpdateBoneCache(index);
+        return _bones[index].Transform;
     }
 
     public void SetBoneMatrix(int index, Matrix4x4 value)
@@ -40,8 +40,7 @@ public partial class PmxRenderer
         if (index < 0 || index >= _bones.Count)
             return;
         BoneController.SetTransform(_modelHandle, index, value);
-        _bones[index].Transform = value;
-        _bones[index].Rotation = Quaternion.CreateFromRotationMatrix(value);
+        UpdateBoneCache(index);
         _bonesDirty = true;
         Viewer?.InvalidateSurface();
     }
@@ -51,8 +50,7 @@ public partial class PmxRenderer
         if (_selectedBone < 0 || _selectedBone >= _bones.Count)
             return;
         BoneController.Translate(_modelHandle, _selectedBone, delta);
-        _bones[_selectedBone].Transform = BoneController.GetTransform(_modelHandle, _selectedBone, _bones[_selectedBone].Transform);
-        _bones[_selectedBone].Rotation = BoneController.GetRotation(_modelHandle, _selectedBone, _bones[_selectedBone].Rotation);
+        UpdateBoneCache(_selectedBone);
         _bonesDirty = true;
         Viewer?.InvalidateSurface();
     }
@@ -64,13 +62,22 @@ public partial class PmxRenderer
         return BoneController.GetRotation(_modelHandle, index, _bones[index].Rotation);
     }
 
+    private void UpdateBoneCache(int index)
+    {
+        if (index < 0 || index >= _bones.Count)
+            return;
+        _bones[index].Rotation = BoneController.GetRotation(_modelHandle, index, _bones[index].Rotation);
+        _bones[index].Transform = BoneController.GetWorldTransform(_modelHandle, index, _bones[index].Transform);
+        if (index >= 0 && index < _worldMats.Length)
+            _worldMats[index] = _bones[index].Transform;
+    }
+
     public void SetBoneRotation(int index, Quaternion value)
     {
         if (index < 0 || index >= _bones.Count)
             return;
         BoneController.SetRotation(_modelHandle, index, value);
-        _bones[index].Rotation = value;
-        _bones[index].Transform = BoneController.GetTransform(_modelHandle, index, _bones[index].Transform);
+        UpdateBoneCache(index);
         _bonesDirty = true;
         Viewer?.InvalidateSurface();
     }
