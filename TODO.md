@@ -1,5 +1,0 @@
-- [x] nanoem 描画初期化とフレーム更新の呼び出しを追加
-- [ ] nanoem 描画処理を emapp から完全移植して Render で利用する
-- [ ] PmxRenderer.Render.cs の未使用メソッド削除と nanoem 連携の整理
-- [ ] PMX インポート: IK 情報や物理設定など未対応項目の読み込み
-- [ ] モーフ初期値の取得を nanoem から正しく行う
