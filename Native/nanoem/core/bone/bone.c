@@ -5,6 +5,7 @@
  */
 
 #include "../nanoem_p.h"
+#include "info.h"
 
 const nanoem_model_bone_t *APIENTRY
 nanoemModelBoneGetParentBoneObject(const nanoem_model_bone_t *bone)
@@ -76,6 +77,19 @@ nanoem_f32_t APIENTRY
 nanoemModelBoneGetInherentCoefficient(const nanoem_model_bone_t *bone)
 {
     return nanoem_is_not_null(bone) ? bone->inherent_coefficient : 0;
+}
+
+const char *APIENTRY
+nanoemModelGetBoneName(const nanoem_model_t *model, int index)
+{
+    const nanoem_model_bone_t *bone = nanoemModelGetBoneObject(model, index);
+    return bone ? nanoemModelBoneGetName(bone, NANOEM_LANGUAGE_TYPE_JAPANESE) : NULL;
+}
+
+int APIENTRY
+nanoemModelBoneGetParent(const nanoem_model_bone_t *bone)
+{
+    return nanoem_is_not_null(bone) ? bone->parent_bone_index : -1;
 }
 
 int APIENTRY

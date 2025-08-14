@@ -91,6 +91,24 @@ public partial class PmxRenderer
         SetBoneRotation(_selectedBone, next);
     }
 
+    private void UpdateBoneMatricesFromModel()
+    {
+        if (_modelHandle == IntPtr.Zero || _worldMats.Length == 0)
+            return;
+        for (int i = 0; i < _bones.Count && i < _worldMats.Length; i++)
+        {
+            var bone = NanoemBone.nanoemModelGetBoneObject(_modelHandle, i);
+            if (bone != IntPtr.Zero)
+            {
+                NanoemBone.nanoemModelBoneGetTransform(bone, out var m);
+                _worldMats[i] = m;
+                _bones[i].Transform = m;
+                NanoemBone.nanoemModelBoneGetOrientation(bone, out var q);
+                _bones[i].Rotation = q;
+            }
+        }
+    }
+
     partial void InitializeBoneModule()
     {
         RegisterModule(new BoneModule());

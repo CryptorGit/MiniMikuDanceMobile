@@ -107,9 +107,11 @@ public static class BoneController
             var bone = NanoemBone.nanoemModelGetBoneObject(model, i);
             if (bone == IntPtr.Zero)
                 return false;
+            var name = NanoemBone.GetName(model, i);
+            int parent = NanoemBone.GetParent(bone);
             NanoemBone.nanoemModelBoneGetTranslation(bone, out var t);
             NanoemBone.nanoemModelBoneGetOrientation(bone, out var r);
-            if (!t.Equals(bones[i].Translation) || !r.Equals(bones[i].Rotation))
+            if (name != bones[i].Name || parent != bones[i].Parent || !t.Equals(bones[i].Translation) || !r.Equals(bones[i].Rotation))
                 return false;
         }
         return true;
