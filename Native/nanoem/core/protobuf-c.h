@@ -62,6 +62,8 @@ typedef struct ProtobufCMessage ProtobufCMessage;
 typedef struct ProtobufCMessageDescriptor ProtobufCMessageDescriptor;
 typedef struct ProtobufCBuffer ProtobufCBuffer;
 typedef struct ProtobufCAllocator ProtobufCAllocator;
+typedef struct ProtobufCIntRange ProtobufCIntRange;
+typedef void (*ProtobufCMessageInit)(ProtobufCMessage *);
 
 struct ProtobufCEnumValue {
     const char *name;
@@ -82,7 +84,7 @@ struct ProtobufCEnumDescriptor {
     unsigned n_values;
     const ProtobufCEnumValue *values;
     unsigned n_value_ranges;
-    const void *value_ranges;
+    const ProtobufCIntRange *value_ranges;
     const ProtobufCEnumValueIndex *values_by_name;
     const void *reserved1;
     const void *reserved2;
@@ -91,18 +93,16 @@ struct ProtobufCEnumDescriptor {
 };
 
 struct ProtobufCFieldDescriptor {
-    unsigned magic;
     const char *name;
     unsigned id;
     ProtobufCLabel label;
     ProtobufCType type;
-    unsigned flags;
+    unsigned quantifier_offset;
     size_t offset;
     void *descriptor;
-    size_t quantifier_offset;
-    size_t element_size;
     void *default_value;
-    const void *reserved1;
+    unsigned flags;
+    size_t reserved1;
     const void *reserved2;
     const void *reserved3;
 };
@@ -116,13 +116,18 @@ struct ProtobufCMessageDescriptor {
     unsigned sizeof_message;
     unsigned n_fields;
     const ProtobufCFieldDescriptor *fields;
+    const unsigned *field_indices_by_name;
     unsigned n_field_ranges;
-    const void *field_ranges;
-    const void *message_init;
+    const ProtobufCIntRange *field_ranges;
+    ProtobufCMessageInit message_init;
     const void *reserved1;
     const void *reserved2;
     const void *reserved3;
-    const void *reserved4;
+};
+
+struct ProtobufCIntRange {
+    int start_value;
+    unsigned orig_index;
 };
 
 struct ProtobufCMessage {
@@ -139,50 +144,13 @@ struct ProtobufCAllocator {
     void *allocator_data;
 };
 
-static inline size_t
-protobuf_c_message_get_packed_size(const ProtobufCMessage *message)
-{
-    (void) message;
-    return 0;
-}
+size_t protobuf_c_message_get_packed_size(const ProtobufCMessage *message);
+size_t protobuf_c_message_pack(const ProtobufCMessage *message, uint8_t *out);
+size_t protobuf_c_message_pack_to_buffer(const ProtobufCMessage *message, ProtobufCBuffer *buffer);
+ProtobufCMessage *protobuf_c_message_unpack(const ProtobufCMessageDescriptor *descriptor, ProtobufCAllocator *allocator, size_t len, const uint8_t *data);
+void protobuf_c_message_free_unpacked(ProtobufCMessage *message, ProtobufCAllocator *allocator);
+int protobuf_c_message_check(const ProtobufCMessage *message);
 
-static inline size_t
-protobuf_c_message_pack(const ProtobufCMessage *message, uint8_t *out)
-{
-    (void) message;
-    (void) out;
-    return 0;
-}
 
-static inline size_t
-protobuf_c_message_pack_to_buffer(const ProtobufCMessage *message, ProtobufCBuffer *buffer)
-{
-    (void) message;
-    (void) buffer;
-    return 0;
-}
-
-static inline ProtobufCMessage *
-protobuf_c_message_unpack(const ProtobufCMessageDescriptor *descriptor, ProtobufCAllocator *allocator, size_t len, const uint8_t *data)
-{
-    (void) descriptor;
-    (void) allocator;
-    (void) len;
-    (void) data;
-    return NULL;
-}
-
-static inline void
-protobuf_c_message_free_unpacked(ProtobufCMessage *message, ProtobufCAllocator *allocator)
-{
-    (void) message;
-    (void) allocator;
-}
-
-static inline int
-protobuf_c_message_check(const ProtobufCMessage *message)
-{
-    (void) message;
-    return 0;
-}
+PROTOBUF_C__END_DECLS
 

@@ -1,6 +1,8 @@
 cmake_minimum_required(VERSION 3.15)
 project(nanoem LANGUAGES C CXX)
 
+add_subdirectory(nanoem/core)
+
 file(GLOB CORE_SRC nanoem/core/*.c)
 file(GLOB EMAPP_SRC nanoem/emapp/*.cc)
 file(GLOB EXT_SRC nanoem/ext/*.c nanoem/ext/*.cc)
