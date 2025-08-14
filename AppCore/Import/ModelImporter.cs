@@ -119,14 +119,26 @@ public class ModelImporter : IDisposable
         var header = ReadHeader(stream);
         if (IsPmx(header))
         {
+            byte[] bytes;
             if (stream.CanSeek)
             {
                 stream.Position = 0;
-                return ImportPmx(stream, textureDir);
+                bytes = new byte[stream.Length];
+                stream.Read(bytes, 0, bytes.Length);
             }
-
-            using var ms = CopyToMemoryStream(stream, header);
-            return ImportPmx(ms, textureDir);
+            else
+            {
+                using var temp = CopyToMemoryStream(stream, header);
+                bytes = temp.ToArray();
+            }
+            var nativeInfo = NativeModelImporter.Import(bytes);
+            using var ms = new MemoryStream(bytes);
+            var result = ImportPmx(ms, textureDir);
+            if (result.Mesh.VertexCount != nativeInfo.VertexCount)
+            {
+                throw new InvalidOperationException($"ネイティブとマネージドの頂点数が一致しません: {result.Mesh.VertexCount} != {nativeInfo.VertexCount}");
+            }
+            return result;
         }
 
         throw new NotSupportedException("PMX 以外の形式には対応していません。");
