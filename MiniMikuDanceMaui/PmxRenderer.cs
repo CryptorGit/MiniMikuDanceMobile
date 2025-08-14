@@ -1061,6 +1061,7 @@ void main(){
         {
             NanoemPhysics.Stop();
         }
+        Nanoem.RenderingShutdown();
         foreach (var rm in _meshes)
         {
             if (rm.Vao != 0) GL.DeleteVertexArray(rm.Vao);

@@ -25,7 +25,7 @@ add_library(nanoem_core
     core/ik/motion.pb-c.c
     core/ext/motion.c
     core/morph/motion.c
-    emapp/Rendering.cc
+    core/render/Rendering.cc
     emapp/DirectionalLight.cc
     emapp/Grid.cc
     emapp/PerspectiveCamera.cc
