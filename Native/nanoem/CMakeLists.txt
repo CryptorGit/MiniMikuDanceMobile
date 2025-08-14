@@ -23,6 +23,7 @@ add_library(nanoem_core
     core/ik/motion.c
     core/ik/motion.pb-c.c
     core/ext/motion.c
+    core/morph/model.c
     core/morph/motion.c
     core/render/Rendering.cc
     emapp/DirectionalLight.cc
@@ -30,6 +31,7 @@ add_library(nanoem_core
     emapp/PerspectiveCamera.cc
     emapp/CommonInclude.cc
     emapp/PhysicsEngine.cc
+    emapp/morph.c
     emapp/physics.c
     emapp/ik.c
     core/physics/physics_bullet.cc

@@ -8,7 +8,7 @@ public static class MorphController
     {
         if (model == IntPtr.Zero)
             return;
-        Nanoem.SetMorphWeight(model, index, weight);
-        Nanoem.ModelUpdateMorph(model);
+        NanoemMorph.SetMorphWeight(model, index, weight);
+        NanoemMorph.Update(model);
     }
 }
