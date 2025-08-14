@@ -20,7 +20,6 @@ using System.Reflection;
 using MiniMikuDance.Import;
 using OpenTK.Mathematics;
 using MiniMikuDance.Util;
-using MiniMikuDance.PoseEstimation;
 using MiniMikuDance.App;
 using SixLabors.ImageSharp.PixelFormats;
 using MiniMikuDance.IK;
@@ -54,7 +53,6 @@ public partial class MainPage : ContentPage
     private float _shadeToony = 0.9f;
     private float _rimIntensity = 0.5f;
     private int _extractTotalFrames;
-    private int _poseTotalFrames;
     private bool _poseMode;
     // bottomWidth is no longer used; bottom region spans full screen width
     // private double bottomWidth = 0;
@@ -66,22 +64,16 @@ public partial class MainPage : ContentPage
     private readonly BonesConfig? _bonesConfig = App.Initializer.BonesConfig;
     private bool _needsRender;
     private readonly IDispatcherTimer _renderTimer;
-    private void SetProgressVisibilityAndLayout(bool isVisible,
-        bool showExtract,
-        bool showPose)
+    private void SetProgressVisibilityAndLayout(bool isVisible)
     {
         ProgressFrame.IsVisible = isVisible;
-        ExtractProgressBar.IsVisible = showExtract;
-        ExtractProgressLabel.IsVisible = showExtract;
-        PoseProgressBar.IsVisible = showPose;
-        PoseProgressLabel.IsVisible = showPose;
+        ExtractProgressBar.IsVisible = isVisible;
+        ExtractProgressLabel.IsVisible = isVisible;
 
         if (!isVisible)
         {
             ExtractProgressBar.Progress = 0;
-            PoseProgressBar.Progress = 0;
             ExtractProgressLabel.Text = string.Empty;
-            PoseProgressLabel.Text = string.Empty;
         }
         UpdateLayout();
     }
@@ -91,13 +83,6 @@ public partial class MainPage : ContentPage
         int current = (int)(_extractTotalFrames * p);
         ExtractProgressBar.Progress = p;
         ExtractProgressLabel.Text = $"動画抽出: {current}/{_extractTotalFrames} ({p * 100:0}%)";
-    }
-
-    private void UpdatePoseProgress(double p)
-    {
-        int current = (int)(_poseTotalFrames * p);
-        PoseProgressBar.Progress = p;
-        PoseProgressLabel.Text = $"姿勢推定: {current}/{_poseTotalFrames} ({p * 100:0}%)";
     }
 
     private void OnPoseModeToggled(object? sender, ToggledEventArgs e)
@@ -1307,50 +1292,6 @@ public partial class MainPage : ContentPage
         SelectedVideoPath.Text = path;
     }
 
-    private async void OnStartEstimateClicked(object? sender, EventArgs e)
-    {
-        if (string.IsNullOrEmpty(_selectedVideoPath))
-        {
-            await DisplayAlert("Error", "ファイルが選択されていません", "OK");
-            return;
-        }
-
-        RemoveBottomFeature("Analyze");
-        PoseSelectMessage.IsVisible = false;
-        // Photo mode: only show pose progress
-        _extractTotalFrames = 0;
-        _poseTotalFrames = 1;
-        SetProgressVisibilityAndLayout(true, false, true);
-
-        try
-        {
-            UpdatePoseProgress(0);
-            string? path = await App.Initializer.AnalyzePhotoAsync(
-                _selectedVideoPath,
-                new Progress<float>(p => MainThread.BeginInvokeOnMainThread(() => UpdatePoseProgress(p))));
-            if (!string.IsNullOrEmpty(path))
-            {
-                await DisplayAlert("Saved", $"{Path.GetFileName(path)} を保存しました", "OK");
-            }
-        }
-        catch (Exception ex)
-        {
-            await DisplayAlert("Error", ex.Message, "OK");
-        }
-        finally
-        {
-            SetProgressVisibilityAndLayout(false, false, true);
-            _selectedVideoPath = null;
-        }
-    }
-
-    private void OnCancelEstimateClicked(object? sender, EventArgs e)
-    {
-        _selectedVideoPath = null;
-        PoseSelectMessage.IsVisible = false;
-        SelectedVideoPath.Text = string.Empty;
-        SetProgressVisibilityAndLayout(false, true, true);
-    }
 
     private Vector3 ClampRotation(string bone, Vector3 rot)
     {
