@@ -76,7 +76,13 @@
       <Output TaskParameter="ExitCode" PropertyName="CMakeExitCode" />
     </Exec>
     <Warning Text="CMake が見つかりません。CMake をインストールしてください。" Condition="'$(CMakeExitCode)' != '0'" />
-    <Exec Command="$(CMakeCommand) -S $(MSBuildProjectDirectory)/../Native -B $(MSBuildProjectDirectory)/../Native/build -DCMAKE_BUILD_TYPE=$(Configuration)" Condition="'$(CMakeExitCode)' == '0'" />
+    <Exec Command="ninja --version" IgnoreExitCode="true" Condition="'$(CMakeExitCode)' == '0' and '$(OS)' == 'Windows_NT'">
+      <Output TaskParameter="ExitCode" PropertyName="NinjaExitCode" />
+    </Exec>
+    <Warning Text="ninja が見つかりません。Visual Studio 17 2022 でビルドします。" Condition="'$(OS)' == 'Windows_NT' and '$(NinjaExitCode)' != '0'" />
+    <Exec Command="$(CMakeCommand) -S $(MSBuildProjectDirectory)/../Native -B $(MSBuildProjectDirectory)/../Native/build -DCMAKE_BUILD_TYPE=$(Configuration) -G Ninja" Condition="'$(CMakeExitCode)' == '0' and '$(OS)' == 'Windows_NT' and '$(NinjaExitCode)' == '0'" />
+    <Exec Command="$(CMakeCommand) -S $(MSBuildProjectDirectory)/../Native -B $(MSBuildProjectDirectory)/../Native/build -DCMAKE_BUILD_TYPE=$(Configuration) -G &quot;Visual Studio 17 2022&quot;" Condition="'$(CMakeExitCode)' == '0' and '$(OS)' == 'Windows_NT' and '$(NinjaExitCode)' != '0'" />
+    <Exec Command="$(CMakeCommand) -S $(MSBuildProjectDirectory)/../Native -B $(MSBuildProjectDirectory)/../Native/build -DCMAKE_BUILD_TYPE=$(Configuration)" Condition="'$(CMakeExitCode)' == '0' and '$(OS)' != 'Windows_NT'" />
     <Exec Command="$(CMakeCommand) --build $(MSBuildProjectDirectory)/../Native/build --config $(Configuration)" Condition="'$(CMakeExitCode)' == '0'" />
   </Target>
 </Project>
