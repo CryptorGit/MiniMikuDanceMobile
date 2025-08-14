@@ -89,6 +89,10 @@ public partial class PmxRenderer
         _lastPhysicsUpdate = now;
         UpdatePhysics(delta);
 
+        if (_modelHandle != IntPtr.Zero)
+        {
+            Nanoem.ModelUpdateMorph(_modelHandle);
+        }
         Nanoem.RenderingUpdateFrame();
     }
 
