@@ -23,8 +23,6 @@ public class IkBone
     public Vector3 PrevUp { get; set; }
     public int PmxBoneIndex { get; }
     public bool IsSelected { get; set; }
-    public Vector3 PoleVector { get; set; } = Vector3.Zero;
-    public float RotationLimit { get; set; }
 
     public IkBone(int pmxBoneIndex, string name, BoneRole role, Vector3 position, Quaternion baseRotation, Vector3 baseForward, Vector3 baseUp)
     {
