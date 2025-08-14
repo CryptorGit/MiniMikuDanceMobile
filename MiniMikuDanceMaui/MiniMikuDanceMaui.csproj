@@ -55,6 +55,10 @@
     <None Include="..\Native\build\**\*nanoem*.dll" CopyToOutputDirectory="PreserveNewest" />
     <None Include="..\Native\build\**\*nanoem*.dylib" CopyToOutputDirectory="PreserveNewest" />
   </ItemGroup>
+  <ItemGroup>
+    <Compile Update="Views\*.xaml.cs" />
+    <MauiXaml Update="Views\*.xaml" />
+  </ItemGroup>
   <ItemGroup Condition="'$(TargetFramework)' == 'net9.0-ios17.0'">
     <NativeReference Include="..\\Native\\ios\\libnanoem.a" Kind="Static" />
   </ItemGroup>
