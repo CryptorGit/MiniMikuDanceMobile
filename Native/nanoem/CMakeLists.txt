@@ -22,12 +22,17 @@ add_library(nanoem_core
     core/ik/mutable.c
     core/ik/motion.c
     core/ik/motion.pb-c.c
+    core/ext/motion.c
+    core/morph/model.c
     core/morph/motion.c
     core/render/Rendering.cc
     emapp/DirectionalLight.cc
     emapp/Grid.cc
     emapp/PerspectiveCamera.cc
     emapp/CommonInclude.cc
+    emapp/PhysicsEngine.cc
+    emapp/morph.c
+    emapp/physics.c
     emapp/physics/PhysicsEngine.cc
     emapp/physics/physics.c
     emapp/ik.c

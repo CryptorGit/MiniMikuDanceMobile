@@ -1,4 +1,5 @@
 target_sources(nanoem PRIVATE
+    model.c
     motion.c
 )
 target_include_directories(nanoem PUBLIC
