@@ -93,20 +93,16 @@ public partial class AppInitializer : IDisposable
             DataManager.Instance.TempDir,
             new Progress<float>(p =>
             {
-                UIManager.Instance.ExtractProgress = p;
                 extractProgress?.Report(p);
             }),
             new Progress<float>(p =>
             {
-                UIManager.Instance.PoseProgress = p;
                 poseProgress?.Report(p);
             }));
         string outPath = Path.Combine(_poseOutputDir,
             Path.GetFileNameWithoutExtension(videoPath) + ".json");
         JSONUtil.Save(outPath, Joints);
         UIManager.Instance.SetMessage("Analyze complete");
-        UIManager.Instance.ExtractProgress = 0f;
-        UIManager.Instance.PoseProgress = 0f;
         return outPath;
     }
 
@@ -121,14 +117,12 @@ public partial class AppInitializer : IDisposable
             imagePath,
             new Progress<float>(p =>
             {
-                UIManager.Instance.PoseProgress = p;
                 poseProgress?.Report(p);
             }));
         string outPath = Path.Combine(_poseOutputDir,
             Path.GetFileNameWithoutExtension(imagePath) + ".json");
         JSONUtil.Save(outPath, Joints);
         UIManager.Instance.SetMessage("Analyze complete");
-        UIManager.Instance.PoseProgress = 0f;
         return outPath;
     }
 
