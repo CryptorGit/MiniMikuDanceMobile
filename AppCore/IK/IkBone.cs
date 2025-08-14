@@ -11,6 +11,7 @@ public enum BoneRole
 
 public class IkBone
 {
+    public int ConstraintIndex { get; }
     public string Name { get; }
     public BoneRole Role { get; }
     public Vector3 Position { get; set; }
@@ -24,9 +25,10 @@ public class IkBone
     public int PmxBoneIndex { get; }
     public bool IsSelected { get; set; }
 
-    public IkBone(int pmxBoneIndex, string name, BoneRole role, Vector3 position, Quaternion baseRotation, Vector3 baseForward, Vector3 baseUp)
+    public IkBone(int pmxBoneIndex, int constraintIndex, string name, BoneRole role, Vector3 position, Quaternion baseRotation, Vector3 baseForward, Vector3 baseUp)
     {
         PmxBoneIndex = pmxBoneIndex;
+        ConstraintIndex = constraintIndex;
         Name = name;
         Role = role;
         Position = position;
