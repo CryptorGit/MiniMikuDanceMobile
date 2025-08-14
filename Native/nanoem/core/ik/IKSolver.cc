@@ -7,20 +7,36 @@
 #include "IKSolver.h"
 #include "ConstraintSolver.h"
 
-static float g_effector_position[3];
+#include <stdlib.h>
+
+typedef struct nanoem_emapp_constraint_t {
+    float effector_position[3];
+} nanoem_emapp_constraint_t;
+
+static nanoem_emapp_constraint_t *g_constraints = NULL;
+static int32_t g_num_constraints = 0;
 
 void
-nanoem_emapp_initialize_ik(void)
+nanoem_emapp_initialize_ik(int32_t num_constraints)
 {
-    g_effector_position[0] = 0.0f;
-    g_effector_position[1] = 0.0f;
-    g_effector_position[2] = 0.0f;
+    if (g_constraints) {
+        free(g_constraints);
+        g_constraints = NULL;
+        g_num_constraints = 0;
+    }
+    if (num_constraints > 0) {
+        g_num_constraints = num_constraints;
+        g_constraints = (nanoem_emapp_constraint_t *) calloc((size_t) num_constraints, sizeof(*g_constraints));
+    }
 }
 
 void
-nanoem_emapp_solve_ik(int32_t bone_index, float position[3])
+nanoem_emapp_solve_ik(int32_t constraint_index, int32_t bone_index, float position[3])
 {
     (void) bone_index;
+    if (!position || constraint_index < 0 || constraint_index >= g_num_constraints) {
+        return;
+    }
     nanoem_constraint_joint_t joint;
     const float transform[16] = {
         1.0f, 0.0f, 0.0f, 0.0f,
@@ -28,9 +44,9 @@ nanoem_emapp_solve_ik(int32_t bone_index, float position[3])
         0.0f, 0.0f, 1.0f, 0.0f,
         0.0f, 0.0f, 0.0f, 1.0f
     };
-    nanoem_emapp_constraint_solve_axis_angle(transform, g_effector_position, position, &joint);
-    g_effector_position[0] = position[0];
-    g_effector_position[1] = position[1];
-    g_effector_position[2] = position[2];
+    nanoem_emapp_constraint_solve_axis_angle(transform, g_constraints[constraint_index].effector_position, position, &joint);
+    g_constraints[constraint_index].effector_position[0] = position[0];
+    g_constraints[constraint_index].effector_position[1] = position[1];
+    g_constraints[constraint_index].effector_position[2] = position[2];
 }
 

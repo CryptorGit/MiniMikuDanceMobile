@@ -30,35 +30,38 @@ public static class IkManager
     public static void LoadPmxIkBones(IReadOnlyList<BoneData> modelBones)
     {
         Clear();
-        Nanoem.InitializeIk();
+        var indices = new List<int>();
         for (int i = 0; i < modelBones.Count; i++)
         {
-            var ik = modelBones[i].Ik;
-            if (ik == null)
-                continue;
-
-            RegisterIkBone(i, modelBones[i]);
+            if (modelBones[i].Ik != null)
+            {
+                indices.Add(i);
+            }
         }
-
-        // "足IK" ボーンが取りこぼされていないか確認する
         for (int i = 0; i < modelBones.Count; i++)
         {
-            if (BonesDict.ContainsKey(i))
+            if (indices.Contains(i))
                 continue;
             var name = modelBones[i].Name;
             if (name.Contains("足", StringComparison.Ordinal) &&
                 (name.Contains("IK", StringComparison.OrdinalIgnoreCase) || name.Contains("ＩＫ")))
             {
-                RegisterIkBone(i, modelBones[i]);
+                indices.Add(i);
             }
+        }
+        Nanoem.InitializeIk(indices.Count);
+        for (int c = 0; c < indices.Count; c++)
+        {
+            int idx = indices[c];
+            RegisterIkBone(c, idx, modelBones[idx]);
         }
     }
 
-    private static void RegisterIkBone(int index, BoneData bRoot)
+    private static void RegisterIkBone(int constraintIndex, int index, BoneData bRoot)
     {
         var rootPos = Vector3.Transform(Vector3.Zero, bRoot.BindMatrix);
         var rootRole = DetermineRole(bRoot.Name);
-        BonesDict[index] = new IkBone(index, bRoot.Name, rootRole, rootPos, bRoot.Rotation, bRoot.BaseForward, bRoot.BaseUp);
+        BonesDict[index] = new IkBone(index, constraintIndex, bRoot.Name, rootRole, rootPos, bRoot.Rotation, bRoot.BaseForward, bRoot.BaseUp);
     }
 
     // レンダラーから提供された情報を用いてボーン選択を行う
@@ -128,7 +131,7 @@ public static class IkManager
 
             // ネイティブ IK ソルバーを呼び出してボーン位置を更新
             var pos = new float[] { position.X, position.Y, position.Z };
-            Nanoem.SolveIk(boneIndex, pos);
+            Nanoem.SolveIk(bone.ConstraintIndex, boneIndex, pos);
             bone.Position = new Vector3(pos[0], pos[1], pos[2]);
 
             if (SetBoneTranslation != null)
