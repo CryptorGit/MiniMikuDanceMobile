@@ -184,6 +184,7 @@ public partial class MainPage : ContentPage
         {
             try
             {
+                _renderer.FrameUpdated(1f / 60f);
                 if (_needsRender)
                 {
                     Viewer?.InvalidateSurface();

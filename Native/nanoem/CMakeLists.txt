@@ -29,12 +29,15 @@ add_library(nanoem_core
     emapp/DirectionalLight.cc
     emapp/Grid.cc
     emapp/PerspectiveCamera.cc
+    emapp/CommonInclude.cc
+    emapp/PhysicsEngine.cc
     core/physics/physics_bullet.cc
     core/import/document.c
     core/import/mutable.c
 )
 
 target_include_directories(nanoem_core PUBLIC
+    ${CMAKE_CURRENT_SOURCE_DIR}
     ${CMAKE_CURRENT_SOURCE_DIR}/core
     ${CMAKE_CURRENT_SOURCE_DIR}/core/ik
     ${CMAKE_CURRENT_SOURCE_DIR}/core/morph
