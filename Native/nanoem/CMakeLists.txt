@@ -16,3 +16,6 @@ target_include_directories(nanoem_core PUBLIC
     ${CMAKE_CURRENT_SOURCE_DIR}/core
 )
 
+# Enable debug memory allocator
+target_compile_definitions(nanoem_core PUBLIC NANOEM_ENABLE_DEBUG_ALLOCATOR)
+
