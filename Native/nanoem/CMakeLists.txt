@@ -12,11 +12,11 @@ add_library(nanoem_core
     core/nanoem.c
     core/version.c
     core/ext/converter.c
-    core/ext/document.c
     core/ext/json.c
-    core/ext/mutable.c
     core/ext/motion.c
     core/ext/parson/parson.c
+    core/import/document.c
+    core/import/mutable.c
 )
 
 target_include_directories(nanoem_core PUBLIC
