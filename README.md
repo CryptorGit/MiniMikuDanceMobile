@@ -4,6 +4,21 @@ MiniMikuDance は、スマートフォン上で PMX 形式の MMD 互換モデ�
 
 **注意: `global.json` の SDK バージョンは `9.0.301` から変更しないこと。**
 
+## ビルド手順
+
+1. ネイティブライブラリのビルド
+
+   ```sh
+   cmake -S Native -B Native/build
+   cmake --build Native/build
+   ```
+
+2. .NET プロジェクトのビルド
+
+   ```sh
+   dotnet build
+   ```
+
 ## UI設定の読み込み
 
 `UIManager` は `LoadConfig(string path)` を通じて UI 設定をファイルから読み込みます。
