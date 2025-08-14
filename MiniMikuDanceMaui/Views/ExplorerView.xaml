@@ -2,7 +2,7 @@
 <ContentView xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
              xmlns:local="clr-namespace:MiniMikuDanceMaui"
-             x:Class="MiniMikuDanceMaui.ExplorerView"
+             x:Class="MiniMikuDanceMaui.Views.ExplorerView"
              BackgroundColor="{DynamicResource BackgroundColor}">
     <Grid RowDefinitions="Auto,*">
         <Grid ColumnDefinitions="Auto,*" Padding="8" x:Name="TopBar" HeightRequest="40">

@@ -5,7 +5,7 @@ using MiniMikuDance.Import;
 using MauiIcons.Core;
 using MauiIcons.Material;
 
-namespace MiniMikuDanceMaui;
+namespace MiniMikuDanceMaui.Views;
 
 public partial class BoneView : ContentView
 {

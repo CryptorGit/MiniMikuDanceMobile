@@ -4,7 +4,7 @@ using System.IO;
 using System.Linq;
 using Microsoft.Maui.Controls;
 
-namespace MiniMikuDanceMaui;
+namespace MiniMikuDanceMaui.Views;
 
 public partial class ExplorerView : ContentView
 {

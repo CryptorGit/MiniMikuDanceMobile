@@ -1,3 +1,4 @@
+using MiniMikuDanceMaui.Views;
 using Microsoft.Maui.Controls;
 using MiniMikuDance.App;
 using MiniMikuDance.Data;
