@@ -395,7 +395,6 @@ public class ModelImporter : IDisposable
                 {
                     Target = b.IKTarget,
                     Iterations = b.IterCount,
-                    RotationLimit = b.MaxRadianPerIter,
                     ControlWeight = b.MaxRadianPerIter
                 };
                 var links = b.IKLinks.ToArray();
@@ -406,21 +405,9 @@ public class ModelImporter : IDisposable
                         BoneIndex = link.Bone,
                         HasLimit = link.IsEnableAngleLimited,
                         MinAngle = new System.Numerics.Vector3(link.MinLimit.X, link.MinLimit.Y, link.MinLimit.Z),
-                        MaxAngle = new System.Numerics.Vector3(link.MaxLimit.X, link.MaxLimit.Y, link.MaxLimit.Z),
-                        RotationLimit = b.MaxRadianPerIter
+                        MaxAngle = new System.Numerics.Vector3(link.MaxLimit.X, link.MaxLimit.Y, link.MaxLimit.Z)
                     };
                     ik.Links.Add(il);
-                }
-                if (links.Length >= 2)
-                {
-                    int rIdx = links[^1].Bone;
-                    int mIdx = links[^2].Bone;
-                    int tIdx = b.IKTarget;
-                    var r = worldPositions[rIdx];
-                    var m = worldPositions[mIdx];
-                    var t = worldPositions[tIdx];
-                    var n = System.Numerics.Vector3.Cross(m - r, t - r);
-                    ik.PoleVector = n.LengthSquared() > 1e-6f ? System.Numerics.Vector3.Normalize(n) : System.Numerics.Vector3.UnitY;
                 }
                 bd.Ik = ik;
             }

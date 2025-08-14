@@ -122,15 +122,11 @@ public class RecorderController : IDisposable
 
         CopyToImage(rgba, image, width, height);
         string path = Path.Combine(_savedDir, $"frame_{_frameIndex:D04}.png");
-        bool wasFull = _frameChannel.Reader.Count >= ChannelCapacity;
         if (!_frameChannel.Writer.TryWrite((image, path)))
         {
             _imagePool.Enqueue(image);
-            return Task.CompletedTask;
-        }
-        if (wasFull)
-        {
             Interlocked.Increment(ref _droppedFrames);
+            return Task.CompletedTask;
         }
         if (_frameIndex == 0)
         {
