@@ -34,6 +34,8 @@ internal static class NanoemPhysics
         public Vector3 TranslationUpper;
         public Vector3 RotationLower;
         public Vector3 RotationUpper;
+        public Vector3 TranslationSpring;
+        public Vector3 RotationSpring;
     }
 
     [DllImport(NativeLibName, CallingConvention = CallingConvention.Cdecl)]
@@ -74,6 +76,9 @@ internal static class NanoemPhysics
 
     [DllImport(NativeLibName, CallingConvention = CallingConvention.Cdecl)]
     private static extern void nanoemEmappPhysicsWorldSetActive(IntPtr world, bool value);
+
+    [DllImport(NativeLibName, CallingConvention = CallingConvention.Cdecl)]
+    private static extern bool nanoemEmappPhysicsWorldIsActive(IntPtr world);
 
     [DllImport(NativeLibName, CallingConvention = CallingConvention.Cdecl)]
     private static extern IntPtr nanoemEmappPhysicsWorldCreate(IntPtr opaque, out int status);
@@ -211,5 +216,10 @@ internal static class NanoemPhysics
         {
             nanoemEmappPhysicsWorldSetActive(_world, value);
         }
+    }
+
+    public static bool IsActive()
+    {
+        return _world != IntPtr.Zero && nanoemEmappPhysicsWorldIsActive(_world);
     }
 }

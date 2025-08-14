@@ -33,13 +33,13 @@ public partial class PmxRenderer
                 {
                     Mass = rb.Mass,
                     Shape = (int)rb.Shape,
-                    Size = Vector3.Zero,
-                    Position = Vector3.Zero,
-                    Rotation = Vector3.Zero,
-                    LinearLower = Vector3.Zero,
-                    LinearUpper = Vector3.Zero,
-                    AngularLower = Vector3.Zero,
-                    AngularUpper = Vector3.Zero,
+                    Size = rb.Size,
+                    Position = rb.Position,
+                    Rotation = rb.Rotation,
+                    LinearLower = rb.LinearLower,
+                    LinearUpper = rb.LinearUpper,
+                    AngularLower = rb.AngularLower,
+                    AngularUpper = rb.AngularUpper,
                 };
                 var bodyPtr = NanoemPhysics.CreateRigidBody(in config);
                 if (bodyPtr != IntPtr.Zero)
@@ -54,12 +54,14 @@ public partial class PmxRenderer
                 {
                     RigidBodyA = jt.RigidBodyA >= 0 && jt.RigidBodyA < _rigidBodies.Count ? _rigidBodies[jt.RigidBodyA].Body : IntPtr.Zero,
                     RigidBodyB = jt.RigidBodyB >= 0 && jt.RigidBodyB < _rigidBodies.Count ? _rigidBodies[jt.RigidBodyB].Body : IntPtr.Zero,
-                    Position = Vector3.Zero,
-                    Rotation = Vector3.Zero,
-                    TranslationLower = Vector3.Zero,
-                    TranslationUpper = Vector3.Zero,
-                    RotationLower = Vector3.Zero,
-                    RotationUpper = Vector3.Zero,
+                    Position = jt.Position,
+                    Rotation = jt.Rotation,
+                    TranslationLower = jt.TranslationLower,
+                    TranslationUpper = jt.TranslationUpper,
+                    RotationLower = jt.RotationLower,
+                    RotationUpper = jt.RotationUpper,
+                    TranslationSpring = jt.TranslationSpring,
+                    RotationSpring = jt.RotationSpring,
                 };
                 var jointPtr = NanoemPhysics.CreateJoint(in config);
                 if (jointPtr != IntPtr.Zero)

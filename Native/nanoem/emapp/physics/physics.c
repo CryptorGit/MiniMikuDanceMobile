@@ -29,6 +29,8 @@ typedef struct nanoem_emapp_physics_joint_config_t {
     nanoem_f32_t translation_upper[3];
     nanoem_f32_t rotation_lower[3];
     nanoem_f32_t rotation_upper[3];
+    nanoem_f32_t translation_spring[3];
+    nanoem_f32_t rotation_spring[3];
 } nanoem_emapp_physics_joint_config_t;
 
 struct nanoem_emapp_physics_world_t {
@@ -168,6 +170,12 @@ nanoemEmappPhysicsWorldSetActive(nanoem_emapp_physics_world_t *world, nanoem_boo
     if (world) {
         nanoemPhysicsWorldSetActive(world->world, value);
     }
+}
+
+nanoem_bool_t APIENTRY
+nanoemEmappPhysicsWorldIsActive(const nanoem_emapp_physics_world_t *world)
+{
+    return world ? nanoemPhysicsWorldIsActive(world->world) : nanoem_false;
 }
 
 void APIENTRY
