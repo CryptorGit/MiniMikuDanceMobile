@@ -21,7 +21,9 @@ public static class MmdFileSystem
             Directory.CreateDirectory(path);
             BaseDir = path;
             UsingInternalStorage = false;
+#if DEBUG
             Console.WriteLine($"[MmdFileSystem] Using external storage: {BaseDir}");
+#endif
             Directory.CreateDirectory(SystemPath.Combine(BaseDir, "Movie"));
         }
         catch
@@ -33,7 +35,9 @@ public static class MmdFileSystem
             Directory.CreateDirectory(path);
             BaseDir = path;
             UsingInternalStorage = true;
+#if DEBUG
             Console.WriteLine($"[MmdFileSystem] Fallback to internal storage: {BaseDir}");
+#endif
             Directory.CreateDirectory(SystemPath.Combine(BaseDir, "Movie"));
         }
 #else
@@ -41,7 +45,9 @@ public static class MmdFileSystem
         BaseDir = SystemPath.Combine(root, "MiniMikuDance", "data");
         Directory.CreateDirectory(BaseDir);
         UsingInternalStorage = true;
+#if DEBUG
         Console.WriteLine($"[MmdFileSystem] Using internal storage: {BaseDir}");
+#endif
         Directory.CreateDirectory(SystemPath.Combine(BaseDir, "Movie"));
 #endif
     }
