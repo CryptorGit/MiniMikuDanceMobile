@@ -5,6 +5,8 @@
 ## nanoem 手作業移植の未完了項目
 - [ ] 残りの nanoem core ソースの移植
 - [ ] emapp コンポーネントの追加ファイルと依存解決
+- [ ] emapp の IFileManager.h など不足ヘッダの移植
+- [ ] internal や plugins ディレクトリの依存解決とビルド整備
 - [ ] C# からの P/Invoke 実装およびビルドスクリプト整備
 - [ ] nanoem グローバルアロケータ周辺の詳細実装
 - [ ] 物理エンジン拡張 (physics.h 以外) の移植と実装
