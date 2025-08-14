@@ -18,18 +18,18 @@ struct ViewerContext {
     int width;
     int height;
     uint64_t frameIndex;
-    Allocator allocator;
     PerspectiveCamera *camera;
     DirectionalLight *light;
     Grid *grid;
+    Project *project;
     ViewerContext() noexcept
         : width(0)
         , height(0)
         , frameIndex(0)
-        , allocator(nullptr)
         , camera(nullptr)
         , light(nullptr)
         , grid(nullptr)
+        , project(nullptr)
     {
     }
 };
@@ -47,7 +47,11 @@ nanoemRenderingInitialize(int width, int height)
     g_context->width = width;
     g_context->height = height;
     g_context->frameIndex = 0;
-    /* TODO: initialize camera/light/grid based on emapp project */
+    Allocator::initialize();
+    g_context->project = nullptr; /* TODO: create Project instance */
+    g_context->camera = new PerspectiveCamera(g_context->project);
+    g_context->light = new DirectionalLight(g_context->project);
+    g_context->grid = new Grid(g_context->project);
 }
 
 void
@@ -55,15 +59,31 @@ nanoemRenderingUpdateFrame()
 {
     if (g_context) {
         ++g_context->frameIndex;
-        /* TODO: update emapp rendering pipeline */
+        if (g_context->project) {
+            /* TODO: update project */
+        }
+    }
+}
+
+void
+nanoemRenderingRenderFrame()
+{
+    if (g_context && g_context->project) {
+        /* TODO: render model via project */
     }
 }
 
 void
 nanoemRenderingShutdown()
 {
-    delete g_context;
-    g_context = nullptr;
+    if (g_context) {
+        delete g_context->grid;
+        delete g_context->light;
+        delete g_context->camera;
+        Allocator::destroy();
+        delete g_context;
+        g_context = nullptr;
+    }
 }
 
 } /* extern "C" */

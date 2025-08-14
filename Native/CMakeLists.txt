@@ -14,6 +14,10 @@ target_sources(nanoem PRIVATE
     ${EMAPP_SRC}
 # viewer begin
     nanoem/emapp/viewer.cc
+    nanoem/emapp/Allocator.cc
+    nanoem/emapp/render/DirectionalLight.cc
+    nanoem/emapp/render/Grid.cc
+    nanoem/emapp/render/PerspectiveCamera.cc
 # viewer end
 )
 
