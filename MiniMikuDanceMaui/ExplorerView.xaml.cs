@@ -65,9 +65,11 @@ public partial class ExplorerView : ContentView
 
             PathLabel.Text = text;
         }
-        catch
+        catch (Exception ex)
         {
-            PathLabel.Text = _currentPath;
+            Console.Error.WriteLine(ex);
+            _currentPath = _rootPath;
+            PathLabel.Text = _rootPath;
         }
     }
 
