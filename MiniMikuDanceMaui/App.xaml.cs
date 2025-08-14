@@ -1,4 +1,3 @@
-using Microsoft.Maui;
 using Microsoft.Maui.Controls;
 using MiniMikuDance.App;
 using MiniMikuDance.Data;
@@ -24,7 +23,7 @@ public partial class App : Application, IDisposable
         Initializer.Initialize(uiConfig, null, MmdFileSystem.BaseDir);
     }
 
-    protected override Window CreateWindow(IActivationState? activationState)
+    protected override Window CreateWindow(Microsoft.Maui.IActivationState? activationState)
     {
         return new Window(new NavigationPage(new MainPage()));
     }
