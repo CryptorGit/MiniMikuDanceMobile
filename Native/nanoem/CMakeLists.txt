@@ -14,6 +14,7 @@ add_library(nanoem_core
     core/allocator.c
     core/nanoem.c
     core/version.c
+    core/bone/transform.c
     core/ext/converter.c
     core/ext/json.c
     core/ext/mutable.c
