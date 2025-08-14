@@ -39,7 +39,7 @@ public partial class MorphView : ContentView
         }
 
         MorphList.Children.Clear();
-        var textColor = (Color)(Application.Current?.Resources?.TryGetValue("TextColor", out var color) == true ? color : Colors.Black);
+        var textColor = ResourceHelper.GetColor("TextColor", Colors.Black);
         var usedNames = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
         foreach (var group in morphs.GroupBy(m => m.Category).OrderBy(g => g.Key))
         {
