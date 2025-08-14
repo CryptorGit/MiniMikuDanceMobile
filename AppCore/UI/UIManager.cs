@@ -74,7 +74,10 @@ public class UIManager : Singleton<UIManager>
 
     public void SetThumbnail(string path)
     {
-        if (!File.Exists(path) || _textureLoader == null)
+        if (_textureLoader == null)
+            return;
+
+        if (!File.Exists(path))
             return;
 
         using var image = Image.Load<Rgba32>(path);
