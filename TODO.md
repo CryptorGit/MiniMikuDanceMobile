@@ -18,6 +18,7 @@
 - [ ] nanoemGlobalAllocatorInitialize/Terminate の P/Invoke 呼び出しとリーク検証
 - [ ] アロケータのメモリリーク検出ログ出力実装
 - [ ] 物理エンジン拡張 (physics.h 以外) の移植と実装
+- [ ] 剛体データを用いたネイティブ剛体生成および拘束設定の実装
 - [ ] IK 制御関連コンポーネントの移植
 - [ ] IK ソルバー本体の移植と P/Invoke 実装
 - [ ] ConstraintSolver の transform 対応など IK 計算の詳細実装

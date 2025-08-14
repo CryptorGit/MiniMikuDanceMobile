@@ -80,11 +80,6 @@ public partial class PmxRenderer
     {
         UpdateViewProjection();
 
-        lock (_physicsLock)
-        {
-            NanoemPhysics.Step(1f / 60f);
-        }
-
         bool needsUpdate = _bonesDirty || _morphDirty || _uvMorphDirty;
         if (needsUpdate)
         {
