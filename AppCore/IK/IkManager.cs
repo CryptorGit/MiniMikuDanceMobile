@@ -33,15 +33,6 @@ public static class IkManager
         var indices = new List<int>();
         for (int i = 0; i < modelBones.Count; i++)
         {
-            if (modelBones[i].Ik != null)
-            {
-                indices.Add(i);
-            }
-        }
-        for (int i = 0; i < modelBones.Count; i++)
-        {
-            if (indices.Contains(i))
-                continue;
             var name = modelBones[i].Name;
             if (name.Contains("足", StringComparison.Ordinal) &&
                 (name.Contains("IK", StringComparison.OrdinalIgnoreCase) || name.Contains("ＩＫ")))

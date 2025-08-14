@@ -8,6 +8,31 @@ using MiniMikuDance.App;
 
 namespace MiniMikuDance.Import;
 
+    public class FaceData
+    {
+        public int[] Indices { get; set; } = Array.Empty<int>();
+    }
+
+    public class MeshData
+    {
+        public List<Vector3> Vertices { get; } = new();
+        public List<Vector3> Normals { get; } = new();
+        public List<FaceData> Faces { get; } = new();
+        public int VertexCount => Vertices.Count;
+    }
+
+    public class SubMeshData
+    {
+        public MeshData Mesh { get; set; } = new();
+        public List<Vector2> TexCoords { get; } = new();
+        public string TextureFilePath { get; set; } = string.Empty;
+    }
+
+    public class TransformData
+    {
+        public Matrix4x4 ToMatrix4() => Matrix4x4.Identity;
+    }
+
     public class ModelData
     {
         public string Name { get; set; } = string.Empty;
@@ -17,20 +42,43 @@ namespace MiniMikuDance.Import;
         public List<MorphData> Morphs { get; } = new();
         public List<string> Textures { get; } = new();
         public List<MaterialData> Materials { get; } = new();
+        public MeshData Mesh { get; set; } = new();
+        public List<SubMeshData> SubMeshes { get; } = new();
+        public List<RigidBodyData> RigidBodies { get; } = new();
+        public List<JointData> Joints { get; } = new();
+        public Dictionary<string, int> HumanoidBoneList { get; } = new();
+        public TransformData Transform { get; set; } = new();
+        public float ShadeShift { get; set; }
+        public float ShadeToony { get; set; }
+        public float RimIntensity { get; set; }
     }
 
-public class ModelImporter
+public class ModelImporter : IDisposable
 {
     private readonly ILogger<ModelImporter> _logger;
 
     public static int CacheCapacity { get; set; }
-    public static void ClearCache() { }
 
     public float Scale { get; set; } = AppSettings.DefaultModelScale;
 
     public ModelImporter(ILogger<ModelImporter>? logger = null)
     {
         _logger = logger ?? NullLogger<ModelImporter>.Instance;
+    }
+
+    public void Dispose()
+    {
+    }
+
+    public ModelData ImportModel(string path)
+    {
+        using var fs = File.OpenRead(path);
+        return ImportModel(fs);
+    }
+
+    public ModelData ImportModel(Stream stream, string? baseDir)
+    {
+        return ImportModel(stream);
     }
 
     public ModelData ImportModel(Stream stream)
@@ -76,11 +124,17 @@ public class ModelImporter
         for (uint i = 0; i < boneCount; i++)
         {
             var b = Nanoem.ModelGetBoneInfo(model, i);
+            var t = new Vector3(b.OriginX * Scale, b.OriginY * Scale, b.OriginZ * Scale);
+            var bind = Matrix4x4.CreateTranslation(t);
+            Matrix4x4.Invert(bind, out var invBind);
             data.Bones.Add(new BoneData
             {
                 Name = Nanoem.PtrToStringAndFree(b.Name),
                 Parent = b.ParentBoneIndex,
-                Translation = new Vector3(b.OriginX * Scale, b.OriginY * Scale, b.OriginZ * Scale)
+                Translation = t,
+                BindMatrix = bind,
+                InverseBindMatrix = invBind,
+                Transform = bind
             });
         }
 
