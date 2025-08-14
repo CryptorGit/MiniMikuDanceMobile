@@ -24,6 +24,12 @@ typedef uint8_t nanoem_u8_t;
 typedef uint32_t nanoem_u32_t;
 typedef uint32_t nanoem_frame_index_t;
 
+typedef int nanoem_bool_t;
+enum {
+    nanoem_false = 0,
+    nanoem_true = 1
+};
+
 typedef enum nanoem_status_t {
     NANOEM_STATUS_SUCCESS = 0,
     NANOEM_STATUS_ERROR_NULL_OBJECT = -1,
@@ -43,6 +49,30 @@ typedef struct nanoem_global_allocator_t {
     nanoem_global_allocator_realloc_t realloc;
     nanoem_global_allocator_free_t free;
 } nanoem_global_allocator_t;
+
+#ifndef nanoem_likely
+#define nanoem_likely(expr) (expr)
+#endif
+#ifndef nanoem_unlikely
+#define nanoem_unlikely(expr) (expr)
+#endif
+#ifndef nanoem_is_null
+#define nanoem_is_null(cond) ((cond) == NULL)
+#endif
+#ifndef nanoem_is_not_null
+#define nanoem_is_not_null(cond) ((cond) != NULL)
+#endif
+#ifndef nanoem_mark_unused
+#define nanoem_mark_unused(cond) ((void) (cond))
+#endif
+
+#ifndef NANOEM_RSIZE_MAX
+#ifdef RSIZE_MAX
+#define NANOEM_RSIZE_MAX RSIZE_MAX
+#else
+#define NANOEM_RSIZE_MAX ((~(size_t) (0)) >> 1)
+#endif
+#endif /* NANOEM_RSIZE_MAX */
 
 const nanoem_global_allocator_t *APIENTRY nanoemGlobalGetCustomAllocator(void);
 void APIENTRY nanoemGlobalSetCustomAllocator(const nanoem_global_allocator_t *allocator);

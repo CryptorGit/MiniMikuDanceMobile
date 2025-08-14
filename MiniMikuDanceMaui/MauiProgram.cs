@@ -5,6 +5,7 @@ using Microsoft.Maui.Controls.Hosting;
 using SkiaSharp.Views.Maui.Controls.Hosting;
 using MauiIcons.Material.Outlined;
 using MauiIcons.Material;
+using MiniMikuDance;
 using MiniMikuDance.Data;
 using Microsoft.Maui.Storage;
 
@@ -25,6 +26,8 @@ public static class MauiProgram
             .UseMaterialOutlinedMauiIcons()
             .UseMaterialMauiIcons()
             .UseSkiaSharp();
+
+        Console.WriteLine($"nanoem {Nanoem.GetVersionString()}");
 
         return builder.Build();
     }

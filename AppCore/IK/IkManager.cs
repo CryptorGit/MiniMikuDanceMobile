@@ -9,7 +9,7 @@ namespace MiniMikuDance.IK;
 public static class IkManager
 {
     private static readonly Dictionary<int, IkBone> BonesDict = new();
-    // IKアルゴリズム関連の処理を削除したため、ソルバーや固定軸の管理は不要
+    // ネイティブ IK ソルバーを利用するためのエントリポイントを保持
 
     // レンダラーから提供される各種処理を委譲用デリゲートとして保持
     public static System.Func<float, float, int>? PickFunc { get; set; }
@@ -126,6 +126,8 @@ public static class IkManager
             if (!BonesDict.TryGetValue(boneIndex, out var bone))
                 return;
 
+            // ネイティブ IK ソルバーを呼び出してボーン位置を更新
+            NativeMethods.nanoem_emapp_solve_ik(boneIndex, ref position);
             bone.Position = position;
 
             if (SetBoneTranslation != null)
