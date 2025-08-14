@@ -1,6 +1,7 @@
 using Microsoft.Maui;
 using Microsoft.Maui.Controls;
 using Microsoft.Maui.Storage;
+using Microsoft.Maui.ApplicationModel;
 using MiniMikuDance.App;
 using MiniMikuDance.Data;
 using MiniMikuDance.UI;
@@ -53,7 +54,11 @@ public partial class App : Application, IDisposable
             }
             catch (Exception ex)
             {
+#if DEBUG
                 Console.WriteLine($"Error copying pose model: {ex}");
+#endif
+                MainThread.BeginInvokeOnMainThread(async () =>
+                    await Current?.MainPage?.DisplayAlert("Error", ex.Message, "OK"));
             }
         }
 
