@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Numerics;
 using MiniMikuDance;
 using MiniMikuDance.Import;
+using MiniMikuDance.UI;
 
 namespace MiniMikuDanceMaui.Renderers.Pmx;
 
@@ -21,12 +22,17 @@ public partial class PmxRenderer
                 NanoemPhysics.DestroyJoint(joint);
             }
             _joints.Clear();
-            foreach (var (body, _) in _rigidBodies)
+            foreach (var (body, boneIndex) in _rigidBodies)
             {
                 NanoemPhysics.RemoveRigidBody(body);
                 NanoemPhysics.DestroyRigidBody(body);
+                if (boneIndex >= 0 && boneIndex < _bones.Count)
+                {
+                    BoneController.SetTransform(_modelHandle, boneIndex, _bones[boneIndex].BindMatrix);
+                }
             }
             _rigidBodies.Clear();
+            UpdateBoneMatricesFromModel();
             foreach (var rb in rigidBodies)
             {
                 var config = new NanoemPhysics.RigidBodyConfig
@@ -82,9 +88,11 @@ public partial class PmxRenderer
             {
                 if (boneIndex >= 0 && boneIndex < _worldMats.Length)
                 {
-                    _worldMats[boneIndex] = NanoemPhysics.GetRigidBodyWorldTransform(body);
+                    var m = NanoemPhysics.GetRigidBodyWorldTransform(body);
+                    BoneController.SetTransform(_modelHandle, boneIndex, m);
                 }
             }
+            UpdateBoneMatricesFromModel();
         }
     }
 
