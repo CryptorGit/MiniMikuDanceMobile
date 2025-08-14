@@ -28,6 +28,9 @@ using MiniMikuDanceMaui.Renderers;
 using MiniMikuDanceMaui.Services;
 using MiniMikuDanceMaui.Utilities;
 using MiniMikuDanceMaui.Platform.Bindings;
+using MiniMikuDanceMaui.Renderers.Pmx;
+using MiniMikuDanceMaui.Helpers;
+using MiniMikuDanceMaui.ViewModels;
 
 namespace MiniMikuDanceMaui.Views;
 
@@ -837,28 +840,29 @@ public partial class MainPage : ContentPage
             }
             else if (name == "MTOON")
             {
-                var mv = new LightingView
+                var lv = new LightingView();
+                if (lv.BindingContext is LightingViewModel vm)
                 {
-                    ShadeShift = _shadeShift,
-                    ShadeToony = _shadeToony,
-                    RimIntensity = _rimIntensity
-                };
-                mv.ShadeShiftChanged += v =>
-                {
-                    _shadeShift = (float)v;
-                    UpdateRendererLightingProperties();
-                };
-                mv.ShadeToonyChanged += v =>
-                {
-                    _shadeToony = (float)v;
-                    UpdateRendererLightingProperties();
-                };
-                mv.RimIntensityChanged += v =>
-                {
-                    _rimIntensity = (float)v;
-                    UpdateRendererLightingProperties();
-                };
-                view = mv;
+                    vm.ShadeShift = _shadeShift;
+                    vm.ShadeToony = _shadeToony;
+                    vm.RimIntensity = _rimIntensity;
+                    vm.ShadeShiftChanged += v =>
+                    {
+                        _shadeShift = (float)v;
+                        UpdateRendererLightingProperties();
+                    };
+                    vm.ShadeToonyChanged += v =>
+                    {
+                        _shadeToony = (float)v;
+                        UpdateRendererLightingProperties();
+                    };
+                    vm.RimIntensityChanged += v =>
+                    {
+                        _rimIntensity = (float)v;
+                        UpdateRendererLightingProperties();
+                    };
+                }
+                view = lv;
             }
             else if (name == "MORPH")
             {

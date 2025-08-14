@@ -12,7 +12,7 @@ using Vector2 = OpenTK.Mathematics.Vector2;
 using Vector3 = OpenTK.Mathematics.Vector3;
 using Vector4 = OpenTK.Mathematics.Vector4;
 
-namespace MiniMikuDanceMaui.Renderers;
+namespace MiniMikuDanceMaui.Renderers.Pmx;
 
 public partial class PmxRenderer
 {
@@ -563,6 +563,15 @@ public partial class PmxRenderer
         {
             DrawIkBones();
         }
+    }
+
+    partial void InitializeRenderModule()
+    {
+        RegisterModule(new RenderModule());
+    }
+
+    private class RenderModule : PmxRendererModuleBase
+    {
     }
 
 }
