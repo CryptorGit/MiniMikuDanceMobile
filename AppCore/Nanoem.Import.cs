@@ -47,8 +47,8 @@ internal static partial class Nanoem
     [DllImport(NativeLibName, CallingConvention = CallingConvention.Cdecl)]
     private static extern void nanoemModelGetBoneInfo(IntPtr model, uint index, out BoneInfo info);
 
-    [DllImport(NativeLibName, EntryPoint = "nanoemModelGetMorphCount", CallingConvention = CallingConvention.Cdecl)]
-    private static extern uint nanoemModelGetMorphCountInternal(IntPtr model);
+    [DllImport(NativeLibName, CallingConvention = CallingConvention.Cdecl)]
+    private static extern uint nanoemModelGetMorphCount(IntPtr model);
 
     [DllImport(NativeLibName, CallingConvention = CallingConvention.Cdecl)]
     private static extern void nanoemModelGetMorphInfo(IntPtr model, uint index, out MorphInfo info);
@@ -94,7 +94,7 @@ internal static partial class Nanoem
 
     public static uint ModelGetMorphCount(IntPtr model)
     {
-        return nanoemModelGetMorphCountInternal(model);
+        return nanoemModelGetMorphCount(model);
     }
 
     public static MorphInfo ModelGetMorphInfo(IntPtr model, uint index)

@@ -12,7 +12,8 @@ find_package(glm REQUIRED)
 
 add_library(nanoem_core
     core/allocator.c
-    core/nanoem.c
+    core/pmx/nanoem.c
+    core/pmx/loader.c
     core/version.c
     core/bone/bone.c
     core/bone/mutable.c
@@ -46,6 +47,7 @@ add_library(nanoem_core
 target_include_directories(nanoem_core PUBLIC
     ${CMAKE_CURRENT_SOURCE_DIR}
     ${CMAKE_CURRENT_SOURCE_DIR}/core
+    ${CMAKE_CURRENT_SOURCE_DIR}/core/pmx
     ${CMAKE_CURRENT_SOURCE_DIR}/core/ik
     ${CMAKE_CURRENT_SOURCE_DIR}/core/morph
     ${BULLET_INCLUDE_DIRS}
