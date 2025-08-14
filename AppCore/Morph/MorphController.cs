@@ -6,7 +6,7 @@ public static class MorphController
 {
     public static void SetWeight(IntPtr model, ReadOnlySpan<(int index, float weight)> morphs)
     {
-        if (model == IntPtr.Zero)
+        if (model == IntPtr.Zero || morphs.IsEmpty)
             return;
         foreach (var (index, weight) in morphs)
         {
