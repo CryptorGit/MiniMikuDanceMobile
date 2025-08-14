@@ -35,8 +35,10 @@
       </PackageReference>
     </ItemGroup>
   <ItemGroup>
-    <!-- 追加のアセットが必要な場合はここに記述します -->
-  </ItemGroup>
+      <MauiImage Include="Resources\Images\**\*.*" />
+      <MauiFont Include="Resources\Fonts\**\*.*" />
+      <MauiAsset Include="Resources\Raw\**\*.*" />
+    </ItemGroup>
 
   <ItemGroup>
       <MauiAsset Include="..\Configs\BonesConfig.json">
@@ -59,6 +61,8 @@
   <ItemGroup>
     <Compile Update="Views\*.xaml.cs" />
     <MauiXaml Update="Views\*.xaml" />
+    <MauiXaml Update="Resources\Styles\*.xaml" />
+    <MauiXaml Update="Resources\Colors\*.xaml" />
   </ItemGroup>
   <ItemGroup Condition="'$(TargetFramework)' == 'net9.0-ios17.0'">
     <NativeReference Include="..\\Native\\ios\\libnanoem.a" Kind="Static" />
