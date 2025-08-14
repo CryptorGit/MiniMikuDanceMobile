@@ -25,12 +25,25 @@ sudo apt install -y cmake
 
 `cmake --version` を実行し、CMake が PATH に追加されていることを確認してください。
 
+#### Windows
+
+1. [Visual Studio Build Tools](https://visualstudio.microsoft.com/visual-cpp-build-tools/) をインストールし、「C++ build tools」ワークロードを選択します（CMake コンポーネントを含みます）。
+2. インストール後、スタートメニューから「Developer Command Prompt for VS 2022」などの開発者用コマンド プロンプトを起動します。
+3. コマンド プロンプトで `cmake --version` を実行し、CMake が利用可能であることを確認します。
+
 ## ビルド手順
 
 1. ネイティブライブラリのビルド
 
    ```sh
    cmake -S Native -B Native/build
+   cmake --build Native/build
+   ```
+
+   Windows で Visual Studio Build Tools を利用する場合は、`Developer Command Prompt` からジェネレータを指定して実行します。
+
+   ```sh
+   cmake -S Native -B Native/build -G "Visual Studio 17 2022"
    cmake --build Native/build
    ```
 
