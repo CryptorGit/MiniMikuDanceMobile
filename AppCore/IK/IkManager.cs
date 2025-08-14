@@ -30,28 +30,23 @@ public static class IkManager
     public static void LoadPmxIkBones(IReadOnlyList<BoneData> modelBones)
     {
         Clear();
-        var indices = new List<int>();
+        var ikBones = new List<IkBone>();
         for (int i = 0; i < modelBones.Count; i++)
         {
             var name = modelBones[i].Name;
             if (name.Contains("足", StringComparison.Ordinal) &&
                 (name.Contains("IK", StringComparison.OrdinalIgnoreCase) || name.Contains("ＩＫ")))
             {
-                indices.Add(i);
+                var constraint = modelBones[i].IkConstraint;
+                if (constraint == null)
+                    continue;
+                var rootPos = Vector3.Transform(Vector3.Zero, modelBones[i].BindMatrix);
+                var ikBone = new IkBone(i, ikBones.Count, modelBones[i].Name, rootPos, constraint);
+                BonesDict[i] = ikBone;
+                ikBones.Add(ikBone);
             }
         }
-        Nanoem.InitializeIk(indices.Count);
-        for (int c = 0; c < indices.Count; c++)
-        {
-            int idx = indices[c];
-            RegisterIkBone(c, idx, modelBones[idx]);
-        }
-    }
-
-    private static void RegisterIkBone(int constraintIndex, int index, BoneData bRoot)
-    {
-        var rootPos = Vector3.Transform(Vector3.Zero, bRoot.BindMatrix);
-        BonesDict[index] = new IkBone(index, constraintIndex, bRoot.Name, rootPos);
+        Nanoem.InitializeIk(ikBones);
     }
 
     // レンダラーから提供された情報を用いてボーン選択を行う
@@ -121,7 +116,7 @@ public static class IkManager
 
             // ネイティブ IK ソルバーを呼び出してボーン位置を更新
             var pos = new float[] { position.X, position.Y, position.Z };
-            Nanoem.SolveIk(bone.ConstraintIndex, boneIndex, pos);
+            Nanoem.SolveIk(bone.ConstraintIndex, pos);
             bone.Position = new Vector3(pos[0], pos[1], pos[2]);
 
             if (SetBoneTranslation != null)
@@ -151,6 +146,7 @@ public static class IkManager
     {
         ReleaseSelection();
         BonesDict.Clear();
+        Nanoem.InitializeIk();
     }
 }
 

@@ -53,7 +53,7 @@ namespace MiniMikuDance.Import;
         public float RimIntensity { get; set; }
     }
 
-public class ModelImporter : IDisposable
+public partial class ModelImporter : IDisposable
 {
     private readonly ILogger<ModelImporter> _logger;
 
@@ -137,6 +137,7 @@ public class ModelImporter : IDisposable
                 Transform = bind
             });
         }
+        LoadIkConstraints(model, data);
 
         uint morphCount = Nanoem.ModelGetMorphCount(model);
         for (uint i = 0; i < morphCount; i++)
