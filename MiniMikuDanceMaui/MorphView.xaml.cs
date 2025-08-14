@@ -5,18 +5,18 @@ using System.Collections.Generic;
 using System.Linq;
 using MiniMikuDance.Import;
 using MiniMikuDance.Util;
+using MiniMikuDance;
 
 namespace MiniMikuDanceMaui;
 
 public partial class MorphView : ContentView
 {
-    public event Action<string, double>? MorphValueChanged;
-
     private sealed class DebounceState
     {
         public required IDispatcherTimer Timer { get; init; }
         public double Value { get; set; }
         public required string Name { get; init; }
+        public int Index { get; init; }
     }
 
     private readonly Dictionary<string, DebounceState> _debounceStates = new(StringComparer.OrdinalIgnoreCase);
@@ -48,6 +48,7 @@ public partial class MorphView : ContentView
             foreach (var morph in group)
             {
                 var originalName = morph.Name;
+                var morphIndex = morph.Index;
                 var displayName = MorphNameUtil.EnsureUniqueName(originalName, usedNames.Contains);
                 usedNames.Add(displayName);
                 var grid = new Grid
@@ -72,14 +73,14 @@ public partial class MorphView : ContentView
                 slider.ValueChanged += (s, e) =>
                 {
                     valueLabel.Text = $"{e.NewValue:F2}";
-                    DebounceMorph(displayName, originalName, e.NewValue);
+                    DebounceMorph(displayName, originalName, morphIndex, e.NewValue);
                 };
                 MorphList.Children.Add(slider);
             }
         }
     }
 
-    private void DebounceMorph(string displayName, string name, double value)
+    private void DebounceMorph(string displayName, string name, int index, double value)
     {
         DebounceState state;
         lock (_timerLock)
@@ -95,7 +96,7 @@ public partial class MorphView : ContentView
                 timer.Interval = TimeSpan.FromMilliseconds(16);
                 timer.IsRepeating = false;
                 var key = displayName;
-                state = new DebounceState { Timer = timer, Name = name };
+                state = new DebounceState { Timer = timer, Name = name, Index = index };
                 timer.Tick += (s, _) =>
                 {
                     double latest;
@@ -109,7 +110,7 @@ public partial class MorphView : ContentView
                     }
                     try
                     {
-                        MorphValueChanged?.Invoke(state.Name, latest);
+                        Nanoem.SetMorphWeight(IntPtr.Zero, state.Index, (float) latest);
                     }
                     catch (Exception ex)
                     {

@@ -17,6 +17,7 @@ add_library(nanoem_core
     core/ext/converter.c
     core/ext/json.c
     core/ext/motion.c
+    core/morph/motion.c
     core/ext/parson/parson.c
     core/physics/physics_bullet.cc
     core/import/document.c
@@ -25,6 +26,7 @@ add_library(nanoem_core
 
 target_include_directories(nanoem_core PUBLIC
     ${CMAKE_CURRENT_SOURCE_DIR}/core
+    ${CMAKE_CURRENT_SOURCE_DIR}/core/morph
     ${BULLET_INCLUDE_DIRS}
 )
 

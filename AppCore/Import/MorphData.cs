@@ -1,7 +1,8 @@
 namespace MiniMikuDance.Import;
 
+using System;
 using System.Collections.Generic;
-using MMDTools;
+using MiniMikuDance;
 
 public class MorphData
 {
@@ -10,6 +11,21 @@ public class MorphData
     public MorphType Type { get; set; }
     public MorphCategory Category { get; set; }
     public List<MorphOffset> Offsets { get; set; } = new();
+
+    public static IEnumerable<MorphData> Load(IntPtr model)
+    {
+        var count = Nanoem.GetMorphCount(model);
+        for (int i = 0; i < count; i++)
+        {
+            yield return new MorphData
+            {
+                Index = i,
+                Name = Nanoem.GetMorphName(model, i),
+                Category = (MorphCategory)Nanoem.GetMorphCategory(model, i),
+                Type = (MorphType)Nanoem.GetMorphType(model, i)
+            };
+        }
+    }
 }
 
 public struct MorphOffset
@@ -52,6 +68,15 @@ public enum MorphCategory
     Eye = 2,
     Mouth = 3,
     Other = 4
+}
+
+public enum MorphType
+{
+    Group = 0,
+    Vertex = 1,
+    Bone = 2,
+    Material = 3,
+    Uv = 4
 }
 
 public struct MaterialOffset
