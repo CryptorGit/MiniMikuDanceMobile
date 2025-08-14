@@ -136,8 +136,10 @@ public static class IkManager
 
             InvalidateViewer?.Invoke();
         }
-        catch (Exception)
+        catch (Exception ex)
         {
+            Console.Error.WriteLine(ex);
+            throw;
         }
     }
 
