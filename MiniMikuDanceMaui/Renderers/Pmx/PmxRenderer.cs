@@ -1086,6 +1086,7 @@ void main(){
         {
             NanoemPhysics.Stop();
         }
+        UnloadNanoemModel();
         Nanoem.RenderingShutdown();
         foreach (var rm in _meshes)
         {

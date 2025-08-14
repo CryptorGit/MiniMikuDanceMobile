@@ -1,3 +1,4 @@
+using System;
 using System.Numerics;
 using System.Runtime.InteropServices;
 
@@ -16,6 +17,12 @@ internal static partial class Nanoem
 
     [DllImport(NativeLibName, CallingConvention = CallingConvention.Cdecl, EntryPoint = "nanoemRenderingShutdown")]
     private static extern void RenderingShutdownNative();
+
+    [DllImport(NativeLibName, CallingConvention = CallingConvention.Cdecl, EntryPoint = "nanoemRenderingLoadModel")]
+    private static extern void RenderingLoadModelNative(byte[] bytes, UIntPtr length, out int status);
+
+    [DllImport(NativeLibName, CallingConvention = CallingConvention.Cdecl, EntryPoint = "nanoemRenderingUnloadModel")]
+    private static extern void RenderingUnloadModelNative();
 
     [DllImport(NativeLibName, CallingConvention = CallingConvention.Cdecl, EntryPoint = "nanoemRenderingSetCamera")]
     private static extern void RenderingSetCameraNative(in Vector3 position, in Vector3 target);
@@ -42,6 +49,17 @@ internal static partial class Nanoem
     public static void RenderingRenderFrame()
     {
         RenderingRenderFrameNative();
+    }
+
+    public static int RenderingLoadModel(byte[] bytes)
+    {
+        RenderingLoadModelNative(bytes, (UIntPtr)bytes.Length, out int status);
+        return status;
+    }
+
+    public static void RenderingUnloadModel()
+    {
+        RenderingUnloadModelNative();
     }
 
     public static void RenderingSetCamera(Vector3 position, Vector3 target)

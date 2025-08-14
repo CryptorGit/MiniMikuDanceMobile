@@ -15,6 +15,7 @@ target_sources(nanoem PRIVATE
     nanoem/emapp/viewer.cc
     nanoem/emapp/Allocator.cc
     nanoem/emapp/Project.cc
+    nanoem/emapp/Model.cc
     nanoem/emapp/render/DirectionalLight.cc
     nanoem/emapp/render/Grid.cc
     nanoem/emapp/render/PerspectiveCamera.cc

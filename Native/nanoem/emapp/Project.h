@@ -15,6 +15,7 @@ namespace nanoem {
 class PerspectiveCamera;
 class DirectionalLight;
 class Grid;
+class Model;
 
 class Project NANOEM_DECL_SEALED : private NonCopyable {
 public:
@@ -25,6 +26,8 @@ public:
     void setDirectionalLight(DirectionalLight *light) NANOEM_DECL_NOEXCEPT { m_light = light; }
     void setGrid(Grid *grid) NANOEM_DECL_NOEXCEPT { m_grid = grid; }
 
+    void addModel(Model *model);
+    void removeModel(Model *model);
     void update();
     void render();
 
@@ -36,6 +39,7 @@ private:
     PerspectiveCamera *m_camera;
     DirectionalLight *m_light;
     Grid *m_grid;
+    tinystl::vector<Model *, TinySTLAllocator> m_models;
 };
 
 } /* namespace nanoem */

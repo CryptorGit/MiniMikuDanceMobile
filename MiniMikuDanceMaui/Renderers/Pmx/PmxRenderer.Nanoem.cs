@@ -7,6 +7,7 @@ namespace MiniMikuDanceMaui.Renderers.Pmx;
 public partial class PmxRenderer
 {
     private bool _renderingInitialized;
+    private bool _modelLoaded;
 
     private void InitializeRenderingIfNeeded()
     {
@@ -15,6 +16,24 @@ public partial class PmxRenderer
 
         Nanoem.RenderingInitialize(_width, _height);
         _renderingInitialized = true;
+    }
+
+    private void LoadNanoemModel(byte[] bytes)
+    {
+        InitializeRenderingIfNeeded();
+        if (Nanoem.RenderingLoadModel(bytes) == 0)
+        {
+            _modelLoaded = true;
+        }
+    }
+
+    private void UnloadNanoemModel()
+    {
+        if (_modelLoaded)
+        {
+            Nanoem.RenderingUnloadModel();
+            _modelLoaded = false;
+        }
     }
 
     private void UpdateNanoemFrame()
