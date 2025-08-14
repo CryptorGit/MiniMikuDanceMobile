@@ -17,9 +17,9 @@ add_library(nanoem_core
     core/bone/transform.c
     core/ext/converter.c
     core/ext/json.c
-    core/ext/mutable.c
     core/ext/parson/parson.c
     core/ik/ConstraintSolver.cc
+    core/ik/mutable.c
     core/ik/motion.c
     core/ik/motion.pb-c.c
     core/ext/motion.c
@@ -33,6 +33,8 @@ add_library(nanoem_core
     emapp/PhysicsEngine.cc
     emapp/morph.c
     emapp/physics.c
+    emapp/physics/PhysicsEngine.cc
+    emapp/physics/physics.c
     emapp/ik.c
     core/physics/physics_bullet.cc
     core/import/document.c

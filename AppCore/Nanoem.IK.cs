@@ -9,7 +9,7 @@ internal static partial class Nanoem
 
     // position: input target and output effector position
     [DllImport(NativeLibName, CallingConvention = CallingConvention.Cdecl)]
-    private static extern void nanoem_emapp_solve_ik(int constraintIndex, int boneIndex, float[] position);
+    private static extern void nanoem_emapp_solve_ik(int constraintIndex, int boneIndex, [In, Out] float[] position);
 
     public static void InitializeIk(int constraintCount)
     {
