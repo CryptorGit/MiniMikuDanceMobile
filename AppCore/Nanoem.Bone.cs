@@ -13,4 +13,7 @@ internal static class NanoemBone
 
     [DllImport(NativeLibName, CallingConvention = CallingConvention.Cdecl)]
     public static extern void nanoemModelBoneSetTransformMatrix(IntPtr bone, in Matrix4x4 value);
+
+    [DllImport(NativeLibName, CallingConvention = CallingConvention.Cdecl)]
+    public static extern void nanoemModelBoneGetTransformMatrix(IntPtr bone, out Matrix4x4 value);
 }

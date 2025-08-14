@@ -412,9 +412,10 @@ public partial class MainPage : ContentPage
 
     private void UpdateBoneViewProperties(BoneView? bv)
     {
-        if (bv == null || _currentModel?.Bones == null)
+        if (bv == null || _currentModel?.Bones == null || _renderer == null)
             return;
 
+        bv.Renderer = _renderer;
         bv.SetBones(_currentModel.Bones);
     }
 
