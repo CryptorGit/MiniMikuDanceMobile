@@ -86,7 +86,6 @@ public partial class PmxRenderer
         }
 
         Nanoem.RenderingUpdateFrame();
-        // TODO: integrate nanoem rendering pipeline
     }
 
     private void UpdateViewProjection()
