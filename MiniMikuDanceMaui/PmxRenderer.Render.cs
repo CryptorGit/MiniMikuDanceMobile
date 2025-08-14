@@ -84,6 +84,10 @@ public partial class PmxRenderer
             Nanoem.RenderingInitialize(_width, _height);
             _renderingInitialized = true;
         }
+        var now = DateTime.UtcNow;
+        var delta = (float)(now - _lastPhysicsUpdate).TotalSeconds;
+        _lastPhysicsUpdate = now;
+        UpdatePhysics(delta);
 
         Nanoem.RenderingUpdateFrame();
     }

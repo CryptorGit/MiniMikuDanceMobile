@@ -673,7 +673,7 @@ void main(){
         _bones = data.Bones;
         _worldMats = new System.Numerics.Matrix4x4[_bones.Count];
         _skinMats = new System.Numerics.Matrix4x4[_bones.Count];
-        RegisterRigidBodies(data.RigidBodies);
+        RegisterPhysics(data.RigidBodies, data.Joints);
         foreach (var (name, idx) in data.HumanoidBoneList)
         {
             _indexToHumanoidName[idx] = name;
