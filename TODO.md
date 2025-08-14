@@ -23,5 +23,7 @@
 - [ ] Assimp 依存削除と既存 ModelImporter の置き換え
 - [ ] 未対応形式 (PMD, VPD など) のサポート検討
 - [ ] iOS 用のネイティブライブラリビルド対応
+  - [x] CMake 設定追加
+  - [ ] iOS ビルド環境での実機検証
 - [ ] protobuf-c ランタイムの最小実装と motion.pb-c.c のビルド統合
 - [ ] 文字コード変換関連 (cfstring.c, mbwc.c, icu.c) のビルド対応
