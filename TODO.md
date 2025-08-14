@@ -11,6 +11,7 @@
 - [ ] 物理エンジン拡張 (physics.h 以外) の移植と実装
 - [ ] IK 制御関連コンポーネントの移植
 - [ ] IK ソルバー本体の移植と P/Invoke 実装
+- [ ] ConstraintSolver の transform 対応など IK 計算の詳細実装
 - [ ] モデル/モーション等のインポート機能の移植
 - [ ] PMX/VMD ネイティブインポートのデータ取得処理拡張
 - [ ] Assimp 依存削除と既存 ModelImporter の置き換え

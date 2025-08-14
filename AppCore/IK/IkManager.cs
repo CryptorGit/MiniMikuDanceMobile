@@ -9,6 +9,8 @@ namespace MiniMikuDance.IK;
 public static class IkManager
 {
     private static readonly Dictionary<int, IkBone> BonesDict = new();
+    private static readonly List<IkConstraint> ConstraintsList = new();
+    public static System.Collections.Generic.IReadOnlyList<IkConstraint> Constraints => ConstraintsList;
     // ネイティブ IK ソルバーを利用するためのエントリポイントを保持
 
     // レンダラーから提供される各種処理を委譲用デリゲートとして保持
@@ -157,6 +159,11 @@ public static class IkManager
     {
         ReleaseSelection();
         BonesDict.Clear();
+    }
+
+    public static void AddConstraint(IkConstraint constraint)
+    {
+        ConstraintsList.Add(constraint);
     }
 
     private static BoneRole DetermineRole(string name)
