@@ -24,7 +24,7 @@ internal static partial class Nanoem
     private static extern void RenderingSetLightNative(in Vector3 direction);
 
     [DllImport(NativeLibName, CallingConvention = CallingConvention.Cdecl, EntryPoint = "nanoemRenderingSetGridVisible")]
-    private static extern void RenderingSetGridVisibleNative(bool value);
+    private static extern void RenderingSetGridVisibleNative(int value);
 
     [DllImport(NativeLibName, CallingConvention = CallingConvention.Cdecl, EntryPoint = "nanoemRenderingSetStageSize")]
     private static extern void RenderingSetStageSizeNative(float value);
@@ -56,7 +56,7 @@ internal static partial class Nanoem
 
     public static void RenderingSetGridVisible(bool value)
     {
-        RenderingSetGridVisibleNative(value);
+        RenderingSetGridVisibleNative(value ? 1 : 0);
     }
 
     public static void RenderingSetStageSize(float value)
