@@ -7,6 +7,7 @@
 #include <cstdint>
 
 #include "emapp/Allocator.h"
+#include "emapp/Project.h"
 #include "emapp/render/DirectionalLight.h"
 #include "emapp/render/Grid.h"
 #include "emapp/render/PerspectiveCamera.h"
@@ -48,10 +49,14 @@ nanoemRenderingInitialize(int width, int height)
     g_context->height = height;
     g_context->frameIndex = 0;
     Allocator::initialize();
-    g_context->project = nullptr; /* TODO: create Project instance */
+    g_context->project = new Project();
     g_context->camera = new PerspectiveCamera(g_context->project);
     g_context->light = new DirectionalLight(g_context->project);
     g_context->grid = new Grid(g_context->project);
+    g_context->project->setCamera(g_context->camera);
+    g_context->project->setDirectionalLight(g_context->light);
+    g_context->project->setGrid(g_context->grid);
+    g_context->grid->initialize();
 }
 
 void
@@ -60,7 +65,7 @@ nanoemRenderingUpdateFrame()
     if (g_context) {
         ++g_context->frameIndex;
         if (g_context->project) {
-            /* TODO: update project */
+            g_context->project->update();
         }
     }
 }
@@ -69,7 +74,7 @@ void
 nanoemRenderingRenderFrame()
 {
     if (g_context && g_context->project) {
-        /* TODO: render model via project */
+        g_context->project->render();
     }
 }
 
@@ -77,9 +82,13 @@ void
 nanoemRenderingShutdown()
 {
     if (g_context) {
+        if (g_context->grid) {
+            g_context->grid->destroy();
+        }
         delete g_context->grid;
         delete g_context->light;
         delete g_context->camera;
+        delete g_context->project;
         Allocator::destroy();
         delete g_context;
         g_context = nullptr;
