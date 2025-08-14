@@ -1,10 +1,10 @@
-using Assimp;
+using System.Collections.Generic;
 
 namespace MiniMikuDance.Import;
 
 public class SubMeshData
 {
-    public Mesh Mesh { get; set; } = null!;
+    public MeshData Mesh { get; set; } = new();
     public System.Numerics.Vector4 ColorFactor { get; set; } = System.Numerics.Vector4.One;
     public System.Numerics.Vector3 Specular { get; set; }
     public float SpecularPower { get; set; }

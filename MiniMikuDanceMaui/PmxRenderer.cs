@@ -848,7 +848,7 @@ void main(){
             var indices = new System.Collections.Generic.List<uint>();
             foreach (var f in sm.Mesh.Faces)
             {
-                foreach (var idx in f.Indices)
+                foreach (var idx in f)
                     indices.Add((uint)idx);
             }
 
@@ -1055,7 +1055,7 @@ void main(){
         var lookup = new Dictionary<ulong, List<int>>();
         var meshVerts = data.Mesh.Vertices;
         var meshNorms = data.Mesh.Normals;
-        var meshUVs = data.Mesh.TextureCoordinateChannels[0];
+        var meshUVs = data.Mesh.TexCoords;
         for (int i = 0; i < data.Mesh.VertexCount; i++)
         {
             var pos = new Vector3(meshVerts[i].X, meshVerts[i].Y, meshVerts[i].Z);
