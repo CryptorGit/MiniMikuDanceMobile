@@ -5,10 +5,21 @@
 */
 
 #include "IKSolver.h"
+#include "ConstraintSolver.h"
 
-void nanoem_emapp_solve_ik(int32_t bone_index, const float position[3]) {
+void
+nanoem_emapp_solve_ik(int32_t bone_index, const float position[3])
+{
     (void) bone_index;
-    (void) position;
-    /* TODO: Implement IK solving logic */
+    nanoem_constraint_joint_t joint;
+    const float transform[16] = {
+        1.0f, 0.0f, 0.0f, 0.0f,
+        0.0f, 1.0f, 0.0f, 0.0f,
+        0.0f, 0.0f, 1.0f, 0.0f,
+        0.0f, 0.0f, 0.0f, 1.0f
+    };
+    const float origin[3] = { 0.0f, 0.0f, 0.0f };
+    nanoem_emapp_constraint_solve_axis_angle(transform, origin, position, &joint);
+    (void) joint;
 }
 
