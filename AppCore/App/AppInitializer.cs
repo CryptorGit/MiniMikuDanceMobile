@@ -8,7 +8,7 @@ using PoseJointData = MiniMikuDance.PoseEstimation.JointData;
 using System;
 using System.IO;
 using System.Threading.Tasks;
-// ViewerApp の依存を取り除くため、ビューアー関連のインターフェースを利用します。
+// ビューアーの依存を取り除くため、ビューアー関連のインターフェースを利用します。
 
 namespace MiniMikuDance.App;
 
