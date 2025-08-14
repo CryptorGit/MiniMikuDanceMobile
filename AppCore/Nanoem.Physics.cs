@@ -8,58 +8,80 @@ internal static class NanoemPhysics
     private const string NativeLibName = "nanoem";
     private static IntPtr _world;
 
-    [DllImport(NativeLibName, CallingConvention = CallingConvention.Cdecl)]
-    private static extern IntPtr nanoemPhysicsRigidBodyCreate(IntPtr value, IntPtr opaque, out int status);
+    internal enum PhysicsShape
+    {
+        Sphere,
+        Box,
+        Capsule
+    }
+
+    [StructLayout(LayoutKind.Sequential)]
+    internal struct RigidBodyDefinition
+    {
+        public int BoneIndex;
+        public float Mass;
+        public PhysicsShape Shape;
+    }
+
+    [StructLayout(LayoutKind.Sequential)]
+    internal struct JointDefinition
+    {
+        public int RigidBodyA;
+        public int RigidBodyB;
+    }
 
     [DllImport(NativeLibName, CallingConvention = CallingConvention.Cdecl)]
-    private static extern void nanoemPhysicsRigidBodyDestroy(IntPtr rigidBody);
+    private static extern IntPtr nanoemEmappPhysicsRigidBodyCreate(IntPtr value, IntPtr world, out int status);
 
     [DllImport(NativeLibName, CallingConvention = CallingConvention.Cdecl)]
-    private static extern void nanoemPhysicsWorldAddRigidBody(IntPtr world, IntPtr rigidBody);
+    private static extern void nanoemEmappPhysicsRigidBodyDestroy(IntPtr rigidBody);
 
     [DllImport(NativeLibName, CallingConvention = CallingConvention.Cdecl)]
-    private static extern void nanoemPhysicsWorldRemoveRigidBody(IntPtr world, IntPtr rigidBody);
+    private static extern void nanoemEmappPhysicsWorldAddRigidBody(IntPtr world, IntPtr rigidBody);
 
     [DllImport(NativeLibName, CallingConvention = CallingConvention.Cdecl)]
-    private static extern IntPtr nanoemPhysicsJointCreate(IntPtr value, IntPtr opaque, out int status);
+    private static extern void nanoemEmappPhysicsWorldRemoveRigidBody(IntPtr world, IntPtr rigidBody);
 
     [DllImport(NativeLibName, CallingConvention = CallingConvention.Cdecl)]
-    private static extern void nanoemPhysicsJointDestroy(IntPtr joint);
+    private static extern IntPtr nanoemEmappPhysicsJointCreate(IntPtr value, IntPtr world, out int status);
 
     [DllImport(NativeLibName, CallingConvention = CallingConvention.Cdecl)]
-    private static extern void nanoemPhysicsWorldAddJoint(IntPtr world, IntPtr joint);
+    private static extern void nanoemEmappPhysicsJointDestroy(IntPtr joint);
 
     [DllImport(NativeLibName, CallingConvention = CallingConvention.Cdecl)]
-    private static extern void nanoemPhysicsWorldRemoveJoint(IntPtr world, IntPtr joint);
+    private static extern void nanoemEmappPhysicsWorldAddJoint(IntPtr world, IntPtr joint);
 
     [DllImport(NativeLibName, CallingConvention = CallingConvention.Cdecl)]
-    private static extern void nanoemPhysicsWorldReset(IntPtr world);
+    private static extern void nanoemEmappPhysicsWorldRemoveJoint(IntPtr world, IntPtr joint);
 
     [DllImport(NativeLibName, CallingConvention = CallingConvention.Cdecl)]
-    private static extern void nanoemPhysicsWorldSetPreferredFPS(IntPtr world, int value);
+    private static extern void nanoemEmappPhysicsWorldReset(IntPtr world);
 
     [DllImport(NativeLibName, CallingConvention = CallingConvention.Cdecl)]
-    private static extern void nanoemPhysicsWorldSetActive(IntPtr world, bool value);
+    private static extern void nanoemEmappPhysicsWorldSetPreferredFPS(IntPtr world, int value);
 
     [DllImport(NativeLibName, CallingConvention = CallingConvention.Cdecl)]
-    private static extern IntPtr nanoemPhysicsWorldCreate(IntPtr opaque, out int status);
+    private static extern void nanoemEmappPhysicsWorldSetActive(IntPtr world, bool value);
 
     [DllImport(NativeLibName, CallingConvention = CallingConvention.Cdecl)]
-    private static extern void nanoemPhysicsWorldDestroy(IntPtr world);
+    private static extern IntPtr nanoemEmappPhysicsWorldCreate(IntPtr opaque, out int status);
 
     [DllImport(NativeLibName, CallingConvention = CallingConvention.Cdecl)]
-    private static extern void nanoemPhysicsWorldStepSimulation(IntPtr world, float delta);
+    private static extern void nanoemEmappPhysicsWorldDestroy(IntPtr world);
+
+    [DllImport(NativeLibName, CallingConvention = CallingConvention.Cdecl)]
+    private static extern void nanoemEmappPhysicsWorldStepSimulation(IntPtr world, float delta);
 
     public static void Start()
     {
-        _world = nanoemPhysicsWorldCreate(IntPtr.Zero, out _);
+        _world = nanoemEmappPhysicsWorldCreate(IntPtr.Zero, out _);
     }
 
     public static void Stop()
     {
         if (_world != IntPtr.Zero)
         {
-            nanoemPhysicsWorldDestroy(_world);
+            nanoemEmappPhysicsWorldDestroy(_world);
             _world = IntPtr.Zero;
         }
     }
@@ -68,20 +90,20 @@ internal static class NanoemPhysics
     {
         if (_world != IntPtr.Zero)
         {
-            nanoemPhysicsWorldStepSimulation(_world, delta);
+            nanoemEmappPhysicsWorldStepSimulation(_world, delta);
         }
     }
 
     public static IntPtr CreateRigidBody(IntPtr value)
     {
-        return nanoemPhysicsRigidBodyCreate(value, IntPtr.Zero, out _);
+        return nanoemEmappPhysicsRigidBodyCreate(value, _world, out _);
     }
 
     public static void DestroyRigidBody(IntPtr rigidBody)
     {
         if (rigidBody != IntPtr.Zero)
         {
-            nanoemPhysicsRigidBodyDestroy(rigidBody);
+            nanoemEmappPhysicsRigidBodyDestroy(rigidBody);
         }
     }
 
@@ -89,7 +111,7 @@ internal static class NanoemPhysics
     {
         if (_world != IntPtr.Zero && rigidBody != IntPtr.Zero)
         {
-            nanoemPhysicsWorldAddRigidBody(_world, rigidBody);
+            nanoemEmappPhysicsWorldAddRigidBody(_world, rigidBody);
         }
     }
 
@@ -97,20 +119,20 @@ internal static class NanoemPhysics
     {
         if (_world != IntPtr.Zero && rigidBody != IntPtr.Zero)
         {
-            nanoemPhysicsWorldRemoveRigidBody(_world, rigidBody);
+            nanoemEmappPhysicsWorldRemoveRigidBody(_world, rigidBody);
         }
     }
 
     public static IntPtr CreateJoint(IntPtr value)
     {
-        return nanoemPhysicsJointCreate(value, IntPtr.Zero, out _);
+        return nanoemEmappPhysicsJointCreate(value, _world, out _);
     }
 
     public static void DestroyJoint(IntPtr joint)
     {
         if (joint != IntPtr.Zero)
         {
-            nanoemPhysicsJointDestroy(joint);
+            nanoemEmappPhysicsJointDestroy(joint);
         }
     }
 
@@ -118,7 +140,7 @@ internal static class NanoemPhysics
     {
         if (_world != IntPtr.Zero && joint != IntPtr.Zero)
         {
-            nanoemPhysicsWorldAddJoint(_world, joint);
+            nanoemEmappPhysicsWorldAddJoint(_world, joint);
         }
     }
 
@@ -126,7 +148,7 @@ internal static class NanoemPhysics
     {
         if (_world != IntPtr.Zero && joint != IntPtr.Zero)
         {
-            nanoemPhysicsWorldRemoveJoint(_world, joint);
+            nanoemEmappPhysicsWorldRemoveJoint(_world, joint);
         }
     }
 
@@ -134,7 +156,7 @@ internal static class NanoemPhysics
     {
         if (_world != IntPtr.Zero)
         {
-            nanoemPhysicsWorldReset(_world);
+            nanoemEmappPhysicsWorldReset(_world);
         }
     }
 
@@ -142,7 +164,7 @@ internal static class NanoemPhysics
     {
         if (_world != IntPtr.Zero)
         {
-            nanoemPhysicsWorldSetPreferredFPS(_world, value);
+            nanoemEmappPhysicsWorldSetPreferredFPS(_world, value);
         }
     }
 
@@ -150,7 +172,7 @@ internal static class NanoemPhysics
     {
         if (_world != IntPtr.Zero)
         {
-            nanoemPhysicsWorldSetActive(_world, value);
-        }
+            nanoemEmappPhysicsWorldSetActive(_world, value);
     }
+}
 }
