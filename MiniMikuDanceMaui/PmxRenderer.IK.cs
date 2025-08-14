@@ -1,7 +1,10 @@
 using System;
 using System.Collections.Generic;
+using System.Numerics;
+using MiniMikuDance;
 using MiniMikuDance.App;
 using MiniMikuDance.IK;
+using MiniMikuDance.Util;
 using OpenTK.Graphics.ES30;
 using GL = OpenTK.Graphics.ES30.GL;
 
@@ -49,6 +52,7 @@ public partial class PmxRenderer
         {
             _ikBones.Clear();
             _ikBones.AddRange(bones);
+            Nanoem.InitializeIk(_ikBones.Count);
             foreach (var ik in _ikBones)
             {
                 ik.Position = GetBoneWorldPosition(ik.PmxBoneIndex);
@@ -61,6 +65,7 @@ public partial class PmxRenderer
         lock (_ikBonesLock)
         {
             _ikBones.Clear();
+            Nanoem.InitializeIk(0);
         }
     }
 
@@ -74,7 +79,13 @@ public partial class PmxRenderer
             }
             foreach (var ik in _ikBones)
             {
-                ik.Position = GetBoneWorldPosition(ik.PmxBoneIndex);
+                var target = WorldToModel(ik.Position);
+                var pos = new float[] { target.X, target.Y, target.Z };
+                Nanoem.SolveIk(ik.ConstraintIndex, ik.PmxBoneIndex, pos);
+                var solved = new Vector3(pos[0], pos[1], pos[2]);
+                var worldPos = ModelToWorld(solved);
+                ik.Position = worldPos;
+                SetBoneTranslation(ik.PmxBoneIndex, worldPos.ToOpenTK());
             }
         }
     }

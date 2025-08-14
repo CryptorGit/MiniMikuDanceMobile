@@ -1,6 +1,5 @@
 target_sources(nanoem PRIVATE
     ConstraintSolver.cc
-    IKSolver.cc
     motion.c
     motion.pb-c.c
 )
