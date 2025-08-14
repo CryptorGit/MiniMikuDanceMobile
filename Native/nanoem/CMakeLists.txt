@@ -8,6 +8,7 @@ cmake_minimum_required(VERSION 3.16)
 project(nanoem_core C)
 
 add_library(nanoem_core
+    core/allocator.c
     core/nanoem.c
     core/version.c
 )

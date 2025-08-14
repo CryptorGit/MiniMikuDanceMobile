@@ -8,6 +8,8 @@
 - [ ] C# からの P/Invoke 実装およびビルドスクリプト整備
 - [ ] nanoem グローバルアロケータ周辺の詳細実装
 - [ ] `NANOEM_ENABLE_DEBUG_ALLOCATOR` を利用したメモリ追跡の検証
+- [ ] nanoemGlobalAllocatorInitialize/Terminate の P/Invoke 呼び出しとリーク検証
+- [ ] アロケータのメモリリーク検出ログ出力実装
 - [ ] 物理エンジン拡張 (physics.h 以外) の移植と実装
 - [ ] IK 制御関連コンポーネントの移植
 - [ ] IK ソルバー本体の移植と P/Invoke 実装
