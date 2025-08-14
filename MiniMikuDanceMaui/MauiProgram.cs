@@ -6,6 +6,7 @@ using MauiIcons.Material.Outlined;
 using MauiIcons.Material;
 using MiniMikuDance.Data;
 using Microsoft.Maui.Storage;
+using System;
 
 namespace MiniMikuDanceMaui;
 
@@ -15,14 +16,15 @@ public static class MauiProgram
     {
         var builder = MauiApp.CreateBuilder();
 
-        DataManager.OpenPackageFileFunc = path =>
+        DataManager.OpenPackageFileFunc = async path =>
         {
             try
             {
-                return FileSystem.OpenAppPackageFileAsync(path).GetAwaiter().GetResult();
+                return await FileSystem.OpenAppPackageFileAsync(path);
             }
-            catch
+            catch (Exception ex)
             {
+                Console.Error.WriteLine(ex);
                 return null;
             }
         };

@@ -1,4 +1,5 @@
 using System.IO;
+using System.Threading.Tasks;
 
 namespace MiniMikuDance.Data;
 
@@ -7,7 +8,7 @@ public partial class DataManager : Util.Singleton<DataManager>
     public T LoadConfig<T>(string key) where T : new()
     {
         var path = $"Configs/{key}.json";
-        var stream = OpenPackageFile(path);
+        var stream = OpenPackageFile(path).GetAwaiter().GetResult();
         if (stream != null)
         {
             using (stream)
@@ -40,10 +41,10 @@ public partial class DataManager : Util.Singleton<DataManager>
     /// <summary>
     /// プラットフォーム依存のパッケージファイル読み込み関数。
     /// </summary>
-    public static Func<string, Stream?>? OpenPackageFileFunc { get; set; }
+    public static Func<string, Task<Stream?>>? OpenPackageFileFunc { get; set; }
 
-    private Stream? OpenPackageFile(string path)
-        => OpenPackageFileFunc?.Invoke(path);
+    private async Task<Stream?> OpenPackageFile(string path)
+        => OpenPackageFileFunc != null ? await OpenPackageFileFunc(path) : null;
 
     public void SaveConfig<T>(string key, T data)
     {
@@ -69,6 +70,6 @@ public partial class DataManager
     // 非 MAUI 環境向け既定実装
     static DataManager()
     {
-        OpenPackageFileFunc = _ => null;
+        OpenPackageFileFunc = _ => Task.FromResult<Stream?>(null);
     }
 }
