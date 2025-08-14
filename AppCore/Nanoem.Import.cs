@@ -34,6 +34,7 @@ internal static partial class Nanoem
     {
         public IntPtr Name;
         public IntPtr EnglishName;
+        public int Category;
         public int Type;
     }
 
@@ -57,6 +58,12 @@ internal static partial class Nanoem
 
     [DllImport(NativeLibName, CallingConvention = CallingConvention.Cdecl)]
     private static extern void nanoemModelDestroy(IntPtr model);
+
+    [DllImport(NativeLibName, CallingConvention = CallingConvention.Cdecl)]
+    private static extern IntPtr nanoemMotionImportVMD(byte[] bytes, UIntPtr length, IntPtr factory, out int status);
+
+    [DllImport(NativeLibName, CallingConvention = CallingConvention.Cdecl)]
+    private static extern void nanoemMotionDestroy(IntPtr motion);
 
     public static IntPtr ModelImportPmx(byte[] bytes, out int status)
     {
@@ -106,5 +113,15 @@ internal static partial class Nanoem
     public static void ModelDestroy(IntPtr model)
     {
         nanoemModelDestroy(model);
+    }
+
+    public static IntPtr MotionImportVmd(byte[] bytes, out int status)
+    {
+        return nanoemMotionImportVMD(bytes, (UIntPtr) bytes.Length, IntPtr.Zero, out status);
+    }
+
+    public static void MotionDestroy(IntPtr motion)
+    {
+        nanoemMotionDestroy(motion);
     }
 }
