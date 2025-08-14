@@ -1,3 +1,4 @@
+using System;
 using Microsoft.Maui;
 using Microsoft.Maui.Hosting;
 using Microsoft.Maui.Controls.Hosting;
@@ -21,8 +22,9 @@ public static class MauiProgram
             {
                 return FileSystem.OpenAppPackageFileAsync(path).GetAwaiter().GetResult();
             }
-            catch
+            catch (Exception ex)
             {
+                System.Diagnostics.Debug.WriteLine(ex);
                 return null;
             }
         };

@@ -5,6 +5,7 @@ using Microsoft.Maui.Layouts;
 using Microsoft.Maui.Dispatching;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Threading;
 using System.Threading.Tasks;
 using SkiaSharp.Views.Maui;
@@ -83,8 +84,9 @@ public partial class MainPage : ContentPage
                     _renderer.ClearIkBones();
                 }
             }
-            catch (Exception)
+            catch (Exception ex)
             {
+                Debug.WriteLine(ex);
             }
             IkManager.PickFunc = _renderer.PickBone;
             IkManager.GetBonePositionFunc = _renderer.GetBoneWorldPosition;
@@ -454,6 +456,7 @@ public partial class MainPage : ContentPage
                 }
                 catch (Exception ex)
                 {
+                    Debug.WriteLine(ex);
                     await DisplayAlert("Error", ex.Message, "OK");
                 }
             }
@@ -583,8 +586,9 @@ public partial class MainPage : ContentPage
                         _renderer.ClearIkBones();
                     }
                 }
-                catch (Exception)
+                catch (Exception ex)
                 {
+                    Debug.WriteLine(ex);
                 }
                 IkManager.PickFunc = _renderer.PickBone;
                 IkManager.GetBonePositionFunc = _renderer.GetBoneWorldPosition;
@@ -650,6 +654,7 @@ public partial class MainPage : ContentPage
             }
             catch (Exception ex)
             {
+                Debug.WriteLine(ex);
                 IkManager.ReleaseSelection();
                 MainThread.BeginInvokeOnMainThread(async () =>
                     await DisplayAlert("Error", ex.Message, "OK"));
@@ -766,8 +771,9 @@ public partial class MainPage : ContentPage
                                 .FirstOrDefault(d => d != null);
                         }
                     }
-                    catch (Exception)
+                    catch (Exception ex)
                     {
+                        Debug.WriteLine(ex);
                         dir = null;
                     }
                     data = importer.ImportModel(stream, dir);
@@ -783,8 +789,8 @@ public partial class MainPage : ContentPage
         }
         catch (Exception ex)
         {
+            Debug.WriteLine(ex);
             await DisplayAlert("Error", ex.Message, "OK");
-
         }
     }
 
@@ -1040,7 +1046,7 @@ public partial class MainPage : ContentPage
         }
         catch (Exception ex)
         {
-
+            Debug.WriteLine(ex);
             await DisplayAlert("Error", ex.Message, "OK");
         }
     }
@@ -1107,6 +1113,8 @@ public partial class MainPage : ContentPage
         SetLoadingIndicatorVisibilityAndLayout(true);
         Viewer.HasRenderLoop = false;
 
+        bool success = false;
+
         try
         {
             _modelScale = 1f;
@@ -1164,9 +1172,9 @@ public partial class MainPage : ContentPage
                             sm.TextureFilePath = localRel;
                         }
                     }
-                    catch (Exception)
+                    catch (Exception ex)
                     {
-                        // intentionally left blank
+                        Debug.WriteLine(ex);
                     }
                     finally
                     {
@@ -1184,10 +1192,13 @@ public partial class MainPage : ContentPage
             {
                 mv.SetMorphs(data.Morphs);
             }
+            success = true;
         }
         catch (Exception ex)
         {
-            await DisplayAlert("Error", ex.Message, "OK");
+            Debug.WriteLine(ex);
+            SelectedModelPath.Text = "モデルの読み込みに失敗しました";
+            await DisplayAlert("Error", "モデルの読み込みに失敗しました", "OK");
         }
         finally
         {
@@ -1195,7 +1206,10 @@ public partial class MainPage : ContentPage
             SetLoadingIndicatorVisibilityAndLayout(false);
             _selectedModelPath = null;
             _modelDir = null;
-            SelectedModelPath.Text = string.Empty;
+            if (success)
+            {
+                SelectedModelPath.Text = string.Empty;
+            }
         }
     }
 
