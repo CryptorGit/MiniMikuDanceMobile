@@ -17,3 +17,4 @@
 - [ ] 未対応形式 (PMD, VPD など) のサポート検討
 - [ ] iOS 用のネイティブライブラリビルド対応
 - [ ] protobuf-c ランタイムの最小実装と motion.pb-c.c のビルド統合
+- [ ] 文字コード変換関連 (cfstring.c, mbwc.c, icu.c) のビルド対応
