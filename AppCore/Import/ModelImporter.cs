@@ -152,14 +152,83 @@ public partial class ModelImporter : IDisposable
         for (uint i = 0; i < morphCount; i++)
         {
             var m = Nanoem.ModelGetMorphInfo(model, i);
-            data.Morphs.Add(new MorphData
+            var md = new MorphData
             {
                 Index = (int)i,
                 Name = Nanoem.PtrToStringAndFree(m.Name),
                 Category = (MorphCategory)m.Category,
                 Type = (MorphType)m.Type,
                 DefaultWeight = Nanoem.ModelGetMorphInitialWeight(model, i)
-            });
+            };
+            switch (md.Type)
+            {
+                case MorphType.Vertex:
+                    foreach (var o in Nanoem.ModelMorphGetVertexOffsets(model, i))
+                    {
+                        md.Offsets.Add(new MorphOffset
+                        {
+                            Index = o.Index,
+                            Vertex = new Vector3(o.OffsetX * Scale, o.OffsetY * Scale, o.OffsetZ * Scale)
+                        });
+                    }
+                    break;
+                case MorphType.Uv:
+                    foreach (var o in Nanoem.ModelMorphGetUVOffsets(model, i))
+                    {
+                        md.Offsets.Add(new MorphOffset
+                        {
+                            Index = o.Index,
+                            Uv = new UvOffset { Offset = new Vector4(o.OffsetX, o.OffsetY, o.OffsetZ, o.OffsetW) }
+                        });
+                    }
+                    break;
+                case MorphType.Group:
+                    foreach (var o in Nanoem.ModelMorphGetGroupOffsets(model, i))
+                    {
+                        md.Offsets.Add(new MorphOffset
+                        {
+                            Index = o.MorphIndex,
+                            Group = new GroupOffset { MorphIndex = o.MorphIndex, Rate = o.Weight }
+                        });
+                    }
+                    break;
+                case MorphType.Bone:
+                    foreach (var o in Nanoem.ModelMorphGetBoneOffsets(model, i))
+                    {
+                        md.Offsets.Add(new MorphOffset
+                        {
+                            Index = o.BoneIndex,
+                            Bone = new BoneOffset
+                            {
+                                Translation = new Vector3(o.TranslationX * Scale, o.TranslationY * Scale, o.TranslationZ * Scale),
+                                Rotation = new Quaternion(o.RotationX, o.RotationY, o.RotationZ, o.RotationW)
+                            }
+                        });
+                    }
+                    break;
+                case MorphType.Material:
+                    foreach (var o in Nanoem.ModelMorphGetMaterialOffsets(model, i))
+                    {
+                        md.Offsets.Add(new MorphOffset
+                        {
+                            Index = o.MaterialIndex,
+                            Material = new MaterialOffset
+                            {
+                                IsAll = o.IsAll != 0,
+                                CalcMode = (MaterialCalcMode)o.Operation,
+                                Diffuse = new Vector4(o.DiffuseR, o.DiffuseG, o.DiffuseB, o.DiffuseA),
+                                Specular = new Vector3(o.SpecularR, o.SpecularG, o.SpecularB),
+                                SpecularPower = o.SpecularPower,
+                                EdgeColor = new Vector4(o.EdgeColorR, o.EdgeColorG, o.EdgeColorB, o.EdgeColorA),
+                                EdgeSize = o.EdgeSize,
+                                ToonColor = new Vector3(o.ToonColorR, o.ToonColorG, o.ToonColorB),
+                                TextureTint = new Vector4(o.TextureTintR, o.TextureTintG, o.TextureTintB, o.TextureTintA)
+                            }
+                        });
+                    }
+                    break;
+            }
+            data.Morphs.Add(md);
         }
 
         LoadMesh(model, data);
