@@ -34,45 +34,11 @@
                     <TapGestureRecognizer Tapped="OnSettingMenuTapped" />
                 </Label.GestureRecognizers>
             </Label>
-            <Grid HorizontalOptions="EndAndExpand" VerticalOptions="Center">
-                <Switch x:Name="PoseModeSwitch" Toggled="OnPoseModeToggled" HorizontalOptions="End" OnColor="Green">
-                    <Switch.Triggers>
-                        <Trigger TargetType="Switch" Property="IsToggled" Value="True">
-                            <Setter Property="ThumbColor" Value="Green" />
-                        </Trigger>
-                        <Trigger TargetType="Switch" Property="IsToggled" Value="False">
-                            <Setter Property="ThumbColor" Value="Gray" />
-                        </Trigger>
-                    </Switch.Triggers>
-                </Switch>
-                <mi:MauiIcon Icon="{mi:Material Icon=PhotoCamera}"
+            <mi:MauiIcon Icon="{mi:Material Icon=PhotoCamera}"
                        IconColor="Gray"
                        x:Name="CameraIcon"
-                       HorizontalOptions="End"
-                       VerticalOptions="Center">
-                    <mi:MauiIcon.Triggers>
-                        <DataTrigger TargetType="mi:MauiIcon"
-                                    Binding="{Binding IsToggled, Source={x:Reference PoseModeSwitch}}"
-                                    Value="True">
-                            <Setter Property="IsVisible" Value="False" />
-                        </DataTrigger>
-                    </mi:MauiIcon.Triggers>
-                </mi:MauiIcon>
-                <mi:MauiIcon Icon="{mi:Material Icon=AccessibilityNew}"
-                       IconColor="Green"
-                       x:Name="PoseIcon"
-                       HorizontalOptions="End"
-                       VerticalOptions="Center"
-                       IsVisible="False">
-                    <mi:MauiIcon.Triggers>
-                        <DataTrigger TargetType="mi:MauiIcon"
-                                    Binding="{Binding IsToggled, Source={x:Reference PoseModeSwitch}}"
-                                    Value="True">
-                            <Setter Property="IsVisible" Value="True" />
-                        </DataTrigger>
-                    </mi:MauiIcon.Triggers>
-                </mi:MauiIcon>
-            </Grid>
+                       HorizontalOptions="EndAndExpand"
+                       VerticalOptions="Center" />
         </HorizontalStackLayout>
         <Border x:Name="ViewMenu" IsVisible="False" Background="{StaticResource BackgroundColor}" Padding="0" ZIndex="20">
             <VerticalStackLayout Spacing="4" Padding="8">
@@ -99,11 +65,6 @@
                 <Label Text="Import PMX" TextColor="{StaticResource TextColor}">
                     <Label.GestureRecognizers>
                         <TapGestureRecognizer Tapped="OnOpenInViewerClicked" />
-                    </Label.GestureRecognizers>
-                </Label>
-                <Label Text="Estimate Pose" TextColor="{StaticResource TextColor}">
-                    <Label.GestureRecognizers>
-                        <TapGestureRecognizer Tapped="OnEstimatePoseClicked" />
                     </Label.GestureRecognizers>
                 </Label>
             </VerticalStackLayout>
@@ -134,22 +95,10 @@
                 </HorizontalStackLayout>
             </VerticalStackLayout>
         </Border>
-        <Border x:Name="PoseSelectMessage" IsVisible="False" Background="{StaticResource BackgroundColor}" Padding="8" ZIndex="30">
-            <VerticalStackLayout Spacing="6">
-                <Label Text="画像ファイルを以下から選択してください" TextColor="{StaticResource TextColor}" />
-                <Label x:Name="SelectedVideoPath" TextColor="{StaticResource TextColor}" FontSize="14" />
-                <HorizontalStackLayout HorizontalOptions="Center" Spacing="20">
-                    <Button Text="Start" Clicked="OnStartEstimateClicked" />
-                    <Button Text="キャンセル" Clicked="OnCancelEstimateClicked" />
-                </HorizontalStackLayout>
-            </VerticalStackLayout>
-        </Border>
         <Border x:Name="ProgressFrame" IsVisible="False" Background="{StaticResource BackgroundColor}" Padding="8" ZIndex="30">
             <VerticalStackLayout Spacing="4">
                 <Label x:Name="ExtractProgressLabel" Text="" TextColor="{StaticResource TextColor}" HorizontalTextAlignment="Center" />
                 <ProgressBar x:Name="ExtractProgressBar" Progress="0" HeightRequest="4" />
-                <Label x:Name="PoseProgressLabel" Text="" TextColor="{StaticResource TextColor}" HorizontalTextAlignment="Center" />
-                <ProgressBar x:Name="PoseProgressBar" Progress="0" HeightRequest="4" />
             </VerticalStackLayout>
         </Border>
         <ActivityIndicator x:Name="LoadingIndicator" IsRunning="True" IsVisible="False" Color="{StaticResource IndicatorColor}" ZIndex="30" />
