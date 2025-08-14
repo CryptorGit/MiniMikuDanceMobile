@@ -12,6 +12,11 @@ target_sources(nanoem PRIVATE
     nanoem/core/nanoem.c
     nanoem/core/version.c
     ${EMAPP_SRC}
+    nanoem/emapp/viewer.cc
+    nanoem/emapp/Allocator.cc
+    nanoem/emapp/render/DirectionalLight.cc
+    nanoem/emapp/render/Grid.cc
+    nanoem/emapp/render/PerspectiveCamera.cc
 )
 
 add_subdirectory(nanoem/core/bone)
