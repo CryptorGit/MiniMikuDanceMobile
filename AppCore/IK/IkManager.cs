@@ -9,9 +9,6 @@ namespace MiniMikuDance.IK;
 public static class IkManager
 {
     private static readonly Dictionary<int, IkBone> BonesDict = new();
-    private static readonly List<IkConstraint> ConstraintsList = new();
-    public static System.Collections.Generic.IReadOnlyList<IkConstraint> Constraints => ConstraintsList;
-    // ネイティブ IK ソルバーを利用するためのエントリポイントを保持
 
     // レンダラーから提供される各種処理を委譲用デリゲートとして保持
     public static System.Func<float, float, int>? PickFunc { get; set; }
@@ -33,6 +30,7 @@ public static class IkManager
     public static void LoadPmxIkBones(IReadOnlyList<BoneData> modelBones)
     {
         Clear();
+        Nanoem.InitializeIk();
         for (int i = 0; i < modelBones.Count; i++)
         {
             var ik = modelBones[i].Ik;
@@ -129,8 +127,9 @@ public static class IkManager
                 return;
 
             // ネイティブ IK ソルバーを呼び出してボーン位置を更新
-            NativeMethods.nanoem_emapp_solve_ik(boneIndex, ref position);
-            bone.Position = position;
+            var pos = new float[] { position.X, position.Y, position.Z };
+            Nanoem.SolveIk(boneIndex, pos);
+            bone.Position = new Vector3(pos[0], pos[1], pos[2]);
 
             if (SetBoneTranslation != null)
             {
@@ -159,11 +158,6 @@ public static class IkManager
     {
         ReleaseSelection();
         BonesDict.Clear();
-    }
-
-    public static void AddConstraint(IkConstraint constraint)
-    {
-        ConstraintsList.Add(constraint);
     }
 
     private static BoneRole DetermineRole(string name)

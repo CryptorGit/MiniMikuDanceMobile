@@ -5,7 +5,7 @@
 #
 
 cmake_minimum_required(VERSION 3.16)
-project(nanoem_core C)
+project(nanoem_core C CXX)
 
 add_library(nanoem_core
     core/allocator.c
@@ -15,12 +15,16 @@ add_library(nanoem_core
     core/ext/document.c
     core/ext/json.c
     core/ext/mutable.c
-    core/ext/motion.c
     core/ext/parson/parson.c
+    core/ik/ConstraintSolver.cc
+    core/ik/IKSolver.cc
+    core/ik/motion.c
+    core/ik/motion.pb-c.c
 )
 
 target_include_directories(nanoem_core PUBLIC
     ${CMAKE_CURRENT_SOURCE_DIR}/core
+    ${CMAKE_CURRENT_SOURCE_DIR}/core/ik
 )
 
 target_compile_definitions(nanoem_core PRIVATE

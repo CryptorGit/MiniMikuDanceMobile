@@ -8,6 +8,12 @@
 #include "ConstraintSolver.h"
 
 void
+nanoem_emapp_initialize_ik(void)
+{
+    /* TODO: solver initialization */
+}
+
+void
 nanoem_emapp_solve_ik(int32_t bone_index, const float position[3])
 {
     (void) bone_index;
