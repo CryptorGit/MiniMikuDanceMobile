@@ -666,18 +666,41 @@ public class ModelImporter : IDisposable
         for (int i = 0; i < rigidBodies.Length; i++)
         {
             var rb = rigidBodies[i];
+            var orientation = System.Numerics.Quaternion.CreateFromYawPitchRoll(
+                rb.RotationRadian.Y, rb.RotationRadian.X, rb.RotationRadian.Z);
+            var transformType = (RigidBodyTransformType)rb.PhysicsType;
             var rbd = new RigidBodyData
             {
                 Name = string.IsNullOrEmpty(rb.NameEnglish) ? rb.Name : rb.NameEnglish,
                 BoneIndex = rb.Bone,
                 Mass = rb.Mass,
-                Shape = (RigidBodyShape)rb.Shape
+                Shape = (RigidBodyShape)rb.Shape,
+                Size = new SysVector3(rb.Size.X, rb.Size.Y, rb.Size.Z),
+                Origin = new SysVector3(rb.Position.X, rb.Position.Y, rb.Position.Z),
+                Orientation = orientation,
+                LinearDamping = rb.TranslationAttenuation,
+                AngularDamping = rb.RotationAttenuation,
+                Restitution = rb.Recoil,
+                Friction = rb.Friction,
+                TransformType = transformType,
+                IsBoneRelative = rb.HasBone,
+                Torque = SysVector3.Zero,
+                Type = transformType == RigidBodyTransformType.FromBoneToSimulation
+                    ? RigidBodyType.Static
+                    : RigidBodyType.Dynamic,
+                Gravity = null
             };
             rigidBodyDatas.Add(rbd);
         }
         data.RigidBodies = rigidBodyDatas;
         foreach (var rb in rigidBodyDatas)
         {
+            if (rb.Size == SysVector3.Zero)
+                throw new InvalidOperationException($"RigidBody '{rb.Name}' size is not set.");
+            if (!Enum.IsDefined(typeof(RigidBodyTransformType), rb.TransformType))
+                throw new InvalidOperationException($"RigidBody '{rb.Name}' transform type is invalid.");
+            if (!Enum.IsDefined(typeof(RigidBodyType), rb.Type))
+                throw new InvalidOperationException($"RigidBody '{rb.Name}' type is invalid.");
             data.Physics.CreateRigidBody(rb);
         }
 
