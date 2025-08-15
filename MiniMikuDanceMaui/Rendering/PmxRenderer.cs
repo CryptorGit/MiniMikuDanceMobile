@@ -6,6 +6,9 @@ using GL = OpenTK.Graphics.ES30.GL;
 using System.Runtime.InteropServices;
 using System.Collections.Generic;
 using BulletRigidBody = BulletSharp.RigidBody;
+using WMatrix = WaveEngine.Mathematics.Matrix4x4;
+using WQuaternion = WaveEngine.Mathematics.Quaternion;
+using WVector3 = WaveEngine.Mathematics.Vector3;
 using MiniMikuDance.Physics;
 using MiniMikuDance.Util;
 using MiniMikuDance.Import;
@@ -1211,9 +1214,9 @@ void main(){
         {
             if (body.UserObject is RigidBodyData rb && rb.BoneIndex >= 0 && rb.BoneIndex < _bones.Count)
             {
-                var t = body.WorldTransform;
-                var o = t.Origin;
-                var r = t.GetRotation();
+                WMatrix t = body.WorldTransform;
+                WVector3 o = new(t.M41, t.M42, t.M43);
+                WQuaternion r = WQuaternion.CreateFromRotationMatrix(t);
                 _bones[rb.BoneIndex].Translation = new System.Numerics.Vector3(o.X, o.Y, o.Z);
                 _bones[rb.BoneIndex].Rotation = new System.Numerics.Quaternion(r.X, r.Y, r.Z, r.W);
             }

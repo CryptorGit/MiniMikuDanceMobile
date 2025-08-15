@@ -45,7 +45,6 @@ public class RigidBodyData
     public RigidBodyPhysicsType PhysicsType { get; set; }
     public float LinearDamping { get; set; }
     public float AngularDamping { get; set; }
-    public float Restitution { get; set; }
     public int CollisionGroup { get; set; }
     public int CollisionMask { get; set; } = -1;
 }
