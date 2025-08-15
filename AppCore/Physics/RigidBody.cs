@@ -22,12 +22,16 @@ public class RigidBody
     public bool IsBoneRelative { get; }
     public Vector3 Position { get; internal set; }
     public Vector3 Velocity { get; internal set; }
+    public Vector3 AngularVelocity { get; internal set; }
+    public Vector3 Torque { get; internal set; }
+    public Import.RigidBodyType Type { get; }
     public Vector3? Gravity { get; }
 
     public RigidBody(string name, int boneIndex, float mass, Import.RigidBodyShape shape,
         Vector3 size, Vector3 origin, Quaternion orientation,
         float linearDamping, float angularDamping, float restitution, float friction,
-        Import.RigidBodyTransformType transformType, bool isBoneRelative, Vector3? gravity)
+        Import.RigidBodyTransformType transformType, bool isBoneRelative,
+        Vector3 torque, Import.RigidBodyType type, Vector3? gravity)
     {
         Name = name;
         BoneIndex = boneIndex;
@@ -44,12 +48,15 @@ public class RigidBody
         IsBoneRelative = isBoneRelative;
         Position = origin;
         Velocity = Vector3.Zero;
+        AngularVelocity = Vector3.Zero;
+        Torque = torque;
+        Type = type;
         Gravity = gravity;
     }
 
     internal void ApplyGravity(Vector3 worldGravity, float dt)
     {
-        if (Mass <= 0f)
+        if (Mass <= 0f || Type != Import.RigidBodyType.Dynamic)
             return;
         var g = Gravity ?? worldGravity;
         Velocity += g * dt;
@@ -57,11 +64,24 @@ public class RigidBody
 
     internal void Integrate(float dt)
     {
+        if (Type == Import.RigidBodyType.Static)
+            return;
+
         Position += Velocity * dt;
+        Velocity *= 1f - LinearDamping * dt;
         if (Position.Z < 0f)
         {
             Position = new(Position.X, Position.Y, 0f);
-            Velocity = new(Velocity.X, Velocity.Y, 0f);
+            Velocity = new(
+                Velocity.X * (1f - Friction),
+                Velocity.Y * (1f - Friction),
+                -Velocity.Z * Restitution);
         }
+
+        AngularVelocity += (Torque / Mass) * dt;
+        AngularVelocity *= 1f - AngularDamping * dt;
+        var angDelta = AngularVelocity * dt;
+        var dq = Quaternion.CreateFromYawPitchRoll(angDelta.Y, angDelta.X, angDelta.Z);
+        Orientation = Quaternion.Normalize(dq * Orientation);
     }
 }
