@@ -2,6 +2,21 @@
 
 本ドキュメントは nanoem の各サブシステムを C# へ移植する際の対応先を記す。
 
+## 目的
+
+nanoem 本体の挙動を尊重しつつ、MiniMikuDance で互換性のある 3D ビューアを実装するための指針をまとめる。
+
+## 前提
+
+- 参照元の C++ 実装は `Documents/nanoem-main` 以下のソースコードである。
+- C# 側の実装は `AppCore` ライブラリと `MiniMikuDanceMaui` アプリケーションを前提とする。
+
+## 進行中タスク
+
+- `MiniMikuDanceMaui/PmxView.xaml` と `PmxRenderer.cs` を用いた 3D ビューア機能の拡充
+- 物理・IK・モーフなどサブシステムの移植 (`AppCore/Physics`, `AppCore/IK`, `AppCore/Data`)
+- nanoem との差分調査とドキュメント更新
+
 ## サブシステム一覧
 
 | サブシステム | 対応する C# 先 |
@@ -16,16 +31,33 @@
 | test | 未移植 |
 | version.c.in | AppCore/App |
 
-## ボーン表示ポリシー
+## 3Dビューア差異
 
-nanoem の物理ボーン（剛体にバインドされたボーン）の表示可否は次の条件で判定される。
+nanoem の `emapp` ビューアはメニューからボーン表示の切り替えなど各種操作を提供する【F:Documents/nanoem-main/emapp/src/ApplicationMenuBuilder.cc†L473-L480】。一方 `MiniMikuDanceMaui` では `PmxView` を中心に簡易表示のみ実装しており、ショートカットやメニューの移植が未完である。
+
+## 表示ポリシー
+
+nanoem の物理ボーン（剛体にバインドされたボーン）の表示可否は `Model::isBoneConnectionDrawable` および `Model::isBoneConnectionVisible` で判定される【F:Documents/nanoem-main/emapp/src/Model.cc†L2455-L2462】。
 
 - `ShowAllBones` が無効な場合、剛体にバインドされたボーンは描画しない。
 - `ShowAllBones` が有効かつボーンが編集マスクされていない場合のみ描画する。
 - 上記の条件で描画された物理ボーンであっても選択対象にはならない。
 
-C# 実装時もこのポリシーに従い、物理ボーンは既定で非表示とし、`ShowAllBones` が有効なときのみ編集可能なボーンを表示する。
+C# 実装時もこのポリシーに従い、`MiniMikuDanceMaui/PmxRenderer.cs` に同等の処理を追加する。
 
+## 優先実装機能
+
+### 物理
+
+剛体とジョイントを物理エンジンにバインドする処理は `Model.cc` の `rigidBody->bind` 等で定義されている【F:Documents/nanoem-main/emapp/src/Model.cc†L1330-L1348】。C# では `AppCore/Physics` と `MiniMikuDanceMaui/PmxRenderer.cs` に物理世界と描画同期を実装する。
+
+### IK
+
+`Model::solveAllConstraints` にて全ての制約を反復して IK を解決する【F:Documents/nanoem-main/emapp/src/Model.cc†L2256-L2267】。対応する C# 実装は `AppCore/IK` および `MiniMikuDanceMaui/BoneView.xaml.cs` に追加する。
+
+### モーフ
+
+モーフ要素の構造体は `nanoem_p.h` に定義されている【F:Documents/nanoem-main/nanoem/nanoem_p.h†L439-L513】。C# では `AppCore/Data` にモーフクラスを実装し、UI は `MiniMikuDanceMaui/MorphView.xaml` で制御する。
 
 ## モデル読み込みと初期化フロー
 
