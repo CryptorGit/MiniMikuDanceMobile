@@ -94,6 +94,12 @@ public partial class PmxRenderer
                 while (_boneTranslations.Count <= index)
                     _boneTranslations.Add(Vector3.Zero);
                 _boneTranslations[index] = delta.ToOpenTK();
+
+                var rotDelta = body.Orientation * System.Numerics.Quaternion.Inverse(bone.Rotation);
+                var euler = rotDelta.ToEulerDegrees();
+                while (_boneRotations.Count <= index)
+                    _boneRotations.Add(Vector3.Zero);
+                _boneRotations[index] = euler.ToOpenTK();
             }
             _bonesDirty = true;
         }

@@ -37,5 +37,13 @@ public class JointData
     public string Name { get; set; } = string.Empty;
     public int RigidBodyA { get; set; } = -1;
     public int RigidBodyB { get; set; } = -1;
+    public Vector3 Origin { get; set; } = Vector3.Zero;
+    public Vector3 Orientation { get; set; } = Vector3.Zero;
+    public Vector3 LinearLowerLimit { get; set; } = Vector3.Zero;
+    public Vector3 LinearUpperLimit { get; set; } = Vector3.Zero;
+    public Vector3 AngularLowerLimit { get; set; } = Vector3.Zero;
+    public Vector3 AngularUpperLimit { get; set; } = Vector3.Zero;
+    public Vector3 LinearStiffness { get; set; } = Vector3.Zero;
+    public Vector3 AngularStiffness { get; set; } = Vector3.Zero;
 }
 
