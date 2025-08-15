@@ -11,6 +11,7 @@ using Vector3D = Assimp.Vector3D;
 using MMDTools;
 using MiniMikuDance.App;
 using MiniMikuDance.Physics;
+using SysVector3 = System.Numerics.Vector3;
 
 namespace MiniMikuDance.Import;
 
@@ -328,13 +329,10 @@ public class ModelImporter : IDisposable
         }
     }
 
-    public ModelData ImportModel(string path)
+    public ModelData ImportModel(string path, string? bmxPath)
     {
-
-
         if (!File.Exists(path))
         {
-
             throw new FileNotFoundException("Model file not found", path);
         }
 
@@ -342,12 +340,46 @@ public class ModelImporter : IDisposable
         if (ext == ".pmx")
         {
             using var fs = File.OpenRead(path);
-            return ImportModel(fs, Path.GetDirectoryName(path));
+            var data = ImportModel(fs, Path.GetDirectoryName(path));
+            string candidate = bmxPath ?? Path.ChangeExtension(path, ".bmx") ?? string.Empty;
+            if (!string.IsNullOrEmpty(candidate) && File.Exists(candidate))
+            {
+                ApplyBmx(data, candidate);
+            }
+            return data;
         }
 
         var scene = _context.ImportFile(path, PostProcessSteps.Triangulate | PostProcessSteps.GenerateNormals);
 
         return new ModelData { Mesh = scene.Meshes[0] };
+    }
+
+    public ModelData ImportModel(string path)
+    {
+        return ImportModel(path, null);
+    }
+
+    private static void ApplyBmx(ModelData data, string bmxPath)
+    {
+        SysVector3? global;
+        var map = BmxParser.Parse(bmxPath, out global);
+        if (global.HasValue)
+        {
+            data.Physics.Gravity = global.Value;
+        }
+        foreach (var pair in map)
+        {
+            int boneIndex = data.Bones.FindIndex(b => string.Equals(b.Name, pair.Key, StringComparison.OrdinalIgnoreCase));
+            if (boneIndex < 0)
+                continue;
+            foreach (var rb in data.RigidBodies)
+            {
+                if (rb.BoneIndex == boneIndex)
+                {
+                    rb.Gravity = pair.Value;
+                }
+            }
+        }
     }
 
     private ModelData ImportPmx(Stream stream, string? textureDir = null)
