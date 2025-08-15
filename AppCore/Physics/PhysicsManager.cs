@@ -39,14 +39,18 @@ public class PhysicsManager : IDisposable
             _ => new BoxShape(0.5f)
         };
 
-        var transform = BMatrix.Identity;
+        var transform = BMatrix.RotationYawPitchRoll(data.Rotation.Y, data.Rotation.X, data.Rotation.Z);
+        transform.M41 = data.Position.X;
+        transform.M42 = data.Position.Y;
+        transform.M43 = data.Position.Z;
         var motion = new DefaultMotionState(transform);
+        float mass = data.PhysicsType == RigidBodyPhysicsType.Static ? 0f : data.Mass;
         BVector3 inertia = BVector3.Zero;
-        if (data.Mass > 0)
+        if (mass > 0)
         {
-            shape.CalculateLocalInertia(data.Mass, out inertia);
+            shape.CalculateLocalInertia(mass, out inertia);
         }
-        var info = new RigidBodyConstructionInfo(data.Mass, motion, shape, inertia)
+        var info = new RigidBodyConstructionInfo(mass, motion, shape, inertia)
         {
             LinearDamping = data.LinearDamping,
             AngularDamping = data.AngularDamping,
@@ -57,6 +61,19 @@ public class PhysicsManager : IDisposable
         {
             UserObject = data
         };
+        switch (data.PhysicsType)
+        {
+            case RigidBodyPhysicsType.Static:
+                body.CollisionFlags |= CollisionFlags.StaticObject;
+                body.ActivationState = ActivationState.DisableSimulation;
+                break;
+            case RigidBodyPhysicsType.DynamicAndBonePosition:
+                body.ActivationState = ActivationState.DisableDeactivation;
+                break;
+            default:
+                body.ActivationState = ActivationState.ActiveTag;
+                break;
+        }
         _world.AddRigidBody(body, (CollisionFilterGroups)data.CollisionGroup, (CollisionFilterGroups)data.CollisionMask);
         _bodies.Add(body);
         return body;
