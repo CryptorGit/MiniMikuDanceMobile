@@ -7,6 +7,7 @@
     <DisableImplicitWorkloadImports>true</DisableImplicitWorkloadImports>
   </PropertyGroup>
   <ItemGroup>
+    <PackageReference Include="BulletSharp" Version="0.11.1" />
     <PackageReference Include="Microsoft.ML.OnnxRuntime" Version="1.17.0" />
     <PackageReference Include="AssimpNet" Version="4.1.0" />
     <PackageReference Include="OpenTK" Version="4.7.6" />
