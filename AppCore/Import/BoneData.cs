@@ -21,6 +21,7 @@ public class BoneData
     public Vector3 LocalAxisX { get; set; } = Vector3.UnitX;
     public Vector3 LocalAxisZ { get; set; } = Vector3.UnitZ;
     public int ExternalParent { get; set; } = -1;
+    public bool IsPhysicsAffected { get; set; }
     public Matrix4x4 BindMatrix { get; set; } = Matrix4x4.Identity;
     public Matrix4x4 InverseBindMatrix { get; set; } = Matrix4x4.Identity;
     public IkInfo? Ik { get; set; }

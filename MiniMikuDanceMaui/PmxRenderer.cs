@@ -818,8 +818,12 @@ void main(){
         _physicsBoneIndices.Clear();
         foreach (var rb in data.RigidBodies)
         {
-            if (rb.TransformType == RigidBodyTransformType.FromSimulationToBone && rb.BoneIndex >= 0)
+            if (rb.BoneIndex >= 0 &&
+                rb.TransformType == RigidBodyTransformType.FromSimulationToBone &&
+                data.Bones[rb.BoneIndex].IsPhysicsAffected)
+            {
                 _physicsBoneIndices.Add(rb.BoneIndex);
+            }
         }
         _gravityBoneIndices.Clear();
         for (int i = 0; i < _bones.Count; i++)
