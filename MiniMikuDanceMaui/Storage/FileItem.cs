@@ -1,7 +1,7 @@
 using System;
 using System.IO;
 
-namespace MiniMikuDanceMaui.FileSystem;
+namespace MiniMikuDanceMaui.Storage;
 
 public class FileItem
 {

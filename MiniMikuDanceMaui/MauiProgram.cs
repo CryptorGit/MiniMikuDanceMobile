@@ -6,7 +6,7 @@ using SkiaSharp.Views.Maui.Controls.Hosting;
 using MauiIcons.Material.Outlined;
 using MauiIcons.Material;
 using MiniMikuDance.Data;
-using Microsoft.Maui.Storage;
+using MauiFileSystem = Microsoft.Maui.Storage.FileSystem;
 
 namespace MiniMikuDanceMaui;
 
@@ -17,7 +17,7 @@ public static class MauiProgram
         var builder = MauiApp.CreateBuilder();
 
         DataManager.OpenPackageFileFunc = path =>
-            FileSystem.OpenAppPackageFileAsync(path).GetAwaiter().GetResult();
+            MauiFileSystem.OpenAppPackageFileAsync(path).GetAwaiter().GetResult();
 
         builder
             // ← 型パラメータで自分の App クラスを渡す

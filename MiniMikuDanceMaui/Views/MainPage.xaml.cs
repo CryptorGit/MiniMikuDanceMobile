@@ -13,7 +13,7 @@ using SkiaSharp.Views.Maui.Controls;
 using SkiaSharp;
 using OpenTK.Graphics.ES30;
 using GL = OpenTK.Graphics.ES30.GL;
-using Microsoft.Maui.Storage;
+using MauiFileSystem = Microsoft.Maui.Storage.FileSystem;
 using Microsoft.Maui.Devices;
 using System.IO;
 using System.Linq;
@@ -24,7 +24,7 @@ using MiniMikuDance.App;
 using SixLabors.ImageSharp.PixelFormats;
 using MiniMikuDance.IK;
 using MiniMikuDance.Util;
-using MiniMikuDanceMaui.FileSystem;
+using MiniMikuDanceMaui.Storage;
 using MiniMikuDanceMaui.Helpers;
 using MiniMikuDanceMaui.Rendering;
 
@@ -140,12 +140,12 @@ public partial class MainPage : ContentPage
     private static string GetAppPackageDirectory()
     {
         // AppPackageDirectory が利用可能な環境ではそれを優先的に使用する
-        var dirProp = typeof(FileSystem).GetProperty("AppPackageDirectory", BindingFlags.Public | BindingFlags.Static);
+        var dirProp = typeof(MauiFileSystem).GetProperty("AppPackageDirectory", BindingFlags.Public | BindingFlags.Static);
         if (dirProp?.GetValue(null) is string dir && !string.IsNullOrEmpty(dir) && Directory.Exists(dir))
             return dir;
 
-        if (!string.IsNullOrEmpty(FileSystem.AppDataDirectory) && Directory.Exists(FileSystem.AppDataDirectory))
-            return FileSystem.AppDataDirectory;
+        if (!string.IsNullOrEmpty(MauiFileSystem.AppDataDirectory) && Directory.Exists(MauiFileSystem.AppDataDirectory))
+            return MauiFileSystem.AppDataDirectory;
 
         var baseDir = AppContext.BaseDirectory;
         if (!string.IsNullOrEmpty(baseDir) && Directory.Exists(baseDir))
