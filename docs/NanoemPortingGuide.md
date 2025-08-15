@@ -27,6 +27,15 @@ nanoem の物理ボーン（剛体にバインドされたボーン）の表示�
 C# 実装時もこのポリシーに従い、物理ボーンは既定で非表示とし、`ShowAllBones` が有効なときのみ編集可能なボーンを表示する。
 
 
+## モデル読み込みと初期化フロー
+
+1. **モデル読み込み**  
+   `Model::load` は `model::Importer` を用いて入力データを解析し、OBJ/DXM/MQO などファイル種別ごとに処理を切り替える【F:Documents/nanoem-main/emapp/src/model/Importer.cc†L71-L94】。読み込みが成功するとインポート記述子からモデル名とコメントを設定する【F:Documents/nanoem-main/emapp/src/Model.cc†L975-L987】。
+2. **物理・IK セットアップ**  
+   ボーンを列挙してユーザーデータをバインドし、ボーンに紐づく `Constraint` を検出して登録する【F:Documents/nanoem-main/emapp/src/Model.cc†L1248-L1284】。`Model::solveAllConstraints` は全ての `Constraint` を反復して IK を解決する【F:Documents/nanoem-main/emapp/src/Model.cc†L2256-L2267】。その後、剛体・ジョイント・ソフトボディを取得して物理エンジンにバインドし、言語情報やフィードバックを初期化する【F:Documents/nanoem-main/emapp/src/Model.cc†L1328-L1356】。
+3. **モーフ構築**  
+   すべてのモーフを走査し、頂点モーフの場合は関連ボーンを収集して物理挙動に影響するボーン集合を生成する。カテゴリごとにアクティブモーフを設定し、名称とモーフ本体の対応表を構築する【F:Documents/nanoem-main/emapp/src/Model.cc†L1294-L1321】。
+
 ## 物理データ構造
 
 nanoem の剛体およびジョイントは以下のフィールドを持つ。
