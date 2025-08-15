@@ -598,7 +598,8 @@ void main(){
             foreach (var bone in _ikBones)
             {
                 int i = bone.PmxBoneIndex;
-                if (_physicsBoneIndices.Contains(i) || _gravityBoneIndices.Contains(i))
+                if (_physicsBoneIndices.Contains(i) || _gravityBoneIndices.Contains(i) ||
+                    (i >= 0 && i < _bones.Count && _bones[i].IsPhysicsAffected))
                     continue;
                 var pos = _worldMats[i].Translation.ToOpenTK();
                 var v4 = new Vector4(pos, 1f);
@@ -624,7 +625,7 @@ void main(){
             int limit = Math.Min(_worldMats.Length, _bones.Count);
             for (int i = 0; i < limit; i++)
             {
-                if (_physicsBoneIndices.Contains(i) || _gravityBoneIndices.Contains(i))
+                if (_physicsBoneIndices.Contains(i) || _gravityBoneIndices.Contains(i) || _bones[i].IsPhysicsAffected)
                     continue;
                 var pos = _worldMats[i].Translation.ToOpenTK();
                 var v4 = new Vector4(pos, 1f);
@@ -825,6 +826,7 @@ void main(){
             {
                 case RigidBodyTransformType.FromSimulationToBone:
                 case RigidBodyTransformType.FromBoneOrientationAndSimulationToBone:
+                case RigidBodyTransformType.FromBoneTranslationAndSimulationToBone:
                     _physicsBoneIndices.Add(rb.BoneIndex);
                     break;
                 case RigidBodyTransformType.FromBoneToSimulation:

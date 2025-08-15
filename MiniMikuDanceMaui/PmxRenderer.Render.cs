@@ -62,8 +62,13 @@ public partial class PmxRenderer
             for (int i = 0; i < _ikBones.Count; i++)
             {
                 var ik = _ikBones[i];
-                if (!_showAllBones && _physicsBoneIndices.Contains(ik.PmxBoneIndex))
-                    continue;
+                if (!_showAllBones)
+                {
+                    int idx = ik.PmxBoneIndex;
+                    if (_physicsBoneIndices.Contains(idx) ||
+                        (idx >= 0 && idx < _bones.Count && _bones[idx].IsPhysicsAffected))
+                        continue;
+                }
                 var worldPos = ik.Position.ToOpenTK();
                 float scale = _ikBoneScale * _distance;
                 if (ik.IsSelected)
@@ -103,6 +108,14 @@ public partial class PmxRenderer
                             break;
                         }
                     case RigidBodyTransformType.FromBoneOrientationAndSimulationToBone:
+                        {
+                            var delta = body.Position - bone.Translation;
+                            while (_boneTranslations.Count <= index)
+                                _boneTranslations.Add(Vector3.Zero);
+                            _boneTranslations[index] = delta.ToOpenTK();
+                            break;
+                        }
+                    case RigidBodyTransformType.FromBoneTranslationAndSimulationToBone:
                         updateRotation = true;
                         break;
                     case RigidBodyTransformType.FromBoneToSimulation:
@@ -214,7 +227,9 @@ public partial class PmxRenderer
                 {
                     if (_gravityBoneIndices.Contains(i) || _gravityBoneIndices.Contains(bone.Parent))
                         continue;
-                    if (!_showAllBones && (_physicsBoneIndices.Contains(i) || _physicsBoneIndices.Contains(bone.Parent)))
+                    if (!_showAllBones &&
+                        (_physicsBoneIndices.Contains(i) || _physicsBoneIndices.Contains(bone.Parent) ||
+                         _bones[i].IsPhysicsAffected || _bones[bone.Parent].IsPhysicsAffected))
                         continue;
                     var pp = _worldMats[bone.Parent].Translation;
                     var cp = _worldMats[i].Translation;
