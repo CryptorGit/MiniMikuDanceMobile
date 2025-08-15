@@ -30,8 +30,6 @@ public class RigidBodyData
 {
     public string Name { get; set; } = string.Empty;
     public int BoneIndex { get; set; } = -1;
-    public byte Group { get; set; }
-    public ushort GroupTarget { get; set; }
     public RigidBodyShape Shape { get; set; }
     public Vector3 Size { get; set; } = Vector3.Zero;
     public Vector3 Position { get; set; } = Vector3.Zero;

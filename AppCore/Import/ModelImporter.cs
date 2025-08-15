@@ -635,8 +635,8 @@ public class ModelImporter : IDisposable
             {
                 Name = string.IsNullOrEmpty(rb.NameEnglish) ? rb.Name : rb.NameEnglish,
                 BoneIndex = rb.HasBone ? rb.Bone : -1,
-                Group = rb.Group,
-                GroupTarget = rb.GroupTarget,
+                CollisionGroup = 1 << rb.Group,
+                CollisionMask = ~rb.GroupTarget & 0xFFFF,
                 Shape = (RigidBodyShape)rb.Shape,
                 Size = new System.Numerics.Vector3(rb.Size.X * Scale, rb.Size.Y * Scale, rb.Size.Z * Scale),
                 Position = new System.Numerics.Vector3(rb.Position.X * Scale, rb.Position.Y * Scale, rb.Position.Z * Scale),
