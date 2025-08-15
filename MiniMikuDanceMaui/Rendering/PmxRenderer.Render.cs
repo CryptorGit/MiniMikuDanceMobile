@@ -7,6 +7,7 @@ using OpenTK.Mathematics;
 using OpenTK.Graphics.ES30;
 using GL = OpenTK.Graphics.ES30.GL;
 using MiniMikuDance.Util;
+using MiniMikuDance.IK;
 using Vector2 = OpenTK.Mathematics.Vector2;
 using Vector3 = OpenTK.Mathematics.Vector3;
 using Vector4 = OpenTK.Mathematics.Vector4;
@@ -44,6 +45,58 @@ public partial class PmxRenderer
         }
     }
 
+    public void ApplyBoneMatrices(System.Numerics.Matrix4x4[] mats)
+    {
+        EnsureBoneCapacity();
+        if (!ReferenceEquals(_worldMats, mats))
+        {
+            if (_worldMats.Length != mats.Length)
+                _worldMats = new System.Numerics.Matrix4x4[mats.Length];
+            mats.CopyTo(_worldMats, 0);
+        }
+
+        if (_skinMats.Length != mats.Length)
+            _skinMats = new System.Numerics.Matrix4x4[mats.Length];
+        for (int i = 0; i < mats.Length; i++)
+            _skinMats[i] = _bones[i].InverseBindMatrix * _worldMats[i];
+
+        UpdateIkBoneWorldPositions();
+
+        if (ShowBoneOutline)
+        {
+            int lineIdx = 0;
+            for (int i = 0; i < mats.Length; i++)
+            {
+                var bone = _bones[i];
+                if (bone.Parent >= 0)
+                {
+                    var pp = _worldMats[bone.Parent].Translation;
+                    var cp = _worldMats[i].Translation;
+                    _boneLines[lineIdx++] = pp.X; _boneLines[lineIdx++] = pp.Y; _boneLines[lineIdx++] = pp.Z;
+                    _boneLines[lineIdx++] = cp.X; _boneLines[lineIdx++] = cp.Y; _boneLines[lineIdx++] = cp.Z;
+                }
+            }
+            _boneVertexCount = lineIdx / 3;
+            if (_boneVertexCount > 0)
+            {
+                GL.BindBuffer(BufferTarget.ArrayBuffer, _boneVbo);
+                var handle = GCHandle.Alloc(_boneLines, GCHandleType.Pinned);
+                try
+                {
+                    GL.BufferSubData(BufferTarget.ArrayBuffer, IntPtr.Zero, lineIdx * sizeof(float), handle.AddrOfPinnedObject());
+                }
+                finally
+                {
+                    handle.Free();
+                }
+            }
+        }
+        else
+        {
+            _boneVertexCount = 0;
+        }
+    }
+
     private void DrawIkBones()
     {
         lock (_ikBonesLock)
@@ -78,6 +131,15 @@ public partial class PmxRenderer
     public void Render()
     {
         UpdateViewProjection();
+
+        if (PhysicsStepSimulation != null)
+        {
+            PhysicsStepSimulation(1f / 60f);
+            _bonesDirty = true;
+        }
+
+        if (IkManager.Solve())
+            _bonesDirty = true;
 
         bool needsUpdate = _bonesDirty || _morphDirty || _uvMorphDirty;
         if (needsUpdate)
@@ -117,11 +179,6 @@ public partial class PmxRenderer
         else
             Array.Clear(_worldMats, 0, _worldMats.Length);
 
-        if (_skinMats.Length != _bones.Count)
-            _skinMats = new System.Numerics.Matrix4x4[_bones.Count];
-        else
-            Array.Clear(_skinMats, 0, _skinMats.Length);
-
         for (int i = 0; i < _bones.Count; i++)
         {
             var bone = _bones[i];
@@ -152,44 +209,7 @@ public partial class PmxRenderer
                 _worldMats[i] = local;
         }
 
-        for (int i = 0; i < _bones.Count; i++)
-            _skinMats[i] = _bones[i].InverseBindMatrix * _worldMats[i];
-
-        UpdateIkBoneWorldPositions();
-
-        if (ShowBoneOutline)
-        {
-            int lineIdx = 0;
-            for (int i = 0; i < _bones.Count; i++)
-            {
-                var bone = _bones[i];
-                if (bone.Parent >= 0)
-                {
-                    var pp = _worldMats[bone.Parent].Translation;
-                    var cp = _worldMats[i].Translation;
-                    _boneLines[lineIdx++] = pp.X; _boneLines[lineIdx++] = pp.Y; _boneLines[lineIdx++] = pp.Z;
-                    _boneLines[lineIdx++] = cp.X; _boneLines[lineIdx++] = cp.Y; _boneLines[lineIdx++] = cp.Z;
-                }
-            }
-            _boneVertexCount = lineIdx / 3;
-            if (_boneVertexCount > 0)
-            {
-                GL.BindBuffer(BufferTarget.ArrayBuffer, _boneVbo);
-                var handle = System.Runtime.InteropServices.GCHandle.Alloc(_boneLines, System.Runtime.InteropServices.GCHandleType.Pinned);
-                try
-                {
-                    GL.BufferSubData(BufferTarget.ArrayBuffer, IntPtr.Zero, lineIdx * sizeof(float), handle.AddrOfPinnedObject());
-                }
-                finally
-                {
-                    handle.Free();
-                }
-            }
-        }
-        else
-        {
-            _boneVertexCount = 0;
-        }
+        ApplyBoneMatrices(_worldMats);
     }
 
     private void UpdateVertexBuffers()

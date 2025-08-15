@@ -143,6 +143,16 @@ public static class IkManager
         }
     }
 
+    /// <summary>
+    /// IK チェーンを解決し、ボーンに変更があった場合は true を返す。
+    /// </summary>
+    public static bool Solve()
+    {
+        // TODO: CCD や FABRIK などのアルゴリズムで IK を解決する
+        // 現段階では未実装のため常に変更なしとする
+        return false;
+    }
+
     public static void ReleaseSelection()
     {
         if (_selectedBoneIndex >= 0 && BonesDict.TryGetValue(_selectedBoneIndex, out var prev))
