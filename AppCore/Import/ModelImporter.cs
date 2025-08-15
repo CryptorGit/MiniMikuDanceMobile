@@ -178,7 +178,7 @@ public class ModelImporter : IDisposable
         };
     }
 
-    private void ProcessVertex(Assimp.Mesh mesh, SubMeshData smd, dynamic vertex)
+    private void ProcessVertex(Assimp.Mesh mesh, SubMeshData smd, dynamic vertex, int boneCount)
     {
         var pos = ScaleVector(vertex.Position);
         mesh.Vertices.Add(new Vector3D(pos.X, pos.Y, pos.Z));
@@ -194,16 +194,24 @@ public class ModelImporter : IDisposable
         switch ((WeightTransformType)vertex.WeightTransformType)
         {
             case WeightTransformType.BDEF1:
+                if (vertex.BoneIndex1 < 0 || vertex.BoneIndex1 >= boneCount)
+                    throw new FormatException($"Bone index out of range: {vertex.BoneIndex1}");
                 ji.X = vertex.BoneIndex1;
                 jw.X = 1f;
                 break;
             case WeightTransformType.BDEF2:
+                if (vertex.BoneIndex1 < 0 || vertex.BoneIndex1 >= boneCount ||
+                    vertex.BoneIndex2 < 0 || vertex.BoneIndex2 >= boneCount)
+                    throw new FormatException("Bone index out of range");
                 ji.X = vertex.BoneIndex1;
                 ji.Y = vertex.BoneIndex2;
                 jw.X = vertex.Weight1;
                 jw.Y = 1f - vertex.Weight1;
                 break;
             case WeightTransformType.SDEF:
+                if (vertex.BoneIndex1 < 0 || vertex.BoneIndex1 >= boneCount ||
+                    vertex.BoneIndex2 < 0 || vertex.BoneIndex2 >= boneCount)
+                    throw new FormatException("Bone index out of range");
                 ji.X = vertex.BoneIndex1;
                 ji.Y = vertex.BoneIndex2;
                 jw.X = vertex.Weight1;
@@ -215,6 +223,11 @@ public class ModelImporter : IDisposable
             case WeightTransformType.BDEF4:
             case WeightTransformType.QDEF:
             default:
+                if (vertex.BoneIndex1 < 0 || vertex.BoneIndex1 >= boneCount ||
+                    vertex.BoneIndex2 < 0 || vertex.BoneIndex2 >= boneCount ||
+                    vertex.BoneIndex3 < 0 || vertex.BoneIndex3 >= boneCount ||
+                    vertex.BoneIndex4 < 0 || vertex.BoneIndex4 >= boneCount)
+                    throw new FormatException("Bone index out of range");
                 ji = new System.Numerics.Vector4(vertex.BoneIndex1, vertex.BoneIndex2, vertex.BoneIndex3, vertex.BoneIndex4);
                 jw = new System.Numerics.Vector4(vertex.Weight1, vertex.Weight2, vertex.Weight3, vertex.Weight4);
                 break;
@@ -226,13 +239,18 @@ public class ModelImporter : IDisposable
         smd.SdefR1.Add(sr1);
     }
 
-    private void AddFace(Assimp.Mesh mesh, SubMeshData smd, dynamic[] verts, Surface face)
+    private void AddFace(Assimp.Mesh mesh, SubMeshData smd, dynamic[] verts, Surface face, int boneCount)
     {
         int[] idxs = { (int)face.V1, (int)face.V2, (int)face.V3 };
+        for (int j = 0; j < idxs.Length; j++)
+        {
+            if (idxs[j] < 0 || idxs[j] >= verts.Length)
+                throw new FormatException($"Vertex index out of range: {idxs[j]}");
+        }
         int baseIndex = mesh.Vertices.Count;
         for (int j = 0; j < 3; j++)
         {
-            ProcessVertex(mesh, smd, verts[idxs[j]]);
+            ProcessVertex(mesh, smd, verts[idxs[j]], boneCount);
         }
         var f = new Face();
         f.Indices.Add(baseIndex);
@@ -241,7 +259,7 @@ public class ModelImporter : IDisposable
         mesh.Faces.Add(f);
     }
 
-    private void GenerateSubMeshes(ModelData data, dynamic[] verts, Surface[] faces, dynamic[] mats, string[] texList, string? textureDir)
+    private void GenerateSubMeshes(ModelData data, dynamic[] verts, Surface[] faces, dynamic[] mats, int boneCount, string[] texList, string? textureDir)
     {
         int faceOffset = 0;
         string dir = textureDir ?? string.Empty;
@@ -253,7 +271,7 @@ public class ModelImporter : IDisposable
             for (int i = 0; i < faceCount; i++)
             {
                 var sf = faces[faceOffset + i];
-                AddFace(sub, smd, verts, sf);
+                AddFace(sub, smd, verts, sf, boneCount);
             }
 
             if (!string.IsNullOrEmpty(dir) && mat.Texture >= 0 && mat.Texture < texList.Length)
@@ -350,15 +368,17 @@ public class ModelImporter : IDisposable
 
     private ModelData ImportPmx(Stream stream, string? textureDir = null)
     {
-        var pmx = PMXParser.Parse(stream);
-        var verts = pmx.VertexList.ToArray();
-        Surface[] faces = pmx.SurfaceList.ToArray();
-        var mats = pmx.MaterialList.ToArray();
-        var texList = pmx.TextureList.ToArray();
-        var bones = pmx.BoneList.ToArray();
-        var morphs = pmx.MorphList.ToArray();
-        var rigidBodies = pmx.RigidBodyList.ToArray();
-        var joints = pmx.JointList.ToArray();
+        try
+        {
+            var pmx = PMXParser.Parse(stream);
+            var verts = pmx.VertexList.ToArray();
+            Surface[] faces = pmx.SurfaceList.ToArray();
+            var mats = pmx.MaterialList.ToArray();
+            var texList = pmx.TextureList.ToArray();
+            var bones = pmx.BoneList.ToArray();
+            var morphs = pmx.MorphList.ToArray();
+            var rigidBodies = pmx.RigidBodyList.ToArray();
+            var joints = pmx.JointList.ToArray();
 
         var childIndices = new List<int>[bones.Length];
         for (int i = 0; i < bones.Length; i++)
@@ -693,9 +713,14 @@ public class ModelImporter : IDisposable
         }
 
         data.Mesh = combined;
-        GenerateSubMeshes(data, verts, faces, mats, texList, textureDir);
+        GenerateSubMeshes(data, verts, faces, mats, bones.Length, texList, textureDir);
         data.Transform = System.Numerics.Matrix4x4.CreateScale(Scale);
         return data;
+        }
+        catch (Exception ex) when (ex is not FormatException)
+        {
+            throw new FormatException("PMX ファイルの解析に失敗しました", ex);
+        }
     }
     // 現在は PMX モデルのみに対応しています
 }
