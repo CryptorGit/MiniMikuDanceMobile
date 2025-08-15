@@ -74,12 +74,12 @@ public class PhysicsManager : IDisposable
             AngularLowerLimit = joint.AngularLowerLimit.ToBullet(),
             AngularUpperLimit = joint.AngularUpperLimit.ToBullet()
         };
-        constraint.SetStiffness(0, joint.SpringTranslation.X);
-        constraint.SetStiffness(1, joint.SpringTranslation.Y);
-        constraint.SetStiffness(2, joint.SpringTranslation.Z);
-        constraint.SetStiffness(3, joint.SpringRotation.X);
-        constraint.SetStiffness(4, joint.SpringRotation.Y);
-        constraint.SetStiffness(5, joint.SpringRotation.Z);
+        constraint.SetStiffness(0, joint.TranslationSpring.X);
+        constraint.SetStiffness(1, joint.TranslationSpring.Y);
+        constraint.SetStiffness(2, joint.TranslationSpring.Z);
+        constraint.SetStiffness(3, joint.RotationSpring.X);
+        constraint.SetStiffness(4, joint.RotationSpring.Y);
+        constraint.SetStiffness(5, joint.RotationSpring.Z);
         for (int i = 0; i < 6; i++)
             constraint.EnableSpring(i, true);
         _world.AddConstraint(constraint, true);
