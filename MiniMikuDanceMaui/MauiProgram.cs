@@ -6,6 +6,7 @@ using SkiaSharp.Views.Maui.Controls.Hosting;
 using MauiIcons.Material.Outlined;
 using MauiIcons.Material;
 using MiniMikuDance.Data;
+using MiniMikuDanceMaui.Helpers;
 using MauiFileSystem = Microsoft.Maui.Storage.FileSystem;
 
 namespace MiniMikuDanceMaui;
@@ -26,6 +27,8 @@ public static class MauiProgram
             .UseMaterialMauiIcons()
             .UseSkiaSharp();
 
-        return builder.Build();
+        var app = builder.Build();
+        CrashLogger.RegisterGlobal();
+        return app;
     }
 }
