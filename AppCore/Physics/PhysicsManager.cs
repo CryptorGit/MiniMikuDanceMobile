@@ -1,6 +1,5 @@
 using System;
 using System.Collections.Generic;
-using System.Numerics;
 using BulletSharp;
 using MiniMikuDance.Import;
 using BVector3 = BulletSharp.Math.Vector3;
