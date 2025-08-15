@@ -16,6 +16,8 @@ using MiniMikuDance.App;
 using MiniMikuDance.IK;
 using MMDTools;
 using SkiaSharp.Views.Maui.Controls;
+using Microsoft.Maui.ApplicationModel;
+using Microsoft.Maui.Controls;
 using Vector2 = OpenTK.Mathematics.Vector2;
 using Vector3 = OpenTK.Mathematics.Vector3;
 using Vector4 = OpenTK.Mathematics.Vector4;
@@ -142,6 +144,7 @@ public partial class PmxRenderer : IDisposable
     private Matrix4 _cameraRot = Matrix4.Identity;
     private Vector3 _cameraPos;
     private bool _viewProjDirty = true;
+    private bool _glSupported = true;
     private readonly List<Vector3> _boneRotations = new();
     private readonly List<Vector3> _boneTranslations = new();
     private bool _bonesDirty;
@@ -254,6 +257,27 @@ public partial class PmxRenderer : IDisposable
 
     public void Initialize()
     {
+        var versionString = GL.GetString(StringName.Version);
+        float glesVersion = 0f;
+        if (!string.IsNullOrEmpty(versionString))
+        {
+            foreach (var part in versionString.Split(' '))
+            {
+                if (float.TryParse(part, out glesVersion))
+                    break;
+            }
+        }
+        if (glesVersion < 3f)
+        {
+            _glSupported = false;
+            MainThread.BeginInvokeOnMainThread(async () =>
+            {
+                if (Application.Current?.MainPage != null)
+                    await Application.Current.MainPage.DisplayAlert("OpenGL ES 非対応", "OpenGL ES 3.0 以上が必要です。", "OK");
+            });
+            return;
+        }
+
 const string vert = @"#version 300 es
 layout(location = 0) in vec3 aPosition;
 uniform mat4 uModel;
@@ -424,6 +448,8 @@ void main(){
 
     public void Resize(int width, int height)
     {
+        if (!_glSupported)
+            return;
         _width = width;
         _height = height;
         GL.Viewport(0, 0, width, height);

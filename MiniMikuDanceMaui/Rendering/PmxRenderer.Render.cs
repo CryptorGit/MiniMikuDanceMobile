@@ -130,6 +130,8 @@ public partial class PmxRenderer
 
     public void Render()
     {
+        if (!_glSupported)
+            return;
         UpdateViewProjection();
 
         if (PhysicsStepSimulation != null)
