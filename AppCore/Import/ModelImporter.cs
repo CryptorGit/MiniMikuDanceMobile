@@ -644,7 +644,7 @@ public class ModelImporter : IDisposable
                 Mass = rb.Mass,
                 TranslationAttenuation = rb.TranslationAttenuation,
                 RotationAttenuation = rb.RotationAttenuation,
-                Recoil = rb.Recoil,
+                Restitution = rb.Recoil,
                 Friction = rb.Friction,
                 PhysicsType = (RigidBodyPhysicsType)rb.PhysicsType
             };

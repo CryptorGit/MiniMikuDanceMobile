@@ -5,7 +5,7 @@ using OpenTK.Graphics.ES30;
 using GL = OpenTK.Graphics.ES30.GL;
 using System.Runtime.InteropServices;
 using System.Collections.Generic;
-using BulletSharp;
+using BulletRigidBody = BulletSharp.RigidBody;
 using MiniMikuDance.Physics;
 using MiniMikuDance.Util;
 using MiniMikuDance.Import;
@@ -99,7 +99,7 @@ public partial class PmxRenderer : IDisposable
     private float[] _boneLines = Array.Empty<float>();
     private int _boneCapacity;
     private PhysicsManager? _physics;
-    private readonly List<RigidBody> _rigidBodies = new();
+    private readonly List<BulletRigidBody> _rigidBodies = new();
     private int _modelProgram;
     private int _modelViewLoc;
     private int _modelProjLoc;
@@ -1112,7 +1112,7 @@ void main(){
         _rigidBodies.Clear();
         foreach (var rb in data.RigidBodies)
         {
-            var body = _physics.CreateRigidBody(rb);
+            BulletRigidBody body = _physics.CreateRigidBody(rb);
             _rigidBodies.Add(body);
         }
         foreach (var j in data.Joints)
@@ -1207,7 +1207,7 @@ void main(){
     {
         if (_physics == null)
             return;
-        foreach (var body in _rigidBodies)
+        foreach (BulletRigidBody body in _rigidBodies)
         {
             if (body.UserObject is RigidBodyData rb && rb.BoneIndex >= 0 && rb.BoneIndex < _bones.Count)
             {
