@@ -40,7 +40,6 @@ public class RigidBodyData
     public float TranslationAttenuation { get; set; }
     public float RotationAttenuation { get; set; }
     public float Recoil { get; set; }
-    public float Friction { get; set; }
     public RigidBodyPhysicsType PhysicsType { get; set; }
     public float LinearDamping { get; set; }
     public float AngularDamping { get; set; }
