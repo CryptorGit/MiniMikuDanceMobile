@@ -34,5 +34,10 @@ public class RigidBody
     internal void Integrate(float dt)
     {
         Position += Velocity * dt;
+        if (Position.Z < 0f)
+        {
+            Position = new(Position.X, Position.Y, 0f);
+            Velocity = new(Velocity.X, Velocity.Y, 0f);
+        }
     }
 }
