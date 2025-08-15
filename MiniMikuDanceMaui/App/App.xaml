@@ -6,7 +6,7 @@
      <Application.Resources>
         <ResourceDictionary>
             <ResourceDictionary.MergedDictionaries>
-                <ResourceDictionary Source="Resources/Styles/Theme.xaml" />
+                <ResourceDictionary Source="../Resources/Styles/Theme.xaml" />
             </ResourceDictionary.MergedDictionaries>
             <!-- サイズ設定 -->
             <x:Double x:Key="RowHeight">44</x:Double>
