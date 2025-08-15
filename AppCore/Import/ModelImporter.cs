@@ -705,6 +705,15 @@ public class ModelImporter : IDisposable
         }
 
         var jointDatas = new List<JointData>(joints.Length);
+        static SysVector3 ToVector3(object? obj)
+        {
+            if (obj == null) return SysVector3.Zero;
+            var t = obj.GetType();
+            return new SysVector3(
+                Convert.ToSingle(t.GetProperty("X")?.GetValue(obj) ?? 0f),
+                Convert.ToSingle(t.GetProperty("Y")?.GetValue(obj) ?? 0f),
+                Convert.ToSingle(t.GetProperty("Z")?.GetValue(obj) ?? 0f));
+        }
         for (int i = 0; i < joints.Length; i++)
         {
             var j = joints[i];
@@ -714,7 +723,28 @@ public class ModelImporter : IDisposable
             int rbB = type.GetProperty("RigidBodyB")?.GetValue(j) is object b ? Convert.ToInt32(b) : -1;
             if (rbB < 0) rbB = type.GetProperty("RigidBody2")?.GetValue(j) is object b1 ? Convert.ToInt32(b1) : -1;
             string name = string.IsNullOrEmpty(j.NameEnglish) ? j.Name : j.NameEnglish;
-            jointDatas.Add(new JointData { Name = name, RigidBodyA = rbA, RigidBodyB = rbB });
+            var origin = ToVector3(type.GetProperty("Position")?.GetValue(j));
+            var orientation = ToVector3(type.GetProperty("RotationRadian")?.GetValue(j));
+            var linLow = ToVector3(type.GetProperty("TranslationMinLimit")?.GetValue(j));
+            var linHigh = ToVector3(type.GetProperty("TranslationMaxLimit")?.GetValue(j));
+            var angLow = ToVector3(type.GetProperty("RotationRadianMinLimit")?.GetValue(j));
+            var angHigh = ToVector3(type.GetProperty("RotationRadianMaxLimit")?.GetValue(j));
+            var linStiff = ToVector3(type.GetProperty("TranslationSpring")?.GetValue(j));
+            var angStiff = ToVector3(type.GetProperty("RotationSpring")?.GetValue(j));
+            jointDatas.Add(new JointData
+            {
+                Name = name,
+                RigidBodyA = rbA,
+                RigidBodyB = rbB,
+                Origin = origin,
+                Orientation = orientation,
+                LinearLowerLimit = linLow,
+                LinearUpperLimit = linHigh,
+                AngularLowerLimit = angLow,
+                AngularUpperLimit = angHigh,
+                LinearStiffness = linStiff,
+                AngularStiffness = angStiff
+            });
         }
         data.Joints = jointDatas;
         foreach (var jd in jointDatas)
