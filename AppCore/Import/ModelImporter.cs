@@ -449,6 +449,7 @@ public class ModelImporter : IDisposable
             bd.InheritRatio = b.AttatchRatio;
             bd.InheritRotation = (b.BoneFlag & BoneFlag.RotationAttach) != 0;
             bd.InheritTranslation = (b.BoneFlag & BoneFlag.TranslationAttach) != 0;
+            bd.IsPhysicsAffected = (((int)b.BoneFlag & (1 << 12)) != 0);
             if ((b.BoneFlag & BoneFlag.FixedAxis) != 0)
             {
                 bd.HasFixedAxis = true;
