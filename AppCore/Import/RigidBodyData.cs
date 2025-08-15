@@ -14,6 +14,7 @@ public enum RigidBodyTransformType
     FromBoneToSimulation = 0,
     FromSimulationToBone = 1,
     FromBoneOrientationAndSimulationToBone = 2,
+    FromBoneTranslationAndSimulationToBone = 3,
 }
 
 public enum RigidBodyType

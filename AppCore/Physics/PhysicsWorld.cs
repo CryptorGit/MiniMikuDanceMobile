@@ -27,6 +27,7 @@ public class PhysicsWorld
             case RigidBodyTransformType.FromBoneToSimulation:
             case RigidBodyTransformType.FromSimulationToBone:
             case RigidBodyTransformType.FromBoneOrientationAndSimulationToBone:
+            case RigidBodyTransformType.FromBoneTranslationAndSimulationToBone:
                 break;
             default:
                 throw new ArgumentOutOfRangeException(nameof(data.TransformType), data.TransformType, "Unknown transform type");
@@ -104,13 +105,8 @@ public class PhysicsWorld
         {
             foreach (var body in _rigidBodies)
             {
-                switch (body.TransformType)
-                {
-                    case RigidBodyTransformType.FromSimulationToBone:
-                    case RigidBodyTransformType.FromBoneOrientationAndSimulationToBone:
-                        BoneUpdateHook(body);
-                        break;
-                }
+                if (body.TransformType != RigidBodyTransformType.FromBoneToSimulation)
+                    BoneUpdateHook(body);
             }
         }
     }
