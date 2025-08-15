@@ -15,6 +15,13 @@ public enum RigidBodyTransformType
     FromSimulationToBone
 }
 
+public enum RigidBodyType
+{
+    Static,
+    Dynamic,
+    Kinematic
+}
+
 public class RigidBodyData
 {
     public string Name { get; set; } = string.Empty;
@@ -30,6 +37,8 @@ public class RigidBodyData
     public float Friction { get; set; }
     public RigidBodyTransformType TransformType { get; set; }
     public bool IsBoneRelative { get; set; }
+    public Vector3 Torque { get; set; } = Vector3.Zero;
+    public RigidBodyType Type { get; set; } = RigidBodyType.Dynamic;
     public Vector3? Gravity { get; set; }
 }
 

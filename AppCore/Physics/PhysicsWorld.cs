@@ -33,6 +33,8 @@ public class PhysicsWorld
             data.Friction,
             data.TransformType,
             data.IsBoneRelative,
+            data.Torque,
+            data.Type,
             data.Gravity);
         _rigidBodies.Add(body);
         return body;
