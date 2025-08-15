@@ -9,13 +9,15 @@ namespace MiniMikuDance.IK;
 public static class IkManager
 {
     private static readonly Dictionary<int, IkBone> BonesDict = new();
-    // IKアルゴリズム関連の処理を削除したため、ソルバーや固定軸の管理は不要
+    private static IReadOnlyList<BoneData>? _modelBones;
 
     // レンダラーから提供される各種処理を委譲用デリゲートとして保持
     public static System.Func<float, float, int>? PickFunc { get; set; }
     public static System.Func<int, Vector3>? GetBonePositionFunc { get; set; }
+    public static System.Func<int, OpenTK.Mathematics.Vector3>? GetBoneRotationFunc { get; set; }
     public static System.Func<Vector3>? GetCameraPositionFunc { get; set; }
     public static System.Action<int, OpenTK.Mathematics.Vector3>? SetBoneTranslation { get; set; }
+    public static System.Action<int, OpenTK.Mathematics.Vector3>? SetBoneRotation { get; set; }
     public static System.Func<Vector3, Vector3>? ToModelSpaceFunc { get; set; }
     public static System.Func<Vector3, Vector3>? ToWorldSpaceFunc { get; set; }
     public static System.Action? InvalidateViewer { get; set; }
@@ -31,6 +33,7 @@ public static class IkManager
     public static void LoadPmxIkBones(IReadOnlyList<BoneData> modelBones)
     {
         Clear();
+        _modelBones = modelBones;
         for (int i = 0; i < modelBones.Count; i++)
         {
             var ik = modelBones[i].Ik;
@@ -134,6 +137,8 @@ public static class IkManager
                 SetBoneTranslation(bone.PmxBoneIndex, worldPos.ToOpenTK());
             }
 
+            SolveIk(boneIndex);
+
             InvalidateViewer?.Invoke();
         }
         catch (Exception ex)
@@ -164,6 +169,80 @@ public static class IkManager
         if (name.Contains("ひざ", StringComparison.Ordinal) || name.Contains("膝", StringComparison.Ordinal))
             return BoneRole.Knee;
         return BoneRole.None;
+    }
+
+    public static void SolveAll()
+    {
+        if (_modelBones == null)
+            return;
+        foreach (var kv in BonesDict)
+            SolveIk(kv.Key);
+    }
+
+    private static void SolveIk(int boneIndex)
+    {
+        if (_modelBones == null || GetBonePositionFunc == null || GetBoneRotationFunc == null || SetBoneRotation == null)
+            return;
+        if (boneIndex < 0 || boneIndex >= _modelBones.Count)
+            return;
+        var info = _modelBones[boneIndex].Ik;
+        if (info == null)
+            return;
+        var targetPos = BonesDict.TryGetValue(boneIndex, out var ikb) ? ikb.Position : Vector3.Zero;
+        if (ToWorldSpaceFunc != null)
+            targetPos = ToWorldSpaceFunc(targetPos);
+        for (int i = 0; i < info.Iterations; i++)
+        {
+            for (int j = 0; j < info.Links.Count; j++)
+            {
+                var link = info.Links[j];
+                int linkIdx = link.BoneIndex;
+                var linkPos = GetBonePositionFunc(linkIdx);
+                var effPos = GetBonePositionFunc(info.Target);
+                var toEff = Vector3.Normalize(effPos - linkPos);
+                var toTarget = Vector3.Normalize(targetPos - linkPos);
+                float cos = Math.Clamp(Vector3.Dot(toEff, toTarget), -1f, 1f);
+                if (cos > 0.99999f)
+                    continue;
+                float angle = MathF.Acos(cos) * info.ControlWeight;
+                var axis = Vector3.Normalize(Vector3.Cross(toEff, toTarget));
+                if (axis.LengthSquared() < 1e-6f)
+                    continue;
+                var delta = Quaternion.CreateFromAxisAngle(axis, angle);
+                var currentEuler = GetBoneRotationFunc(linkIdx);
+                var currentQuat = currentEuler.ToNumerics().FromEulerDegrees();
+                var newQuat = delta * currentQuat;
+                var newEuler = QuaternionToEulerDegrees(newQuat);
+                if (link.HasLimit)
+                {
+                    var min = link.MinAngle * (180f / MathF.PI);
+                    var max = link.MaxAngle * (180f / MathF.PI);
+                    newEuler.X = Math.Clamp(newEuler.X, min.X, max.X);
+                    newEuler.Y = Math.Clamp(newEuler.Y, min.Y, max.Y);
+                    newEuler.Z = Math.Clamp(newEuler.Z, min.Z, max.Z);
+                }
+                SetBoneRotation(linkIdx, newEuler.ToOpenTK());
+            }
+        }
+    }
+
+    private static Vector3 QuaternionToEulerDegrees(Quaternion q)
+    {
+        var m = Matrix4x4.CreateFromQuaternion(q);
+        float x = MathF.Asin(Math.Clamp(m.M32, -1f, 1f));
+        float cx = MathF.Cos(x);
+        float y, z;
+        if (MathF.Abs(cx) > 1e-6f)
+        {
+            y = MathF.Atan2(-m.M31, m.M33);
+            z = MathF.Atan2(-m.M12, m.M22);
+        }
+        else
+        {
+            y = 0f;
+            z = MathF.Atan2(m.M21, m.M11);
+        }
+        return new Vector3(x, y, z) * (180f / MathF.PI);
     }
 
 }

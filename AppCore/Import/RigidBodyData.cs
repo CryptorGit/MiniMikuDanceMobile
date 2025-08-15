@@ -42,6 +42,12 @@ public class RigidBodyData
     public float Recoil { get; set; }
     public float Friction { get; set; }
     public RigidBodyPhysicsType PhysicsType { get; set; }
+    public float LinearDamping { get; set; }
+    public float AngularDamping { get; set; }
+    public float Restitution { get; set; }
+    public float Friction { get; set; }
+    public int CollisionGroup { get; set; }
+    public int CollisionMask { get; set; } = -1;
 }
 
 public class JointData
@@ -58,4 +64,10 @@ public class JointData
     public Vector3 RotationMaxLimit { get; set; } = Vector3.Zero;
     public Vector3 TranslationSpring { get; set; } = Vector3.Zero;
     public Vector3 RotationSpring { get; set; } = Vector3.Zero;
+    public Vector3 SpringTranslation { get; set; } = Vector3.Zero;
+    public Vector3 SpringRotation { get; set; } = Vector3.Zero;
+    public Vector3 LinearLowerLimit { get; set; } = Vector3.Zero;
+    public Vector3 LinearUpperLimit { get; set; } = Vector3.Zero;
+    public Vector3 AngularLowerLimit { get; set; } = Vector3.Zero;
+    public Vector3 AngularUpperLimit { get; set; } = Vector3.Zero;
 }

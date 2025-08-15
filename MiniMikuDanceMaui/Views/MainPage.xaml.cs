@@ -107,8 +107,10 @@ public partial class MainPage : ContentPage
         }
         IkManager.PickFunc = _renderer.PickBone;
         IkManager.GetBonePositionFunc = _renderer.GetBoneWorldPosition;
+        IkManager.GetBoneRotationFunc = _renderer.GetBoneRotation;
         IkManager.GetCameraPositionFunc = _renderer.GetCameraPosition;
         IkManager.SetBoneTranslation = _renderer.SetBoneTranslation;
+        IkManager.SetBoneRotation = _renderer.SetBoneRotation;
         IkManager.ToModelSpaceFunc = _renderer.WorldToModel;
         IkManager.ToWorldSpaceFunc = _renderer.ModelToWorld;
         IkManager.InvalidateViewer = () =>
@@ -125,8 +127,10 @@ public partial class MainPage : ContentPage
         IkManager.Clear();
         IkManager.PickFunc = null;
         IkManager.GetBonePositionFunc = null;
+        IkManager.GetBoneRotationFunc = null;
         IkManager.GetCameraPositionFunc = null;
         IkManager.SetBoneTranslation = null;
+        IkManager.SetBoneRotation = null;
         IkManager.ToModelSpaceFunc = null;
         IkManager.ToWorldSpaceFunc = null;
         IkManager.InvalidateViewer = null;
@@ -187,6 +191,7 @@ public partial class MainPage : ContentPage
         {
             try
             {
+                _renderer.Update((float)_renderTimer.Interval.TotalSeconds);
                 if (_needsRender)
                 {
                     Viewer?.InvalidateSurface();
@@ -600,8 +605,10 @@ public partial class MainPage : ContentPage
                 }
                 IkManager.PickFunc = _renderer.PickBone;
                 IkManager.GetBonePositionFunc = _renderer.GetBoneWorldPosition;
+                IkManager.GetBoneRotationFunc = _renderer.GetBoneRotation;
                 IkManager.GetCameraPositionFunc = _renderer.GetCameraPosition;
                 IkManager.SetBoneTranslation = _renderer.SetBoneTranslation;
+                IkManager.SetBoneRotation = _renderer.SetBoneRotation;
                 IkManager.ToModelSpaceFunc = _renderer.WorldToModel;
                 IkManager.ToWorldSpaceFunc = _renderer.ModelToWorld;
             }

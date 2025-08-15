@@ -7,6 +7,7 @@ using OpenTK.Mathematics;
 using OpenTK.Graphics.ES30;
 using GL = OpenTK.Graphics.ES30.GL;
 using MiniMikuDance.Util;
+using MiniMikuDance.IK;
 using Vector2 = OpenTK.Mathematics.Vector2;
 using Vector3 = OpenTK.Mathematics.Vector3;
 using Vector4 = OpenTK.Mathematics.Vector4;
@@ -78,6 +79,9 @@ public partial class PmxRenderer
     public void Render()
     {
         UpdateViewProjection();
+
+        // 物理計算の後にIKを解く
+        IkManager.SolveAll();
 
         bool needsUpdate = _bonesDirty || _morphDirty || _uvMorphDirty;
         if (needsUpdate)
