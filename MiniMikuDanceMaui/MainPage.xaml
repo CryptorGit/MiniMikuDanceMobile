@@ -44,7 +44,6 @@
                 </Switch>
                 <mi:MauiIcon Icon="{mi:Material Icon=PhotoCamera}"
                        IconColor="Gray"
-                       x:Name="CameraIcon"
                        HorizontalOptions="End"
                        VerticalOptions="Center">
                     <mi:MauiIcon.Triggers>
@@ -57,7 +56,6 @@
                 </mi:MauiIcon>
                 <mi:MauiIcon Icon="{mi:Material Icon=AccessibilityNew}"
                        IconColor="Green"
-                       x:Name="PoseIcon"
                        HorizontalOptions="End"
                        VerticalOptions="Center"
                        IsVisible="False">
