@@ -10,6 +10,7 @@ using SixLabors.ImageSharp.PixelFormats;
 using Vector3D = Assimp.Vector3D;
 using MMDTools;
 using MiniMikuDance.App;
+using MiniMikuDance.Physics;
 
 namespace MiniMikuDance.Import;
 
@@ -24,6 +25,7 @@ public class ModelData
     public List<MorphData> Morphs { get; set; } = new();
     public List<RigidBodyData> RigidBodies { get; set; } = new();
     public List<JointData> Joints { get; set; } = new();
+    public PhysicsWorld Physics { get; } = new();
     public float ShadeShift { get; set; } = -0.1f;
     public float ShadeToony { get; set; } = 0.9f;
     public float RimIntensity { get; set; } = 0.5f;
@@ -641,6 +643,10 @@ public class ModelImporter : IDisposable
             rigidBodyDatas.Add(rbd);
         }
         data.RigidBodies = rigidBodyDatas;
+        foreach (var rb in rigidBodyDatas)
+        {
+            data.Physics.CreateRigidBody(rb);
+        }
 
         var jointDatas = new List<JointData>(joints.Length);
         for (int i = 0; i < joints.Length; i++)
@@ -655,6 +661,10 @@ public class ModelImporter : IDisposable
             jointDatas.Add(new JointData { Name = name, RigidBodyA = rbA, RigidBodyB = rbB });
         }
         data.Joints = jointDatas;
+        foreach (var jd in jointDatas)
+        {
+            data.Physics.CreateJoint(jd);
+        }
 
         var combined = new Assimp.Mesh("pmx", Assimp.PrimitiveType.Triangle);
         for (int i = 0; i < verts.Length; i++)
