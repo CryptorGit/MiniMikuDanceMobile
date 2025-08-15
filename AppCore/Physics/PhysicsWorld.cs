@@ -12,7 +12,7 @@ public class PhysicsWorld
     private readonly List<RigidBody> _rigidBodies = new();
     private readonly List<Joint> _joints = new();
 
-    public Vector3 Gravity { get; set; } = new(0f, -9.8f, 0f);
+    public Vector3 Gravity { get; set; } = new(0f, 0f, -9.8f);
 
     public IReadOnlyList<RigidBody> RigidBodies => _rigidBodies;
     public IReadOnlyList<Joint> Joints => _joints;
