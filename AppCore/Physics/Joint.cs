@@ -49,10 +49,12 @@ public class Joint
         var diff = BodyB.Position - BodyA.Position - Origin;
         var clamped = Vector3.Min(Vector3.Max(diff, LinearLowerLimit), LinearUpperLimit);
         var correction = diff - clamped;
-        var linStiff = LinearStiffness * 0.5f;
-        var corr = Vector3.Multiply(correction, linStiff);
-        BodyA.Position += corr;
-        BodyB.Position -= corr;
+        var posCorr = correction * (LinearStiffness * 0.5f);
+        BodyA.Position += posCorr;
+        BodyB.Position -= posCorr;
+        var velCorr = correction * LinearStiffness;
+        BodyA.Velocity += velCorr;
+        BodyB.Velocity -= velCorr;
 
         // 角度拘束
         var eulerA = BodyA.Orientation.ToEulerRadians();
@@ -60,15 +62,14 @@ public class Joint
         var angDiff = eulerB - eulerA - Orientation;
         var angClamped = Vector3.Min(Vector3.Max(angDiff, AngularLowerLimit), AngularUpperLimit);
         var angCorrection = angDiff - angClamped;
-        var angStiff = AngularStiffness * 0.5f;
-        var angCorr = Vector3.Multiply(angCorrection, angStiff);
-        eulerA += angCorr;
-        eulerB -= angCorr;
+        var angPosCorr = angCorrection * (AngularStiffness * 0.5f);
+        eulerA += angPosCorr;
+        eulerB -= angPosCorr;
         BodyA.Orientation = Quaternion.CreateFromYawPitchRoll(eulerA.Y, eulerA.X, eulerA.Z);
         BodyB.Orientation = Quaternion.CreateFromYawPitchRoll(eulerB.Y, eulerB.X, eulerB.Z);
-
-        BodyA.Velocity = Vector3.Zero;
-        BodyB.Velocity = Vector3.Zero;
+        var angVelCorr = angCorrection * AngularStiffness;
+        BodyA.AngularVelocity += angVelCorr;
+        BodyB.AngularVelocity -= angVelCorr;
     }
 }
 

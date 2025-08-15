@@ -15,6 +15,8 @@ public class PhysicsWorld
 
     public Vector3 Gravity { get; set; } = new(0f, 0f, -9.8f);
 
+    public Action<RigidBody>? BoneUpdateHook { get; set; }
+
     public IReadOnlyList<RigidBody> RigidBodies => _rigidBodies;
     public IReadOnlyList<Joint> Joints => _joints;
 
@@ -46,7 +48,9 @@ public class PhysicsWorld
             data.IsBoneRelative,
             data.Torque,
             data.Type,
-            data.Gravity);
+            data.Gravity,
+            data.CollisionGroup,
+            data.CollisionMask);
         _rigidBodies.Add(body);
         return body;
     }
@@ -82,9 +86,76 @@ public class PhysicsWorld
             body.ApplyGravity(Gravity, deltaTime);
             body.Integrate(deltaTime);
         }
+
+        for (int i = 0; i < _rigidBodies.Count; i++)
+        {
+            for (int j = i + 1; j < _rigidBodies.Count; j++)
+            {
+                ResolveCollision(_rigidBodies[i], _rigidBodies[j]);
+            }
+        }
+
         foreach (var joint in _joints)
         {
             joint.Solve();
+        }
+
+        if (BoneUpdateHook != null)
+        {
+            foreach (var body in _rigidBodies)
+            {
+                switch (body.TransformType)
+                {
+                    case RigidBodyTransformType.FromSimulationToBone:
+                    case RigidBodyTransformType.FromBoneOrientationAndSimulationToBone:
+                        BoneUpdateHook(body);
+                        break;
+                }
+            }
+        }
+    }
+
+    private void ResolveCollision(RigidBody a, RigidBody b)
+    {
+        if ((a.CollisionGroup & b.CollisionMask) == 0 || (b.CollisionGroup & a.CollisionMask) == 0)
+            return;
+
+        var delta = b.Position - a.Position;
+        var dist = delta.Length();
+        var radiusA = a.BoundingRadius;
+        var radiusB = b.BoundingRadius;
+        var penetration = radiusA + radiusB - dist;
+        if (penetration <= 0f || dist == 0f)
+            return;
+        var normal = delta / dist;
+        var totalMass = a.Mass + b.Mass;
+        if (totalMass <= 0f)
+            return;
+        a.Position -= normal * (penetration * (b.Mass / totalMass));
+        b.Position += normal * (penetration * (a.Mass / totalMass));
+
+        var relative = Vector3.Dot(b.Velocity - a.Velocity, normal);
+        if (relative >= 0f)
+            return;
+
+        var restitution = MathF.Min(a.Restitution, b.Restitution);
+        var impulse = -(1f + restitution) * relative;
+        var invMassA = a.Mass > 0f ? 1f / a.Mass : 0f;
+        var invMassB = b.Mass > 0f ? 1f / b.Mass : 0f;
+        var impulseVec = impulse / (invMassA + invMassB) * normal;
+        a.Velocity -= impulseVec * invMassA;
+        b.Velocity += impulseVec * invMassB;
+
+        var friction = MathF.Min(a.Friction, b.Friction);
+        var tangentVel = (b.Velocity - a.Velocity) - relative * normal;
+        if (tangentVel.LengthSquared() > 0f)
+        {
+            var tangent = Vector3.Normalize(tangentVel);
+            var jt = -Vector3.Dot(b.Velocity - a.Velocity, tangent);
+            jt /= (invMassA + invMassB);
+            var frictionVec = jt * friction * tangent;
+            a.Velocity -= frictionVec * invMassA;
+            b.Velocity += frictionVec * invMassB;
         }
     }
 }
