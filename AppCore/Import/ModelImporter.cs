@@ -634,9 +634,19 @@ public class ModelImporter : IDisposable
             var rbd = new RigidBodyData
             {
                 Name = string.IsNullOrEmpty(rb.NameEnglish) ? rb.Name : rb.NameEnglish,
-                BoneIndex = rb.Bone,
+                BoneIndex = rb.HasBone ? rb.Bone : -1,
+                Group = rb.Group,
+                GroupTarget = rb.GroupTarget,
+                Shape = (RigidBodyShape)rb.Shape,
+                Size = new System.Numerics.Vector3(rb.Size.X * Scale, rb.Size.Y * Scale, rb.Size.Z * Scale),
+                Position = new System.Numerics.Vector3(rb.Position.X * Scale, rb.Position.Y * Scale, rb.Position.Z * Scale),
+                Rotation = new System.Numerics.Vector3(rb.RotationRadian.X, rb.RotationRadian.Y, rb.RotationRadian.Z),
                 Mass = rb.Mass,
-                Shape = (RigidBodyShape)rb.Shape
+                TranslationAttenuation = rb.TranslationAttenuation,
+                RotationAttenuation = rb.RotationAttenuation,
+                Recoil = rb.Recoil,
+                Friction = rb.Friction,
+                PhysicsType = (RigidBodyPhysicsType)rb.PhysicsType
             };
             rigidBodyDatas.Add(rbd);
         }
@@ -646,13 +656,22 @@ public class ModelImporter : IDisposable
         for (int i = 0; i < joints.Length; i++)
         {
             var j = joints[i];
-            var type = j.GetType();
-            int rbA = type.GetProperty("RigidBodyA")?.GetValue(j) is object a ? Convert.ToInt32(a) : -1;
-            if (rbA < 0) rbA = type.GetProperty("RigidBody1")?.GetValue(j) is object a1 ? Convert.ToInt32(a1) : -1;
-            int rbB = type.GetProperty("RigidBodyB")?.GetValue(j) is object b ? Convert.ToInt32(b) : -1;
-            if (rbB < 0) rbB = type.GetProperty("RigidBody2")?.GetValue(j) is object b1 ? Convert.ToInt32(b1) : -1;
-            string name = string.IsNullOrEmpty(j.NameEnglish) ? j.Name : j.NameEnglish;
-            jointDatas.Add(new JointData { Name = name, RigidBodyA = rbA, RigidBodyB = rbB });
+            var jd = new JointData
+            {
+                Name = string.IsNullOrEmpty(j.NameEnglish) ? j.Name : j.NameEnglish,
+                Type = (JointType)j.Type,
+                RigidBodyA = j.RigidBody1,
+                RigidBodyB = j.RigidBody2,
+                Position = new System.Numerics.Vector3(j.Position.X * Scale, j.Position.Y * Scale, j.Position.Z * Scale),
+                Rotation = new System.Numerics.Vector3(j.RotationRadian.X, j.RotationRadian.Y, j.RotationRadian.Z),
+                TranslationMinLimit = new System.Numerics.Vector3(j.TranslationMinLimit.X * Scale, j.TranslationMinLimit.Y * Scale, j.TranslationMinLimit.Z * Scale),
+                TranslationMaxLimit = new System.Numerics.Vector3(j.TranslationMaxLimit.X * Scale, j.TranslationMaxLimit.Y * Scale, j.TranslationMaxLimit.Z * Scale),
+                RotationMinLimit = new System.Numerics.Vector3(j.RotationRadianMinLimit.X, j.RotationRadianMinLimit.Y, j.RotationRadianMinLimit.Z),
+                RotationMaxLimit = new System.Numerics.Vector3(j.RotationRadianMaxLimit.X, j.RotationRadianMaxLimit.Y, j.RotationRadianMaxLimit.Z),
+                TranslationSpring = new System.Numerics.Vector3(j.TranslationSpring.X * Scale, j.TranslationSpring.Y * Scale, j.TranslationSpring.Z * Scale),
+                RotationSpring = new System.Numerics.Vector3(j.RotationSpring.X, j.RotationSpring.Y, j.RotationSpring.Z)
+            };
+            jointDatas.Add(jd);
         }
         data.Joints = jointDatas;
 
