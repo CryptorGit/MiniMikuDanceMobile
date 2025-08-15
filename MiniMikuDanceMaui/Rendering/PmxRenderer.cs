@@ -202,6 +202,9 @@ public partial class PmxRenderer : IDisposable
         }
     }
 
+    // 物理ワールドのステップ処理を委譲するデリゲート
+    public Action<float>? PhysicsStepSimulation { get; set; }
+
     private float _stageSize = AppSettings.DefaultStageSize;
     public float StageSize
     {
