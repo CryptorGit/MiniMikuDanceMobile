@@ -39,13 +39,11 @@ public class RigidBodyData
     public float Mass { get; set; }
     public float TranslationAttenuation { get; set; }
     public float RotationAttenuation { get; set; }
-    public float Recoil { get; set; }
+    public float Restitution { get; set; }
     public float Friction { get; set; }
     public RigidBodyPhysicsType PhysicsType { get; set; }
     public float LinearDamping { get; set; }
     public float AngularDamping { get; set; }
-    public float Restitution { get; set; }
-    public float Friction { get; set; }
     public int CollisionGroup { get; set; }
     public int CollisionMask { get; set; } = -1;
 }
