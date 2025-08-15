@@ -62,6 +62,8 @@ public partial class PmxRenderer
             for (int i = 0; i < _ikBones.Count; i++)
             {
                 var ik = _ikBones[i];
+                if (!_showAllBones && _physicsBoneIndices.Contains(ik.PmxBoneIndex))
+                    continue;
                 var worldPos = ik.Position.ToOpenTK();
                 float scale = _ikBoneScale * _distance;
                 if (ik.IsSelected)

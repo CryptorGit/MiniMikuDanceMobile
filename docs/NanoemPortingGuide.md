@@ -39,9 +39,8 @@ nanoem の `emapp` ビューアはメニューからボーン表示の切り替�
 
 nanoem の物理ボーン（剛体にバインドされたボーン）の表示可否は `Model::isBoneConnectionDrawable` および `Model::isBoneConnectionVisible` で判定される【F:Documents/nanoem-main/emapp/src/Model.cc†L2455-L2462】。
 
-- `ShowAllBones` が無効な場合、剛体にバインドされたボーンは描画しない。
-- `ShowAllBones` が有効かつボーンが編集マスクされていない場合のみ描画する。
-- 上記の条件で描画された物理ボーンであっても選択対象にはならない。
+- `ShowAllBones` が有効なときのみ剛体にバインドされたボーンを描画する。
+- 物理ボーンは描画された場合でも常に選択対象から除外される。
 
 C# 実装時もこのポリシーに従い、`MiniMikuDanceMaui/PmxRenderer.cs` に同等の処理を追加する。
 
