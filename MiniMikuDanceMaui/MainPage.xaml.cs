@@ -25,6 +25,7 @@ using SixLabors.ImageSharp.PixelFormats;
 using MiniMikuDance.IK;
 using MiniMikuDance.Util;
 using MiniMikuDanceMaui.Rendering;
+using MiniMikuDanceMaui.Helpers;
 
 namespace MiniMikuDanceMaui;
 
