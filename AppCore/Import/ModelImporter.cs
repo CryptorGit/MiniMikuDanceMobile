@@ -642,10 +642,10 @@ public class ModelImporter : IDisposable
                 Position = new System.Numerics.Vector3(rb.Position.X * Scale, rb.Position.Y * Scale, rb.Position.Z * Scale),
                 Rotation = new System.Numerics.Vector3(rb.RotationRadian.X, rb.RotationRadian.Y, rb.RotationRadian.Z),
                 Mass = rb.Mass,
-                TranslationAttenuation = rb.TranslationAttenuation,
-                RotationAttenuation = rb.RotationAttenuation,
-                Restitution = rb.Recoil,
                 Friction = rb.Friction,
+                Restitution = rb.Recoil,
+                LinearDamping = rb.TranslationAttenuation,
+                AngularDamping = rb.RotationAttenuation,
                 PhysicsType = (RigidBodyPhysicsType)rb.PhysicsType
             };
             rigidBodyDatas.Add(rbd);
