@@ -54,7 +54,7 @@
       <Generator>MSBuild:UpdateDesignTimeXaml</Generator>
     </MauiXaml>
     <Compile Update="Rendering\**\*.cs" />
-    <Compile Update="FileSystem\**\*.cs" />
+    <Compile Update="Storage\**\*.cs" />
     <Compile Update="Helpers\**\*.cs" />
   </ItemGroup>
   </Project>
