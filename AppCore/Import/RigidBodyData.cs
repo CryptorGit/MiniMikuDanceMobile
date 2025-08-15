@@ -39,6 +39,7 @@ public class RigidBodyData
     public float Mass { get; set; }
     public float TranslationAttenuation { get; set; }
     public float RotationAttenuation { get; set; }
+    public float Restitution { get; set; }
     public float Friction { get; set; }
     public RigidBodyPhysicsType PhysicsType { get; set; }
     public float LinearDamping { get; set; }
