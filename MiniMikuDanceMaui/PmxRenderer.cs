@@ -148,6 +148,7 @@ public partial class PmxRenderer : IDisposable
     public BonesConfig? BonesConfig { get; set; }
     private PhysicsWorld? _physicsWorld;
     private readonly HashSet<int> _physicsBoneIndices = new();
+    private readonly HashSet<int> _gravityBoneIndices = new();
     private Quaternion _externalRotation = Quaternion.Identity;
     // デフォルトのカメラ感度をスライダーの最小値に合わせる
     public float RotateSensitivity { get; set; } = 0.1f;
@@ -597,7 +598,7 @@ void main(){
             foreach (var bone in _ikBones)
             {
                 int i = bone.PmxBoneIndex;
-                if (_physicsBoneIndices.Contains(i))
+                if (_physicsBoneIndices.Contains(i) || _gravityBoneIndices.Contains(i))
                     continue;
                 var pos = _worldMats[i].Translation.ToOpenTK();
                 var v4 = new Vector4(pos, 1f);
@@ -623,7 +624,7 @@ void main(){
             int limit = Math.Min(_worldMats.Length, _bones.Count);
             for (int i = 0; i < limit; i++)
             {
-                if (_physicsBoneIndices.Contains(i))
+                if (_physicsBoneIndices.Contains(i) || _gravityBoneIndices.Contains(i))
                     continue;
                 var pos = _worldMats[i].Translation.ToOpenTK();
                 var v4 = new Vector4(pos, 1f);
@@ -819,6 +820,17 @@ void main(){
         {
             if (rb.TransformType == RigidBodyTransformType.FromSimulationToBone && rb.BoneIndex >= 0)
                 _physicsBoneIndices.Add(rb.BoneIndex);
+        }
+        _gravityBoneIndices.Clear();
+        for (int i = 0; i < _bones.Count; i++)
+        {
+            var name = _bones[i].Name;
+            if (name.IndexOf("重力", StringComparison.OrdinalIgnoreCase) >= 0 ||
+                name.IndexOf("グラビティ", StringComparison.OrdinalIgnoreCase) >= 0 ||
+                name.IndexOf("gravity", StringComparison.OrdinalIgnoreCase) >= 0)
+            {
+                _gravityBoneIndices.Add(i);
+            }
         }
         _worldMats = new System.Numerics.Matrix4x4[_bones.Count];
         _skinMats = new System.Numerics.Matrix4x4[_bones.Count];
