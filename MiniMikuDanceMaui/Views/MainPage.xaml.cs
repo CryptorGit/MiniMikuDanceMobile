@@ -1134,13 +1134,14 @@ public partial class MainPage : ContentPage
         Viewer.HasRenderLoop = false;
 
         bool success = false;
+        ModelData? data = null;
 
         try
         {
             _modelScale = 1f;
             ModelImporter.CacheCapacity = _settings.TextureCacheSize;
             using var importer = new ModelImporter { Scale = _modelScale };
-            var data = await Task.Run(() => importer.ImportModel(_selectedModelPath));
+            data = await Task.Run(() => importer.ImportModel(_selectedModelPath));
 
             // PMX内のテクスチャ相対パスとサブメッシュインデックスの対応表を作成
             var textureMap = new Dictionary<string, List<int>>(StringComparer.OrdinalIgnoreCase);
@@ -1195,6 +1196,7 @@ public partial class MainPage : ContentPage
                     catch (Exception ex)
                     {
                         Debug.WriteLine(ex);
+                        throw;
                     }
                     finally
                     {
@@ -1206,8 +1208,6 @@ public partial class MainPage : ContentPage
                 await Task.WhenAll(tasks);
             }
 
-            _pendingModel = data;
-            Viewer.InvalidateSurface();
             if (_bottomViews.TryGetValue("MORPH", out var view) && view is MorphView mv)
             {
                 mv.SetMorphs(data.Morphs);
@@ -1218,18 +1218,21 @@ public partial class MainPage : ContentPage
         {
             Debug.WriteLine(ex);
             SelectedModelPath.Text = "モデルの読み込みに失敗しました";
+            Viewer.HasRenderLoop = true;
             await DisplayAlert("Error", "モデルの読み込みに失敗しました", "OK");
         }
         finally
         {
+            if (success && data != null)
+            {
+                _pendingModel = data;
+                Viewer.InvalidateSurface();
+                SelectedModelPath.Text = string.Empty;
+            }
             Viewer.HasRenderLoop = true;
             SetLoadingIndicatorVisibilityAndLayout(false);
             _selectedModelPath = null;
             _modelDir = null;
-            if (success)
-            {
-                SelectedModelPath.Text = string.Empty;
-            }
         }
     }
 
