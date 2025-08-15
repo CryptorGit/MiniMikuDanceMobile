@@ -8,6 +8,7 @@ using OpenTK.Graphics.ES30;
 using GL = OpenTK.Graphics.ES30.GL;
 using MiniMikuDance.Util;
 using MiniMikuDance.Physics;
+using MiniMikuDance.Import;
 using Vector2 = OpenTK.Mathematics.Vector2;
 using Vector3 = OpenTK.Mathematics.Vector3;
 using Vector4 = OpenTK.Mathematics.Vector4;
@@ -83,6 +84,8 @@ public partial class PmxRenderer
             _physicsWorld.Step(1f / 60f);
             foreach (var body in _physicsWorld.RigidBodies)
             {
+                if (body.TransformType != RigidBodyTransformType.FromSimulationToBone)
+                    continue;
                 int index = body.BoneIndex;
                 if (index < 0 || index >= _bones.Count)
                     continue;

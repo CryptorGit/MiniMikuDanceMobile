@@ -19,7 +19,20 @@ public class PhysicsWorld
 
     public RigidBody CreateRigidBody(RigidBodyData data)
     {
-        var body = new RigidBody(data.Name, data.BoneIndex, data.Mass, data.Shape);
+        var body = new RigidBody(
+            data.Name,
+            data.BoneIndex,
+            data.Mass,
+            data.Shape,
+            data.Size,
+            data.Origin,
+            data.Orientation,
+            data.LinearDamping,
+            data.AngularDamping,
+            data.Restitution,
+            data.Friction,
+            data.TransformType,
+            data.IsBoneRelative);
         _rigidBodies.Add(body);
         return body;
     }
@@ -41,7 +54,10 @@ public class PhysicsWorld
     {
         foreach (var body in _rigidBodies)
         {
-            body.ApplyGravity(Gravity, deltaTime);
+            if (body.TransformType == RigidBodyTransformType.FromBoneToSimulation)
+            {
+                body.ApplyGravity(Gravity, deltaTime);
+            }
             body.Integrate(deltaTime);
         }
         foreach (var joint in _joints)
