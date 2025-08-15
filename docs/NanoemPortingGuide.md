@@ -154,3 +154,52 @@ nanoem の IK は `Constraint` オブジェクトを用い、ターゲットボ�
 - `IkManager` への制約読み込み・解決処理の追加
 
 これらを導入することで nanoem の IK 解決ロジックを C# 側に移植できる。
+
+## モーフ処理
+
+### 必要なデータ構造
+
+- `nanoem_model_morph_group_t`: 他モーフの重みを合成するグループ要素【F:Documents/nanoem-main/nanoem/nanoem_p.h†L439-L443】
+- `nanoem_model_morph_vertex_t`: 頂点インデックスと相対インデックスを持つ頂点モーフ【F:Documents/nanoem-main/nanoem/nanoem_p.h†L445-L450】
+- `nanoem_model_morph_bone_t`: ボーンインデックスと平行移動・回転を保持するボーンモーフ【F:Documents/nanoem-main/nanoem/nanoem_p.h†L452-L456】
+- `nanoem_model_morph_uv_t`: 親モーフ参照と UV 座標変位を持つ UV モーフ【F:Documents/nanoem-main/nanoem/nanoem_p.h†L459-L463】
+- `nanoem_model_morph_material_t`: 材質インデックスと各種色・不透明度を含む材質モーフ【F:Documents/nanoem-main/nanoem/nanoem_p.h†L466-L481】
+- `nanoem_model_morph_flip_t`: 他モーフの重みを反転させるフリップモーフ【F:Documents/nanoem-main/nanoem/nanoem_p.h†L483-L487】
+- `nanoem_model_morph_impulse_t`: 剛体インデックスと速度・トルクを適用するインパルスモーフ【F:Documents/nanoem-main/nanoem/nanoem_p.h†L489-L495】
+- `nanoem_model_morph_t`: 名称、種別、カテゴリと各モーフ要素配列を保持するモーフ本体【F:Documents/nanoem-main/nanoem/nanoem_p.h†L497-L513】
+- `nanoem_motion_morph_keyframe_t`: モーフ ID と重みを持つモーション用キーフレーム【F:Documents/nanoem-main/nanoem/nanoem_p.h†L790-L794】
+- `nanoem_document_model_morph_keyframe_t`: ドキュメント上のモーフキーフレーム【F:Documents/nanoem-main/nanoem/ext/document_p.h†L108-L112】
+- `nanoem_document_model_morph_state_t`: 各モーフの現在重みを表す状態オブジェクト【F:Documents/nanoem-main/nanoem/ext/document_p.h†L130-L133】
+- `nanoem_model_morph_category_t` / `nanoem_model_morph_type_t`: モーフのカテゴリと種別を定義する列挙体【F:Documents/nanoem-main/nanoem/nanoem.h†L1706-L1735】
+
+### C# クラス設計と UI 連携方針
+
+```mermaid
+classDiagram
+    class Morph {
+        +NameJa: string
+        +NameEn: string
+        +Type: MorphType
+        +Category: MorphCategory
+        +Objects: IList<MorphObject>
+    }
+    class MorphObject {
+        <<abstract>>
+    }
+    class MorphKeyframe {
+        +FrameIndex: int
+        +Weight: float
+        +MorphId: int
+    }
+    class MorphState {
+        +Weight: float
+    }
+    Morph "1" --> "*" MorphObject
+```
+
+- `Morph` は nanoem のモーフ本体に対応し、名称・種別・カテゴリと各モーフ要素を保持する。
+- `MorphObject` はボーン/頂点/UV など各種モーフ要素の基底クラスとし、必要に応じて派生型 (`BoneMorph` や `MaterialMorph` など) を定義する。
+- `MorphKeyframe` はモーション上のモーフ重みを管理し、タイムライン編集に用いる。
+- `MorphState` は現在の重みを保持し、UI とモデル更新の橋渡しを行う。
+
+UI ではカテゴリごとにモーフ一覧を表示し、`MorphState.Weight` をスライダーにバインドする。ユーザがスライダーを操作すると `MorphState` を更新し、モデル側のモーフ適用処理を呼び出す。タイムラインでは `MorphKeyframe` を挿入・編集してアニメーションを構築し、`Morph` と `MorphState` 間の同期を取ることでリアルタイムにプレビューを反映する。
