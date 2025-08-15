@@ -41,6 +41,8 @@ public class RigidBodyData
     public Vector3 Torque { get; set; } = Vector3.Zero;
     public RigidBodyType Type { get; set; } = RigidBodyType.Dynamic;
     public Vector3? Gravity { get; set; }
+    public ushort CollisionGroup { get; set; }
+    public ushort CollisionMask { get; set; } = ushort.MaxValue;
 }
 
 public class JointData
