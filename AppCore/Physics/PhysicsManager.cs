@@ -2,8 +2,9 @@ using System;
 using System.Collections.Generic;
 using BulletSharp;
 using MiniMikuDance.Import;
-using BVector3 = BulletSharp.Math.Vector3;
-using BMatrix = BulletSharp.Math.Matrix;
+using SNVector3 = System.Numerics.Vector3;
+using WVector3 = WaveEngine.Mathematics.Vector3;
+using WMatrix = WaveEngine.Mathematics.Matrix4x4;
 
 namespace MiniMikuDance.Physics;
 
@@ -25,7 +26,7 @@ public class PhysicsManager : IDisposable
         _broadphase = new DbvtBroadphase();
         _world = new DiscreteDynamicsWorld(_dispatcher, _broadphase, null, _config)
         {
-            Gravity = new BVector3(0, -9.81f, 0)
+            Gravity = new WVector3(0, -9.81f, 0)
         };
     }
 
@@ -39,13 +40,13 @@ public class PhysicsManager : IDisposable
             _ => new BoxShape(0.5f)
         };
 
-        var transform = BMatrix.RotationYawPitchRoll(data.Rotation.Y, data.Rotation.X, data.Rotation.Z);
+        var transform = WMatrix.CreateFromYawPitchRoll(data.Rotation.Y, data.Rotation.X, data.Rotation.Z);
         transform.M41 = data.Position.X;
         transform.M42 = data.Position.Y;
         transform.M43 = data.Position.Z;
         var motion = new DefaultMotionState(transform);
         float mass = data.PhysicsType == RigidBodyPhysicsType.Static ? 0f : data.Mass;
-        BVector3 inertia = BVector3.Zero;
+        WVector3 inertia = WVector3.Zero;
         if (mass > 0)
         {
             shape.CalculateLocalInertia(mass, out inertia);
@@ -81,8 +82,8 @@ public class PhysicsManager : IDisposable
 
     public TypedConstraint CreateConstraint(JointData joint, RigidBody bodyA, RigidBody bodyB)
     {
-        var frameA = BMatrix.Identity;
-        var frameB = BMatrix.Identity;
+        var frameA = WMatrix.Identity;
+        var frameB = WMatrix.Identity;
         var constraint = new Generic6DofSpringConstraint(bodyA, bodyB, frameA, frameB, true)
         {
             LinearLowerLimit = joint.LinearLowerLimit.ToBullet(),
@@ -131,8 +132,8 @@ public class PhysicsManager : IDisposable
 
 internal static class BulletExtensions
 {
-    public static BulletSharp.Math.Vector3 ToBullet(this System.Numerics.Vector3 v)
+    public static WVector3 ToBullet(this SNVector3 v)
     {
-        return new BulletSharp.Math.Vector3(v.X, v.Y, v.Z);
+        return new WVector3(v.X, v.Y, v.Z);
     }
 }
