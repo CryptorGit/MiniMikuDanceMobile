@@ -817,7 +817,7 @@ void main(){
         _physicsBoneIndices.Clear();
         foreach (var rb in data.RigidBodies)
         {
-            if (rb.BoneIndex >= 0)
+            if (rb.TransformType == RigidBodyTransformType.FromSimulationToBone && rb.BoneIndex >= 0)
                 _physicsBoneIndices.Add(rb.BoneIndex);
         }
         _worldMats = new System.Numerics.Matrix4x4[_bones.Count];
