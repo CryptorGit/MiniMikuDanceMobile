@@ -125,3 +125,23 @@ function UpdatePhysicsWorld(world, deltaTime):
             body.SyncFromSimulation(followBone=false)
 ```
 
+
+## IK 解決ルーチン
+
+nanoem の IK は `Constraint` オブジェクトを用い、ターゲットボーンとエフェクタボーンの間にある各ジョイントを反復的に解いて姿勢を更新する【F:emapp/src/Model.cc†L3685-L3742】。各ジョイントは `Constraint::Joint` 構造体で回転・位置・軸・角度などの反復結果を保持する【F:emapp/include/emapp/model/Constraint.h†L18-L42】。
+
+一方で `AppCore/IK` ではボーン選択と位置更新のみが実装され、IK ソルバーや制約管理は存在しない【F:AppCore/IK/IkManager.cs†L11-L14】。
+
+### 必要なデータ構造
+- `Constraint` クラス: ターゲットボーン、エフェクタボーン、ジョイント一覧、角度制限を保持
+- `Constraint.Joint` 構造体: 各ジョイントの姿勢、軸、角度、方向ベクトルを記録
+- 反復結果を格納するマップ (`JointIterationResult` / `EffectorIterationResult`)
+
+### 必要なメソッド
+- `SolveConstraint`: 各 `Constraint` を反復的に解いてボーン姿勢を更新
+- `SolveAxisAngle`: ボーンの現在の変換とターゲット／エフェクタ位置から回転軸と角度を算出
+- `HasUnitXConstraint`: ジョイントに X 軸固定制限があるか判定
+- ジョイントごとの反復結果取得メソッド (`JointIterationResult`, `EffectorIterationResult`)
+- `IkManager` への制約読み込み・解決処理の追加
+
+これらを導入することで nanoem の IK 解決ロジックを C# 側に移植できる。
