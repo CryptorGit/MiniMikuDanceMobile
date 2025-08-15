@@ -1,6 +1,7 @@
 using System.Linq;
 using Microsoft.Maui.Controls;
 using MiniMikuDance.Import;
+using MiniMikuDanceMaui.Rendering;
 
 namespace MiniMikuDanceMaui;
 
