@@ -35,6 +35,28 @@ public static class NumericsExtensions
         return qy * qx * qz;
     }
 
+    public static System.Numerics.Vector3 ToEulerRadians(this System.Numerics.Quaternion q)
+    {
+        // 標準的なロール(X)、ピッチ(Y)、ヨー(Z)の順で計算する
+        float sinr_cosp = 2f * (q.W * q.X + q.Y * q.Z);
+        float cosr_cosp = 1f - 2f * (q.X * q.X + q.Y * q.Y);
+        float roll = MathF.Atan2(sinr_cosp, cosr_cosp);
+
+        float sinp = 2f * (q.W * q.Y - q.Z * q.X);
+        float pitch = MathF.Abs(sinp) >= 1f ? MathF.CopySign(MathF.PI / 2f, sinp) : MathF.Asin(sinp);
+
+        float siny_cosp = 2f * (q.W * q.Z + q.X * q.Y);
+        float cosy_cosp = 1f - 2f * (q.Y * q.Y + q.Z * q.Z);
+        float yaw = MathF.Atan2(siny_cosp, cosy_cosp);
+
+        return new System.Numerics.Vector3(roll, pitch, yaw);
+    }
+
+    public static System.Numerics.Vector3 ToEulerDegrees(this System.Numerics.Quaternion q)
+    {
+        return ToEulerRadians(q) * (180f / MathF.PI);
+    }
+
     public static OpenTK.Mathematics.Vector3 ToOpenTK(this System.Numerics.Vector3 v)
     {
         return new OpenTK.Mathematics.Vector3(v.X, v.Y, v.Z);

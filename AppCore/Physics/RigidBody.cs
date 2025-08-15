@@ -13,7 +13,7 @@ public class RigidBody
     public Import.RigidBodyShape Shape { get; }
     public Vector3 Size { get; }
     public Vector3 Origin { get; }
-    public Quaternion Orientation { get; }
+    public Quaternion Orientation { get; internal set; }
     public float LinearDamping { get; }
     public float AngularDamping { get; }
     public float Restitution { get; }

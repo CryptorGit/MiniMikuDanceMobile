@@ -45,7 +45,18 @@ public class PhysicsWorld
         var bodyB = data.RigidBodyB >= 0 && data.RigidBodyB < _rigidBodies.Count
             ? _rigidBodies[data.RigidBodyB]
             : null;
-        var joint = new Joint(data.Name, bodyA, bodyB);
+        var joint = new Joint(
+            data.Name,
+            bodyA,
+            bodyB,
+            data.Origin,
+            data.Orientation,
+            data.LinearLowerLimit,
+            data.LinearUpperLimit,
+            data.AngularLowerLimit,
+            data.AngularUpperLimit,
+            data.LinearStiffness,
+            data.AngularStiffness);
         _joints.Add(joint);
         return joint;
     }
