@@ -415,8 +415,8 @@ public partial class MainPage : ContentPage
         if (bv == null || _currentModel?.Bones == null)
             return;
 
-        var list = _currentModel.Bones.Select(b => b.Name).ToList();
-        bv.SetBones(list);
+        var tree = BoneTreeBuilder.Build(_currentModel.Bones);
+        bv.SetBones(tree);
     }
 
     private void SetupBoneView(BoneView bv)

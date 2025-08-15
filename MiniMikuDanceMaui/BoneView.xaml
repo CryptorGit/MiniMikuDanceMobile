@@ -4,6 +4,6 @@
              x:Class="MiniMikuDanceMaui.BoneView"
              BackgroundColor="{StaticResource BackgroundColor}">
     <ScrollView>
-        <VerticalStackLayout x:Name="BoneList" Padding="10" Spacing="5" />
+        <VerticalStackLayout x:Name="BoneList" Padding="10" Spacing="2" />
     </ScrollView>
 </ContentView>
