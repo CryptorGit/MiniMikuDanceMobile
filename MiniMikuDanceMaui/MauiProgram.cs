@@ -1,4 +1,5 @@
 using System;
+using System.IO;
 using Microsoft.Maui;
 using Microsoft.Maui.Hosting;
 using Microsoft.Maui.Controls.Hosting;
@@ -18,7 +19,19 @@ public static class MauiProgram
         var builder = MauiApp.CreateBuilder();
 
         DataManager.OpenPackageFileFunc = path =>
-            MauiFileSystem.OpenAppPackageFileAsync(path).GetAwaiter().GetResult();
+        {
+            try
+            {
+                return MauiFileSystem
+                    .OpenAppPackageFileAsync(path)
+                    .GetAwaiter()
+                    .GetResult();
+            }
+            catch (FileNotFoundException)
+            {
+                return null;    // パッケージに存在しない場合は既定値で進む
+            }
+        };
 
         builder
             // ← 型パラメータで自分の App クラスを渡す
