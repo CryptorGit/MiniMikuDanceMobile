@@ -1218,6 +1218,13 @@ public partial class MainPage : ContentPage
             }
             success = true;
         }
+        catch (FormatException ex)
+        {
+            Debug.WriteLine(ex);
+            SelectedModelPath.Text = "PMXファイルが破損しています";
+            Viewer.HasRenderLoop = true;
+            await DisplayAlert("Error", "PMXファイルが破損している可能性があります", "OK");
+        }
         catch (Exception ex)
         {
             Debug.WriteLine(ex);
