@@ -194,6 +194,8 @@ public partial class PmxRenderer
                 var bone = _bones[i];
                 if (bone.Parent >= 0)
                 {
+                    if (_gravityBoneIndices.Contains(i) || _gravityBoneIndices.Contains(bone.Parent))
+                        continue;
                     if (!_showAllBones && (_physicsBoneIndices.Contains(i) || _physicsBoneIndices.Contains(bone.Parent)))
                         continue;
                     var pp = _worldMats[bone.Parent].Translation;
