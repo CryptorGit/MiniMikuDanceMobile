@@ -153,9 +153,14 @@ public static class IkManager
     /// </summary>
     public static bool Solve()
     {
-        // TODO: CCD や FABRIK などのアルゴリズムで IK を解決する
-        // 現段階では未実装のため常に変更なしとする
-        return false;
+        if (_modelBones == null)
+            return false;
+
+        bool updated = false;
+        foreach (var kv in BonesDict)
+            updated |= SolveIk(kv.Key);
+
+        return updated;
     }
 
     public static void ReleaseSelection()
@@ -189,18 +194,22 @@ public static class IkManager
             SolveIk(kv.Key);
     }
 
-    private static void SolveIk(int boneIndex)
+    private static bool SolveIk(int boneIndex)
     {
         if (_modelBones == null || GetBonePositionFunc == null || GetBoneRotationFunc == null || SetBoneRotation == null)
-            return;
+            return false;
         if (boneIndex < 0 || boneIndex >= _modelBones.Count)
-            return;
+            return false;
+
         var info = _modelBones[boneIndex].Ik;
         if (info == null)
-            return;
+            return false;
+
         var targetPos = BonesDict.TryGetValue(boneIndex, out var ikb) ? ikb.Position : Vector3.Zero;
         if (ToWorldSpaceFunc != null)
             targetPos = ToWorldSpaceFunc(targetPos);
+
+        bool changed = false;
         for (int i = 0; i < info.Iterations; i++)
         {
             for (int j = 0; j < info.Links.Count; j++)
@@ -214,10 +223,12 @@ public static class IkManager
                 float cos = Math.Clamp(Vector3.Dot(toEff, toTarget), -1f, 1f);
                 if (cos > 0.99999f)
                     continue;
+
                 float angle = MathF.Acos(cos) * info.ControlWeight;
                 var axis = Vector3.Normalize(Vector3.Cross(toEff, toTarget));
                 if (axis.LengthSquared() < 1e-6f)
                     continue;
+
                 var delta = Quaternion.CreateFromAxisAngle(axis, angle);
                 var currentEuler = GetBoneRotationFunc(linkIdx);
                 var currentQuat = currentEuler.ToNumerics().FromEulerDegrees();
@@ -231,9 +242,13 @@ public static class IkManager
                     newEuler.Y = Math.Clamp(newEuler.Y, min.Y, max.Y);
                     newEuler.Z = Math.Clamp(newEuler.Z, min.Z, max.Z);
                 }
+
                 SetBoneRotation(linkIdx, newEuler.ToOpenTK());
+                changed = true;
             }
         }
+
+        return changed;
     }
 
     private static Vector3 QuaternionToEulerDegrees(Quaternion q)
