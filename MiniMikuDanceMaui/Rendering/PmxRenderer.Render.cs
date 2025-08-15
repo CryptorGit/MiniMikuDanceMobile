@@ -140,6 +140,8 @@ public partial class PmxRenderer
 
         if (IkManager.Solve())
             _bonesDirty = true;
+        // 物理計算の後にIKを解く
+        IkManager.SolveAll();
 
         bool needsUpdate = _bonesDirty || _morphDirty || _uvMorphDirty;
         if (needsUpdate)

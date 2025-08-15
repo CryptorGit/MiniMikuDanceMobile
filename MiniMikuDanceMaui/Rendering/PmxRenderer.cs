@@ -5,6 +5,8 @@ using OpenTK.Graphics.ES30;
 using GL = OpenTK.Graphics.ES30.GL;
 using System.Runtime.InteropServices;
 using System.Collections.Generic;
+using BulletSharp;
+using MiniMikuDance.Physics;
 using MiniMikuDance.Util;
 using MiniMikuDance.Import;
 using MiniMikuDance.App;
@@ -96,6 +98,8 @@ public partial class PmxRenderer : IDisposable
     private System.Numerics.Matrix4x4[] _skinMats = Array.Empty<System.Numerics.Matrix4x4>();
     private float[] _boneLines = Array.Empty<float>();
     private int _boneCapacity;
+    private PhysicsManager? _physics;
+    private readonly List<RigidBody> _rigidBodies = new();
     private int _modelProgram;
     private int _modelViewLoc;
     private int _modelProjLoc;
@@ -235,6 +239,12 @@ public partial class PmxRenderer : IDisposable
     {
         get => _bonePickPixels;
         set => _bonePickPixels = value;
+    }
+
+    public void Update(float deltaTime)
+    {
+        _physics?.StepSimulation(deltaTime);
+        ApplyPhysicsToBones();
     }
 
     // EnsureBoneCapacity は PmxRenderer.Render.cs へ移動
@@ -1097,6 +1107,23 @@ void main(){
             }
         }
 
+        _physics?.Dispose();
+        _physics = new PhysicsManager();
+        _rigidBodies.Clear();
+        foreach (var rb in data.RigidBodies)
+        {
+            var body = _physics.CreateRigidBody(rb);
+            _rigidBodies.Add(body);
+        }
+        foreach (var j in data.Joints)
+        {
+            if (j.RigidBodyA >= 0 && j.RigidBodyA < _rigidBodies.Count &&
+                j.RigidBodyB >= 0 && j.RigidBodyB < _rigidBodies.Count)
+            {
+                _physics.CreateConstraint(j, _rigidBodies[j.RigidBodyA], _rigidBodies[j.RigidBodyB]);
+            }
+        }
+
         RecalculateMaterialMorphs();
         RecalculateBoneMorphs();
         _bonesDirty = true;
@@ -1176,6 +1203,24 @@ void main(){
         catch { /* ignore fit errors */ }
     }
 
+    private void ApplyPhysicsToBones()
+    {
+        if (_physics == null)
+            return;
+        foreach (var body in _rigidBodies)
+        {
+            if (body.UserObject is RigidBodyData rb && rb.BoneIndex >= 0 && rb.BoneIndex < _bones.Count)
+            {
+                var t = body.WorldTransform;
+                var o = t.Origin;
+                var r = t.GetRotation();
+                _bones[rb.BoneIndex].Translation = new System.Numerics.Vector3(o.X, o.Y, o.Z);
+                _bones[rb.BoneIndex].Rotation = new System.Numerics.Quaternion(r.X, r.Y, r.Z, r.W);
+            }
+        }
+        _bonesDirty = true;
+    }
+
     // Render メソッドは PmxRenderer.Render.cs へ移動
 
     public void Dispose()
@@ -1199,5 +1244,6 @@ void main(){
         GL.DeleteVertexArray(_ikBoneVao);
         GL.DeleteProgram(_program);
         GL.DeleteProgram(_modelProgram);
+        _physics?.Dispose();
     }
 }
