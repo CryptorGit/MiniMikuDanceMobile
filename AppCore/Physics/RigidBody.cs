@@ -1,5 +1,6 @@
 namespace MiniMikuDance.Physics;
 
+using System;
 using System.Numerics;
 
 /// <summary>
@@ -33,6 +34,9 @@ public class RigidBody
         Import.RigidBodyTransformType transformType, bool isBoneRelative,
         Vector3 torque, Import.RigidBodyType type, Vector3? gravity)
     {
+        if (!Enum.IsDefined(typeof(Import.RigidBodyTransformType), transformType))
+            throw new ArgumentOutOfRangeException(nameof(transformType), transformType, "Unknown transform type");
+
         Name = name;
         BoneIndex = boneIndex;
         Mass = mass;

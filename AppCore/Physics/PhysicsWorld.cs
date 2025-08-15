@@ -1,5 +1,6 @@
 namespace MiniMikuDance.Physics;
 
+using System;
 using System.Collections.Generic;
 using System.Numerics;
 using MiniMikuDance.Import;
@@ -19,6 +20,16 @@ public class PhysicsWorld
 
     public RigidBody CreateRigidBody(RigidBodyData data)
     {
+        switch (data.TransformType)
+        {
+            case RigidBodyTransformType.FromBoneToSimulation:
+            case RigidBodyTransformType.FromSimulationToBone:
+            case RigidBodyTransformType.FromBoneOrientationAndSimulationToBone:
+                break;
+            default:
+                throw new ArgumentOutOfRangeException(nameof(data.TransformType), data.TransformType, "Unknown transform type");
+        }
+
         var body = new RigidBody(
             data.Name,
             data.BoneIndex,

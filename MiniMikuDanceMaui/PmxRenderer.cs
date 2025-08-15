@@ -818,11 +818,20 @@ void main(){
         _physicsBoneIndices.Clear();
         foreach (var rb in data.RigidBodies)
         {
-            if (rb.BoneIndex >= 0 &&
-                rb.TransformType == RigidBodyTransformType.FromSimulationToBone &&
-                data.Bones[rb.BoneIndex].IsPhysicsAffected)
+            if (rb.BoneIndex < 0 || !data.Bones[rb.BoneIndex].IsPhysicsAffected)
+                continue;
+
+            switch (rb.TransformType)
             {
-                _physicsBoneIndices.Add(rb.BoneIndex);
+                case RigidBodyTransformType.FromSimulationToBone:
+                case RigidBodyTransformType.FromBoneOrientationAndSimulationToBone:
+                    _physicsBoneIndices.Add(rb.BoneIndex);
+                    break;
+                case RigidBodyTransformType.FromBoneToSimulation:
+                    break;
+                default:
+                    // Unknown transform type
+                    break;
             }
         }
         _gravityBoneIndices.Clear();

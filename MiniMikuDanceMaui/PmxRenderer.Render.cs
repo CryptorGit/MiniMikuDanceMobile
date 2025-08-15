@@ -86,22 +86,40 @@ public partial class PmxRenderer
             _physicsWorld.Step(1f / 60f);
             foreach (var body in _physicsWorld.RigidBodies)
             {
-                if (body.TransformType != RigidBodyTransformType.FromSimulationToBone)
-                    continue;
                 int index = body.BoneIndex;
                 if (index < 0 || index >= _bones.Count)
                     continue;
                 var bone = _bones[index];
-                var delta = body.Position - bone.Translation;
-                while (_boneTranslations.Count <= index)
-                    _boneTranslations.Add(Vector3.Zero);
-                _boneTranslations[index] = delta.ToOpenTK();
+                bool updateRotation = false;
+                switch (body.TransformType)
+                {
+                    case RigidBodyTransformType.FromSimulationToBone:
+                        {
+                            var delta = body.Position - bone.Translation;
+                            while (_boneTranslations.Count <= index)
+                                _boneTranslations.Add(Vector3.Zero);
+                            _boneTranslations[index] = delta.ToOpenTK();
+                            updateRotation = true;
+                            break;
+                        }
+                    case RigidBodyTransformType.FromBoneOrientationAndSimulationToBone:
+                        updateRotation = true;
+                        break;
+                    case RigidBodyTransformType.FromBoneToSimulation:
+                        break;
+                    default:
+                        // Unknown transform type
+                        continue;
+                }
 
-                var rotDelta = body.Orientation * System.Numerics.Quaternion.Inverse(bone.Rotation);
-                var euler = rotDelta.ToEulerDegrees();
-                while (_boneRotations.Count <= index)
-                    _boneRotations.Add(Vector3.Zero);
-                _boneRotations[index] = euler.ToOpenTK();
+                if (updateRotation)
+                {
+                    var rotDelta = body.Orientation * System.Numerics.Quaternion.Inverse(bone.Rotation);
+                    var euler = rotDelta.ToEulerDegrees();
+                    while (_boneRotations.Count <= index)
+                        _boneRotations.Add(Vector3.Zero);
+                    _boneRotations[index] = euler.ToOpenTK();
+                }
             }
             _bonesDirty = true;
         }
