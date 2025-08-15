@@ -12,7 +12,7 @@ internal class SKGLViewBindingsContext : IBindingsContext
 #elif IOS
         return Dlsym(RTLD_DEFAULT, procName);
 #else
-        throw new PlatformNotSupportedException();
+        return IntPtr.Zero;
 #endif
     }
 
