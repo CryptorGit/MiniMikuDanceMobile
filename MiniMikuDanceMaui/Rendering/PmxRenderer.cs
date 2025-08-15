@@ -957,7 +957,7 @@ void main(){
             GL.BufferData(BufferTarget.ElementArrayBuffer, indices.Count * sizeof(uint), indices.ToArray(), BufferUsageHint.StaticDraw);
             GL.BindVertexArray(0);
 
-            if (sm.TextureBytes != null)
+            if (sm.TextureBytes != null && sm.TextureBytes.Length > 0)
             {
                 rm.Texture = GL.GenTexture();
                 GL.BindTexture(TextureTarget.Texture2D, rm.Texture);

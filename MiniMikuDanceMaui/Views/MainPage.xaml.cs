@@ -1174,7 +1174,11 @@ public partial class MainPage : ContentPage
                             var fileName = Path.GetFileName(localRel);
                             var found = Directory.GetFiles(_modelDir, fileName, SearchOption.AllDirectories).FirstOrDefault();
                             if (found == null)
+                            {
+                                foreach (var idx in indices)
+                                    data.SubMeshes[idx].TextureMissing = true;
                                 return;
+                            }
                             localRel = Path.GetRelativePath(_modelDir, found).Replace(Path.DirectorySeparatorChar, '/');
                             path = found;
                         }
