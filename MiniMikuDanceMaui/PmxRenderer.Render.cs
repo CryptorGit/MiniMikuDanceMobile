@@ -7,6 +7,7 @@ using OpenTK.Mathematics;
 using OpenTK.Graphics.ES30;
 using GL = OpenTK.Graphics.ES30.GL;
 using MiniMikuDance.Util;
+using MiniMikuDance.Physics;
 using Vector2 = OpenTK.Mathematics.Vector2;
 using Vector3 = OpenTK.Mathematics.Vector3;
 using Vector4 = OpenTK.Mathematics.Vector4;
@@ -77,6 +78,23 @@ public partial class PmxRenderer
 
     public void Render()
     {
+        if (_physicsWorld != null)
+        {
+            _physicsWorld.Step(1f / 60f);
+            foreach (var body in _physicsWorld.RigidBodies)
+            {
+                int index = body.BoneIndex;
+                if (index < 0 || index >= _bones.Count)
+                    continue;
+                var bone = _bones[index];
+                var delta = body.Position - bone.Translation;
+                while (_boneTranslations.Count <= index)
+                    _boneTranslations.Add(Vector3.Zero);
+                _boneTranslations[index] = delta.ToOpenTK();
+            }
+            _bonesDirty = true;
+        }
+
         UpdateViewProjection();
 
         bool needsUpdate = _bonesDirty || _morphDirty || _uvMorphDirty;
@@ -165,6 +183,8 @@ public partial class PmxRenderer
                 var bone = _bones[i];
                 if (bone.Parent >= 0)
                 {
+                    if (!_showAllBones && (_physicsBoneIndices.Contains(i) || _physicsBoneIndices.Contains(bone.Parent)))
+                        continue;
                     var pp = _worldMats[bone.Parent].Translation;
                     var cp = _worldMats[i].Translation;
                     _boneLines[lineIdx++] = pp.X; _boneLines[lineIdx++] = pp.Y; _boneLines[lineIdx++] = pp.Z;

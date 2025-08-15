@@ -9,6 +9,7 @@ using MiniMikuDance.Util;
 using MiniMikuDance.Import;
 using MiniMikuDance.App;
 using MiniMikuDance.IK;
+using MiniMikuDance.Physics;
 using MMDTools;
 using SkiaSharp.Views.Maui.Controls;
 using Vector2 = OpenTK.Mathematics.Vector2;
@@ -145,6 +146,8 @@ public partial class PmxRenderer : IDisposable
     private readonly object _ikBonesLock = new();
     private readonly Dictionary<int, string> _indexToHumanoidName = new();
     public BonesConfig? BonesConfig { get; set; }
+    private PhysicsWorld? _physicsWorld;
+    private readonly HashSet<int> _physicsBoneIndices = new();
     private Quaternion _externalRotation = Quaternion.Identity;
     // デフォルトのカメラ感度をスライダーの最小値に合わせる
     public float RotateSensitivity { get; set; } = 0.1f;
@@ -193,6 +196,20 @@ public partial class PmxRenderer : IDisposable
             if (_ikBoneScale != value)
             {
                 _ikBoneScale = value;
+                Viewer?.InvalidateSurface();
+            }
+        }
+    }
+
+    private bool _showAllBones;
+    public bool ShowAllBones
+    {
+        get => _showAllBones;
+        set
+        {
+            if (_showAllBones != value)
+            {
+                _showAllBones = value;
                 Viewer?.InvalidateSurface();
             }
         }
@@ -580,6 +597,8 @@ void main(){
             foreach (var bone in _ikBones)
             {
                 int i = bone.PmxBoneIndex;
+                if (_physicsBoneIndices.Contains(i))
+                    continue;
                 var pos = _worldMats[i].Translation.ToOpenTK();
                 var v4 = new Vector4(pos, 1f);
                 var clip = v4 * _viewMatrix;
@@ -604,6 +623,8 @@ void main(){
             int limit = Math.Min(_worldMats.Length, _bones.Count);
             for (int i = 0; i < limit; i++)
             {
+                if (_physicsBoneIndices.Contains(i))
+                    continue;
                 var pos = _worldMats[i].Translation.ToOpenTK();
                 var v4 = new Vector4(pos, 1f);
                 var clip = v4 * _viewMatrix;
@@ -792,6 +813,13 @@ void main(){
         _meshes.Clear();
         _indexToHumanoidName.Clear();
         _bones = data.Bones;
+        _physicsWorld = data.Physics;
+        _physicsBoneIndices.Clear();
+        foreach (var rb in data.RigidBodies)
+        {
+            if (rb.BoneIndex >= 0)
+                _physicsBoneIndices.Add(rb.BoneIndex);
+        }
         _worldMats = new System.Numerics.Matrix4x4[_bones.Count];
         _skinMats = new System.Numerics.Matrix4x4[_bones.Count];
         foreach (var (name, idx) in data.HumanoidBoneList)
