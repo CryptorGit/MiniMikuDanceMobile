@@ -187,6 +187,7 @@ public partial class MainPage : ContentPage
         {
             try
             {
+                _renderer.Update((float)_renderTimer.Interval.TotalSeconds);
                 if (_needsRender)
                 {
                     Viewer?.InvalidateSurface();
