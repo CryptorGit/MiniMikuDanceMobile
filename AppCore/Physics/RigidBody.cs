@@ -22,11 +22,12 @@ public class RigidBody
     public bool IsBoneRelative { get; }
     public Vector3 Position { get; internal set; }
     public Vector3 Velocity { get; internal set; }
+    public Vector3? Gravity { get; }
 
     public RigidBody(string name, int boneIndex, float mass, Import.RigidBodyShape shape,
         Vector3 size, Vector3 origin, Quaternion orientation,
         float linearDamping, float angularDamping, float restitution, float friction,
-        Import.RigidBodyTransformType transformType, bool isBoneRelative)
+        Import.RigidBodyTransformType transformType, bool isBoneRelative, Vector3? gravity)
     {
         Name = name;
         BoneIndex = boneIndex;
@@ -43,13 +44,15 @@ public class RigidBody
         IsBoneRelative = isBoneRelative;
         Position = origin;
         Velocity = Vector3.Zero;
+        Gravity = gravity;
     }
 
-    internal void ApplyGravity(Vector3 gravity, float dt)
+    internal void ApplyGravity(Vector3 worldGravity, float dt)
     {
         if (Mass <= 0f)
             return;
-        Velocity += gravity * dt;
+        var g = Gravity ?? worldGravity;
+        Velocity += g * dt;
     }
 
     internal void Integrate(float dt)

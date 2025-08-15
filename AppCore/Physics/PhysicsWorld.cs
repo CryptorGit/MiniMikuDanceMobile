@@ -32,7 +32,8 @@ public class PhysicsWorld
             data.Restitution,
             data.Friction,
             data.TransformType,
-            data.IsBoneRelative);
+            data.IsBoneRelative,
+            data.Gravity);
         _rigidBodies.Add(body);
         return body;
     }
@@ -65,10 +66,7 @@ public class PhysicsWorld
     {
         foreach (var body in _rigidBodies)
         {
-            if (body.TransformType == RigidBodyTransformType.FromBoneToSimulation)
-            {
-                body.ApplyGravity(Gravity, deltaTime);
-            }
+            body.ApplyGravity(Gravity, deltaTime);
             body.Integrate(deltaTime);
         }
         foreach (var joint in _joints)

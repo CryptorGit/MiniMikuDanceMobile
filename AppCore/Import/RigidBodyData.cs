@@ -30,6 +30,7 @@ public class RigidBodyData
     public float Friction { get; set; }
     public RigidBodyTransformType TransformType { get; set; }
     public bool IsBoneRelative { get; set; }
+    public Vector3? Gravity { get; set; }
 }
 
 public class JointData
