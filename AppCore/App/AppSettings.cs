@@ -1,3 +1,4 @@
+using System.Text.Json;
 using MiniMikuDance.Util;
 
 namespace MiniMikuDance.App;
@@ -58,13 +59,25 @@ public class AppSettings
 
 
     private const string DefaultFile = "Configs/appsettings.json";
+    public static bool IsRestored { get; private set; }
 
     /// <summary>
     /// 設定ファイルを読み込む。存在しない場合はデフォルト値で生成する。
     /// </summary>
     public static AppSettings Load(string path = DefaultFile)
     {
-        return JSONUtil.Load<AppSettings>(path);
+        try
+        {
+            IsRestored = false;
+            return JSONUtil.Load<AppSettings>(path);
+        }
+        catch (JsonException)
+        {
+            var settings = new AppSettings();
+            settings.Save(path);
+            IsRestored = true;
+            return settings;
+        }
     }
 
     /// <summary>

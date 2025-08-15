@@ -48,7 +48,7 @@ public partial class MainPage : ContentPage
     private static readonly HashSet<string> ModelExtensions = new() { ".pmx", ".pmd" };
     private string? _modelDir;
     private float _modelScale = 1f;
-    private readonly AppSettings _settings = AppSettings.Load();
+    private readonly AppSettings _settings;
 
     private readonly PmxRenderer _renderer = new();
     private float _rotateSensitivity = 0.1f;
@@ -164,6 +164,15 @@ public partial class MainPage : ContentPage
     public MainPage()
     {
         InitializeComponent();
+        _settings = AppSettings.Load();
+        if (AppSettings.IsRestored)
+        {
+            MainThread.BeginInvokeOnMainThread(async () =>
+                await DisplayAlert(
+                    "設定エラー",
+                    "設定ファイルが破損していたため、デフォルト設定を再生成しました。",
+                    "OK"));
+        }
         NavigationPage.SetHasNavigationBar(this, false);
         this.SizeChanged += OnSizeChanged;
         _renderer.RotateSensitivity = 0.1f;
