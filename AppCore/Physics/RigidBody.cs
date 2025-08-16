@@ -1,6 +1,7 @@
 namespace MiniMikuDance.Physics;
 
 using System;
+using System.Numerics;
 using MiniMikuDance.Import;
 
 /// <summary>
@@ -12,6 +13,8 @@ public sealed class RigidBody : IDisposable
     public int BoneIndex { get; }
     public RigidBodyTransformType TransformType { get; }
     internal nint Handle { get; }
+    public Vector3 Position { get; internal set; }
+    public Quaternion Orientation { get; internal set; }
 
     internal RigidBody(string name, int boneIndex, RigidBodyTransformType transformType, nint handle)
     {
@@ -19,6 +22,8 @@ public sealed class RigidBody : IDisposable
         BoneIndex = boneIndex;
         TransformType = transformType;
         Handle = handle;
+        Position = Vector3.Zero;
+        Orientation = Quaternion.Identity;
     }
 
     public void Dispose()
