@@ -15,7 +15,7 @@ using System.IO;
 using System.Linq;
 using MiniMikuDance.Import;
 using OpenTK.Mathematics;
-using MiniMikuDance.App;
+using MiniMikuDanceMaui.App;
 using MiniMikuDance.IK;
 using MiniMikuDance.Util;
 using MiniMikuDanceMaui.Rendering;
@@ -38,7 +38,7 @@ public partial class MainPage : ContentPage
     private static readonly HashSet<string> ModelExtensions = new() { ".pmx", ".pmd" };
     private string? _modelDir;
     private float _modelScale = 1f;
-    private readonly AppSettings _settings = AppSettings.Load();
+    private readonly MiniMikuDance.App.AppSettings _settings = MiniMikuDance.App.AppSettings.Load();
 
     private readonly PmxRenderer _renderer = new();
     private float _rotateSensitivity = 0.1f;
@@ -52,7 +52,7 @@ public partial class MainPage : ContentPage
     private ModelData? _currentModel;
     private readonly Dictionary<long, SKPoint> _touchPoints = new();
     private readonly long[] _touchIds = new long[2];
-    private readonly BonesConfig? _bonesConfig = App.Initializer.BonesConfig;
+    private readonly MiniMikuDance.App.BonesConfig? _bonesConfig = App.Initializer.BonesConfig;
     private bool _needsRender;
     private readonly IDispatcherTimer _renderTimer;
     private int _renderTimerErrorCount;
