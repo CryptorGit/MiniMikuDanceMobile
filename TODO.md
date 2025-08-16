@@ -8,3 +8,4 @@
 - SyncToSimulation/SyncFromSimulation の変換ロジック精緻化
 - Box および Capsule 用の衝突判定メソッドの実装
 - Android SDK を導入し、MiniMikuDanceMaui をビルドして警告 CS0618 が出ないことを確認
+- IK ソルバの精度向上と親ボーン更新ロジックの追加

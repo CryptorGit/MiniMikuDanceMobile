@@ -9,7 +9,7 @@ namespace MiniMikuDance.IK;
 public static class IkManager
 {
     private static readonly Dictionary<int, IkBone> BonesDict = new();
-    // IKアルゴリズム関連の処理を削除したため、ソルバーや固定軸の管理は不要
+    private static readonly List<Constraint> Constraints = new();
 
     // レンダラーから提供される各種処理を委譲用デリゲートとして保持
     public static System.Func<float, float, int>? PickFunc { get; set; }
@@ -38,6 +38,7 @@ public static class IkManager
                 continue;
 
             RegisterIkBone(i, modelBones[i]);
+            RegisterConstraint(i, modelBones[i], modelBones);
         }
 
         // "足IK" ボーンが取りこぼされていないか確認する
@@ -59,6 +60,22 @@ public static class IkManager
         var rootPos = Vector3.Transform(Vector3.Zero, bRoot.BindMatrix);
         var rootRole = DetermineRole(bRoot.Name);
         BonesDict[index] = new IkBone(index, bRoot.Name, rootRole, rootPos, bRoot.Rotation, bRoot.BaseForward, bRoot.BaseUp);
+    }
+
+    private static void RegisterConstraint(int index, BoneData bRoot, IReadOnlyList<BoneData> bones)
+    {
+        var ik = bRoot.Ik;
+        if (ik == null)
+            return;
+        var constraint = new Constraint(index, ik.Target, ik.ControlWeight, ik.Iterations);
+        foreach (var link in ik.Links)
+        {
+            if (link.BoneIndex < 0 || link.BoneIndex >= bones.Count)
+                continue;
+            var lb = bones[link.BoneIndex];
+            constraint.Joints.Add(new ConstraintJoint(link.BoneIndex, lb.Name, link.HasLimit, link.MinAngle, link.MaxAngle));
+        }
+        Constraints.Add(constraint);
     }
 
     // レンダラーから提供された情報を用いてボーン選択を行う
@@ -151,10 +168,17 @@ public static class IkManager
         InvalidateViewer?.Invoke();
     }
 
+    public static void SolveAllConstraints(IList<BoneData> bones)
+    {
+        foreach (var c in Constraints)
+            IkSolver.SolveConstraint(c, bones);
+    }
+
     public static void Clear()
     {
         ReleaseSelection();
         BonesDict.Clear();
+        Constraints.Clear();
     }
 
     private static BoneRole DetermineRole(string name)
