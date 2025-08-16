@@ -9,6 +9,7 @@ using GL = OpenTK.Graphics.ES30.GL;
 using MiniMikuDance.Util;
 using MiniMikuDance.Physics;
 using MiniMikuDance.Import;
+using MiniMikuDance.IK;
 using Vector2 = OpenTK.Mathematics.Vector2;
 using Vector3 = OpenTK.Mathematics.Vector3;
 using Vector4 = OpenTK.Mathematics.Vector4;
@@ -136,6 +137,8 @@ public partial class PmxRenderer
             }
             _bonesDirty = true;
         }
+
+        IkManager.SolveAllConstraints(_bones);
 
         UpdateViewProjection();
 
