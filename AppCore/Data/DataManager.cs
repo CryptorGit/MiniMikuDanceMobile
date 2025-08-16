@@ -7,7 +7,9 @@ public partial class DataManager : Util.Singleton<DataManager>
 {
     public T LoadConfig<T>(string key) where T : new()
     {
-        var path = $"Configs/{key}.json";
+        if (!Directory.Exists("Configs"))
+            Directory.CreateDirectory("Configs");
+        var path = Path.Combine("Configs", $"{key}.json");
         var stream = OpenPackageFile(path);
         if (stream != null)
         {
@@ -41,7 +43,9 @@ public partial class DataManager : Util.Singleton<DataManager>
 
     public void SaveConfig<T>(string key, T data)
     {
-        Util.JSONUtil.Save($"Configs/{key}.json", data);
+        if (!Directory.Exists("Configs"))
+            Directory.CreateDirectory("Configs");
+        Util.JSONUtil.Save(Path.Combine("Configs", $"{key}.json"), data);
     }
 
     private readonly string _tempDir = Path.Combine(Path.GetTempPath(), "MiniMikuDance_Temp");
