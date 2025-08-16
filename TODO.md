@@ -4,6 +4,12 @@
 - [x] `MiniMikuDanceMaui.csproj` から OpenTK を削除し、`SharpBgfx` の NuGet 参照を追加
 - [x] `AppCore/App/IViewer.cs` に `IRenderer` インターフェースを新設
 - [ ] `Rendering/PmxRenderer.*` 内の OpenGL 呼び出しを SharpBGFX API に置換
+    - [ ] `MiniMikuDanceMaui/PmxRenderer.cs` と `.Render.cs` から `using OpenTK.*` と `GL` 呼び出しを削除
+    - [ ] 頂点・インデックス・ユニフォームバッファ生成／更新を `Bgfx.CreateVertexBuffer`、`Bgfx.CreateIndexBuffer`、`Bgfx.SetUniform` などへ移行
+    - [ ] `RenderMesh` の `Vao`／`Vbo`／`Ebo` フィールドを `bgfx.VertexBufferHandle` などのハンドル型に変更
+    - [ ] 行列・ベクトル型を `System.Numerics` (`Matrix4x4`、`Vector3` など) に統一
+    - [ ] `Render()` 内の `DrawScene`／`DrawIkBones` 等の描画処理を bgfx パイプラインに合わせて再実装
+    - [ ] OpenTK 由来の不要な `using` 文を整理し、ビルドが通る状態を確認
 - [ ] BGFX 用シェーダを `Resources/Shaders` に配置し、`shaderc` で各プラットフォーム向けにコンパイルするビルドタスクを追加
 - [ ] `MauiProgram.cs` で SharpBGFX 実装を登録し、OpenGL 初期化コードを削除
 - [ ] `BGFXView`（新規）を作成し、`MainPage.xaml` と関連コードを更新
