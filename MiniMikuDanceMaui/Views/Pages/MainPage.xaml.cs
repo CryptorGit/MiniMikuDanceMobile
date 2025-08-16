@@ -15,7 +15,7 @@ using System.IO;
 using System.Linq;
 using MiniMikuDance.Import;
 using OpenTK.Mathematics;
-using MiniMikuDanceMaui.App;
+using MiniMikuDanceMaui;
 using MiniMikuDance.IK;
 using MiniMikuDance.Util;
 using MiniMikuDanceMaui.Rendering;
