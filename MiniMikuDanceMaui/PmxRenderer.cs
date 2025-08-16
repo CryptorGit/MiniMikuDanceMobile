@@ -41,6 +41,12 @@ public partial class PmxRenderer : IRenderer, IDisposable
         public Vector4 BaseTextureTint = Vector4.One;
         public Texture? Texture;
         public bool HasTexture;
+        public Uniform? ColorUniform;
+        public Uniform? SpecularUniform;
+        public Uniform? EdgeUniform;
+        public Uniform? ToonColorUniform;
+        public Uniform? TextureTintUniform;
+        public Uniform? TextureUniform;
         public Vector3[] BaseVertices = Array.Empty<Vector3>();
         public Vector3[] VertexOffsets = Array.Empty<Vector3>();
         public Vector3[] Normals = Array.Empty<Vector3>();
@@ -51,6 +57,29 @@ public partial class PmxRenderer : IRenderer, IDisposable
         public Vector3[] SdefC = Array.Empty<Vector3>();
         public Vector3[] SdefR0 = Array.Empty<Vector3>();
         public Vector3[] SdefR1 = Array.Empty<Vector3>();
+    }
+
+    [StructLayout(LayoutKind.Sequential)]
+    private struct PmxVertex
+    {
+        public float Px;
+        public float Py;
+        public float Pz;
+        public float Nx;
+        public float Ny;
+        public float Nz;
+        public float U;
+        public float V;
+        public static readonly VertexLayout Layout;
+        static PmxVertex()
+        {
+            Layout = new VertexLayout();
+            Layout.Begin()
+                .Add(VertexAttribute.Position, 3, VertexAttributeType.Float)
+                .Add(VertexAttribute.Normal, 3, VertexAttributeType.Float)
+                .Add(VertexAttribute.TexCoord0, 2, VertexAttributeType.Float)
+                .End();
+        }
     }
     private readonly System.Collections.Generic.List<RenderMesh> _meshes = new();
     private readonly Dictionary<string, MorphData> _morphs = new(StringComparer.OrdinalIgnoreCase);
@@ -545,6 +574,12 @@ public partial class PmxRenderer : IRenderer, IDisposable
             rm.VertexBuffer?.Dispose();
             rm.IndexBuffer?.Dispose();
             rm.Texture?.Dispose();
+            rm.ColorUniform?.Dispose();
+            rm.SpecularUniform?.Dispose();
+            rm.EdgeUniform?.Dispose();
+            rm.ToonColorUniform?.Dispose();
+            rm.TextureTintUniform?.Dispose();
+            rm.TextureUniform?.Dispose();
         }
         _meshes.Clear();
         _indexToHumanoidName.Clear();
@@ -558,8 +593,105 @@ public partial class PmxRenderer : IRenderer, IDisposable
 
         _modelTransform = data.Transform.ToMatrix4();
 
-        // TODO: BGFX でのメッシュ生成を実装する
+        foreach (var smd in data.SubMeshes)
+        {
+            var rm = new RenderMesh();
+            var mesh = smd.Mesh;
+            int vCount = mesh.VertexCount;
+            rm.BaseVertices = new Vector3[vCount];
+            rm.VertexOffsets = new Vector3[vCount];
+            rm.Normals = new Vector3[vCount];
+            rm.TexCoords = smd.TexCoords.ToArray();
+            rm.UvOffsets = new Vector2[vCount];
+            rm.JointIndices = smd.JointIndices.ToArray();
+            rm.JointWeights = smd.JointWeights.ToArray();
+            rm.SdefC = smd.SdefC.ToArray();
+            rm.SdefR0 = smd.SdefR0.ToArray();
+            rm.SdefR1 = smd.SdefR1.ToArray();
+            rm.Color = rm.BaseColor = smd.ColorFactor;
+            rm.Specular = rm.BaseSpecular = smd.Specular;
+            rm.SpecularPower = rm.BaseSpecularPower = smd.SpecularPower;
+            rm.EdgeColor = rm.BaseEdgeColor = smd.EdgeColor;
+            rm.EdgeSize = rm.BaseEdgeSize = smd.EdgeSize;
+            rm.ToonColor = rm.BaseToonColor = smd.ToonColor;
+            rm.TextureTint = rm.BaseTextureTint = smd.TextureTint;
 
+            for (int i = 0; i < vCount; i++)
+            {
+                var v = mesh.Vertices[i];
+                rm.BaseVertices[i] = new Vector3(v.X, v.Y, v.Z);
+                if (i < mesh.Normals.Count)
+                {
+                    var n = mesh.Normals[i];
+                    rm.Normals[i] = new Vector3(n.X, n.Y, n.Z);
+                }
+            }
+
+            var verts = new PmxVertex[vCount];
+            for (int i = 0; i < vCount; i++)
+            {
+                verts[i] = new PmxVertex
+                {
+                    Px = rm.BaseVertices[i].X,
+                    Py = rm.BaseVertices[i].Y,
+                    Pz = rm.BaseVertices[i].Z,
+                    Nx = rm.Normals.Length > i ? rm.Normals[i].X : 0f,
+                    Ny = rm.Normals.Length > i ? rm.Normals[i].Y : 0f,
+                    Nz = rm.Normals.Length > i ? rm.Normals[i].Z : 0f,
+                    U = rm.TexCoords.Length > i ? rm.TexCoords[i].X : 0f,
+                    V = rm.TexCoords.Length > i ? rm.TexCoords[i].Y : 0f
+                };
+            }
+            rm.VertexBuffer = Bgfx.CreateVertexBuffer(MemoryBlock.FromArray(verts), PmxVertex.Layout, BufferFlags.Dynamic);
+
+            int indexCount = mesh.FaceCount * 3;
+            rm.IndexCount = indexCount;
+            if (vCount >= ushort.MaxValue)
+            {
+                var idx = new uint[indexCount];
+                int k = 0;
+                foreach (var f in mesh.Faces)
+                {
+                    idx[k++] = (uint)f.Indices[0];
+                    idx[k++] = (uint)f.Indices[1];
+                    idx[k++] = (uint)f.Indices[2];
+                }
+                rm.IndexBuffer = Bgfx.CreateIndexBuffer(MemoryBlock.FromArray(idx), BufferFlags.Dynamic | BufferFlags.Index32);
+            }
+            else
+            {
+                var idx = new ushort[indexCount];
+                int k = 0;
+                foreach (var f in mesh.Faces)
+                {
+                    idx[k++] = (ushort)f.Indices[0];
+                    idx[k++] = (ushort)f.Indices[1];
+                    idx[k++] = (ushort)f.Indices[2];
+                }
+                rm.IndexBuffer = Bgfx.CreateIndexBuffer(MemoryBlock.FromArray(idx), BufferFlags.Dynamic);
+            }
+
+            if (smd.TextureBytes != null && smd.TextureWidth > 0 && smd.TextureHeight > 0)
+            {
+                rm.Texture = Bgfx.CreateTexture2D((ushort)smd.TextureWidth, (ushort)smd.TextureHeight, false, 1,
+                    TextureFormat.RGBA8, TextureFlags.None,
+                    MemoryBlock.FromArray(smd.TextureBytes));
+                rm.HasTexture = true;
+            }
+            else
+            {
+                rm.HasTexture = false;
+            }
+
+            rm.ColorUniform = Bgfx.CreateUniform("u_color", UniformType.Vec4);
+            rm.SpecularUniform = Bgfx.CreateUniform("u_specular", UniformType.Vec4);
+            rm.EdgeUniform = Bgfx.CreateUniform("u_edge", UniformType.Vec4);
+            rm.ToonColorUniform = Bgfx.CreateUniform("u_toonColor", UniformType.Vec4);
+            rm.TextureTintUniform = Bgfx.CreateUniform("u_textureTint", UniformType.Vec4);
+            rm.TextureUniform = Bgfx.CreateUniform("s_texColor", UniformType.Sampler);
+
+            _meshes.Add(rm);
+        }
 
         _morphs.Clear();
         _morphsByCategory.Clear();
@@ -768,6 +900,12 @@ public partial class PmxRenderer : IRenderer, IDisposable
             rm.VertexBuffer?.Dispose();
             rm.IndexBuffer?.Dispose();
             rm.Texture?.Dispose();
+            rm.ColorUniform?.Dispose();
+            rm.SpecularUniform?.Dispose();
+            rm.EdgeUniform?.Dispose();
+            rm.ToonColorUniform?.Dispose();
+            rm.TextureTintUniform?.Dispose();
+            rm.TextureUniform?.Dispose();
         }
         _meshes.Clear();
         _indexToHumanoidName.Clear();
