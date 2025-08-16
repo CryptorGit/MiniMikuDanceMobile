@@ -1,8 +1,11 @@
 using System;
 using System.Numerics;
+using System.IO;
+using System.Threading;
 using Microsoft.Maui.Controls;
 using Microsoft.Maui.Graphics;
 using MiniMikuDance.App;
+using SharpBgfx;
 
 namespace MiniMikuDanceMaui;
 
@@ -33,7 +36,24 @@ public class BGFXView : GraphicsView, IViewer
 
     public event Action<float>? FrameUpdated;
 
-    public byte[] CaptureFrame() => Array.Empty<byte>(); // TODO: implement
+    public byte[] CaptureFrame()
+    {
+        var path = Path.Combine(Path.GetTempPath(), $"bgfx_{Guid.NewGuid():N}.png");
+        Bgfx.RequestScreenShot(path);
+        Bgfx.Frame();
+        var timeout = DateTime.UtcNow.AddSeconds(1);
+        while (!File.Exists(path) && DateTime.UtcNow < timeout)
+        {
+            Thread.Sleep(1);
+        }
+        byte[] data = Array.Empty<byte>();
+        if (File.Exists(path))
+        {
+            data = File.ReadAllBytes(path);
+            File.Delete(path);
+        }
+        return data;
+    }
 
     protected override void OnSizeAllocated(double width, double height)
     {
