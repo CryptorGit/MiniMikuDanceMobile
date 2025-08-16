@@ -4,10 +4,20 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent">
 
-    <com.example.viewer.viewer.ViewerSurfaceView
-        android:id="@+id/viewer_surface"
+    <FrameLayout
         android:layout_width="match_parent"
-        android:layout_height="match_parent" />
+        android:layout_height="match_parent">
+
+        <com.example.viewer.viewer.ViewerSurfaceView
+            android:id="@+id/viewer_surface"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent" />
+
+        <com.example.viewer.viewer.OverlayRenderer
+            android:id="@+id/overlay_renderer"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent" />
+    </FrameLayout>
 
     <com.google.android.material.tabs.TabLayout
         android:id="@+id/tab_layout"
@@ -22,6 +32,37 @@
         android:layout_gravity="end|center_vertical"
         android:textOn="Pose"
         android:textOff="Camera" />
+
+    <LinearLayout
+        android:id="@+id/timeline"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_gravity="bottom"
+        android:orientation="horizontal"
+        android:background="#33000000"
+        android:padding="4dp">
+
+        <ImageButton
+            android:id="@+id/button_add_frame"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:contentDescription="Add frame"
+            android:src="@drawable/ic_add" />
+
+        <ImageButton
+            android:id="@+id/button_remove_frame"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:contentDescription="Remove frame"
+            android:src="@drawable/ic_remove" />
+
+        <ImageButton
+            android:id="@+id/button_keyframe"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:contentDescription="Keyframe"
+            android:src="@drawable/ic_key" />
+    </LinearLayout>
 
     <FrameLayout
         android:id="@+id/bottom_sheet"

@@ -7,9 +7,11 @@ import android.view.SurfaceHolder
 import android.view.SurfaceView
 import com.example.viewer.ViewerMode
 import com.example.viewer.camera.CameraController
+import com.example.viewer.pose.PoseController
 
 class ViewerSurfaceView(context: Context) : SurfaceView(context), SurfaceHolder.Callback {
     private val cameraController = CameraController()
+    private var poseController: PoseController? = null
     private val scaleDetector = ScaleGestureDetector(context, object : ScaleGestureDetector.SimpleOnScaleGestureListener() {
         override fun onScale(detector: ScaleGestureDetector): Boolean {
             cameraController.zoom(1f / detector.scaleFactor)
@@ -34,6 +36,12 @@ class ViewerSurfaceView(context: Context) : SurfaceView(context), SurfaceHolder.
         this.mode = mode
     }
 
+    fun setPoseController(controller: PoseController) {
+        poseController = controller
+    }
+
+    fun getCameraController(): CameraController = cameraController
+
     override fun onTouchEvent(event: MotionEvent): Boolean {
         onUserInteraction?.invoke()
         return when (mode) {
@@ -46,7 +54,11 @@ class ViewerSurfaceView(context: Context) : SurfaceView(context), SurfaceHolder.
                 true
             }
             ViewerMode.POSE -> {
-                // TODO: implement IK operations
+                when (event.actionMasked) {
+                    MotionEvent.ACTION_DOWN -> poseController?.selectTargetAt(event.x, event.y, width, height)
+                    MotionEvent.ACTION_MOVE -> poseController?.moveSelected(event.x, event.y, width, height)
+                    MotionEvent.ACTION_UP, MotionEvent.ACTION_CANCEL -> poseController?.clearSelection()
+                }
                 true
             }
         }

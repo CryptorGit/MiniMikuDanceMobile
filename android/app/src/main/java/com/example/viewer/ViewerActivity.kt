@@ -2,12 +2,17 @@ package com.example.viewer
 
 import android.os.Bundle
 import android.widget.FrameLayout
+import android.widget.ImageButton
 import android.widget.ToggleButton
 import androidx.appcompat.app.AppCompatActivity
 import androidx.fragment.app.Fragment
 import com.example.viewer.file.ImportPmxFragment
+import com.example.viewer.math.Vector3
+import com.example.viewer.pose.BoneTarget
+import com.example.viewer.pose.PoseController
 import com.example.viewer.settings.AppSettingsFragment
 import com.example.viewer.viewsettings.ViewSettingsFragment
+import com.example.viewer.viewer.OverlayRenderer
 import com.example.viewer.viewer.ViewerSurfaceView
 import com.google.android.material.bottomsheet.BottomSheetBehavior
 import com.google.android.material.tabs.TabLayout
@@ -23,6 +28,13 @@ class ViewerActivity : AppCompatActivity() {
 
         surfaceView = findViewById(R.id.viewer_surface)
         surfaceView.setMode(mode)
+
+        val poseController = PoseController(surfaceView.getCameraController())
+        val overlay = findViewById<OverlayRenderer>(R.id.overlay_renderer)
+        overlay.poseController = poseController
+        poseController.onUpdate = { overlay.invalidate() }
+        surfaceView.setPoseController(poseController)
+        poseController.setTargets(listOf(BoneTarget("root", Vector3(0f, 0f, 0f))))
 
         val bottomSheet = findViewById<FrameLayout>(R.id.bottom_sheet)
         bottomSheetBehavior = BottomSheetBehavior.from(bottomSheet).apply {
@@ -64,6 +76,16 @@ class ViewerActivity : AppCompatActivity() {
             mode = if (isChecked) ViewerMode.POSE else ViewerMode.CAMERA
             surfaceView.setMode(mode)
             bottomSheetBehavior.state = BottomSheetBehavior.STATE_HIDDEN
+        }
+
+        findViewById<ImageButton>(R.id.button_keyframe).setOnClickListener {
+            poseController.commitPose()
+        }
+        findViewById<ImageButton>(R.id.button_add_frame).setOnClickListener {
+            // TODO: add frame handling
+        }
+        findViewById<ImageButton>(R.id.button_remove_frame).setOnClickListener {
+            // TODO: remove frame handling
         }
     }
 }
