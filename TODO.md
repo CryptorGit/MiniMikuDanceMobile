@@ -5,13 +5,13 @@
 - [x] `AppCore/App/IViewer.cs` に `IRenderer` インターフェースを新設
 - [x] `AppCore/AppCore.csproj` から OpenTK の NuGet 参照を削除
 - [ ] `Rendering/PmxRenderer.*` 内の OpenGL 呼び出しを SharpBGFX API に置換
-    - [ ] `MiniMikuDanceMaui/PmxRenderer.cs` と `.Render.cs` から `using OpenTK.*` と `GL` 呼び出しを削除
-    - [ ] `Initialize` 内で事前コンパイル済みシェーダーを `Bgfx.CreateShader` と `Bgfx.CreateProgram` で読み込む
+    - [x] `MiniMikuDanceMaui/PmxRenderer.cs` と `.Render.cs` から `using OpenTK.*` と `GL` 呼び出しを削除
+    - [x] `Initialize` 内で事前コンパイル済みシェーダーを `Bgfx.CreateShader` と `Bgfx.CreateProgram` で読み込む
     - [ ] 頂点・インデックス・ユニフォームバッファ生成／更新を `Bgfx.CreateVertexBuffer`、`Bgfx.CreateIndexBuffer`、`Bgfx.UpdateVertexBuffer`、`Bgfx.SetUniform` などへ移行
-    - [ ] `RenderMesh` の `Vao`／`Vbo`／`Ebo`／`Texture` フィールドを `VertexBuffer`・`IndexBuffer`・`Texture`・`Uniform` 等 SharpBgfx ハンドル型に変更
+    - [x] `RenderMesh` の `Vao`／`Vbo`／`Ebo`／`Texture` フィールドを `VertexBuffer`・`IndexBuffer`・`Texture`・`Uniform` 等 SharpBgfx ハンドル型に変更
     - [ ] 行列・ベクトル型を `System.Numerics` (`Matrix4x4`、`Vector3` など) に統一し、`Bgfx.SetTransform`／`Bgfx.SetUniform` を利用
     - [ ] `Render`／`DrawScene`／`DrawIkBones` などの描画処理を `Bgfx.SetViewTransform`・`Bgfx.SetVertexBuffer`・`Bgfx.Submit` ベースで再実装
-    - [ ] 移行後、`rg GL\.` 等で OpenGL 呼び出しが残っていないことを確認し、不要な `using` を削除
+    - [x] 移行後、`rg GL\.` 等で OpenGL 呼び出しが残っていないことを確認し、不要な `using` を削除
 - [x] BGFX 用シェーダを `Resources/Shaders` に配置し、`shaderc` で各プラットフォーム向けにコンパイルするビルドタスクを追加
 - [x] `MauiProgram.cs` で SharpBGFX 実装を登録し、OpenGL 初期化コードを削除
 - [x] `BGFXView`（新規）を作成し、`MainPage.xaml` と関連コードを更新

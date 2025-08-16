@@ -1,15 +1,15 @@
 using System;
 using System.Buffers;
 using System.Numerics;
-using OpenTK.Graphics.ES30;
-using GL = OpenTK.Graphics.ES30.GL;
 using System.Runtime.InteropServices;
 using System.Collections.Generic;
+using System.IO;
 using MiniMikuDance.Util;
 using MiniMikuDance.Import;
 using MiniMikuDance.App;
 using MiniMikuDance.IK;
 using MMDTools;
+using SharpBgfx;
 using Matrix4 = System.Numerics.Matrix4x4;
 using Vector2 = System.Numerics.Vector2;
 using Vector3 = System.Numerics.Vector3;
@@ -19,12 +19,11 @@ namespace MiniMikuDanceMaui;
 
 public partial class PmxRenderer : IRenderer, IDisposable
 {
-    private int _program;
+    private Program? _program;
     private class RenderMesh
     {
-        public int Vao;
-        public int Vbo;
-        public int Ebo;
+        public VertexBuffer? VertexBuffer;
+        public IndexBuffer? IndexBuffer;
         public int IndexCount;
         public Vector4 Color = Vector4.One;
         public Vector4 BaseColor = Vector4.One;
@@ -40,7 +39,7 @@ public partial class PmxRenderer : IRenderer, IDisposable
         public Vector3 BaseToonColor = Vector3.Zero;
         public Vector4 TextureTint = Vector4.One;
         public Vector4 BaseTextureTint = Vector4.One;
-        public int Texture;
+        public Texture? Texture;
         public bool HasTexture;
         public Vector3[] BaseVertices = Array.Empty<Vector3>();
         public Vector3[] VertexOffsets = Array.Empty<Vector3>();
@@ -68,53 +67,18 @@ public partial class PmxRenderer : IRenderer, IDisposable
     private System.Numerics.Vector3[] _boneMorphTranslations = Array.Empty<System.Numerics.Vector3>();
     private System.Numerics.Quaternion[] _boneMorphRotations = Array.Empty<System.Numerics.Quaternion>();
     public IViewer? Viewer { get; set; }
-    private int _gridVao;
-    private int _gridVbo;
-    private int _gridVertexCount;
-    private int _modelLoc;
-    private int _viewLoc;
-    private int _projLoc;
-    private int _colorLoc;
-    private int _pointSizeLoc;
     private float _orbitX;
     // 初期カメラ位置: 水平回転はπ（モデル正面を向く）
     private float _orbitY = MathF.PI;
     private float _distance = 4f;
     // モデル中心より少し高い位置を基準にカメラを配置する
     private Vector3 _target = new Vector3(0f, 0.5f, 0f);
-    private int _groundVao;
-    private int _groundVbo;
-    private int _groundVertexCount;
-    private int _boneVao;
-    private int _boneVbo;
     private int _boneVertexCount;
-    private int _ikBoneVao;
-    private int _ikBoneVbo;
-    private int _ikBoneEbo;
-    private int _ikBoneIndexCount;
     private System.Numerics.Matrix4x4[] _worldMats = Array.Empty<System.Numerics.Matrix4x4>();
     private System.Numerics.Matrix4x4[] _skinMats = Array.Empty<System.Numerics.Matrix4x4>();
     private float[] _boneLines = Array.Empty<float>();
     private int _boneCapacity;
-    private int _modelProgram;
-    private int _modelViewLoc;
-    private int _modelProjLoc;
-    private int _modelMatrixLoc;
-    private int _modelColorLoc;
-    private int _modelTexLoc;
-    private int _modelUseTexLoc;
-    private int _modelLightDirLoc;
-    private int _modelViewDirLoc;
-    private int _modelShadeShiftLoc;
-    private int _modelShadeToonyLoc;
-    private int _modelRimIntensityLoc;
-    private int _modelAmbientLoc;
-    private int _modelSpecularLoc;
-    private int _modelSpecularPowerLoc;
-    private int _modelEdgeColorLoc;
-    private int _modelEdgeSizeLoc;
-    private int _modelToonColorLoc;
-    private int _modelTexTintLoc;
+    private Program? _modelProgram;
     private Matrix4 _modelTransform = Matrix4.Identity;
     public Matrix4 ModelTransform
     {
@@ -205,11 +169,7 @@ public partial class PmxRenderer : IRenderer, IDisposable
         set
         {
             if (_stageSize != value)
-            {
                 _stageSize = value;
-                if (_program != 0)
-                    GenerateGrid();
-            }
         }
     }
 
@@ -238,179 +198,38 @@ public partial class PmxRenderer : IRenderer, IDisposable
 
     public void Initialize()
     {
-const string vert = @"#version 300 es
-layout(location = 0) in vec3 aPosition;
-uniform mat4 uModel;
-uniform mat4 uView;
-uniform mat4 uProj;
-uniform float uPointSize;
-void main(){
-    gl_Position = uProj * uView * uModel * vec4(aPosition,1.0);
-    gl_PointSize = uPointSize;
-}";
-        const string frag = @"#version 300 es
-precision mediump float;
-uniform vec4 uColor;
-out vec4 FragColor;
-void main(){
-    FragColor = uColor;
-}";
-        int vs = GL.CreateShader(ShaderType.VertexShader);
-        GL.ShaderSource(vs, vert);
-        GL.CompileShader(vs);
-        int fs = GL.CreateShader(ShaderType.FragmentShader);
-        GL.ShaderSource(fs, frag);
-        GL.CompileShader(fs);
-        _program = GL.CreateProgram();
-        GL.AttachShader(_program, vs);
-        GL.AttachShader(_program, fs);
-        GL.LinkProgram(_program);
-        GL.DeleteShader(vs);
-        GL.DeleteShader(fs);
-        _modelLoc = GL.GetUniformLocation(_program, "uModel");
-        _viewLoc = GL.GetUniformLocation(_program, "uView");
-        _projLoc = GL.GetUniformLocation(_program, "uProj");
-        _colorLoc = GL.GetUniformLocation(_program, "uColor");
-        _pointSizeLoc = GL.GetUniformLocation(_program, "uPointSize");
-
-        // 透過描画設定（デフォルトでは無効）
-        GL.BlendFunc(BlendingFactorSrc.SrcAlpha, BlendingFactorDest.OneMinusSrcAlpha);
-
-const string modelVert = @"#version 300 es
-layout(location = 0) in vec3 aPosition;
-layout(location = 1) in vec3 aNormal;
-layout(location = 2) in vec2 aTex;
-uniform mat4 uModel;
-uniform mat4 uView;
-uniform mat4 uProj;
-uniform float uPointSize;
-out vec3 vNormal;
-out vec2 vTex;
-void main(){
-    vec4 pos = uModel * vec4(aPosition,1.0);
-    vNormal = mat3(uModel) * aNormal;
-    vTex = aTex;
-    gl_Position = uProj * uView * pos;
-    gl_PointSize = uPointSize;
-}";
-const string modelFrag = @"#version 300 es
-precision mediump float;
-in vec3 vNormal;
-in vec2 vTex;
-uniform vec4 uColor;
-uniform sampler2D uTex;
-uniform bool uUseTex;
-uniform vec3 uLightDir;
-uniform vec3 uViewDir;
-uniform float uShadeShift;
-uniform float uShadeToony;
-uniform float uRimIntensity;
-uniform float uAmbient;
-uniform vec3 uSpecular;
-uniform float uSpecularPower;
-uniform vec4 uEdgeColor;
-uniform float uEdgeSize;
-uniform vec3 uToonColor;
-uniform vec4 uTextureTint;
-out vec4 FragColor;
-void main(){
-    vec4 base = (uUseTex ? texture(uTex, vTex) : uColor) * uTextureTint;
-    float ndotl = max(dot(normalize(vNormal), normalize(uLightDir)), 0.0);
-    float light = clamp((ndotl + uShadeShift) * uShadeToony, 0.0, 1.0);
-    float rim = pow(1.0 - max(dot(normalize(vNormal), normalize(uViewDir)), 0.0), 3.0) * uRimIntensity;
-    vec3 color = base.rgb * (light + uAmbient) + base.rgb * rim;
-    vec3 reflectDir = reflect(-normalize(uLightDir), normalize(vNormal));
-    float spec = pow(max(dot(normalize(uViewDir), reflectDir), 0.0), uSpecularPower);
-    color += uSpecular * spec;
-    color *= uToonColor;
-    FragColor = vec4(color, base.a);
-}";
-        int mvs = GL.CreateShader(ShaderType.VertexShader);
-        GL.ShaderSource(mvs, modelVert);
-        GL.CompileShader(mvs);
-        int mfs = GL.CreateShader(ShaderType.FragmentShader);
-        GL.ShaderSource(mfs, modelFrag);
-        GL.CompileShader(mfs);
-        _modelProgram = GL.CreateProgram();
-        GL.AttachShader(_modelProgram, mvs);
-        GL.AttachShader(_modelProgram, mfs);
-        GL.LinkProgram(_modelProgram);
-        GL.DeleteShader(mvs);
-        GL.DeleteShader(mfs);
-        _modelViewLoc = GL.GetUniformLocation(_modelProgram, "uView");
-        _modelProjLoc = GL.GetUniformLocation(_modelProgram, "uProj");
-        _modelMatrixLoc = GL.GetUniformLocation(_modelProgram, "uModel");
-        _modelColorLoc = GL.GetUniformLocation(_modelProgram, "uColor");
-        _modelTexLoc = GL.GetUniformLocation(_modelProgram, "uTex");
-        _modelUseTexLoc = GL.GetUniformLocation(_modelProgram, "uUseTex");
-        _modelLightDirLoc = GL.GetUniformLocation(_modelProgram, "uLightDir");
-        _modelViewDirLoc = GL.GetUniformLocation(_modelProgram, "uViewDir");
-        _modelShadeShiftLoc = GL.GetUniformLocation(_modelProgram, "uShadeShift");
-        _modelShadeToonyLoc = GL.GetUniformLocation(_modelProgram, "uShadeToony");
-        _modelRimIntensityLoc = GL.GetUniformLocation(_modelProgram, "uRimIntensity");
-        _modelAmbientLoc = GL.GetUniformLocation(_modelProgram, "uAmbient");
-        _modelSpecularLoc = GL.GetUniformLocation(_modelProgram, "uSpecular");
-        _modelSpecularPowerLoc = GL.GetUniformLocation(_modelProgram, "uSpecularPower");
-        _modelEdgeColorLoc = GL.GetUniformLocation(_modelProgram, "uEdgeColor");
-        _modelEdgeSizeLoc = GL.GetUniformLocation(_modelProgram, "uEdgeSize");
-        _modelToonColorLoc = GL.GetUniformLocation(_modelProgram, "uToonColor");
-        _modelTexTintLoc = GL.GetUniformLocation(_modelProgram, "uTextureTint");
-
-        GenerateGrid();
+        _program = LoadProgram("simple");
+        _modelProgram = _program;
     }
 
-    private void GenerateGrid()
+    private static Shader LoadShader(string name)
     {
-        int range = (int)_stageSize;
-        _gridVertexCount = (range * 2 + 1) * 4;
-        int gridSize = _gridVertexCount * 3;
-        float[] grid = ArrayPool<float>.Shared.Rent(gridSize);
-        int idx = 0;
-        for (int i = -range; i <= range; i++)
-        {
-            grid[idx++] = i; grid[idx++] = 0f; grid[idx++] = -range;
-            grid[idx++] = i; grid[idx++] = 0f; grid[idx++] = range;
-            grid[idx++] = -range; grid[idx++] = 0f; grid[idx++] = i;
-            grid[idx++] = range; grid[idx++] = 0f; grid[idx++] = i;
-        }
-        if (_gridVao == 0) _gridVao = GL.GenVertexArray();
-        if (_gridVbo == 0) _gridVbo = GL.GenBuffer();
-        GL.BindVertexArray(_gridVao);
-        GL.BindBuffer(BufferTarget.ArrayBuffer, _gridVbo);
-        GL.BufferData(BufferTarget.ArrayBuffer, gridSize * sizeof(float), grid, BufferUsageHint.StaticDraw);
-        GL.VertexAttribPointer(0, 3, VertexAttribPointerType.Float, false, 3 * sizeof(float), 0);
-        GL.EnableVertexAttribArray(0);
-        GL.BindBuffer(BufferTarget.ArrayBuffer, 0);
-        GL.BindVertexArray(0);
-        ArrayPool<float>.Shared.Return(grid);
+        var assembly = typeof(PmxRenderer).Assembly;
+        using var stream = assembly.GetManifestResourceStream(name) ?? throw new InvalidOperationException($"Shader resource '{name}' not found.");
+        using var ms = new MemoryStream();
+        stream.CopyTo(ms);
+        return Bgfx.CreateShader(MemoryBlock.FromArray(ms.ToArray()));
+    }
 
-        float r = _stageSize;
-        float[] plane =
+    private static Program LoadProgram(string baseName)
+    {
+        var renderer = Bgfx.GetRendererType();
+        var suffix = renderer switch
         {
-            -r, 0f, -r,
-             r, 0f, -r,
-            -r, 0f,  r,
-             r, 0f, -r,
-             r, 0f,  r,
-            -r, 0f,  r
+            RendererType.OpenGLES => "gles3",
+            RendererType.Metal => "metal",
+            _ => "gles2"
         };
-        _groundVertexCount = 6;
-        if (_groundVao == 0) _groundVao = GL.GenVertexArray();
-        if (_groundVbo == 0) _groundVbo = GL.GenBuffer();
-        GL.BindVertexArray(_groundVao);
-        GL.BindBuffer(BufferTarget.ArrayBuffer, _groundVbo);
-        GL.BufferData(BufferTarget.ArrayBuffer, plane.Length * sizeof(float), plane, BufferUsageHint.StaticDraw);
-        GL.VertexAttribPointer(0, 3, VertexAttribPointerType.Float, false, 3 * sizeof(float), 0);
-        GL.EnableVertexAttribArray(0);
-        GL.BindBuffer(BufferTarget.ArrayBuffer, 0);
-        GL.BindVertexArray(0);
+        var vs = LoadShader($"Shaders/{baseName}.vs.{suffix}.sc");
+        var fs = LoadShader($"Shaders/{baseName}.fs.{suffix}.sc");
+        return Bgfx.CreateProgram(vs, fs, true);
     }
 
     public void Resize(int width, int height)
     {
         _width = width;
         _height = height;
-        GL.Viewport(0, 0, width, height);
+        Bgfx.Reset((uint)width, (uint)height, ResetFlags.Vsync);
         _viewProjDirty = true;
     }
 
@@ -502,64 +321,6 @@ void main(){
                 ik.Position = GetBoneWorldPosition(ik.PmxBoneIndex);
             }
         }
-    }
-
-    private void EnsureIkBoneMesh()
-    {
-        if (_ikBoneVao != 0)
-            return;
-
-        const int lat = 8;
-        const int lon = 8;
-        var vertices = new List<float>();
-        var indices = new List<ushort>();
-
-        for (int y = 0; y <= lat; y++)
-        {
-            float v = (float)y / lat;
-            float theta = v * MathF.PI;
-            float sinTheta = MathF.Sin(theta);
-            float cosTheta = MathF.Cos(theta);
-            for (int x = 0; x <= lon; x++)
-            {
-                float u = (float)x / lon;
-                float phi = u * MathF.PI * 2f;
-                float sinPhi = MathF.Sin(phi);
-                float cosPhi = MathF.Cos(phi);
-                vertices.Add(cosPhi * sinTheta);
-                vertices.Add(cosTheta);
-                vertices.Add(sinPhi * sinTheta);
-            }
-        }
-
-        for (int y = 0; y < lat; y++)
-        {
-            for (int x = 0; x < lon; x++)
-            {
-                int first = y * (lon + 1) + x;
-                int second = first + lon + 1;
-                indices.Add((ushort)first);
-                indices.Add((ushort)second);
-                indices.Add((ushort)(first + 1));
-                indices.Add((ushort)second);
-                indices.Add((ushort)(second + 1));
-                indices.Add((ushort)(first + 1));
-            }
-        }
-
-        _ikBoneIndexCount = indices.Count;
-        _ikBoneVao = GL.GenVertexArray();
-        _ikBoneVbo = GL.GenBuffer();
-        _ikBoneEbo = GL.GenBuffer();
-
-        GL.BindVertexArray(_ikBoneVao);
-        GL.BindBuffer(BufferTarget.ArrayBuffer, _ikBoneVbo);
-        GL.BufferData(BufferTarget.ArrayBuffer, vertices.Count * sizeof(float), vertices.ToArray(), BufferUsageHint.StaticDraw);
-        GL.VertexAttribPointer(0, 3, VertexAttribPointerType.Float, false, 3 * sizeof(float), 0);
-        GL.EnableVertexAttribArray(0);
-        GL.BindBuffer(BufferTarget.ElementArrayBuffer, _ikBoneEbo);
-        GL.BufferData(BufferTarget.ElementArrayBuffer, indices.Count * sizeof(ushort), indices.ToArray(), BufferUsageHint.StaticDraw);
-        GL.BindVertexArray(0);
     }
 
     // DrawIkBones は PmxRenderer.Render.cs へ移動
@@ -780,10 +541,9 @@ void main(){
     {
         foreach (var rm in _meshes)
         {
-            if (rm.Vao != 0) GL.DeleteVertexArray(rm.Vao);
-            if (rm.Vbo != 0) GL.DeleteBuffer(rm.Vbo);
-            if (rm.Ebo != 0) GL.DeleteBuffer(rm.Ebo);
-            if (rm.Texture != 0) GL.DeleteTexture(rm.Texture);
+            rm.VertexBuffer?.Dispose();
+            rm.IndexBuffer?.Dispose();
+            rm.Texture?.Dispose();
         }
         _meshes.Clear();
         _indexToHumanoidName.Clear();
@@ -797,178 +557,7 @@ void main(){
 
         _modelTransform = data.Transform.ToMatrix4();
 
-        if (data.SubMeshes.Count == 0)
-        {
-            data.SubMeshes.Add(new MiniMikuDance.Import.SubMeshData
-            {
-                Mesh = data.Mesh
-            });
-        }
-
-        foreach (var sm in data.SubMeshes)
-        {
-            int vcount = sm.Mesh.VertexCount;
-            float[] verts = new float[vcount * 8];
-            for (int i = 0; i < vcount; i++)
-            {
-                var v = sm.Mesh.Vertices[i];
-                verts[i * 8 + 0] = v.X;
-                verts[i * 8 + 1] = v.Y;
-                verts[i * 8 + 2] = v.Z;
-                if (i < sm.Mesh.Normals.Count)
-                {
-                    var n = sm.Mesh.Normals[i];
-                    verts[i * 8 + 3] = n.X;
-                    verts[i * 8 + 4] = n.Y;
-                    verts[i * 8 + 5] = n.Z;
-                }
-                else
-                {
-                    verts[i * 8 + 3] = 0f;
-                    verts[i * 8 + 4] = 0f;
-                    verts[i * 8 + 5] = 1f;
-                }
-                if (i < sm.TexCoords.Count)
-                {
-                    var uv = sm.TexCoords[i];
-                    verts[i * 8 + 6] = uv.X;
-                    verts[i * 8 + 7] = uv.Y;
-                }
-                else
-                {
-                    verts[i * 8 + 6] = 0f;
-                    verts[i * 8 + 7] = 0f;
-                }
-            }
-
-            var indices = new System.Collections.Generic.List<uint>();
-            foreach (var f in sm.Mesh.Faces)
-            {
-                foreach (var idx in f.Indices)
-                    indices.Add((uint)idx);
-            }
-
-            var rm = new RenderMesh();
-            rm.IndexCount = indices.Count;
-
-            int baseVertCount = sm.Mesh.Vertices.Count;
-            rm.BaseVertices = new Vector3[baseVertCount];
-            for (int i = 0; i < baseVertCount; i++)
-            {
-                var v = sm.Mesh.Vertices[i];
-                rm.BaseVertices[i] = new Vector3(v.X, v.Y, v.Z);
-            }
-            rm.VertexOffsets = new Vector3[baseVertCount];
-
-            int normalsCount = sm.Mesh.Normals.Count;
-            rm.Normals = new Vector3[normalsCount];
-            for (int i = 0; i < normalsCount; i++)
-            {
-                var n = sm.Mesh.Normals[i];
-                rm.Normals[i] = new Vector3(n.X, n.Y, n.Z);
-            }
-
-            int texCount = sm.TexCoords.Count;
-            rm.TexCoords = new Vector2[texCount];
-            rm.UvOffsets = new Vector2[texCount];
-            for (int i = 0; i < texCount; i++)
-            {
-                var t = sm.TexCoords[i];
-                rm.TexCoords[i] = new Vector2(t.X, t.Y);
-            }
-
-            int jointIndexCount = sm.JointIndices.Count;
-            rm.JointIndices = new Vector4[jointIndexCount];
-            for (int i = 0; i < jointIndexCount; i++)
-            {
-                var j = sm.JointIndices[i];
-                rm.JointIndices[i] = new Vector4(j.X, j.Y, j.Z, j.W);
-            }
-
-            int jointWeightCount = sm.JointWeights.Count;
-            rm.JointWeights = new Vector4[jointWeightCount];
-            for (int i = 0; i < jointWeightCount; i++)
-            {
-                var w = sm.JointWeights[i];
-                rm.JointWeights[i] = new Vector4(w.X, w.Y, w.Z, w.W);
-            }
-            int sdefCount = sm.SdefC.Count;
-            rm.SdefC = new Vector3[sdefCount];
-            rm.SdefR0 = new Vector3[sdefCount];
-            rm.SdefR1 = new Vector3[sdefCount];
-            for (int i = 0; i < sdefCount; i++)
-            {
-                var c = sm.SdefC[i];
-                rm.SdefC[i] = new Vector3(c.X, c.Y, c.Z);
-                var r0 = sm.SdefR0[i];
-                rm.SdefR0[i] = new Vector3(r0.X, r0.Y, r0.Z);
-                var r1 = sm.SdefR1[i];
-                rm.SdefR1[i] = new Vector3(r1.X, r1.Y, r1.Z);
-            }
-            rm.Vao = GL.GenVertexArray();
-            rm.Vbo = GL.GenBuffer();
-            rm.Ebo = GL.GenBuffer();
-            rm.BaseColor = sm.ColorFactor.ToVector4();
-            rm.Color = rm.BaseColor;
-            rm.BaseSpecular = sm.Specular;
-            rm.Specular = rm.BaseSpecular;
-            rm.BaseSpecularPower = sm.SpecularPower;
-            rm.SpecularPower = rm.BaseSpecularPower;
-            rm.BaseEdgeColor = sm.EdgeColor.ToVector4();
-            rm.EdgeColor = rm.BaseEdgeColor;
-            rm.BaseEdgeSize = sm.EdgeSize;
-            rm.EdgeSize = rm.BaseEdgeSize;
-            rm.BaseToonColor = sm.ToonColor;
-            rm.ToonColor = rm.BaseToonColor;
-            rm.BaseTextureTint = sm.TextureTint.ToVector4();
-            rm.TextureTint = rm.BaseTextureTint;
-
-            GL.BindVertexArray(rm.Vao);
-            GL.BindBuffer(BufferTarget.ArrayBuffer, rm.Vbo);
-            GL.BufferData(BufferTarget.ArrayBuffer, verts.Length * sizeof(float), verts, BufferUsageHint.StaticDraw);
-            int stride = 8 * sizeof(float);
-            GL.VertexAttribPointer(0, 3, VertexAttribPointerType.Float, false, stride, 0);
-            GL.EnableVertexAttribArray(0);
-            GL.VertexAttribPointer(1, 3, VertexAttribPointerType.Float, false, stride, 3 * sizeof(float));
-            GL.EnableVertexAttribArray(1);
-            GL.VertexAttribPointer(2, 2, VertexAttribPointerType.Float, false, stride, 6 * sizeof(float));
-            GL.EnableVertexAttribArray(2);
-            GL.BindBuffer(BufferTarget.ElementArrayBuffer, rm.Ebo);
-            GL.BufferData(BufferTarget.ElementArrayBuffer, indices.Count * sizeof(uint), indices.ToArray(), BufferUsageHint.StaticDraw);
-            GL.BindVertexArray(0);
-
-            if (sm.TextureBytes != null)
-            {
-                rm.Texture = GL.GenTexture();
-                GL.BindTexture(TextureTarget.Texture2D, rm.Texture);
-                var handle = System.Runtime.InteropServices.GCHandle.Alloc(sm.TextureBytes, System.Runtime.InteropServices.GCHandleType.Pinned);
-                try
-                {
-                    GL.TexImage2D(
-                        All.Texture2D,
-                        0,
-                        All.Rgba,
-                        sm.TextureWidth,
-                        sm.TextureHeight,
-                        0,
-                        All.Rgba,
-                        All.UnsignedByte,
-                        handle.AddrOfPinnedObject());
-                }
-                finally
-                {
-                    handle.Free();
-                }
-                sm.TextureBytes = null;
-                sm.TextureWidth = 0;
-                sm.TextureHeight = 0;
-                GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureMinFilter, (int)TextureMinFilter.Linear);
-                GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureMagFilter, (int)TextureMagFilter.Linear);
-                rm.HasTexture = true;
-            }
-
-            _meshes.Add(rm);
-        }
+        // TODO: BGFX でのメッシュ生成を実装する
 
 
         _morphs.Clear();
@@ -1175,22 +764,13 @@ void main(){
     {
         foreach (var rm in _meshes)
         {
-            if (rm.Vao != 0) GL.DeleteVertexArray(rm.Vao);
-            if (rm.Vbo != 0) GL.DeleteBuffer(rm.Vbo);
-            if (rm.Ebo != 0) GL.DeleteBuffer(rm.Ebo);
+            rm.VertexBuffer?.Dispose();
+            rm.IndexBuffer?.Dispose();
+            rm.Texture?.Dispose();
         }
         _meshes.Clear();
         _indexToHumanoidName.Clear();
-        GL.DeleteBuffer(_gridVbo);
-        GL.DeleteBuffer(_groundVbo);
-        GL.DeleteBuffer(_boneVbo);
-        GL.DeleteBuffer(_ikBoneVbo);
-        GL.DeleteBuffer(_ikBoneEbo);
-        GL.DeleteVertexArray(_gridVao);
-        GL.DeleteVertexArray(_groundVao);
-        GL.DeleteVertexArray(_boneVao);
-        GL.DeleteVertexArray(_ikBoneVao);
-        GL.DeleteProgram(_program);
-        GL.DeleteProgram(_modelProgram);
+        _program?.Dispose();
+        _modelProgram?.Dispose();
     }
 }
