@@ -3,6 +3,7 @@ using System.Buffers;
 using OpenTK.Mathematics;
 using OpenTK.Graphics.ES30;
 using GL = OpenTK.Graphics.ES30.GL;
+using All = OpenTK.Graphics.ES30.All;
 using System.Runtime.InteropServices;
 using System.Collections.Generic;
 using MiniMikuDance.Util;
@@ -1004,14 +1005,14 @@ void main(){
                 try
                 {
                     GL.TexImage2D(
-                        TextureTarget.Texture2D,
+                        All.Texture2D,
                         0,
-                        PixelInternalFormat.Rgba,
+                        (int)All.Rgba,
                         sm.TextureWidth,
                         sm.TextureHeight,
                         0,
-                        PixelFormat.Rgba,
-                        PixelType.UnsignedByte,
+                        All.Rgba,
+                        All.UnsignedByte,
                         handle.AddrOfPinnedObject());
                 }
                 finally
@@ -1021,8 +1022,8 @@ void main(){
                 sm.TextureBytes = null;
                 sm.TextureWidth = 0;
                 sm.TextureHeight = 0;
-                GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureMinFilter, (int)TextureMinFilter.Linear);
-                GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureMagFilter, (int)TextureMagFilter.Linear);
+                GL.TexParameter(All.Texture2D, All.TextureMinFilter, (int)All.Linear);
+                GL.TexParameter(All.Texture2D, All.TextureMagFilter, (int)All.Linear);
                 rm.HasTexture = true;
             }
 
