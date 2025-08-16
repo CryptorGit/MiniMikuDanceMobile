@@ -1,8 +1,0 @@
-{
-  "buttons": [
-    { "label": "Load Model", "message": "load_model" },
-    { "label": "Analyze Video", "message": "analyze_video" }
-  ],
-  "showMessage": true,
-  "showThumbnail": true
-}

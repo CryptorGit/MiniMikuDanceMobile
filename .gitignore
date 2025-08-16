@@ -25,3 +25,36 @@
 # Data folders
 MiniMikuDance/data/
 
+# build artifact
+/compile_commands.json
+/**/out
+
+# document
+/docs/_build
+/docs/_static
+/docs/_templates
+/docs/.venv
+/docs/conf.py
+/html/
+
+# nanoem
+/nanoem/nanoem.cc
+
+# emapp
+/emapp/plugins/PEPlugin/bin
+/emapp/plugins/PEPlugin/obj
+/emapp/resources/translations/*/all.txt
+/emapp/resources/translations/*/merge.pl
+/emapp/test/directxtexmedia
+
+# manual checkout
+/dependencies/ffmpeg
+/dependencies/glfw
+/dependencies/icu
+/dependencies/libsoundio
+/dependencies/optick
+/dependencies/yaml-cpp
+
+# rust
+/rust/**/target
+/**/*.rs.bk
