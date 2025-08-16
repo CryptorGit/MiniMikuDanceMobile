@@ -1,3 +1,4 @@
+using System.IO;
 using MiniMikuDance.Util;
 
 namespace MiniMikuDance.App;
@@ -57,21 +58,21 @@ public class AppSettings
     public int TextureCacheSize { get; set; } = DefaultTextureCacheSize;
 
 
-    private const string DefaultFile = "Configs/appsettings.json";
+    private static readonly string DefaultFile = Path.Combine("Configs", "appsettings.json");
 
     /// <summary>
     /// 設定ファイルを読み込む。存在しない場合はデフォルト値で生成する。
     /// </summary>
-    public static AppSettings Load(string path = DefaultFile)
+    public static AppSettings Load(string? path = null)
     {
-        return JSONUtil.Load<AppSettings>(path);
+        return JSONUtil.Load<AppSettings>(path ?? DefaultFile);
     }
 
     /// <summary>
     /// 現在の設定内容を保存する。
     /// </summary>
-    public void Save(string path = DefaultFile)
+    public void Save(string? path = null)
     {
-        JSONUtil.Save(path, this);
+        JSONUtil.Save(path ?? DefaultFile, this);
     }
 }
