@@ -10,6 +10,7 @@ using MiniMikuDance.Import;
 using MiniMikuDance.App;
 using MiniMikuDance.IK;
 using MiniMikuDance.Physics;
+using MMDTools;
 using SkiaSharp.Views.Maui.Controls;
 using Vector2 = OpenTK.Mathematics.Vector2;
 using Vector3 = OpenTK.Mathematics.Vector3;
