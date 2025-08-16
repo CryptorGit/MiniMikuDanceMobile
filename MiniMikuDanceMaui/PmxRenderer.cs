@@ -147,6 +147,7 @@ public partial class PmxRenderer : IDisposable
     private readonly Dictionary<int, string> _indexToHumanoidName = new();
     public BonesConfig? BonesConfig { get; set; }
     private PhysicsWorld? _physicsWorld;
+    public IReadOnlyList<RigidBody> RigidBodies => _physicsWorld?.RigidBodies ?? Array.Empty<RigidBody>();
     private readonly HashSet<int> _physicsBoneIndices = new();
     private readonly HashSet<int> _gravityBoneIndices = new();
     private Quaternion _externalRotation = Quaternion.Identity;
