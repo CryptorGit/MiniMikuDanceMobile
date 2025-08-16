@@ -1,0 +1,4 @@
+- [ ] PmxRendererをOpenGlRendererへ分割し、OpenGL依存ロジックを分離する
+- [ ] SharpBgfxを用いたBgfxRendererを実装し、頂点バッファ・シェーダー・描画ループをBGFX APIで置き換える
+- [ ] UIから新レンダラーを注入できるよう、System.NumericsベースのIViewerインターフェースを設計・導入する
+- [ ] 新レンダラーの動作確認後、不要となったOpenGL/Skia関連のコードと依存関係を完全に削除する
