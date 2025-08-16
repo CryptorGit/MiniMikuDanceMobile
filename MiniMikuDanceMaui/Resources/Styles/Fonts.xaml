@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ResourceDictionary xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml">
+    <!-- Google Material Symbols font -->
+    <FontFamily x:Key="MaterialSymbolsOutlined">Material Symbols Outlined</FontFamily>
+
+    <!-- default font style -->
+    <Style TargetType="Label">
+        <Setter Property="FontSize" Value="14" />
+    </Style>
+    <Style TargetType="Button">
+        <Setter Property="FontSize" Value="14" />
+    </Style>
+</ResourceDictionary>

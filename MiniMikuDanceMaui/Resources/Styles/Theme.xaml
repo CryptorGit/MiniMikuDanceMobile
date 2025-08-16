@@ -1,33 +1,5 @@
 <?xml version="1.0" encoding="utf-8" ?>
 <ResourceDictionary xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
                     xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml">
-    <!-- UI colors -->
-    <Color x:Key="PrimaryColor">#FF59C9</Color>
-    <Color x:Key="SurfaceLightColor">#F7F7F7</Color>
-    <Color x:Key="SurfaceDarkColor">#121212</Color>
-    <Color x:Key="OnSurfaceColor">#FFFFFFCC</Color>
-    <Color x:Key="HighlightColor">#FFD500</Color>
-
-    <!-- App specific colors -->
-    <Color x:Key="BackgroundColor">#000000</Color>
-    <Color x:Key="MenuBackgroundColor">#2A2A2A</Color>
-    <Color x:Key="OverlayBackgroundColor">#CC000000</Color>
-    <Color x:Key="TextColor">#FFFFFF</Color>
-    <Color x:Key="IndicatorColor">Blue</Color>
-    <Color x:Key="RecordButtonColor">Red</Color>
-
-    <!-- Bottom tab colors -->
-    <Color x:Key="TabBackgroundColor">#444444</Color>
-    <Color x:Key="TabActiveColor">#333333</Color>
-    <Color x:Key="TabInactiveColor">#666666</Color>
-
-
-    <!-- default font style -->
-    <Style TargetType="Label">
-        <Setter Property="FontSize" Value="14" />
-    </Style>
-    <Style TargetType="Button">
-        <Setter Property="FontSize" Value="14" />
-    </Style>
-
+    <!-- Additional styles can be added here -->
 </ResourceDictionary>
