@@ -227,9 +227,9 @@ public partial class PmxRenderer
                 {
                     if (_gravityBoneIndices.Contains(i) || _gravityBoneIndices.Contains(bone.Parent))
                         continue;
-                    if (!_showAllBones &&
-                        (_physicsBoneIndices.Contains(i) || _physicsBoneIndices.Contains(bone.Parent) ||
-                         _bones[i].IsPhysicsAffected || _bones[bone.Parent].IsPhysicsAffected))
+                    bool isPhysics = _physicsBoneIndices.Contains(i) || _bones[i].IsPhysicsAffected;
+                    bool isParentPhysics = _physicsBoneIndices.Contains(bone.Parent) || _bones[bone.Parent].IsPhysicsAffected;
+                    if (!_showAllBones && (isPhysics || isParentPhysics))
                         continue;
                     var pp = _worldMats[bone.Parent].Translation;
                     var cp = _worldMats[i].Translation;

@@ -598,9 +598,12 @@ void main(){
             foreach (var bone in _ikBones)
             {
                 int i = bone.PmxBoneIndex;
-                if (_physicsBoneIndices.Contains(i) || _gravityBoneIndices.Contains(i) ||
-                    (i >= 0 && i < _bones.Count && _bones[i].IsPhysicsAffected))
+                bool isPhysics = _physicsBoneIndices.Contains(i) ||
+                                  (i >= 0 && i < _bones.Count && _bones[i].IsPhysicsAffected);
+                if ((!_showAllBones && isPhysics) || _gravityBoneIndices.Contains(i))
                     continue;
+                if (isPhysics)
+                    continue; // 物理ボーンは常に選択不可
                 var pos = _worldMats[i].Translation.ToOpenTK();
                 var v4 = new Vector4(pos, 1f);
                 var clip = v4 * _viewMatrix;
@@ -625,8 +628,11 @@ void main(){
             int limit = Math.Min(_worldMats.Length, _bones.Count);
             for (int i = 0; i < limit; i++)
             {
-                if (_physicsBoneIndices.Contains(i) || _gravityBoneIndices.Contains(i) || _bones[i].IsPhysicsAffected)
+                bool isPhysics = _physicsBoneIndices.Contains(i) || _bones[i].IsPhysicsAffected;
+                if ((!_showAllBones && isPhysics) || _gravityBoneIndices.Contains(i))
                     continue;
+                if (isPhysics)
+                    continue; // 物理ボーンは常に選択不可
                 var pos = _worldMats[i].Translation.ToOpenTK();
                 var v4 = new Vector4(pos, 1f);
                 var clip = v4 * _viewMatrix;
@@ -834,6 +840,14 @@ void main(){
                 default:
                     // Unknown transform type
                     break;
+            }
+        }
+        if (!_showAllBones)
+        {
+            foreach (var idx in _physicsBoneIndices)
+            {
+                if (idx >= 0 && idx < _bones.Count)
+                    _bones[idx].IsPhysicsAffected = true;
             }
         }
         _gravityBoneIndices.Clear();
