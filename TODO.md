@@ -20,9 +20,10 @@
 - [x] `MainPage.xaml.cs` から SKGLView 依存コードを削除
  - [x] BGFXView 用のタッチ操作を再実装
 - [x] Android/iOS のプラットフォーム初期化で BGFX バックエンドを設定
-- [ ] Android の JavaVM ハンドル取得方法を精査し、PlatformData に正確に設定
+- [x] Android の JavaVM ハンドル取得方法を精査し、PlatformData に正確に設定
 - [ ] 残存する OpenGL 型や `using` を整理
 - [x] `BgfxRenderer` のシェーダとバッファ初期化を完成
+- [ ] 実機で起動テストを行い、Bgfx レンダラー初期化が成功することを確認
 
 ## 物理演算エンジン統合（BepuPhysics）
 - [ ] `AppCore/AppCore.csproj` に `BepuPhysics` の NuGet 参照を追加

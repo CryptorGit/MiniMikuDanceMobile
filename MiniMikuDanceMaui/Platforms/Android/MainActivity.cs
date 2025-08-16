@@ -3,7 +3,7 @@ using Android.App;
 using Android.Content.Res;
 using Android.Content.PM;
 using Android.OS;
-using Android.Runtime;
+using Android.Opengl;
 using Android.Views;
 using Microsoft.Maui;
 using Microsoft.Maui.Hosting;
@@ -22,11 +22,13 @@ public class MainActivity : MauiAppCompatActivity
         base.OnCreate(savedInstanceState);
 
         var metrics = Resources?.DisplayMetrics;
-        var javaVm = JNIEnv.GetJavaVM();
+        var display = EGL14.EglGetDisplay(EGL14.EglDefaultDisplay);
+        var context = EGL14.EglGetCurrentContext();
         var windowHandle = Window?.DecorView?.Handle ?? IntPtr.Zero;
         var platformData = new PlatformData
         {
-            DisplayType = javaVm,
+            DisplayType = display,
+            Context = context,
             WindowHandle = windowHandle
         };
         Bgfx.SetPlatformData(platformData);
