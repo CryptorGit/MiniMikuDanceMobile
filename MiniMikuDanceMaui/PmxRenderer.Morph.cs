@@ -1,12 +1,12 @@
 using System;
 using System.Collections.Generic;
-using OpenTK.Mathematics;
+using System.Numerics;
 using MiniMikuDance.Util;
 using MiniMikuDance.Import;
 using MMDTools;
-using Vector2 = OpenTK.Mathematics.Vector2;
-using Vector3 = OpenTK.Mathematics.Vector3;
-using Vector4 = OpenTK.Mathematics.Vector4;
+using Vector2 = System.Numerics.Vector2;
+using Vector3 = System.Numerics.Vector3;
+using Vector4 = System.Numerics.Vector4;
 
 namespace MiniMikuDanceMaui;
 
@@ -176,14 +176,14 @@ public partial class PmxRenderer
                 foreach (var off in morph.Offsets)
                 {
                     int vid = off.Index;
-                    System.Numerics.Vector2 total = System.Numerics.Vector2.Zero;
+                    Vector2 total = Vector2.Zero;
                     var contribs = _uvMorphOffsets[vid];
                     if (contribs != null)
                     {
                         foreach (var (mName, vec) in contribs)
                         {
                             if (_morphValues.TryGetValue(mName, out var mv) && MathF.Abs(mv) >= 1e-5f)
-                                total += new System.Numerics.Vector2(vec.X, vec.Y) * mv;
+                                total += new Vector2(vec.X, vec.Y) * mv;
                         }
                     }
                     lock (_changedVerticesLock)
@@ -192,7 +192,7 @@ public partial class PmxRenderer
                     if (list != null)
                     {
                         foreach (var (mesh, idx) in list)
-                            mesh.UvOffsets[idx] = new Vector2(total.X, total.Y);
+                            mesh.UvOffsets[idx] = total;
                     }
                 }
                 break;

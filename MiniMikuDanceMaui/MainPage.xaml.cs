@@ -13,11 +13,13 @@ using System.IO;
 using System.Linq;
 using System.Reflection;
 using MiniMikuDance.Import;
-using OpenTK.Mathematics;
+using System.Numerics;
 using MiniMikuDance.App;
 using SixLabors.ImageSharp.PixelFormats;
 using MiniMikuDance.IK;
 using MiniMikuDance.Util;
+using Matrix4 = System.Numerics.Matrix4x4;
+using Vector3 = System.Numerics.Vector3;
 
 namespace MiniMikuDanceMaui;
 
@@ -1088,8 +1090,8 @@ public partial class MainPage : ContentPage
         if (_bonesConfig == null)
             return rot;
 
-        var clamped = _bonesConfig.Clamp(bone, rot.ToNumerics());
-        return clamped.ToOpenTK();
+        var clamped = _bonesConfig.Clamp(bone, rot);
+        return clamped;
     }
 
     private static System.Numerics.Quaternion AxisAngleToQuaternion(float x, float y, float z)

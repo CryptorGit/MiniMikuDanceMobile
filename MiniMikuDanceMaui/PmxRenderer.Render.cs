@@ -3,13 +3,13 @@ using System.Buffers;
 using System.Collections.Generic;
 using System.Numerics;
 using System.Runtime.InteropServices;
-using OpenTK.Mathematics;
 using OpenTK.Graphics.ES30;
 using GL = OpenTK.Graphics.ES30.GL;
 using MiniMikuDance.Util;
-using Vector2 = OpenTK.Mathematics.Vector2;
-using Vector3 = OpenTK.Mathematics.Vector3;
-using Vector4 = OpenTK.Mathematics.Vector4;
+using Matrix4 = System.Numerics.Matrix4x4;
+using Vector2 = System.Numerics.Vector2;
+using Vector3 = System.Numerics.Vector3;
+using Vector4 = System.Numerics.Vector4;
 
 namespace MiniMikuDanceMaui;
 
@@ -60,14 +60,15 @@ public partial class PmxRenderer
             for (int i = 0; i < _ikBones.Count; i++)
             {
                 var ik = _ikBones[i];
-                var worldPos = ik.Position.ToOpenTK();
+                var worldPos = ik.Position;
                 float scale = _ikBoneScale * _distance;
                 if (ik.IsSelected)
                     scale *= 1.4f;
                 var mat = Matrix4.CreateScale(scale) * Matrix4.CreateTranslation(worldPos);
-                GL.UniformMatrix4(_modelLoc, false, ref mat);
+                var tkMat = mat.ToMatrix4();
+                GL.UniformMatrix4(_modelLoc, false, ref tkMat);
                 var color = ik.IsSelected ? new Vector4(1f, 0f, 0f, 1f) : new Vector4(0f, 1f, 0f, 1f);
-                GL.Uniform4(_colorLoc, color);
+                GL.Uniform4(_colorLoc, color.X, color.Y, color.Z, color.W);
                 GL.DrawElements(PrimitiveType.Triangles, _ikBoneIndexCount, DrawElementsType.UnsignedShort, 0);
             }
             GL.BindVertexArray(0);
@@ -98,10 +99,10 @@ public partial class PmxRenderer
         _cameraRot = Matrix4.CreateFromQuaternion(_externalRotation) *
                      Matrix4.CreateRotationX(_orbitX) *
                      Matrix4.CreateRotationY(_orbitY);
-        _cameraPos = Vector3.TransformPosition(new Vector3(0, 0, _distance), _cameraRot) + _target;
-        _viewMatrix = Matrix4.LookAt(_cameraPos, _target, Vector3.UnitY);
+        _cameraPos = Vector3.Transform(new Vector3(0, 0, _distance), _cameraRot) + _target;
+        _viewMatrix = Matrix4.CreateLookAt(_cameraPos, _target, Vector3.UnitY);
         float aspect = _width == 0 || _height == 0 ? 1f : _width / (float)_height;
-        _projMatrix = Matrix4.CreatePerspectiveFieldOfView(MathHelper.PiOver4, aspect, 0.1f, 100f);
+        _projMatrix = Matrix4.CreatePerspectiveFieldOfView(MathF.PI / 4f, aspect, 0.1f, 100f);
         _viewProjDirty = false;
     }
 
@@ -125,14 +126,14 @@ public partial class PmxRenderer
         for (int i = 0; i < _bones.Count; i++)
         {
             var bone = _bones[i];
-            System.Numerics.Vector3 euler = i < _boneRotations.Count ? _boneRotations[i].ToNumerics() : System.Numerics.Vector3.Zero;
+            Vector3 euler = i < _boneRotations.Count ? _boneRotations[i] : Vector3.Zero;
             var delta = euler.FromEulerDegrees();
             System.Numerics.Quaternion morphRot = i < _boneMorphRotations.Length ? _boneMorphRotations[i] : System.Numerics.Quaternion.Identity;
             System.Numerics.Vector3 trans = bone.Translation;
             if (i < _boneMorphTranslations.Length)
                 trans += _boneMorphTranslations[i];
             if (i < _boneTranslations.Count)
-                trans += _boneTranslations[i].ToNumerics();
+                trans += _boneTranslations[i];
             var rot = bone.Rotation * morphRot * delta;
             if (bone.InheritParent >= 0 && bone.InheritParent < _worldMats.Length)
             {
@@ -243,7 +244,7 @@ public partial class PmxRenderer
                             var norm = System.Numerics.Vector3.Zero;
                             var jp = rm.JointIndices[vi];
                             var jw = rm.JointWeights[vi];
-                            var basePos = (rm.BaseVertices[vi] + rm.VertexOffsets[vi]).ToNumerics();
+                            var basePos = rm.BaseVertices[vi] + rm.VertexOffsets[vi];
                             bool useSdef = rm.SdefC.Length > vi && rm.SdefR0.Length > vi && rm.SdefR1.Length > vi &&
                                 (rm.SdefC[vi] != Vector3.Zero || rm.SdefR0[vi] != Vector3.Zero || rm.SdefR1[vi] != Vector3.Zero);
                             int loop = useSdef ? 2 : 4;
@@ -255,7 +256,7 @@ public partial class PmxRenderer
                                 {
                                     var m = _skinMats[bi];
                                     pos += System.Numerics.Vector3.Transform(basePos, m) * w;
-                                    norm += System.Numerics.Vector3.TransformNormal(rm.Normals[vi].ToNumerics(), m) * w;
+                                    norm += Vector3.TransformNormal(rm.Normals[vi], m) * w;
                                 }
                             }
                             if (useSdef)
@@ -264,9 +265,9 @@ public partial class PmxRenderer
                                 int b1 = (int)jp[1];
                                 float w0 = jw[0];
                                 float w1 = jw[1];
-                                var c = rm.SdefC[vi].ToNumerics();
-                                var r0 = rm.SdefR0[vi].ToNumerics();
-                                var r1 = rm.SdefR1[vi].ToNumerics();
+                                var c = rm.SdefC[vi];
+                                var r0 = rm.SdefR0[vi];
+                                var r1 = rm.SdefR1[vi];
                                 var m0 = _skinMats[b0];
                                 var m1 = _skinMats[b1];
                                 var c0 = System.Numerics.Vector3.Transform(c, m0);
@@ -281,7 +282,7 @@ public partial class PmxRenderer
                                 var rotMat = System.Numerics.Matrix4x4.CreateFromQuaternion(q);
                                 var local = basePos - c;
                                 pos = System.Numerics.Vector3.Transform(local, rotMat) + cMix + rMix;
-                                var nLocal = rm.Normals[vi].ToNumerics();
+                                var nLocal = rm.Normals[vi];
                                 norm = System.Numerics.Vector3.TransformNormal(nLocal, rotMat);
                             }
                             if (norm.LengthSquared() > 0)
@@ -343,7 +344,7 @@ public partial class PmxRenderer
                             var norm = System.Numerics.Vector3.Zero;
                             var jp = rm.JointIndices[vi];
                             var jw = rm.JointWeights[vi];
-                            var basePos = (rm.BaseVertices[vi] + rm.VertexOffsets[vi]).ToNumerics();
+                            var basePos = rm.BaseVertices[vi] + rm.VertexOffsets[vi];
                             bool useSdef = rm.SdefC.Length > vi && rm.SdefR0.Length > vi && rm.SdefR1.Length > vi &&
                                 (rm.SdefC[vi] != Vector3.Zero || rm.SdefR0[vi] != Vector3.Zero || rm.SdefR1[vi] != Vector3.Zero);
                             int loop = useSdef ? 2 : 4;
@@ -355,7 +356,7 @@ public partial class PmxRenderer
                                 {
                                     var m = _skinMats[bi];
                                     pos += System.Numerics.Vector3.Transform(basePos, m) * w;
-                                    norm += System.Numerics.Vector3.TransformNormal(rm.Normals[vi].ToNumerics(), m) * w;
+                                    norm += Vector3.TransformNormal(rm.Normals[vi], m) * w;
                                 }
                             }
                             if (useSdef)
@@ -364,9 +365,9 @@ public partial class PmxRenderer
                                 int b1 = (int)jp[1];
                                 float w0 = jw[0];
                                 float w1 = jw[1];
-                                var c = rm.SdefC[vi].ToNumerics();
-                                var r0 = rm.SdefR0[vi].ToNumerics();
-                                var r1 = rm.SdefR1[vi].ToNumerics();
+                                var c = rm.SdefC[vi];
+                                var r0 = rm.SdefR0[vi];
+                                var r1 = rm.SdefR1[vi];
                                 var m0 = _skinMats[b0];
                                 var m1 = _skinMats[b1];
                                 var c0 = System.Numerics.Vector3.Transform(c, m0);
@@ -381,7 +382,7 @@ public partial class PmxRenderer
                                 var rotMat = System.Numerics.Matrix4x4.CreateFromQuaternion(q);
                                 var local = basePos - c;
                                 pos = System.Numerics.Vector3.Transform(local, rotMat) + cMix + rMix;
-                                var nLocal = rm.Normals[vi].ToNumerics();
+                                var nLocal = rm.Normals[vi];
                                 norm = System.Numerics.Vector3.TransformNormal(nLocal, rotMat);
                             }
                             if (norm.LengthSquared() > 0)
@@ -485,16 +486,18 @@ public partial class PmxRenderer
         GL.ClearColor(1f, 1f, 1f, 1f);
         GL.Clear(ClearBufferMask.ColorBufferBit | ClearBufferMask.DepthBufferBit);
 
-        var modelMat = ModelTransform;
+        var modelMat = ModelTransform.ToMatrix4();
 
         GL.UseProgram(_modelProgram);
-        GL.UniformMatrix4(_modelViewLoc, false, ref _viewMatrix);
-        GL.UniformMatrix4(_modelProjLoc, false, ref _projMatrix);
+        var view = _viewMatrix.ToMatrix4();
+        GL.UniformMatrix4(_modelViewLoc, false, ref view);
+        var proj = _projMatrix.ToMatrix4();
+        GL.UniformMatrix4(_modelProjLoc, false, ref proj);
         Vector3 light = Vector3.Normalize(new Vector3(0.3f, 0.6f, -0.7f));
         light = Vector3.TransformNormal(light, _cameraRot);
-        GL.Uniform3(_modelLightDirLoc, ref light);
+        GL.Uniform3(_modelLightDirLoc, light.X, light.Y, light.Z);
         Vector3 viewDir = Vector3.Normalize(_target - _cameraPos);
-        GL.Uniform3(_modelViewDirLoc, ref viewDir);
+        GL.Uniform3(_modelViewDirLoc, viewDir.X, viewDir.Y, viewDir.Z);
         GL.Uniform1(_modelShadeShiftLoc, ShadeShift);
         GL.Uniform1(_modelShadeToonyLoc, ShadeToony);
         GL.Uniform1(_modelRimIntensityLoc, RimIntensity);
@@ -502,13 +505,13 @@ public partial class PmxRenderer
         GL.UniformMatrix4(_modelMatrixLoc, false, ref modelMat);
         foreach (var rm in _meshes)
         {
-            GL.Uniform4(_modelColorLoc, rm.Color);
-            GL.Uniform3(_modelSpecularLoc, rm.Specular);
+            GL.Uniform4(_modelColorLoc, rm.Color.X, rm.Color.Y, rm.Color.Z, rm.Color.W);
+            GL.Uniform3(_modelSpecularLoc, rm.Specular.X, rm.Specular.Y, rm.Specular.Z);
             GL.Uniform1(_modelSpecularPowerLoc, rm.SpecularPower);
-            GL.Uniform4(_modelEdgeColorLoc, rm.EdgeColor);
+            GL.Uniform4(_modelEdgeColorLoc, rm.EdgeColor.X, rm.EdgeColor.Y, rm.EdgeColor.Z, rm.EdgeColor.W);
             GL.Uniform1(_modelEdgeSizeLoc, rm.EdgeSize);
-            GL.Uniform3(_modelToonColorLoc, rm.ToonColor);
-            GL.Uniform4(_modelTexTintLoc, rm.TextureTint);
+            GL.Uniform3(_modelToonColorLoc, rm.ToonColor.X, rm.ToonColor.Y, rm.ToonColor.Z);
+            GL.Uniform4(_modelTexTintLoc, rm.TextureTint.X, rm.TextureTint.Y, rm.TextureTint.Z, rm.TextureTint.W);
             if (rm.HasTexture)
             {
                 GL.ActiveTexture(TextureUnit.Texture0);
@@ -529,19 +532,20 @@ public partial class PmxRenderer
             }
         }
         GL.UseProgram(_program);
-        GL.UniformMatrix4(_viewLoc, false, ref _viewMatrix);
-        GL.UniformMatrix4(_projLoc, false, ref _projMatrix);
+        GL.UniformMatrix4(_viewLoc, false, ref view);
+        GL.UniformMatrix4(_projLoc, false, ref proj);
 
         Matrix4 gridModel = Matrix4.Identity;
+        var gridMat = gridModel.ToMatrix4();
         GL.DepthMask(false);
-        GL.UniformMatrix4(_modelLoc, false, ref gridModel);
-        GL.Uniform4(_colorLoc, new Vector4(1f, 1f, 1f, 0.3f));
+        GL.UniformMatrix4(_modelLoc, false, ref gridMat);
+        GL.Uniform4(_colorLoc, 1f, 1f, 1f, 0.3f);
         GL.BindVertexArray(_groundVao);
         GL.DrawArrays(PrimitiveType.Triangles, 0, _groundVertexCount);
         GL.BindVertexArray(0);
 
-        GL.UniformMatrix4(_modelLoc, false, ref gridModel);
-        GL.Uniform4(_colorLoc, new Vector4(0.8f, 0.8f, 0.8f, 0.5f));
+        GL.UniformMatrix4(_modelLoc, false, ref gridMat);
+        GL.Uniform4(_colorLoc, 0.8f, 0.8f, 0.8f, 0.5f);
         GL.BindVertexArray(_gridVao);
         GL.DrawArrays(PrimitiveType.Lines, 0, _gridVertexCount);
         GL.BindVertexArray(0);
@@ -551,7 +555,7 @@ public partial class PmxRenderer
         {
             GL.Disable(EnableCap.DepthTest);
             GL.UniformMatrix4(_modelLoc, false, ref modelMat);
-            GL.Uniform4(_colorLoc, new Vector4(1f, 0f, 0f, 1f));
+            GL.Uniform4(_colorLoc, 1f, 0f, 0f, 1f);
             GL.BindVertexArray(_boneVao);
             GL.DrawArrays(PrimitiveType.Lines, 0, _boneVertexCount);
             GL.BindVertexArray(0);
