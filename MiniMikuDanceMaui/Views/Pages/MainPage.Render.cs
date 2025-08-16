@@ -32,8 +32,10 @@ public partial class MainPage
             _glInitialized = true;
         }
 
+        _renderer.Resize(e.Info.Width, e.Info.Height);
+
         LoadPendingModel();
-        _renderer.Render(e.Surface.Canvas, e.BackendRenderTarget, e.Info);
+        _renderer.Render();
         GL.Flush();
         _needsRender = false;
     }
