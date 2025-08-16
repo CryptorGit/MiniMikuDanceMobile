@@ -1,6 +1,7 @@
 using System;
 using System.Buffers;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Numerics;
 using System.Runtime.InteropServices;
 using OpenTK.Graphics.ES30;
@@ -113,6 +114,13 @@ public partial class PmxRenderer
 
         EnsureBoneCapacity();
 
+#if DEBUG
+        int totalVerts = 0;
+        foreach (var rm in _meshes)
+            totalVerts += rm.BaseVertices.Length;
+        Debug.WriteLine($"CpuSkinning start: bones={_bones.Count}, vertices={totalVerts}");
+#endif
+
         if (_worldMats.Length != _bones.Count)
             _worldMats = new System.Numerics.Matrix4x4[_bones.Count];
         else
@@ -151,10 +159,24 @@ public partial class PmxRenderer
                 _worldMats[i] = local * _worldMats[bone.Parent];
             else
                 _worldMats[i] = local;
+#if DEBUG
+            if (!IsMatrixValid(_worldMats[i]))
+                Debug.WriteLine($"Invalid world matrix at index {i}: {_worldMats[i]}");
+#endif
         }
 
+#if DEBUG
+        for (int i = 0; i < _bones.Count; i++)
+        {
+            _skinMats[i] = _bones[i].InverseBindMatrix * _worldMats[i];
+            if (!IsMatrixValid(_skinMats[i]))
+                Debug.WriteLine($"Invalid skin matrix at index {i}: {_skinMats[i]}");
+        }
+        Debug.WriteLine("CpuSkinning completed");
+#else
         for (int i = 0; i < _bones.Count; i++)
             _skinMats[i] = _bones[i].InverseBindMatrix * _worldMats[i];
+#endif
 
         UpdateIkBoneWorldPositions();
 
@@ -198,6 +220,13 @@ public partial class PmxRenderer
         bool needsUpdate = _bonesDirty || _morphDirty || _uvMorphDirty;
         if (!needsUpdate)
             return;
+
+#if DEBUG
+        int totalVerts = 0;
+        foreach (var rmCount in _meshes)
+            totalVerts += rmCount.BaseVertices.Length;
+        Debug.WriteLine($"UpdateVertexBuffers: totalVertices={totalVerts}");
+#endif
 
         List<int>? changedVerts = null;
         if (_morphDirty || _uvMorphDirty)
@@ -288,6 +317,11 @@ public partial class PmxRenderer
                             if (norm.LengthSquared() > 0)
                                 norm = System.Numerics.Vector3.Normalize(norm);
 
+#if DEBUG
+                            if (!IsVectorValid(pos) || !IsVectorValid(norm))
+                                Debug.WriteLine($"Invalid vertex at vi {vi}: pos={pos}, norm={norm}");
+#endif
+
                             tmpVertexBuffer[vi * 8 + 0] = pos.X;
                             tmpVertexBuffer[vi * 8 + 1] = pos.Y;
                             tmpVertexBuffer[vi * 8 + 2] = pos.Z;
@@ -308,6 +342,14 @@ public partial class PmxRenderer
                                 tmpVertexBuffer[vi * 8 + 7] = 0f;
                             }
                         }
+#if DEBUG
+                        if (rm.BaseVertices.Length > 0)
+                        {
+                            Debug.WriteLine($"First vertex after skinning: {tmpVertexBuffer[0]}, {tmpVertexBuffer[1]}, {tmpVertexBuffer[2]}");
+                            if (!float.IsFinite(tmpVertexBuffer[0]) || !float.IsFinite(tmpVertexBuffer[1]) || !float.IsFinite(tmpVertexBuffer[2]))
+                                Debug.WriteLine("Invalid vertex data detected in first vertex");
+                        }
+#endif
                         GL.BindBuffer(BufferTarget.ArrayBuffer, rm.Vbo);
                         var handle = System.Runtime.InteropServices.GCHandle.Alloc(tmpVertexBuffer, System.Runtime.InteropServices.GCHandleType.Pinned);
                         try
@@ -388,6 +430,11 @@ public partial class PmxRenderer
                             if (norm.LengthSquared() > 0)
                                 norm = System.Numerics.Vector3.Normalize(norm);
 
+#if DEBUG
+                            if (!IsVectorValid(pos) || !IsVectorValid(norm))
+                                Debug.WriteLine($"Invalid vertex (changed) vi {vi}: pos={pos}, norm={norm}");
+#endif
+
                             small[0] = pos.X; small[1] = pos.Y; small[2] = pos.Z;
                             small[3] = norm.X; small[4] = norm.Y; small[5] = norm.Z;
                             if (vi < rm.TexCoords.Length)
@@ -398,7 +445,6 @@ public partial class PmxRenderer
                                 small[6] = uv.X; small[7] = uv.Y;
                             }
                             else { small[6] = 0f; small[7] = 0f; }
-
                             GL.BindBuffer(BufferTarget.ArrayBuffer, rm.Vbo);
                             IntPtr offset = new IntPtr(vi * 8 * sizeof(float));
                             GL.BufferSubData(BufferTarget.ArrayBuffer, offset, 8 * sizeof(float), handleSmall.AddrOfPinnedObject());
@@ -433,6 +479,11 @@ public partial class PmxRenderer
                     {
                         var pos = rm.BaseVertices[vi] + rm.VertexOffsets[vi];
                         var nor = vi < rm.Normals.Length ? rm.Normals[vi] : new Vector3(0, 0, 1);
+
+#if DEBUG
+                        if (!IsVectorValid(pos) || !IsVectorValid(nor))
+                            Debug.WriteLine($"Invalid static vertex vi {vi}: pos={pos}, norm={nor}");
+#endif
                         tmpVertexBuffer[vi * 8 + 0] = pos.X;
                         tmpVertexBuffer[vi * 8 + 1] = pos.Y;
                         tmpVertexBuffer[vi * 8 + 2] = pos.Z;
@@ -453,6 +504,14 @@ public partial class PmxRenderer
                             tmpVertexBuffer[vi * 8 + 7] = 0f;
                         }
                     }
+#if DEBUG
+                    if (rm.BaseVertices.Length > 0)
+                    {
+                        Debug.WriteLine($"First static vertex: {tmpVertexBuffer[0]}, {tmpVertexBuffer[1]}, {tmpVertexBuffer[2]}");
+                        if (!float.IsFinite(tmpVertexBuffer[0]) || !float.IsFinite(tmpVertexBuffer[1]) || !float.IsFinite(tmpVertexBuffer[2]))
+                            Debug.WriteLine("Invalid vertex data detected in static mesh");
+                    }
+#endif
                     GL.BindBuffer(BufferTarget.ArrayBuffer, rm.Vbo);
                     var handle = System.Runtime.InteropServices.GCHandle.Alloc(tmpVertexBuffer, System.Runtime.InteropServices.GCHandleType.Pinned);
                     try
@@ -568,4 +627,18 @@ public partial class PmxRenderer
         }
     }
 
+#if DEBUG
+    private static bool IsMatrixValid(System.Numerics.Matrix4x4 m)
+    {
+        return float.IsFinite(m.M11) && float.IsFinite(m.M12) && float.IsFinite(m.M13) && float.IsFinite(m.M14)
+            && float.IsFinite(m.M21) && float.IsFinite(m.M22) && float.IsFinite(m.M23) && float.IsFinite(m.M24)
+            && float.IsFinite(m.M31) && float.IsFinite(m.M32) && float.IsFinite(m.M33) && float.IsFinite(m.M34)
+            && float.IsFinite(m.M41) && float.IsFinite(m.M42) && float.IsFinite(m.M43) && float.IsFinite(m.M44);
+    }
+
+    private static bool IsVectorValid(System.Numerics.Vector3 v)
+    {
+        return float.IsFinite(v.X) && float.IsFinite(v.Y) && float.IsFinite(v.Z);
+    }
+#endif
 }

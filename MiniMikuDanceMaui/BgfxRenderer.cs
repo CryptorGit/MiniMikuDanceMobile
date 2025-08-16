@@ -12,6 +12,10 @@ public class BgfxRenderer : IRenderer
     private Program? _program;
     private VertexBuffer? _vertexBuffer;
     private IndexBuffer? _indexBuffer;
+#if DEBUG
+    private uint _vertexCount;
+    private uint _indexCount;
+#endif
 
     public void Initialize()
     {
@@ -28,6 +32,10 @@ public class BgfxRenderer : IRenderer
         Span<ushort> indices = stackalloc ushort[] { 0, 1, 2 };
         _vertexBuffer = new VertexBuffer(MemoryBlock.FromArray(vertices), PosColorVertex.Layout);
         _indexBuffer = new IndexBuffer(MemoryBlock.FromArray(indices));
+#if DEBUG
+        _vertexCount = (uint)vertices.Length;
+        _indexCount = (uint)indices.Length;
+#endif
 
         _program = LoadProgram("simple");
 
@@ -41,6 +49,10 @@ public class BgfxRenderer : IRenderer
         {
             Bgfx.SetVertexBuffer(0, _vertexBuffer);
             Bgfx.SetIndexBuffer(_indexBuffer);
+#if DEBUG
+            Bgfx.DebugTextClear();
+            Bgfx.DebugTextWrite(0, 0, 0x0f, $"VB:{_vertexCount} IB:{_indexCount}");
+#endif
             Bgfx.SetRenderState(RenderState.Default);
             Bgfx.Submit(0, _program);
         }
