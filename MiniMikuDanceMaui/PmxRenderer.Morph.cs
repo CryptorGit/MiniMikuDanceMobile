@@ -1,8 +1,10 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using OpenTK.Mathematics;
 using MiniMikuDance.Util;
 using MiniMikuDance.Import;
+using MiniMikuDance.Data;
 using MMDTools;
 using Vector2 = OpenTK.Mathematics.Vector2;
 using Vector3 = OpenTK.Mathematics.Vector3;
@@ -32,17 +34,18 @@ public partial class PmxRenderer
 
         Array.Fill(_boneMorphRotations, System.Numerics.Quaternion.Identity);
 
-        foreach (var (mName, mv) in _morphValues)
+        foreach (var (mName, state) in _morphStates)
         {
             var m = _morphs[mName];
+            var mv = state.Weight;
             if (m.Type != MorphType.Bone || MathF.Abs(mv) < 1e-5f)
                 continue;
-            foreach (var off in m.Offsets)
+            foreach (var off in m.Objects.OfType<BoneMorphObject>())
             {
                 int idx = off.Index;
                 if (idx < 0 || idx >= count) continue;
-                _boneMorphTranslations[idx] += off.Bone.Translation * mv;
-                var q = System.Numerics.Quaternion.Slerp(System.Numerics.Quaternion.Identity, off.Bone.Rotation, mv);
+                _boneMorphTranslations[idx] += off.Translation * mv;
+                var q = System.Numerics.Quaternion.Slerp(System.Numerics.Quaternion.Identity, off.Rotation, mv);
                 _boneMorphRotations[idx] = System.Numerics.Quaternion.Normalize(_boneMorphRotations[idx] * q);
             }
         }
@@ -61,27 +64,28 @@ public partial class PmxRenderer
             rm.TextureTint = rm.BaseTextureTint;
         }
 
-        foreach (var (mName, mv) in _morphValues)
+        foreach (var (mName, state) in _morphStates)
         {
             var m = _morphs[mName];
+            var mv = state.Weight;
             if (m.Type != MorphType.Material || MathF.Abs(mv) < 1e-5f)
                 continue;
-            foreach (var off in m.Offsets)
+            foreach (var off in m.Objects.OfType<MaterialMorphObject>())
             {
                 void Apply(RenderMesh mesh)
                 {
-                    var diff = new Vector4(off.Material.Diffuse.X, off.Material.Diffuse.Y, off.Material.Diffuse.Z, off.Material.Diffuse.W);
-                    var spec = new Vector3(off.Material.Specular.X, off.Material.Specular.Y, off.Material.Specular.Z);
-                    var edge = new Vector4(off.Material.EdgeColor.X, off.Material.EdgeColor.Y, off.Material.EdgeColor.Z, off.Material.EdgeColor.W);
-                    var toon = new Vector3(off.Material.ToonColor.X, off.Material.ToonColor.Y, off.Material.ToonColor.Z);
-                    var tex = new Vector4(off.Material.TextureTint.X, off.Material.TextureTint.Y, off.Material.TextureTint.Z, off.Material.TextureTint.W);
-                    if (off.Material.CalcMode == MaterialCalcMode.Mul)
+                    var diff = new Vector4(off.Diffuse.X, off.Diffuse.Y, off.Diffuse.Z, off.Diffuse.W);
+                    var spec = new Vector3(off.Specular.X, off.Specular.Y, off.Specular.Z);
+                    var edge = new Vector4(off.EdgeColor.X, off.EdgeColor.Y, off.EdgeColor.Z, off.EdgeColor.W);
+                    var toon = new Vector3(off.ToonColor.X, off.ToonColor.Y, off.ToonColor.Z);
+                    var tex = new Vector4(off.TextureTint.X, off.TextureTint.Y, off.TextureTint.Z, off.TextureTint.W);
+                    if (off.CalcMode == MaterialCalcMode.Mul)
                     {
                         mesh.Color *= Vector4.One + diff * mv;
                         mesh.Specular *= Vector3.One + spec * mv;
-                        mesh.SpecularPower *= 1f + off.Material.SpecularPower * mv;
+                        mesh.SpecularPower *= 1f + off.SpecularPower * mv;
                         mesh.EdgeColor *= Vector4.One + edge * mv;
-                        mesh.EdgeSize *= 1f + off.Material.EdgeSize * mv;
+                        mesh.EdgeSize *= 1f + off.EdgeSize * mv;
                         mesh.ToonColor *= Vector3.One + toon * mv;
                         mesh.TextureTint *= Vector4.One + tex * mv;
                     }
@@ -89,15 +93,15 @@ public partial class PmxRenderer
                     {
                         mesh.Color += diff * mv;
                         mesh.Specular += spec * mv;
-                        mesh.SpecularPower += off.Material.SpecularPower * mv;
+                        mesh.SpecularPower += off.SpecularPower * mv;
                         mesh.EdgeColor += edge * mv;
-                        mesh.EdgeSize += off.Material.EdgeSize * mv;
+                        mesh.EdgeSize += off.EdgeSize * mv;
                         mesh.ToonColor += toon * mv;
                         mesh.TextureTint += tex * mv;
                     }
                 }
 
-                if (off.Material.IsAll)
+                if (off.IsAll)
                 {
                     foreach (var mesh in _meshes)
                         Apply(mesh);
@@ -118,20 +122,19 @@ public partial class PmxRenderer
         value = Math.Clamp(value, 0f, 1f);
         if (MathF.Abs(value) < 1e-5f) value = 0f;
 
-        _morphValues.TryGetValue(name, out var current);
-        if (MathF.Abs(current - value) < 1e-5f)
+        if (!_morphStates.TryGetValue(name, out var state))
             return;
 
-        if (value == 0f)
-            _morphValues.Remove(name);
-        else
-            _morphValues[name] = value;
+        if (MathF.Abs(state.Weight - value) < 1e-5f)
+            return;
+
+        state.Weight = value;
 
         switch (morph.Type)
         {
             case MorphType.Vertex:
                 _morphDirty = true;
-                foreach (var off in morph.Offsets)
+                foreach (var off in morph.Objects.OfType<VertexMorphObject>())
                 {
                     int vid = off.Index;
                     Vector3 total = Vector3.Zero;
@@ -140,8 +143,8 @@ public partial class PmxRenderer
                     {
                         foreach (var (mName, vec) in contribs)
                         {
-                            if (_morphValues.TryGetValue(mName, out var mv) && MathF.Abs(mv) >= 1e-5f)
-                                total += vec * mv;
+                            if (_morphStates.TryGetValue(mName, out var st) && MathF.Abs(st.Weight) >= 1e-5f)
+                                total += vec * st.Weight;
                         }
                     }
                     _vertexTotalOffsets[vid] = total;
@@ -156,11 +159,11 @@ public partial class PmxRenderer
                 }
                 break;
             case MorphType.Group:
-                foreach (var off in morph.Offsets)
+                foreach (var off in morph.Objects.OfType<GroupMorphObject>())
                 {
-                    var target = _morphIndexToName.Length > off.Group.MorphIndex ? _morphIndexToName[off.Group.MorphIndex] : null;
+                    var target = _morphIndexToName.Length > off.MorphIndex ? _morphIndexToName[off.MorphIndex] : null;
                     if (!string.IsNullOrEmpty(target))
-                        SetMorph(target, value * off.Group.Rate);
+                        SetMorph(target, value * off.Rate);
                 }
                 break;
             case MorphType.Bone:
@@ -173,7 +176,7 @@ public partial class PmxRenderer
                 break;
             case MorphType.UV:
                 _uvMorphDirty = true;
-                foreach (var off in morph.Offsets)
+                foreach (var off in morph.Objects.OfType<UvMorphObject>())
                 {
                     int vid = off.Index;
                     System.Numerics.Vector2 total = System.Numerics.Vector2.Zero;
@@ -182,8 +185,8 @@ public partial class PmxRenderer
                     {
                         foreach (var (mName, vec) in contribs)
                         {
-                            if (_morphValues.TryGetValue(mName, out var mv) && MathF.Abs(mv) >= 1e-5f)
-                                total += new System.Numerics.Vector2(vec.X, vec.Y) * mv;
+                            if (_morphStates.TryGetValue(mName, out var st) && MathF.Abs(st.Weight) >= 1e-5f)
+                                total += new System.Numerics.Vector2(vec.X, vec.Y) * st.Weight;
                         }
                     }
                     lock (_changedVerticesLock)
@@ -203,9 +206,28 @@ public partial class PmxRenderer
         Viewer?.InvalidateSurface();
     }
 
-    public IReadOnlyList<MorphData> GetMorphs(MorphCategory category)
+    public IReadOnlyList<(Morph Morph, MorphState State)> GetMorphs(MorphCategory category)
     {
-        return _morphsByCategory.TryGetValue(category, out var list) ? list : Array.Empty<MorphData>();
+        if (_morphsByCategory.TryGetValue(category, out var list))
+        {
+            var result = new List<(Morph, MorphState)>(list.Count);
+            foreach (var m in list)
+            {
+                if (_morphStates.TryGetValue(m.NameJa, out var state))
+                    result.Add((m, state));
+            }
+            return result;
+        }
+        return Array.Empty<(Morph, MorphState)>();
+    }
+
+    public IEnumerable<(Morph Morph, MorphState State)> GetAllMorphStates()
+    {
+        foreach (var (name, morph) in _morphs)
+        {
+            if (_morphStates.TryGetValue(name, out var state))
+                yield return (morph, state);
+        }
     }
 
     public void SetMorph(MorphCategory category, string name, float value)

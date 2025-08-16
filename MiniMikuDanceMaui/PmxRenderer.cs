@@ -5,8 +5,10 @@ using OpenTK.Graphics.ES30;
 using GL = OpenTK.Graphics.ES30.GL;
 using System.Runtime.InteropServices;
 using System.Collections.Generic;
+using System.Linq;
 using MiniMikuDance.Util;
 using MiniMikuDance.Import;
+using MiniMikuDance.Data;
 using MiniMikuDance.App;
 using MiniMikuDance.IK;
 using MiniMikuDance.Physics;
@@ -55,9 +57,9 @@ public partial class PmxRenderer : IDisposable
         public Vector3[] SdefR1 = Array.Empty<Vector3>();
     }
     private readonly System.Collections.Generic.List<RenderMesh> _meshes = new();
-    private readonly Dictionary<string, MorphData> _morphs = new(StringComparer.OrdinalIgnoreCase);
-    private readonly Dictionary<MorphCategory, List<MorphData>> _morphsByCategory = new();
-    private readonly Dictionary<string, float> _morphValues = new(StringComparer.OrdinalIgnoreCase);
+    private readonly Dictionary<string, Morph> _morphs = new(StringComparer.OrdinalIgnoreCase);
+    private readonly Dictionary<MorphCategory, List<Morph>> _morphsByCategory = new();
+    private readonly Dictionary<string, MorphState> _morphStates = new(StringComparer.OrdinalIgnoreCase);
     private List<(RenderMesh Mesh, int Index)>?[] _morphVertexMap = Array.Empty<List<(RenderMesh Mesh, int Index)>?>();
     private readonly HashSet<int> _changedOriginalVertices = new();
     private readonly object _changedVerticesLock = new();
@@ -1048,21 +1050,24 @@ void main(){
 
         _morphs.Clear();
         _morphsByCategory.Clear();
-        _morphValues.Clear();
+        _morphStates.Clear();
         int totalVertices = data.Mesh.VertexCount;
         _morphVertexMap = new List<(RenderMesh Mesh, int Index)>?[totalVertices];
         _vertexTotalOffsets = new Vector3[totalVertices];
         _vertexMorphOffsets = new List<(string MorphName, Vector3 Offset)>?[totalVertices];
         _uvMorphOffsets = new List<(string MorphName, System.Numerics.Vector4 Offset)>?[totalVertices];
         _morphIndexToName = new string[data.Morphs.Count];
-        foreach (var morph in data.Morphs)
+        foreach (var md in data.Morphs)
         {
-            var name = MorphNameUtil.EnsureUniqueName(morph.Name, _morphs.ContainsKey);
-            morph.Name = name;
+            var morph = md.ToMorph();
+            var name = MorphNameUtil.EnsureUniqueName(morph.NameJa, _morphs.ContainsKey);
+            morph.NameJa = name;
+            morph.NameEn = name;
             _morphs[name] = morph;
+            _morphStates[name] = new MorphState();
             if (!_morphsByCategory.TryGetValue(morph.Category, out var list))
             {
-                list = new List<MorphData>();
+                list = new List<Morph>();
                 _morphsByCategory[morph.Category] = list;
             }
             list.Add(morph);
@@ -1070,12 +1075,12 @@ void main(){
                 _morphIndexToName[morph.Index] = name;
         }
 
-        foreach (var (mName, mData) in _morphs)
+        foreach (var (mName, morph) in _morphs)
         {
-            if (mData.Type != MorphType.Vertex) continue;
-            foreach (var off in mData.Offsets)
+            if (morph.Type != MorphType.Vertex) continue;
+            foreach (var off in morph.Objects.OfType<VertexMorphObject>())
             {
-                var vec = new Vector3(off.Vertex.X, off.Vertex.Y, off.Vertex.Z);
+                var vec = new Vector3(off.Offset.X, off.Offset.Y, off.Offset.Z);
                 var list = _vertexMorphOffsets[off.Index];
                 if (list == null)
                 {
@@ -1086,12 +1091,12 @@ void main(){
             }
         }
 
-        foreach (var (mName, mData) in _morphs)
+        foreach (var (mName, morph) in _morphs)
         {
-            if (mData.Type != MorphType.UV) continue;
-            foreach (var off in mData.Offsets)
+            if (morph.Type != MorphType.UV) continue;
+            foreach (var off in morph.Objects.OfType<UvMorphObject>())
             {
-                var vec = off.Uv.Offset;
+                var vec = off.Offset;
                 var list = _uvMorphOffsets[off.Index];
                 if (list == null)
                 {

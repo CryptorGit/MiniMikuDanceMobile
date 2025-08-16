@@ -3,20 +3,21 @@ using Microsoft.Maui.Dispatching;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using MiniMikuDance.Import;
 using MiniMikuDance.Util;
+using MiniMikuDance.Data;
 
 namespace MiniMikuDanceMaui;
 
 public partial class MorphView : ContentView
 {
-    public event Action<string, double>? MorphValueChanged;
+    public event Action<Morph, MorphState>? MorphValueChanged;
 
     private sealed class DebounceState
     {
         public required IDispatcherTimer Timer { get; init; }
         public double Value { get; set; }
-        public required string Name { get; init; }
+        public required Morph Morph { get; init; }
+        public required MorphState State { get; init; }
     }
 
     private readonly Dictionary<string, DebounceState> _debounceStates = new(StringComparer.OrdinalIgnoreCase);
@@ -27,7 +28,7 @@ public partial class MorphView : ContentView
         InitializeComponent();
     }
 
-    public void SetMorphs(IEnumerable<MorphData> morphs)
+    public void SetMorphs(IEnumerable<(Morph Morph, MorphState State)> morphs)
     {
         lock (_timerLock)
         {
@@ -41,13 +42,15 @@ public partial class MorphView : ContentView
         MorphList.Children.Clear();
         var textColor = (Color)(Application.Current?.Resources?.TryGetValue("TextColor", out var color) == true ? color : Colors.Black);
         var usedNames = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
-        foreach (var group in morphs.GroupBy(m => m.Category).OrderBy(g => g.Key))
+        foreach (var group in morphs.GroupBy(m => m.Morph.Category).OrderBy(g => g.Key))
         {
             var header = new Label { Text = group.Key.ToString(), TextColor = textColor, FontAttributes = FontAttributes.Bold, Margin = new Thickness(0,10,0,0) };
             MorphList.Children.Add(header);
-            foreach (var morph in group)
+            foreach (var item in group)
             {
-                var originalName = morph.Name;
+                var morph = item.Morph;
+                var state = item.State;
+                var originalName = morph.NameJa;
                 var displayName = MorphNameUtil.EnsureUniqueName(originalName, usedNames.Contains);
                 usedNames.Add(displayName);
                 var grid = new Grid
@@ -63,23 +66,23 @@ public partial class MorphView : ContentView
                 grid.Add(nameLabel);
                 Grid.SetColumn(nameLabel, 0);
                 Grid.SetRow(nameLabel, 0);
-                var valueLabel = new Label { Text = "0", TextColor = textColor, HorizontalTextAlignment = TextAlignment.End };
+                var valueLabel = new Label { Text = state.Weight.ToString("F2"), TextColor = textColor, HorizontalTextAlignment = TextAlignment.End };
                 grid.Add(valueLabel);
                 Grid.SetColumn(valueLabel, 1);
                 Grid.SetRow(valueLabel, 0);
                 MorphList.Children.Add(grid);
-                var slider = new Slider { Minimum = 0, Maximum = 1 };
+                var slider = new Slider { Minimum = 0, Maximum = 1, Value = state.Weight };
                 slider.ValueChanged += (s, e) =>
                 {
                     valueLabel.Text = $"{e.NewValue:F2}";
-                    DebounceMorph(displayName, originalName, e.NewValue);
+                    DebounceMorph(displayName, morph, state, e.NewValue);
                 };
                 MorphList.Children.Add(slider);
             }
         }
     }
 
-    private void DebounceMorph(string displayName, string name, double value)
+    private void DebounceMorph(string displayName, Morph morph, MorphState morphState, double value)
     {
         DebounceState state;
         lock (_timerLock)
@@ -95,7 +98,7 @@ public partial class MorphView : ContentView
                 timer.Interval = TimeSpan.FromMilliseconds(16);
                 timer.IsRepeating = false;
                 var key = displayName;
-                state = new DebounceState { Timer = timer, Name = name };
+                state = new DebounceState { Timer = timer, Morph = morph, State = morphState };
                 timer.Tick += (s, _) =>
                 {
                     double latest;
@@ -109,7 +112,8 @@ public partial class MorphView : ContentView
                     }
                     try
                     {
-                        MorphValueChanged?.Invoke(state.Name, latest);
+                        state.State.Weight = (float)latest;
+                        MorphValueChanged?.Invoke(state.Morph, state.State);
                     }
                     catch (Exception ex)
                     {

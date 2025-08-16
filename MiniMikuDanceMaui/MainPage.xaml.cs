@@ -18,6 +18,7 @@ using Microsoft.Maui.Devices;
 using System.IO;
 using System.Linq;
 using System.Reflection;
+using MiniMikuDance.Data;
 using MiniMikuDance.Import;
 using OpenTK.Mathematics;
 using MiniMikuDance.App;
@@ -858,13 +859,10 @@ public partial class MainPage : ContentPage
             else if (name == "MORPH")
             {
                 var mv = new MorphView();
-                if (_currentModel?.Morphs != null)
+                mv.SetMorphs(_renderer.GetAllMorphStates());
+                mv.MorphValueChanged += (morph, state) =>
                 {
-                    mv.SetMorphs(_currentModel.Morphs);
-                }
-                mv.MorphValueChanged += (morphName, value) =>
-                {
-                    _renderer.SetMorph(morphName, (float)value);
+                    _renderer.SetMorph(morph.NameJa, state.Weight);
                 };
                 view = mv;
             }
@@ -959,10 +957,7 @@ public partial class MainPage : ContentPage
         }
         else if (name == "MORPH" && _bottomViews[name] is MorphView morphView)
         {
-            if (_currentModel?.Morphs != null)
-            {
-                morphView.SetMorphs(_currentModel.Morphs);
-            }
+            morphView.SetMorphs(_renderer.GetAllMorphStates());
         }
 
         SwitchBottomFeature(name);
@@ -1200,7 +1195,7 @@ public partial class MainPage : ContentPage
             Viewer.InvalidateSurface();
             if (_bottomViews.TryGetValue("MORPH", out var view) && view is MorphView mv)
             {
-                mv.SetMorphs(data.Morphs);
+                mv.SetMorphs(_renderer.GetAllMorphStates());
             }
             success = true;
         }
