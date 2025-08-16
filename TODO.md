@@ -4,3 +4,4 @@
 - タイムラインのフレーム追加/削除処理を実装する
 - ImportPmxFragment で選択された PMX ファイルを読み込み表示する処理を実装する
 - ViewSettingsFragment のモーフとライティング設定をレンダリングへ反映させる
+- MiniMikuDance.sln を Visual Studio で開き、MiniMikuDanceMaui をスタートアッププロジェクトに設定して Android デバイスへのデプロイを確認する
