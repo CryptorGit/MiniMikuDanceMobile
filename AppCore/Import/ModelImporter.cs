@@ -106,6 +106,17 @@ public class ModelImporter : IDisposable
         }
     }
 
+    private static SysVector3 ToVector3(object? obj)
+    {
+        if (obj == null)
+            return SysVector3.Zero;
+        var t = obj.GetType();
+        return new SysVector3(
+            Convert.ToSingle(t.GetProperty("X")?.GetValue(obj) ?? 0f),
+            Convert.ToSingle(t.GetProperty("Y")?.GetValue(obj) ?? 0f),
+            Convert.ToSingle(t.GetProperty("Z")?.GetValue(obj) ?? 0f));
+    }
+
     public ModelImporter(ILogger<ModelImporter>? logger = null)
     {
         _logger = logger ?? NullLogger<ModelImporter>.Instance;
@@ -691,6 +702,8 @@ public class ModelImporter : IDisposable
             var orientation = System.Numerics.Quaternion.CreateFromYawPitchRoll(
                 rb.RotationRadian.Y, rb.RotationRadian.X, rb.RotationRadian.Z);
             var transformType = (RigidBodyTransformType)rb.PhysicsType;
+            var gravity = ToVector3(rb.GetType().GetProperty("Gravity")?.GetValue(rb));
+            var torque = ToVector3(rb.GetType().GetProperty("Torque")?.GetValue(rb));
             var rbd = new RigidBodyData
             {
                 Name = string.IsNullOrEmpty(rb.NameEnglish) ? rb.Name : rb.NameEnglish,
@@ -707,11 +720,11 @@ public class ModelImporter : IDisposable
                 TransformType = transformType,
                 IsBoneRelative = rb.HasBone,
                 IsMorph = boneSet.Contains(rb.Bone),
-                Torque = SysVector3.Zero,
+                Torque = torque,
                 Type = transformType == RigidBodyTransformType.FromBoneToSimulation
                     ? RigidBodyType.Static
                     : RigidBodyType.Dynamic,
-                Gravity = null
+                Gravity = gravity == SysVector3.Zero ? null : gravity
             };
             rigidBodyDatas.Add(rbd);
         }
@@ -728,15 +741,6 @@ public class ModelImporter : IDisposable
         }
 
         var jointDatas = new List<JointData>(joints.Length);
-        static SysVector3 ToVector3(object? obj)
-        {
-            if (obj == null) return SysVector3.Zero;
-            var t = obj.GetType();
-            return new SysVector3(
-                Convert.ToSingle(t.GetProperty("X")?.GetValue(obj) ?? 0f),
-                Convert.ToSingle(t.GetProperty("Y")?.GetValue(obj) ?? 0f),
-                Convert.ToSingle(t.GetProperty("Z")?.GetValue(obj) ?? 0f));
-        }
         for (int i = 0; i < joints.Length; i++)
         {
             var j = joints[i];
