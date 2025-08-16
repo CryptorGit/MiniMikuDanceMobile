@@ -47,6 +47,7 @@ public class PhysicsWorld
             data.Friction,
             data.TransformType,
             data.IsBoneRelative,
+            data.IsMorph,
             data.Torque,
             data.Type,
             data.Gravity,
@@ -84,14 +85,20 @@ public class PhysicsWorld
     {
         foreach (var body in _rigidBodies)
         {
+            if (!body.IsActive)
+                continue;
             body.ApplyGravity(Gravity, deltaTime);
             body.Integrate(deltaTime);
         }
 
         for (int i = 0; i < _rigidBodies.Count; i++)
         {
+            if (!_rigidBodies[i].IsActive)
+                continue;
             for (int j = i + 1; j < _rigidBodies.Count; j++)
             {
+                if (!_rigidBodies[j].IsActive)
+                    continue;
                 ResolveCollision(_rigidBodies[i], _rigidBodies[j]);
             }
         }
@@ -105,6 +112,8 @@ public class PhysicsWorld
         {
             foreach (var body in _rigidBodies)
             {
+                if (!body.IsActive)
+                    continue;
                 if (body.TransformType != RigidBodyTransformType.FromBoneToSimulation)
                     BoneUpdateHook(body);
             }

@@ -21,6 +21,9 @@ public class RigidBody
     public float Friction { get; set; }
     public Import.RigidBodyTransformType TransformType { get; }
     public bool IsBoneRelative { get; }
+    public bool IsMorph { get; }
+    private bool _isActive = true;
+    public bool IsActive => _isActive;
     public Vector3 Position { get; internal set; }
     public Vector3 Velocity { get; internal set; }
     public Vector3 AngularVelocity { get; internal set; }
@@ -35,7 +38,7 @@ public class RigidBody
     public RigidBody(string name, int boneIndex, float mass, Import.RigidBodyShape shape,
         Vector3 size, Vector3 origin, Quaternion orientation,
         float linearDamping, float angularDamping, float restitution, float friction,
-        Import.RigidBodyTransformType transformType, bool isBoneRelative,
+        Import.RigidBodyTransformType transformType, bool isBoneRelative, bool isMorph,
         Vector3 torque, Import.RigidBodyType type, Vector3? gravity,
         ushort collisionGroup, ushort collisionMask)
     {
@@ -55,6 +58,7 @@ public class RigidBody
         Friction = friction;
         TransformType = transformType;
         IsBoneRelative = isBoneRelative;
+        IsMorph = isMorph;
         Position = origin;
         Velocity = Vector3.Zero;
         AngularVelocity = Vector3.Zero;
@@ -67,7 +71,7 @@ public class RigidBody
 
     internal void ApplyGravity(Vector3 worldGravity, float dt)
     {
-        if (Mass <= 0f || Type != Import.RigidBodyType.Dynamic)
+        if (!_isActive || Mass <= 0f || Type != Import.RigidBodyType.Dynamic)
             return;
         var g = Gravity ?? worldGravity;
         Velocity += g * dt;
@@ -75,7 +79,7 @@ public class RigidBody
 
     internal void Integrate(float dt)
     {
-        if (Type == Import.RigidBodyType.Static)
+        if (!_isActive || Type == Import.RigidBodyType.Static)
             return;
 
         Position += Velocity * dt;
@@ -95,5 +99,10 @@ public class RigidBody
         var angDelta = AngularVelocity * dt;
         var dq = Quaternion.CreateFromYawPitchRoll(angDelta.Y, angDelta.X, angDelta.Z);
         Orientation = Quaternion.Normalize(dq * Orientation);
+
+        if (!IsMorph && Velocity.LengthSquared() < 1e-6f && AngularVelocity.LengthSquared() < 1e-6f)
+            _isActive = false;
+        else
+            _isActive = true;
     }
 }

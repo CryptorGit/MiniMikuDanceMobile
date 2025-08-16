@@ -559,6 +559,7 @@ public class ModelImporter : IDisposable
         var morphDatas = new List<MorphData>(morphs.Length);
         var nameCounts = new Dictionary<string, int>(StringComparer.OrdinalIgnoreCase);
         var usedNames = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+        var boneSet = new HashSet<int>();
         for (int mi = 0; mi < morphs.Length; mi++)
         {
             var m = morphs[mi];
@@ -593,6 +594,27 @@ public class ModelImporter : IDisposable
                 case MorphType.Vertex:
                     foreach (var elem in m.VertexMorphElements.Span)
                     {
+                        var v = verts[elem.TargetVertex];
+                        switch ((WeightTransformType)v.WeightTransformType)
+                        {
+                            case WeightTransformType.BDEF1:
+                                boneSet.Add(v.BoneIndex1);
+                                break;
+                            case WeightTransformType.BDEF2:
+                            case WeightTransformType.SDEF:
+                            case WeightTransformType.QDEF:
+                                boneSet.Add(v.BoneIndex1);
+                                boneSet.Add(v.BoneIndex2);
+                                break;
+                            case WeightTransformType.BDEF4:
+                                boneSet.Add(v.BoneIndex1);
+                                boneSet.Add(v.BoneIndex2);
+                                boneSet.Add(v.BoneIndex3);
+                                boneSet.Add(v.BoneIndex4);
+                                break;
+                            default:
+                                break;
+                        }
                         md.Offsets.Add(new MorphOffset
                         {
                             Index = elem.TargetVertex,
@@ -684,6 +706,7 @@ public class ModelImporter : IDisposable
                 Friction = rb.Friction,
                 TransformType = transformType,
                 IsBoneRelative = rb.HasBone,
+                IsMorph = boneSet.Contains(rb.Bone),
                 Torque = SysVector3.Zero,
                 Type = transformType == RigidBodyTransformType.FromBoneToSimulation
                     ? RigidBodyType.Static
