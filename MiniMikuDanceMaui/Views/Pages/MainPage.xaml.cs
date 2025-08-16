@@ -6,27 +6,19 @@ using Microsoft.Maui.Dispatching;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
-using System.Threading;
-using System.Threading.Tasks;
 using SkiaSharp.Views.Maui;
 using SkiaSharp.Views.Maui.Controls;
 using SkiaSharp;
 using OpenTK.Graphics.ES30;
 using GL = OpenTK.Graphics.ES30.GL;
-using Microsoft.Maui.Storage;
-using Microsoft.Maui.Devices;
 using System.IO;
 using System.Linq;
-using System.Reflection;
 using MiniMikuDance.Import;
 using OpenTK.Mathematics;
 using MiniMikuDance.App;
-using SixLabors.ImageSharp.PixelFormats;
 using MiniMikuDance.IK;
 using MiniMikuDance.Util;
-using MiniMikuDanceMaui.Services;
 using MiniMikuDanceMaui.Rendering;
-using MiniMikuDanceMaui.Utilities;
 using MiniMikuDanceMaui.Views.Panels;
 
 namespace MiniMikuDanceMaui.Views.Pages;
@@ -127,22 +119,6 @@ public partial class MainPage : ContentPage
         IkManager.ToModelSpaceFunc = null;
         IkManager.ToWorldSpaceFunc = null;
         IkManager.InvalidateViewer = null;
-    }
-
-    private static string GetAppPackageDirectory()
-    {
-        var dirProp = typeof(FileSystem).GetProperty("AppPackageDirectory", BindingFlags.Public | BindingFlags.Static);
-        if (dirProp?.GetValue(null) is string dir && !string.IsNullOrEmpty(dir) && Directory.Exists(dir))
-            return dir;
-
-        if (!string.IsNullOrEmpty(FileSystem.AppDataDirectory) && Directory.Exists(FileSystem.AppDataDirectory))
-            return FileSystem.AppDataDirectory;
-
-        var baseDir = AppContext.BaseDirectory;
-        if (!string.IsNullOrEmpty(baseDir) && Directory.Exists(baseDir))
-            return baseDir;
-
-        return System.Environment.CurrentDirectory;
     }
 
     private static bool HasAllowedExtension(string path, HashSet<string> allowed)
@@ -262,10 +238,6 @@ public partial class MainPage : ContentPage
 #if ANDROID
         var readStatus = await Permissions.RequestAsync<Permissions.StorageRead>();
         var writeStatus = await Permissions.RequestAsync<Permissions.StorageWrite>();
-        if (readStatus != PermissionStatus.Granted || writeStatus != PermissionStatus.Granted)
-        {
-            // Permissions not granted
-        }
         if (OperatingSystem.IsAndroidVersionAtLeast(30))
         {
             if (!Android.OS.Environment.IsExternalStorageManager)
@@ -296,12 +268,6 @@ public partial class MainPage : ContentPage
 #endif
         Viewer?.InvalidateSurface();
     }
-
-    protected override void OnDisappearing()
-    {
-        base.OnDisappearing();
-    }
-
     private void OnSizeChanged(object? sender, EventArgs e) => UpdateLayout();
 
     private void UpdateLayout()
