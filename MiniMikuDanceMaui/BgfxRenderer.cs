@@ -1,4 +1,5 @@
 using System;
+using System.IO;
 using System.Numerics;
 using MiniMikuDance.App;
 using SharpBgfx;
@@ -29,10 +30,7 @@ public class BgfxRenderer : IRenderer
         _vertexBuffer = new VertexBuffer(MemoryBlock.FromArray(vertices), PosColorVertex.Layout);
         _indexBuffer = new IndexBuffer(MemoryBlock.FromArray(indices));
 
-        var emptyShader = MemoryBlock.FromArray(Array.Empty<byte>());
-        var vs = Bgfx.CreateShader(emptyShader);
-        var fs = Bgfx.CreateShader(emptyShader);
-        _program = Bgfx.CreateProgram(vs, fs, true);
+        _program = LoadProgram("simple");
 
         _frameBuffer = Bgfx.CreateFrameBuffer((uint)size.X, (uint)size.Y, TextureFormat.BGRA8);
     }
@@ -63,6 +61,29 @@ public class BgfxRenderer : IRenderer
         _program?.Dispose();
         _frameBuffer?.Dispose();
         Bgfx.Shutdown();
+    }
+
+    private static Shader LoadShader(string name)
+    {
+        var assembly = typeof(BgfxRenderer).Assembly;
+        using var stream = assembly.GetManifestResourceStream(name) ?? throw new InvalidOperationException($"Shader resource '{name}' not found.");
+        using var ms = new MemoryStream();
+        stream.CopyTo(ms);
+        return Bgfx.CreateShader(MemoryBlock.FromArray(ms.ToArray()));
+    }
+
+    private static Program LoadProgram(string baseName)
+    {
+        var renderer = Bgfx.GetRendererType();
+        var suffix = renderer switch
+        {
+            RendererType.OpenGLES => "gles3",
+            RendererType.Metal => "metal",
+            _ => "gles2"
+        };
+        var vs = LoadShader($"Shaders/{baseName}.vs.{suffix}.sc");
+        var fs = LoadShader($"Shaders/{baseName}.fs.{suffix}.sc");
+        return Bgfx.CreateProgram(vs, fs, true);
     }
 
     private struct PosColorVertex
