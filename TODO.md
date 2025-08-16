@@ -16,7 +16,8 @@
 - [ ] `BGFXView.CaptureFrame` の実装
 - [x] `MainPage.xaml.cs` から SKGLView 依存コードを削除
 - [ ] BGFXView 用のタッチ操作を再実装
-- [ ] Android/iOS のプラットフォーム初期化で BGFX バックエンドを設定
+- [x] Android/iOS のプラットフォーム初期化で BGFX バックエンドを設定
+- [ ] Android の JavaVM ハンドル取得方法を精査し、PlatformData に正確に設定
 - [ ] 残存する OpenGL 型や `using` を整理
 - [x] `BgfxRenderer` のシェーダとバッファ初期化を完成
 
