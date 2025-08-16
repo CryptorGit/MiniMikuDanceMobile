@@ -7,3 +7,6 @@ Google Material Symbolsを利用する
 
 # テストコードに関して
 テストコードは絶対に追加しないでください
+
+# 作成するファイルに関して
+Binary files are not supported
