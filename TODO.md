@@ -6,3 +6,4 @@
 - 剛体間衝突レスポンスとジョイント解決の高度化
 - 剛体/ジョイント描画フラグとUI連動の検討
 - SyncToSimulation/SyncFromSimulation の変換ロジック精緻化
+- Box および Capsule 用の衝突判定メソッドの実装

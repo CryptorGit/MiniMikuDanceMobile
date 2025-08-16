@@ -149,9 +149,35 @@ public class PhysicsWorld
 
     private void ResolveCollision(RigidBody a, RigidBody b)
     {
-        if ((a.CollisionGroup & b.CollisionMask) == 0 || (b.CollisionGroup & a.CollisionMask) == 0)
+        if (!ShouldCollide(a, b))
             return;
 
+        if (a.Shape == RigidBodyShape.Sphere && b.Shape == RigidBodyShape.Sphere)
+        {
+            ResolveSphereSphere(a, b);
+        }
+        else if (a.Shape == RigidBodyShape.Box && b.Shape == RigidBodyShape.Box)
+        {
+            ResolveBoxBox(a, b);
+        }
+        else if (a.Shape == RigidBodyShape.Capsule && b.Shape == RigidBodyShape.Capsule)
+        {
+            ResolveCapsuleCapsule(a, b);
+        }
+        else
+        {
+            ResolveSphereSphere(a, b);
+        }
+    }
+
+    private static bool ShouldCollide(RigidBody a, RigidBody b)
+    {
+        return (a.CollisionGroup & b.CollisionMask) != 0 &&
+               (b.CollisionGroup & a.CollisionMask) != 0;
+    }
+
+    private static void ResolveSphereSphere(RigidBody a, RigidBody b)
+    {
         var delta = b.Position - a.Position;
         var dist = delta.Length();
         var radiusA = a.BoundingRadius;
@@ -189,5 +215,17 @@ public class PhysicsWorld
             a.Velocity -= frictionVec * invMassA;
             b.Velocity += frictionVec * invMassB;
         }
+    }
+
+    private static void ResolveBoxBox(RigidBody a, RigidBody b)
+    {
+        // TODO: Box の衝突判定を実装
+        ResolveSphereSphere(a, b);
+    }
+
+    private static void ResolveCapsuleCapsule(RigidBody a, RigidBody b)
+    {
+        // TODO: Capsule の衝突判定を実装
+        ResolveSphereSphere(a, b);
     }
 }
