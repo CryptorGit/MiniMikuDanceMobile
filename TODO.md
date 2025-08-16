@@ -5,3 +5,4 @@
 - Bullet など外部ライブラリの導入検討とラッパー層の設計
 - 剛体間衝突レスポンスとジョイント解決の高度化
 - 剛体/ジョイント描画フラグとUI連動の検討
+- SyncToSimulation/SyncFromSimulation の変換ロジック精緻化
