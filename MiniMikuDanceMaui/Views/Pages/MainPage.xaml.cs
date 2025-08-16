@@ -19,6 +19,7 @@ using MiniMikuDance.App;
 using MiniMikuDance.IK;
 using MiniMikuDance.Util;
 using MiniMikuDanceMaui.Rendering;
+using MiniMikuDanceMaui.Services;
 using MiniMikuDanceMaui.Views.Panels;
 
 namespace MiniMikuDanceMaui.Views.Pages;
