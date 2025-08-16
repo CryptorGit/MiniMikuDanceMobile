@@ -9,7 +9,6 @@ using System.Diagnostics;
 using System.Threading;
 using System.Threading.Tasks;
 using SkiaSharp.Views.Maui;
-using SkiaSharp.Views.Maui.Controls;
 using SkiaSharp;
 using OpenTK.Graphics.ES30;
 using GL = OpenTK.Graphics.ES30.GL;
@@ -78,7 +77,7 @@ public partial class MainPage : ContentPage
             DisablePoseMode();
         }
         _renderer.ShowIkBones = _poseMode;
-        Viewer?.InvalidateSurface();
+        Viewer?.Invalidate();
     }
 
     private void EnablePoseMode()
@@ -111,7 +110,7 @@ public partial class MainPage : ContentPage
         IkManager.InvalidateViewer = () =>
         {
             _needsRender = true;
-            Viewer?.InvalidateSurface();
+            Viewer?.Invalidate();
         };
     }
 
@@ -171,11 +170,10 @@ public partial class MainPage : ContentPage
         _renderer.ShowIkBones = _poseMode;
         _renderer.IkBoneScale = _settings.IkBoneScale;
 
-        if (Viewer is SKGLView glView)
+        if (Viewer is BGFXView view)
         {
-            glView.PaintSurface += OnPaintSurface;
-            glView.Touch += OnViewTouch;
-            _renderer.Viewer = glView;
+            view.Renderer = _renderer;
+            App.Initializer.Viewer = view;
         }
 
         _renderTimer = Dispatcher.CreateTimer();
@@ -186,7 +184,7 @@ public partial class MainPage : ContentPage
             {
                 if (_needsRender)
                 {
-                    Viewer?.InvalidateSurface();
+                    Viewer?.Invalidate();
                 }
                 _renderTimerErrorCount = 0;
             }
@@ -249,12 +247,12 @@ public partial class MainPage : ContentPage
             setting.BoneOutlineChanged += show =>
             {
                 _renderer.ShowBoneOutline = show;
-                Viewer?.InvalidateSurface();
+                Viewer?.Invalidate();
             };
             setting.ResetCameraRequested += () =>
             {
                 _renderer.ResetCamera();
-                Viewer?.InvalidateSurface();
+                Viewer?.Invalidate();
             };
         }
 
@@ -426,7 +424,7 @@ public partial class MainPage : ContentPage
 
     private void UpdateBoneViewValues()
     {
-        Viewer?.InvalidateSurface();
+        Viewer?.Invalidate();
     }
 
     protected override async void OnAppearing()
@@ -467,7 +465,7 @@ public partial class MainPage : ContentPage
             await DisplayAlert("ストレージ", "外部ストレージへのアクセスに失敗したため、内部ストレージを使用します。", "OK");
         }
 #endif
-        Viewer?.InvalidateSurface();
+        Viewer?.Invalidate();
     }
 
     protected override void OnDisappearing()
@@ -547,7 +545,6 @@ public partial class MainPage : ContentPage
     {
         if (!_glInitialized)
         {
-            GL.LoadBindings(new SKGLViewBindingsContext());
             _renderer.Initialize();
             _renderer.BonesConfig = _bonesConfig;
             _glInitialized = true;
@@ -789,7 +786,7 @@ public partial class MainPage : ContentPage
                 _shadeToony = data.ShadeToony;
                 _rimIntensity = data.RimIntensity;
                 UpdateRendererLightingProperties();
-                Viewer?.InvalidateSurface();
+                Viewer?.Invalidate();
             }
         }
         catch (Exception ex)
@@ -891,7 +888,7 @@ public partial class MainPage : ContentPage
                 {
                     if (_renderer != null)
                         _renderer.ResetCamera();
-                    Viewer?.InvalidateSurface();
+                    Viewer?.Invalidate();
                 };
                 view = sv;
             }
@@ -1197,7 +1194,7 @@ public partial class MainPage : ContentPage
             }
 
             _pendingModel = data;
-            Viewer.InvalidateSurface();
+            Viewer.Invalidate();
             if (_bottomViews.TryGetValue("MORPH", out var view) && view is MorphView mv)
             {
                 mv.SetMorphs(data.Morphs);

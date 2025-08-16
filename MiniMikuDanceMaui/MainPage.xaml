@@ -1,7 +1,6 @@
 <?xml version="1.0" encoding="utf-8" ?>
 <ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
-             xmlns:skia="clr-namespace:SkiaSharp.Views.Maui.Controls;assembly=SkiaSharp.Views.Maui.Controls"
              xmlns:mmd="clr-namespace:MiniMikuDanceMaui"
              xmlns:mi="http://www.aathifmahir.com/dotnet/2022/maui/icons"
              x:Class="MiniMikuDanceMaui.MainPage"
@@ -127,7 +126,7 @@
             </VerticalStackLayout>
         </Border>
         <ActivityIndicator x:Name="LoadingIndicator" IsRunning="True" IsVisible="False" Color="{StaticResource IndicatorColor}" ZIndex="30" />
-        <skia:SKGLView x:Name="Viewer" HasRenderLoop="True" EnableTouchEvents="True" MaximumWidthRequest="2048" MaximumHeightRequest="2048" />
+        <mmd:BGFXView x:Name="Viewer" MaximumWidthRequest="2048" MaximumHeightRequest="2048" />
         <Grid x:Name="BottomRegion" BackgroundColor="{StaticResource BackgroundColor}" IsVisible="False" ZIndex="2">
             
             <Grid.RowDefinitions>
