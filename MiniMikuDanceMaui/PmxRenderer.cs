@@ -10,7 +10,6 @@ using MiniMikuDance.Import;
 using MiniMikuDance.App;
 using MiniMikuDance.IK;
 using MiniMikuDance.Physics;
-using MMDTools;
 using SkiaSharp.Views.Maui.Controls;
 using Vector2 = OpenTK.Mathematics.Vector2;
 using Vector3 = OpenTK.Mathematics.Vector3;
@@ -147,7 +146,8 @@ public partial class PmxRenderer : IDisposable
     private readonly Dictionary<int, string> _indexToHumanoidName = new();
     public BonesConfig? BonesConfig { get; set; }
     private PhysicsWorld? _physicsWorld;
-    public IReadOnlyList<RigidBody> RigidBodies => _physicsWorld?.RigidBodies ?? Array.Empty<RigidBody>();
+    public IReadOnlyList<MiniMikuDance.Physics.RigidBody> RigidBodies =>
+        _physicsWorld?.RigidBodies ?? Array.Empty<MiniMikuDance.Physics.RigidBody>();
     private readonly HashSet<int> _physicsBoneIndices = new();
     private readonly HashSet<int> _gravityBoneIndices = new();
     private Quaternion _externalRotation = Quaternion.Identity;
