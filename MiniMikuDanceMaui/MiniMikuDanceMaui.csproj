@@ -38,10 +38,14 @@
   </ItemGroup>
 
   <ItemGroup>
+    <MauiXaml Include="App/**/*.xaml" />
     <MauiXaml Include="Views/**/*.xaml" />
   </ItemGroup>
 
   <ItemGroup>
+    <Compile Update="App/**/*.xaml.cs">
+      <DependentUpon>%(Filename)</DependentUpon>
+    </Compile>
     <Compile Update="Views/**/*.xaml.cs">
       <DependentUpon>%(Filename)</DependentUpon>
     </Compile>
