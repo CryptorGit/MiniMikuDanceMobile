@@ -66,6 +66,9 @@ internal static class NanoemPhysicsNative
     [DllImport(LibraryName, EntryPoint = "nanoemPhysicsRigidBodyDestroy", CallingConvention = CallingConvention.Cdecl)]
     public static extern void PhysicsRigidBodyDestroy(nint rigidBody);
 
+    [DllImport(LibraryName, EntryPoint = "nanoemPhysicsRigidBodyGetWorldTransform", CallingConvention = CallingConvention.Cdecl)]
+    public static extern void PhysicsRigidBodyGetWorldTransform(nint rigidBody, [Out] float[] value);
+
     [DllImport(LibraryName, EntryPoint = "nanoemPhysicsJointCreate", CallingConvention = CallingConvention.Cdecl)]
     public static extern nint PhysicsJointCreate(nint joint, nint opaque, out NanoemStatus status);
 
