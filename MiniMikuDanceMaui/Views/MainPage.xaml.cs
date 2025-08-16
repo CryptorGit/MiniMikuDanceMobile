@@ -550,7 +550,7 @@ public partial class MainPage : ContentPage
     {
         if (!_glInitialized)
         {
-            GL.LoadBindings(new SKGLViewBindingsContext());
+            GL.LoadBindings(new MiniMikuDanceMaui.Rendering.SKGLViewBindingsContext());
             _renderer.Initialize();
             _renderer.BonesConfig = _bonesConfig;
             _glInitialized = true;
