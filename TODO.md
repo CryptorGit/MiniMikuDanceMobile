@@ -3,7 +3,7 @@
 ## レンダラー移行（SharpBGFX）
 - [x] `MiniMikuDanceMaui.csproj` から OpenTK を削除し、`SharpBgfx` の NuGet 参照を追加
 - [x] `AppCore/App/IViewer.cs` に `IRenderer` インターフェースを新設
-- [ ] `AppCore/AppCore.csproj` から OpenTK の NuGet 参照を削除
+- [x] `AppCore/AppCore.csproj` から OpenTK の NuGet 参照を削除
 - [ ] `Rendering/PmxRenderer.*` 内の OpenGL 呼び出しを SharpBGFX API に置換
     - [ ] `MiniMikuDanceMaui/PmxRenderer.cs` と `.Render.cs` から `using OpenTK.*` と `GL` 呼び出しを削除
     - [ ] 頂点・インデックス・ユニフォームバッファ生成／更新を `Bgfx.CreateVertexBuffer`、`Bgfx.CreateIndexBuffer`、`Bgfx.SetUniform` などへ移行

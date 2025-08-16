@@ -1,47 +1,31 @@
 using System.Numerics;
-using OpenTK.Mathematics;
 
 namespace MiniMikuDance.Util;
 
 public static class NumericsExtensions
 {
-    public static Matrix4 ToMatrix4(this Matrix4x4 m)
+    public static Matrix4x4 ToMatrix4(this Matrix4x4 m)
     {
-        return new Matrix4(
-            m.M11, m.M12, m.M13, m.M14,
-            m.M21, m.M22, m.M23, m.M24,
-            m.M31, m.M32, m.M33, m.M34,
-            m.M41, m.M42, m.M43, m.M44);
+        return m;
     }
 
-    public static OpenTK.Mathematics.Vector4 ToVector4(this System.Numerics.Vector4 v)
+    public static Vector4 ToVector4(this Vector4 v)
     {
-        return new OpenTK.Mathematics.Vector4(v.X, v.Y, v.Z, v.W);
+        return v;
     }
 
-    public static Matrix4 ToMatrix4(this System.Numerics.Quaternion q)
+    public static Matrix4x4 ToMatrix4(this Quaternion q)
     {
-        var oq = new OpenTK.Mathematics.Quaternion(q.X, q.Y, q.Z, q.W);
-        return Matrix4.CreateFromQuaternion(oq);
+        return Matrix4x4.CreateFromQuaternion(q);
     }
 
     // Z→X→Y 順を使用する
-    public static System.Numerics.Quaternion FromEulerDegrees(this System.Numerics.Vector3 degrees)
+    public static Quaternion FromEulerDegrees(this Vector3 degrees)
     {
         var rad = degrees * (MathF.PI / 180f);
-        var qz = System.Numerics.Quaternion.CreateFromAxisAngle(System.Numerics.Vector3.UnitZ, rad.Z);
-        var qx = System.Numerics.Quaternion.CreateFromAxisAngle(System.Numerics.Vector3.UnitX, rad.X);
-        var qy = System.Numerics.Quaternion.CreateFromAxisAngle(System.Numerics.Vector3.UnitY, rad.Y);
+        var qz = Quaternion.CreateFromAxisAngle(Vector3.UnitZ, rad.Z);
+        var qx = Quaternion.CreateFromAxisAngle(Vector3.UnitX, rad.X);
+        var qy = Quaternion.CreateFromAxisAngle(Vector3.UnitY, rad.Y);
         return qy * qx * qz;
-    }
-
-    public static OpenTK.Mathematics.Vector3 ToOpenTK(this System.Numerics.Vector3 v)
-    {
-        return new OpenTK.Mathematics.Vector3(v.X, v.Y, v.Z);
-    }
-
-    public static System.Numerics.Vector3 ToNumerics(this OpenTK.Mathematics.Vector3 v)
-    {
-        return new System.Numerics.Vector3(v.X, v.Y, v.Z);
     }
 }
