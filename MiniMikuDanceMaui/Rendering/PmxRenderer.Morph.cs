@@ -8,7 +8,7 @@ using Vector2 = OpenTK.Mathematics.Vector2;
 using Vector3 = OpenTK.Mathematics.Vector3;
 using Vector4 = OpenTK.Mathematics.Vector4;
 
-namespace MiniMikuDanceMaui;
+namespace MiniMikuDanceMaui.Rendering;
 
 public partial class PmxRenderer
 {

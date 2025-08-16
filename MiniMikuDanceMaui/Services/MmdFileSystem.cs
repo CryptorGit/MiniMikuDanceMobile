@@ -3,7 +3,7 @@ using System.IO;
 using SystemPath = System.IO.Path;
 using Microsoft.Maui.Storage;
 
-namespace MiniMikuDanceMaui;
+namespace MiniMikuDanceMaui.Services;
 
 public static class MmdFileSystem
 {

@@ -38,6 +38,19 @@
   </ItemGroup>
 
   <ItemGroup>
+    <MauiXaml Include="Views/**/*.xaml" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Compile Update="Views/**/*.xaml.cs">
+      <DependentUpon>%(Filename)</DependentUpon>
+    </Compile>
+    <Compile Update="Rendering/**/*.cs" />
+    <Compile Update="Services/**/*.cs" />
+    <Compile Update="Utilities/**/*.cs" />
+  </ItemGroup>
+
+  <ItemGroup>
       <MauiAsset Include="..\Configs\BonesConfig.json">
         <Link>Configs\BonesConfig.json</Link>
       </MauiAsset>
