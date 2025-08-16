@@ -58,3 +58,11 @@ MiniMikuDance/data/
 # rust
 /rust/**/target
 /**/*.rs.bk
+
+# Android build artifacts
+android/.gradle/
+android/build/
+android/app/build/
+
+# Gradle wrapper binary
+android/gradle/wrapper/gradle-wrapper.jar

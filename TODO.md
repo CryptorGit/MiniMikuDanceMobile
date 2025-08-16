@@ -1,1 +1,2 @@
 - README の「操作フロー」節に実際の UI スクリーンショットを追加する
+- ViewerSurfaceView の OpenGL/Vulkan レンダリング初期化を実装する
