@@ -1,6 +1,6 @@
 using System;
 using System.Buffers;
-using OpenTK.Mathematics;
+using System.Numerics;
 using OpenTK.Graphics.ES30;
 using GL = OpenTK.Graphics.ES30.GL;
 using System.Runtime.InteropServices;
@@ -11,9 +11,10 @@ using MiniMikuDance.App;
 using MiniMikuDance.IK;
 using MMDTools;
 using SkiaSharp.Views.Maui.Controls;
-using Vector2 = OpenTK.Mathematics.Vector2;
-using Vector3 = OpenTK.Mathematics.Vector3;
-using Vector4 = OpenTK.Mathematics.Vector4;
+using Matrix4 = System.Numerics.Matrix4x4;
+using Vector2 = System.Numerics.Vector2;
+using Vector3 = System.Numerics.Vector3;
+using Vector4 = System.Numerics.Vector4;
 
 namespace MiniMikuDanceMaui;
 
@@ -419,7 +420,7 @@ void main(){
         _orbitY -= dx * 0.01f * RotateSensitivity;
         _orbitX -= dy * 0.01f * RotateSensitivity;
         // Clamp pitch to [-90°, 90°]
-        float limit = MathHelper.DegreesToRadians(89.9f);
+        float limit = 89.9f * (MathF.PI / 180f);
         if (_orbitX < -limit) _orbitX = -limit;
         if (_orbitX > limit) _orbitX = limit;
         _viewProjDirty = true;
@@ -580,13 +581,13 @@ void main(){
             foreach (var bone in _ikBones)
             {
                 int i = bone.PmxBoneIndex;
-                var pos = _worldMats[i].Translation.ToOpenTK();
+                var pos = _worldMats[i].Translation;
                 var v4 = new Vector4(pos, 1f);
-                var clip = v4 * _viewMatrix;
-                clip = clip * _projMatrix;
+                var clip = Vector4.Transform(v4, _viewMatrix);
+                clip = Vector4.Transform(clip, _projMatrix);
                 if (clip.W <= 0)
                     continue;
-                var ndc = clip.Xyz / clip.W;
+                var ndc = new Vector3(clip.X, clip.Y, clip.Z) / clip.W;
                 var sx = (ndc.X * 0.5f + 0.5f) * _width;
                 var sy = (-ndc.Y * 0.5f + 0.5f) * _height;
                 var dx = sx - screenX;
@@ -604,13 +605,13 @@ void main(){
             int limit = Math.Min(_worldMats.Length, _bones.Count);
             for (int i = 0; i < limit; i++)
             {
-                var pos = _worldMats[i].Translation.ToOpenTK();
+                var pos = _worldMats[i].Translation;
                 var v4 = new Vector4(pos, 1f);
-                var clip = v4 * _viewMatrix;
-                clip = clip * _projMatrix;
+                var clip = Vector4.Transform(v4, _viewMatrix);
+                clip = Vector4.Transform(clip, _projMatrix);
                 if (clip.W <= 0)
                     continue;
-                var ndc = clip.Xyz / clip.W;
+                var ndc = new Vector3(clip.X, clip.Y, clip.Z) / clip.W;
                 var sx = (ndc.X * 0.5f + 0.5f) * _width;
                 var sy = (-ndc.Y * 0.5f + 0.5f) * _height;
                 var dx = sx - screenX;
@@ -630,30 +631,26 @@ void main(){
     {
         if (index < 0 || index >= _worldMats.Length)
             return System.Numerics.Vector3.Zero;
-        var pos = _worldMats[index].Translation.ToOpenTK();
-        pos = Vector3.TransformPosition(pos, _modelTransform);
-        var result = pos.ToNumerics();
-        return result;
+        var pos = _worldMats[index].Translation;
+        pos = Vector3.Transform(pos, _modelTransform);
+        return pos;
     }
 
     public System.Numerics.Vector3 GetCameraPosition()
     {
-        return _cameraPos.ToNumerics();
+        return _cameraPos;
     }
 
     public System.Numerics.Vector3 WorldToModel(System.Numerics.Vector3 worldPos)
     {
         Matrix4.Invert(_modelTransform, out var inv);
-        var pos = Vector3.TransformPosition(worldPos.ToOpenTK(), inv);
-        var result = pos.ToNumerics();
-        return result;
+        return Vector3.Transform(worldPos, inv);
     }
 
     public System.Numerics.Vector3 ModelToWorld(System.Numerics.Vector3 modelPos)
     {
-        var pos = Vector3.TransformPosition(modelPos.ToOpenTK(), _modelTransform);
-        var result = pos.ToNumerics();
-        return result;
+        var pos = Vector3.Transform(modelPos, _modelTransform);
+        return pos;
     }
 
     public (System.Numerics.Vector3 Origin, System.Numerics.Vector3 Direction) ScreenPointToRay(float screenX, float screenY)
@@ -666,12 +663,12 @@ void main(){
         Matrix4.Invert(_projMatrix, out var invProj);
         Matrix4.Invert(_viewMatrix, out var invView);
         var rayClip = new Vector4(x, y, -1f, 1f);
-        var rayEye = rayClip * invProj;
+        var rayEye = Vector4.Transform(rayClip, invProj);
         // ビュー空間では前方を -Z とするため、Z軸を反転する
         rayEye.Z = -1f; rayEye.W = 0f;
-        var rayWorld = rayEye * invView;
-        var dir = Vector3.Normalize(rayWorld.Xyz);
-        return (_cameraPos.ToNumerics(), dir.ToNumerics());
+        var rayWorld = Vector4.Transform(rayEye, invView);
+        var dir = Vector3.Normalize(new Vector3(rayWorld.X, rayWorld.Y, rayWorld.Z));
+        return (_cameraPos, dir);
     }
 
     public void SetBoneRotation(int index, Vector3 degrees)
@@ -681,8 +678,8 @@ void main(){
         if (BonesConfig != null && index < _bones.Count)
         {
             var name = _indexToHumanoidName.TryGetValue(index, out var n) ? n : _bones[index].Name;
-            var clamped = BonesConfig.Clamp(name, degrees.ToNumerics());
-            degrees = clamped.ToOpenTK();
+            var clamped = BonesConfig.Clamp(name, degrees);
+            degrees = clamped;
         }
         while (_boneRotations.Count <= index)
             _boneRotations.Add(Vector3.Zero);
@@ -701,13 +698,13 @@ void main(){
         for (int i = 0; i < _bones.Count; i++)
         {
             var bone = _bones[i];
-            System.Numerics.Vector3 euler = i < _boneRotations.Count ? _boneRotations[i].ToNumerics() : System.Numerics.Vector3.Zero;
+            Vector3 euler = i < _boneRotations.Count ? _boneRotations[i] : Vector3.Zero;
             var rot = euler.FromEulerDegrees();
             if (bone.HasFixedAxis)
                 rot = ProjectRotation(rot, bone.FixedAxis);
             System.Numerics.Vector3 trans = bone.Translation;
             if (i < _boneTranslations.Count)
-                trans += _boneTranslations[i].ToNumerics();
+                trans += _boneTranslations[i];
             var rotMat = System.Numerics.Matrix4x4.CreateFromQuaternion(rot);
             if (bone.HasLocalAxis)
             {
@@ -754,12 +751,12 @@ void main(){
             ? worldMats[bone.Parent]
             : System.Numerics.Matrix4x4.Identity;
         System.Numerics.Matrix4x4.Invert(parentWorld, out var invParent);
-        var localPos = System.Numerics.Vector3.Transform(worldPos.ToNumerics(), invParent);
+        var localPos = Vector3.Transform(worldPos, invParent);
         var delta = localPos - bone.Translation;
 
         while (_boneTranslations.Count <= index)
             _boneTranslations.Add(Vector3.Zero);
-        _boneTranslations[index] = delta.ToOpenTK();
+        _boneTranslations[index] = delta;
         _bonesDirty = true;
         Viewer?.InvalidateSurface();
     }
@@ -914,7 +911,7 @@ void main(){
             rm.Ebo = GL.GenBuffer();
             rm.BaseColor = sm.ColorFactor.ToVector4();
             rm.Color = rm.BaseColor;
-            rm.BaseSpecular = sm.Specular.ToOpenTK();
+            rm.BaseSpecular = sm.Specular;
             rm.Specular = rm.BaseSpecular;
             rm.BaseSpecularPower = sm.SpecularPower;
             rm.SpecularPower = rm.BaseSpecularPower;
@@ -922,7 +919,7 @@ void main(){
             rm.EdgeColor = rm.BaseEdgeColor;
             rm.BaseEdgeSize = sm.EdgeSize;
             rm.EdgeSize = rm.BaseEdgeSize;
-            rm.BaseToonColor = sm.ToonColor.ToOpenTK();
+            rm.BaseToonColor = sm.ToonColor;
             rm.ToonColor = rm.BaseToonColor;
             rm.BaseTextureTint = sm.TextureTint.ToVector4();
             rm.TextureTint = rm.BaseTextureTint;
