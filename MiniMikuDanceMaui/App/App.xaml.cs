@@ -5,7 +5,7 @@ using MiniMikuDance.UI;
 using System;
 using System.IO;
 using MiniMikuDanceMaui.Services;
-using MiniMikuDanceMaui.Views;
+using MiniMikuDanceMaui.Views.Pages;
 
 namespace MiniMikuDanceMaui.App;
 

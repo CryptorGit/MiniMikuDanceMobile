@@ -1,7 +1,7 @@
 using Microsoft.Maui.Controls;
 using System;
 
-namespace MiniMikuDanceMaui.Views;
+namespace MiniMikuDanceMaui.Views.Panels;
 
 public partial class SettingView : ContentView
 {
