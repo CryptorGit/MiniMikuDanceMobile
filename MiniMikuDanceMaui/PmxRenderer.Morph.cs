@@ -200,7 +200,7 @@ public partial class PmxRenderer
                 break;
         }
 
-        Viewer?.InvalidateSurface();
+        Viewer?.Invalidate();
     }
 
     public IReadOnlyList<MorphData> GetMorphs(MorphCategory category)

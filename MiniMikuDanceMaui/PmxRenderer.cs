@@ -10,7 +10,6 @@ using MiniMikuDance.Import;
 using MiniMikuDance.App;
 using MiniMikuDance.IK;
 using MMDTools;
-using SkiaSharp.Views.Maui.Controls;
 using Matrix4 = System.Numerics.Matrix4x4;
 using Vector2 = System.Numerics.Vector2;
 using Vector3 = System.Numerics.Vector3;
@@ -18,7 +17,7 @@ using Vector4 = System.Numerics.Vector4;
 
 namespace MiniMikuDanceMaui;
 
-public partial class PmxRenderer : IDisposable
+public partial class PmxRenderer : IRenderer, IDisposable
 {
     private int _program;
     private class RenderMesh
@@ -68,7 +67,7 @@ public partial class PmxRenderer : IDisposable
     private string[] _morphIndexToName = Array.Empty<string>();
     private System.Numerics.Vector3[] _boneMorphTranslations = Array.Empty<System.Numerics.Vector3>();
     private System.Numerics.Quaternion[] _boneMorphRotations = Array.Empty<System.Numerics.Quaternion>();
-    public SKGLView? Viewer { get; set; }
+    public IViewer? Viewer { get; set; }
     private int _gridVao;
     private int _gridVbo;
     private int _gridVertexCount;
@@ -125,7 +124,7 @@ public partial class PmxRenderer : IDisposable
             if (!_modelTransform.Equals(value))
             {
                 _modelTransform = value;
-                Viewer?.InvalidateSurface();
+                Viewer?.Invalidate();
             }
         }
     }
@@ -166,7 +165,7 @@ public partial class PmxRenderer : IDisposable
                 _showBoneOutline = value;
                 // Ensure bones buffer gets (re)built on next frame
                 _bonesDirty = true;
-                Viewer?.InvalidateSurface();
+                Viewer?.Invalidate();
             }
         }
     }
@@ -180,7 +179,7 @@ public partial class PmxRenderer : IDisposable
             if (_showIkBones != value)
             {
                 _showIkBones = value;
-                Viewer?.InvalidateSurface();
+                Viewer?.Invalidate();
             }
         }
     }
@@ -194,7 +193,7 @@ public partial class PmxRenderer : IDisposable
             if (_ikBoneScale != value)
             {
                 _ikBoneScale = value;
-                Viewer?.InvalidateSurface();
+                Viewer?.Invalidate();
             }
         }
     }
@@ -685,7 +684,7 @@ void main(){
             _boneRotations.Add(Vector3.Zero);
         _boneRotations[index] = degrees;
         _bonesDirty = true;
-        Viewer?.InvalidateSurface();
+        Viewer?.Invalidate();
     }
 
     // RecalculateBoneMorphs は PmxRenderer.Morph.cs へ移動
@@ -758,7 +757,7 @@ void main(){
             _boneTranslations.Add(Vector3.Zero);
         _boneTranslations[index] = delta;
         _bonesDirty = true;
-        Viewer?.InvalidateSurface();
+        Viewer?.Invalidate();
     }
 
     public Vector3 GetBoneRotation(int index)

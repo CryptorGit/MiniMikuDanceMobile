@@ -8,6 +8,7 @@ public interface IViewer : IDisposable
     Vector2 Size { get; }
     event Action<float>? FrameUpdated;
     byte[] CaptureFrame();
+    void Invalidate();
 }
 
 public interface IRenderer : IDisposable
