@@ -45,31 +45,27 @@ public class Joint
         if (BodyA is null || BodyB is null)
             return;
 
-        // 線形拘束
+        // 線形拘束（スプリングと制限）
         var diff = BodyB.Position - BodyA.Position - Origin;
         var clamped = Vector3.Min(Vector3.Max(diff, LinearLowerLimit), LinearUpperLimit);
-        var correction = diff - clamped;
-        var posCorr = correction * (LinearStiffness * 0.5f);
-        BodyA.Position += posCorr;
-        BodyB.Position -= posCorr;
-        var velCorr = correction * LinearStiffness;
-        BodyA.Velocity += velCorr;
-        BodyB.Velocity -= velCorr;
+        var error = diff - clamped;
+        var corr = error * LinearStiffness;
+        BodyA.Position += corr * 0.5f;
+        BodyB.Position -= corr * 0.5f;
+        BodyA.Velocity += corr;
+        BodyB.Velocity -= corr;
 
-        // 角度拘束
-        var eulerA = BodyA.Orientation.ToEulerRadians();
-        var eulerB = BodyB.Orientation.ToEulerRadians();
-        var angDiff = eulerB - eulerA - Orientation;
-        var angClamped = Vector3.Min(Vector3.Max(angDiff, AngularLowerLimit), AngularUpperLimit);
-        var angCorrection = angDiff - angClamped;
-        var angPosCorr = angCorrection * (AngularStiffness * 0.5f);
-        eulerA += angPosCorr;
-        eulerB -= angPosCorr;
-        BodyA.Orientation = Quaternion.CreateFromYawPitchRoll(eulerA.Y, eulerA.X, eulerA.Z);
-        BodyB.Orientation = Quaternion.CreateFromYawPitchRoll(eulerB.Y, eulerB.X, eulerB.Z);
-        var angVelCorr = angCorrection * AngularStiffness;
-        BodyA.AngularVelocity += angVelCorr;
-        BodyB.AngularVelocity -= angVelCorr;
+        // 角度拘束（スプリングと角度制限）
+        var rel = Quaternion.Inverse(BodyA.Orientation) * BodyB.Orientation;
+        var ang = rel.ToEulerRadians() - Orientation;
+        var angClamped = Vector3.Min(Vector3.Max(ang, AngularLowerLimit), AngularUpperLimit);
+        var angError = ang - angClamped;
+        var angCorr = angError * AngularStiffness;
+        var qCorr = Quaternion.CreateFromYawPitchRoll(angCorr.Y, angCorr.X, angCorr.Z);
+        BodyA.Orientation = Quaternion.Normalize(qCorr * BodyA.Orientation);
+        BodyB.Orientation = Quaternion.Normalize(Quaternion.Inverse(qCorr) * BodyB.Orientation);
+        BodyA.AngularVelocity += angCorr;
+        BodyB.AngularVelocity -= angCorr;
     }
 }
 

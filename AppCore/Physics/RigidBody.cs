@@ -125,15 +125,38 @@ public class RigidBody
 
     public void SyncToSimulation(BoneData bone)
     {
-        if (TransformType != RigidBodyTransformType.FromBoneToSimulation && Type != RigidBodyType.Kinematic)
-            return;
         InitializeTransforms(bone);
-        Position = IsBoneRelative
-            ? bone.Translation + Vector3.Transform(_initialLocalPosition, bone.Rotation)
-            : _initialLocalPosition;
-        Orientation = IsBoneRelative
-            ? Quaternion.Normalize(bone.Rotation * _initialLocalOrientation)
-            : _initialLocalOrientation;
+        switch (TransformType)
+        {
+            case RigidBodyTransformType.FromBoneToSimulation:
+                Position = IsBoneRelative
+                    ? bone.Translation + Vector3.Transform(_initialLocalPosition, bone.Rotation)
+                    : _initialLocalPosition;
+                Orientation = IsBoneRelative
+                    ? Quaternion.Normalize(bone.Rotation * _initialLocalOrientation)
+                    : _initialLocalOrientation;
+                break;
+            case RigidBodyTransformType.FromBoneOrientationAndSimulationToBone:
+                Orientation = IsBoneRelative
+                    ? Quaternion.Normalize(bone.Rotation * _initialLocalOrientation)
+                    : _initialLocalOrientation;
+                break;
+            case RigidBodyTransformType.FromBoneTranslationAndSimulationToBone:
+                Position = IsBoneRelative
+                    ? bone.Translation + Vector3.Transform(_initialLocalPosition, bone.Rotation)
+                    : _initialLocalPosition;
+                break;
+            default:
+                if (Type != RigidBodyType.Kinematic)
+                    return;
+                Position = IsBoneRelative
+                    ? bone.Translation + Vector3.Transform(_initialLocalPosition, bone.Rotation)
+                    : _initialLocalPosition;
+                Orientation = IsBoneRelative
+                    ? Quaternion.Normalize(bone.Rotation * _initialLocalOrientation)
+                    : _initialLocalOrientation;
+                break;
+        }
         Velocity = Vector3.Zero;
         AngularVelocity = Vector3.Zero;
         _isActive = true;
