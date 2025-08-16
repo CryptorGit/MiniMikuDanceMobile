@@ -1,75 +1,29 @@
 namespace MiniMikuDance.Physics;
 
-using System.Numerics;
-using MiniMikuDance.Util;
+using System;
 
 /// <summary>
-/// ジョイントを表すクラス。
+/// nanoem のジョイントを保持する薄いラッパークラス。
 /// </summary>
-public class Joint
+public sealed class Joint : IDisposable
 {
     public string Name { get; }
     public RigidBody? BodyA { get; }
     public RigidBody? BodyB { get; }
+    internal nint Handle { get; }
 
-    public Vector3 Origin { get; }
-    public Vector3 Orientation { get; }
-    public Vector3 LinearLowerLimit { get; }
-    public Vector3 LinearUpperLimit { get; }
-    public Vector3 AngularLowerLimit { get; }
-    public Vector3 AngularUpperLimit { get; }
-    public Vector3 LinearStiffness { get; }
-    public Vector3 AngularStiffness { get; }
-
-    internal Joint(string name, RigidBody? bodyA, RigidBody? bodyB,
-        Vector3 origin, Vector3 orientation,
-        Vector3 linearLowerLimit, Vector3 linearUpperLimit,
-        Vector3 angularLowerLimit, Vector3 angularUpperLimit,
-        Vector3 linearStiffness, Vector3 angularStiffness)
+    internal Joint(string name, RigidBody? bodyA, RigidBody? bodyB, nint handle)
     {
         Name = name;
         BodyA = bodyA;
         BodyB = bodyB;
-        Origin = origin;
-        Orientation = orientation;
-        LinearLowerLimit = linearLowerLimit;
-        LinearUpperLimit = linearUpperLimit;
-        AngularLowerLimit = angularLowerLimit;
-        AngularUpperLimit = angularUpperLimit;
-        LinearStiffness = linearStiffness;
-        AngularStiffness = angularStiffness;
+        Handle = handle;
     }
 
-    internal void Solve()
+    public void Dispose()
     {
-        if (BodyA is null || BodyB is null)
-            return;
-
-        // 線形拘束
-        var diff = BodyB.Position - BodyA.Position - Origin;
-        var clamped = Vector3.Min(Vector3.Max(diff, LinearLowerLimit), LinearUpperLimit);
-        var correction = diff - clamped;
-        var posCorr = correction * (LinearStiffness * 0.5f);
-        BodyA.Position += posCorr;
-        BodyB.Position -= posCorr;
-        var velCorr = correction * LinearStiffness;
-        BodyA.Velocity += velCorr;
-        BodyB.Velocity -= velCorr;
-
-        // 角度拘束
-        var eulerA = BodyA.Orientation.ToEulerRadians();
-        var eulerB = BodyB.Orientation.ToEulerRadians();
-        var angDiff = eulerB - eulerA - Orientation;
-        var angClamped = Vector3.Min(Vector3.Max(angDiff, AngularLowerLimit), AngularUpperLimit);
-        var angCorrection = angDiff - angClamped;
-        var angPosCorr = angCorrection * (AngularStiffness * 0.5f);
-        eulerA += angPosCorr;
-        eulerB -= angPosCorr;
-        BodyA.Orientation = Quaternion.CreateFromYawPitchRoll(eulerA.Y, eulerA.X, eulerA.Z);
-        BodyB.Orientation = Quaternion.CreateFromYawPitchRoll(eulerB.Y, eulerB.X, eulerB.Z);
-        var angVelCorr = angCorrection * AngularStiffness;
-        BodyA.AngularVelocity += angVelCorr;
-        BodyB.AngularVelocity -= angVelCorr;
+        if (Handle != nint.Zero)
+            NanoemPhysicsNative.PhysicsJointDestroy(Handle);
     }
 }
 

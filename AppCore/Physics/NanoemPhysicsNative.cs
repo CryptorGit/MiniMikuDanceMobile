@@ -57,6 +57,21 @@ internal static class NanoemPhysicsNative
     [DllImport(LibraryName, EntryPoint = "nanoemPhysicsWorldSetActive", CallingConvention = CallingConvention.Cdecl)]
     public static extern void PhysicsWorldSetActive(nint world, [MarshalAs(UnmanagedType.I1)] bool value);
 
+    [DllImport(LibraryName, EntryPoint = "nanoemPhysicsWorldDestroy", CallingConvention = CallingConvention.Cdecl)]
+    public static extern void PhysicsWorldDestroy(nint world);
+
+    [DllImport(LibraryName, EntryPoint = "nanoemPhysicsRigidBodyCreate", CallingConvention = CallingConvention.Cdecl)]
+    public static extern nint PhysicsRigidBodyCreate(nint rigidBody, nint opaque, out NanoemStatus status);
+
+    [DllImport(LibraryName, EntryPoint = "nanoemPhysicsRigidBodyDestroy", CallingConvention = CallingConvention.Cdecl)]
+    public static extern void PhysicsRigidBodyDestroy(nint rigidBody);
+
+    [DllImport(LibraryName, EntryPoint = "nanoemPhysicsJointCreate", CallingConvention = CallingConvention.Cdecl)]
+    public static extern nint PhysicsJointCreate(nint joint, nint opaque, out NanoemStatus status);
+
+    [DllImport(LibraryName, EntryPoint = "nanoemPhysicsJointDestroy", CallingConvention = CallingConvention.Cdecl)]
+    public static extern void PhysicsJointDestroy(nint joint);
+
     /// <summary>
     /// ポインタが null の場合に <see cref="InvalidOperationException"/> を投げる。
     /// </summary>
