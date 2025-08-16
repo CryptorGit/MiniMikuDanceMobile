@@ -51,6 +51,7 @@
     </Compile>
     <Compile Update="Rendering/**/*.cs" />
     <Compile Update="Services/**/*.cs" />
+    <Compile Update="Models/**/*.cs" />
     <Compile Update="Utilities/**/*.cs" />
   </ItemGroup>
 
