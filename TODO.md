@@ -1,8 +1,8 @@
 # TODO
 
 ## レンダラー移行（SharpBGFX）
-- [ ] `MiniMikuDanceMaui.csproj` から OpenTK を削除し、`SharpBgfx` の NuGet 参照を追加
-- [ ] `AppCore/App/IViewer.cs` に `IRenderer` インターフェースを新設
+- [x] `MiniMikuDanceMaui.csproj` から OpenTK を削除し、`SharpBgfx` の NuGet 参照を追加
+- [x] `AppCore/App/IViewer.cs` に `IRenderer` インターフェースを新設
 - [ ] `Rendering/PmxRenderer.*` 内の OpenGL 呼び出しを SharpBGFX API に置換
 - [ ] BGFX 用シェーダを `Resources/Shaders` に配置し、`shaderc` で各プラットフォーム向けにコンパイルするビルドタスクを追加
 - [ ] `MauiProgram.cs` で SharpBGFX 実装を登録し、OpenGL 初期化コードを削除

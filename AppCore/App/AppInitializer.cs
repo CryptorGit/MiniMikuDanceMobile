@@ -57,7 +57,7 @@ public partial class AppInitializer : IDisposable
             if (Recorder != null && Recorder.IsRecording && Viewer != null)
             {
                 var pixels = Viewer.CaptureFrame();
-                await Recorder.Capture(pixels, Viewer.Size.X, Viewer.Size.Y);
+                await Recorder.Capture(pixels, (int)Viewer.Size.X, (int)Viewer.Size.Y);
             }
         };
         Viewer.FrameUpdated += _frameUpdatedHandler;
@@ -81,7 +81,7 @@ public partial class AppInitializer : IDisposable
         else
         {
             var size = Viewer.Size;
-            var path = Recorder.StartRecording(size.X, size.Y, 30);
+            var path = Recorder.StartRecording((int)size.X, (int)size.Y, 30);
             UIManager.Instance.IsRecording = true;
             UIManager.Instance.SetMessage($"Recording: {path}");
         }
