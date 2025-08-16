@@ -9,6 +9,7 @@
 - [ ] `BGFXView`（新規）を作成し、`MainPage.xaml` と関連コードを更新
 - [ ] Android/iOS のプラットフォーム初期化で BGFX バックエンドを設定
 - [ ] 残存する OpenGL 型や `using` を整理
+- [ ] `BgfxRenderer` のシェーダとバッファ初期化を完成
 
 ## 物理演算エンジン統合（BepuPhysics）
 - [ ] `AppCore/AppCore.csproj` に `BepuPhysics` の NuGet 参照を追加
