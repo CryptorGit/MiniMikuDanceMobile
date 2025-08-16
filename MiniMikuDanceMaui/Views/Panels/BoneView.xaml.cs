@@ -1,7 +1,7 @@
 using Microsoft.Maui.Controls;
 using System.Collections.Generic;
 
-namespace MiniMikuDanceMaui.Views;
+namespace MiniMikuDanceMaui.Views.Panels;
 
 public partial class BoneView : ContentView
 {

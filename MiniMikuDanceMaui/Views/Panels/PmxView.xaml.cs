@@ -3,7 +3,7 @@ using Microsoft.Maui.Controls;
 using MiniMikuDance.Import;
 using MiniMikuDanceMaui.Utilities;
 
-namespace MiniMikuDanceMaui.Views;
+namespace MiniMikuDanceMaui.Views.Panels;
 
 public partial class PmxView : ContentView
 {

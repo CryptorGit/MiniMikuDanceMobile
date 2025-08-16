@@ -5,7 +5,7 @@ using System.Linq;
 using Microsoft.Maui.Controls;
 using MiniMikuDanceMaui.Services;
 
-namespace MiniMikuDanceMaui.Views;
+namespace MiniMikuDanceMaui.Views.Panels;
 
 public partial class ExplorerView : ContentView
 {

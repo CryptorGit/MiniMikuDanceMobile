@@ -6,7 +6,7 @@ using System.Linq;
 using MiniMikuDance.Import;
 using MiniMikuDance.Util;
 
-namespace MiniMikuDanceMaui.Views;
+namespace MiniMikuDanceMaui.Views.Panels;
 
 public partial class MorphView : ContentView
 {

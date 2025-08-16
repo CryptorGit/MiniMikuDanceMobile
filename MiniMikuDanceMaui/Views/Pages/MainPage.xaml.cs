@@ -27,8 +27,9 @@ using MiniMikuDance.Util;
 using MiniMikuDanceMaui.Services;
 using MiniMikuDanceMaui.Rendering;
 using MiniMikuDanceMaui.Utilities;
+using MiniMikuDanceMaui.Views.Panels;
 
-namespace MiniMikuDanceMaui.Views;
+namespace MiniMikuDanceMaui.Views.Pages;
 
 public partial class MainPage : ContentPage
 {
