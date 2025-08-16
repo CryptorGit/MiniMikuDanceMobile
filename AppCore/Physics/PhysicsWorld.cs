@@ -60,7 +60,7 @@ public sealed class PhysicsWorld : IDisposable
             NanoemPhysicsNative.PhysicsRigidBodyGetWorldTransform(body.Handle, matrix);
             PhysicsUtil.ExtractTransform(matrix, out var translation, out var rotation);
             body.Position = translation;
-            body.Rotation = rotation;
+            body.Orientation = rotation;
         }
 
         if (BoneUpdateHook != null)
