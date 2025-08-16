@@ -2,7 +2,7 @@
 <Application xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
              xmlns:maui="clr-namespace:Microsoft.Maui.Controls;assembly=Microsoft.Maui.Controls"
-             x:Class="MiniMikuDanceMaui.Views.App">
+             x:Class="MiniMikuDanceMaui.App.App">
      <Application.Resources>
         <ResourceDictionary>
             <ResourceDictionary.MergedDictionaries>
