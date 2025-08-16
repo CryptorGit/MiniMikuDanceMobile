@@ -5,6 +5,7 @@ import android.view.MotionEvent
 import android.view.ScaleGestureDetector
 import android.view.SurfaceHolder
 import android.view.SurfaceView
+import com.example.viewer.ViewerMode
 import com.example.viewer.camera.CameraController
 
 class ViewerSurfaceView(context: Context) : SurfaceView(context), SurfaceHolder.Callback {
@@ -21,17 +22,31 @@ class ViewerSurfaceView(context: Context) : SurfaceView(context), SurfaceHolder.
     private var lastMidX = 0f
     private var lastMidY = 0f
 
+    private var mode = ViewerMode.CAMERA
+
     init {
         holder.addCallback(this)
     }
 
+    fun setMode(mode: ViewerMode) {
+        this.mode = mode
+    }
+
     override fun onTouchEvent(event: MotionEvent): Boolean {
-        scaleDetector.onTouchEvent(event)
-        when (event.pointerCount) {
-            1 -> handleSingleTouch(event)
-            2 -> handleDoubleTouch(event)
+        return when (mode) {
+            ViewerMode.CAMERA -> {
+                scaleDetector.onTouchEvent(event)
+                when (event.pointerCount) {
+                    1 -> handleSingleTouch(event)
+                    2 -> handleDoubleTouch(event)
+                }
+                true
+            }
+            ViewerMode.POSE -> {
+                // TODO: implement IK operations
+                true
+            }
         }
-        return true
     }
 
     private fun handleSingleTouch(event: MotionEvent) {
