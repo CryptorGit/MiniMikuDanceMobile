@@ -1,7 +1,7 @@
 <ContentView xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
-             xmlns:local="clr-namespace:MiniMikuDanceMaui"
-             x:Class="MiniMikuDanceMaui.PmxView"
+             xmlns:utilities="clr-namespace:MiniMikuDanceMaui.Utilities"
+             x:Class="MiniMikuDanceMaui.Views.PmxView"
              BackgroundColor="{StaticResource BackgroundColor}">
     <VerticalStackLayout Padding="10" Spacing="6">
         <Label x:Name="WarningLabel"
@@ -10,7 +10,7 @@
                IsVisible="False" />
         <CollectionView x:Name="SubMeshList" IsVisible="False">
             <CollectionView.ItemTemplate>
-                <DataTemplate x:DataType="local:SubMeshInfo">
+                <DataTemplate x:DataType="utilities:SubMeshInfo">
                     <Grid ColumnDefinitions="Auto,* , Auto" Padding="2">
                         <Label Text="{Binding Index}" TextColor="{StaticResource TextColor}" Margin="0,0,8,0" />
                         <Label Grid.Column="1" Text="{Binding Texture}" TextColor="{StaticResource TextColor}" />

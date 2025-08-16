@@ -1,8 +1,9 @@
 using System.Linq;
 using Microsoft.Maui.Controls;
 using MiniMikuDance.Import;
+using MiniMikuDanceMaui.Utilities;
 
-namespace MiniMikuDanceMaui;
+namespace MiniMikuDanceMaui.Views;
 
 public partial class PmxView : ContentView
 {

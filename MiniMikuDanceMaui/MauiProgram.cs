@@ -7,6 +7,7 @@ using MauiIcons.Material.Outlined;
 using MauiIcons.Material;
 using MiniMikuDance.Data;
 using Microsoft.Maui.Storage;
+using MiniMikuDanceMaui.Views;
 
 namespace MiniMikuDanceMaui;
 
