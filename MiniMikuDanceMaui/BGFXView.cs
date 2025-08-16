@@ -1,7 +1,5 @@
 using System;
 using System.Numerics;
-using System.IO;
-using System.Threading;
 using Microsoft.Maui.Controls;
 using Microsoft.Maui.Graphics;
 using MiniMikuDance.App;
@@ -59,20 +57,16 @@ public class BGFXView : GraphicsView, IViewer
 
     public byte[] CaptureFrame()
     {
-        var path = Path.Combine(Path.GetTempPath(), $"bgfx_{Guid.NewGuid():N}.png");
-        Bgfx.RequestScreenShot(path);
+        int width = (int)_size.X;
+        int height = (int)_size.Y;
+        using var frameBuffer = Bgfx.CreateFrameBuffer((uint)width, (uint)height, TextureFormat.BGRA8);
+        Bgfx.SetViewFrameBuffer(0, frameBuffer);
+        Renderer?.Render();
+        var texture = Bgfx.GetTexture(frameBuffer, 0);
+        byte[] data = new byte[width * height * 4];
+        Bgfx.ReadTexture(texture, data);
         Bgfx.Frame();
-        var timeout = DateTime.UtcNow.AddSeconds(1);
-        while (!File.Exists(path) && DateTime.UtcNow < timeout)
-        {
-            Thread.Sleep(1);
-        }
-        byte[] data = Array.Empty<byte>();
-        if (File.Exists(path))
-        {
-            data = File.ReadAllBytes(path);
-            File.Delete(path);
-        }
+        Bgfx.SetViewFrameBuffer(0, FrameBuffer.Invalid);
         return data;
     }
 
