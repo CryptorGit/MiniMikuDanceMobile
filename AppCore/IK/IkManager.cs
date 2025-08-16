@@ -9,7 +9,7 @@ namespace MiniMikuDance.IK;
 public static class IkManager
 {
     private static readonly Dictionary<int, IkBone> BonesDict = new();
-    // IKアルゴリズム関連の処理を削除したため、ソルバーや固定軸の管理は不要
+    private static readonly List<Constraint> Constraints = new();
 
     // レンダラーから提供される各種処理を委譲用デリゲートとして保持
     public static System.Func<float, float, int>? PickFunc { get; set; }
@@ -38,6 +38,7 @@ public static class IkManager
                 continue;
 
             RegisterIkBone(i, modelBones[i]);
+            Constraints.Add(BuildConstraint(i, modelBones[i]));
         }
 
         // "足IK" ボーンが取りこぼされていないか確認する
@@ -52,6 +53,21 @@ public static class IkManager
                 RegisterIkBone(i, modelBones[i]);
             }
         }
+    }
+
+    private static Constraint BuildConstraint(int index, BoneData bone)
+    {
+        var ik = bone.Ik!;
+        var c = new Constraint(index, ik.Target, ik.Iterations, ik.ControlWeight);
+        foreach (var link in ik.Links)
+            c.Joints.Add(new ConstraintJoint(link.BoneIndex, link.HasLimit, link.MinAngle, link.MaxAngle));
+        return c;
+    }
+
+    public static void SolveAllConstraints(IList<BoneData> bones)
+    {
+        foreach (var c in Constraints)
+            IkSolver.SolveConstraint(c, bones);
     }
 
     private static void RegisterIkBone(int index, BoneData bRoot)
@@ -155,6 +171,7 @@ public static class IkManager
     {
         ReleaseSelection();
         BonesDict.Clear();
+        Constraints.Clear();
     }
 
     private static BoneRole DetermineRole(string name)
