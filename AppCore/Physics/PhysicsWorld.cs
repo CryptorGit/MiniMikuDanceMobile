@@ -15,6 +15,7 @@ public class PhysicsWorld
 
     public Vector3 Gravity { get; set; } = new(0f, 0f, -9.8f);
 
+    public Func<RigidBody, BoneData>? BoneProvider { get; set; }
     public Action<RigidBody>? BoneUpdateHook { get; set; }
 
     public IReadOnlyList<RigidBody> RigidBodies => _rigidBodies;
@@ -83,6 +84,25 @@ public class PhysicsWorld
 
     public void Step(float deltaTime)
     {
+        // Forces
+        foreach (var body in _rigidBodies)
+        {
+            body.ApplyAllForces();
+        }
+
+        // ToSimulation
+        foreach (var body in _rigidBodies)
+        {
+            if (body.TransformType == RigidBodyTransformType.FromBoneToSimulation ||
+                body.Type == RigidBodyType.Kinematic)
+            {
+                var bone = BoneProvider?.Invoke(body);
+                if (bone != null)
+                    body.SyncToSimulation(bone);
+            }
+        }
+
+        // Integrate and solve forces
         foreach (var body in _rigidBodies)
         {
             if (!body.IsActive)
@@ -91,6 +111,7 @@ public class PhysicsWorld
             body.Integrate(deltaTime);
         }
 
+        // Collision resolution
         for (int i = 0; i < _rigidBodies.Count; i++)
         {
             if (!_rigidBodies[i].IsActive)
@@ -103,19 +124,25 @@ public class PhysicsWorld
             }
         }
 
+        // Joint solving
         foreach (var joint in _joints)
         {
             joint.Solve();
         }
 
-        if (BoneUpdateHook != null)
+        // FromSimulation and bone update
+        foreach (var body in _rigidBodies)
         {
-            foreach (var body in _rigidBodies)
+            if (!body.IsActive)
+                continue;
+            if (body.TransformType == RigidBodyTransformType.FromBoneToSimulation ||
+                body.Type == RigidBodyType.Kinematic)
+                continue;
+            var bone = BoneProvider?.Invoke(body);
+            if (bone != null)
             {
-                if (!body.IsActive)
-                    continue;
-                if (body.TransformType != RigidBodyTransformType.FromBoneToSimulation)
-                    BoneUpdateHook(body);
+                body.SyncFromSimulation(bone, true);
+                BoneUpdateHook?.Invoke(body);
             }
         }
     }
