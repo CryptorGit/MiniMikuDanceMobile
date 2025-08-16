@@ -6,12 +6,7 @@ using Microsoft.Maui.Dispatching;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
-using System.Threading;
 using System.Threading.Tasks;
-using SkiaSharp.Views.Maui;
-using SkiaSharp;
-using OpenTK.Graphics.ES30;
-using GL = OpenTK.Graphics.ES30.GL;
 using Microsoft.Maui.Storage;
 using Microsoft.Maui.Devices;
 using System.IO;
@@ -55,11 +50,8 @@ public partial class MainPage : ContentPage
     private bool _poseMode;
     // bottomWidth is no longer used; bottom region spans full screen width
     // private double bottomWidth = 0;
-    private bool _glInitialized;
     private ModelData? _pendingModel;
     private ModelData? _currentModel;
-    private readonly Dictionary<long, SKPoint> _touchPoints = new();
-    private readonly long[] _touchIds = new long[2];
     private readonly BonesConfig? _bonesConfig = App.Initializer.BonesConfig;
     private bool _needsRender;
     private readonly IDispatcherTimer _renderTimer;
@@ -67,7 +59,6 @@ public partial class MainPage : ContentPage
     private void OnPoseModeToggled(object? sender, ToggledEventArgs e)
     {
         _poseMode = e.Value;
-        _touchPoints.Clear();
         if (_poseMode && _currentModel != null)
         {
             EnablePoseMode();
@@ -184,7 +175,9 @@ public partial class MainPage : ContentPage
             {
                 if (_needsRender)
                 {
+                    LoadPendingModel();
                     Viewer?.Invalidate();
+                    _needsRender = false;
                 }
                 _renderTimerErrorCount = 0;
             }
@@ -541,23 +534,6 @@ public partial class MainPage : ContentPage
         _renderer.RimIntensity = _rimIntensity;
     }
 
-    private void OnPaintSurface(object? sender, SKPaintGLSurfaceEventArgs e)
-    {
-        if (!_glInitialized)
-        {
-            _renderer.Initialize();
-            _renderer.BonesConfig = _bonesConfig;
-            _glInitialized = true;
-        }
-
-        LoadPendingModel();
-
-        _renderer.Resize(e.BackendRenderTarget.Width, e.BackendRenderTarget.Height);
-        _renderer.Render();
-        GL.Flush();
-        _needsRender = false;
-    }
-
     private void LoadPendingModel()
     {
         if (_pendingModel != null)
@@ -600,129 +576,6 @@ public partial class MainPage : ContentPage
                 IkManager.ToWorldSpaceFunc = _renderer.ModelToWorld;
             }
         }
-    }
-
-    private void OnViewTouch(object? sender, SKTouchEventArgs e)
-    {
-        if (_poseMode)
-        {
-            try
-            {
-                switch (e.ActionType)
-                {
-                    case SKTouchAction.Pressed:
-                        IkManager.PickBone(e.Location.X, e.Location.Y);
-                        if (!_poseMode)
-                        {
-                            e.Handled = true;
-                            return;
-                        }
-                        break;
-                    case SKTouchAction.Moved:
-                        if (!_poseMode)
-                        {
-                            e.Handled = true;
-                            return;
-                        }
-                        var ray = _renderer.ScreenPointToRay(e.Location.X, e.Location.Y);
-                        var pos = IkManager.IntersectDragPlane(ray);
-                        if (!_poseMode)
-                        {
-                            e.Handled = true;
-                            return;
-                        }
-                        if (pos.HasValue && IkManager.SelectedBoneIndex >= 0)
-                        {
-                            IkManager.UpdateTarget(IkManager.SelectedBoneIndex, pos.Value);
-                        }
-                        break;
-                    case SKTouchAction.Released:
-                    case SKTouchAction.Cancelled:
-                        IkManager.ReleaseSelection();
-                        if (!_poseMode)
-                        {
-                            e.Handled = true;
-                            return;
-                        }
-                        break;
-                }
-                if (!_poseMode)
-                {
-                    e.Handled = true;
-                    return;
-                }
-                if (IkManager.InvalidateViewer != null)
-                    IkManager.InvalidateViewer();
-            }
-            catch (Exception ex)
-            {
-                Debug.WriteLine(ex);
-                IkManager.ReleaseSelection();
-                MainThread.BeginInvokeOnMainThread(async () =>
-                    await DisplayAlert("Error", ex.Message, "OK"));
-            }
-            e.Handled = true;
-            return;
-        }
-
-        if (_viewMenuOpen || _settingMenuOpen)
-        {
-            SetMenuVisibility(ref _viewMenuOpen, ViewMenu, false);
-            SetMenuVisibility(ref _settingMenuOpen, SettingMenu, false);
-            UpdateLayout();
-        }
-
-        if (e.ActionType == SKTouchAction.Pressed)
-        {
-            _touchPoints[e.Id] = e.Location;
-        }
-        else if (e.ActionType == SKTouchAction.Moved)
-        {
-            if (_touchPoints.TryGetValue(e.Id, out var prev))
-            {
-                _touchPoints[e.Id] = e.Location;
-
-                if (_touchPoints.Count == 1)
-                {
-                    var dx = e.Location.X - prev.X;
-                    var dy = e.Location.Y - prev.Y;
-                    _renderer.Orbit(dx, dy);
-                }
-                else if (_touchPoints.Count == 2)
-                {
-                    var index = 0;
-                    foreach (var id in _touchPoints.Keys)
-                    {
-                        _touchIds[index++] = id;
-                    }
-
-                    var id0 = _touchIds[0];
-                    var id1 = _touchIds[1];
-
-                    var p0Old = id0 == e.Id ? prev : _touchPoints[id0];
-                    var p1Old = id1 == e.Id ? prev : _touchPoints[id1];
-                    var p0New = _touchPoints[id0];
-                    var p1New = _touchPoints[id1];
-
-                    var oldMid = new SKPoint((p0Old.X + p1Old.X) / 2, (p0Old.Y + p1Old.Y) / 2);
-                    var newMid = new SKPoint((p0New.X + p1New.X) / 2, (p0New.Y + p1New.Y) / 2);
-                    _renderer.Pan(newMid.X - oldMid.X, newMid.Y - oldMid.Y);
-                    float oldDist = (p0Old - p1Old).Length;
-                    float newDist = (p0New - p1New).Length;
-                    _renderer.Dolly(newDist - oldDist);
-                }
-            }
-            else
-            {
-                _touchPoints[e.Id] = e.Location;
-            }
-        }
-        else if (e.ActionType == SKTouchAction.Released || e.ActionType == SKTouchAction.Cancelled)
-        {
-            _touchPoints.Remove(e.Id);
-        }
-        e.Handled = true;
-        _needsRender = true;
     }
 
     private async Task ShowModelSelector()
@@ -1118,7 +971,6 @@ public partial class MainPage : ContentPage
         RemoveBottomFeature("Open");
         PmxImportDialog.IsVisible = false;
         SetLoadingIndicatorVisibilityAndLayout(true);
-        Viewer.HasRenderLoop = false;
 
         bool success = false;
 
@@ -1209,7 +1061,6 @@ public partial class MainPage : ContentPage
         }
         finally
         {
-            Viewer.HasRenderLoop = true;
             SetLoadingIndicatorVisibilityAndLayout(false);
             _selectedModelPath = null;
             _modelDir = null;

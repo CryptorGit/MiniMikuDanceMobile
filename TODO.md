@@ -11,10 +11,11 @@
     - [ ] `Render()` 内の `DrawScene`／`DrawIkBones` 等の描画処理を bgfx パイプラインに合わせて再実装
     - [ ] OpenTK 由来の不要な `using` 文を整理し、ビルドが通る状態を確認
 - [x] BGFX 用シェーダを `Resources/Shaders` に配置し、`shaderc` で各プラットフォーム向けにコンパイルするビルドタスクを追加
-- [ ] `MauiProgram.cs` で SharpBGFX 実装を登録し、OpenGL 初期化コードを削除
+- [x] `MauiProgram.cs` で SharpBGFX 実装を登録し、OpenGL 初期化コードを削除
 - [x] `BGFXView`（新規）を作成し、`MainPage.xaml` と関連コードを更新
 - [ ] `BGFXView.CaptureFrame` の実装
-- [ ] `MainPage.xaml.cs` から SKGLView 依存コードを削除
+- [x] `MainPage.xaml.cs` から SKGLView 依存コードを削除
+- [ ] BGFXView 用のタッチ操作を再実装
 - [ ] Android/iOS のプラットフォーム初期化で BGFX バックエンドを設定
 - [ ] 残存する OpenGL 型や `using` を整理
 - [x] `BgfxRenderer` のシェーダとバッファ初期化を完成
