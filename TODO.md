@@ -16,7 +16,7 @@
 - [x] `MauiProgram.cs` で SharpBGFX 実装を登録し、OpenGL 初期化コードを削除
 - [x] `BGFXView`（新規）を作成し、`MainPage.xaml` と関連コードを更新
 - [x] `BGFXView.CaptureFrame` の実装
-- [ ] `BGFXView.CaptureFrame` で `FrameBufferRead` による直接取得に置き換える
+- [x] `BGFXView.CaptureFrame` で `FrameBufferRead` による直接取得に置き換える
 - [x] `MainPage.xaml.cs` から SKGLView 依存コードを削除
  - [x] BGFXView 用のタッチ操作を再実装
 - [x] Android/iOS のプラットフォーム初期化で BGFX バックエンドを設定
