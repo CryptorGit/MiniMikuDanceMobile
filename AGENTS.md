@@ -14,3 +14,7 @@ Google Material Symbolsを利用する
 # 作成するファイルに関して
 バイナリファイルは追加しないでください
 Binaryfileによって、プルリクエストは作成できなくなります
+
+# nanoemについて
+C/C++をライブラリとしては使用せず、完全にC#,XAMLを使用すること
+詳細は、docs/NanoemPortingGuide.md を参照すること
