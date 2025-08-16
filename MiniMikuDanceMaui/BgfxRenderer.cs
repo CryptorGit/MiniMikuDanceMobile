@@ -15,7 +15,6 @@ public class BgfxRenderer : IRenderer
 
     public void Initialize()
     {
-        Bgfx.Init();
         var size = App.Initializer.Viewer?.Size ?? new Vector2(1f, 1f);
         Bgfx.Reset((uint)size.X, (uint)size.Y, ResetFlags.Vsync);
         Bgfx.SetViewClear(0, ClearTargets.Color | ClearTargets.Depth, 0x000000ff);
@@ -60,7 +59,6 @@ public class BgfxRenderer : IRenderer
         _vertexBuffer?.Dispose();
         _program?.Dispose();
         _frameBuffer?.Dispose();
-        Bgfx.Shutdown();
     }
 
     private static Shader LoadShader(string name)
