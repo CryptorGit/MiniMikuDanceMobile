@@ -16,3 +16,10 @@ MiniMikuDance は、モバイル向けアプリです。Unity を使用せずに
 
 **注意: `global.json` の SDK バージョンは `9.0.301` から変更しないこと。**
 
+## 開発方針 / Roadmap
+
+- [SharpBgfx](https://github.com/MikePopoloski/SharpBgfx) で bgfx レンダラを導入し、OpenGL 依存を段階的に削減する。達成条件: OpenGL 特有のコードを置き換えて動作すること。
+- [BulletSharpPInvoke](https://github.com/AndresTraks/BulletSharpPInvoke) で剛体・ジョイントの物理演算を統合する。達成条件: 基本的な衝突とジョイント動作が確認できること。
+- [PMXParser](https://github.com/ikorin24/PMXParser) で PMX/VMD 読み書き機能を拡充する。達成条件: モデルとモーションの保存・読み込みが可能になること。
+- CCD/FABRIK を用いた IK ソルバー実装。参考: [Inverse_Kinematics](https://github.com/Vincent-Devine/Inverse_Kinematics), [Cloth-and-IK-Test](https://github.com/SebLague/Cloth-and-IK-Test)。達成条件: 任意のボーンチェーンに対して目標ポーズを解けること。
+
