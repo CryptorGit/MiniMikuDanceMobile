@@ -7,6 +7,8 @@ public partial class DataManager : Util.Singleton<DataManager>
 {
     public T LoadConfig<T>(string key) where T : new()
     {
+        if (!Directory.Exists("Configs"))
+            Directory.CreateDirectory("Configs");
         var path = Path.Combine("Configs", $"{key}.json");
         var stream = OpenPackageFile(path);
         if (stream != null)
