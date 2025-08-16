@@ -1022,8 +1022,8 @@ void main(){
                 sm.TextureBytes = null;
                 sm.TextureWidth = 0;
                 sm.TextureHeight = 0;
-                GL.TexParameter(All.Texture2D, All.TextureMinFilter, (int)All.Linear);
-                GL.TexParameter(All.Texture2D, All.TextureMagFilter, (int)All.Linear);
+                GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureMinFilter, (int)TextureMinFilter.Linear);
+                GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureMagFilter, (int)TextureMagFilter.Linear);
                 rm.HasTexture = true;
             }
 
