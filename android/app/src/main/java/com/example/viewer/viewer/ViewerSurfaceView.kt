@@ -24,6 +24,8 @@ class ViewerSurfaceView(context: Context) : SurfaceView(context), SurfaceHolder.
 
     private var mode = ViewerMode.CAMERA
 
+    var onUserInteraction: (() -> Unit)? = null
+
     init {
         holder.addCallback(this)
     }
@@ -33,6 +35,7 @@ class ViewerSurfaceView(context: Context) : SurfaceView(context), SurfaceHolder.
     }
 
     override fun onTouchEvent(event: MotionEvent): Boolean {
+        onUserInteraction?.invoke()
         return when (mode) {
             ViewerMode.CAMERA -> {
                 scaleDetector.onTouchEvent(event)
