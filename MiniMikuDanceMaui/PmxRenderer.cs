@@ -216,9 +216,10 @@ public partial class PmxRenderer : IRenderer, IDisposable
         var renderer = Bgfx.GetRendererType();
         var suffix = renderer switch
         {
-            RendererType.OpenGLES => "gles3",
             RendererType.Metal => "metal",
-            _ => "gles2"
+            RendererType.Direct3D11 => "dx11",
+            RendererType.Vulkan => "spirv",
+            _ => "spirv"
         };
         var vs = LoadShader($"Shaders/{baseName}.vs.{suffix}.sc");
         var fs = LoadShader($"Shaders/{baseName}.fs.{suffix}.sc");
