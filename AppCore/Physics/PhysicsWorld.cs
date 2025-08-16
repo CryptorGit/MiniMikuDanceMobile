@@ -52,6 +52,17 @@ public sealed class PhysicsWorld : IDisposable
         NanoemPhysicsNative.PhysicsWorldSetGravity(_handle, new[] { Gravity.X, Gravity.Y, Gravity.Z });
         NanoemPhysicsNative.PhysicsWorldStepSimulation(_handle, deltaTime);
 
+        foreach (var body in _rigidBodies)
+        {
+            if (body.Handle == nint.Zero)
+                continue;
+            var matrix = new float[16];
+            NanoemPhysicsNative.PhysicsRigidBodyGetWorldTransform(body.Handle, matrix);
+            PhysicsUtil.ExtractTransform(matrix, out var translation, out var rotation);
+            body.Position = translation;
+            body.Rotation = rotation;
+        }
+
         if (BoneUpdateHook != null)
         {
             foreach (var body in _rigidBodies)
