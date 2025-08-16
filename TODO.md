@@ -1,5 +1,6 @@
 - README の「操作フロー」節に実際の UI スクリーンショットを追加する
 - ViewerSurfaceView の OpenGL/Vulkan レンダリング初期化を実装する
-- Pose モードでの IK 操作を実装する
+- PoseController での正確な IK 計算とモデル反映を実装する
+- タイムラインのフレーム追加/削除処理を実装する
 - ImportPmxFragment で選択された PMX ファイルを読み込み表示する処理を実装する
 - ViewSettingsFragment のモーフとライティング設定をレンダリングへ反映させる
