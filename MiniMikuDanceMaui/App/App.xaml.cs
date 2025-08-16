@@ -7,7 +7,7 @@ using System.IO;
 using MiniMikuDanceMaui.Services;
 using MiniMikuDanceMaui.Views.Pages;
 
-namespace MiniMikuDanceMaui.App;
+namespace MiniMikuDanceMaui;
 
 public partial class App : Application, IDisposable
 {
