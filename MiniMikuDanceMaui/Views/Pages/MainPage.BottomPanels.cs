@@ -12,6 +12,7 @@ using MiniMikuDance.Import;
 using SixLabors.ImageSharp.PixelFormats;
 using MiniMikuDanceMaui.Views.Panels;
 using MiniMikuDanceMaui.Services;
+using MiniMikuDanceMaui.Utilities;
 using MiniMikuDance.Util;
 
 namespace MiniMikuDanceMaui.Views.Pages;
