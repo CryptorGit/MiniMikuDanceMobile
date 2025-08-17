@@ -1,4 +1,5 @@
 using System.Runtime.InteropServices;
+using System.Runtime.CompilerServices;
 using MiniMikuDance.Util;
 using MiniMikuDance.Import;
 using MiniMikuDance.App;
@@ -156,13 +157,6 @@ public partial class PmxRenderer : IRenderer, IDisposable
     private int _boneCapacity;
     private Program? _modelProgram;
     private Matrix4 _modelTransform = Matrix4.Identity;
-    private readonly float[] _modelTransformArray = new float[16];
-    private readonly float[] _viewMatrixArray = new float[16];
-    private readonly float[] _projMatrixArray = new float[16];
-    private readonly float[] _vec4Array = new float[4];
-    private readonly float[] _lightDirArray = new float[4];
-    private readonly float[] _lightColorArray = new float[4];
-    private readonly float[] _shadeParamArray = new float[4];
     private Uniform? _lightDirUniform;
     private Uniform? _lightColorUniform;
     private Uniform? _shadeParamUniform;
@@ -174,7 +168,6 @@ public partial class PmxRenderer : IRenderer, IDisposable
             if (!_modelTransform.Equals(value))
             {
                 _modelTransform = value;
-                ToFloatArray(_modelTransform, _modelTransformArray);
                 Viewer?.Invalidate();
             }
         }
@@ -289,9 +282,6 @@ public partial class PmxRenderer : IRenderer, IDisposable
     {
         _program = LoadProgram("simple");
         _modelProgram = _program;
-        ToFloatArray(_modelTransform, _modelTransformArray);
-        ToFloatArray(_viewMatrix, _viewMatrixArray);
-        ToFloatArray(_projMatrix, _projMatrixArray);
         _lightDirUniform = Bgfx.CreateUniform("u_lightDir", UniformType.Vec4);
         _lightColorUniform = Bgfx.CreateUniform("u_lightColor", UniformType.Vec4);
         _shadeParamUniform = Bgfx.CreateUniform("u_shadeParam", UniformType.Vec4);
@@ -667,7 +657,6 @@ public partial class PmxRenderer : IRenderer, IDisposable
         }
 
         _modelTransform = data.Transform.ToMatrix4();
-        ToFloatArray(_modelTransform, _modelTransformArray);
 
         foreach (var smd in data.SubMeshes)
         {
@@ -972,22 +961,35 @@ public partial class PmxRenderer : IRenderer, IDisposable
         catch { /* ignore fit errors */ }
     }
 
-    private static void ToFloatArray(Matrix4x4 m, float[] dst)
+    private static ReadOnlySpan<float> AsSpan(in Matrix4 m) =>
+        MemoryMarshal.Cast<byte, float>(MemoryMarshal.AsBytes(
+            MemoryMarshal.CreateReadOnlySpan(ref Unsafe.AsRef(in m), 1)));
+
+    private static ReadOnlySpan<float> AsSpan(in Vector4 v) =>
+        MemoryMarshal.Cast<byte, float>(MemoryMarshal.AsBytes(
+            MemoryMarshal.CreateReadOnlySpan(ref Unsafe.AsRef(in v), 1)));
+
+    private static unsafe void SetTransform(in Matrix4 m)
     {
-        dst[0] = m.M11; dst[1] = m.M21; dst[2] = m.M31; dst[3] = m.M41;
-        dst[4] = m.M12; dst[5] = m.M22; dst[6] = m.M32; dst[7] = m.M42;
-        dst[8] = m.M13; dst[9] = m.M23; dst[10] = m.M33; dst[11] = m.M43;
-        dst[12] = m.M14; dst[13] = m.M24; dst[14] = m.M34; dst[15] = m.M44;
+        var span = AsSpan(in m);
+        fixed (float* ptr = span)
+            Bgfx.SetTransform(ptr, 1);
     }
 
-    private static void ToFloatArray(Vector4 v, float[] dst)
+    private static unsafe void SetViewTransform(ushort id, in Matrix4 view, in Matrix4 proj)
     {
-        dst[0] = v.X; dst[1] = v.Y; dst[2] = v.Z; dst[3] = v.W;
+        var vSpan = AsSpan(in view);
+        var pSpan = AsSpan(in proj);
+        fixed (float* vPtr = vSpan)
+        fixed (float* pPtr = pSpan)
+            Bgfx.SetViewTransform(id, vPtr, pPtr);
     }
 
-    private static void ToFloatArray(Vector3 v, float[] dst)
+    private static unsafe void SetUniform(Uniform uniform, in Vector4 v)
     {
-        dst[0] = v.X; dst[1] = v.Y; dst[2] = v.Z;
+        var span = AsSpan(in v);
+        fixed (float* ptr = span)
+            Bgfx.SetUniform(uniform, ptr, 1);
     }
 
     // Render メソッドは PmxRenderer.Render.cs へ移動
