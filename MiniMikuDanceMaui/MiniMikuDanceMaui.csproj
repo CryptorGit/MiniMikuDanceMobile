@@ -36,6 +36,8 @@
   <PropertyGroup>
     <ShadercPath>$(BGFX_SHADERC)</ShadercPath>
     <ShadercPath Condition="'$(ShadercPath)' == ''">shaderc</ShadercPath>
+    <ShadercIncludePath>$(BGFX_SHADER_INCLUDE)</ShadercIncludePath>
+    <ShadercIncludePath Condition="'$(ShadercIncludePath)' == ''">.</ShadercIncludePath>
   </PropertyGroup>
   <Target Name="CheckShaderc">
     <Exec Command="sh -c 'command -v &quot;$(ShadercPath)&quot;'" IgnoreExitCode="true" Condition="'$(OS)' != 'Windows_NT'">
@@ -49,18 +51,18 @@
   </Target>
   <Target Name="CompileShaders" BeforeTargets="BeforeBuild" DependsOnTargets="CheckShaderc">
     <Message Importance="high" Text="Compiling BGFX shaders with $(ShadercPath)" Condition="'$(ShadercFound)' == '0'" />
-    <Exec Command="&quot;$(ShadercPath)&quot; -f Resources/Shaders/simple.vs -o Resources/Shaders/simple.vs.gles2.sc --platform android --profile 100_es --type vertex" Condition="'$(ShadercFound)' == '0'" />
-    <Exec Command="&quot;$(ShadercPath)&quot; -f Resources/Shaders/simple.vs -o Resources/Shaders/simple.vs.gles3.sc --platform android --profile 300_es --type vertex" Condition="'$(ShadercFound)' == '0'" />
-    <Exec Command="&quot;$(ShadercPath)&quot; -f Resources/Shaders/simple.vs -o Resources/Shaders/simple.vs.metal.sc --platform osx --profile metal --type vertex" Condition="'$(ShadercFound)' == '0'" />
-    <Exec Command="&quot;$(ShadercPath)&quot; -f Resources/Shaders/simple.fs -o Resources/Shaders/simple.fs.gles2.sc --platform android --profile 100_es --type fragment" Condition="'$(ShadercFound)' == '0'" />
-    <Exec Command="&quot;$(ShadercPath)&quot; -f Resources/Shaders/simple.fs -o Resources/Shaders/simple.fs.gles3.sc --platform android --profile 300_es --type fragment" Condition="'$(ShadercFound)' == '0'" />
-    <Exec Command="&quot;$(ShadercPath)&quot; -f Resources/Shaders/simple.fs -o Resources/Shaders/simple.fs.metal.sc --platform osx --profile metal --type fragment" Condition="'$(ShadercFound)' == '0'" />
-    <Exec Command="&quot;$(ShadercPath)&quot; -f Resources/Shaders/pmx.vs -o Resources/Shaders/pmx.vs.gles2.sc --platform android --profile 100_es --type vertex" Condition="'$(ShadercFound)' == '0'" />
-    <Exec Command="&quot;$(ShadercPath)&quot; -f Resources/Shaders/pmx.vs -o Resources/Shaders/pmx.vs.gles3.sc --platform android --profile 300_es --type vertex" Condition="'$(ShadercFound)' == '0'" />
-    <Exec Command="&quot;$(ShadercPath)&quot; -f Resources/Shaders/pmx.vs -o Resources/Shaders/pmx.vs.metal.sc --platform osx --profile metal --type vertex" Condition="'$(ShadercFound)' == '0'" />
-    <Exec Command="&quot;$(ShadercPath)&quot; -f Resources/Shaders/pmx.fs -o Resources/Shaders/pmx.fs.gles2.sc --platform android --profile 100_es --type fragment" Condition="'$(ShadercFound)' == '0'" />
-    <Exec Command="&quot;$(ShadercPath)&quot; -f Resources/Shaders/pmx.fs -o Resources/Shaders/pmx.fs.gles3.sc --platform android --profile 300_es --type fragment" Condition="'$(ShadercFound)' == '0'" />
-    <Exec Command="&quot;$(ShadercPath)&quot; -f Resources/Shaders/pmx.fs -o Resources/Shaders/pmx.fs.metal.sc --platform osx --profile metal --type fragment" Condition="'$(ShadercFound)' == '0'" />
+    <Exec Command="&quot;$(ShadercPath)&quot; -f Resources/Shaders/simple.vs -i $(ShadercIncludePath) --varyingdef Resources/Shaders/varying.def.sc -o Resources/Shaders/simple.vs.gles2.sc --platform android --profile 100_es --type vertex" Condition="'$(ShadercFound)' == '0'" />
+    <Exec Command="&quot;$(ShadercPath)&quot; -f Resources/Shaders/simple.vs -i $(ShadercIncludePath) --varyingdef Resources/Shaders/varying.def.sc -o Resources/Shaders/simple.vs.gles3.sc --platform android --profile 300_es --type vertex" Condition="'$(ShadercFound)' == '0'" />
+    <Exec Command="&quot;$(ShadercPath)&quot; -f Resources/Shaders/simple.vs -i $(ShadercIncludePath) --varyingdef Resources/Shaders/varying.def.sc -o Resources/Shaders/simple.vs.metal.sc --platform osx --profile metal --type vertex" Condition="'$(ShadercFound)' == '0'" />
+    <Exec Command="&quot;$(ShadercPath)&quot; -f Resources/Shaders/simple.fs -i $(ShadercIncludePath) --varyingdef Resources/Shaders/varying.def.sc -o Resources/Shaders/simple.fs.gles2.sc --platform android --profile 100_es --type fragment" Condition="'$(ShadercFound)' == '0'" />
+    <Exec Command="&quot;$(ShadercPath)&quot; -f Resources/Shaders/simple.fs -i $(ShadercIncludePath) --varyingdef Resources/Shaders/varying.def.sc -o Resources/Shaders/simple.fs.gles3.sc --platform android --profile 300_es --type fragment" Condition="'$(ShadercFound)' == '0'" />
+    <Exec Command="&quot;$(ShadercPath)&quot; -f Resources/Shaders/simple.fs -i $(ShadercIncludePath) --varyingdef Resources/Shaders/varying.def.sc -o Resources/Shaders/simple.fs.metal.sc --platform osx --profile metal --type fragment" Condition="'$(ShadercFound)' == '0'" />
+    <Exec Command="&quot;$(ShadercPath)&quot; -f Resources/Shaders/pmx.vs -i $(ShadercIncludePath) --varyingdef Resources/Shaders/varying.def.sc -o Resources/Shaders/pmx.vs.gles2.sc --platform android --profile 100_es --type vertex" Condition="'$(ShadercFound)' == '0'" />
+    <Exec Command="&quot;$(ShadercPath)&quot; -f Resources/Shaders/pmx.vs -i $(ShadercIncludePath) --varyingdef Resources/Shaders/varying.def.sc -o Resources/Shaders/pmx.vs.gles3.sc --platform android --profile 300_es --type vertex" Condition="'$(ShadercFound)' == '0'" />
+    <Exec Command="&quot;$(ShadercPath)&quot; -f Resources/Shaders/pmx.vs -i $(ShadercIncludePath) --varyingdef Resources/Shaders/varying.def.sc -o Resources/Shaders/pmx.vs.metal.sc --platform osx --profile metal --type vertex" Condition="'$(ShadercFound)' == '0'" />
+    <Exec Command="&quot;$(ShadercPath)&quot; -f Resources/Shaders/pmx.fs -i $(ShadercIncludePath) --varyingdef Resources/Shaders/varying.def.sc -o Resources/Shaders/pmx.fs.gles2.sc --platform android --profile 100_es --type fragment" Condition="'$(ShadercFound)' == '0'" />
+    <Exec Command="&quot;$(ShadercPath)&quot; -f Resources/Shaders/pmx.fs -i $(ShadercIncludePath) --varyingdef Resources/Shaders/varying.def.sc -o Resources/Shaders/pmx.fs.gles3.sc --platform android --profile 300_es --type fragment" Condition="'$(ShadercFound)' == '0'" />
+    <Exec Command="&quot;$(ShadercPath)&quot; -f Resources/Shaders/pmx.fs -i $(ShadercIncludePath) --varyingdef Resources/Shaders/varying.def.sc -o Resources/Shaders/pmx.fs.metal.sc --platform osx --profile metal --type fragment" Condition="'$(ShadercFound)' == '0'" />
     <Warning Text="shaderc not found: $(ShadercPath); skipping shader compilation." Condition="'$(ShadercFound)' != '0'" />
     <ItemGroup>
       <EmbeddedResource Include="Resources/Shaders/simple.*.sc" />
