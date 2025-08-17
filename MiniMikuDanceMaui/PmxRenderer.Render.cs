@@ -130,13 +130,23 @@ public partial class PmxRenderer
 
         UpdateVertexBuffers();
 
-        Bgfx.SetViewTransform(0, _viewMatrix, _projMatrix);
+        Bgfx.SetViewTransform(0, ref _viewMatrix, ref _projMatrix);
 
+        DrawScene();
+        DrawIkBones();
+
+        Bgfx.Touch(0);
+        Bgfx.Frame();
+    }
+
+    private void DrawScene()
+    {
         foreach (var rm in _meshes)
         {
             if (rm.VertexBuffer == null || rm.IndexBuffer == null)
                 continue;
 
+            Bgfx.SetTransform(_modelTransform);
             Bgfx.SetVertexBuffer(0, rm.VertexBuffer);
             Bgfx.SetIndexBuffer(rm.IndexBuffer);
             if (rm.Texture != null && rm.HasTexture)
@@ -146,11 +156,72 @@ public partial class PmxRenderer
             Bgfx.SetUniform(rm.EdgeUniform, new Vector4(rm.EdgeColor.X, rm.EdgeColor.Y, rm.EdgeColor.Z, rm.EdgeSize));
             Bgfx.SetUniform(rm.ToonColorUniform, new Vector4(rm.ToonColor, 1f));
             Bgfx.SetUniform(rm.TextureTintUniform, rm.TextureTint);
-            Bgfx.SetTransform(_modelTransform);
             Bgfx.Submit(0, _modelProgram ?? _program);
         }
+    }
 
-        Bgfx.Touch(0);
-        Bgfx.Frame();
+    private void DrawIkBones()
+    {
+        var vertices = new List<PmxVertex>();
+        var indices = new List<ushort>();
+        ushort vi = 0;
+
+        if (_showBoneOutline && _bones.Count > 0)
+        {
+            int count = 0;
+            for (int i = 0; i < _bones.Count; i++)
+            {
+                int parent = _bones[i].Parent;
+                if (parent < 0)
+                    continue;
+                var start = GetBoneWorldPosition(parent);
+                var end = GetBoneWorldPosition(i);
+                _boneLines[count++] = start.X;
+                _boneLines[count++] = start.Y;
+                _boneLines[count++] = start.Z;
+                _boneLines[count++] = end.X;
+                _boneLines[count++] = end.Y;
+                _boneLines[count++] = end.Z;
+
+                vertices.Add(new PmxVertex { Px = start.X, Py = start.Y, Pz = start.Z });
+                vertices.Add(new PmxVertex { Px = end.X, Py = end.Y, Pz = end.Z });
+                indices.Add(vi++);
+                indices.Add(vi++);
+            }
+            _boneVertexCount = count / 3;
+        }
+
+        lock (_ikBonesLock)
+        {
+            foreach (var ik in _ikBones)
+            {
+                var p = ik.Position;
+                const float s = 0.1f;
+                vertices.Add(new PmxVertex { Px = p.X - s, Py = p.Y, Pz = p.Z });
+                vertices.Add(new PmxVertex { Px = p.X + s, Py = p.Y, Pz = p.Z });
+                indices.Add(vi++);
+                indices.Add(vi++);
+                vertices.Add(new PmxVertex { Px = p.X, Py = p.Y - s, Pz = p.Z });
+                vertices.Add(new PmxVertex { Px = p.X, Py = p.Y + s, Pz = p.Z });
+                indices.Add(vi++);
+                indices.Add(vi++);
+                vertices.Add(new PmxVertex { Px = p.X, Py = p.Y, Pz = p.Z - s });
+                vertices.Add(new PmxVertex { Px = p.X, Py = p.Y, Pz = p.Z + s });
+                indices.Add(vi++);
+                indices.Add(vi++);
+            }
+        }
+
+        if (vertices.Count == 0)
+            return;
+
+        var vb = Bgfx.CreateVertexBuffer(MemoryBlock.FromArray(vertices.ToArray()), PmxVertex.Layout);
+        var ib = Bgfx.CreateIndexBuffer(MemoryBlock.FromArray(indices.ToArray()));
+        Bgfx.SetTransform(_modelTransform);
+        Bgfx.SetVertexBuffer(0, vb);
+        Bgfx.SetIndexBuffer(ib);
+        Bgfx.Submit(0, _modelProgram ?? _program);
+        Bgfx.DestroyVertexBuffer(vb);
+        Bgfx.DestroyIndexBuffer(ib);
     }
 }

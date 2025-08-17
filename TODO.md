@@ -10,7 +10,7 @@
     - [ ] 頂点・インデックス・ユニフォームバッファ生成／更新を `Bgfx.CreateVertexBuffer`、`Bgfx.CreateIndexBuffer`、`Bgfx.UpdateVertexBuffer`、`Bgfx.SetUniform` などへ移行
     - [x] `RenderMesh` の `Vao`／`Vbo`／`Ebo`／`Texture` フィールドを `VertexBuffer`・`IndexBuffer`・`Texture`・`Uniform` 等 SharpBgfx ハンドル型に変更
     - [ ] 行列・ベクトル型を `System.Numerics` (`Matrix4x4`、`Vector3` など) に統一し、`Bgfx.SetTransform`／`Bgfx.SetUniform` を利用
-    - [ ] `Render`／`DrawScene`／`DrawIkBones` などの描画処理を `Bgfx.SetViewTransform`・`Bgfx.SetVertexBuffer`・`Bgfx.Submit` ベースで再実装
+    - [x] `Render`／`DrawScene`／`DrawIkBones` などの描画処理を `Bgfx.SetViewTransform`・`Bgfx.SetVertexBuffer`・`Bgfx.Submit` ベースで再実装
     - [x] 移行後、旧レンダラー呼び出しが残っていないことを確認し、不要な `using` を削除
 - [x] BGFX 用シェーダを `Resources/Shaders` に配置し、`shaderc` で各プラットフォーム向けにコンパイルするビルドタスクを追加
 - [x] `MauiProgram.cs` で SharpBGFX 実装を登録し、旧レンダラーの初期化コードを削除
