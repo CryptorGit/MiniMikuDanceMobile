@@ -34,6 +34,29 @@ dotnet build MiniMikuDance.sln
 maui run android
 ```
 
+## 基本操作
+
+### モデルのインポート
+1. 画面上部の **File** をタップし、メニューから **Import PMX** を選択します。
+2. 下部に表示されるエクスプローラで PMX ファイルを選び、「インポート」を押すとモデルが読み込まれます。
+
+### View メニュー
+- **Bone**: ボーン名一覧が表示され、モデル上の IK 球をドラッグしてポーズを調整できます。
+- **Morph**: モーフ名ごとのスライダーが並び、値を動かすと表情を変更できます。
+- **Lighting**: シェードやリムライトのスライダーを操作してライティングを調整します。
+
+### 設定
+1. **Setting** → **Open** で設定パネルを開きます。
+2. Bottom Region Height や各種 Sensitivity スライダーで操作感を調整します。
+3. IKボーン球サイズや Bone Pick Pixels を好みの値に変更します。
+4. Show Bone Outline にチェックを入れると IK ボーンの表示を切り替えられます。
+5. Reset Camera ボタンでカメラ位置を初期化します。
+
+### 録画
+1. 録画ボタンを押すと `AppInitializer.ToggleRecord` が呼ばれ、録画を開始します。
+2. `Recordings/record_yyyyMMdd_HHmmss/` に PNG 連番 (`frame_0000.png` など) が保存されます。
+3. 再度ボタンを押すと録画が停止し、保存先がメッセージで通知されます。
+
 ## 主な機能
 
 - PMXモデル読み込み — [`AppCore/Import/ModelImporter.cs`](AppCore/Import/ModelImporter.cs)。`MainPage.xaml` のファイル選択からモデルを読み込めます。
