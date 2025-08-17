@@ -39,7 +39,7 @@ public class BgfxRenderer : IRenderer
 
         _program = LoadProgram("simple");
 
-        _frameBuffer = Bgfx.CreateFrameBuffer((int)size.X, (int)size.Y, TextureFormat.BGRA8);
+        _frameBuffer = new FrameBuffer((int)size.X, (int)size.Y, TextureFormat.BGRA8);
     }
 
     public void Render()
@@ -82,7 +82,7 @@ public class BgfxRenderer : IRenderer
         using var stream = assembly.GetManifestResourceStream(name) ?? throw new InvalidOperationException($"Shader resource '{name}' not found.");
         using var ms = new MemoryStream();
         stream.CopyTo(ms);
-        return Bgfx.CreateShader(MemoryBlock.FromArray(ms.ToArray()));
+        return new Shader(MemoryBlock.FromArray(ms.ToArray()));
     }
 
     private static Program LoadProgram(string baseName)
@@ -99,7 +99,7 @@ public class BgfxRenderer : IRenderer
         };
         var vs = LoadShader($"Shaders/{baseName}.vs.{suffix}.sc");
         var fs = LoadShader($"Shaders/{baseName}.fs.{suffix}.sc");
-        return Bgfx.CreateProgram(vs, fs, true);
+        return new Program(vs, fs, true);
     }
 
     private struct PosColorVertex
