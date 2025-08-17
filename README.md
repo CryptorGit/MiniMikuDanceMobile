@@ -135,10 +135,25 @@ maui run android
 
 現在は OpenGL ベースだが、Roadmap に従い bgfx への移行や Bullet による物理演算の統合を予定している。
 
+## 開発者向け注意事項
+
+- 未使用の変数やメソッドは削除してください。削除前には現行機能への影響を十分に確認します。
+- テストコードの追加は禁止されています。
+- フォントは [Google Material Symbols](https://fonts.google.com/icons) を使用します。
+- 詳細なルールは [AGENTS.md](AGENTS.md) を参照してください。
+
+## Issue / PR ガイドライン
+
+- 作業は `main` から派生したトピックブランチ（`feature/*` や `fix/*` など）で行ってください。
+- コミットメッセージは [Conventional Commits](https://www.conventionalcommits.org/ja/v1.0.0/) を参考に、短い英語の動詞句で記述します（例: `docs: update roadmap`）。
+- Issue や PR には関連する [`TODO.md`](TODO.md) の項目へのリンクを含めてください。
+
 ## 開発方針 / Roadmap
 
-- [SharpBgfx](https://github.com/MikePopoloski/SharpBgfx) で bgfx レンダラを導入し、OpenGL 依存を段階的に削減する。達成条件: OpenGL 特有のコードを置き換えて動作すること。
-- [BulletSharpPInvoke](https://github.com/AndresTraks/BulletSharpPInvoke) で剛体・ジョイントの物理演算を統合する。達成条件: 基本的な衝突とジョイント動作が確認できること。
-- [PMXParser](https://github.com/ikorin24/PMXParser) で PMX/VMD 読み書き機能を拡充する。達成条件: モデルとモーションの保存・読み込みが可能になること。
-- CCD/FABRIK を用いた IK ソルバー実装。参考: [Inverse_Kinematics](https://github.com/Vincent-Devine/Inverse_Kinematics), [Cloth-and-IK-Test](https://github.com/SebLague/Cloth-and-IK-Test)。達成条件: 任意のボーンチェーンに対して目標ポーズを解けること。
+詳細なタスクや進捗は [`TODO.md`](TODO.md) を参照してください。
+
+- SharpBgfx によるレンダラー移行 — [TODO](TODO.md#レンダラー移行sharpbgfx)
+- BulletSharpPInvoke による物理エンジン統合 — [TODO](TODO.md#物理演算エンジン統合bulletsharppinvoke)
+- CCD/FABRIK を用いた IK ソルバー — [TODO](TODO.md#ikアルゴリズム実装)
+- PMX/VMD 読み書き機能の拡充 — [TODO](TODO.md#pmxフォーマット解析ライブラリ導入)
 
