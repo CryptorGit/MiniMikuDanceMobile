@@ -1,6 +1,7 @@
 using System;
 using System.IO;
 using System.Numerics;
+using System.Diagnostics;
 using MiniMikuDance.App;
 using SharpBgfx;
 
@@ -94,9 +95,19 @@ public class BgfxRenderer : IRenderer
 #else
         var suffix = "spirv";
 #endif
-        var vs = LoadShader($"Shaders/{baseName}.vs.{suffix}.sc");
-        var fs = LoadShader($"Shaders/{baseName}.fs.{suffix}.sc");
-        return new Program(vs, fs, true);
+        var vsName = $"Shaders/{baseName}.vs.{suffix}.sc";
+        var fsName = $"Shaders/{baseName}.fs.{suffix}.sc";
+        try
+        {
+            var vs = LoadShader(vsName);
+            var fs = LoadShader(fsName);
+            return new Program(vs, fs, true);
+        }
+        catch (Exception ex)
+        {
+            Debug.WriteLine($"Failed to load shader program '{baseName}': {ex.Message}");
+            return default;
+        }
     }
 
     private struct PosColorVertex
