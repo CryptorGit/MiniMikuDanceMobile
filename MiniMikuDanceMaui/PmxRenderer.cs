@@ -88,7 +88,56 @@ public partial class PmxRenderer : IRenderer, IDisposable
     private List<(RenderMesh Mesh, int Index)>?[] _morphVertexMap = Array.Empty<List<(RenderMesh Mesh, int Index)>?>();
     private readonly HashSet<int> _changedOriginalVertices = new();
     private readonly object _changedVerticesLock = new();
-    private readonly List<int> _changedVerticesList = new();
+
+    private void MarkVertexChanged(int vid)
+    {
+        lock (_changedVerticesLock)
+            _changedOriginalVertices.Add(vid);
+    }
+
+    internal void CollectChangedVertices(Dictionary<RenderMesh, List<int>> changed)
+    {
+        lock (_changedVerticesLock)
+        {
+            if (_changedOriginalVertices.Count == 0)
+                return;
+
+            foreach (var vid in _changedOriginalVertices)
+            {
+                var list = _morphVertexMap[vid];
+                if (list == null)
+                    continue;
+                foreach (var (mesh, idx) in list)
+                {
+                    if (!changed.TryGetValue(mesh, out var idxList))
+                    {
+                        idxList = new List<int>();
+                        changed[mesh] = idxList;
+                    }
+                    idxList.Add(idx);
+                }
+            }
+            _changedOriginalVertices.Clear();
+        }
+
+        foreach (var kv in changed)
+        {
+            var list = kv.Value;
+            list.Sort();
+            int last = -1;
+            for (int i = 0; i < list.Count;)
+            {
+                if (list[i] == last)
+                    list.RemoveAt(i);
+                else
+                {
+                    last = list[i];
+                    i++;
+                }
+            }
+        }
+    }
+
     private Vector3[] _vertexTotalOffsets = Array.Empty<Vector3>();
     private List<(string MorphName, Vector3 Offset)>?[] _vertexMorphOffsets = Array.Empty<List<(string MorphName, Vector3 Offset)>?>();
     private List<(string MorphName, System.Numerics.Vector4 Offset)>?[] _uvMorphOffsets = Array.Empty<List<(string MorphName, System.Numerics.Vector4 Offset)>?>();
@@ -572,14 +621,23 @@ public partial class PmxRenderer : IRenderer, IDisposable
         foreach (var rm in _meshes)
         {
             rm.VertexBuffer?.Dispose();
+            rm.VertexBuffer = null;
             rm.IndexBuffer?.Dispose();
+            rm.IndexBuffer = null;
             rm.Texture?.Dispose();
+            rm.Texture = null;
             rm.ColorUniform?.Dispose();
+            rm.ColorUniform = null;
             rm.SpecularUniform?.Dispose();
+            rm.SpecularUniform = null;
             rm.EdgeUniform?.Dispose();
+            rm.EdgeUniform = null;
             rm.ToonColorUniform?.Dispose();
+            rm.ToonColorUniform = null;
             rm.TextureTintUniform?.Dispose();
+            rm.TextureTintUniform = null;
             rm.TextureUniform?.Dispose();
+            rm.TextureUniform = null;
         }
         _meshes.Clear();
         _indexToHumanoidName.Clear();
@@ -898,14 +956,23 @@ public partial class PmxRenderer : IRenderer, IDisposable
         foreach (var rm in _meshes)
         {
             rm.VertexBuffer?.Dispose();
+            rm.VertexBuffer = null;
             rm.IndexBuffer?.Dispose();
+            rm.IndexBuffer = null;
             rm.Texture?.Dispose();
+            rm.Texture = null;
             rm.ColorUniform?.Dispose();
+            rm.ColorUniform = null;
             rm.SpecularUniform?.Dispose();
+            rm.SpecularUniform = null;
             rm.EdgeUniform?.Dispose();
+            rm.EdgeUniform = null;
             rm.ToonColorUniform?.Dispose();
+            rm.ToonColorUniform = null;
             rm.TextureTintUniform?.Dispose();
+            rm.TextureTintUniform = null;
             rm.TextureUniform?.Dispose();
+            rm.TextureUniform = null;
         }
         _meshes.Clear();
         _indexToHumanoidName.Clear();
