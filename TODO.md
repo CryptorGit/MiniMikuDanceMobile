@@ -2,6 +2,7 @@
 
 ## 環境整備
 - [x] BGFX の shaderc ツールを取得しローカルにインストールする
+- [ ] dotnet build を実行し、マークアップ拡張に関する警告が解消されたか確認（MSBuild の Logger 例外により未実施）
 
 ## レンダラー移行（SharpBGFX）
 - [x] `MiniMikuDanceMaui.csproj` の不要な依存を整理し、`SharpBgfx` の NuGet 参照を追加
@@ -31,6 +32,7 @@
 - [ ] 実機で起動テストを行い、Bgfx レンダラー初期化が成功することを確認
     - [ ] Android SDK のセットアップおよび実機ビルド環境の整備（現状環境に SDK 不足）
     - [ ] DebugTextClear と DebugTextPrintf の組み合わせでデバッグテキストが表示されるか確認
+    - [ ] BgfxRenderer などに関連するコンパイルエラーを解消し、Android 向けビルドが通るようにする
 
 ## 物理演算エンジン統合（BepuPhysics）
 - [ ] `AppCore/AppCore.csproj` に `BepuPhysics` の NuGet 参照を追加

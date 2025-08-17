@@ -17,6 +17,7 @@
                 <ImplicitUsings>enable</ImplicitUsings>
                 <Nullable>enable</Nullable>
                 <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+                <MauiEnableXamlCBindingWithSourceCompilation>true</MauiEnableXamlCBindingWithSourceCompilation>
         </PropertyGroup>
 
   <ItemGroup>
