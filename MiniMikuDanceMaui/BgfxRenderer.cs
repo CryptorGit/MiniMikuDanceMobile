@@ -54,7 +54,7 @@ public class BgfxRenderer : IRenderer
             Bgfx.SetIndexBuffer(indexBuffer);
 #if DEBUG
             Bgfx.DebugTextClear();
-            Bgfx.DebugTextPrintf(0, 0, DebugColor.White, "VB:{0} IB:{1}", _vertexCount, _indexCount);
+            //Bgfx.DebugTextPrintf(0, 0, DebugColor.White, "VB:{0} IB:{1}", _vertexCount, _indexCount);
 #endif
             Bgfx.SetRenderState(RenderState.Default);
             Bgfx.Submit(0, program, 0);
@@ -87,16 +87,13 @@ public class BgfxRenderer : IRenderer
 
     private static Program LoadProgram(string baseName)
     {
-        var renderer = Bgfx.GetCaps().RendererType;
-        var suffix = renderer switch
-        {
-            RendererType.Metal => "metal",
-            RendererType.Direct3D11 => "dx11",
-            RendererType.Vulkan => "spirv",
-            RendererType.OpenGLES => "gles3",
-            RendererType.OpenGL => "glsl",
-            _ => "spirv"
-        };
+#if __ANDROID__
+        var suffix = "gles3";
+#elif __IOS__
+        var suffix = "metal";
+#else
+        var suffix = "spirv";
+#endif
         var vs = LoadShader($"Shaders/{baseName}.vs.{suffix}.sc");
         var fs = LoadShader($"Shaders/{baseName}.fs.{suffix}.sc");
         return new Program(vs, fs, true);

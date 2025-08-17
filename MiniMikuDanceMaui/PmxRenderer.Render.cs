@@ -173,7 +173,7 @@ public partial class PmxRenderer
             Bgfx.SetVertexBuffer(0, vertexBuffer);
             Bgfx.SetIndexBuffer(indexBuffer);
             if (rm.Texture != null && rm.TextureUniform != null && rm.HasTexture)
-                Bgfx.SetTexture(0, rm.TextureUniform.Value, rm.Texture.Value);
+                Bgfx.SetTexture(0, rm.TextureUniform.Value, rm.Texture);
             if (rm.ColorUniform != null) SetUniform(rm.ColorUniform.Value, rm.Color);
             if (rm.SpecularUniform != null) SetUniform(rm.SpecularUniform.Value, new Vector4(rm.Specular, rm.SpecularPower));
             if (rm.EdgeUniform != null) SetUniform(rm.EdgeUniform.Value, new Vector4(rm.EdgeColor.X, rm.EdgeColor.Y, rm.EdgeColor.Z, rm.EdgeSize));

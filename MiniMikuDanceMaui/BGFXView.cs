@@ -55,7 +55,7 @@ public class BGFXView : GraphicsView, IViewer
 
     public event Action<float>? FrameUpdated;
 
-    public byte[] CaptureFrame()
+    public unsafe byte[] CaptureFrame()
     {
         int width = (int)_size.X;
         int height = (int)_size.Y;
@@ -64,7 +64,10 @@ public class BGFXView : GraphicsView, IViewer
         Renderer?.Render();
         var texture = frameBuffer.GetTexture(0);
         byte[] data = new byte[width * height * 4];
-        texture.Read(data, 0);
+        fixed (byte* ptr = data)
+        {
+            texture.Read((nint)ptr, 0);
+        }
         Bgfx.Frame();
         Bgfx.SetViewFrameBuffer(0, FrameBuffer.Invalid);
         return data;
