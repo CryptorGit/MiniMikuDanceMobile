@@ -21,6 +21,19 @@ public partial class AppInitializer : IDisposable
     public BonesConfig? BonesConfig { get; set; }
     private Action<float>? _frameUpdatedHandler;
 
+    public void SetViewer(IViewer? viewer)
+    {
+        if (Viewer != null && _frameUpdatedHandler != null)
+        {
+            Viewer.FrameUpdated -= _frameUpdatedHandler;
+        }
+        Viewer = viewer;
+        if (Viewer != null && _frameUpdatedHandler != null)
+        {
+            Viewer.FrameUpdated += _frameUpdatedHandler;
+        }
+    }
+
 
     public void Initialize(UIConfig uiConfig, string? modelPath, string baseDir)
     {
@@ -49,7 +62,7 @@ public partial class AppInitializer : IDisposable
         {
             throw new InvalidOperationException("ViewerFactory が設定されていません。");
         }
-        Viewer = ViewerFactory(modelPath, settings.ModelScale);
+        var viewer = ViewerFactory(modelPath, settings.ModelScale);
         ModelImporter.CacheCapacity = settings.TextureCacheSize;
 
         _frameUpdatedHandler = async dt =>
@@ -60,7 +73,7 @@ public partial class AppInitializer : IDisposable
                 await Recorder.Capture(pixels, (int)Viewer.Size.X, (int)Viewer.Size.Y);
             }
         };
-        Viewer.FrameUpdated += _frameUpdatedHandler;
+        SetViewer(viewer);
     }
 
     public async Task ToggleRecord()
