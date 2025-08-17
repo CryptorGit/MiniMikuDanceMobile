@@ -5,6 +5,8 @@ using MiniMikuDance.Import;
 using MiniMikuDance.App;
 using MiniMikuDance.IK;
 using SharpBgfx;
+using VertexBuffer = SharpBgfx.DynamicVertexBuffer;
+using IndexBuffer = SharpBgfx.DynamicIndexBuffer;
 using Matrix4 = System.Numerics.Matrix4x4;
 using Vector2 = System.Numerics.Vector2;
 using Vector3 = System.Numerics.Vector3;
@@ -282,9 +284,9 @@ public partial class PmxRenderer : IRenderer, IDisposable
     {
         _program = LoadProgram("pmx");
         _modelProgram = _program;
-        _lightDirUniform = Uniform.Create("u_lightDir", UniformType.Vec4);
-        _lightColorUniform = Uniform.Create("u_lightColor", UniformType.Vec4);
-        _shadeParamUniform = Uniform.Create("u_shadeParam", UniformType.Vec4);
+        _lightDirUniform = Uniform.Create("u_lightDir", UniformType.Vector4);
+        _lightColorUniform = Uniform.Create("u_lightColor", UniformType.Vector4);
+        _shadeParamUniform = Uniform.Create("u_shadeParam", UniformType.Vector4);
     }
 
     private static Shader LoadShader(string name)
@@ -709,7 +711,7 @@ public partial class PmxRenderer : IRenderer, IDisposable
                     V = rm.TexCoords.Length > i ? rm.TexCoords[i].Y : 0f
                 };
             }
-            rm.VertexBuffer = new VertexBuffer(MemoryBlock.FromArray(verts), PmxVertex.Layout, BufferFlags.Dynamic);
+            rm.VertexBuffer = new VertexBuffer(MemoryBlock.FromArray(verts), PmxVertex.Layout);
 
             int indexCount = mesh.FaceCount * 3;
             rm.IndexCount = indexCount;
@@ -725,7 +727,7 @@ public partial class PmxRenderer : IRenderer, IDisposable
                 }
                 rm.Indices32 = idx;
                 rm.Indices16 = Array.Empty<ushort>();
-                rm.IndexBuffer = new IndexBuffer(MemoryBlock.FromArray(idx), BufferFlags.Dynamic | BufferFlags.Index32);
+                rm.IndexBuffer = new IndexBuffer(MemoryBlock.FromArray(idx), BufferFlags.Index32);
             }
             else
             {
@@ -739,7 +741,7 @@ public partial class PmxRenderer : IRenderer, IDisposable
                 }
                 rm.Indices16 = idx;
                 rm.Indices32 = Array.Empty<uint>();
-                rm.IndexBuffer = new IndexBuffer(MemoryBlock.FromArray(idx), BufferFlags.Dynamic);
+                rm.IndexBuffer = new IndexBuffer(MemoryBlock.FromArray(idx));
             }
             rm.IndicesDirty = false;
 
@@ -755,11 +757,11 @@ public partial class PmxRenderer : IRenderer, IDisposable
                 rm.HasTexture = false;
             }
 
-            rm.ColorUniform = Uniform.Create("u_color", UniformType.Vec4);
-            rm.SpecularUniform = Uniform.Create("u_specular", UniformType.Vec4);
-            rm.EdgeUniform = Uniform.Create("u_edge", UniformType.Vec4);
-            rm.ToonColorUniform = Uniform.Create("u_toonColor", UniformType.Vec4);
-            rm.TextureTintUniform = Uniform.Create("u_textureTint", UniformType.Vec4);
+            rm.ColorUniform = Uniform.Create("u_color", UniformType.Vector4);
+            rm.SpecularUniform = Uniform.Create("u_specular", UniformType.Vector4);
+            rm.EdgeUniform = Uniform.Create("u_edge", UniformType.Vector4);
+            rm.ToonColorUniform = Uniform.Create("u_toonColor", UniformType.Vector4);
+            rm.TextureTintUniform = Uniform.Create("u_textureTint", UniformType.Vector4);
             rm.TextureUniform = Uniform.Create("s_texColor", UniformType.Sampler);
 
             _meshes.Add(rm);
