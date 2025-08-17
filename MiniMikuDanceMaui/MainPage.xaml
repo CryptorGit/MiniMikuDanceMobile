@@ -47,9 +47,12 @@
                        HorizontalOptions="End"
                        VerticalOptions="Center">
                     <mi:MauiIcon.Triggers>
-                        <DataTrigger TargetType="mi:MauiIcon"
-                                    Binding="{Binding IsToggled, Source={x:Reference PoseModeSwitch}}"
-                                    Value="True">
+                        <DataTrigger TargetType="mi:MauiIcon" Value="True">
+                            <DataTrigger.Binding>
+                                <Binding Path="IsToggled"
+                                         Source="{x:Reference PoseModeSwitch}"
+                                         x:DataType="Switch" />
+                            </DataTrigger.Binding>
                             <Setter Property="IsVisible" Value="False" />
                         </DataTrigger>
                     </mi:MauiIcon.Triggers>
@@ -61,9 +64,12 @@
                        VerticalOptions="Center"
                        IsVisible="False">
                     <mi:MauiIcon.Triggers>
-                        <DataTrigger TargetType="mi:MauiIcon"
-                                    Binding="{Binding IsToggled, Source={x:Reference PoseModeSwitch}}"
-                                    Value="True">
+                        <DataTrigger TargetType="mi:MauiIcon" Value="True">
+                            <DataTrigger.Binding>
+                                <Binding Path="IsToggled"
+                                         Source="{x:Reference PoseModeSwitch}"
+                                         x:DataType="Switch" />
+                            </DataTrigger.Binding>
                             <Setter Property="IsVisible" Value="True" />
                         </DataTrigger>
                     </mi:MauiIcon.Triggers>
