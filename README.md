@@ -28,9 +28,37 @@ Android と iOS のクロスプラットフォーム対応は .NET MAUI によ�
 
 ## アーキテクチャ概要
 
-`AppCore` は PMX の読み込み、IK の管理、録画制御などのコア機能を担う。`MiniMikuDanceMaui` は .NET MAUI による UI と、bgfx をホストするビューを提供する。
+### `AppCore` のサブモジュール
 
-将来的には bgfx などのネイティブライブラリをコア DLL とし、C# からバインディング経由で呼び出す方針である。
+- `App` — アプリケーション初期化。`AppInitializer` が `UIConfig` や `BonesConfig` を受け取り、ビューアと録画のセットアップを行う。
+- `Import` — PMX モデルやテクスチャの読み込み。
+- `IK` — 逆運動学処理とボーン操作。
+- `Recording` — フレームキャプチャと動画保存。
+- `UI` — UI 状態とメッセージの管理。
+- `Data` — `DataManager` による設定ファイルのロード／保存と一時ディレクトリ管理。
+- `Util` — 共通ユーティリティ。
+
+### `MiniMikuDanceMaui` のビュー構成
+
+- `MainPage` — メニューと `SKGLView` を組み合わせたメイン画面。
+- `ExplorerView` — モデルやモーションファイルのブラウズ。
+- `PmxView` — サブメッシュ情報の一覧。
+- `BoneView` — ボーン表示と IK 操作。
+- `MorphView` — モーフ編集パネル。
+- `LightingView` — ライティング設定。
+- `SettingView` — カメラ感度や表示設定の調整。
+
+### 設定ファイルの読み込みと管理
+
+アプリ起動時、`App.xaml` は `DataManager` を通じて `UIConfig` と `BonesConfig` を読み込み、`AppInitializer` に渡して UI とボーン設定を適用する。`DataManager` は `Configs` フォルダの JSON を扱い、パッケージ内の既定値をコピーして保存するほか、`CleanupTemp()` で一時ディレクトリを初期化する。
+
+### OpenGL 描画パイプライン
+
+`PmxRenderer` は OpenTK を用いた OpenGL ES 3.0 レンダラで、`LoadModel` で頂点・インデックス・テクスチャを VAO/VBO/EBO に格納し、`DrawScene` でシェーダ設定とメッシュ描画、グリッドやボーンのレンダリングを行う。
+
+### 将来の拡張
+
+現在は OpenGL ベースだが、Roadmap に従い bgfx への移行や Bullet による物理演算の統合を予定している。
 
 **注意: `global.json` の SDK バージョンは `9.0.301` から変更しないこと。**
 
