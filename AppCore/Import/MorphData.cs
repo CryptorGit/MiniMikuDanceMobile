@@ -1,7 +1,6 @@
 namespace MiniMikuDance.Import;
 
 using System.Collections.Generic;
-using MMDTools;
 
 public class MorphData
 {
