@@ -284,9 +284,9 @@ public partial class PmxRenderer : IRenderer, IDisposable
     {
         _program = LoadProgram("pmx");
         _modelProgram = _program;
-        _lightDirUniform = Bgfx.CreateUniform("u_lightDir", UniformType.Vector4);
-        _lightColorUniform = Bgfx.CreateUniform("u_lightColor", UniformType.Vector4);
-        _shadeParamUniform = Bgfx.CreateUniform("u_shadeParam", UniformType.Vector4);
+        _lightDirUniform = new Uniform("u_lightDir", UniformType.Vector4);
+        _lightColorUniform = new Uniform("u_lightColor", UniformType.Vector4);
+        _shadeParamUniform = new Uniform("u_shadeParam", UniformType.Vector4);
     }
 
     private static Shader LoadShader(string name)
@@ -295,7 +295,7 @@ public partial class PmxRenderer : IRenderer, IDisposable
         using var stream = assembly.GetManifestResourceStream(name) ?? throw new InvalidOperationException($"Shader resource '{name}' not found.");
         using var ms = new MemoryStream();
         stream.CopyTo(ms);
-        return Bgfx.CreateShader(MemoryBlock.FromArray(ms.ToArray()));
+        return new Shader(MemoryBlock.FromArray(ms.ToArray()));
     }
 
     private static Program LoadProgram(string baseName)
@@ -312,7 +312,7 @@ public partial class PmxRenderer : IRenderer, IDisposable
         };
         var vs = LoadShader($"Shaders/{baseName}.vs.{suffix}.sc");
         var fs = LoadShader($"Shaders/{baseName}.fs.{suffix}.sc");
-        return Bgfx.CreateProgram(vs, fs, true);
+        return new Program(vs, fs, true);
     }
 
     public void Resize(int width, int height)
@@ -747,7 +747,7 @@ public partial class PmxRenderer : IRenderer, IDisposable
 
             if (smd.TextureBytes != null && smd.TextureWidth > 0 && smd.TextureHeight > 0)
             {
-                rm.Texture = Bgfx.CreateTexture2D((ushort)smd.TextureWidth, (ushort)smd.TextureHeight, false, 1,
+                rm.Texture = Texture.Create2D((int)smd.TextureWidth, (int)smd.TextureHeight, false, 1,
                     TextureFormat.RGBA8, TextureFlags.None,
                     MemoryBlock.FromArray(smd.TextureBytes));
                 rm.HasTexture = true;
@@ -757,12 +757,12 @@ public partial class PmxRenderer : IRenderer, IDisposable
                 rm.HasTexture = false;
             }
 
-            rm.ColorUniform = Bgfx.CreateUniform("u_color", UniformType.Vector4);
-            rm.SpecularUniform = Bgfx.CreateUniform("u_specular", UniformType.Vector4);
-            rm.EdgeUniform = Bgfx.CreateUniform("u_edge", UniformType.Vector4);
-            rm.ToonColorUniform = Bgfx.CreateUniform("u_toonColor", UniformType.Vector4);
-            rm.TextureTintUniform = Bgfx.CreateUniform("u_textureTint", UniformType.Vector4);
-            rm.TextureUniform = Bgfx.CreateUniform("s_texColor", UniformType.Sampler);
+            rm.ColorUniform = new Uniform("u_color", UniformType.Vector4);
+            rm.SpecularUniform = new Uniform("u_specular", UniformType.Vector4);
+            rm.EdgeUniform = new Uniform("u_edge", UniformType.Vector4);
+            rm.ToonColorUniform = new Uniform("u_toonColor", UniformType.Vector4);
+            rm.TextureTintUniform = new Uniform("u_textureTint", UniformType.Vector4);
+            rm.TextureUniform = new Uniform("s_texColor", UniformType.Sampler);
 
             _meshes.Add(rm);
         }
