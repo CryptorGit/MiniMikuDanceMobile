@@ -1,9 +1,11 @@
+using MiniMikuDance.Util;
 using SharpBgfx;
 using VertexBuffer = SharpBgfx.DynamicVertexBuffer;
 using IndexBuffer = SharpBgfx.DynamicIndexBuffer;
 using Matrix4 = System.Numerics.Matrix4x4;
 using Vector3 = System.Numerics.Vector3;
 using Vector4 = System.Numerics.Vector4;
+using Quaternion = System.Numerics.Quaternion;
 
 namespace MiniMikuDanceMaui;
 
