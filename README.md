@@ -6,6 +6,15 @@ Unity に依存しない軽量な MMD ビューアを目指しており、ネイ
 
 Android と iOS のクロスプラットフォーム対応は .NET MAUI によって実現しており、エントリポイント `MiniMikuDanceMaui/MauiProgram.cs` とプロジェクト設定 `MiniMikuDanceMaui/MiniMikuDanceMaui.csproj` にその構成が記述されています。
 
+## 主な機能
+
+- PMXモデル読み込み — [`AppCore/Import/ModelImporter.cs`](AppCore/Import/ModelImporter.cs)。`MainPage.xaml` のファイル選択からモデルを読み込めます。
+- ボーン表示・IK操作 — [`AppCore/IK/IkManager.cs`](AppCore/IK/IkManager.cs)、[`PmxRenderer.Render.cs`](PmxRenderer.Render.cs)。ボーンは [`BoneView.xaml`](MiniMikuDanceMaui/BoneView.xaml) で確認し、ドラッグで IK を操作します。
+- モーフ編集 — [`MiniMikuDanceMaui/MorphView.xaml.cs`](MiniMikuDanceMaui/MorphView.xaml.cs)、[`PmxRenderer.Morph.cs`](PmxRenderer.Morph.cs)。`SettingView.xaml` のモーフタブから表情を調整できます。
+- ライティング調整 — [`MiniMikuDanceMaui/LightingView.xaml.cs`](MiniMikuDanceMaui/LightingView.xaml.cs)。`SettingView.xaml` でライトの色や強さを変更可能です。
+- 録画 — [`AppCore/Recording/RecorderController.cs`](AppCore/Recording/RecorderController.cs)。`SettingView.xaml` から動画録画を開始します。
+- ファイルエクスプローラ — [`MiniMikuDanceMaui/ExplorerView.xaml.cs`](MiniMikuDanceMaui/ExplorerView.xaml.cs)。`MainPage.xaml` 上でモデルやモーションファイルをブラウズします。
+
 ## 採用スタック
 
 - UI: [.NET MAUI](https://learn.microsoft.com/dotnet/maui/what-is-maui) - Android/iOS 対応のクロスプラットフォーム UI フレームワーク
