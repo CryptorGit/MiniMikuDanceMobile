@@ -94,7 +94,7 @@ public partial class PmxRenderer : IRenderer, IDisposable
             _changedOriginalVertices.Add(vid);
     }
 
-    internal void CollectChangedVertices(Dictionary<RenderMesh, List<int>> changed)
+    private void CollectChangedVertices(Dictionary<RenderMesh, List<int>> changed)
     {
         lock (_changedVerticesLock)
         {
