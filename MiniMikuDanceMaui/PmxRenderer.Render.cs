@@ -1,4 +1,6 @@
 using SharpBgfx;
+using VertexBuffer = SharpBgfx.DynamicVertexBuffer;
+using IndexBuffer = SharpBgfx.DynamicIndexBuffer;
 using Matrix4 = System.Numerics.Matrix4x4;
 using Vector3 = System.Numerics.Vector3;
 using Vector4 = System.Numerics.Vector4;
@@ -164,8 +166,8 @@ public partial class PmxRenderer
                 continue;
 
             SetTransform(_modelTransform);
-            Bgfx.SetVertexBuffer(0, rm.VertexBuffer);
-            Bgfx.SetIndexBuffer(rm.IndexBuffer);
+            Bgfx.SetVertexBuffer(0, rm.VertexBuffer.Value);
+            Bgfx.SetIndexBuffer(rm.IndexBuffer.Value);
             if (rm.Texture != null && rm.HasTexture)
                 Bgfx.SetTexture(0, rm.TextureUniform, rm.Texture);
             if (rm.ColorUniform != null) SetUniform(rm.ColorUniform, rm.Color);
