@@ -6,6 +6,34 @@ Unity に依存しない軽量な MMD ビューアを目指しており、ネイ
 
 Android と iOS のクロスプラットフォーム対応は .NET MAUI によって実現しており、エントリポイント `MiniMikuDanceMaui/MauiProgram.cs` とプロジェクト設定 `MiniMikuDanceMaui/MiniMikuDanceMaui.csproj` にその構成が記述されています。
 
+## 開発環境の準備
+
+1. **.NET SDK 9.0.301 のインストール**
+   - `global.json` で SDK バージョンを `9.0.301` に固定しています。バージョンを変更しないでください。
+   - 公式手順に従うか、以下のスクリプトでインストールします。
+     ```bash
+     wget https://dot.net/v1/dotnet-install.sh -O dotnet-install.sh
+     bash dotnet-install.sh --version 9.0.301 --install-dir $HOME/dotnet
+     export PATH=$HOME/dotnet:$PATH
+     ```
+2. **MAUI ワークロードのインストール**
+   ```bash
+   dotnet workload install maui
+   dotnet workload install maui-android
+   ```
+3. **必要な開発ツール**
+   - Android SDK（platform-tools / build-tools など）
+   - Android エミュレータまたは実機
+   - JDK 17 など .NET MAUI Android が要求するツール
+   - （iOS 開発を行う場合）Xcode と iOS SDK
+
+## ビルドと実行
+
+```bash
+dotnet build MiniMikuDance.sln
+maui run android
+```
+
 ## 主な機能
 
 - PMXモデル読み込み — [`AppCore/Import/ModelImporter.cs`](AppCore/Import/ModelImporter.cs)。`MainPage.xaml` のファイル選択からモデルを読み込めます。
@@ -59,8 +87,6 @@ Android と iOS のクロスプラットフォーム対応は .NET MAUI によ�
 ### 将来の拡張
 
 現在は OpenGL ベースだが、Roadmap に従い bgfx への移行や Bullet による物理演算の統合を予定している。
-
-**注意: `global.json` の SDK バージョンは `9.0.301` から変更しないこと。**
 
 ## 開発方針 / Roadmap
 
