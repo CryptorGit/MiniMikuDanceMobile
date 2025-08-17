@@ -3,6 +3,10 @@
 ## 環境整備
 - [ ] BGFX の shaderc ツールを取得しローカルにインストールする（未完了）
 
+## OnnxRuntime 対応
+- [ ] 16KB ページサイズ対応版の OnnxRuntime を公開後に再導入する
+    - [ ] または自前で 16KB 対応 AAR を `runtimes/android/native` に配置する
+
 ## レンダラー移行（SharpBGFX）
 - [x] `MiniMikuDanceMaui.csproj` の不要な依存を整理し、`SharpBgfx` の NuGet 参照を追加
 - [x] `AppCore/App/IViewer.cs` に `IRenderer` インターフェースを新設
