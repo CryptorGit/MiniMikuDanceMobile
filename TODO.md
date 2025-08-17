@@ -1,5 +1,8 @@
 # TODO
 
+## 環境整備
+- [ ] BGFX の shaderc ツールを取得しローカルにインストールする（未完了）
+
 ## レンダラー移行（SharpBGFX）
 - [x] `MiniMikuDanceMaui.csproj` の不要な依存を整理し、`SharpBgfx` の NuGet 参照を追加
 - [x] `AppCore/App/IViewer.cs` に `IRenderer` インターフェースを新設
