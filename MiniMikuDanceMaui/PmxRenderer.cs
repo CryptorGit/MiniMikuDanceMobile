@@ -300,7 +300,7 @@ public partial class PmxRenderer : IRenderer, IDisposable
 
     private static Program LoadProgram(string baseName)
     {
-        var renderer = Bgfx.GetCaps()?.RendererType;
+        var renderer = Bgfx.GetCaps().RendererType;
         var suffix = renderer switch
         {
             RendererType.Metal => "metal",
