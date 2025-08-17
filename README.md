@@ -103,6 +103,30 @@ maui run android
 
 アプリ起動時、`App.xaml` は `DataManager` を通じて `UIConfig` と `BonesConfig` を読み込み、`AppInitializer` に渡して UI とボーン設定を適用する。`DataManager` は `Configs` フォルダの JSON を扱い、パッケージ内の既定値をコピーして保存するほか、`CleanupTemp()` で一時ディレクトリを初期化する。
 
+#### appsettings.json
+
+|項目|説明|初期値|
+|---|---|---|
+|LastModelPath|最後に読み込んだモデルのファイルパス|""|
+|LastVideoPath|最後に読み込んだ動画ファイルパス|""|
+|ModelScale|モデルのスケール|1.0|
+|StageSize|ステージのサイズ|30.0|
+|CameraDistance|カメラ距離|4.0|
+|CameraTargetY|カメラが注視するY座標|0.5|
+|BonePickPixels|ボーン選択の判定ピクセル|60.0|
+
+#### BonesConfig.json と `Clamp` メソッド
+
+`Configs/BonesConfig.json` は各ボーンごとに回転の最小値と最大値を軸別に定義する。`BonesConfig` クラスの `Clamp` メソッドは指定したボーンの回転ベクトルをこれらの範囲に収める。
+
+#### UIConfig.json と `UIManager.LoadConfig`
+
+`Configs/UIConfig.json` ではボタンとトグルを配列で定義し、ラベルやメッセージ、ID、既定値を設定できる。アプリ起動時に `UIManager.LoadConfig` が呼ばれ、ファイル内容が読み込まれたタイミングでボタンとトグルの状態が初期化される。
+
+#### JSON のカスタマイズ
+
+これらの JSON ファイルは `Configs` フォルダにあり、ユーザーが編集してアプリを再起動することで挙動を変更できる。
+
 ### OpenGL 描画パイプライン
 
 `PmxRenderer` は OpenTK を用いた OpenGL ES 3.0 レンダラで、`LoadModel` で頂点・インデックス・テクスチャを VAO/VBO/EBO に格納し、`DrawScene` でシェーダ設定とメッシュ描画、グリッドやボーンのレンダリングを行う。
