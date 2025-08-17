@@ -30,8 +30,8 @@ public class BgfxRenderer : IRenderer
             new( 0f,   0.5f, 0f, 0xffff0000)
         };
         Span<ushort> indices = stackalloc ushort[] { 0, 1, 2 };
-        _vertexBuffer = new VertexBuffer(MemoryBlock.FromArray(vertices), PosColorVertex.Layout);
-        _indexBuffer = new IndexBuffer(MemoryBlock.FromArray(indices));
+        _vertexBuffer = new VertexBuffer(MemoryBlock.FromArray<PosColorVertex>(vertices.ToArray()), PosColorVertex.Layout);
+        _indexBuffer = new IndexBuffer(MemoryBlock.FromArray<ushort>(indices.ToArray()));
 #if DEBUG
         _vertexCount = (uint)vertices.Length;
         _indexCount = (uint)indices.Length;
