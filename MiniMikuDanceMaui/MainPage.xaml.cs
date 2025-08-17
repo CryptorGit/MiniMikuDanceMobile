@@ -466,6 +466,17 @@ public partial class MainPage : ContentPage
     protected override void OnDisappearing()
     {
         base.OnDisappearing();
+        if (Viewer != null)
+        {
+            try
+            {
+                Viewer.Dispose();
+            }
+            finally
+            {
+                Viewer = null;
+            }
+        }
     }
 
     private void OnSizeChanged(object? sender, EventArgs e) => UpdateLayout();

@@ -172,6 +172,18 @@ public class BGFXView : GraphicsView, IViewer
         Invalidate();
     }
 
+    public void Dispose()
+    {
+        Drawable = null;
+        StartInteraction -= OnTouchStart;
+        DragInteraction -= OnTouchDrag;
+        EndInteraction -= OnTouchEnd;
+        GestureRecognizers.Clear();
+        FrameUpdated = null;
+        Renderer?.Dispose();
+        Renderer = null;
+    }
+
     private sealed class RenderDrawable : IDrawable
     {
         private readonly BGFXView _view;
