@@ -9,6 +9,7 @@ using SixLabors.ImageSharp;
 using SixLabors.ImageSharp.PixelFormats;
 using Vector3D = Assimp.Vector3D;
 using MMDTools;
+using MmdMorphType = MMDTools.MorphType;
 using MiniMikuDance.App;
 
 namespace MiniMikuDance.Import;
@@ -552,8 +553,18 @@ public class ModelImporter : IDisposable
                 }
             }
 
-            var md = new MorphData { Index = mi, Name = name, Type = m.MorphType, Category = (MorphCategory)m.MorphTarget };
-            switch (m.MorphType)
+            var type = m.MorphType switch
+            {
+                MmdMorphType.Vertex => MorphType.Vertex,
+                MmdMorphType.UV => MorphType.UV,
+                MmdMorphType.Group => MorphType.Group,
+                MmdMorphType.Bone => MorphType.Bone,
+                MmdMorphType.Material => MorphType.Material,
+                _ => MorphType.Vertex,
+            };
+
+            var md = new MorphData { Index = mi, Name = name, Type = type, Category = (MorphCategory)m.MorphTarget };
+            switch (type)
             {
                 case MorphType.Vertex:
                     foreach (var elem in m.VertexMorphElements.Span)
