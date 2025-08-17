@@ -158,9 +158,9 @@ public partial class PmxRenderer
         var lightDir = new Vector4(LightDirection, 0f);
         var lightColor = new Vector4(LightColor, 1f);
         var shadeParam = new Vector4(ShadeShift, ShadeToony, RimIntensity, Ambient);
-        if (_lightDirUniform != null) SetUniform(_lightDirUniform!, lightDir);
-        if (_lightColorUniform != null) SetUniform(_lightColorUniform!, lightColor);
-        if (_shadeParamUniform != null) SetUniform(_shadeParamUniform!, shadeParam);
+        if (_lightDirUniform != null) SetUniform(_lightDirUniform.Value, lightDir);
+        if (_lightColorUniform != null) SetUniform(_lightColorUniform.Value, lightColor);
+        if (_shadeParamUniform != null) SetUniform(_shadeParamUniform.Value, shadeParam);
 
         foreach (var rm in _meshes)
         {
@@ -173,12 +173,12 @@ public partial class PmxRenderer
             Bgfx.SetVertexBuffer(0, vertexBuffer);
             Bgfx.SetIndexBuffer(indexBuffer);
             if (rm.Texture != null && rm.TextureUniform != null && rm.HasTexture)
-                Bgfx.SetTexture(0, rm.TextureUniform!, rm.Texture!);
-            if (rm.ColorUniform != null) SetUniform(rm.ColorUniform!, rm.Color);
-            if (rm.SpecularUniform != null) SetUniform(rm.SpecularUniform!, new Vector4(rm.Specular, rm.SpecularPower));
-            if (rm.EdgeUniform != null) SetUniform(rm.EdgeUniform!, new Vector4(rm.EdgeColor.X, rm.EdgeColor.Y, rm.EdgeColor.Z, rm.EdgeSize));
-            if (rm.ToonColorUniform != null) SetUniform(rm.ToonColorUniform!, new Vector4(rm.ToonColor, 1f));
-            if (rm.TextureTintUniform != null) SetUniform(rm.TextureTintUniform!, rm.TextureTint);
+                Bgfx.SetTexture(0, rm.TextureUniform.Value, rm.Texture.Value);
+            if (rm.ColorUniform != null) SetUniform(rm.ColorUniform.Value, rm.Color);
+            if (rm.SpecularUniform != null) SetUniform(rm.SpecularUniform.Value, new Vector4(rm.Specular, rm.SpecularPower));
+            if (rm.EdgeUniform != null) SetUniform(rm.EdgeUniform.Value, new Vector4(rm.EdgeColor.X, rm.EdgeColor.Y, rm.EdgeColor.Z, rm.EdgeSize));
+            if (rm.ToonColorUniform != null) SetUniform(rm.ToonColorUniform.Value, new Vector4(rm.ToonColor, 1f));
+            if (rm.TextureTintUniform != null) SetUniform(rm.TextureTintUniform.Value, rm.TextureTint);
             var program = _modelProgram ?? _program;
             if (program != null)
                 Bgfx.Submit(0, program.Value, 0);
