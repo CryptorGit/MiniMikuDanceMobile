@@ -33,6 +33,8 @@ public partial class PmxRenderer
         _viewMatrix = Matrix4.CreateLookAt(_cameraPos, _target, Vector3.UnitY);
         float aspect = _width == 0 || _height == 0 ? 1f : _width / (float)_height;
         _projMatrix = Matrix4.CreatePerspectiveFieldOfView(MathF.PI / 4f, aspect, 0.1f, 100f);
+        ToFloatArray(_viewMatrix, _viewMatrixArray);
+        ToFloatArray(_projMatrix, _projMatrixArray);
         _viewProjDirty = false;
     }
 
@@ -130,7 +132,7 @@ public partial class PmxRenderer
 
         UpdateVertexBuffers();
 
-        Bgfx.SetViewTransform(0, ref _viewMatrix, ref _projMatrix);
+        Bgfx.SetViewTransform(0, _viewMatrixArray, _projMatrixArray);
 
         DrawScene();
         DrawIkBones();
@@ -141,21 +143,38 @@ public partial class PmxRenderer
 
     private void DrawScene()
     {
+        ToFloatArray(LightDirection, _lightDirArray);
+        _lightDirArray[3] = 0f;
+        ToFloatArray(LightColor, _lightColorArray);
+        _lightColorArray[3] = 1f;
+        _shadeParamArray[0] = ShadeShift;
+        _shadeParamArray[1] = ShadeToony;
+        _shadeParamArray[2] = RimIntensity;
+        _shadeParamArray[3] = Ambient;
+        if (_lightDirUniform != null) Bgfx.SetUniform(_lightDirUniform, _lightDirArray);
+        if (_lightColorUniform != null) Bgfx.SetUniform(_lightColorUniform, _lightColorArray);
+        if (_shadeParamUniform != null) Bgfx.SetUniform(_shadeParamUniform, _shadeParamArray);
+
         foreach (var rm in _meshes)
         {
             if (rm.VertexBuffer == null || rm.IndexBuffer == null)
                 continue;
 
-            Bgfx.SetTransform(_modelTransform);
+            Bgfx.SetTransform(_modelTransformArray);
             Bgfx.SetVertexBuffer(0, rm.VertexBuffer);
             Bgfx.SetIndexBuffer(rm.IndexBuffer);
             if (rm.Texture != null && rm.HasTexture)
                 Bgfx.SetTexture(0, rm.TextureUniform, rm.Texture);
-            Bgfx.SetUniform(rm.ColorUniform, rm.Color);
-            Bgfx.SetUniform(rm.SpecularUniform, new Vector4(rm.Specular, rm.SpecularPower));
-            Bgfx.SetUniform(rm.EdgeUniform, new Vector4(rm.EdgeColor.X, rm.EdgeColor.Y, rm.EdgeColor.Z, rm.EdgeSize));
-            Bgfx.SetUniform(rm.ToonColorUniform, new Vector4(rm.ToonColor, 1f));
-            Bgfx.SetUniform(rm.TextureTintUniform, rm.TextureTint);
+            ToFloatArray(rm.Color, _vec4Array);
+            if (rm.ColorUniform != null) Bgfx.SetUniform(rm.ColorUniform, _vec4Array);
+            ToFloatArray(new Vector4(rm.Specular, rm.SpecularPower), _vec4Array);
+            if (rm.SpecularUniform != null) Bgfx.SetUniform(rm.SpecularUniform, _vec4Array);
+            ToFloatArray(new Vector4(rm.EdgeColor.X, rm.EdgeColor.Y, rm.EdgeColor.Z, rm.EdgeSize), _vec4Array);
+            if (rm.EdgeUniform != null) Bgfx.SetUniform(rm.EdgeUniform, _vec4Array);
+            ToFloatArray(new Vector4(rm.ToonColor, 1f), _vec4Array);
+            if (rm.ToonColorUniform != null) Bgfx.SetUniform(rm.ToonColorUniform, _vec4Array);
+            ToFloatArray(rm.TextureTint, _vec4Array);
+            if (rm.TextureTintUniform != null) Bgfx.SetUniform(rm.TextureTintUniform, _vec4Array);
             Bgfx.Submit(0, _modelProgram ?? _program);
         }
     }
@@ -217,7 +236,7 @@ public partial class PmxRenderer
 
         var vb = Bgfx.CreateVertexBuffer(MemoryBlock.FromArray(vertices.ToArray()), PmxVertex.Layout);
         var ib = Bgfx.CreateIndexBuffer(MemoryBlock.FromArray(indices.ToArray()));
-        Bgfx.SetTransform(_modelTransform);
+        Bgfx.SetTransform(_modelTransformArray);
         Bgfx.SetVertexBuffer(0, vb);
         Bgfx.SetIndexBuffer(ib);
         Bgfx.Submit(0, _modelProgram ?? _program);
