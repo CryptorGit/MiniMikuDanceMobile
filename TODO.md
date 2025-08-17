@@ -1,14 +1,7 @@
 # TODO
 
-## レンダラー移行（SharpBGFX）
-- [ ] `MiniMikuDanceMaui.csproj` から OpenTK を削除し、`SharpBgfx` の NuGet 参照を追加
-- [ ] `AppCore/App/IViewer.cs` に `IRenderer` インターフェースを新設
-- [ ] `Rendering/PmxRenderer.*` 内の OpenGL 呼び出しを SharpBGFX API に置換
-- [ ] BGFX 用シェーダを `Resources/Shaders` に配置し、`shaderc` で各プラットフォーム向けにコンパイルするビルドタスクを追加
-- [ ] `MauiProgram.cs` で SharpBGFX 実装を登録し、OpenGL 初期化コードを削除
-- [ ] `BGFXView`（新規）を作成し、`MainPage.xaml` と関連コードを更新
-- [ ] Android/iOS のプラットフォーム初期化で BGFX バックエンドを設定
-- [ ] 残存する OpenGL 型や `using` を整理
+## レンダラー移行（-）
+ここはOpenTKを維持する
 
 ## 物理演算エンジン統合（BepuPhysics）
 - [ ] `AppCore/AppCore.csproj` に `BepuPhysics` の NuGet 参照を追加
