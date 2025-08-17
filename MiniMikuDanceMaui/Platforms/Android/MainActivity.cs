@@ -27,9 +27,9 @@ public class MainActivity : MauiAppCompatActivity
         var windowHandle = Window?.DecorView?.Handle ?? IntPtr.Zero;
         var platformData = new PlatformData
         {
-            DisplayType = display,
-            Context = context,
-            WindowHandle = windowHandle
+            DisplayType = (nint)display.Handle,
+            Context = (nint)context.Handle,
+            WindowHandle = (nint)windowHandle
         };
         Bgfx.SetPlatformData(platformData);
         if (metrics != null)
