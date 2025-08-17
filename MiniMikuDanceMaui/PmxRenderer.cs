@@ -158,6 +158,16 @@ public partial class PmxRenderer : IRenderer, IDisposable
     private int _boneCapacity;
     private Program? _modelProgram;
     private Matrix4 _modelTransform = Matrix4.Identity;
+    private readonly float[] _modelTransformArray = new float[16];
+    private readonly float[] _viewMatrixArray = new float[16];
+    private readonly float[] _projMatrixArray = new float[16];
+    private readonly float[] _vec4Array = new float[4];
+    private readonly float[] _lightDirArray = new float[4];
+    private readonly float[] _lightColorArray = new float[4];
+    private readonly float[] _shadeParamArray = new float[4];
+    private Uniform? _lightDirUniform;
+    private Uniform? _lightColorUniform;
+    private Uniform? _shadeParamUniform;
     public Matrix4 ModelTransform
     {
         get => _modelTransform;
@@ -166,6 +176,7 @@ public partial class PmxRenderer : IRenderer, IDisposable
             if (!_modelTransform.Equals(value))
             {
                 _modelTransform = value;
+                ToFloatArray(_modelTransform, _modelTransformArray);
                 Viewer?.Invalidate();
             }
         }
@@ -196,6 +207,8 @@ public partial class PmxRenderer : IRenderer, IDisposable
     public float ShadeToony { get; set; } = 0.9f;
     public float RimIntensity { get; set; } = 0.5f;
     public float Ambient { get; set; } = 0.3f;
+    public Vector3 LightDirection { get; set; } = new Vector3(0f, -1f, 0f);
+    public Vector3 LightColor { get; set; } = Vector3.One;
     private bool _showBoneOutline;
     public bool ShowBoneOutline
     {
@@ -278,6 +291,12 @@ public partial class PmxRenderer : IRenderer, IDisposable
     {
         _program = LoadProgram("simple");
         _modelProgram = _program;
+        ToFloatArray(_modelTransform, _modelTransformArray);
+        ToFloatArray(_viewMatrix, _viewMatrixArray);
+        ToFloatArray(_projMatrix, _projMatrixArray);
+        _lightDirUniform = Bgfx.CreateUniform("u_lightDir", UniformType.Vec4);
+        _lightColorUniform = Bgfx.CreateUniform("u_lightColor", UniformType.Vec4);
+        _shadeParamUniform = Bgfx.CreateUniform("u_shadeParam", UniformType.Vec4);
     }
 
     private static Shader LoadShader(string name)
@@ -650,6 +669,7 @@ public partial class PmxRenderer : IRenderer, IDisposable
         }
 
         _modelTransform = data.Transform.ToMatrix4();
+        ToFloatArray(_modelTransform, _modelTransformArray);
 
         foreach (var smd in data.SubMeshes)
         {
@@ -949,6 +969,24 @@ public partial class PmxRenderer : IRenderer, IDisposable
         catch { /* ignore fit errors */ }
     }
 
+    private static void ToFloatArray(Matrix4x4 m, float[] dst)
+    {
+        dst[0] = m.M11; dst[1] = m.M21; dst[2] = m.M31; dst[3] = m.M41;
+        dst[4] = m.M12; dst[5] = m.M22; dst[6] = m.M32; dst[7] = m.M42;
+        dst[8] = m.M13; dst[9] = m.M23; dst[10] = m.M33; dst[11] = m.M43;
+        dst[12] = m.M14; dst[13] = m.M24; dst[14] = m.M34; dst[15] = m.M44;
+    }
+
+    private static void ToFloatArray(Vector4 v, float[] dst)
+    {
+        dst[0] = v.X; dst[1] = v.Y; dst[2] = v.Z; dst[3] = v.W;
+    }
+
+    private static void ToFloatArray(Vector3 v, float[] dst)
+    {
+        dst[0] = v.X; dst[1] = v.Y; dst[2] = v.Z;
+    }
+
     // Render メソッドは PmxRenderer.Render.cs へ移動
 
     public void Dispose()
@@ -976,6 +1014,12 @@ public partial class PmxRenderer : IRenderer, IDisposable
         }
         _meshes.Clear();
         _indexToHumanoidName.Clear();
+        _lightDirUniform?.Dispose();
+        _lightDirUniform = null;
+        _lightColorUniform?.Dispose();
+        _lightColorUniform = null;
+        _shadeParamUniform?.Dispose();
+        _shadeParamUniform = null;
         _program?.Dispose();
         _modelProgram?.Dispose();
     }
