@@ -145,8 +145,7 @@ public partial class PmxRenderer
                         }
                     }
                     _vertexTotalOffsets[vid] = total;
-                    lock (_changedVerticesLock)
-                        _changedOriginalVertices.Add(vid);
+                    MarkVertexChanged(vid);
                     var list = _morphVertexMap[vid];
                     if (list != null)
                     {
@@ -186,8 +185,7 @@ public partial class PmxRenderer
                                 total += new Vector2(vec.X, vec.Y) * mv;
                         }
                     }
-                    lock (_changedVerticesLock)
-                        _changedOriginalVertices.Add(vid);
+                    MarkVertexChanged(vid);
                     var list = _morphVertexMap[vid];
                     if (list != null)
                     {
