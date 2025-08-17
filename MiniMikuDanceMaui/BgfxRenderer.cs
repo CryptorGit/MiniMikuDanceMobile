@@ -47,14 +47,17 @@ public class BgfxRenderer : IRenderer
         Bgfx.Touch(0);
         if (_program != null && _vertexBuffer != null && _indexBuffer != null)
         {
-            Bgfx.SetVertexBuffer(0, _vertexBuffer.Value);
-            Bgfx.SetIndexBuffer(_indexBuffer.Value);
+            var vertexBuffer = _vertexBuffer.Value;
+            var indexBuffer = _indexBuffer.Value;
+            var program = _program.Value;
+            Bgfx.SetVertexBuffer(0, vertexBuffer);
+            Bgfx.SetIndexBuffer(indexBuffer);
 #if DEBUG
             Bgfx.DebugTextClear();
             Bgfx.DebugTextWrite(0, 0, DebugColor.White, $"VB:{_vertexCount} IB:{_indexCount}");
 #endif
             Bgfx.SetRenderState(RenderState.Default);
-            Bgfx.Submit(0, _program, 0);
+            Bgfx.Submit(0, program, 0);
         }
         Bgfx.Frame();
     }
