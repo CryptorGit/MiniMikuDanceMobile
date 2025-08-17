@@ -74,9 +74,9 @@ public partial class PmxRenderer : IRenderer, IDisposable
         {
             Layout = new VertexLayout();
             Layout.Begin()
-                .Add(VertexAttribute.Position, 3, VertexAttributeType.Float)
-                .Add(VertexAttribute.Normal, 3, VertexAttributeType.Float)
-                .Add(VertexAttribute.TexCoord0, 2, VertexAttributeType.Float)
+                .Add(Attrib.Position, 3, VertexAttributeType.Float)
+                .Add(Attrib.Normal, 3, VertexAttributeType.Float)
+                .Add(Attrib.TexCoord0, 2, VertexAttributeType.Float)
                 .End();
         }
     }

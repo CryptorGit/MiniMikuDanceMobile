@@ -120,8 +120,8 @@ public class BgfxRenderer : IRenderer
         {
             Layout = new VertexLayout();
             Layout.Begin()
-                .Add(VertexAttribute.Position, 3, VertexAttributeType.Float)
-                .Add(VertexAttribute.Color0, 4, VertexAttributeType.Uint8, normalized: true)
+                .Add(Attrib.Position, 3, VertexAttributeType.Float)
+                .Add(Attrib.Color0, 4, VertexAttributeType.UInt8, normalized: true)
                 .End();
         }
     }
