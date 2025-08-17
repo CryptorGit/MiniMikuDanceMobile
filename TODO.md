@@ -1,7 +1,7 @@
 # TODO
 
 ## 環境整備
-- [ ] BGFX の shaderc ツールを取得しローカルにインストールする（未完了）
+- [x] BGFX の shaderc ツールを取得しローカルにインストールする
 
 ## レンダラー移行（SharpBGFX）
 - [x] `MiniMikuDanceMaui.csproj` の不要な依存を整理し、`SharpBgfx` の NuGet 参照を追加
@@ -17,7 +17,7 @@
     - [x] 移行後、旧レンダラー呼び出しが残っていないことを確認し、不要な `using` を削除
     - [x] シェーダで `u_lightDir`・`u_lightColor`・`u_shadeParam` を参照する処理を追加
 - [x] BGFX 用シェーダを `Resources/Shaders` に配置し、`shaderc` で各プラットフォーム向けにコンパイルするビルドタスクを追加
-- [ ] シェーダーコンパイルに必要な `varying.def.sc` や共通インクルードを整備する
+- [x] シェーダーコンパイルに必要な `varying.def.sc` や共通インクルードを整備する
 - [x] `MauiProgram.cs` で SharpBGFX 実装を登録し、旧レンダラーの初期化コードを削除
 - [x] `BGFXView`（新規）を作成し、`MainPage.xaml` と関連コードを更新
 - [x] `BGFXView.CaptureFrame` の実装

@@ -22,6 +22,10 @@
 # その他自動生成ファイル (必要に応じて)
 *.xaml.g.cs
 
+# BGFX compiled shader outputs
+MiniMikuDanceMaui/Resources/Shaders/*.sc
+!MiniMikuDanceMaui/Resources/Shaders/varying.def.sc
+
 # Data folders
 MiniMikuDance/data/
 
