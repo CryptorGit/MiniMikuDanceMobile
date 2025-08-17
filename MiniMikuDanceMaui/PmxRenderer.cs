@@ -280,7 +280,7 @@ public partial class PmxRenderer : IRenderer, IDisposable
 
     public void Initialize()
     {
-        _program = LoadProgram("simple");
+        _program = LoadProgram("pmx");
         _modelProgram = _program;
         _lightDirUniform = Bgfx.CreateUniform("u_lightDir", UniformType.Vec4);
         _lightColorUniform = Bgfx.CreateUniform("u_lightColor", UniformType.Vec4);
