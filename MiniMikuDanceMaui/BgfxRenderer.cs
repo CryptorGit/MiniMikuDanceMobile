@@ -20,7 +20,7 @@ public class BgfxRenderer : IRenderer
     public void Initialize()
     {
         var size = App.Initializer.Viewer?.Size ?? new Vector2(1f, 1f);
-        Bgfx.Reset((uint)size.X, (uint)size.Y, ResetFlags.Vsync);
+        Bgfx.Reset((int)size.X, (int)size.Y, ResetFlags.Vsync);
         Bgfx.SetViewClear(0, ClearTargets.Color | ClearTargets.Depth, 0x000000ff);
 
         Span<PosColorVertex> vertices = stackalloc PosColorVertex[]
@@ -39,7 +39,7 @@ public class BgfxRenderer : IRenderer
 
         _program = LoadProgram("simple");
 
-        _frameBuffer = FrameBuffer.Create((uint)size.X, (uint)size.Y, TextureFormat.BGRA8);
+        _frameBuffer = FrameBuffer.Create((int)size.X, (int)size.Y, TextureFormat.BGRA8);
     }
 
     public void Render()
@@ -62,7 +62,7 @@ public class BgfxRenderer : IRenderer
     public void Resize(int width, int height)
     {
         var size = App.Initializer.Viewer?.Size ?? new Vector2(width, height);
-        Bgfx.Reset((uint)size.X, (uint)size.Y, ResetFlags.Vsync);
+        Bgfx.Reset((int)size.X, (int)size.Y, ResetFlags.Vsync);
     }
 
     public void Dispose()

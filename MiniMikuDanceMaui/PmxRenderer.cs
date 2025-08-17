@@ -317,7 +317,7 @@ public partial class PmxRenderer : IRenderer, IDisposable
     {
         _width = width;
         _height = height;
-        Bgfx.Reset((uint)width, (uint)height, ResetFlags.Vsync);
+        Bgfx.Reset(width, height, ResetFlags.Vsync);
         _viewProjDirty = true;
     }
 
