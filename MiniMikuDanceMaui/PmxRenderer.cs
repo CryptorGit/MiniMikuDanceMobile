@@ -1,19 +1,14 @@
-using System;
-using System.Buffers;
-using System.Numerics;
 using System.Runtime.InteropServices;
-using System.Collections.Generic;
-using System.IO;
 using MiniMikuDance.Util;
 using MiniMikuDance.Import;
 using MiniMikuDance.App;
 using MiniMikuDance.IK;
-using MMDTools;
 using SharpBgfx;
 using Matrix4 = System.Numerics.Matrix4x4;
 using Vector2 = System.Numerics.Vector2;
 using Vector3 = System.Numerics.Vector3;
 using Vector4 = System.Numerics.Vector4;
+using Quaternion = System.Numerics.Quaternion;
 
 namespace MiniMikuDanceMaui;
 
@@ -25,6 +20,9 @@ public partial class PmxRenderer : IRenderer, IDisposable
         public VertexBuffer? VertexBuffer;
         public IndexBuffer? IndexBuffer;
         public int IndexCount;
+        public ushort[] Indices16 = Array.Empty<ushort>();
+        public uint[] Indices32 = Array.Empty<uint>();
+        public bool IndicesDirty;
         public Vector4 Color = Vector4.One;
         public Vector4 BaseColor = Vector4.One;
         public Vector3 Specular = Vector3.Zero;
@@ -81,7 +79,7 @@ public partial class PmxRenderer : IRenderer, IDisposable
                 .End();
         }
     }
-    private readonly System.Collections.Generic.List<RenderMesh> _meshes = new();
+    private readonly List<RenderMesh> _meshes = new();
     private readonly Dictionary<string, MorphData> _morphs = new(StringComparer.OrdinalIgnoreCase);
     private readonly Dictionary<MorphCategory, List<MorphData>> _morphsByCategory = new();
     private readonly Dictionary<string, float> _morphValues = new(StringComparer.OrdinalIgnoreCase);
@@ -142,8 +140,8 @@ public partial class PmxRenderer : IRenderer, IDisposable
     private List<(string MorphName, Vector3 Offset)>?[] _vertexMorphOffsets = Array.Empty<List<(string MorphName, Vector3 Offset)>?>();
     private List<(string MorphName, System.Numerics.Vector4 Offset)>?[] _uvMorphOffsets = Array.Empty<List<(string MorphName, System.Numerics.Vector4 Offset)>?>();
     private string[] _morphIndexToName = Array.Empty<string>();
-    private System.Numerics.Vector3[] _boneMorphTranslations = Array.Empty<System.Numerics.Vector3>();
-    private System.Numerics.Quaternion[] _boneMorphRotations = Array.Empty<System.Numerics.Quaternion>();
+    private Vector3[] _boneMorphTranslations = Array.Empty<Vector3>();
+    private Quaternion[] _boneMorphRotations = Array.Empty<Quaternion>();
     public IViewer? Viewer { get; set; }
     private float _orbitX;
     // 初期カメラ位置: 水平回転はπ（モデル正面を向く）
@@ -584,18 +582,18 @@ public partial class PmxRenderer : IRenderer, IDisposable
         return worldMats;
     }
 
-    private static System.Numerics.Quaternion ProjectRotation(System.Numerics.Quaternion q, System.Numerics.Vector3 axis)
+    private static Quaternion ProjectRotation(Quaternion q, Vector3 axis)
     {
-        axis = System.Numerics.Vector3.Normalize(axis);
-        if (axis == System.Numerics.Vector3.Zero)
-            return System.Numerics.Quaternion.Identity;
-        q = System.Numerics.Quaternion.Normalize(q);
+        axis = Vector3.Normalize(axis);
+        if (axis == Vector3.Zero)
+            return Quaternion.Identity;
+        q = Quaternion.Normalize(q);
         var w = Math.Clamp(q.W, -1f, 1f);
         float angle = 2f * MathF.Acos(w);
         float s = MathF.Sqrt(MathF.Max(0f, 1f - w * w));
-        System.Numerics.Vector3 qAxis = s < 1e-6f ? axis : new System.Numerics.Vector3(q.X / s, q.Y / s, q.Z / s);
-        float proj = System.Numerics.Vector3.Dot(qAxis, axis);
-        return System.Numerics.Quaternion.CreateFromAxisAngle(axis, angle * proj);
+        Vector3 qAxis = s < 1e-6f ? axis : new Vector3(q.X / s, q.Y / s, q.Z / s);
+        float proj = Vector3.Dot(qAxis, axis);
+        return Quaternion.CreateFromAxisAngle(axis, angle * proj);
     }
 
     public void SetBoneTranslation(int index, Vector3 worldPos)
@@ -734,6 +732,8 @@ public partial class PmxRenderer : IRenderer, IDisposable
                     idx[k++] = (uint)f.Indices[1];
                     idx[k++] = (uint)f.Indices[2];
                 }
+                rm.Indices32 = idx;
+                rm.Indices16 = Array.Empty<ushort>();
                 rm.IndexBuffer = Bgfx.CreateIndexBuffer(MemoryBlock.FromArray(idx), BufferFlags.Dynamic | BufferFlags.Index32);
             }
             else
@@ -746,8 +746,11 @@ public partial class PmxRenderer : IRenderer, IDisposable
                     idx[k++] = (ushort)f.Indices[1];
                     idx[k++] = (ushort)f.Indices[2];
                 }
+                rm.Indices16 = idx;
+                rm.Indices32 = Array.Empty<uint>();
                 rm.IndexBuffer = Bgfx.CreateIndexBuffer(MemoryBlock.FromArray(idx), BufferFlags.Dynamic);
             }
+            rm.IndicesDirty = false;
 
             if (smd.TextureBytes != null && smd.TextureWidth > 0 && smd.TextureHeight > 0)
             {
