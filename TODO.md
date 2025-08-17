@@ -2,6 +2,7 @@
 
 ## 環境整備
 - [ ] BGFX の shaderc ツールを取得しローカルにインストールする（未完了）
+- [ ] dotnet build を実行し、マークアップ拡張に関する警告が解消されたか確認（MSBuild の Logger 例外により未実施）
 
 ## レンダラー移行（SharpBGFX）
 - [x] `MiniMikuDanceMaui.csproj` の不要な依存を整理し、`SharpBgfx` の NuGet 参照を追加
