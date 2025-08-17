@@ -2,6 +2,7 @@
 
 ## 環境整備
 - [ ] BGFX の shaderc ツールを取得しローカルにインストールする（未完了）
+- [ ] Android SDK をインストールし、ビルド警告が解消されるか確認する
 
 ## レンダラー移行（SharpBGFX）
 - [x] `MiniMikuDanceMaui.csproj` の不要な依存を整理し、`SharpBgfx` の NuGet 参照を追加
