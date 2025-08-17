@@ -1,9 +1,18 @@
 # MiniMikuDance
 
-MiniMikuDance は、モバイル向けアプリです。Unity を使用せずに実装されています。
+MiniMikuDance は .NET MAUI、SkiaSharp、OpenTK、Assimp、ImageSharp などの技術を組み合わせ、モバイル上で PMX モデルの閲覧・ポーズ編集・録画が行えるアプリです。
+
+Unity に依存しない軽量な MMD ビューアを目指しており、ネイティブライブラリを活用することでアプリサイズと起動速度の最適化を図っています。
+
+Android と iOS のクロスプラットフォーム対応は .NET MAUI によって実現しており、エントリポイント `MiniMikuDanceMaui/MauiProgram.cs` とプロジェクト設定 `MiniMikuDanceMaui/MiniMikuDanceMaui.csproj` にその構成が記述されています。
 
 ## 採用スタック
 
+- UI: [.NET MAUI](https://learn.microsoft.com/dotnet/maui/what-is-maui) - Android/iOS 対応のクロスプラットフォーム UI フレームワーク
+- 2D 描画: [SkiaSharp](https://github.com/mono/SkiaSharp) - GPU 加速された 2D 描画ライブラリ
+- OpenGL バインディング: [OpenTK](https://opentk.net/) - OpenGL API を .NET から利用するためのバインディング
+- モデル読み込み: [Assimp](https://github.com/assimp/assimp) - 多数の 3D フォーマットに対応したアセットインポータ
+- 画像処理: [ImageSharp](https://github.com/SixLabors/ImageSharp) - マネージドな高性能画像処理ライブラリ
 - 描画: [bgfx](https://github.com/bkaradzic/bgfx) - 軽量かつクロスプラットフォームな描画ライブラリ
 - 物理: [Bullet](https://github.com/bulletphysics/bullet3) - 軽量でクロスプラットフォームな物理エンジン
 - PMX/VMD: [PMXParser (C#)](https://github.com/ikorin24/PMXParser) ([NuGet](https://www.nuget.org/packages/PMXParser)) - MMD 運用実績のあるフォーマット解析ライブラリ
