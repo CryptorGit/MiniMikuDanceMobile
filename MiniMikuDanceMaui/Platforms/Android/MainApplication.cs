@@ -10,6 +10,7 @@ namespace MiniMikuDanceMaui;
 public class MainApplication : MauiApplication
 {
     public static readonly RendererBackend Backend = RendererBackend.Vulkan;
+    public static PlatformData BgfxPlatformData { get; set; }
 
     public MainApplication(System.IntPtr handle, JniHandleOwnership ownership)
         : base(handle, ownership)

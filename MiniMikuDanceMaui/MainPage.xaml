@@ -3,9 +3,7 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
              xmlns:mmd="clr-namespace:MiniMikuDanceMaui"
              xmlns:mi="http://www.aathifmahir.com/dotnet/2022/maui/icons"
-             xmlns:mix="clr-namespace:MiniMikuDanceMaui"
              x:Class="MiniMikuDanceMaui.MainPage"
-             x:DataType="mmd:MainPage"
              BackgroundColor="Transparent">
 
     <ContentPage.MenuBarItems>
@@ -43,7 +41,7 @@
                         </Trigger>
                     </Switch.Triggers>
                 </Switch>
-                <mi:MauiIcon Icon="{mix:Material Icon=PhotoCamera}"
+                <mi:MauiIcon Icon="{mi:Material Icon=PhotoCamera}"
                        IconColor="Gray"
                        x:Name="CameraIcon"
                        HorizontalOptions="End"
@@ -56,7 +54,7 @@
                         </DataTrigger>
                     </mi:MauiIcon.Triggers>
                 </mi:MauiIcon>
-                <mi:MauiIcon Icon="{mix:Material Icon=AccessibilityNew}"
+                <mi:MauiIcon Icon="{mi:Material Icon=AccessibilityNew}"
                        IconColor="Green"
                        x:Name="PoseIcon"
                        HorizontalOptions="End"

@@ -21,32 +21,26 @@ public class MainActivity : MauiAppCompatActivity
     {
         base.OnCreate(savedInstanceState);
 
-        var metrics = Resources?.DisplayMetrics;
         var display = EGL14.EglGetDisplay(EGL14.EglDefaultDisplay);
         var context = EGL14.EglGetCurrentContext();
         var windowHandle = Window?.DecorView?.Handle ?? IntPtr.Zero;
-        var platformData = new PlatformData
+
+        MainApplication.BgfxPlatformData = new PlatformData
         {
             DisplayType = (nint)display.Handle,
             Context = (nint)context.Handle,
             WindowHandle = (nint)windowHandle
         };
-        Bgfx.SetPlatformData(platformData);
-        if (metrics != null)
-        {
-            Bgfx.Init(new InitSettings { Backend = MainApplication.Backend });
-            Bgfx.Reset(metrics.WidthPixels, metrics.HeightPixels, ResetFlags.Vsync);
-        }
     }
 
     public override void OnConfigurationChanged(Configuration newConfig)
     {
         base.OnConfigurationChanged(newConfig);
         var metrics = Resources?.DisplayMetrics;
-        if (metrics != null)
-        {
-            Bgfx.Reset(metrics.WidthPixels, metrics.HeightPixels, ResetFlags.Vsync);
-        }
+        //if (metrics != null)
+        //{
+        //    Bgfx.Reset(metrics.WidthPixels, metrics.HeightPixels, ResetFlags.Vsync);
+        //}
     }
 
     protected override void OnPause()
@@ -59,15 +53,15 @@ public class MainActivity : MauiAppCompatActivity
     {
         base.OnResume();
         var metrics = Resources?.DisplayMetrics;
-        if (metrics != null)
-        {
-            Bgfx.Reset(metrics.WidthPixels, metrics.HeightPixels, ResetFlags.Vsync);
-        }
+        //if (metrics != null)
+        //{
+        //    Bgfx.Reset(metrics.WidthPixels, metrics.HeightPixels, ResetFlags.Vsync);
+        //}
     }
 
     protected override void OnDestroy()
     {
-        Bgfx.Shutdown();
+        //Bgfx.Shutdown();
         base.OnDestroy();
     }
 }

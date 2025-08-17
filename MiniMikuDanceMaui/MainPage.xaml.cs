@@ -854,6 +854,37 @@ public partial class MainPage : ContentPage
         }
     }
 
+#region ABI_CHECK
+    [System.Runtime.InteropServices.DllImport("bgfx")] static extern int bgfx_probe_api_version();
+    [System.Runtime.InteropServices.DllImport("bgfx")] static extern int bgfx_probe_sizeof_init();
+    //[System.Runtime.InteropServices.DllImport("bgfx")] static extern int bgfx_probe_sizeof_resolution();
+
+    void CheckAbi()
+    {
+        try
+        {
+            var verNative = bgfx_probe_api_version();
+            var szInitNative = bgfx_probe_sizeof_init();
+            //var szResNative  = bgfx_probe_sizeof_resolution(); // 正しい型がわかるまで一時的にコメントアウト
+
+            var szInitCs = System.Runtime.InteropServices.Marshal.SizeOf(typeof(SharpBgfx.InitSettings));
+            //var szResCs  = System.Runtime.InteropServices.Marshal.SizeOf(typeof(SharpBgfx.Resolution));
+
+            System.Diagnostics.Debug.WriteLine($"[ABI CHECK] BGFX_API_VERSION: Native={verNative}");
+            System.Diagnostics.Debug.WriteLine($"[ABI CHECK] sizeof(bgfx_init_t): Native={szInitNative}, Managed={szInitCs}");
+            //System.Diagnostics.Debug.WriteLine($"[ABI CHECK] sizeof(bgfx_resolution_t): Native={szResNative}, Managed={szResCs}");
+        }
+        catch (System.DllNotFoundException)
+        {
+            System.Diagnostics.Debug.WriteLine("[ABI CHECK] Probe functions not found. Did you rebuild and deploy the native library?");
+        }
+        catch (System.Exception ex)
+        {
+            System.Diagnostics.Debug.WriteLine($"[ABI CHECK] Error: {ex.Message}");
+        }
+    }
+#endregion
+
     private void RemoveBottomFeature(string name)
     {
         if (_bottomViews.Remove(name))

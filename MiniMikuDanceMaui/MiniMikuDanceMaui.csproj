@@ -18,6 +18,7 @@
                 <Nullable>enable</Nullable>
                 <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
                 <MauiEnableXamlCBindingWithSourceCompilation>true</MauiEnableXamlCBindingWithSourceCompilation>
+                <RuntimeIdentifier>android-arm64</RuntimeIdentifier>
         </PropertyGroup>
 
   <ItemGroup>
@@ -33,21 +34,20 @@
         <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
       </PackageReference>
     </ItemGroup>
+
+  <ItemGroup>
+    <AndroidNativeLibrary Include="Platforms\Android\lib\arm64-v8a\libbgfx.so" />
+    <AndroidNativeLibrary Include="Platforms\Android\lib\arm64-v8a\libc++_shared.so" />
+  </ItemGroup>
   <PropertyGroup>
-    <ShadercPath>$(BGFX_SHADERC)</ShadercPath>
-    <ShadercPath Condition="'$(ShadercPath)' == ''">shaderc</ShadercPath>
-    <ShadercIncludePath>$(BGFX_SHADER_INCLUDE)</ShadercIncludePath>
-    <ShadercIncludePath Condition="'$(ShadercIncludePath)' == ''">.</ShadercIncludePath>
+    <ShadercPath>C:\Users\crypt\source\repos\CryptorGit\MiniMikuDance\Tools\bgfx\win64\shaderc.exe</ShadercPath>
+    <ShadercIncludePath>..\ThirdParty\bgfx\src</ShadercIncludePath>
   </PropertyGroup>
   <Target Name="CheckShaderc">
-    <Exec Command="sh -c 'command -v &quot;$(ShadercPath)&quot;'" IgnoreExitCode="true" Condition="'$(OS)' != 'Windows_NT'">
-      <Output TaskParameter="ExitCode" PropertyName="ShadercFound" />
-      <Output TaskParameter="ConsoleOutput" PropertyName="ShadercResolvedPath" />
-    </Exec>
-    <Exec Command="where $(ShadercPath)" IgnoreExitCode="true" Condition="'$(OS)' == 'Windows_NT'">
-      <Output TaskParameter="ExitCode" PropertyName="ShadercFound" />
-      <Output TaskParameter="ConsoleOutput" PropertyName="ShadercResolvedPath" />
-    </Exec>
+    <PropertyGroup>
+      <ShadercFound Condition="Exists('$(ShadercPath)')">0</ShadercFound>
+      <ShadercFound Condition="!Exists('$(ShadercPath)')">1</ShadercFound>
+    </PropertyGroup>
   </Target>
   <Target Name="CompileShaders" BeforeTargets="BeforeBuild" DependsOnTargets="CheckShaderc">
     <Message Importance="high" Text="Compiling BGFX shaders with $(ShadercPath)" Condition="'$(ShadercFound)' == '0'" />
@@ -64,7 +64,7 @@
     <Exec Command="&quot;$(ShadercPath)&quot; -f Resources/Shaders/pmx.fs -i $(ShadercIncludePath) --varyingdef Resources/Shaders/varying.def.sc -o Resources/Shaders/pmx.fs.gles3.sc --platform android --profile 300_es --type fragment" Condition="'$(ShadercFound)' == '0'" />
     <Exec Command="&quot;$(ShadercPath)&quot; -f Resources/Shaders/pmx.fs -i $(ShadercIncludePath) --varyingdef Resources/Shaders/varying.def.sc -o Resources/Shaders/pmx.fs.metal.sc --platform osx --profile metal --type fragment" Condition="'$(ShadercFound)' == '0'" />
     <Warning Text="shaderc not found: $(ShadercPath); skipping shader compilation." Condition="'$(ShadercFound)' != '0'" />
-    <ItemGroup>
+        <ItemGroup>
       <EmbeddedResource Include="Resources/Shaders/simple.*.sc" />
       <EmbeddedResource Include="Resources/Shaders/pmx.*.sc" />
     </ItemGroup>
@@ -81,4 +81,6 @@
         <Link>Configs\UIConfig.json</Link>
       </MauiAsset>
     </ItemGroup>
+
+  
   </Project>

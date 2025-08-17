@@ -73,18 +73,50 @@ public class BGFXView : GraphicsView, IViewer
         return data;
     }
 
+    private bool isBgfxInitialized = false;
+
     protected override void OnSizeAllocated(double width, double height)
     {
         base.OnSizeAllocated(width, height);
+
+        if (!isBgfxInitialized && width > 0 && height > 0)
+        {
+            var initSettings = new InitSettings();
+#if ANDROID
+            initSettings.PlatformData = MainApplication.BgfxPlatformData;
+#endif
+            if (Bgfx.Init(initSettings))
+            {
+                isBgfxInitialized = true;
+                System.Diagnostics.Debug.WriteLine("BGFX Initialized successfully!");
+
+                if (Renderer != null)
+                {
+                    Renderer.Initialize();
+                }
+            }
+            else
+            {
+                System.Diagnostics.Debug.WriteLine("BGFX Init failed!");
+            }
+        }
+
         _size = new Vector2((float)width, (float)height);
-        Renderer?.Resize((int)width, (int)height);
+        if (isBgfxInitialized)
+        {
+            Renderer?.Resize((int)width, (int)height);
+        }
     }
 
     private static void OnRendererChanged(BindableObject bindable, object? oldValue, object? newValue)
     {
+        var view = (BGFXView)bindable;
         if (newValue is IRenderer renderer)
         {
-            renderer.Initialize();
+            if (view.isBgfxInitialized)
+            {
+                renderer.Initialize();
+            }
         }
     }
 

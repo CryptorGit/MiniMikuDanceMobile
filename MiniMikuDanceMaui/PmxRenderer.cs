@@ -307,8 +307,8 @@ public partial class PmxRenderer : IRenderer, IDisposable
 #else
         var suffix = "spirv";
 #endif
-        var vs = LoadShader($"Shaders/{baseName}.vs.{suffix}.sc");
-        var fs = LoadShader($"Shaders/{baseName}.fs.{suffix}.sc");
+        var vs = LoadShader($"MiniMikuDanceMaui.Resources.Shaders.{baseName}.vs.{suffix}.sc");
+        var fs = LoadShader($"MiniMikuDanceMaui.Resources.Shaders.{baseName}.fs.{suffix}.sc");
         return new Program(vs, fs, true);
     }
 

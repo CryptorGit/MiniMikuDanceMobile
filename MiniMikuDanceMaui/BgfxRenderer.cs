@@ -9,6 +9,7 @@ namespace MiniMikuDanceMaui;
 
 public class BgfxRenderer : IRenderer
 {
+
     private FrameBuffer? _frameBuffer;
     private Program? _program;
     private VertexBuffer? _vertexBuffer;

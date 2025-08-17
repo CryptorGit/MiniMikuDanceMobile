@@ -39,7 +39,11 @@ public partial class MorphView : ContentView
         }
 
         MorphList.Children.Clear();
-        var textColor = (Color)(Application.Current?.Resources?.TryGetValue("TextColor", out var color) == true ? color : Colors.Black);
+        var textColor = Colors.Black;
+        if (Application.Current?.Resources?.TryGetValue("TextColor", out var colorValue) == true && colorValue is Color color)
+        {
+            textColor = color;
+        }
         var usedNames = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
         foreach (var group in morphs.GroupBy(m => m.Category).OrderBy(g => g.Key))
         {
@@ -81,7 +85,7 @@ public partial class MorphView : ContentView
 
     private void DebounceMorph(string displayName, string name, double value)
     {
-        DebounceState state;
+        DebounceState? state;
         lock (_timerLock)
         {
             if (!_debounceStates.TryGetValue(displayName, out state))
@@ -98,22 +102,19 @@ public partial class MorphView : ContentView
                 state = new DebounceState { Timer = timer, Name = name };
                 timer.Tick += (s, _) =>
                 {
-                    double latest;
                     lock (_timerLock)
                     {
-                        if (!_debounceStates.TryGetValue(key, out var st))
+                        if (_debounceStates.TryGetValue(key, out var st))
                         {
-                            return;
+                            try
+                            {
+                                MorphValueChanged?.Invoke(st!.Name, st.Value);
+                            }
+                            catch (Exception ex)
+                            {
+                                Console.Error.WriteLine(ex);
+                            }
                         }
-                        latest = st.Value;
-                    }
-                    try
-                    {
-                        MorphValueChanged?.Invoke(state.Name, latest);
-                    }
-                    catch (Exception ex)
-                    {
-                        Console.Error.WriteLine(ex);
                     }
                 };
                 _debounceStates[displayName] = state;
