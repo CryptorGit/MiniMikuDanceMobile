@@ -1,12 +1,14 @@
 # TODO
 
-## レンダラー移行（-）
-ここはOpenTKを維持する
+## レンダラー移行（SharpBgfx）
+- [ ] `AppCore/AppCore.csproj` に `SharpBgfx` の NuGet 参照を追加
+- [ ] `Rendering/BgfxRenderer.cs` を作成し、OpenTK 依存部分を置き換える
+- [ ] `PmxRenderer` を SharpBgfx 対応へリファクタリング
 
-## 物理演算エンジン統合（BepuPhysics）
-- [ ] `AppCore/AppCore.csproj` に `BepuPhysics` の NuGet 参照を追加
-- [ ] `AppCore/Data/PhysicsWorld.cs` を作成し、Simulation 初期化・更新・破棄を実装
-- [ ] `Import/ModelImporter.cs` で `RigidBodyData` と `JointData` から Bepu のボディ・拘束を生成
+## 物理演算エンジン統合（BulletSharpPInvoke）
+- [ ] `AppCore/AppCore.csproj` に `BulletSharpPInvoke` の NuGet 参照を追加
+- [ ] `AppCore/Data/PhysicsWorld.cs` を作成し、Bullet ワールドの初期化・更新・破棄を実装
+- [ ] `Import/ModelImporter.cs` で `RigidBodyData` と `JointData` から Bullet の剛体・拘束を生成
 - [ ] `Rendering/PmxRenderer.cs` に物理更新ループを追加し、ボーン姿勢へ反映
 - [ ] `AppSettings` と `SettingView` に物理計算の有効/無効・タイムステップ設定を追加
 - [ ] 形状可視化モード（ワイヤーフレーム）を `PhysicsWorld` に実装
