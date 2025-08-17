@@ -282,9 +282,9 @@ public partial class PmxRenderer : IRenderer, IDisposable
     {
         _program = LoadProgram("pmx");
         _modelProgram = _program;
-        _lightDirUniform = Bgfx.CreateUniform("u_lightDir", UniformType.Vec4);
-        _lightColorUniform = Bgfx.CreateUniform("u_lightColor", UniformType.Vec4);
-        _shadeParamUniform = Bgfx.CreateUniform("u_shadeParam", UniformType.Vec4);
+        _lightDirUniform = Uniform.Create("u_lightDir", UniformType.Vec4);
+        _lightColorUniform = Uniform.Create("u_lightColor", UniformType.Vec4);
+        _shadeParamUniform = Uniform.Create("u_shadeParam", UniformType.Vec4);
     }
 
     private static Shader LoadShader(string name)
@@ -293,7 +293,7 @@ public partial class PmxRenderer : IRenderer, IDisposable
         using var stream = assembly.GetManifestResourceStream(name) ?? throw new InvalidOperationException($"Shader resource '{name}' not found.");
         using var ms = new MemoryStream();
         stream.CopyTo(ms);
-        return Bgfx.CreateShader(MemoryBlock.FromArray(ms.ToArray()));
+        return Shader.Create(MemoryBlock.FromArray(ms.ToArray()));
     }
 
     private static Program LoadProgram(string baseName)
@@ -304,11 +304,13 @@ public partial class PmxRenderer : IRenderer, IDisposable
             RendererType.Metal => "metal",
             RendererType.Direct3D11 => "dx11",
             RendererType.Vulkan => "spirv",
+            RendererType.OpenGLES => "gles3",
+            RendererType.OpenGL => "glsl",
             _ => "spirv"
         };
         var vs = LoadShader($"Shaders/{baseName}.vs.{suffix}.sc");
         var fs = LoadShader($"Shaders/{baseName}.fs.{suffix}.sc");
-        return Bgfx.CreateProgram(vs, fs, true);
+        return Program.Create(vs, fs, true);
     }
 
     public void Resize(int width, int height)
@@ -707,7 +709,7 @@ public partial class PmxRenderer : IRenderer, IDisposable
                     V = rm.TexCoords.Length > i ? rm.TexCoords[i].Y : 0f
                 };
             }
-            rm.VertexBuffer = Bgfx.CreateVertexBuffer(MemoryBlock.FromArray(verts), PmxVertex.Layout, BufferFlags.Dynamic);
+            rm.VertexBuffer = new VertexBuffer(MemoryBlock.FromArray(verts), PmxVertex.Layout, BufferFlags.Dynamic);
 
             int indexCount = mesh.FaceCount * 3;
             rm.IndexCount = indexCount;
@@ -723,7 +725,7 @@ public partial class PmxRenderer : IRenderer, IDisposable
                 }
                 rm.Indices32 = idx;
                 rm.Indices16 = Array.Empty<ushort>();
-                rm.IndexBuffer = Bgfx.CreateIndexBuffer(MemoryBlock.FromArray(idx), BufferFlags.Dynamic | BufferFlags.Index32);
+                rm.IndexBuffer = new IndexBuffer(MemoryBlock.FromArray(idx), BufferFlags.Dynamic | BufferFlags.Index32);
             }
             else
             {
@@ -737,13 +739,13 @@ public partial class PmxRenderer : IRenderer, IDisposable
                 }
                 rm.Indices16 = idx;
                 rm.Indices32 = Array.Empty<uint>();
-                rm.IndexBuffer = Bgfx.CreateIndexBuffer(MemoryBlock.FromArray(idx), BufferFlags.Dynamic);
+                rm.IndexBuffer = new IndexBuffer(MemoryBlock.FromArray(idx), BufferFlags.Dynamic);
             }
             rm.IndicesDirty = false;
 
             if (smd.TextureBytes != null && smd.TextureWidth > 0 && smd.TextureHeight > 0)
             {
-                rm.Texture = Bgfx.CreateTexture2D((ushort)smd.TextureWidth, (ushort)smd.TextureHeight, false, 1,
+                rm.Texture = Texture.Create2D((ushort)smd.TextureWidth, (ushort)smd.TextureHeight, false, 1,
                     TextureFormat.RGBA8, TextureFlags.None,
                     MemoryBlock.FromArray(smd.TextureBytes));
                 rm.HasTexture = true;
@@ -753,12 +755,12 @@ public partial class PmxRenderer : IRenderer, IDisposable
                 rm.HasTexture = false;
             }
 
-            rm.ColorUniform = Bgfx.CreateUniform("u_color", UniformType.Vec4);
-            rm.SpecularUniform = Bgfx.CreateUniform("u_specular", UniformType.Vec4);
-            rm.EdgeUniform = Bgfx.CreateUniform("u_edge", UniformType.Vec4);
-            rm.ToonColorUniform = Bgfx.CreateUniform("u_toonColor", UniformType.Vec4);
-            rm.TextureTintUniform = Bgfx.CreateUniform("u_textureTint", UniformType.Vec4);
-            rm.TextureUniform = Bgfx.CreateUniform("s_texColor", UniformType.Sampler);
+            rm.ColorUniform = Uniform.Create("u_color", UniformType.Vec4);
+            rm.SpecularUniform = Uniform.Create("u_specular", UniformType.Vec4);
+            rm.EdgeUniform = Uniform.Create("u_edge", UniformType.Vec4);
+            rm.ToonColorUniform = Uniform.Create("u_toonColor", UniformType.Vec4);
+            rm.TextureTintUniform = Uniform.Create("u_textureTint", UniformType.Vec4);
+            rm.TextureUniform = Uniform.Create("s_texColor", UniformType.Sampler);
 
             _meshes.Add(rm);
         }

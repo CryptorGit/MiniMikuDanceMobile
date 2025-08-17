@@ -105,7 +105,7 @@ public partial class PmxRenderer
                         V = mesh.TexCoords.Length > idx ? mesh.TexCoords[idx].Y + mesh.UvOffsets[idx].Y : 0f
                     };
                 }
-                Bgfx.UpdateVertexBuffer(mesh.VertexBuffer, start, MemoryBlock.FromArray(verts));
+                mesh.VertexBuffer?.Update(start, MemoryBlock.FromArray(verts));
             }
             indices.Clear();
         }
@@ -116,9 +116,9 @@ public partial class PmxRenderer
                 continue;
 
             if (mesh.Indices32.Length > 0)
-                Bgfx.UpdateIndexBuffer(mesh.IndexBuffer, 0, MemoryBlock.FromArray(mesh.Indices32));
+                mesh.IndexBuffer?.Update(0, MemoryBlock.FromArray(mesh.Indices32));
             else if (mesh.Indices16.Length > 0)
-                Bgfx.UpdateIndexBuffer(mesh.IndexBuffer, 0, MemoryBlock.FromArray(mesh.Indices16));
+                mesh.IndexBuffer?.Update(0, MemoryBlock.FromArray(mesh.Indices16));
 
             mesh.IndicesDirty = false;
         }
@@ -232,13 +232,13 @@ public partial class PmxRenderer
         if (vertices.Count == 0)
             return;
 
-        var vb = Bgfx.CreateVertexBuffer(MemoryBlock.FromArray(vertices.ToArray()), PmxVertex.Layout);
-        var ib = Bgfx.CreateIndexBuffer(MemoryBlock.FromArray(indices.ToArray()));
+        var vb = new VertexBuffer(MemoryBlock.FromArray(vertices.ToArray()), PmxVertex.Layout);
+        var ib = new IndexBuffer(MemoryBlock.FromArray(indices.ToArray()));
         SetTransform(_modelTransform);
         Bgfx.SetVertexBuffer(0, vb);
         Bgfx.SetIndexBuffer(ib);
         Bgfx.Submit(0, _modelProgram ?? _program);
-        Bgfx.DestroyVertexBuffer(vb);
-        Bgfx.DestroyIndexBuffer(ib);
+        vb.Dispose();
+        ib.Dispose();
     }
 }
