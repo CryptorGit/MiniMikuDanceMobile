@@ -7,7 +7,7 @@
 - [ ] `Rendering/PmxRenderer.*` 内の旧レンダラー呼び出しを SharpBGFX API に置換
     - [x] `MiniMikuDanceMaui/PmxRenderer.cs` と `.Render.cs` から不要な `using` と API 呼び出しを削除
     - [x] `Initialize` 内で事前コンパイル済みシェーダーを `Bgfx.CreateShader` と `Bgfx.CreateProgram` で読み込む
-    - [ ] 頂点・インデックス・ユニフォームバッファ生成／更新を `Bgfx.CreateVertexBuffer`、`Bgfx.CreateIndexBuffer`、`Bgfx.UpdateVertexBuffer`、`Bgfx.SetUniform` などへ移行
+    - [x] 頂点・インデックス・ユニフォームバッファ生成／更新を `Bgfx.CreateVertexBuffer`、`Bgfx.CreateIndexBuffer`、`Bgfx.UpdateVertexBuffer`、`Bgfx.SetUniform` などへ移行
     - [x] `RenderMesh` の `Vao`／`Vbo`／`Ebo`／`Texture` フィールドを `VertexBuffer`・`IndexBuffer`・`Texture`・`Uniform` 等 SharpBgfx ハンドル型に変更
     - [ ] 行列・ベクトル型を `System.Numerics` (`Matrix4x4`、`Vector3` など) に統一し、`Bgfx.SetTransform`／`Bgfx.SetUniform` を利用
     - [x] `Render`／`DrawScene`／`DrawIkBones` などの描画処理を `Bgfx.SetViewTransform`・`Bgfx.SetVertexBuffer`・`Bgfx.Submit` ベースで再実装

@@ -1,6 +1,3 @@
-using System;
-using System.Collections.Generic;
-using System.Numerics;
 using SharpBgfx;
 using Matrix4 = System.Numerics.Matrix4x4;
 using Vector3 = System.Numerics.Vector3;
@@ -113,6 +110,19 @@ public partial class PmxRenderer
                 Bgfx.UpdateVertexBuffer(mesh.VertexBuffer, start, MemoryBlock.FromArray(verts));
             }
             indices.Clear();
+        }
+
+        foreach (var mesh in _meshes)
+        {
+            if (!mesh.IndicesDirty || mesh.IndexBuffer == null)
+                continue;
+
+            if (mesh.Indices32.Length > 0)
+                Bgfx.UpdateIndexBuffer(mesh.IndexBuffer, 0, MemoryBlock.FromArray(mesh.Indices32));
+            else if (mesh.Indices16.Length > 0)
+                Bgfx.UpdateIndexBuffer(mesh.IndexBuffer, 0, MemoryBlock.FromArray(mesh.Indices16));
+
+            mesh.IndicesDirty = false;
         }
     }
 
