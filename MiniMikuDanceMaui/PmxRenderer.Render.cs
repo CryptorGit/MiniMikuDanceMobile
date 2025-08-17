@@ -177,7 +177,7 @@ public partial class PmxRenderer
             if (rm.EdgeUniform != null) SetUniform(rm.EdgeUniform!, new Vector4(rm.EdgeColor.X, rm.EdgeColor.Y, rm.EdgeColor.Z, rm.EdgeSize));
             if (rm.ToonColorUniform != null) SetUniform(rm.ToonColorUniform!, new Vector4(rm.ToonColor, 1f));
             if (rm.TextureTintUniform != null) SetUniform(rm.TextureTintUniform!, rm.TextureTint);
-            Bgfx.Submit(0, _modelProgram ?? _program);
+            Bgfx.Submit(0, _modelProgram ?? _program, 0);
         }
     }
 
@@ -241,7 +241,7 @@ public partial class PmxRenderer
         SetTransform(_modelTransform);
         Bgfx.SetVertexBuffer(0, vb);
         Bgfx.SetIndexBuffer(ib);
-        Bgfx.Submit(0, _modelProgram ?? _program);
+        Bgfx.Submit(0, _modelProgram ?? _program, 0);
         vb.Dispose();
         ib.Dispose();
     }

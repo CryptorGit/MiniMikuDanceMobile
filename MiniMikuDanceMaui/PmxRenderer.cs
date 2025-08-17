@@ -76,9 +76,9 @@ public partial class PmxRenderer : IRenderer, IDisposable
         {
             Layout = new VertexLayout();
             Layout.Begin()
-                .Add(Attrib.Position, 3, VertexAttributeType.Float)
-                .Add(Attrib.Normal, 3, VertexAttributeType.Float)
-                .Add(Attrib.TexCoord0, 2, VertexAttributeType.Float)
+                .Add(VertexAttributeUsage.Position, 3, VertexAttributeType.Float)
+                .Add(VertexAttributeUsage.Normal, 3, VertexAttributeType.Float)
+                .Add(VertexAttributeUsage.TexCoord0, 2, VertexAttributeType.Float)
                 .End();
         }
     }
@@ -284,9 +284,9 @@ public partial class PmxRenderer : IRenderer, IDisposable
     {
         _program = LoadProgram("pmx");
         _modelProgram = _program;
-        _lightDirUniform = Uniform.Create("u_lightDir", UniformType.Vector4);
-        _lightColorUniform = Uniform.Create("u_lightColor", UniformType.Vector4);
-        _shadeParamUniform = Uniform.Create("u_shadeParam", UniformType.Vector4);
+        _lightDirUniform = Bgfx.CreateUniform("u_lightDir", UniformType.Vector4);
+        _lightColorUniform = Bgfx.CreateUniform("u_lightColor", UniformType.Vector4);
+        _shadeParamUniform = Bgfx.CreateUniform("u_shadeParam", UniformType.Vector4);
     }
 
     private static Shader LoadShader(string name)
@@ -295,12 +295,12 @@ public partial class PmxRenderer : IRenderer, IDisposable
         using var stream = assembly.GetManifestResourceStream(name) ?? throw new InvalidOperationException($"Shader resource '{name}' not found.");
         using var ms = new MemoryStream();
         stream.CopyTo(ms);
-        return Shader.Create(MemoryBlock.FromArray(ms.ToArray()));
+        return Bgfx.CreateShader(MemoryBlock.FromArray(ms.ToArray()));
     }
 
     private static Program LoadProgram(string baseName)
     {
-        var renderer = Bgfx.GetRendererType();
+        var renderer = Bgfx.GetCaps()?.RendererType;
         var suffix = renderer switch
         {
             RendererType.Metal => "metal",
@@ -312,7 +312,7 @@ public partial class PmxRenderer : IRenderer, IDisposable
         };
         var vs = LoadShader($"Shaders/{baseName}.vs.{suffix}.sc");
         var fs = LoadShader($"Shaders/{baseName}.fs.{suffix}.sc");
-        return Program.Create(vs, fs, true);
+        return Bgfx.CreateProgram(vs, fs, true);
     }
 
     public void Resize(int width, int height)
@@ -747,7 +747,7 @@ public partial class PmxRenderer : IRenderer, IDisposable
 
             if (smd.TextureBytes != null && smd.TextureWidth > 0 && smd.TextureHeight > 0)
             {
-                rm.Texture = Texture.Create2D((ushort)smd.TextureWidth, (ushort)smd.TextureHeight, false, 1,
+                rm.Texture = Bgfx.CreateTexture2D((ushort)smd.TextureWidth, (ushort)smd.TextureHeight, false, 1,
                     TextureFormat.RGBA8, TextureFlags.None,
                     MemoryBlock.FromArray(smd.TextureBytes));
                 rm.HasTexture = true;
@@ -757,12 +757,12 @@ public partial class PmxRenderer : IRenderer, IDisposable
                 rm.HasTexture = false;
             }
 
-            rm.ColorUniform = Uniform.Create("u_color", UniformType.Vector4);
-            rm.SpecularUniform = Uniform.Create("u_specular", UniformType.Vector4);
-            rm.EdgeUniform = Uniform.Create("u_edge", UniformType.Vector4);
-            rm.ToonColorUniform = Uniform.Create("u_toonColor", UniformType.Vector4);
-            rm.TextureTintUniform = Uniform.Create("u_textureTint", UniformType.Vector4);
-            rm.TextureUniform = Uniform.Create("s_texColor", UniformType.Sampler);
+            rm.ColorUniform = Bgfx.CreateUniform("u_color", UniformType.Vector4);
+            rm.SpecularUniform = Bgfx.CreateUniform("u_specular", UniformType.Vector4);
+            rm.EdgeUniform = Bgfx.CreateUniform("u_edge", UniformType.Vector4);
+            rm.ToonColorUniform = Bgfx.CreateUniform("u_toonColor", UniformType.Vector4);
+            rm.TextureTintUniform = Bgfx.CreateUniform("u_textureTint", UniformType.Vector4);
+            rm.TextureUniform = Bgfx.CreateUniform("s_texColor", UniformType.Sampler);
 
             _meshes.Add(rm);
         }
