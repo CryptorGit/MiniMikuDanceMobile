@@ -39,7 +39,7 @@ public class BgfxRenderer : IRenderer
 
         _program = LoadProgram("simple");
 
-        _frameBuffer = FrameBuffer.Create((int)size.X, (int)size.Y, TextureFormat.BGRA8);
+        _frameBuffer = Bgfx.CreateFrameBuffer((int)size.X, (int)size.Y, TextureFormat.BGRA8);
     }
 
     public void Render()
@@ -47,14 +47,14 @@ public class BgfxRenderer : IRenderer
         Bgfx.Touch(0);
         if (_program != null && _vertexBuffer != null && _indexBuffer != null)
         {
-            Bgfx.SetVertexBuffer(0, _vertexBuffer);
-            Bgfx.SetIndexBuffer(_indexBuffer);
+            Bgfx.SetVertexBuffer(0, _vertexBuffer.Value);
+            Bgfx.SetIndexBuffer(_indexBuffer.Value);
 #if DEBUG
             Bgfx.DebugTextClear();
             Bgfx.DebugTextWrite(0, 0, DebugColor.White, $"VB:{_vertexCount} IB:{_indexCount}");
 #endif
             Bgfx.SetRenderState(RenderState.Default);
-            Bgfx.Submit(0, _program);
+            Bgfx.Submit(0, _program, 0);
         }
         Bgfx.Frame();
     }
@@ -79,12 +79,12 @@ public class BgfxRenderer : IRenderer
         using var stream = assembly.GetManifestResourceStream(name) ?? throw new InvalidOperationException($"Shader resource '{name}' not found.");
         using var ms = new MemoryStream();
         stream.CopyTo(ms);
-        return Shader.Create(MemoryBlock.FromArray(ms.ToArray()));
+        return Bgfx.CreateShader(MemoryBlock.FromArray(ms.ToArray()));
     }
 
     private static Program LoadProgram(string baseName)
     {
-        var renderer = Bgfx.GetRendererType();
+        var renderer = Bgfx.GetCaps()?.RendererType;
         var suffix = renderer switch
         {
             RendererType.Metal => "metal",
@@ -96,7 +96,7 @@ public class BgfxRenderer : IRenderer
         };
         var vs = LoadShader($"Shaders/{baseName}.vs.{suffix}.sc");
         var fs = LoadShader($"Shaders/{baseName}.fs.{suffix}.sc");
-        return Program.Create(vs, fs, true);
+        return Bgfx.CreateProgram(vs, fs, true);
     }
 
     private struct PosColorVertex
@@ -120,8 +120,8 @@ public class BgfxRenderer : IRenderer
         {
             Layout = new VertexLayout();
             Layout.Begin()
-                .Add(Attrib.Position, 3, VertexAttributeType.Float)
-                .Add(Attrib.Color0, 4, VertexAttributeType.UInt8, normalized: true)
+                .Add(VertexAttributeUsage.Position, 3, VertexAttributeType.Float)
+                .Add(VertexAttributeUsage.Color0, 4, VertexAttributeType.UInt8, normalized: true)
                 .End();
         }
     }
