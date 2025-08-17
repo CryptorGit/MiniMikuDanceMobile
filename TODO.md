@@ -27,6 +27,7 @@
 - [x] `BgfxRenderer` のシェーダとバッファ初期化を完成
 - [ ] 実機で起動テストを行い、Bgfx レンダラー初期化が成功することを確認
     - [ ] Android SDK のセットアップおよび実機ビルド環境の整備（現状環境に SDK 不足）
+    - [ ] DebugTextClear と DebugTextPrintf の組み合わせでデバッグテキストが表示されるか確認
 
 ## 物理演算エンジン統合（BepuPhysics）
 - [ ] `AppCore/AppCore.csproj` に `BepuPhysics` の NuGet 参照を追加

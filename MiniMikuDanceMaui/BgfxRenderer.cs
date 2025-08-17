@@ -54,7 +54,7 @@ public class BgfxRenderer : IRenderer
             Bgfx.SetIndexBuffer(indexBuffer);
 #if DEBUG
             Bgfx.DebugTextClear();
-            Bgfx.DebugTextWrite(0, 0, DebugColor.White, $"VB:{_vertexCount} IB:{_indexCount}");
+            Bgfx.DebugTextPrintf(0, 0, DebugColor.White, "VB:{0} IB:{1}", _vertexCount, _indexCount);
 #endif
             Bgfx.SetRenderState(RenderState.Default);
             Bgfx.Submit(0, program, 0);
