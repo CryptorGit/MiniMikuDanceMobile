@@ -35,7 +35,7 @@ public class MainActivity : MauiAppCompatActivity
         if (metrics != null)
         {
             Bgfx.Init(new InitSettings { Backend = MainApplication.Backend });
-            Bgfx.Reset((uint)metrics.WidthPixels, (uint)metrics.HeightPixels, ResetFlags.Vsync);
+            Bgfx.Reset(metrics.WidthPixels, metrics.HeightPixels, ResetFlags.Vsync);
         }
     }
 
@@ -45,7 +45,7 @@ public class MainActivity : MauiAppCompatActivity
         var metrics = Resources?.DisplayMetrics;
         if (metrics != null)
         {
-            Bgfx.Reset((uint)metrics.WidthPixels, (uint)metrics.HeightPixels, ResetFlags.Vsync);
+            Bgfx.Reset(metrics.WidthPixels, metrics.HeightPixels, ResetFlags.Vsync);
         }
     }
 
@@ -61,7 +61,7 @@ public class MainActivity : MauiAppCompatActivity
         var metrics = Resources?.DisplayMetrics;
         if (metrics != null)
         {
-            Bgfx.Reset((uint)metrics.WidthPixels, (uint)metrics.HeightPixels, ResetFlags.Vsync);
+            Bgfx.Reset(metrics.WidthPixels, metrics.HeightPixels, ResetFlags.Vsync);
         }
     }
 

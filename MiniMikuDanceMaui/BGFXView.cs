@@ -59,7 +59,7 @@ public class BGFXView : GraphicsView, IViewer
     {
         int width = (int)_size.X;
         int height = (int)_size.Y;
-        using var frameBuffer = FrameBuffer.Create((uint)width, (uint)height, TextureFormat.BGRA8);
+        using var frameBuffer = FrameBuffer.Create(width, height, TextureFormat.BGRA8);
         Bgfx.SetViewFrameBuffer(0, frameBuffer);
         Renderer?.Render();
         var texture = Texture.Get(frameBuffer, 0);
