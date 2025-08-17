@@ -166,7 +166,7 @@ public partial class MainPage : ContentPage
         if (Viewer is BGFXView view)
         {
             view.Renderer = _renderer;
-            App.Initializer.Viewer = view;
+            App.Initializer.SetViewer(view);
         }
 
         _renderTimer = Dispatcher.CreateTimer();
