@@ -32,6 +32,8 @@ public class JointData
     public string Name { get; set; } = string.Empty;
     public int RigidBodyA { get; set; } = -1;
     public int RigidBodyB { get; set; } = -1;
+    public Vector3 Position { get; set; } = Vector3.Zero;
+    public Vector3 Rotation { get; set; } = Vector3.Zero;
     public Vector3 PositionMin { get; set; } = Vector3.Zero;
     public Vector3 PositionMax { get; set; } = Vector3.Zero;
     public Vector3 RotationMin { get; set; } = Vector3.Zero;
