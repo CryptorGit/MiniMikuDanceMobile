@@ -1,1 +1,0 @@
-- [ ] VmdImporter で PMXParser の VMD フィールドをすべてマッピングする
