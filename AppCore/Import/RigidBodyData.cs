@@ -19,6 +19,9 @@ public class RigidBodyData
     public float AngularDamping { get; set; }
     public float Restitution { get; set; }
     public float Friction { get; set; }
+    public Vector3 Position { get; set; } = Vector3.Zero;
+    public Vector3 Rotation { get; set; } = Vector3.Zero;
+    public Vector3 Size { get; set; } = Vector3.Zero;
     public byte Group { get; set; }
     public ushort Mask { get; set; }
     public int Mode { get; set; }
