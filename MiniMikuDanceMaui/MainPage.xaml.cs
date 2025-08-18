@@ -42,7 +42,7 @@ public partial class MainPage : ContentPage
     private readonly Dictionary<string, Border> _bottomTabs = new();
     private string? _currentFeature;
     private string? _selectedModelPath;
-    private static readonly HashSet<string> ModelExtensions = new() { ".pmx", ".pmd" };
+    private static readonly HashSet<string> ModelExtensions = new() { ".pmx" };
     private string? _modelDir;
     private float _modelScale = 1f;
     private readonly AppSettings _settings = AppSettings.Load();
@@ -737,9 +737,9 @@ public partial class MainPage : ContentPage
                 PickerTitle = "Select PMX file",
                 FileTypes = new FilePickerFileType(new Dictionary<DevicePlatform, IEnumerable<string>>
                 {
-                    [DevicePlatform.Android] = new[] { "application/octet-stream", ".pmx", ".pmd" },
-                    [DevicePlatform.WinUI] = new[] { ".pmx", ".pmd" },
-                    [DevicePlatform.iOS] = new[] { ".pmx", ".pmd" }
+                    [DevicePlatform.Android] = new[] { "application/octet-stream", ".pmx" },
+                    [DevicePlatform.WinUI] = new[] { ".pmx" },
+                    [DevicePlatform.iOS] = new[] { ".pmx" }
                 })
             });
 
@@ -752,9 +752,8 @@ public partial class MainPage : ContentPage
                     return;
                 }
 
-
                 PmxImporter.CacheCapacity = _settings.TextureCacheSize;
-                using IModelImporter importer = new PmxImporter();
+                using IModelImporter importer = ext == ".pmd" ? new PmdImporter() : new PmxImporter();
                 ModelData data;
                 if (!string.IsNullOrEmpty(result.FullPath))
                 {
@@ -1035,9 +1034,9 @@ public partial class MainPage : ContentPage
                 PickerTitle = "Select PMX file",
                 FileTypes = new FilePickerFileType(new Dictionary<DevicePlatform, IEnumerable<string>>
                 {
-                    [DevicePlatform.Android] = new[] { "application/octet-stream", ".pmx", ".pmd" },
-                    [DevicePlatform.WinUI] = new[] { ".pmx", ".pmd" },
-                    [DevicePlatform.iOS] = new[] { ".pmx", ".pmd" }
+                    [DevicePlatform.Android] = new[] { "application/octet-stream", ".pmx" },
+                    [DevicePlatform.WinUI] = new[] { ".pmx" },
+                    [DevicePlatform.iOS] = new[] { ".pmx" }
                 })
             });
 
