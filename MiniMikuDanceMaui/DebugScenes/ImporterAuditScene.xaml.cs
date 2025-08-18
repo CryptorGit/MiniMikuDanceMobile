@@ -49,33 +49,44 @@ public partial class ImporterAuditScene : ContentView
             return;
         }
 
-        var sb = new StringBuilder();
-        sb.AppendLine("Bones");
-        foreach (var b in _model.Bones)
-        {
-            sb.AppendLine(b.Name);
-        }
-        sb.AppendLine();
-        sb.AppendLine("Morphs");
-        foreach (var m in _model.Morphs)
-        {
-            sb.AppendLine(m.Name);
-        }
-        sb.AppendLine();
-        sb.AppendLine("RigidBodies");
-        foreach (var r in _model.RigidBodies)
-        {
-            sb.AppendLine(r.Name);
-        }
-        sb.AppendLine();
-        sb.AppendLine("Joints");
-        foreach (var j in _model.Joints)
-        {
-            sb.AppendLine(j.Name);
-        }
-
         var path = Path.Combine(FileSystem.CacheDirectory, "ImporterAudit.csv");
-        File.WriteAllText(path, sb.ToString(), Encoding.UTF8);
-        await (Application.Current?.MainPage?.DisplayAlert("書き出し完了", path, "OK") ?? Task.CompletedTask);
+        try
+        {
+            var sb = new StringBuilder();
+            sb.AppendLine("Bones");
+            foreach (var b in _model.Bones)
+            {
+                sb.AppendLine(b.Name);
+            }
+            sb.AppendLine();
+            sb.AppendLine("Morphs");
+            foreach (var m in _model.Morphs)
+            {
+                sb.AppendLine(m.Name);
+            }
+            sb.AppendLine();
+            sb.AppendLine("RigidBodies");
+            foreach (var r in _model.RigidBodies)
+            {
+                sb.AppendLine(r.Name);
+            }
+            sb.AppendLine();
+            sb.AppendLine("Joints");
+            foreach (var j in _model.Joints)
+            {
+                sb.AppendLine(j.Name);
+            }
+
+            File.WriteAllText(path, sb.ToString(), Encoding.UTF8);
+            await (Application.Current?.MainPage?.DisplayAlert("書き出し完了", path, "OK") ?? Task.CompletedTask);
+        }
+        catch (Exception ex)
+        {
+            if (File.Exists(path))
+            {
+                File.Delete(path);
+            }
+            await (Application.Current?.MainPage?.DisplayAlert("書き込みに失敗しました", ex.Message, "OK") ?? Task.CompletedTask);
+        }
     }
 }
