@@ -704,6 +704,14 @@ public PmxImporter(ILogger<PmxImporter>? logger = null)
         for (int i = 0; i < rigidBodies.Length; i++)
         {
             var rb = rigidBodies[i];
+            var rbType = rb.GetType();
+            var rotProp = rbType.GetProperty("RotationRadian") ?? rbType.GetProperty("Rotation");
+            System.Numerics.Vector3 rotation = System.Numerics.Vector3.Zero;
+            if (rotProp?.GetValue(rb) is { } rot)
+            {
+                dynamic v = rot;
+                rotation = new System.Numerics.Vector3(v.X, v.Y, v.Z);
+            }
             var rbd = new RigidBodyData
             {
                 Name = string.IsNullOrEmpty(rb.NameEnglish) ? rb.Name : rb.NameEnglish,
@@ -715,7 +723,7 @@ public PmxImporter(ILogger<PmxImporter>? logger = null)
                 Restitution = rb.Recoil,
                 Friction = rb.Friction,
                 Position = ScaleVector(rb.Position),
-                Rotation = new System.Numerics.Vector3(rb.Rotation.X, rb.Rotation.Y, rb.Rotation.Z),
+                Rotation = rotation,
                 Size = ScaleVector(rb.Size),
                 Group = rb.Group,
                 Mask = rb.GroupTarget,
