@@ -19,6 +19,12 @@ public struct MorphOffset
     public GroupOffset Group;
     public BoneOffset Bone;
     public UvOffset Uv;
+    public UvOffset Uv1;
+    public UvOffset Uv2;
+    public UvOffset Uv3;
+    public UvOffset Uv4;
+    public FlipOffset Flip;
+    public ImpulseOffset Impulse;
     public MaterialOffset Material;
 }
 
@@ -37,6 +43,20 @@ public struct BoneOffset
 public struct UvOffset
 {
     public System.Numerics.Vector4 Offset { get; set; }
+}
+
+public struct FlipOffset
+{
+    public int MorphIndex { get; set; }
+    public float Rate { get; set; }
+}
+
+public struct ImpulseOffset
+{
+    public int RigidBodyIndex { get; set; }
+    public bool IsLocal { get; set; }
+    public System.Numerics.Vector3 Velocity { get; set; }
+    public System.Numerics.Vector3 Torque { get; set; }
 }
 
 public enum MaterialCalcMode
