@@ -334,12 +334,27 @@ public PmxImporter(ILogger<PmxImporter>? logger = null)
             if (!File.Exists(fallbackPath))
             {
                 _logger.LogWarning("テクスチャ '{Texture}' が見つからず、MissingTexture.png も存在しません。", normalized);
+                SetEmptyTexture(subMeshData);
                 return;
             }
             _logger.LogWarning("テクスチャ '{Texture}' が見つかりません。MissingTexture.png を使用します。", normalized);
             texPath = fallbackPath;
         }
 
+        if (!TryLoadTextureFromPath(subMeshData, texPath))
+        {
+            _logger.LogWarning("テクスチャ '{Texture}' の読み込みに失敗しました。MissingTexture.png を使用します。", normalized);
+            var fallbackPath = ResolveTexturePath("MissingTexture.png", directory, out _);
+            if (!File.Exists(fallbackPath) || !TryLoadTextureFromPath(subMeshData, fallbackPath))
+            {
+                _logger.LogWarning("MissingTexture.png の読み込みに失敗しました。空のテクスチャを使用します。");
+                SetEmptyTexture(subMeshData);
+            }
+        }
+    }
+
+    private static bool TryLoadTextureFromPath(SubMeshData subMeshData, string texPath)
+    {
         CacheItem? item;
         lock (s_cacheLock)
         {
@@ -351,10 +366,11 @@ public PmxImporter(ILogger<PmxImporter>? logger = null)
                 subMeshData.TextureWidth = item.Texture.Width;
                 subMeshData.TextureHeight = item.Texture.Height;
                 subMeshData.TextureBytes = item.Texture.Pixels;
+                return true;
             }
         }
 
-        if (item is null)
+        try
         {
             using var image = Image.Load<Rgba32>(texPath);
             int width = image.Width;
@@ -390,7 +406,23 @@ public PmxImporter(ILogger<PmxImporter>? logger = null)
                 subMeshData.TextureHeight = item.Texture.Height;
                 subMeshData.TextureBytes = item.Texture.Pixels;
             }
+            return true;
         }
+        catch (UnknownImageFormatException)
+        {
+            return false;
+        }
+        catch (IOException)
+        {
+            return false;
+        }
+    }
+
+    private static void SetEmptyTexture(SubMeshData subMeshData)
+    {
+        subMeshData.TextureWidth = 0;
+        subMeshData.TextureHeight = 0;
+        subMeshData.TextureBytes = null;
     }
 
     public ModelData ImportModel(string path)
