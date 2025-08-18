@@ -753,10 +753,9 @@ public partial class MainPage : ContentPage
                 }
 
 
-
-                MiniMikuDance.Import.ModelImporter.CacheCapacity = _settings.TextureCacheSize;
-                using var importer = new MiniMikuDance.Import.ModelImporter();
-                MiniMikuDance.Import.ModelData data;
+                PmxImporter.CacheCapacity = _settings.TextureCacheSize;
+                using IModelImporter importer = new PmxImporter();
+                ModelData data;
                 if (!string.IsNullOrEmpty(result.FullPath))
                 {
                     data = importer.ImportModel(result.FullPath);
@@ -1128,8 +1127,8 @@ public partial class MainPage : ContentPage
         try
         {
             _modelScale = 1f;
-            ModelImporter.CacheCapacity = _settings.TextureCacheSize;
-            using var importer = new ModelImporter { Scale = _modelScale };
+            PmxImporter.CacheCapacity = _settings.TextureCacheSize;
+            using IModelImporter importer = new PmxImporter { Scale = _modelScale };
             var data = await Task.Run(() => importer.ImportModel(_selectedModelPath));
 
             // PMX内のテクスチャ相対パスとサブメッシュインデックスの対応表を作成
