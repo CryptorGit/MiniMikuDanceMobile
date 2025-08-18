@@ -24,4 +24,3 @@
 - [ ] `Recording/RecorderController.cs` から FFmpegKit を呼び出し、PNG 連番を動画へ変換
 - [ ] 録画設定にビットレートやコンテナ形式のオプションを追加
 - [ ] FFmpegKit が利用できない環境では従来の PNG 出力を維持
-
