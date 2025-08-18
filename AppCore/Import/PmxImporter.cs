@@ -184,6 +184,14 @@ public PmxImporter(ILogger<PmxImporter>? logger = null)
         mesh.Normals.Add(new Vector3D(vertex.Normal.X, vertex.Normal.Y, vertex.Normal.Z));
         mesh.TextureCoordinateChannels[0].Add(new Vector3D(vertex.UV.X, vertex.UV.Y, 0));
         smd.TexCoords.Add(new System.Numerics.Vector2(vertex.UV.X, vertex.UV.Y));
+        var auv1 = vertex.AdditionalUV1;
+        smd.AdditionalUV1.Add(new System.Numerics.Vector4(auv1.X, auv1.Y, auv1.Z, auv1.W));
+        var auv2 = vertex.AdditionalUV2;
+        smd.AdditionalUV2.Add(new System.Numerics.Vector4(auv2.X, auv2.Y, auv2.Z, auv2.W));
+        var auv3 = vertex.AdditionalUV3;
+        smd.AdditionalUV3.Add(new System.Numerics.Vector4(auv3.X, auv3.Y, auv3.Z, auv3.W));
+        var auv4 = vertex.AdditionalUV4;
+        smd.AdditionalUV4.Add(new System.Numerics.Vector4(auv4.X, auv4.Y, auv4.Z, auv4.W));
 
         System.Numerics.Vector4 ji = System.Numerics.Vector4.Zero;
         System.Numerics.Vector4 jw = System.Numerics.Vector4.Zero;

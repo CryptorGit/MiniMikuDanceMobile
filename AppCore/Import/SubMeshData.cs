@@ -13,6 +13,10 @@ public class SubMeshData
     public System.Numerics.Vector3 ToonColor { get; set; } = System.Numerics.Vector3.One;
     public System.Numerics.Vector4 TextureTint { get; set; } = System.Numerics.Vector4.One;
     public List<System.Numerics.Vector2> TexCoords { get; set; } = new();
+    public List<System.Numerics.Vector4> AdditionalUV1 { get; set; } = new();
+    public List<System.Numerics.Vector4> AdditionalUV2 { get; set; } = new();
+    public List<System.Numerics.Vector4> AdditionalUV3 { get; set; } = new();
+    public List<System.Numerics.Vector4> AdditionalUV4 { get; set; } = new();
     public byte[]? TextureBytes { get; set; }
     public int TextureWidth { get; set; }
     public int TextureHeight { get; set; }
