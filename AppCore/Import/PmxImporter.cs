@@ -598,6 +598,46 @@ public PmxImporter(ILogger<PmxImporter>? logger = null)
                         });
                     }
                     break;
+                case MorphType.AdditionalUV1:
+                    foreach (var elem in m.UVMorphElements.Span)
+                    {
+                        md.Offsets.Add(new MorphOffset
+                        {
+                            Index = elem.TargetVertex,
+                            Uv1 = new UvOffset { Offset = new System.Numerics.Vector4(elem.UVOffset.X, elem.UVOffset.Y, elem.UVOffset.Z, elem.UVOffset.W) }
+                        });
+                    }
+                    break;
+                case MorphType.AdditionalUV2:
+                    foreach (var elem in m.UVMorphElements.Span)
+                    {
+                        md.Offsets.Add(new MorphOffset
+                        {
+                            Index = elem.TargetVertex,
+                            Uv2 = new UvOffset { Offset = new System.Numerics.Vector4(elem.UVOffset.X, elem.UVOffset.Y, elem.UVOffset.Z, elem.UVOffset.W) }
+                        });
+                    }
+                    break;
+                case MorphType.AdditionalUV3:
+                    foreach (var elem in m.UVMorphElements.Span)
+                    {
+                        md.Offsets.Add(new MorphOffset
+                        {
+                            Index = elem.TargetVertex,
+                            Uv3 = new UvOffset { Offset = new System.Numerics.Vector4(elem.UVOffset.X, elem.UVOffset.Y, elem.UVOffset.Z, elem.UVOffset.W) }
+                        });
+                    }
+                    break;
+                case MorphType.AdditionalUV4:
+                    foreach (var elem in m.UVMorphElements.Span)
+                    {
+                        md.Offsets.Add(new MorphOffset
+                        {
+                            Index = elem.TargetVertex,
+                            Uv4 = new UvOffset { Offset = new System.Numerics.Vector4(elem.UVOffset.X, elem.UVOffset.Y, elem.UVOffset.Z, elem.UVOffset.W) }
+                        });
+                    }
+                    break;
                 case MorphType.Material:
                     foreach (var elem in m.MaterialMorphElements.Span)
                     {
@@ -614,7 +654,33 @@ public PmxImporter(ILogger<PmxImporter>? logger = null)
                                 EdgeColor = new System.Numerics.Vector4(elem.EdgeColor.R, elem.EdgeColor.G, elem.EdgeColor.B, elem.EdgeColor.A),
                                 EdgeSize = elem.EdgeSize,
                                 ToonColor = new System.Numerics.Vector3(elem.ToonTextureCoef.R, elem.ToonTextureCoef.G, elem.ToonTextureCoef.B),
-                                TextureTint = new System.Numerics.Vector4(elem.TextureCoef.R, elem.TextureCoef.G, elem.TextureCoef.B, elem.TextureCoef.A)
+                            TextureTint = new System.Numerics.Vector4(elem.TextureCoef.R, elem.TextureCoef.G, elem.TextureCoef.B, elem.TextureCoef.A)
+                            }
+                        });
+                    }
+                    break;
+                case MorphType.Flip:
+                    foreach (var elem in m.FlipMorphElements.Span)
+                    {
+                        md.Offsets.Add(new MorphOffset
+                        {
+                            Index = elem.TargetMorph,
+                            Flip = new FlipOffset { MorphIndex = elem.TargetMorph, Rate = elem.MorphRatio }
+                        });
+                    }
+                    break;
+                case MorphType.Impulse:
+                    foreach (var elem in m.ImpulseMorphElements.Span)
+                    {
+                        md.Offsets.Add(new MorphOffset
+                        {
+                            Index = elem.TargetRigidBody,
+                            Impulse = new ImpulseOffset
+                            {
+                                RigidBodyIndex = elem.TargetRigidBody,
+                                IsLocal = elem.IsLocal,
+                                Velocity = ScaleVector(elem.Velocity),
+                                Torque = new System.Numerics.Vector3(elem.RotationTorque.X, elem.RotationTorque.Y, elem.RotationTorque.Z)
                             }
                         });
                     }
