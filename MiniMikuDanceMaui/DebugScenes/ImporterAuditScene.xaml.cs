@@ -45,7 +45,7 @@ public partial class ImporterAuditScene : ContentView
     {
         if (_model == null)
         {
-            await (Application.Current?.MainPage?.DisplayAlert("Error", "モデルが読み込まれていません", "OK") ?? Task.CompletedTask);
+            await (Application.Current?.Windows[0]?.Page?.DisplayAlert("Error", "モデルが読み込まれていません", "OK") ?? Task.CompletedTask);
             return;
         }
 
@@ -78,7 +78,7 @@ public partial class ImporterAuditScene : ContentView
             }
 
             await File.WriteAllTextAsync(path, sb.ToString(), Encoding.UTF8);
-            await (Application.Current?.MainPage?.DisplayAlert("書き出し完了", path, "OK") ?? Task.CompletedTask);
+            await (Application.Current?.Windows[0]?.Page?.DisplayAlert("書き出し完了", path, "OK") ?? Task.CompletedTask);
         }
         catch (Exception ex)
         {
@@ -86,7 +86,7 @@ public partial class ImporterAuditScene : ContentView
             {
                 File.Delete(path);
             }
-            await (Application.Current?.MainPage?.DisplayAlert("書き込みに失敗しました", ex.Message, "OK") ?? Task.CompletedTask);
+            await (Application.Current?.Windows[0]?.Page?.DisplayAlert("書き込みに失敗しました", ex.Message, "OK") ?? Task.CompletedTask);
         }
     }
 }
