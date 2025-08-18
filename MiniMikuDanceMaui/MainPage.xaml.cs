@@ -1202,9 +1202,38 @@ public partial class MainPage : ContentPage
             }
             success = true;
         }
+        catch (FileNotFoundException ex)
+        {
+            Debug.WriteLine(ex);
+            Console.Error.WriteLine(ex);
+            SelectedModelPath.Text = "選択されたファイルが見つかりません";
+            await DisplayAlert("Error", "選択されたファイルが見つかりません", "OK");
+        }
+        catch (UnauthorizedAccessException ex)
+        {
+            Debug.WriteLine(ex);
+            Console.Error.WriteLine(ex);
+            SelectedModelPath.Text = "ファイルにアクセスできません";
+            await DisplayAlert("Error", "ファイルにアクセスできません", "OK");
+        }
+        catch (InvalidDataException ex)
+        {
+            Debug.WriteLine(ex);
+            Console.Error.WriteLine(ex);
+            SelectedModelPath.Text = "ファイル形式が正しくありません";
+            await DisplayAlert("Error", "ファイル形式が正しくありません", "OK");
+        }
+        catch (IOException ex)
+        {
+            Debug.WriteLine(ex);
+            Console.Error.WriteLine(ex);
+            SelectedModelPath.Text = "ファイルの読み込み中にエラーが発生しました";
+            await DisplayAlert("Error", "ファイルの読み込み中にエラーが発生しました", "OK");
+        }
         catch (Exception ex)
         {
             Debug.WriteLine(ex);
+            Console.Error.WriteLine(ex);
             SelectedModelPath.Text = "モデルの読み込みに失敗しました";
             await DisplayAlert("Error", "モデルの読み込みに失敗しました", "OK");
         }
