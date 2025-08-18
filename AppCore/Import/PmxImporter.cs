@@ -400,7 +400,7 @@ public PmxImporter(ILogger<PmxImporter>? logger = null)
 
     private ModelData ImportPmx(Stream stream, string? textureDir = null)
     {
-        var pmx = PMXParser.Parse(stream);
+        dynamic pmx = PMXParser.Parse(stream);
         var verts = pmx.VertexList.ToArray();
         Surface[] faces = pmx.SurfaceList.ToArray();
         var mats = pmx.MaterialList.ToArray();
@@ -428,7 +428,10 @@ public PmxImporter(ILogger<PmxImporter>? logger = null)
             ModelName = pmx.Name,
             ModelNameEnglish = pmx.NameEnglish,
             Comment = pmx.Comment,
-            CommentEnglish = pmx.CommentEnglish
+            CommentEnglish = pmx.CommentEnglish,
+            ShadeShift = pmx.ShadeShift,
+            ShadeToony = pmx.ShadeToony,
+            RimIntensity = pmx.RimLight
         };
         var boneDatas = new List<BoneData>(bones.Length);
         var worldPositions = new System.Numerics.Vector3[bones.Length];
