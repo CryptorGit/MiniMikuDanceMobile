@@ -641,8 +641,8 @@ public PmxImporter(ILogger<PmxImporter>? logger = null)
                 Restitution = rb.Recoil,
                 Friction = rb.Friction,
                 Group = rb.Group,
-                Mask = rb.Mask,
-                Mode = rb.PhysicsType
+                Mask = rb.GroupTarget,
+                Mode = (int)rb.PhysicsType
             };
             rigidBodyDatas.Add(rbd);
         }
