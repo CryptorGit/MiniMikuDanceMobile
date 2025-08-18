@@ -1,16 +1,17 @@
 namespace MiniMikuDanceMaui;
 
 using Microsoft.Maui.Controls;
-using Microsoft.Maui.Graphics;
+using MauiColor = Microsoft.Maui.Graphics.Color;
+using MauiColors = Microsoft.Maui.Graphics.Colors;
 
 public static class ResourceHelper
 {
-    public static Color GetColor(string key)
+    public static MauiColor GetColor(string key)
     {
-        if (Application.Current?.Resources?.TryGetValue(key, out var value) == true && value is Color color)
+        if (Application.Current?.Resources?.TryGetValue(key, out var value) == true && value is MauiColor color)
         {
             return color;
         }
-        return Colors.Black;
+        return MauiColors.Black;
     }
 }

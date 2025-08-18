@@ -5,6 +5,8 @@ using System.Collections.Generic;
 using System.Linq;
 using MiniMikuDance.Import;
 using MiniMikuDance.Util;
+using MauiColor = Microsoft.Maui.Graphics.Color;
+using MauiColors = Microsoft.Maui.Graphics.Colors;
 
 namespace MiniMikuDanceMaui;
 
@@ -39,7 +41,7 @@ public partial class MorphView : ContentView
         }
 
         MorphList.Children.Clear();
-        var textColor = (Color)(Application.Current?.Resources?.TryGetValue("TextColor", out var color) == true ? color : Colors.Black);
+        var textColor = (MauiColor)(Application.Current?.Resources?.TryGetValue("TextColor", out var color) == true ? color : MauiColors.Black);
         var usedNames = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
         foreach (var group in morphs.GroupBy(m => m.Category).OrderBy(g => g.Key))
         {
