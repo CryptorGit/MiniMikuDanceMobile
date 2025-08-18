@@ -14,9 +14,10 @@
 
 		<!-- 暗黙参照の警告抑制など（任意） -->
 		<SkipValidateMauiImplicitPackageReferences>true</SkipValidateMauiImplicitPackageReferences>
-		<ImplicitUsings>enable</ImplicitUsings>
-		<Nullable>enable</Nullable>
-	</PropertyGroup>
+                <ImplicitUsings>enable</ImplicitUsings>
+                <Nullable>enable</Nullable>
+                <MauiEnableXamlCBindingWithSourceCompilation>true</MauiEnableXamlCBindingWithSourceCompilation>
+        </PropertyGroup>
 
   <ItemGroup>
     <ProjectReference Include="..\AppCore\AppCore.csproj" />
