@@ -3,6 +3,7 @@ using System.Buffers;
 using OpenTK.Mathematics;
 using OpenTK.Graphics.ES30;
 using GL = OpenTK.Graphics.ES30.GL;
+using All = OpenTK.Graphics.ES30.All;
 using System.Runtime.InteropServices;
 using System.Collections.Generic;
 using MiniMikuDance.Util;
@@ -960,14 +961,14 @@ void main(){
                 try
                 {
                     GL.TexImage2D(
-                        TextureTarget.Texture2D,
+                        (All)TextureTarget.Texture2D,
                         0,
-                        PixelInternalFormat.Rgba,
+                        (int)PixelInternalFormat.Rgba,
                         sm.TextureWidth,
                         sm.TextureHeight,
                         0,
-                        PixelFormat.Rgba,
-                        PixelType.UnsignedByte,
+                        (All)PixelFormat.Rgba,
+                        (All)PixelType.UnsignedByte,
                         handle.AddrOfPinnedObject());
                 }
                 finally
