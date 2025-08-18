@@ -12,7 +12,6 @@ using MMDTools;
 using MiniMikuDance.App;
 
 namespace MiniMikuDance.Import;
-
 public class ModelData
 {
     public List<SubMeshData> SubMeshes { get; set; } = new();
@@ -29,10 +28,10 @@ public class ModelData
     public float RimIntensity { get; set; } = 0.5f;
 }
 
-public class ModelImporter : IDisposable
+public class PmxImporter : IModelImporter
 {
     private readonly AssimpContext _context = new();
-    private readonly ILogger<ModelImporter> _logger;
+    private readonly ILogger<PmxImporter> _logger;
     private sealed class TextureData
     {
         public int Width;
@@ -103,9 +102,9 @@ public class ModelImporter : IDisposable
         }
     }
 
-    public ModelImporter(ILogger<ModelImporter>? logger = null)
+public PmxImporter(ILogger<PmxImporter>? logger = null)
     {
-        _logger = logger ?? NullLogger<ModelImporter>.Instance;
+        _logger = logger ?? NullLogger<PmxImporter>.Instance;
     }
 
     public void Dispose()

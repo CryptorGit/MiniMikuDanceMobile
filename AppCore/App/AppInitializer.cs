@@ -50,7 +50,7 @@ public partial class AppInitializer : IDisposable
             throw new InvalidOperationException("ViewerFactory が設定されていません。");
         }
         Viewer = ViewerFactory(modelPath, settings.ModelScale);
-        ModelImporter.CacheCapacity = settings.TextureCacheSize;
+        PmxImporter.CacheCapacity = settings.TextureCacheSize;
 
         _frameUpdatedHandler = async dt =>
         {
