@@ -23,6 +23,7 @@ public class ModelData
     public List<MorphData> Morphs { get; set; } = new();
     public List<RigidBodyData> RigidBodies { get; set; } = new();
     public List<JointData> Joints { get; set; } = new();
+    public List<DisplayFrameData> DisplayFrames { get; set; } = new();
     public float ShadeShift { get; set; } = -0.1f;
     public float ShadeToony { get; set; } = 0.9f;
     public float RimIntensity { get; set; } = 0.5f;
@@ -379,6 +380,7 @@ public PmxImporter(ILogger<PmxImporter>? logger = null)
         var texList = pmx.TextureList.ToArray();
         var bones = pmx.BoneList.ToArray();
         var morphs = pmx.MorphList.ToArray();
+        var displayFrames = pmx.DisplayFrameList.ToArray();
         var rigidBodies = pmx.RigidBodyList.ToArray();
         var joints = pmx.JointList.ToArray();
 
@@ -715,6 +717,28 @@ public PmxImporter(ILogger<PmxImporter>? logger = null)
             morphDatas.Add(md);
         }
         data.Morphs = morphDatas;
+
+        var displayFrameDatas = new List<DisplayFrameData>(displayFrames.Length);
+        for (int i = 0; i < displayFrames.Length; i++)
+        {
+            var f = displayFrames[i];
+            var dfd = new DisplayFrameData
+            {
+                Name = string.IsNullOrEmpty(f.NameEnglish) ? f.Name : f.NameEnglish,
+                NameEnglish = f.NameEnglish ?? string.Empty,
+                Type = f.Type
+            };
+            foreach (var elem in f.Elements.Span)
+            {
+                dfd.Elements.Add(new DisplayFrameElement
+                {
+                    TargetType = elem.TargetType,
+                    TargetIndex = elem.TargetIndex
+                });
+            }
+            displayFrameDatas.Add(dfd);
+        }
+        data.DisplayFrames = displayFrameDatas;
 
         var rigidBodyDatas = new List<RigidBodyData>(rigidBodies.Length);
         for (int i = 0; i < rigidBodies.Length; i++)
