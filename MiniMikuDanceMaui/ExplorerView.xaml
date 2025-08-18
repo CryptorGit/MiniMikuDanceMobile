@@ -3,6 +3,7 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
              xmlns:local="clr-namespace:MiniMikuDanceMaui"
              x:Class="MiniMikuDanceMaui.ExplorerView"
+             x:DataType="local:ExplorerView"
              BackgroundColor="{DynamicResource BackgroundColor}">
     <Grid RowDefinitions="Auto,*">
         <Grid ColumnDefinitions="Auto,*" Padding="8" x:Name="TopBar" HeightRequest="40">
