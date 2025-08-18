@@ -75,6 +75,8 @@ public class PmxImporter : IModelImporter
         }
     }
 
+    private static readonly string DefaultToonTextureDir = Path.Combine(AppContext.BaseDirectory, "Data");
+
     public float Scale { get; set; } = AppSettings.DefaultModelScale;
 
     public static void ClearCache()
@@ -290,7 +292,18 @@ public PmxImporter(ILogger<PmxImporter>? logger = null)
                 smd.SphereTextureFilePath = tmp.TextureFilePath;
             }
 
-            if (!string.IsNullOrEmpty(dir) && mat.ToonTexture >= 0 && mat.ToonTexture < texList.Length)
+            if (mat.ToonMode == 1)
+            {
+                var toonDir = textureDir ?? DefaultToonTextureDir;
+                var toonFile = $"toon{mat.ToonTexture + 1:D2}.bmp";
+                var tmp = new SubMeshData();
+                TryLoadTexture(tmp, toonFile, toonDir);
+                smd.ToonTextureBytes = tmp.TextureBytes;
+                smd.ToonTextureWidth = tmp.TextureWidth;
+                smd.ToonTextureHeight = tmp.TextureHeight;
+                smd.ToonTextureFilePath = tmp.TextureFilePath;
+            }
+            else if (!string.IsNullOrEmpty(dir) && mat.ToonTexture >= 0 && mat.ToonTexture < texList.Length)
             {
                 var tmp = new SubMeshData();
                 TryLoadTexture(tmp, texList[mat.ToonTexture], dir);
