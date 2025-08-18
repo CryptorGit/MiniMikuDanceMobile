@@ -453,7 +453,13 @@ public PmxImporter(ILogger<PmxImporter>? logger = null)
                 Rotation = System.Numerics.Quaternion.Identity,
                 Translation = pos,
                 BaseForward = System.Numerics.Vector3.UnitY,
-                BaseUp = System.Numerics.Vector3.UnitY
+                BaseUp = System.Numerics.Vector3.UnitY,
+                DeformDepth = b.TransformDepth,
+                IsVisible = (b.BoneFlag & BoneFlag.Visible) != 0,
+                IsControllable = (b.BoneFlag & BoneFlag.Controllable) != 0,
+                IsRotatable = (b.BoneFlag & BoneFlag.Rotatable) != 0,
+                IsTranslatable = (b.BoneFlag & BoneFlag.Translatable) != 0,
+                TransformAfterPhysics = (b.BoneFlag & BoneFlag.TransformAfterPhysics) != 0
             };
             if (b.IKLinkCount > 0)
             {

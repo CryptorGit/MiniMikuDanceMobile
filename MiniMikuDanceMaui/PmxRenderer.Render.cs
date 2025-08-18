@@ -163,7 +163,7 @@ public partial class PmxRenderer
             for (int i = 0; i < _bones.Count; i++)
             {
                 var bone = _bones[i];
-                if (bone.Parent >= 0)
+                if (bone.Parent >= 0 && bone.IsVisible && _bones[bone.Parent].IsVisible)
                 {
                     var pp = _worldMats[bone.Parent].Translation;
                     var cp = _worldMats[i].Translation;
