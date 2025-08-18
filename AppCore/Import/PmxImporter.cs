@@ -262,6 +262,8 @@ public PmxImporter(ILogger<PmxImporter>? logger = null)
         {
             var smd = CreateSubMesh(mat);
             var sub = smd.Mesh;
+            smd.SphereMode = mat.SphereMode;
+            smd.ToonMode = mat.ToonMode;
             int faceCount = mat.VertexCount / 3;
             for (int i = 0; i < faceCount; i++)
             {
@@ -272,6 +274,26 @@ public PmxImporter(ILogger<PmxImporter>? logger = null)
             if (!string.IsNullOrEmpty(dir) && mat.Texture >= 0 && mat.Texture < texList.Length)
             {
                 TryLoadTexture(smd, texList[mat.Texture], dir);
+            }
+
+            if (!string.IsNullOrEmpty(dir) && mat.SphereTexture >= 0 && mat.SphereTexture < texList.Length)
+            {
+                var tmp = new SubMeshData();
+                TryLoadTexture(tmp, texList[mat.SphereTexture], dir);
+                smd.SphereTextureBytes = tmp.TextureBytes;
+                smd.SphereTextureWidth = tmp.TextureWidth;
+                smd.SphereTextureHeight = tmp.TextureHeight;
+                smd.SphereTextureFilePath = tmp.TextureFilePath;
+            }
+
+            if (!string.IsNullOrEmpty(dir) && mat.ToonTexture >= 0 && mat.ToonTexture < texList.Length)
+            {
+                var tmp = new SubMeshData();
+                TryLoadTexture(tmp, texList[mat.ToonTexture], dir);
+                smd.ToonTextureBytes = tmp.TextureBytes;
+                smd.ToonTextureWidth = tmp.TextureWidth;
+                smd.ToonTextureHeight = tmp.TextureHeight;
+                smd.ToonTextureFilePath = tmp.TextureFilePath;
             }
 
             data.SubMeshes.Add(smd);
