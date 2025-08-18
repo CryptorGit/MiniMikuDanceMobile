@@ -4,6 +4,9 @@ namespace MiniMikuDance.Import;
 
 public class SubMeshData
 {
+    public string Name { get; set; } = string.Empty;
+    public string NameEnglish { get; set; } = string.Empty;
+    public System.Numerics.Vector3 AmbientColor { get; set; } = System.Numerics.Vector3.Zero;
     public Mesh Mesh { get; set; } = null!;
     public System.Numerics.Vector4 ColorFactor { get; set; } = System.Numerics.Vector4.One;
     public System.Numerics.Vector3 Specular { get; set; }
