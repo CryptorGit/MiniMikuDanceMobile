@@ -20,6 +20,7 @@ public class SubMeshData
     public List<System.Numerics.Vector4> AdditionalUV2 { get; set; } = new();
     public List<System.Numerics.Vector4> AdditionalUV3 { get; set; } = new();
     public List<System.Numerics.Vector4> AdditionalUV4 { get; set; } = new();
+    public List<float> EdgeScale { get; set; } = new();
     public byte[]? TextureBytes { get; set; }
     public int TextureWidth { get; set; }
     public int TextureHeight { get; set; }
