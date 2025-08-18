@@ -580,6 +580,9 @@ void main(){
             foreach (var bone in _ikBones)
             {
                 int i = bone.PmxBoneIndex;
+                var b = _bones[i];
+                if (!b.IsVisible || !b.IsControllable)
+                    continue;
                 var pos = _worldMats[i].Translation.ToOpenTK();
                 var v4 = new Vector4(pos, 1f);
                 var clip = v4 * _viewMatrix;
@@ -604,6 +607,9 @@ void main(){
             int limit = Math.Min(_worldMats.Length, _bones.Count);
             for (int i = 0; i < limit; i++)
             {
+                var bone = _bones[i];
+                if (!bone.IsVisible || !bone.IsControllable)
+                    continue;
                 var pos = _worldMats[i].Translation.ToOpenTK();
                 var v4 = new Vector4(pos, 1f);
                 var clip = v4 * _viewMatrix;
@@ -676,11 +682,14 @@ void main(){
 
     public void SetBoneRotation(int index, Vector3 degrees)
     {
-        if (index < 0)
+        if (index < 0 || index >= _bones.Count)
             return;
-        if (BonesConfig != null && index < _bones.Count)
+        var bone = _bones[index];
+        if (!bone.IsRotatable)
+            return;
+        if (BonesConfig != null)
         {
-            var name = _indexToHumanoidName.TryGetValue(index, out var n) ? n : _bones[index].Name;
+            var name = _indexToHumanoidName.TryGetValue(index, out var n) ? n : bone.Name;
             var clamped = BonesConfig.Clamp(name, degrees.ToNumerics());
             degrees = clamped.ToOpenTK();
         }
@@ -749,6 +758,8 @@ void main(){
             return;
 
         var bone = _bones[index];
+        if (!bone.IsTranslatable)
+            return;
         var worldMats = CalculateWorldMatrices();
         var parentWorld = bone.Parent >= 0 && bone.Parent < _bones.Count
             ? worldMats[bone.Parent]

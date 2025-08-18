@@ -12,6 +12,12 @@ public class BoneData
     public Vector3 Translation { get; set; } = Vector3.Zero;
     public Vector3 BaseForward { get; set; } = Vector3.UnitY;
     public Vector3 BaseUp { get; set; } = Vector3.UnitY;
+    public bool IsVisible { get; set; }
+    public bool IsControllable { get; set; }
+    public int DeformDepth { get; set; }
+    public bool IsRotatable { get; set; }
+    public bool IsTranslatable { get; set; }
+    public bool TransformAfterPhysics { get; set; }
     public bool InheritRotation { get; set; }
     public bool InheritTranslation { get; set; }
     public int InheritParent { get; set; } = -1;
