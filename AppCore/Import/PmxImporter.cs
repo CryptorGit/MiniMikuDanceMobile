@@ -272,13 +272,28 @@ public PmxImporter(ILogger<PmxImporter>? logger = null)
             faceOffset += faceCount;
         }
     }
+
+    private static string ResolveTexturePath(string textureName, string directory, out string normalized)
+    {
+        normalized = textureName.Replace('\\', Path.DirectorySeparatorChar);
+        return Path.Combine(directory, normalized);
+    }
+
     private void TryLoadTexture(SubMeshData subMeshData, string textureName, string directory)
     {
-        var normalized = textureName.Replace('\\', Path.DirectorySeparatorChar);
-        var texPath = Path.Combine(directory, normalized);
+        var texPath = ResolveTexturePath(textureName, directory, out var normalized);
         subMeshData.TextureFilePath = normalized;
         if (!File.Exists(texPath))
-            return;
+        {
+            var fallbackPath = ResolveTexturePath("MissingTexture.png", directory, out _);
+            if (!File.Exists(fallbackPath))
+            {
+                _logger.LogWarning("テクスチャ '{Texture}' が見つからず、MissingTexture.png も存在しません。", normalized);
+                return;
+            }
+            _logger.LogWarning("テクスチャ '{Texture}' が見つかりません。MissingTexture.png を使用します。", normalized);
+            texPath = fallbackPath;
+        }
 
         CacheItem? item;
         lock (s_cacheLock)
