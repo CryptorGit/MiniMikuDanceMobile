@@ -636,7 +636,14 @@ public class ModelImporter : IDisposable
                 Name = string.IsNullOrEmpty(rb.NameEnglish) ? rb.Name : rb.NameEnglish,
                 BoneIndex = rb.Bone,
                 Mass = rb.Mass,
-                Shape = (RigidBodyShape)rb.Shape
+                Shape = (RigidBodyShape)rb.Shape,
+                Group = rb.Group,
+                GroupMask = rb.GroupTarget,
+                TranslationDamping = rb.TranslationAttenuation,
+                RotationDamping = rb.RotationAttenuation,
+                Restitution = rb.Recoil,
+                Friction = rb.Friction,
+                Mode = (RigidBodyMode)rb.PhysicsType
             };
             rigidBodyDatas.Add(rbd);
         }
@@ -652,7 +659,28 @@ public class ModelImporter : IDisposable
             int rbB = type.GetProperty("RigidBodyB")?.GetValue(j) is object b ? Convert.ToInt32(b) : -1;
             if (rbB < 0) rbB = type.GetProperty("RigidBody2")?.GetValue(j) is object b1 ? Convert.ToInt32(b1) : -1;
             string name = string.IsNullOrEmpty(j.NameEnglish) ? j.Name : j.NameEnglish;
-            jointDatas.Add(new JointData { Name = name, RigidBodyA = rbA, RigidBodyB = rbB });
+            var pos = ScaleVector(j.Position);
+            var rot = new System.Numerics.Vector3(j.RotationRadian.X, j.RotationRadian.Y, j.RotationRadian.Z);
+            var tmin = ScaleVector(j.TranslationMinLimit);
+            var tmax = ScaleVector(j.TranslationMaxLimit);
+            var rmin = new System.Numerics.Vector3(j.RotationRadianMinLimit.X, j.RotationRadianMinLimit.Y, j.RotationRadianMinLimit.Z);
+            var rmax = new System.Numerics.Vector3(j.RotationRadianMaxLimit.X, j.RotationRadianMaxLimit.Y, j.RotationRadianMaxLimit.Z);
+            var ts = ScaleVector(j.TranslationSpring);
+            var rs = new System.Numerics.Vector3(j.RotationSpring.X, j.RotationSpring.Y, j.RotationSpring.Z);
+            jointDatas.Add(new JointData
+            {
+                Name = name,
+                RigidBodyA = rbA,
+                RigidBodyB = rbB,
+                Position = pos,
+                Rotation = rot,
+                TranslationLimitMin = tmin,
+                TranslationLimitMax = tmax,
+                RotationLimitMin = rmin,
+                RotationLimitMax = rmax,
+                TranslationSpring = ts,
+                RotationSpring = rs
+            });
         }
         data.Joints = jointDatas;
 
