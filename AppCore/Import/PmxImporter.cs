@@ -635,7 +635,14 @@ public PmxImporter(ILogger<PmxImporter>? logger = null)
                 Name = string.IsNullOrEmpty(rb.NameEnglish) ? rb.Name : rb.NameEnglish,
                 BoneIndex = rb.Bone,
                 Mass = rb.Mass,
-                Shape = (RigidBodyShape)rb.Shape
+                Shape = (RigidBodyShape)rb.Shape,
+                LinearDamping = rb.TranslationAttenuation,
+                AngularDamping = rb.RotationAttenuation,
+                Restitution = rb.Recoil,
+                Friction = rb.Friction,
+                Group = rb.Group,
+                Mask = rb.Mask,
+                Mode = rb.PhysicsType
             };
             rigidBodyDatas.Add(rbd);
         }
@@ -651,7 +658,29 @@ public PmxImporter(ILogger<PmxImporter>? logger = null)
             int rbB = type.GetProperty("RigidBodyB")?.GetValue(j) is object b ? Convert.ToInt32(b) : -1;
             if (rbB < 0) rbB = type.GetProperty("RigidBody2")?.GetValue(j) is object b1 ? Convert.ToInt32(b1) : -1;
             string name = string.IsNullOrEmpty(j.NameEnglish) ? j.Name : j.NameEnglish;
-            jointDatas.Add(new JointData { Name = name, RigidBodyA = rbA, RigidBodyB = rbB });
+            var jd = new JointData { Name = name, RigidBodyA = rbA, RigidBodyB = rbB };
+            if (type.GetProperty("TranslationMinLimit")?.GetValue(j) is object tmin)
+                jd.PositionMin = ScaleVector((dynamic)tmin);
+            if (type.GetProperty("TranslationMaxLimit")?.GetValue(j) is object tmax)
+                jd.PositionMax = ScaleVector((dynamic)tmax);
+            if (type.GetProperty("RotationRadianMinLimit")?.GetValue(j) is object rmin)
+            {
+                dynamic v = rmin;
+                jd.RotationMin = new System.Numerics.Vector3(v.X, v.Y, v.Z);
+            }
+            if (type.GetProperty("RotationRadianMaxLimit")?.GetValue(j) is object rmax)
+            {
+                dynamic v = rmax;
+                jd.RotationMax = new System.Numerics.Vector3(v.X, v.Y, v.Z);
+            }
+            if (type.GetProperty("TranslationSpring")?.GetValue(j) is object ts)
+                jd.SpringPosition = ScaleVector((dynamic)ts);
+            if (type.GetProperty("RotationSpring")?.GetValue(j) is object rs)
+            {
+                dynamic v = rs;
+                jd.SpringRotation = new System.Numerics.Vector3(v.X, v.Y, v.Z);
+            }
+            jointDatas.Add(jd);
         }
         data.Joints = jointDatas;
 
