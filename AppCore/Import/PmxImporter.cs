@@ -449,7 +449,7 @@ public PmxImporter(ILogger<PmxImporter>? logger = null)
         return new ModelData { Mesh = scene.Meshes[0] };
     }
 
-    private static T GetValue<T>(dynamic obj, string name, T defaultValue)
+    private T GetValue<T>(dynamic obj, string name, T defaultValue)
     {
         if (obj is IDictionary<string, object> dict && dict.TryGetValue(name, out var value))
         {
@@ -457,8 +457,10 @@ public PmxImporter(ILogger<PmxImporter>? logger = null)
             {
                 return (T)Convert.ChangeType(value, typeof(T));
             }
-            catch
+            catch (Exception ex)
             {
+                _logger.LogWarning(ex, "キー '{Key}' の値取得に失敗しました。", name);
+                System.Diagnostics.Debug.WriteLine(ex);
                 return defaultValue;
             }
         }
@@ -471,8 +473,10 @@ public PmxImporter(ILogger<PmxImporter>? logger = null)
             {
                 return (T)Convert.ChangeType(val, typeof(T));
             }
-            catch
+            catch (Exception ex)
             {
+                _logger.LogWarning(ex, "キー '{Key}' の値取得に失敗しました。", name);
+                System.Diagnostics.Debug.WriteLine(ex);
             }
         }
         return defaultValue;
