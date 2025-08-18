@@ -962,7 +962,7 @@ void main(){
                     GL.TexImage2D(
                         (All)TextureTarget.Texture2D,
                         level: 0,
-                        internalformat: (int)PixelInternalFormat.Rgba,
+                        internalformat: (All)PixelInternalFormat.Rgba,
                         width: sm.TextureWidth,
                         height: sm.TextureHeight,
                         border: 0,
