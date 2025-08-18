@@ -2,7 +2,9 @@ using Assimp;
 using System;
 using System.IO;
 using System.Collections.Generic;
+using System.Collections;
 using System.Buffers;
+using System.Linq;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
 using SixLabors.ImageSharp;
@@ -415,19 +417,66 @@ public PmxImporter(ILogger<PmxImporter>? logger = null)
         return new ModelData { Mesh = scene.Meshes[0] };
     }
 
+    private static T GetValue<T>(dynamic obj, string name, T defaultValue)
+    {
+        if (obj is IDictionary<string, object> dict && dict.TryGetValue(name, out var value))
+        {
+            try
+            {
+                return (T)Convert.ChangeType(value, typeof(T));
+            }
+            catch
+            {
+                return defaultValue;
+            }
+        }
+
+        var type = ((object)obj).GetType();
+        var prop = type.GetProperty(name);
+        if (prop?.GetValue(obj) is object val)
+        {
+            try
+            {
+                return (T)Convert.ChangeType(val, typeof(T));
+            }
+            catch
+            {
+            }
+        }
+        return defaultValue;
+    }
+
+    private static T[] GetArray<T>(dynamic obj, string name)
+    {
+        if (obj is IDictionary<string, object> dict && dict.TryGetValue(name, out var value))
+        {
+            if (value is IEnumerable enumerable)
+                return enumerable.Cast<T>().ToArray();
+            return Array.Empty<T>();
+        }
+
+        var type = ((object)obj).GetType();
+        var prop = type.GetProperty(name);
+        if (prop?.GetValue(obj) is IEnumerable enumerable2)
+        {
+            return enumerable2.Cast<T>().ToArray();
+        }
+        return Array.Empty<T>();
+    }
+
     private ModelData ImportPmx(Stream stream, string? textureDir = null)
     {
         dynamic pmx = PMXParser.Parse(stream);
-        var verts = pmx.VertexList.ToArray();
-        Surface[] faces = pmx.SurfaceList.ToArray();
-        var mats = pmx.MaterialList.ToArray();
-        var texList = pmx.TextureList.ToArray();
-        var bones = pmx.BoneList.ToArray();
-        var morphs = pmx.MorphList.ToArray();
-        var displayFrames = pmx.DisplayFrameList.ToArray();
-        var rigidBodies = pmx.RigidBodyList.ToArray();
-        var joints = pmx.JointList.ToArray();
-        var softBodies = pmx.SoftBodyList.ToArray();
+        var verts = GetArray<dynamic>(pmx, "VertexList");
+        Surface[] faces = GetArray<Surface>(pmx, "SurfaceList");
+        var mats = GetArray<dynamic>(pmx, "MaterialList");
+        var texList = GetArray<string>(pmx, "TextureList");
+        var bones = GetArray<dynamic>(pmx, "BoneList");
+        var morphs = GetArray<dynamic>(pmx, "MorphList");
+        var displayFrames = GetArray<dynamic>(pmx, "DisplayFrameList");
+        var rigidBodies = GetArray<dynamic>(pmx, "RigidBodyList");
+        var joints = GetArray<dynamic>(pmx, "JointList");
+        var softBodies = GetArray<dynamic>(pmx, "SoftBodyList");
 
         var childIndices = new List<int>[bones.Length];
         for (int i = 0; i < bones.Length; i++)
@@ -442,13 +491,13 @@ public PmxImporter(ILogger<PmxImporter>? logger = null)
         // ボーン情報を ModelData に格納する
         var data = new ModelData
         {
-            ModelName = pmx.Name,
-            ModelNameEnglish = pmx.NameEnglish,
-            Comment = pmx.Comment,
-            CommentEnglish = pmx.CommentEnglish,
-            ShadeShift = pmx.ShadeShift,
-            ShadeToony = pmx.ShadeToony,
-            RimIntensity = pmx.RimLight
+            ModelName = GetValue(pmx, "Name", string.Empty),
+            ModelNameEnglish = GetValue(pmx, "NameEnglish", string.Empty),
+            Comment = GetValue(pmx, "Comment", string.Empty),
+            CommentEnglish = GetValue(pmx, "CommentEnglish", string.Empty),
+            ShadeShift = GetValue(pmx, "ShadeShift", -0.1f),
+            ShadeToony = GetValue(pmx, "ShadeToony", 0.9f),
+            RimIntensity = GetValue(pmx, "RimLight", 0.5f)
         };
         var boneDatas = new List<BoneData>(bones.Length);
         var worldPositions = new System.Numerics.Vector3[bones.Length];
