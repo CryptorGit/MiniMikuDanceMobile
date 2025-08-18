@@ -960,15 +960,15 @@ void main(){
                 try
                 {
                     GL.TexImage2D(
-                        (All)TextureTarget.Texture2D,
-                        level: 0,
-                        internalformat: (All)PixelInternalFormat.Rgba,
-                        width: sm.TextureWidth,
-                        height: sm.TextureHeight,
-                        border: 0,
-                        format: (All)PixelFormat.Rgba,
-                        type: (All)PixelType.UnsignedByte,
-                        pixels: handle.AddrOfPinnedObject());
+                        TextureTarget.Texture2D,
+                        0,
+                        PixelInternalFormat.Rgba,
+                        sm.TextureWidth,
+                        sm.TextureHeight,
+                        0,
+                        PixelFormat.Rgba,
+                        PixelType.UnsignedByte,
+                        handle.AddrOfPinnedObject());
                 }
                 finally
                 {
