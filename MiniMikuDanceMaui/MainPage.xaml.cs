@@ -571,13 +571,17 @@ public partial class MainPage : ContentPage
             IkManager.Clear();
             _renderer.ClearIkBones();
             _renderer.ClearBoneRotations();
-            _renderer.LoadModel(_pendingModel);
+            var fitOk = _renderer.LoadModel(_pendingModel);
             _currentModel = _pendingModel;
             _shadeShift = _pendingModel.ShadeShift;
             _shadeToony = _pendingModel.ShadeToony;
             _rimIntensity = _pendingModel.RimIntensity;
             UpdateRendererLightingProperties();
             _pendingModel = null;
+            if (!fitOk)
+            {
+                Debug.WriteLine(_renderer.LastError);
+            }
 
             if (_poseMode && _currentModel != null)
             {
@@ -784,13 +788,18 @@ public partial class MainPage : ContentPage
                     }
                     data = importer.ImportModel(stream, dir);
                 }
-                _renderer.LoadModel(data);
+                var fitOk = _renderer.LoadModel(data);
                 _currentModel = data;
                 _shadeShift = data.ShadeShift;
                 _shadeToony = data.ShadeToony;
                 _rimIntensity = data.RimIntensity;
                 UpdateRendererLightingProperties();
                 Viewer?.InvalidateSurface();
+                if (!fitOk)
+                {
+                    Debug.WriteLine(_renderer.LastError);
+                    await DisplayAlert("Error", _renderer.LastError?.Message ?? "Failed to fit camera.", "OK");
+                }
             }
         }
         catch (Exception ex)
