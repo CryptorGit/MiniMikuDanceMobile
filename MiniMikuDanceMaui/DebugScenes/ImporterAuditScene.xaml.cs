@@ -74,7 +74,14 @@ public partial class ImporterAuditScene : ContentView
         }
 
         var path = Path.Combine(FileSystem.CacheDirectory, "ImporterAudit.csv");
-        File.WriteAllText(path, sb.ToString(), Encoding.UTF8);
-        await DisplayAlert("書き出し完了", path, "OK");
+        try
+        {
+            await File.WriteAllTextAsync(path, sb.ToString(), Encoding.UTF8);
+            await DisplayAlert("書き出し完了", path, "OK");
+        }
+        catch (Exception ex)
+        {
+            await DisplayAlert("Error", ex.Message, "OK");
+        }
     }
 }
