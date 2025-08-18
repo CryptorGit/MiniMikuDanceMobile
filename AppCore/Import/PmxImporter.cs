@@ -172,6 +172,9 @@ public PmxImporter(ILogger<PmxImporter>? logger = null)
         var sub = new Assimp.Mesh("pmx", Assimp.PrimitiveType.Triangle);
         return new SubMeshData
         {
+            Name = mat.Name ?? string.Empty,
+            NameEnglish = mat.NameEnglish ?? string.Empty,
+            AmbientColor = new System.Numerics.Vector3(mat.Ambient.R, mat.Ambient.G, mat.Ambient.B),
             Mesh = sub,
             ColorFactor = new System.Numerics.Vector4(mat.Diffuse.R, mat.Diffuse.G, mat.Diffuse.B, mat.Diffuse.A),
             Specular = new System.Numerics.Vector3(mat.Specular.R, mat.Specular.G, mat.Specular.B),
