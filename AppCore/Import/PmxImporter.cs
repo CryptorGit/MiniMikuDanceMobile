@@ -895,6 +895,37 @@ public PmxImporter(ILogger<PmxImporter>? logger = null)
                 sbd.Group = Convert.ToByte(group);
             if (sbType.GetProperty("GroupTarget")?.GetValue(sb) is object mask)
                 sbd.Mask = Convert.ToUInt16(mask);
+            if (sbType.GetProperty("Mass")?.GetValue(sb) is object mass)
+                sbd.Mass = Convert.ToSingle(mass);
+            else if (sbType.GetProperty("TotalMass")?.GetValue(sb) is object tmass)
+                sbd.Mass = Convert.ToSingle(tmass);
+            if (sbType.GetProperty("Friction")?.GetValue(sb) is object fric)
+                sbd.Friction = Convert.ToSingle(fric);
+            if (sbType.GetProperty("SpringConstant")?.GetValue(sb) is object spring)
+                sbd.SpringConstant = Convert.ToSingle(spring);
+            else if (sbType.GetProperty("SpringK")?.GetValue(sb) is object sk)
+                sbd.SpringConstant = Convert.ToSingle(sk);
+            if (sbType.GetProperty("Anchors")?.GetValue(sb) is System.Collections.IEnumerable anchors)
+            {
+                foreach (var a in anchors)
+                {
+                    var atype = a.GetType();
+                    var anchor = new SoftBodyAnchorData();
+                    if (atype.GetProperty("RigidBodyIndex")?.GetValue(a) is object rb)
+                        anchor.RigidBodyIndex = Convert.ToInt32(rb);
+                    else if (atype.GetProperty("RigidBody")?.GetValue(a) is object rb2)
+                        anchor.RigidBodyIndex = Convert.ToInt32(rb2);
+                    if (atype.GetProperty("VertexIndex")?.GetValue(a) is object vid)
+                        anchor.VertexIndex = Convert.ToInt32(vid);
+                    else if (atype.GetProperty("Vertex")?.GetValue(a) is object vid2)
+                        anchor.VertexIndex = Convert.ToInt32(vid2);
+                    if (atype.GetProperty("IsNear")?.GetValue(a) is object near)
+                        anchor.Near = Convert.ToBoolean(near);
+                    else if (atype.GetProperty("Near")?.GetValue(a) is object near2)
+                        anchor.Near = Convert.ToBoolean(near2);
+                    sbd.Anchors.Add(anchor);
+                }
+            }
             softBodyDatas.Add(sbd);
         }
         data.SoftBodies = softBodyDatas;
