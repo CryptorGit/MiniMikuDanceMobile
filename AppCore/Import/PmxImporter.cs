@@ -405,6 +405,7 @@ public PmxImporter(ILogger<PmxImporter>? logger = null)
             var bd = new BoneData
             {
                 Name = name,
+                NameEnglish = b.NameEnglish ?? string.Empty,
                 Parent = b.ParentBone,
                 Rotation = System.Numerics.Quaternion.Identity,
                 Translation = pos,
@@ -574,7 +575,7 @@ public PmxImporter(ILogger<PmxImporter>? logger = null)
                 }
             }
 
-            var md = new MorphData { Index = mi, Name = name, Type = m.MorphType, Category = (MorphCategory)m.MorphTarget };
+            var md = new MorphData { Index = mi, Name = name, NameEnglish = m.NameEnglish ?? string.Empty, Type = m.MorphType, Category = (MorphCategory)m.MorphTarget };
             switch (m.MorphType)
             {
                 case MorphType.Vertex:
@@ -730,6 +731,7 @@ public PmxImporter(ILogger<PmxImporter>? logger = null)
             var rbd = new RigidBodyData
             {
                 Name = string.IsNullOrEmpty(rb.NameEnglish) ? rb.Name : rb.NameEnglish,
+                NameEnglish = rb.NameEnglish ?? string.Empty,
                 BoneIndex = rb.Bone,
                 Mass = rb.Mass,
                 Shape = (RigidBodyShape)rb.Shape,
@@ -758,7 +760,7 @@ public PmxImporter(ILogger<PmxImporter>? logger = null)
             int rbB = type.GetProperty("RigidBodyB")?.GetValue(j) is object b ? Convert.ToInt32(b) : -1;
             if (rbB < 0) rbB = type.GetProperty("RigidBody2")?.GetValue(j) is object b1 ? Convert.ToInt32(b1) : -1;
             string name = string.IsNullOrEmpty(j.NameEnglish) ? j.Name : j.NameEnglish;
-            var jd = new JointData { Name = name, RigidBodyA = rbA, RigidBodyB = rbB };
+            var jd = new JointData { Name = name, NameEnglish = j.NameEnglish ?? string.Empty, RigidBodyA = rbA, RigidBodyB = rbB };
             if (type.GetProperty("Position")?.GetValue(j) is object pos)
                 jd.Position = ScaleVector((dynamic)pos);
             if (type.GetProperty("Rotation")?.GetValue(j) is object rot)

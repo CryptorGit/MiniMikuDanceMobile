@@ -12,6 +12,7 @@ public enum RigidBodyShape
 public class RigidBodyData
 {
     public string Name { get; set; } = string.Empty;
+    public string NameEnglish { get; set; } = string.Empty;
     public int BoneIndex { get; set; } = -1;
     public float Mass { get; set; }
     public RigidBodyShape Shape { get; set; }
@@ -30,6 +31,7 @@ public class RigidBodyData
 public class JointData
 {
     public string Name { get; set; } = string.Empty;
+    public string NameEnglish { get; set; } = string.Empty;
     public int RigidBodyA { get; set; } = -1;
     public int RigidBodyB { get; set; } = -1;
     public Vector3 Position { get; set; } = Vector3.Zero;
