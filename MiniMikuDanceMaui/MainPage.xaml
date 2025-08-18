@@ -5,6 +5,7 @@
              xmlns:mmd="clr-namespace:MiniMikuDanceMaui"
              xmlns:mi="http://www.aathifmahir.com/dotnet/2022/maui/icons"
              x:Class="MiniMikuDanceMaui.MainPage"
+             x:DataType="mmd:MainPage"
              BackgroundColor="Transparent">
 
     <ContentPage.MenuBarItems>
