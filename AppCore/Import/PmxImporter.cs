@@ -28,6 +28,10 @@ public class ModelData
     public float ShadeShift { get; set; } = -0.1f;
     public float ShadeToony { get; set; } = 0.9f;
     public float RimIntensity { get; set; } = 0.5f;
+    public string ModelName { get; set; } = string.Empty;
+    public string ModelNameEnglish { get; set; } = string.Empty;
+    public string Comment { get; set; } = string.Empty;
+    public string CommentEnglish { get; set; } = string.Empty;
 }
 
 public class PmxImporter : IModelImporter
@@ -397,7 +401,13 @@ public PmxImporter(ILogger<PmxImporter>? logger = null)
         }
 
         // ボーン情報を ModelData に格納する
-        var data = new ModelData();
+        var data = new ModelData
+        {
+            ModelName = pmx.Name,
+            ModelNameEnglish = pmx.NameEnglish,
+            Comment = pmx.Comment,
+            CommentEnglish = pmx.CommentEnglish
+        };
         var boneDatas = new List<BoneData>(bones.Length);
         var worldPositions = new System.Numerics.Vector3[bones.Length];
         for (int i = 0; i < bones.Length; i++)
