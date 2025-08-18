@@ -23,9 +23,11 @@ public class FileItem
                 long size = new FileInfo(fullPath).Length;
                 SizeText = size.ToString();
             }
-            catch
+            catch (Exception ex)
             {
+                Console.Error.WriteLine(ex);
                 SizeText = "";
+                HasError = true;
             }
         }
     }
@@ -35,4 +37,5 @@ public class FileItem
     public bool IsDirectory { get; }
     public DateTime Modified { get; }
     public string SizeText { get; }
+    public bool HasError { get; private set; }
 }
