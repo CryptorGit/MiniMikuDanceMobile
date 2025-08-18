@@ -469,7 +469,7 @@ public PmxImporter(ILogger<PmxImporter>? logger = null)
                 BaseUp = System.Numerics.Vector3.UnitY,
                 DeformDepth = b.TransformDepth,
                 IsVisible = (b.BoneFlag & BoneFlag.Visible) != 0,
-                IsControllable = (b.BoneFlag & BoneFlag.Controllable) != 0,
+                IsControllable = (b.BoneFlag & BoneFlag.Editable) != 0,
                 IsRotatable = (b.BoneFlag & BoneFlag.Rotatable) != 0,
                 IsTranslatable = (b.BoneFlag & BoneFlag.Translatable) != 0,
                 TransformAfterPhysics = (b.BoneFlag & BoneFlag.TransformAfterPhysics) != 0
