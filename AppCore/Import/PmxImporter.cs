@@ -23,6 +23,7 @@ public class ModelData
     public List<MorphData> Morphs { get; set; } = new();
     public List<RigidBodyData> RigidBodies { get; set; } = new();
     public List<JointData> Joints { get; set; } = new();
+    public List<SoftBodyData> SoftBodies { get; set; } = new();
     public List<DisplayFrameData> DisplayFrames { get; set; } = new();
     public float ShadeShift { get; set; } = -0.1f;
     public float ShadeToony { get; set; } = 0.9f;
@@ -383,6 +384,7 @@ public PmxImporter(ILogger<PmxImporter>? logger = null)
         var displayFrames = pmx.DisplayFrameList.ToArray();
         var rigidBodies = pmx.RigidBodyList.ToArray();
         var joints = pmx.JointList.ToArray();
+        var softBodies = pmx.SoftBodyList.ToArray();
 
         var childIndices = new List<int>[bones.Length];
         for (int i = 0; i < bones.Length; i++)
@@ -816,6 +818,28 @@ public PmxImporter(ILogger<PmxImporter>? logger = null)
             jointDatas.Add(jd);
         }
         data.Joints = jointDatas;
+
+        var softBodyDatas = new List<SoftBodyData>(softBodies.Length);
+        for (int i = 0; i < softBodies.Length; i++)
+        {
+            var sb = softBodies[i];
+            var sbd = new SoftBodyData
+            {
+                Name = string.IsNullOrEmpty(sb.NameEnglish) ? sb.Name : sb.NameEnglish,
+                NameEnglish = sb.NameEnglish ?? string.Empty
+            };
+            var sbType = sb.GetType();
+            if (sbType.GetProperty("Material")?.GetValue(sb) is object mat)
+                sbd.MaterialIndex = Convert.ToInt32(mat);
+            if (sbType.GetProperty("Shape")?.GetValue(sb) is object shape)
+                sbd.Shape = (SoftBodyShape)Convert.ToInt32(shape);
+            if (sbType.GetProperty("Group")?.GetValue(sb) is object group)
+                sbd.Group = Convert.ToByte(group);
+            if (sbType.GetProperty("GroupTarget")?.GetValue(sb) is object mask)
+                sbd.Mask = Convert.ToUInt16(mask);
+            softBodyDatas.Add(sbd);
+        }
+        data.SoftBodies = softBodyDatas;
 
         var combined = new Assimp.Mesh("pmx", Assimp.PrimitiveType.Triangle);
         for (int i = 0; i < verts.Length; i++)
