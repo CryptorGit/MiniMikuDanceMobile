@@ -2,6 +2,7 @@ using System;
 using System.IO;
 using System.Linq;
 using System.Text;
+using System.Threading.Tasks;
 using Microsoft.Maui.Controls;
 using Microsoft.Maui.Storage;
 using MiniMikuDance.Import;
@@ -44,7 +45,7 @@ public partial class ImporterAuditScene : ContentView
     {
         if (_model == null)
         {
-            await DisplayAlert("Error", "モデルが読み込まれていません", "OK");
+            await (Application.Current?.MainPage?.DisplayAlert("Error", "モデルが読み込まれていません", "OK") ?? Task.CompletedTask);
             return;
         }
 
@@ -75,6 +76,6 @@ public partial class ImporterAuditScene : ContentView
 
         var path = Path.Combine(FileSystem.CacheDirectory, "ImporterAudit.csv");
         File.WriteAllText(path, sb.ToString(), Encoding.UTF8);
-        await DisplayAlert("書き出し完了", path, "OK");
+        await (Application.Current?.MainPage?.DisplayAlert("書き出し完了", path, "OK") ?? Task.CompletedTask);
     }
 }
