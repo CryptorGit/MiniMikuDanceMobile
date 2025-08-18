@@ -1,6 +1,5 @@
 using Microsoft.Maui.ApplicationModel;
 using Microsoft.Maui.Controls;
-using Microsoft.Maui.Graphics;
 using Microsoft.Maui.Layouts;
 using Microsoft.Maui.Dispatching;
 using System;
@@ -21,6 +20,8 @@ using System.Reflection;
 using MiniMikuDance.Import;
 using OpenTK.Mathematics;
 using MiniMikuDance.App;
+using MauiColor = Microsoft.Maui.Graphics.Color;
+using MauiColors = Microsoft.Maui.Graphics.Colors;
 using SixLabors.ImageSharp;
 using SixLabors.ImageSharp.PixelFormats;
 using Microsoft.CSharp.RuntimeBinder;
@@ -907,7 +908,7 @@ public partial class MainPage : ContentPage
             }
             _bottomViews[name] = view;
 
-            var tabBgColor = (Color)(Application.Current?.Resources?.TryGetValue("TabBackgroundColor", out var tabBgColorValue) == true ? tabBgColorValue : Colors.LightGray);
+            var tabBgColor = (MauiColor)(Application.Current?.Resources?.TryGetValue("TabBackgroundColor", out var tabBgColorValue) == true ? tabBgColorValue : MauiColors.LightGray);
             var border = new Border
             {
                 BackgroundColor = tabBgColor,
@@ -983,8 +984,8 @@ public partial class MainPage : ContentPage
 
     private void UpdateTabColors()
     {
-        var active = (Color)(Application.Current?.Resources?.TryGetValue("TabActiveColor", out var activeColor) == true ? activeColor : Colors.Blue);
-        var inactive = (Color)(Application.Current?.Resources?.TryGetValue("TabInactiveColor", out var inactiveColor) == true ? inactiveColor : Colors.Gray);
+        var active = (MauiColor)(Application.Current?.Resources?.TryGetValue("TabActiveColor", out var activeColor) == true ? activeColor : MauiColors.Blue);
+        var inactive = (MauiColor)(Application.Current?.Resources?.TryGetValue("TabInactiveColor", out var inactiveColor) == true ? inactiveColor : MauiColors.Gray);
         foreach (var kv in _bottomTabs)
         {
             kv.Value.BackgroundColor = kv.Key == _currentFeature ? active : inactive;
