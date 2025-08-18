@@ -69,6 +69,7 @@ public partial class PmxRenderer : IDisposable
     private System.Numerics.Vector3[] _boneMorphTranslations = Array.Empty<System.Numerics.Vector3>();
     private System.Numerics.Quaternion[] _boneMorphRotations = Array.Empty<System.Numerics.Quaternion>();
     public SKGLView? Viewer { get; set; }
+    public Exception? LastError { get; private set; }
     private int _gridVao;
     private int _gridVbo;
     private int _gridVertexCount;
@@ -792,8 +793,9 @@ void main(){
 
     // Morph関連メソッドは PmxRenderer.Morph.cs へ移動
 
-    public void LoadModel(MiniMikuDance.Import.ModelData data)
+    public bool LoadModel(MiniMikuDance.Import.ModelData data)
     {
+        LastError = null;
         foreach (var rm in _meshes)
         {
             if (rm.Vao != 0) GL.DeleteVertexArray(rm.Vao);
@@ -1182,7 +1184,13 @@ void main(){
                 _viewProjDirty = true;
             }
         }
-        catch { /* ignore fit errors */ }
+        catch (Exception ex)
+        {
+            LastError = ex;
+            Console.Error.WriteLine(ex);
+            return false;
+        }
+        return true;
     }
 
     // Render メソッドは PmxRenderer.Render.cs へ移動
