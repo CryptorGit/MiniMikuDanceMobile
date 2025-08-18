@@ -21,7 +21,9 @@ using System.Reflection;
 using MiniMikuDance.Import;
 using OpenTK.Mathematics;
 using MiniMikuDance.App;
+using SixLabors.ImageSharp;
 using SixLabors.ImageSharp.PixelFormats;
+using Microsoft.CSharp.RuntimeBinder;
 using MiniMikuDance.IK;
 using MiniMikuDance.Util;
 
@@ -1180,6 +1182,10 @@ public partial class MainPage : ContentPage
                             sm.TextureFilePath = localRel;
                         }
                     }
+                    catch (UnknownImageFormatException)
+                    {
+                        throw;
+                    }
                     catch (Exception ex)
                     {
                         Debug.WriteLine(ex);
@@ -1222,6 +1228,20 @@ public partial class MainPage : ContentPage
             Console.Error.WriteLine(ex);
             SelectedModelPath.Text = "ファイル形式が正しくありません";
             await DisplayAlert("Error", "ファイル形式が正しくありません", "OK");
+        }
+        catch (RuntimeBinderException ex)
+        {
+            Debug.WriteLine(ex);
+            Console.Error.WriteLine(ex);
+            SelectedModelPath.Text = "PMXファイルのフォーマットに未対応";
+            await DisplayAlert("Error", "PMXファイルのフォーマットに未対応", "OK");
+        }
+        catch (UnknownImageFormatException ex)
+        {
+            Debug.WriteLine(ex);
+            Console.Error.WriteLine(ex);
+            SelectedModelPath.Text = "無効な画像ファイルが含まれています";
+            await DisplayAlert("Error", "無効な画像ファイルが含まれています", "OK");
         }
         catch (IOException ex)
         {
