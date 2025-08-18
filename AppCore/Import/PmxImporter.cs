@@ -201,6 +201,7 @@ public PmxImporter(ILogger<PmxImporter>? logger = null)
         smd.AdditionalUV3.Add(new System.Numerics.Vector4(auv3.X, auv3.Y, auv3.Z, auv3.W));
         var auv4 = vertex.AdditionalUV4;
         smd.AdditionalUV4.Add(new System.Numerics.Vector4(auv4.X, auv4.Y, auv4.Z, auv4.W));
+        smd.EdgeScale.Add(vertex.EdgeScale);
 
         System.Numerics.Vector4 ji = System.Numerics.Vector4.Zero;
         System.Numerics.Vector4 jw = System.Numerics.Vector4.Zero;
