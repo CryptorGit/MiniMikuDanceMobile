@@ -152,8 +152,8 @@ maui run android
 
 詳細なタスクや進捗は [`TODO.md`](TODO.md) を参照してください。
 
-- SharpBgfx によるレンダラー移行 — [TODO](TODO.md#レンダラー移行sharpbgfx)
-- BulletSharpPInvoke による物理エンジン統合 — [TODO](TODO.md#物理演算エンジン統合bulletsharppinvoke)
-- CCD/FABRIK を用いた IK ソルバー — [TODO](TODO.md#ikアルゴリズム実装)
-- PMX/VMD 読み書き機能の拡充 — [TODO](TODO.md#pmxフォーマット解析ライブラリ導入)
+- BEPUphysics と質点ばねによる物理演算 — [TODO](TODO.md#物理演算bepuphysics--質点ばね)
+- CCD/FABRIK + Clamp を用いた IK ソルバー — [TODO](TODO.md#ik-アルゴリズムccdfabrik--clamp)
+- PMX/VMD 専用機能の整理と glTF 対応検討 — [TODO](TODO.md#pmxvmd-専用機能整理gltf-対応検討)
+- FFmpegKit 連携による録画強化 — [TODO](TODO.md#録画強化ffmpegkit-連携の検討)
 
