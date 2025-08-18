@@ -6,7 +6,6 @@ using System.Collections;
 using System.Buffers;
 using System.Linq;
 using Microsoft.Extensions.Logging;
-using Microsoft.Extensions.Logging.Abstractions;
 using SixLabors.ImageSharp;
 using SixLabors.ImageSharp.PixelFormats;
 using Vector3D = Assimp.Vector3D;
@@ -114,7 +113,7 @@ public class PmxImporter : IModelImporter
 
 public PmxImporter(ILogger<PmxImporter>? logger = null)
     {
-        _logger = logger ?? NullLogger<PmxImporter>.Instance;
+        _logger = logger ?? LoggerFactory.Create(builder => builder.AddConsole()).CreateLogger<PmxImporter>();
     }
 
     public void Dispose()
