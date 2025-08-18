@@ -736,6 +736,13 @@ public PmxImporter(ILogger<PmxImporter>? logger = null)
             if (rbB < 0) rbB = type.GetProperty("RigidBody2")?.GetValue(j) is object b1 ? Convert.ToInt32(b1) : -1;
             string name = string.IsNullOrEmpty(j.NameEnglish) ? j.Name : j.NameEnglish;
             var jd = new JointData { Name = name, RigidBodyA = rbA, RigidBodyB = rbB };
+            if (type.GetProperty("Position")?.GetValue(j) is object pos)
+                jd.Position = ScaleVector((dynamic)pos);
+            if (type.GetProperty("Rotation")?.GetValue(j) is object rot)
+            {
+                dynamic v = rot;
+                jd.Rotation = new System.Numerics.Vector3(v.X, v.Y, v.Z);
+            }
             if (type.GetProperty("TranslationMinLimit")?.GetValue(j) is object tmin)
                 jd.PositionMin = ScaleVector((dynamic)tmin);
             if (type.GetProperty("TranslationMaxLimit")?.GetValue(j) is object tmax)
