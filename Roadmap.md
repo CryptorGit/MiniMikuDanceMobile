@@ -204,11 +204,12 @@
 ## 9. 具体タスク一覧（チェックリスト）
 
 ### 9.1 Importer
-- [ ] `IModelImporter`, `IMotionImporter` 雛形追加
-- [ ] `PmxImporter.cs`（全フィールド）
+- [x] `IModelImporter`, `IMotionImporter` 雛形追加
+- [x] `PmxImporter.cs`（全フィールド）
 - [ ] `VmdImporter.cs`（全トラック）
-- [ ] `ImporterAuditScene` のUI/CSV出力
-- [ ] テクスチャ解決/フォールバック
+- [x] `ImporterAuditScene` のUI/CSV出力
+- [x] テクスチャ解決/フォールバック
+- [ ] `MotionData` マッピング
 
 ### 9.2 Animation/Rendering
 - [ ] `KeyframePlayer.cs`（Bezier/LUT）
@@ -226,5 +227,5 @@
 - [ ] UI パラメータ連携
 
 ### 9.5 Recording
-- [ ] PNG非同期書出し
+- [x] PNG非同期書出し
 - [ ] FFmpegKit連携（任意）
