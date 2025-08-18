@@ -77,7 +77,7 @@ public partial class ImporterAuditScene : ContentView
                 sb.AppendLine(j.Name);
             }
 
-            File.WriteAllText(path, sb.ToString(), Encoding.UTF8);
+            await File.WriteAllTextAsync(path, sb.ToString(), Encoding.UTF8);
             await (Application.Current?.MainPage?.DisplayAlert("書き出し完了", path, "OK") ?? Task.CompletedTask);
         }
         catch (Exception ex)
