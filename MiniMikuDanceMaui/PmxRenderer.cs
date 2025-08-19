@@ -329,7 +329,7 @@ uniform vec3 uToonColor;
 uniform vec4 uTextureTint;
 out vec4 FragColor;
 void main(){
-    vec4 base = (uUseTex ? texture(uTex, vTex) * uColor : uColor) * uTextureTint;
+    vec4 base = (uUseTex ? texture(uTex, vTex) : uColor) * uTextureTint;
     if(uUseSphereTex){
         vec4 s = texture(uSphereTex, vTex);
         if(uSphereMode == 1) base *= s;
@@ -1059,6 +1059,14 @@ void main(){
                 GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureMinFilter, (int)TextureMinFilter.Linear);
                 GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureMagFilter, (int)TextureMagFilter.Linear);
                 rm.HasToonTexture = true;
+            }
+
+            if (rm.HasTexture)
+            {
+                rm.BaseTextureTint *= rm.BaseColor;
+                rm.TextureTint = rm.BaseTextureTint;
+                rm.BaseColor = Vector4.One;
+                rm.Color = Vector4.One;
             }
 
             _meshes.Add(rm);
