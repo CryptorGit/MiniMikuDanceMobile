@@ -570,9 +570,6 @@ public partial class MainPage : ContentPage
             _renderer.ClearBoneRotations();
             _renderer.LoadModel(_pendingModel);
             _currentModel = _pendingModel;
-            _shadeShift = _pendingModel.ShadeShift;
-            _shadeToony = _pendingModel.ShadeToony;
-            _rimIntensity = _pendingModel.RimIntensity;
             UpdateRendererLightingProperties();
             _pendingModel = null;
 
@@ -784,9 +781,6 @@ public partial class MainPage : ContentPage
                 }
                 _renderer.LoadModel(data);
                 _currentModel = data;
-                _shadeShift = data.ShadeShift;
-                _shadeToony = data.ShadeToony;
-                _rimIntensity = data.RimIntensity;
                 UpdateRendererLightingProperties();
                 Viewer?.InvalidateSurface();
             }

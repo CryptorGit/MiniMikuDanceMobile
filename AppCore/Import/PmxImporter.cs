@@ -26,9 +26,6 @@ public class ModelData
     public List<JointData> Joints { get; set; } = new();
     public List<SoftBodyData> SoftBodies { get; set; } = new();
     public List<DisplayFrameData> DisplayFrames { get; set; } = new();
-    public float ShadeShift { get; set; } = -0.1f;
-    public float ShadeToony { get; set; } = 0.9f;
-    public float RimIntensity { get; set; } = 0.5f;
     public string ModelName { get; set; } = string.Empty;
     public string ModelNameEnglish { get; set; } = string.Empty;
     public string Comment { get; set; } = string.Empty;
