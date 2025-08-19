@@ -328,10 +328,16 @@ uniform float uEdgeSize;
 uniform vec3 uToonColor;
 uniform vec4 uTextureTint;
 out vec4 FragColor;
+const float PI = 3.14159265358979323846;
+vec2 sphereUVFromNormal(vec3 n){
+    float u = 0.5 + atan(n.z, n.x) / (2.0 * PI);
+    float v = 0.5 - asin(n.y) / PI;
+    return vec2(u, v);
+}
 void main(){
     vec4 base = (uUseTex ? texture(uTex, vTex) : uColor) * uTextureTint;
     if(uUseSphereTex){
-        vec4 s = texture(uSphereTex, vTex);
+        vec4 s = texture(uSphereTex, sphereUVFromNormal(normalize(vNormal)));
         if(uSphereMode == 1) base *= s;
         else if(uSphereMode == 2){
             base.rgb = clamp(base.rgb + s.rgb, 0.0, 1.0);
