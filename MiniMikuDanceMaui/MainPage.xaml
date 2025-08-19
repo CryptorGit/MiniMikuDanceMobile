@@ -89,6 +89,11 @@
                         <TapGestureRecognizer Tapped="OnMorphClicked" />
                     </Label.GestureRecognizers>
                 </Label>
+                <Label Text="Physics" TextColor="{StaticResource TextColor}">
+                    <Label.GestureRecognizers>
+                        <TapGestureRecognizer Tapped="OnPhysicsClicked" />
+                    </Label.GestureRecognizers>
+                </Label>
             </VerticalStackLayout>
         </Border>
         <Border x:Name="FileMenu" IsVisible="False" Background="{StaticResource BackgroundColor}" Padding="0" ZIndex="20">

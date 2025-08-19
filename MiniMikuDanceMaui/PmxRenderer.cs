@@ -830,17 +830,25 @@ void main(){
     {
         int tex = GL.GenTexture();
         GL.BindTexture(TextureTarget.Texture2D, tex);
-        Span<byte> data = stackalloc byte[] { r, g, b, a };
-        GL.TexImage2D(
-            TextureTarget.Texture2D,
-            0,
-            PixelInternalFormat.Rgba,
-            1,
-            1,
-            0,
-            PixelFormat.Rgba,
-            PixelType.UnsignedByte,
-            ref data[0]);
+        var data = new byte[] { r, g, b, a };
+        var handle = GCHandle.Alloc(data, GCHandleType.Pinned);
+        try
+        {
+            GL.TexImage2D(
+                All.Texture2D,
+                0,
+                All.Rgba,
+                1,
+                1,
+                0,
+                All.Rgba,
+                All.UnsignedByte,
+                handle.AddrOfPinnedObject());
+        }
+        finally
+        {
+            handle.Free();
+        }
         GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureMinFilter, (int)TextureMinFilter.Linear);
         GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureMagFilter, (int)TextureMagFilter.Linear);
         return tex;
