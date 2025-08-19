@@ -1,3 +1,4 @@
+using System;
 using System.Numerics;
 using System.Collections.Generic;
 using BepuPhysics;
@@ -15,6 +16,7 @@ public sealed class BepuPhysicsWorld : IPhysicsWorld
     private BufferPool? _bufferPool;
     private Simulation? _simulation;
     private readonly Dictionary<BodyHandle, int> _bodyBoneMap = new();
+    private readonly List<BodyHandle> _rigidBodyHandles = new();
 
     public void Initialize()
     {
@@ -42,6 +44,7 @@ public sealed class BepuPhysicsWorld : IPhysicsWorld
     public void LoadRigidBodies(ModelData model)
     {
         if (_simulation is null) return;
+        _rigidBodyHandles.Clear();
         foreach (var rb in model.RigidBodies)
         {
             TypedIndex shapeIndex;
@@ -85,8 +88,110 @@ public sealed class BepuPhysicsWorld : IPhysicsWorld
             bodyDesc.AngularDamping = rb.AngularDamping;
 
             var handle = _simulation.Bodies.Add(bodyDesc);
+            _rigidBodyHandles.Add(handle);
             _bodyBoneMap[handle] = rb.BoneIndex;
         }
+    }
+
+    public void LoadJoints(ModelData model)
+    {
+        if (_simulation is null) return;
+        for (int i = 0; i < model.Joints.Count; i++)
+        {
+            var jd = model.Joints[i];
+            if (jd.RigidBodyA < 0 || jd.RigidBodyB < 0) continue;
+            if (jd.RigidBodyA >= _rigidBodyHandles.Count || jd.RigidBodyB >= _rigidBodyHandles.Count) continue;
+
+            var handleA = _rigidBodyHandles[jd.RigidBodyA];
+            var handleB = _rigidBodyHandles[jd.RigidBodyB];
+            var rbA = model.RigidBodies[jd.RigidBodyA];
+            var rbB = model.RigidBodies[jd.RigidBodyB];
+
+            ComputeJointLocalPoses(jd, rbA, rbB, out var localA, out var localB);
+
+            var ball = new BallSocket
+            {
+                LocalOffsetA = localA.Position,
+                LocalOffsetB = localB.Position,
+                SpringSettings = new SpringSettings(30f, 1f)
+            };
+            _simulation.Solver.Add(handleA, handleB, ball);
+
+            AddLinearLimit(handleA, handleB, localA.Position, localB.Position, localA.Orientation,
+                new Vector3(1, 0, 0), jd.PositionMin.X, jd.PositionMax.X, jd.SpringPosition.X);
+            AddLinearLimit(handleA, handleB, localA.Position, localB.Position, localA.Orientation,
+                new Vector3(0, 1, 0), jd.PositionMin.Y, jd.PositionMax.Y, jd.SpringPosition.Y);
+            AddLinearLimit(handleA, handleB, localA.Position, localB.Position, localA.Orientation,
+                new Vector3(0, 0, 1), jd.PositionMin.Z, jd.PositionMax.Z, jd.SpringPosition.Z);
+
+            AddTwistLimit(handleA, handleB, localA.Orientation, localB.Orientation,
+                Vector3.UnitX, jd.RotationMin.X, jd.RotationMax.X, jd.SpringRotation.X);
+            AddTwistLimit(handleA, handleB, localA.Orientation, localB.Orientation,
+                Vector3.UnitY, jd.RotationMin.Y, jd.RotationMax.Y, jd.SpringRotation.Y);
+            AddTwistLimit(handleA, handleB, localA.Orientation, localB.Orientation,
+                Vector3.UnitZ, jd.RotationMin.Z, jd.RotationMax.Z, jd.SpringRotation.Z);
+        }
+    }
+
+    private void AddLinearLimit(BodyHandle a, BodyHandle b, Vector3 localOffsetA, Vector3 localOffsetB,
+        Quaternion localOrientationA, Vector3 axis, float min, float max, float spring)
+    {
+        if (min == 0f && max == 0f && spring == 0f) return;
+        var localAxis = Vector3.Transform(axis, Quaternion.Conjugate(localOrientationA));
+        var limit = new LinearAxisLimit
+        {
+            LocalOffsetA = localOffsetA,
+            LocalOffsetB = localOffsetB,
+            LocalAxis = localAxis,
+            MinimumOffset = min,
+            MaximumOffset = max,
+            SpringSettings = new SpringSettings(MathF.Max(spring, 0.0001f), 1f)
+        };
+        _simulation!.Solver.Add(a, b, limit);
+    }
+
+    private void AddTwistLimit(BodyHandle a, BodyHandle b, Quaternion localOrientationA, Quaternion localOrientationB,
+        Vector3 axis, float min, float max, float spring)
+    {
+        if (min == 0f && max == 0f && spring == 0f) return;
+        var basis = CreateBasisFromAxis(axis);
+        var limit = new TwistLimit
+        {
+            LocalBasisA = Quaternion.Concatenate(basis, localOrientationA),
+            LocalBasisB = Quaternion.Concatenate(basis, localOrientationB),
+            MinimumAngle = min,
+            MaximumAngle = max,
+            SpringSettings = new SpringSettings(MathF.Max(spring, 0.0001f), 1f)
+        };
+        _simulation!.Solver.Add(a, b, limit);
+    }
+
+    private static void ComputeJointLocalPoses(JointData joint, RigidBodyData a, RigidBodyData b,
+        out RigidPose localA, out RigidPose localB)
+    {
+        var jointOrientation = Quaternion.CreateFromYawPitchRoll(joint.Rotation.Y, joint.Rotation.X, joint.Rotation.Z);
+        localA = ToLocalPose(joint.Position, jointOrientation, a);
+        localB = ToLocalPose(joint.Position, jointOrientation, b);
+    }
+
+    private static RigidPose ToLocalPose(Vector3 jointPos, Quaternion jointOrientation, RigidBodyData rb)
+    {
+        var bodyOrientation = Quaternion.CreateFromYawPitchRoll(rb.Rotation.Y, rb.Rotation.X, rb.Rotation.Z);
+        var invBody = Quaternion.Conjugate(bodyOrientation);
+        var localPos = Vector3.Transform(jointPos - rb.Position, invBody);
+        var localRot = Quaternion.Concatenate(invBody, jointOrientation);
+        return new RigidPose(localPos, localRot);
+    }
+
+    private static Quaternion CreateBasisFromAxis(Vector3 axis)
+    {
+        axis = Vector3.Normalize(axis);
+        var dot = Vector3.Dot(Vector3.UnitZ, axis);
+        if (dot > 0.9999f) return Quaternion.Identity;
+        if (dot < -0.9999f) return Quaternion.CreateFromAxisAngle(Vector3.UnitX, MathF.PI);
+        var rotAxis = Vector3.Normalize(Vector3.Cross(Vector3.UnitZ, axis));
+        var angle = MathF.Acos(dot);
+        return Quaternion.CreateFromAxisAngle(rotAxis, angle);
     }
 
     private struct SimpleNarrowPhaseCallbacks : INarrowPhaseCallbacks

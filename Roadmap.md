@@ -235,6 +235,12 @@
 - ジョイントは `BallAndSocket` を基点に軸制限とバネ設定を適用して生成する
 - `CollisionGroup` / `CollisionFilter` でグループマスクを再現する
 
+#### ジョイント座標変換仕様
+- PMXジョイントの位置・回転（ワールド空間）を、接続する剛体の座標系へ逆変換し `LocalOffset`/`LocalBasis` として利用する
+- 平行移動制限: `PositionMin/Max` を軸別に `LinearAxisLimit.MinimumOffset/MaximumOffset` に割り当て、`SpringPosition` を `SpringSettings(Frequency,1)` へ反映
+- 回転制限: `RotationMin/Max` を軸ごとの `TwistLimit.MinimumAngle/MaximumAngle` に写像し、`SpringRotation` を同じく `SpringSettings` に適用
+- 基準軸はジョイント回転を考慮して `CreateBasisFromAxis` で算出する
+
 ### 9.5 Recording
 - [x] PNG非同期書出し
 - [ ] FFmpegKit連携（任意）
