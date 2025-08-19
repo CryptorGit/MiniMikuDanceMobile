@@ -10,6 +10,7 @@ public partial class LightingView : ContentView
     public event Action<double>? RimIntensityChanged;
     public event Action<double>? SphereStrengthChanged;
     public event Action<double>? ToonStrengthChanged;
+    public event Action<bool>? ApplyWithoutTextureChanged;
 
     public LightingView()
     {
@@ -44,6 +45,11 @@ public partial class LightingView : ContentView
     {
         ToonStrengthValue.Text = $"{e.NewValue:F2}";
         ToonStrengthChanged?.Invoke(e.NewValue);
+    }
+
+    private void OnApplyWithoutTextureChanged(object? sender, CheckedChangedEventArgs e)
+    {
+        ApplyWithoutTextureChanged?.Invoke(e.Value);
     }
 
     public double ShadeShift
@@ -94,5 +100,11 @@ public partial class LightingView : ContentView
             ToonStrengthSlider.Value = value;
             ToonStrengthValue.Text = $"{value:F2}";
         }
+    }
+
+    public bool ApplyWithoutTexture
+    {
+        get => ApplyWithoutTextureCheck.IsChecked;
+        set => ApplyWithoutTextureCheck.IsChecked = value;
     }
 }

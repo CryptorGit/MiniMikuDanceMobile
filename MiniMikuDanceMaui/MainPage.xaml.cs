@@ -55,6 +55,7 @@ public partial class MainPage : ContentPage
     private float _rimIntensity = 0.5f;
     private float _sphereStrength = 1f;
     private float _toonStrength = 1f;
+    private bool _applyWithoutTexture;
     private bool _poseMode;
     // bottomWidth is no longer used; bottom region spans full screen width
     // private double bottomWidth = 0;
@@ -170,6 +171,7 @@ public partial class MainPage : ContentPage
         _renderer.RimIntensity = 0.5f;
         _renderer.SphereStrength = _sphereStrength;
         _renderer.ToonStrength = _toonStrength;
+        _renderer.UseDefaultTextures = _applyWithoutTexture;
         _renderer.StageSize = _settings.StageSize;
         _renderer.DefaultCameraDistance = _settings.CameraDistance;
         _renderer.DefaultCameraTargetY = _settings.CameraTargetY;
@@ -549,6 +551,7 @@ public partial class MainPage : ContentPage
         _renderer.RimIntensity = _rimIntensity;
         _renderer.SphereStrength = _sphereStrength;
         _renderer.ToonStrength = _toonStrength;
+        _renderer.UseDefaultTextures = _applyWithoutTexture;
     }
 
     private void OnPaintSurface(object? sender, SKPaintGLSurfaceEventArgs e)
@@ -870,6 +873,12 @@ public partial class MainPage : ContentPage
                     _settings.Save();
                     UpdateRendererLightingProperties();
                 };
+                mv.ApplyWithoutTextureChanged += v =>
+                {
+                    _applyWithoutTexture = v;
+                    UpdateRendererLightingProperties();
+                };
+                mv.ApplyWithoutTexture = _applyWithoutTexture;
                 view = mv;
             }
             else if (name == "MORPH")
@@ -975,6 +984,7 @@ public partial class MainPage : ContentPage
             mv.RimIntensity = _renderer.RimIntensity;
             mv.SphereStrength = _renderer.SphereStrength;
             mv.ToonStrength = _renderer.ToonStrength;
+            mv.ApplyWithoutTexture = _applyWithoutTexture;
         }
         else if (name == "MORPH" && _bottomViews[name] is MorphView morphView)
         {

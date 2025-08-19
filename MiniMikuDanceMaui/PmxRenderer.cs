@@ -168,6 +168,7 @@ public partial class PmxRenderer : IDisposable
     public float SphereStrength { get; set; } = 1f;
     public float ToonStrength { get; set; } = 1f;
     public float Ambient { get; set; } = 0.3f;
+    public bool UseDefaultTextures { get; set; }
     private bool _showBoneOutline;
     public bool ShowBoneOutline
     {
@@ -342,21 +343,17 @@ vec2 sphereUVFromNormal(vec3 n){
 }
 void main(){
     vec4 base = (uUseTex ? texture(uTex, vTex) : uColor) * uTextureTint;
-    if(uUseSphereTex){
-        vec4 s = texture(uSphereTex, sphereUVFromNormal(normalize(vNormal)));
-        vec4 combined = base;
-        if(uSphereMode == 1) combined *= s;
-        else if(uSphereMode == 2){
-            combined.rgb = clamp(base.rgb + s.rgb, 0.0, 1.0);
-            combined.a   = clamp(base.a + s.a, 0.0, 1.0);
-        }
-        base = mix(base, combined, uSphereStrength);
+    vec4 s = uUseSphereTex ? texture(uSphereTex, sphereUVFromNormal(normalize(vNormal))) : vec4(1.0);
+    vec4 combined = base;
+    if(uSphereMode == 1) combined *= s;
+    else if(uSphereMode == 2){
+        combined.rgb = clamp(base.rgb + s.rgb, 0.0, 1.0);
+        combined.a   = clamp(base.a + s.a, 0.0, 1.0);
     }
-    if(uUseToonTex){
-        vec3 t = texture(uToonTex, vTex).rgb;
-        vec3 combined = base.rgb * t;
-        base.rgb = mix(base.rgb, combined, uToonStrength);
-    }
+    base = mix(base, combined, uSphereStrength);
+    vec3 t = uUseToonTex ? texture(uToonTex, vTex).rgb : uToonColor;
+    vec3 combinedToon = base.rgb * t;
+    base.rgb = mix(base.rgb, combinedToon, uToonStrength);
     float ndotl = max(dot(normalize(vNormal), normalize(uLightDir)), 0.0);
     float light = clamp((ndotl + uShadeShift) * uShadeToony, 0.0, 1.0);
     float rim = pow(1.0 - max(dot(normalize(vNormal), normalize(uViewDir)), 0.0), 3.0) * uRimIntensity;
@@ -829,6 +826,26 @@ void main(){
 
     // Morph関連メソッドは PmxRenderer.Morph.cs へ移動
 
+    private static int CreateSolidTexture(byte r, byte g, byte b, byte a)
+    {
+        int tex = GL.GenTexture();
+        GL.BindTexture(TextureTarget.Texture2D, tex);
+        Span<byte> data = stackalloc byte[] { r, g, b, a };
+        GL.TexImage2D(
+            TextureTarget.Texture2D,
+            0,
+            PixelInternalFormat.Rgba,
+            1,
+            1,
+            0,
+            PixelFormat.Rgba,
+            PixelType.UnsignedByte,
+            ref data[0]);
+        GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureMinFilter, (int)TextureMinFilter.Linear);
+        GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureMagFilter, (int)TextureMagFilter.Linear);
+        return tex;
+    }
+
     public void LoadModel(MiniMikuDance.Import.ModelData data)
     {
         foreach (var rm in _meshes)
@@ -1051,6 +1068,11 @@ void main(){
                 GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureMagFilter, (int)TextureMagFilter.Linear);
                 rm.HasSphereTexture = true;
             }
+            else if (UseDefaultTextures)
+            {
+                rm.SphereTexture = CreateSolidTexture(255, 255, 255, 255);
+                rm.HasSphereTexture = true;
+            }
             if (sm.ToonTextureBytes != null)
             {
                 rm.ToonTexture = GL.GenTexture();
@@ -1078,6 +1100,14 @@ void main(){
                 sm.ToonTextureHeight = 0;
                 GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureMinFilter, (int)TextureMinFilter.Linear);
                 GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureMagFilter, (int)TextureMagFilter.Linear);
+                rm.HasToonTexture = true;
+            }
+            else if (UseDefaultTextures)
+            {
+                byte r = (byte)(rm.ToonColor.X * 255f);
+                byte g = (byte)(rm.ToonColor.Y * 255f);
+                byte b = (byte)(rm.ToonColor.Z * 255f);
+                rm.ToonTexture = CreateSolidTexture(r, g, b, 255);
                 rm.HasToonTexture = true;
             }
 

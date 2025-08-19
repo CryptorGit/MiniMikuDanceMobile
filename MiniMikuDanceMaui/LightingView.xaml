@@ -34,5 +34,9 @@
         </Grid>
         <Slider x:Name="ToonStrengthSlider" Minimum="0" Maximum="1"
                 ValueChanged="OnToonStrengthChanged"/>
+        <HorizontalStackLayout>
+            <CheckBox x:Name="ApplyWithoutTextureCheck" CheckedChanged="OnApplyWithoutTextureChanged"/>
+            <Label Text="テクスチャなしでも適用" TextColor="{StaticResource TextColor}" VerticalTextAlignment="Center"/>
+        </HorizontalStackLayout>
     </VerticalStackLayout>
 </ContentView>
