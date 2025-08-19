@@ -42,6 +42,11 @@ public partial class PmxRenderer : IDisposable
         public Vector4 BaseTextureTint = Vector4.One;
         public int Texture;
         public bool HasTexture;
+        public int SphereTexture;
+        public bool HasSphereTexture;
+        public int ToonTexture;
+        public bool HasToonTexture;
+        public SphereMode SphereMode;
         public Vector3[] BaseVertices = Array.Empty<Vector3>();
         public Vector3[] VertexOffsets = Array.Empty<Vector3>();
         public Vector3[] Normals = Array.Empty<Vector3>();
@@ -115,6 +120,11 @@ public partial class PmxRenderer : IDisposable
     private int _modelEdgeSizeLoc;
     private int _modelToonColorLoc;
     private int _modelTexTintLoc;
+    private int _modelSphereTexLoc;
+    private int _modelUseSphereTexLoc;
+    private int _modelSphereModeLoc;
+    private int _modelToonTexLoc;
+    private int _modelUseToonTexLoc;
     private Matrix4 _modelTransform = Matrix4.Identity;
     public Matrix4 ModelTransform
     {
@@ -300,6 +310,11 @@ in vec2 vTex;
 uniform vec4 uColor;
 uniform sampler2D uTex;
 uniform bool uUseTex;
+uniform sampler2D uSphereTex;
+uniform bool uUseSphereTex;
+uniform int uSphereMode;
+uniform sampler2D uToonTex;
+uniform bool uUseToonTex;
 uniform vec3 uLightDir;
 uniform vec3 uViewDir;
 uniform float uShadeShift;
@@ -315,6 +330,15 @@ uniform vec4 uTextureTint;
 out vec4 FragColor;
 void main(){
     vec4 base = (uUseTex ? texture(uTex, vTex) : uColor) * uTextureTint;
+    if(uUseSphereTex){
+        vec4 s = texture(uSphereTex, vTex);
+        if(uSphereMode == 1) base *= s;
+        else if(uSphereMode == 2) base += s;
+    }
+    if(uUseToonTex){
+        vec4 t = texture(uToonTex, vTex);
+        base *= t;
+    }
     float ndotl = max(dot(normalize(vNormal), normalize(uLightDir)), 0.0);
     float light = clamp((ndotl + uShadeShift) * uShadeToony, 0.0, 1.0);
     float rim = pow(1.0 - max(dot(normalize(vNormal), normalize(uViewDir)), 0.0), 3.0) * uRimIntensity;
@@ -355,6 +379,11 @@ void main(){
         _modelEdgeSizeLoc = GL.GetUniformLocation(_modelProgram, "uEdgeSize");
         _modelToonColorLoc = GL.GetUniformLocation(_modelProgram, "uToonColor");
         _modelTexTintLoc = GL.GetUniformLocation(_modelProgram, "uTextureTint");
+        _modelSphereTexLoc = GL.GetUniformLocation(_modelProgram, "uSphereTex");
+        _modelUseSphereTexLoc = GL.GetUniformLocation(_modelProgram, "uUseSphereTex");
+        _modelSphereModeLoc = GL.GetUniformLocation(_modelProgram, "uSphereMode");
+        _modelToonTexLoc = GL.GetUniformLocation(_modelProgram, "uToonTex");
+        _modelUseToonTexLoc = GL.GetUniformLocation(_modelProgram, "uUseToonTex");
 
         GenerateGrid();
     }
@@ -788,6 +817,8 @@ void main(){
             if (rm.Vbo != 0) GL.DeleteBuffer(rm.Vbo);
             if (rm.Ebo != 0) GL.DeleteBuffer(rm.Ebo);
             if (rm.Texture != 0) GL.DeleteTexture(rm.Texture);
+            if (rm.SphereTexture != 0) GL.DeleteTexture(rm.SphereTexture);
+            if (rm.ToonTexture != 0) GL.DeleteTexture(rm.ToonTexture);
         }
         _meshes.Clear();
         _indexToHumanoidName.Clear();
@@ -926,6 +957,7 @@ void main(){
             rm.ToonColor = rm.BaseToonColor;
             rm.BaseTextureTint = sm.TextureTint.ToVector4();
             rm.TextureTint = rm.BaseTextureTint;
+            rm.SphereMode = sm.SphereMode;
 
             GL.BindVertexArray(rm.Vao);
             GL.BindBuffer(BufferTarget.ArrayBuffer, rm.Vbo);
@@ -969,6 +1001,64 @@ void main(){
                 GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureMinFilter, (int)TextureMinFilter.Linear);
                 GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureMagFilter, (int)TextureMagFilter.Linear);
                 rm.HasTexture = true;
+            }
+            if (sm.SphereTextureBytes != null)
+            {
+                rm.SphereTexture = GL.GenTexture();
+                GL.BindTexture(TextureTarget.Texture2D, rm.SphereTexture);
+                var handle = System.Runtime.InteropServices.GCHandle.Alloc(sm.SphereTextureBytes, System.Runtime.InteropServices.GCHandleType.Pinned);
+                try
+                {
+                    GL.TexImage2D(
+                        All.Texture2D,
+                        0,
+                        All.Rgba,
+                        sm.SphereTextureWidth,
+                        sm.SphereTextureHeight,
+                        0,
+                        All.Rgba,
+                        All.UnsignedByte,
+                        handle.AddrOfPinnedObject());
+                }
+                finally
+                {
+                    handle.Free();
+                }
+                sm.SphereTextureBytes = null;
+                sm.SphereTextureWidth = 0;
+                sm.SphereTextureHeight = 0;
+                GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureMinFilter, (int)TextureMinFilter.Linear);
+                GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureMagFilter, (int)TextureMagFilter.Linear);
+                rm.HasSphereTexture = true;
+            }
+            if (sm.ToonTextureBytes != null)
+            {
+                rm.ToonTexture = GL.GenTexture();
+                GL.BindTexture(TextureTarget.Texture2D, rm.ToonTexture);
+                var handle = System.Runtime.InteropServices.GCHandle.Alloc(sm.ToonTextureBytes, System.Runtime.InteropServices.GCHandleType.Pinned);
+                try
+                {
+                    GL.TexImage2D(
+                        All.Texture2D,
+                        0,
+                        All.Rgba,
+                        sm.ToonTextureWidth,
+                        sm.ToonTextureHeight,
+                        0,
+                        All.Rgba,
+                        All.UnsignedByte,
+                        handle.AddrOfPinnedObject());
+                }
+                finally
+                {
+                    handle.Free();
+                }
+                sm.ToonTextureBytes = null;
+                sm.ToonTextureWidth = 0;
+                sm.ToonTextureHeight = 0;
+                GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureMinFilter, (int)TextureMinFilter.Linear);
+                GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureMagFilter, (int)TextureMagFilter.Linear);
+                rm.HasToonTexture = true;
             }
 
             _meshes.Add(rm);

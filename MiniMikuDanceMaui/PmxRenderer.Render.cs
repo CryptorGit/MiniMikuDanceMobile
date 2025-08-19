@@ -509,6 +509,7 @@ public partial class PmxRenderer
             GL.Uniform1(_modelEdgeSizeLoc, rm.EdgeSize);
             GL.Uniform3(_modelToonColorLoc, rm.ToonColor);
             GL.Uniform4(_modelTexTintLoc, rm.TextureTint);
+            GL.Uniform1(_modelSphereModeLoc, (int)rm.SphereMode);
             if (rm.HasTexture)
             {
                 GL.ActiveTexture(TextureUnit.Texture0);
@@ -520,6 +521,28 @@ public partial class PmxRenderer
             {
                 GL.Uniform1(_modelUseTexLoc, 0);
             }
+            if (rm.HasSphereTexture)
+            {
+                GL.ActiveTexture(TextureUnit.Texture1);
+                GL.BindTexture(TextureTarget.Texture2D, rm.SphereTexture);
+                GL.Uniform1(_modelSphereTexLoc, 1);
+                GL.Uniform1(_modelUseSphereTexLoc, 1);
+            }
+            else
+            {
+                GL.Uniform1(_modelUseSphereTexLoc, 0);
+            }
+            if (rm.HasToonTexture)
+            {
+                GL.ActiveTexture(TextureUnit.Texture2);
+                GL.BindTexture(TextureTarget.Texture2D, rm.ToonTexture);
+                GL.Uniform1(_modelToonTexLoc, 2);
+                GL.Uniform1(_modelUseToonTexLoc, 1);
+            }
+            else
+            {
+                GL.Uniform1(_modelUseToonTexLoc, 0);
+            }
             GL.BindVertexArray(rm.Vao);
             GL.DrawElements(PrimitiveType.Triangles, rm.IndexCount, DrawElementsType.UnsignedInt, IntPtr.Zero);
             GL.BindVertexArray(0);
@@ -527,6 +550,17 @@ public partial class PmxRenderer
             {
                 GL.BindTexture(TextureTarget.Texture2D, 0);
             }
+            if (rm.HasSphereTexture)
+            {
+                GL.ActiveTexture(TextureUnit.Texture1);
+                GL.BindTexture(TextureTarget.Texture2D, 0);
+            }
+            if (rm.HasToonTexture)
+            {
+                GL.ActiveTexture(TextureUnit.Texture2);
+                GL.BindTexture(TextureTarget.Texture2D, 0);
+            }
+            GL.ActiveTexture(TextureUnit.Texture0);
         }
         GL.UseProgram(_program);
         GL.UniformMatrix4(_viewLoc, false, ref _viewMatrix);

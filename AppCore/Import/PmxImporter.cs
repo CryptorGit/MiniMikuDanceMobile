@@ -10,6 +10,7 @@ using SixLabors.ImageSharp.PixelFormats;
 using Vector3D = Assimp.Vector3D;
 using MMDTools;
 using MiniMikuDance.App;
+using Microsoft.CSharp.RuntimeBinder;
 
 namespace MiniMikuDance.Import;
 public class ModelData
@@ -170,6 +171,23 @@ public PmxImporter(ILogger<PmxImporter>? logger = null)
     private SubMeshData CreateSubMesh(dynamic mat)
     {
         var sub = new Assimp.Mesh("pmx", Assimp.PrimitiveType.Triangle);
+        System.Numerics.Vector3 toonColor = System.Numerics.Vector3.One;
+        try
+        {
+            var tc = mat.ToonColor;
+            toonColor = new System.Numerics.Vector3(tc.R, tc.G, tc.B);
+        }
+        catch (RuntimeBinderException)
+        {
+        }
+        SphereMode sphereMode = SphereMode.None;
+        try
+        {
+            sphereMode = (SphereMode)mat.SphereMode;
+        }
+        catch (RuntimeBinderException)
+        {
+        }
         return new SubMeshData
         {
             Mesh = sub,
@@ -178,8 +196,9 @@ public PmxImporter(ILogger<PmxImporter>? logger = null)
             SpecularPower = mat.Shininess,
             EdgeColor = new System.Numerics.Vector4(mat.EdgeColor.R, mat.EdgeColor.G, mat.EdgeColor.B, mat.EdgeColor.A),
             EdgeSize = mat.EdgeSize,
-            ToonColor = System.Numerics.Vector3.One,
-            TextureTint = System.Numerics.Vector4.One
+            ToonColor = toonColor,
+            TextureTint = System.Numerics.Vector4.One,
+            SphereMode = sphereMode
         };
     }
 
@@ -269,9 +288,25 @@ public PmxImporter(ILogger<PmxImporter>? logger = null)
                 AddFace(sub, smd, verts, sf);
             }
 
-            if (!string.IsNullOrEmpty(dir) && mat.Texture >= 0 && mat.Texture < texList.Length)
+            if (!string.IsNullOrEmpty(dir))
             {
-                TryLoadTexture(smd, texList[mat.Texture], dir);
+                if (mat.Texture >= 0 && mat.Texture < texList.Length)
+                {
+                    TryLoadTexture(smd, texList[mat.Texture], dir, TextureType.Main);
+                }
+                int sphereIndex = -1;
+                try { sphereIndex = mat.SphereTexture; } catch (RuntimeBinderException) { }
+                if (sphereIndex >= 0 && sphereIndex < texList.Length)
+                {
+                    TryLoadTexture(smd, texList[sphereIndex], dir, TextureType.Sphere);
+                }
+
+                int toonIndex = -1;
+                try { toonIndex = mat.ToonTexture; } catch (RuntimeBinderException) { }
+                if (toonIndex >= 0 && toonIndex < texList.Length)
+                {
+                    TryLoadTexture(smd, texList[toonIndex], dir, TextureType.Toon);
+                }
             }
 
             data.SubMeshes.Add(smd);
@@ -285,10 +320,28 @@ public PmxImporter(ILogger<PmxImporter>? logger = null)
         return Path.Combine(directory, normalized);
     }
 
-    private void TryLoadTexture(SubMeshData subMeshData, string textureName, string directory)
+    private enum TextureType
+    {
+        Main,
+        Sphere,
+        Toon
+    }
+
+    private void TryLoadTexture(SubMeshData subMeshData, string textureName, string directory, TextureType type)
     {
         var texPath = ResolveTexturePath(textureName, directory, out var normalized);
-        subMeshData.TextureFilePath = normalized;
+        switch (type)
+        {
+            case TextureType.Main:
+                subMeshData.TextureFilePath = normalized;
+                break;
+            case TextureType.Sphere:
+                subMeshData.SphereTextureFilePath = normalized;
+                break;
+            case TextureType.Toon:
+                subMeshData.ToonTextureFilePath = normalized;
+                break;
+        }
         if (!File.Exists(texPath))
         {
             var fallbackPath = ResolveTexturePath("MissingTexture.png", directory, out _);
@@ -309,9 +362,24 @@ public PmxImporter(ILogger<PmxImporter>? logger = null)
                 var node = item.Node;
                 s_lruList.Remove(node);
                 s_lruList.AddFirst(node);
-                subMeshData.TextureWidth = item.Texture.Width;
-                subMeshData.TextureHeight = item.Texture.Height;
-                subMeshData.TextureBytes = item.Texture.Pixels;
+                switch (type)
+                {
+                    case TextureType.Main:
+                        subMeshData.TextureWidth = item.Texture.Width;
+                        subMeshData.TextureHeight = item.Texture.Height;
+                        subMeshData.TextureBytes = item.Texture.Pixels;
+                        break;
+                    case TextureType.Sphere:
+                        subMeshData.SphereTextureWidth = item.Texture.Width;
+                        subMeshData.SphereTextureHeight = item.Texture.Height;
+                        subMeshData.SphereTextureBytes = item.Texture.Pixels;
+                        break;
+                    case TextureType.Toon:
+                        subMeshData.ToonTextureWidth = item.Texture.Width;
+                        subMeshData.ToonTextureHeight = item.Texture.Height;
+                        subMeshData.ToonTextureBytes = item.Texture.Pixels;
+                        break;
+                }
             }
         }
 
@@ -347,9 +415,24 @@ public PmxImporter(ILogger<PmxImporter>? logger = null)
                     s_lruList.Remove(node);
                     s_lruList.AddFirst(node);
                 }
-                subMeshData.TextureWidth = item.Texture.Width;
-                subMeshData.TextureHeight = item.Texture.Height;
-                subMeshData.TextureBytes = item.Texture.Pixels;
+                switch (type)
+                {
+                    case TextureType.Main:
+                        subMeshData.TextureWidth = item.Texture.Width;
+                        subMeshData.TextureHeight = item.Texture.Height;
+                        subMeshData.TextureBytes = item.Texture.Pixels;
+                        break;
+                    case TextureType.Sphere:
+                        subMeshData.SphereTextureWidth = item.Texture.Width;
+                        subMeshData.SphereTextureHeight = item.Texture.Height;
+                        subMeshData.SphereTextureBytes = item.Texture.Pixels;
+                        break;
+                    case TextureType.Toon:
+                        subMeshData.ToonTextureWidth = item.Texture.Width;
+                        subMeshData.ToonTextureHeight = item.Texture.Height;
+                        subMeshData.ToonTextureBytes = item.Texture.Pixels;
+                        break;
+                }
             }
         }
     }
