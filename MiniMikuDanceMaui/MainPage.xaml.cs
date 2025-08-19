@@ -359,6 +359,12 @@ public partial class MainPage : ContentPage
         HideAllMenusAndLayout();
     }
 
+    private void OnPhysicsClicked(object? sender, EventArgs e)
+    {
+        ShowBottomFeature("PHYSICS");
+        HideAllMenusAndLayout();
+    }
+
     private void OnCloseBottomTapped(object? sender, TappedEventArgs e)
     {
         if (_currentFeature != null)
@@ -894,6 +900,23 @@ public partial class MainPage : ContentPage
                 };
                 view = mv;
             }
+            else if (name == "PHYSICS")
+            {
+                var pv = new PhysicsView();
+                if (_currentModel != null)
+                {
+                    pv.SetPhysics(_currentModel.RigidBodies, _currentModel.Joints);
+                }
+                pv.RigidBodyMassChanged += (index, mass) =>
+                {
+                    if (_currentModel != null && index >= 0 && index < _currentModel.RigidBodies.Count)
+                    {
+                        _currentModel.RigidBodies[index].Mass = mass;
+                        // TODO: PmxRenderer へ反映
+                    }
+                };
+                view = pv;
+            }
             else if (name == "SETTING")
             {
                 var sv = new SettingView();
@@ -991,6 +1014,13 @@ public partial class MainPage : ContentPage
             if (_currentModel?.Morphs != null)
             {
                 morphView.SetMorphs(_currentModel.Morphs);
+            }
+        }
+        else if (name == "PHYSICS" && _bottomViews[name] is PhysicsView physicsView)
+        {
+            if (_currentModel != null)
+            {
+                physicsView.SetPhysics(_currentModel.RigidBodies, _currentModel.Joints);
             }
         }
 
@@ -1230,6 +1260,10 @@ public partial class MainPage : ContentPage
             if (_bottomViews.TryGetValue("MORPH", out var view) && view is MorphView mv)
             {
                 mv.SetMorphs(data.Morphs);
+            }
+            if (_bottomViews.TryGetValue("PHYSICS", out var pview) && pview is PhysicsView pv)
+            {
+                pv.SetPhysics(data.RigidBodies, data.Joints);
             }
             success = true;
         }
