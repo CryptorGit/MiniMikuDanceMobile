@@ -293,7 +293,15 @@ public PmxImporter(ILogger<PmxImporter>? logger = null)
                 {
                     TryLoadTexture(smd, texList[mat.Texture], dir, TextureType.Main);
                 }
-                int sphereIndex = mat.SphereTextre;
+                int sphereIndex;
+                try
+                {
+                    sphereIndex = ((dynamic)mat).SphereTexture;
+                }
+                catch (RuntimeBinderException)
+                {
+                    sphereIndex = mat.SphereTextre;
+                }
                 if (sphereIndex >= 0 && sphereIndex < texList.Length)
                 {
                     TryLoadTexture(smd, texList[sphereIndex], dir, TextureType.Sphere);
