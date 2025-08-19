@@ -63,7 +63,7 @@ public class AppSettings
     public float SphereStrength { get; set; } = DefaultSphereStrength;
 
     /// <summary>トゥーンマップの強度のデフォルト値。</summary>
-    public const float DefaultToonStrength = 1f;
+    public const float DefaultToonStrength = 0f;
 
     /// <summary>トゥーンマップの強度。</summary>
     public float ToonStrength { get; set; } = DefaultToonStrength;
