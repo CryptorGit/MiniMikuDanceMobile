@@ -10,7 +10,7 @@ using SixLabors.ImageSharp.PixelFormats;
 using Vector3D = Assimp.Vector3D;
 using MMDTools;
 using MiniMikuDance.App;
-using Microsoft.CSharp.RuntimeBinder;
+using PmxMaterial = MMDTools.Material;
 
 namespace MiniMikuDance.Import;
 public class ModelData
@@ -163,31 +163,15 @@ public PmxImporter(ILogger<PmxImporter>? logger = null)
         return ms;
     }
 
-    private System.Numerics.Vector3 ScaleVector(dynamic v)
+    private System.Numerics.Vector3 ScaleVector(Vector3 v)
     {
         return new System.Numerics.Vector3(v.X * Scale, v.Y * Scale, v.Z * Scale);
     }
 
-    private SubMeshData CreateSubMesh(dynamic mat)
+    private static SubMeshData CreateSubMesh(PmxMaterial mat)
     {
         var sub = new Assimp.Mesh("pmx", Assimp.PrimitiveType.Triangle);
-        System.Numerics.Vector3 toonColor = System.Numerics.Vector3.One;
-        try
-        {
-            var tc = mat.ToonColor;
-            toonColor = new System.Numerics.Vector3(tc.R, tc.G, tc.B);
-        }
-        catch (RuntimeBinderException)
-        {
-        }
-        SphereMode sphereMode = SphereMode.None;
-        try
-        {
-            sphereMode = (SphereMode)mat.SphereMode;
-        }
-        catch (RuntimeBinderException)
-        {
-        }
+        SphereMode sphereMode = (SphereMode)mat.SphereTextureMode;
         return new SubMeshData
         {
             Mesh = sub,
@@ -196,13 +180,13 @@ public PmxImporter(ILogger<PmxImporter>? logger = null)
             SpecularPower = mat.Shininess,
             EdgeColor = new System.Numerics.Vector4(mat.EdgeColor.R, mat.EdgeColor.G, mat.EdgeColor.B, mat.EdgeColor.A),
             EdgeSize = mat.EdgeSize,
-            ToonColor = toonColor,
+            ToonColor = System.Numerics.Vector3.One,
             TextureTint = System.Numerics.Vector4.One,
             SphereMode = sphereMode
         };
     }
 
-    private void ProcessVertex(Assimp.Mesh mesh, SubMeshData smd, dynamic vertex)
+    private void ProcessVertex(Assimp.Mesh mesh, SubMeshData smd, Vertex vertex)
     {
         var pos = ScaleVector(vertex.Position);
         mesh.Vertices.Add(new Vector3D(pos.X, pos.Y, pos.Z));
@@ -258,7 +242,7 @@ public PmxImporter(ILogger<PmxImporter>? logger = null)
         smd.SdefR1.Add(sr1);
     }
 
-    private void AddFace(Assimp.Mesh mesh, SubMeshData smd, dynamic[] verts, Surface face)
+    private void AddFace(Assimp.Mesh mesh, SubMeshData smd, Vertex[] verts, Surface face)
     {
         int[] idxs = { (int)face.V1, (int)face.V2, (int)face.V3 };
         int baseIndex = mesh.Vertices.Count;
@@ -273,7 +257,7 @@ public PmxImporter(ILogger<PmxImporter>? logger = null)
         mesh.Faces.Add(f);
     }
 
-    private void GenerateSubMeshes(ModelData data, dynamic[] verts, Surface[] faces, dynamic[] mats, string[] texList, string? textureDir)
+    private void GenerateSubMeshes(ModelData data, Vertex[] verts, Surface[] faces, PmxMaterial[] mats, string[] texList, string? textureDir)
     {
         int faceOffset = 0;
         string dir = textureDir ?? string.Empty;
@@ -294,15 +278,13 @@ public PmxImporter(ILogger<PmxImporter>? logger = null)
                 {
                     TryLoadTexture(smd, texList[mat.Texture], dir, TextureType.Main);
                 }
-                int sphereIndex = -1;
-                try { sphereIndex = mat.SphereTexture; } catch (RuntimeBinderException) { }
+                int sphereIndex = mat.SphereTextre;
                 if (sphereIndex >= 0 && sphereIndex < texList.Length)
                 {
                     TryLoadTexture(smd, texList[sphereIndex], dir, TextureType.Sphere);
                 }
 
-                int toonIndex = -1;
-                try { toonIndex = mat.ToonTexture; } catch (RuntimeBinderException) { }
+                int toonIndex = mat.ToonTexture;
                 if (toonIndex >= 0 && toonIndex < texList.Length)
                 {
                     TryLoadTexture(smd, texList[toonIndex], dir, TextureType.Toon);
@@ -842,10 +824,9 @@ public PmxImporter(ILogger<PmxImporter>? logger = null)
             var rbType = rb.GetType();
             var rotProp = rbType.GetProperty("RotationRadian") ?? rbType.GetProperty("Rotation");
             System.Numerics.Vector3 rotation = System.Numerics.Vector3.Zero;
-            if (rotProp?.GetValue(rb) is { } rot)
+            if (rotProp?.GetValue(rb) is Vector3 rot)
             {
-                dynamic v = rot;
-                rotation = new System.Numerics.Vector3(v.X, v.Y, v.Z);
+                rotation = new System.Numerics.Vector3(rot.X, rot.Y, rot.Z);
             }
             var rbd = new RigidBodyData
             {
@@ -880,33 +861,29 @@ public PmxImporter(ILogger<PmxImporter>? logger = null)
             if (rbB < 0) rbB = type.GetProperty("RigidBody2")?.GetValue(j) is object b1 ? Convert.ToInt32(b1) : -1;
             string name = string.IsNullOrEmpty(j.NameEnglish) ? j.Name : j.NameEnglish;
             var jd = new JointData { Name = name, NameEnglish = j.NameEnglish ?? string.Empty, RigidBodyA = rbA, RigidBodyB = rbB };
-            if (type.GetProperty("Position")?.GetValue(j) is object pos)
-                jd.Position = ScaleVector((dynamic)pos);
-            if (type.GetProperty("Rotation")?.GetValue(j) is object rot)
+            if (type.GetProperty("Position")?.GetValue(j) is Vector3 pos)
+                jd.Position = ScaleVector(pos);
+            if (type.GetProperty("Rotation")?.GetValue(j) is Vector3 rot)
             {
-                dynamic v = rot;
-                jd.Rotation = new System.Numerics.Vector3(v.X, v.Y, v.Z);
+                jd.Rotation = new System.Numerics.Vector3(rot.X, rot.Y, rot.Z);
             }
-            if (type.GetProperty("TranslationMinLimit")?.GetValue(j) is object tmin)
-                jd.PositionMin = ScaleVector((dynamic)tmin);
-            if (type.GetProperty("TranslationMaxLimit")?.GetValue(j) is object tmax)
-                jd.PositionMax = ScaleVector((dynamic)tmax);
-            if (type.GetProperty("RotationRadianMinLimit")?.GetValue(j) is object rmin)
+            if (type.GetProperty("TranslationMinLimit")?.GetValue(j) is Vector3 tmin)
+                jd.PositionMin = ScaleVector(tmin);
+            if (type.GetProperty("TranslationMaxLimit")?.GetValue(j) is Vector3 tmax)
+                jd.PositionMax = ScaleVector(tmax);
+            if (type.GetProperty("RotationRadianMinLimit")?.GetValue(j) is Vector3 rmin)
             {
-                dynamic v = rmin;
-                jd.RotationMin = new System.Numerics.Vector3(v.X, v.Y, v.Z);
+                jd.RotationMin = new System.Numerics.Vector3(rmin.X, rmin.Y, rmin.Z);
             }
-            if (type.GetProperty("RotationRadianMaxLimit")?.GetValue(j) is object rmax)
+            if (type.GetProperty("RotationRadianMaxLimit")?.GetValue(j) is Vector3 rmax)
             {
-                dynamic v = rmax;
-                jd.RotationMax = new System.Numerics.Vector3(v.X, v.Y, v.Z);
+                jd.RotationMax = new System.Numerics.Vector3(rmax.X, rmax.Y, rmax.Z);
             }
-            if (type.GetProperty("TranslationSpring")?.GetValue(j) is object ts)
-                jd.SpringPosition = ScaleVector((dynamic)ts);
-            if (type.GetProperty("RotationSpring")?.GetValue(j) is object rs)
+            if (type.GetProperty("TranslationSpring")?.GetValue(j) is Vector3 ts)
+                jd.SpringPosition = ScaleVector(ts);
+            if (type.GetProperty("RotationSpring")?.GetValue(j) is Vector3 rs)
             {
-                dynamic v = rs;
-                jd.SpringRotation = new System.Numerics.Vector3(v.X, v.Y, v.Z);
+                jd.SpringRotation = new System.Numerics.Vector3(rs.X, rs.Y, rs.Z);
             }
             jointDatas.Add(jd);
         }
