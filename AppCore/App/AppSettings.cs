@@ -56,6 +56,18 @@ public class AppSettings
     /// <summary>テクスチャキャッシュの最大数。</summary>
     public int TextureCacheSize { get; set; } = DefaultTextureCacheSize;
 
+    /// <summary>スフィアテクスチャの強度のデフォルト値。</summary>
+    public const float DefaultSphereStrength = 1f;
+
+    /// <summary>スフィアテクスチャの強度。</summary>
+    public float SphereStrength { get; set; } = DefaultSphereStrength;
+
+    /// <summary>トゥーンテクスチャの強度のデフォルト値。</summary>
+    public const float DefaultToonStrength = 1f;
+
+    /// <summary>トゥーンテクスチャの強度。</summary>
+    public float ToonStrength { get; set; } = DefaultToonStrength;
+
 
     private const string DefaultFile = "Configs/appsettings.json";
 

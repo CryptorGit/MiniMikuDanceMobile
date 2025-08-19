@@ -125,6 +125,8 @@ public partial class PmxRenderer : IDisposable
     private int _modelSphereModeLoc;
     private int _modelToonTexLoc;
     private int _modelUseToonTexLoc;
+    private int _modelSphereStrengthLoc;
+    private int _modelToonStrengthLoc;
     private Matrix4 _modelTransform = Matrix4.Identity;
     public Matrix4 ModelTransform
     {
@@ -163,6 +165,8 @@ public partial class PmxRenderer : IDisposable
     public float ShadeShift { get; set; } = -0.1f;
     public float ShadeToony { get; set; } = 0.9f;
     public float RimIntensity { get; set; } = 0.5f;
+    public float SphereStrength { get; set; } = 1f;
+    public float ToonStrength { get; set; } = 1f;
     public float Ambient { get; set; } = 0.3f;
     private bool _showBoneOutline;
     public bool ShowBoneOutline
@@ -313,8 +317,10 @@ uniform bool uUseTex;
 uniform sampler2D uSphereTex;
 uniform bool uUseSphereTex;
 uniform int uSphereMode;
+uniform float uSphereStrength;
 uniform sampler2D uToonTex;
 uniform bool uUseToonTex;
+uniform float uToonStrength;
 uniform vec3 uLightDir;
 uniform vec3 uViewDir;
 uniform float uShadeShift;
@@ -332,15 +338,15 @@ void main(){
     vec4 base = (uUseTex ? texture(uTex, vTex) : uColor) * uTextureTint;
     if(uUseSphereTex){
         vec4 s = texture(uSphereTex, vTex);
-        if(uSphereMode == 1) base *= s;
+        if(uSphereMode == 1) base *= mix(vec4(1.0), s, uSphereStrength);
         else if(uSphereMode == 2){
-            base.rgb = clamp(base.rgb + s.rgb, 0.0, 1.0);
-            base.a   = clamp(base.a + s.a, 0.0, 1.0);
+            base.rgb = clamp(base.rgb + s.rgb * uSphereStrength, 0.0, 1.0);
+            base.a   = clamp(base.a + s.a * uSphereStrength, 0.0, 1.0);
         }
     }
     if(uUseToonTex){
         vec4 t = texture(uToonTex, vTex);
-        base *= t;
+        base *= mix(vec4(1.0), t, uToonStrength);
     }
     float ndotl = max(dot(normalize(vNormal), normalize(uLightDir)), 0.0);
     float light = clamp((ndotl + uShadeShift) * uShadeToony, 0.0, 1.0);
@@ -387,6 +393,8 @@ void main(){
         _modelSphereModeLoc = GL.GetUniformLocation(_modelProgram, "uSphereMode");
         _modelToonTexLoc = GL.GetUniformLocation(_modelProgram, "uToonTex");
         _modelUseToonTexLoc = GL.GetUniformLocation(_modelProgram, "uUseToonTex");
+        _modelSphereStrengthLoc = GL.GetUniformLocation(_modelProgram, "uSphereStrength");
+        _modelToonStrengthLoc = GL.GetUniformLocation(_modelProgram, "uToonStrength");
 
         GenerateGrid();
     }
