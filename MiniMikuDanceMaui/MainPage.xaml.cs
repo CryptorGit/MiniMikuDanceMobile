@@ -347,7 +347,7 @@ public partial class MainPage : ContentPage
 
     private void OnLightingClicked(object? sender, EventArgs e)
     {
-        ShowBottomFeature("MTOON");
+        ShowBottomFeature("Lighting");
         HideAllMenusAndLayout();
     }
 
@@ -831,7 +831,7 @@ public partial class MainPage : ContentPage
                 pv.SetModel(_currentModel);
                 view = pv;
             }
-            else if (name == "MTOON")
+            else if (name == "Lighting")
             {
                 var mv = new LightingView
                 {
@@ -968,7 +968,7 @@ public partial class MainPage : ContentPage
             var modelsPath = MmdFileSystem.Ensure("Models");
             oev.LoadDirectory(modelsPath);
         }
-        else if (name == "MTOON" && _bottomViews[name] is LightingView mv)
+        else if (name == "Lighting" && _bottomViews[name] is LightingView mv)
         {
             mv.ShadeShift = _renderer.ShadeShift;
             mv.ShadeToony = _renderer.ShadeToony;
