@@ -54,7 +54,7 @@ public partial class MainPage : ContentPage
     private float _shadeToony = 0.9f;
     private float _rimIntensity = 0.5f;
     private float _sphereStrength = 1f;
-    private float _toonStrength = 1f;
+    private float _toonStrength = 0f;
     private bool _poseMode;
     // bottomWidth is no longer used; bottom region spans full screen width
     // private double bottomWidth = 0;
