@@ -2,6 +2,14 @@ using Assimp;
 
 namespace MiniMikuDance.Import;
 
+public enum SphereMode
+{
+    None,
+    Multiply,
+    Add,
+    SubTexture
+}
+
 public class SubMeshData
 {
     public Mesh Mesh { get; set; } = null!;
@@ -21,6 +29,15 @@ public class SubMeshData
     public int TextureWidth { get; set; }
     public int TextureHeight { get; set; }
     public string? TextureFilePath { get; set; }
+    public byte[]? SphereTextureBytes { get; set; }
+    public int SphereTextureWidth { get; set; }
+    public int SphereTextureHeight { get; set; }
+    public string? SphereTextureFilePath { get; set; }
+    public byte[]? ToonTextureBytes { get; set; }
+    public int ToonTextureWidth { get; set; }
+    public int ToonTextureHeight { get; set; }
+    public string? ToonTextureFilePath { get; set; }
+    public SphereMode SphereMode { get; set; } = SphereMode.None;
     public List<System.Numerics.Vector4> JointIndices { get; set; } = new();
     public List<System.Numerics.Vector4> JointWeights { get; set; } = new();
     public List<System.Numerics.Vector3> SdefC { get; set; } = new();

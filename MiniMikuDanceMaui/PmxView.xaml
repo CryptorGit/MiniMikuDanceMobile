@@ -13,7 +13,11 @@
                 <DataTemplate x:DataType="local:SubMeshInfo">
                     <Grid ColumnDefinitions="Auto,* , Auto" Padding="2">
                         <Label Text="{Binding Index}" TextColor="{StaticResource TextColor}" Margin="0,0,8,0" />
-                        <Label Grid.Column="1" Text="{Binding Texture}" TextColor="{StaticResource TextColor}" />
+                        <VerticalStackLayout Grid.Column="1" Spacing="2">
+                            <Label Text="{Binding Texture}" TextColor="{StaticResource TextColor}" />
+                            <Label Text="{Binding SphereTexture}" TextColor="{StaticResource TextColor}" />
+                            <Label Text="{Binding ToonTexture}" TextColor="{StaticResource TextColor}" />
+                        </VerticalStackLayout>
                         <Label Grid.Column="2" Text="{Binding Size}" TextColor="{StaticResource TextColor}" HorizontalTextAlignment="End" />
                     </Grid>
                 </DataTemplate>
