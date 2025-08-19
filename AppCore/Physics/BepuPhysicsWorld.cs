@@ -8,6 +8,7 @@ using BepuPhysics.Constraints;
 using BepuUtilities;
 using BepuUtilities.Memory;
 using MiniMikuDance.Import;
+using MiniMikuDance.App;
 
 namespace MiniMikuDance.Physics;
 
@@ -15,7 +16,7 @@ public sealed class BepuPhysicsWorld : IPhysicsWorld
 {
     private BufferPool? _bufferPool;
     private Simulation? _simulation;
-    private readonly Dictionary<BodyHandle, int> _bodyBoneMap = new();
+    private readonly Dictionary<BodyHandle, (int Bone, int Mode)> _bodyBoneMap = new();
     private readonly List<BodyHandle> _rigidBodyHandles = new();
 
     public void Initialize()
@@ -30,6 +31,25 @@ public sealed class BepuPhysicsWorld : IPhysicsWorld
     public void Step(float dt)
     {
         _simulation?.Timestep(dt);
+    }
+
+    public void SyncToBones(Scene scene)
+    {
+        if (_simulation is null) return;
+        foreach (var pair in _bodyBoneMap)
+        {
+            var handle = pair.Key;
+            var info = pair.Value;
+            if (info.Bone < 0 || info.Bone >= scene.Bones.Count)
+                continue;
+            if (info.Mode == 0)
+                continue;
+            var body = _simulation.Bodies.GetBodyReference(handle);
+            var pose = body.Pose;
+            var bone = scene.Bones[info.Bone];
+            bone.Translation = pose.Position;
+            bone.Rotation = pose.Orientation;
+        }
     }
 
     public void Dispose()
@@ -72,7 +92,7 @@ public sealed class BepuPhysicsWorld : IPhysicsWorld
 
             var pose = new RigidPose(rb.Position,
                 Quaternion.CreateFromYawPitchRoll(rb.Rotation.Y, rb.Rotation.X, rb.Rotation.Z));
-            var collidable = new CollidableDescription(shapeIndex, 0.1f, rb.Friction, float.MaxValue, rb.Restitution);
+            var collidable = new CollidableDescription(shapeIndex, 0.1f);
 
             BodyDescription bodyDesc;
             if (rb.Mode == 0)
@@ -84,12 +104,11 @@ public sealed class BepuPhysicsWorld : IPhysicsWorld
                 bodyDesc = BodyDescription.CreateDynamic(pose, inertia, collidable, new BodyActivityDescription());
             }
 
-            bodyDesc.LinearDamping = rb.LinearDamping;
-            bodyDesc.AngularDamping = rb.AngularDamping;
+            // TODO: Apply damping parameters when Bepu API usage is defined
 
             var handle = _simulation.Bodies.Add(bodyDesc);
             _rigidBodyHandles.Add(handle);
-            _bodyBoneMap[handle] = rb.BoneIndex;
+            _bodyBoneMap[handle] = (rb.BoneIndex, rb.Mode);
         }
     }
 
