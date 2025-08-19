@@ -510,6 +510,8 @@ public partial class PmxRenderer
             GL.Uniform3(_modelToonColorLoc, rm.ToonColor);
             GL.Uniform4(_modelTexTintLoc, rm.TextureTint);
             GL.Uniform1(_modelSphereModeLoc, (int)rm.SphereMode);
+            GL.Uniform1(_modelSphereStrengthLoc, 1f);
+            GL.Uniform1(_modelToonStrengthLoc, 1f);
             if (rm.HasTexture)
             {
                 GL.ActiveTexture(TextureUnit.Texture0);
