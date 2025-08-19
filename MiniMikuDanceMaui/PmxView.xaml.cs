@@ -33,7 +33,9 @@ public partial class PmxView : ContentView
         {
             Index = i,
             Texture = s.TextureFilePath ?? "(none)",
-            Size = $"{s.TextureWidth}x{s.TextureHeight}"
+            Size = $"{s.TextureWidth}x{s.TextureHeight}",
+            SphereTexture = s.SphereTextureFilePath ?? "(none)",
+            ToonTexture = s.ToonTextureFilePath ?? "(none)"
         }).ToList();
         SubMeshList.ItemsSource = items;
         SubMeshList.IsVisible = true;
