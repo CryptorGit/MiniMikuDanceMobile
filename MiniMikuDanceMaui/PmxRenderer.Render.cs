@@ -548,6 +548,7 @@ public partial class PmxRenderer
             GL.BindVertexArray(0);
             if (rm.HasTexture)
             {
+                GL.ActiveTexture(TextureUnit.Texture0);
                 GL.BindTexture(TextureTarget.Texture2D, 0);
             }
             if (rm.HasSphereTexture)
