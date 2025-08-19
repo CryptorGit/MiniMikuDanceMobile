@@ -339,8 +339,8 @@ void main(){
         }
     }
     if(uUseToonTex){
-        vec4 t = texture(uToonTex, vTex);
-        base *= t;
+        vec3 t = texture(uToonTex, vTex).rgb;
+        base.rgb *= t;
     }
     float ndotl = max(dot(normalize(vNormal), normalize(uLightDir)), 0.0);
     float light = clamp((ndotl + uShadeShift) * uShadeToony, 0.0, 1.0);
