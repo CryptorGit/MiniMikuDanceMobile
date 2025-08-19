@@ -333,7 +333,10 @@ void main(){
     if(uUseSphereTex){
         vec4 s = texture(uSphereTex, vTex);
         if(uSphereMode == 1) base *= s;
-        else if(uSphereMode == 2) base += s;
+        else if(uSphereMode == 2){
+            base.rgb = clamp(base.rgb + s.rgb, 0.0, 1.0);
+            base.a   = clamp(base.a + s.a, 0.0, 1.0);
+        }
     }
     if(uUseToonTex){
         vec4 t = texture(uToonTex, vTex);
