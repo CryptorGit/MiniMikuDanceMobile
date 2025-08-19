@@ -481,7 +481,7 @@ public partial class PmxRenderer
         GL.Enable(EnableCap.DepthTest);
         GL.Enable(EnableCap.CullFace);
         GL.Enable(EnableCap.Blend); // 半透明描画のためブレンドを有効化
-        GL.FrontFace(FrontFaceDirection.Ccw);
+        GL.FrontFace(FrontFaceDirection.Cw);
         GL.ClearColor(1f, 1f, 1f, 1f);
         GL.Clear(ClearBufferMask.ColorBufferBit | ClearBufferMask.DepthBufferBit);
 
@@ -490,7 +490,7 @@ public partial class PmxRenderer
         GL.UseProgram(_modelProgram);
         GL.UniformMatrix4(_modelViewLoc, false, ref _viewMatrix);
         GL.UniformMatrix4(_modelProjLoc, false, ref _projMatrix);
-        Vector3 light = Vector3.Normalize(new Vector3(0.3f, 0.6f, -0.7f));
+        Vector3 light = Vector3.Normalize(new Vector3(-0.3f, 0.6f, -0.7f));
         light = Vector3.TransformNormal(light, _cameraRot);
         GL.Uniform3(_modelLightDirLoc, ref light);
         Vector3 viewDir = Vector3.Normalize(_target - _cameraPos);

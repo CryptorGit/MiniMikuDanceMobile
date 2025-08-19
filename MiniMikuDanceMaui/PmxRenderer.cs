@@ -82,8 +82,8 @@ public partial class PmxRenderer : IDisposable
     private int _colorLoc;
     private int _pointSizeLoc;
     private float _orbitX;
-    // 初期カメラ位置: 水平回転はπ（モデル正面を向く）
-    private float _orbitY = MathF.PI;
+    // 初期カメラ位置: モデル正面を向くよう水平回転は0
+    private float _orbitY = 0f;
     private float _distance = 4f;
     // モデル中心より少し高い位置を基準にカメラを配置する
     private Vector3 _target = new Vector3(0f, 0.5f, 0f);
@@ -476,7 +476,7 @@ void main(){
     public void ResetCamera()
     {
         _orbitX = 0f;
-        _orbitY = MathF.PI;
+        _orbitY = 0f;
         _target = new Vector3(0f, _defaultCameraTargetY, 0f);
         _distance = _defaultCameraDistance;
         if (_distance < 1f) _distance = 1f;
@@ -1230,7 +1230,7 @@ void main(){
                     _target = new Vector3(0f, center.Y, 0f);
                     _distance = Math.Clamp(dist, 1f, 100f);
                     _orbitX = 0f;
-                    _orbitY = MathF.PI;
+                    _orbitY = 0f;
                     _viewProjDirty = true;
                     fitDone = true;
                 }
@@ -1256,7 +1256,7 @@ void main(){
                 _target = new Vector3(0f, center.Y, 0f);
                 _distance = Math.Clamp(dist, 1f, 100f);
                 _orbitX = 0f;
-                _orbitY = MathF.PI;
+                _orbitY = 0f;
                 _viewProjDirty = true;
             }
         }
