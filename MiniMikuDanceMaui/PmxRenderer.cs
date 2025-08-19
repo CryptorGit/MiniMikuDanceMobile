@@ -352,11 +352,9 @@ void main(){
         }
         base = mix(base, combined, uSphereStrength);
     }
-    if(uUseToonTex){
-        vec3 t = texture(uToonTex, vTex).rgb;
-        vec3 combined = base.rgb * t;
-        base.rgb = mix(base.rgb, combined, uToonStrength);
-    }
+    vec3 t = uUseToonTex ? texture(uToonTex, vTex).rgb : vec3(1.0);
+    vec3 combined = base.rgb * t;
+    base.rgb = mix(base.rgb, combined, uToonStrength);
     float ndotl = max(dot(normalize(vNormal), normalize(uLightDir)), 0.0);
     float light = clamp((ndotl + uShadeShift) * uShadeToony, 0.0, 1.0);
     float rim = pow(1.0 - max(dot(normalize(vNormal), normalize(uViewDir)), 0.0), 3.0) * uRimIntensity;
