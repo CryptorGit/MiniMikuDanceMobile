@@ -169,6 +169,7 @@ public PmxImporter(ILogger<PmxImporter>? logger = null)
     {
         var sub = new Assimp.Mesh("pmx", Assimp.PrimitiveType.Triangle);
         SphereMode sphereMode = (SphereMode)mat.SphereTextureMode;
+        dynamic dmat = mat;
         return new SubMeshData
         {
             Mesh = sub,
@@ -177,8 +178,8 @@ public PmxImporter(ILogger<PmxImporter>? logger = null)
             SpecularPower = mat.Shininess,
             EdgeColor = new System.Numerics.Vector4(mat.EdgeColor.R, mat.EdgeColor.G, mat.EdgeColor.B, mat.EdgeColor.A),
             EdgeSize = mat.EdgeSize,
-            ToonColor = System.Numerics.Vector3.One,
-            TextureTint = System.Numerics.Vector4.One,
+            ToonColor = new System.Numerics.Vector3((float)dmat.ToonTextureCoef.R, (float)dmat.ToonTextureCoef.G, (float)dmat.ToonTextureCoef.B),
+            TextureTint = new System.Numerics.Vector4((float)dmat.TextureCoef.R, (float)dmat.TextureCoef.G, (float)dmat.TextureCoef.B, (float)dmat.TextureCoef.A),
             SphereMode = sphereMode
         };
     }

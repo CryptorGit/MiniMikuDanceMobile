@@ -329,7 +329,7 @@ uniform vec3 uToonColor;
 uniform vec4 uTextureTint;
 out vec4 FragColor;
 void main(){
-    vec4 base = (uUseTex ? texture(uTex, vTex) : uColor) * uTextureTint;
+    vec4 base = (uUseTex ? texture(uTex, vTex) * uColor : uColor) * uTextureTint;
     if(uUseSphereTex){
         vec4 s = texture(uSphereTex, vTex);
         if(uSphereMode == 1) base *= s;
