@@ -204,8 +204,8 @@ public PmxImporter(ILogger<PmxImporter>? logger = null)
     private void ProcessVertex(Assimp.Mesh mesh, SubMeshData smd, Vertex vertex)
     {
         var pos = ScaleVector(vertex.Position);
-        mesh.Vertices.Add(new Vector3D(pos.X, pos.Y, pos.Z));
-        mesh.Normals.Add(new Vector3D(vertex.Normal.X, vertex.Normal.Y, vertex.Normal.Z));
+        mesh.Vertices.Add(new Vector3D(pos.X, pos.Y, -pos.Z));
+        mesh.Normals.Add(new Vector3D(vertex.Normal.X, vertex.Normal.Y, -vertex.Normal.Z));
         mesh.TextureCoordinateChannels[0].Add(new Vector3D(vertex.UV.X, vertex.UV.Y, 0));
         smd.TexCoords.Add(new System.Numerics.Vector2(vertex.UV.X, vertex.UV.Y));
         var auv1 = vertex.AdditionalUV1;
