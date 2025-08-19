@@ -8,6 +8,8 @@ public partial class LightingView : ContentView
     public event Action<double>? ShadeShiftChanged;
     public event Action<double>? ShadeToonyChanged;
     public event Action<double>? RimIntensityChanged;
+    public event Action<double>? SphereStrengthChanged;
+    public event Action<double>? ToonStrengthChanged;
 
     public LightingView()
     {
@@ -30,6 +32,18 @@ public partial class LightingView : ContentView
     {
         RimIntensityValue.Text = $"{e.NewValue:F2}";
         RimIntensityChanged?.Invoke(e.NewValue);
+    }
+
+    private void OnSphereStrengthChanged(object? sender, ValueChangedEventArgs e)
+    {
+        SphereStrengthValue.Text = $"{e.NewValue:F2}";
+        SphereStrengthChanged?.Invoke(e.NewValue);
+    }
+
+    private void OnToonStrengthChanged(object? sender, ValueChangedEventArgs e)
+    {
+        ToonStrengthValue.Text = $"{e.NewValue:F2}";
+        ToonStrengthChanged?.Invoke(e.NewValue);
     }
 
     public double ShadeShift
@@ -59,6 +73,26 @@ public partial class LightingView : ContentView
         {
             RimIntensitySlider.Value = value;
             RimIntensityValue.Text = $"{value:F2}";
+        }
+    }
+
+    public double SphereStrength
+    {
+        get => SphereStrengthSlider.Value;
+        set
+        {
+            SphereStrengthSlider.Value = value;
+            SphereStrengthValue.Text = $"{value:F2}";
+        }
+    }
+
+    public double ToonStrength
+    {
+        get => ToonStrengthSlider.Value;
+        set
+        {
+            ToonStrengthSlider.Value = value;
+            ToonStrengthValue.Text = $"{value:F2}";
         }
     }
 }

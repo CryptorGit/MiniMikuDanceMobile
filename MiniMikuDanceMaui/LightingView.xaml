@@ -22,5 +22,17 @@
         </Grid>
         <Slider x:Name="RimIntensitySlider" Minimum="0" Maximum="1"
                 ValueChanged="OnRimIntensityChanged"/>
+        <Grid ColumnDefinitions="*,60" RowSpacing="2">
+            <Label Text="Sphere Strength" TextColor="{StaticResource TextColor}" Grid.Column="0" />
+            <Label x:Name="SphereStrengthValue" Text="0" TextColor="{StaticResource TextColor}" HorizontalTextAlignment="End" Grid.Column="1" />
+        </Grid>
+        <Slider x:Name="SphereStrengthSlider" Minimum="0" Maximum="1"
+                ValueChanged="OnSphereStrengthChanged"/>
+        <Grid ColumnDefinitions="*,60" RowSpacing="2">
+            <Label Text="Toon Strength" TextColor="{StaticResource TextColor}" Grid.Column="0" />
+            <Label x:Name="ToonStrengthValue" Text="0" TextColor="{StaticResource TextColor}" HorizontalTextAlignment="End" Grid.Column="1" />
+        </Grid>
+        <Slider x:Name="ToonStrengthSlider" Minimum="0" Maximum="1"
+                ValueChanged="OnToonStrengthChanged"/>
     </VerticalStackLayout>
 </ContentView>

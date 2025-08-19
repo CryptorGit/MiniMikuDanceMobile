@@ -499,6 +499,8 @@ public partial class PmxRenderer
         GL.Uniform1(_modelShadeToonyLoc, ShadeToony);
         GL.Uniform1(_modelRimIntensityLoc, RimIntensity);
         GL.Uniform1(_modelAmbientLoc, Ambient);
+        GL.Uniform1(_modelSphereStrengthLoc, SphereStrength);
+        GL.Uniform1(_modelToonStrengthLoc, ToonStrength);
         GL.UniformMatrix4(_modelMatrixLoc, false, ref modelMat);
         foreach (var rm in _meshes)
         {
