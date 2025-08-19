@@ -226,6 +226,15 @@
 - [ ] PMX剛体/ジョイントのマップ
 - [ ] UI パラメータ連携
 
+#### 調査メモ
+- PMX剛体は球/箱/カプセル、質量・減衰・反発・摩擦・グループ等を BEPU の `BodyDescription` と `CollidableDescription` に写像可能
+- PMXジョイントは6DoFのバネ付き制限であり、BEPU の `Generic6DoF` と `SpringSettings` で近似できる
+
+#### 実装方針
+- PMXインポート時に剛体パラメータを `BodyDescription` へ変換し、モード値で静的/動的を切り替える
+- ジョイントは `BallAndSocket` を基点に軸制限とバネ設定を適用して生成する
+- `CollisionGroup` / `CollisionFilter` でグループマスクを再現する
+
 ### 9.5 Recording
 - [x] PNG非同期書出し
 - [ ] FFmpegKit連携（任意）
