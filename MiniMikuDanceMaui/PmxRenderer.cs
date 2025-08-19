@@ -165,6 +165,8 @@ public partial class PmxRenderer : IDisposable
     public float ShadeShift { get; set; } = -0.1f;
     public float ShadeToony { get; set; } = 0.9f;
     public float RimIntensity { get; set; } = 0.5f;
+    public float SphereStrength { get; set; } = 1f;
+    public float ToonStrength { get; set; } = 1f;
     public float Ambient { get; set; } = 0.3f;
     private bool _showBoneOutline;
     public bool ShowBoneOutline

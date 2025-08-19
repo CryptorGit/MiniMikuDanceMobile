@@ -53,6 +53,8 @@ public partial class MainPage : ContentPage
     private float _shadeShift = -0.1f;
     private float _shadeToony = 0.9f;
     private float _rimIntensity = 0.5f;
+    private float _sphereStrength = 1f;
+    private float _toonStrength = 1f;
     private bool _poseMode;
     // bottomWidth is no longer used; bottom region spans full screen width
     // private double bottomWidth = 0;
@@ -159,11 +161,15 @@ public partial class MainPage : ContentPage
         InitializeComponent();
         NavigationPage.SetHasNavigationBar(this, false);
         this.SizeChanged += OnSizeChanged;
+        _sphereStrength = _settings.SphereStrength;
+        _toonStrength = _settings.ToonStrength;
         _renderer.RotateSensitivity = 0.1f;
         _renderer.PanSensitivity = 1f;
         _renderer.ShadeShift = -0.1f;
         _renderer.ShadeToony = 0.9f;
         _renderer.RimIntensity = 0.5f;
+        _renderer.SphereStrength = _sphereStrength;
+        _renderer.ToonStrength = _toonStrength;
         _renderer.StageSize = _settings.StageSize;
         _renderer.DefaultCameraDistance = _settings.CameraDistance;
         _renderer.DefaultCameraTargetY = _settings.CameraTargetY;
@@ -541,6 +547,8 @@ public partial class MainPage : ContentPage
         _renderer.ShadeShift = _shadeShift;
         _renderer.ShadeToony = _shadeToony;
         _renderer.RimIntensity = _rimIntensity;
+        _renderer.SphereStrength = _sphereStrength;
+        _renderer.ToonStrength = _toonStrength;
     }
 
     private void OnPaintSurface(object? sender, SKPaintGLSurfaceEventArgs e)
@@ -829,7 +837,9 @@ public partial class MainPage : ContentPage
                 {
                     ShadeShift = _shadeShift,
                     ShadeToony = _shadeToony,
-                    RimIntensity = _rimIntensity
+                    RimIntensity = _rimIntensity,
+                    SphereStrength = _sphereStrength,
+                    ToonStrength = _toonStrength
                 };
                 mv.ShadeShiftChanged += v =>
                 {
@@ -844,6 +854,20 @@ public partial class MainPage : ContentPage
                 mv.RimIntensityChanged += v =>
                 {
                     _rimIntensity = (float)v;
+                    UpdateRendererLightingProperties();
+                };
+                mv.SphereStrengthChanged += v =>
+                {
+                    _sphereStrength = (float)v;
+                    _settings.SphereStrength = _sphereStrength;
+                    _settings.Save();
+                    UpdateRendererLightingProperties();
+                };
+                mv.ToonStrengthChanged += v =>
+                {
+                    _toonStrength = (float)v;
+                    _settings.ToonStrength = _toonStrength;
+                    _settings.Save();
                     UpdateRendererLightingProperties();
                 };
                 view = mv;
@@ -949,6 +973,8 @@ public partial class MainPage : ContentPage
             mv.ShadeShift = _renderer.ShadeShift;
             mv.ShadeToony = _renderer.ShadeToony;
             mv.RimIntensity = _renderer.RimIntensity;
+            mv.SphereStrength = _renderer.SphereStrength;
+            mv.ToonStrength = _renderer.ToonStrength;
         }
         else if (name == "MORPH" && _bottomViews[name] is MorphView morphView)
         {
