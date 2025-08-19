@@ -3,6 +3,7 @@ using System;
 using System.IO;
 using System.Collections.Generic;
 using System.Buffers;
+using Microsoft.CSharp.RuntimeBinder;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
 using SixLabors.ImageSharp;
@@ -169,6 +170,23 @@ public PmxImporter(ILogger<PmxImporter>? logger = null)
     {
         var sub = new Assimp.Mesh("pmx", Assimp.PrimitiveType.Triangle);
         SphereMode sphereMode = (SphereMode)mat.SphereTextureMode;
+        dynamic dmat = mat;
+        System.Numerics.Vector3 toonColor = System.Numerics.Vector3.One;
+        System.Numerics.Vector4 textureTint = System.Numerics.Vector4.One;
+        try
+        {
+            toonColor = new System.Numerics.Vector3((float)dmat.ToonTextureCoef.R, (float)dmat.ToonTextureCoef.G, (float)dmat.ToonTextureCoef.B);
+        }
+        catch (RuntimeBinderException)
+        {
+        }
+        try
+        {
+            textureTint = new System.Numerics.Vector4((float)dmat.TextureCoef.R, (float)dmat.TextureCoef.G, (float)dmat.TextureCoef.B, (float)dmat.TextureCoef.A);
+        }
+        catch (RuntimeBinderException)
+        {
+        }
         return new SubMeshData
         {
             Mesh = sub,
@@ -177,8 +195,8 @@ public PmxImporter(ILogger<PmxImporter>? logger = null)
             SpecularPower = mat.Shininess,
             EdgeColor = new System.Numerics.Vector4(mat.EdgeColor.R, mat.EdgeColor.G, mat.EdgeColor.B, mat.EdgeColor.A),
             EdgeSize = mat.EdgeSize,
-            ToonColor = System.Numerics.Vector3.One,
-            TextureTint = System.Numerics.Vector4.One,
+            ToonColor = toonColor,
+            TextureTint = textureTint,
             SphereMode = sphereMode
         };
     }
@@ -741,6 +759,23 @@ public PmxImporter(ILogger<PmxImporter>? logger = null)
                 case MorphType.Material:
                     foreach (var elem in m.MaterialMorphElements.Span)
                     {
+                        dynamic e = elem;
+                        System.Numerics.Vector3 toonColor = System.Numerics.Vector3.One;
+                        System.Numerics.Vector4 textureTint = System.Numerics.Vector4.One;
+                        try
+                        {
+                            toonColor = new System.Numerics.Vector3((float)e.ToonTextureCoef.R, (float)e.ToonTextureCoef.G, (float)e.ToonTextureCoef.B);
+                        }
+                        catch (RuntimeBinderException)
+                        {
+                        }
+                        try
+                        {
+                            textureTint = new System.Numerics.Vector4((float)e.TextureCoef.R, (float)e.TextureCoef.G, (float)e.TextureCoef.B, (float)e.TextureCoef.A);
+                        }
+                        catch (RuntimeBinderException)
+                        {
+                        }
                         md.Offsets.Add(new MorphOffset
                         {
                             Index = elem.Material,
@@ -753,8 +788,8 @@ public PmxImporter(ILogger<PmxImporter>? logger = null)
                                 SpecularPower = elem.Shininess,
                                 EdgeColor = new System.Numerics.Vector4(elem.EdgeColor.R, elem.EdgeColor.G, elem.EdgeColor.B, elem.EdgeColor.A),
                                 EdgeSize = elem.EdgeSize,
-                                ToonColor = new System.Numerics.Vector3(elem.ToonTextureCoef.R, elem.ToonTextureCoef.G, elem.ToonTextureCoef.B),
-                            TextureTint = new System.Numerics.Vector4(elem.TextureCoef.R, elem.TextureCoef.G, elem.TextureCoef.B, elem.TextureCoef.A)
+                                ToonColor = toonColor,
+                                TextureTint = textureTint
                             }
                         });
                     }
