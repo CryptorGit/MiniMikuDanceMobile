@@ -75,6 +75,56 @@ public partial class PmxRenderer
         }
     }
 
+    private void DrawBoneMarkers()
+    {
+        if (_bones.Count == 0)
+            return;
+
+        EnsureIkBoneMesh();
+        if (DistinguishBoneTypes)
+            EnsureCubeMesh();
+
+        GL.Disable(EnableCap.DepthTest);
+        GL.Uniform1(_pointSizeLoc, 1f);
+
+        for (int i = 0; i < _bones.Count; i++)
+        {
+            bool isIk = _ikBoneIndices.Contains(i);
+            if (isIk && ShowIkBones)
+                continue;
+
+            var pos = _worldMats[i].Translation.ToOpenTK();
+            float scale = _ikBoneScale * _distance;
+            if (i == SelectedBoneIndex)
+                scale *= 1.4f;
+            var mat = Matrix4.CreateScale(scale) * Matrix4.CreateTranslation(pos);
+            GL.UniformMatrix4(_modelLoc, false, ref mat);
+            bool isPhysics = DistinguishBoneTypes && _physicsBones.Contains(i);
+            bool isIkBone = DistinguishBoneTypes && isIk;
+            Vector4 color = new Vector4(1f, 1f, 0f, 1f);
+            if (i == SelectedBoneIndex)
+                color = new Vector4(1f, 0f, 0f, 1f);
+            else if (isPhysics)
+                color = new Vector4(0f, 0f, 1f, 1f);
+            else if (isIkBone)
+                color = new Vector4(0f, 1f, 0f, 1f);
+            GL.Uniform4(_colorLoc, color);
+
+            if (isPhysics)
+            {
+                GL.BindVertexArray(_cubeVao);
+                GL.DrawElements(PrimitiveType.Triangles, _cubeIndexCount, DrawElementsType.UnsignedShort, 0);
+            }
+            else
+            {
+                GL.BindVertexArray(_ikBoneVao);
+                GL.DrawElements(PrimitiveType.Triangles, _ikBoneIndexCount, DrawElementsType.UnsignedShort, 0);
+            }
+        }
+        GL.BindVertexArray(0);
+        GL.Enable(EnableCap.DepthTest);
+    }
+
     public void Render()
     {
         UpdateViewProjection();
@@ -599,15 +649,19 @@ public partial class PmxRenderer
         }
         GL.DepthMask(true);
 
-        if (ShowBoneOutline && _boneVertexCount > 0)
+        if (ShowBoneOutline)
         {
-            GL.Disable(EnableCap.DepthTest);
-            GL.UniformMatrix4(_modelLoc, false, ref modelMat);
-            GL.Uniform4(_colorLoc, new Vector4(1f, 0f, 0f, 1f));
-            GL.BindVertexArray(_boneVao);
-            GL.DrawArrays(PrimitiveType.Lines, 0, _boneVertexCount);
-            GL.BindVertexArray(0);
-            GL.Enable(EnableCap.DepthTest);
+            DrawBoneMarkers();
+            if (_boneVertexCount > 0)
+            {
+                GL.Disable(EnableCap.DepthTest);
+                GL.UniformMatrix4(_modelLoc, false, ref modelMat);
+                GL.Uniform4(_colorLoc, new Vector4(1f, 0f, 0f, 1f));
+                GL.BindVertexArray(_boneVao);
+                GL.DrawArrays(PrimitiveType.Lines, 0, _boneVertexCount);
+                GL.BindVertexArray(0);
+                GL.Enable(EnableCap.DepthTest);
+            }
         }
 
         if (ShowIkBones)
