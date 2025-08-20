@@ -105,12 +105,6 @@ public class ClothSimulator
             {
                 var parentPose = GetWorldPose(bone.Parent);
                 parentRot = parentPose.Rot;
-                var localPos = Vector3.Transform(nodePos - parentPose.Pos, Quaternion.Conjugate(parentPose.Rot));
-                bone.Translation = localPos;
-            }
-            else
-            {
-                bone.Translation = nodePos;
             }
 
             if (i + 1 < count)
