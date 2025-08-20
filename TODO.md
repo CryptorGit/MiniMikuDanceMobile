@@ -7,6 +7,8 @@
 - 質点ばね実装の検討
 - PMX剛体の減衰・反発・摩擦パラメータを BEPU にどう渡すか検討
 - PMXジョイントのバネ設定と軸制限の変換方法を決定
+  - 変換式: frequency = sqrt(spring)
+  - パラメータ範囲: frequency=0.0001〜60Hz, dampingRatio=1
 - 衝突グループ/マスクのマッピング仕様を固める
 - BepuPhysicsWorldのコールバック実装と物理設定の詳細を検討
 - PhysicsConfig の重力と反復回数は暫定値（Gravity=(0,-9.81,0), SolverIterationCount=8, SubstepCount=1）

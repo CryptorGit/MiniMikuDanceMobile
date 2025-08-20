@@ -149,11 +149,12 @@ public sealed class BepuPhysicsWorld : IPhysicsWorld
 
             ComputeJointLocalPoses(jd, rbA, rbB, out var localA, out var localB);
 
+            var averageSpring = (jd.SpringPosition.X + jd.SpringPosition.Y + jd.SpringPosition.Z) / 3f;
             var ball = new BallSocket
             {
                 LocalOffsetA = localA.Position,
                 LocalOffsetB = localB.Position,
-                SpringSettings = new SpringSettings(30f, 1f)
+                SpringSettings = ToSpringSettings(averageSpring)
             };
             _simulation.Solver.Add(handleA, handleB, ball);
 
@@ -185,7 +186,7 @@ public sealed class BepuPhysicsWorld : IPhysicsWorld
             LocalAxis = localAxis,
             MinimumOffset = min,
             MaximumOffset = max,
-            SpringSettings = new SpringSettings(MathF.Max(spring, 0.0001f), 1f)
+            SpringSettings = ToSpringSettings(spring)
         };
         _simulation!.Solver.Add(a, b, limit);
     }
@@ -201,9 +202,17 @@ public sealed class BepuPhysicsWorld : IPhysicsWorld
             LocalBasisB = Quaternion.Concatenate(basis, localOrientationB),
             MinimumAngle = min,
             MaximumAngle = max,
-            SpringSettings = new SpringSettings(MathF.Max(spring, 0.0001f), 1f)
+            SpringSettings = ToSpringSettings(spring)
         };
         _simulation!.Solver.Add(a, b, limit);
+    }
+
+    private static SpringSettings ToSpringSettings(float pmxSpring)
+    {
+        var frequency = MathF.Sqrt(MathF.Max(pmxSpring, 0f));
+        frequency = MathF.Clamp(frequency, 0.0001f, 60f);
+        const float dampingRatio = 1f;
+        return new SpringSettings(frequency, dampingRatio);
     }
 
     private static void ComputeJointLocalPoses(JointData joint, RigidBodyData a, RigidBodyData b,
