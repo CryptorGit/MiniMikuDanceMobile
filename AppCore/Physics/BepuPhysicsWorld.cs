@@ -35,7 +35,7 @@ public sealed class BepuPhysicsWorld : IPhysicsWorld
         _bufferPool = new BufferPool();
         _simulation = Simulation.Create(_bufferPool,
             new SubgroupFilteredCallbacks(_materialMap, _bodyFilterMap),
-            new SimplePoseIntegratorCallbacks(scaledGravity),
+            new SimplePoseIntegratorCallbacks(scaledGravity, _config.Damping, _config.Damping),
             new SolveDescription(config.SolverIterationCount, config.SubstepCount));
         _cloth.Gravity = scaledGravity;
         _cloth.Damping = config.Damping;
@@ -160,11 +160,6 @@ public sealed class BepuPhysicsWorld : IPhysicsWorld
             {
                 bodyDesc = BodyDescription.CreateDynamic(pose, inertia, collidable, new BodyActivityDescription());
             }
-            bodyDesc.LocalDamping = new BodyDamping
-            {
-                Linear = new Vector3(rb.LinearDamping),
-                Angular = new Vector3(rb.AngularDamping)
-            };
 
             var handle = _simulation.Bodies.Add(bodyDesc);
             _rigidBodyHandles.Add(handle);
@@ -388,13 +383,17 @@ public sealed class BepuPhysicsWorld : IPhysicsWorld
     private struct SimplePoseIntegratorCallbacks : IPoseIntegratorCallbacks
     {
         public Vector3 Gravity;
+        public float LinearDamping;
+        public float AngularDamping;
         public AngularIntegrationMode AngularIntegrationMode => AngularIntegrationMode.Nonconserving;
         public bool AllowSubstepsForUnconstrainedBodies => false;
         public bool IntegrateVelocityForKinematics => false;
 
-        public SimplePoseIntegratorCallbacks(Vector3 gravity)
+        public SimplePoseIntegratorCallbacks(Vector3 gravity, float linearDamping, float angularDamping)
         {
             Gravity = gravity;
+            LinearDamping = linearDamping;
+            AngularDamping = angularDamping;
         }
 
         public void Initialize(Simulation simulation) { }
@@ -406,6 +405,10 @@ public sealed class BepuPhysicsWorld : IPhysicsWorld
         {
             Vector3Wide.Broadcast(Gravity, out var g);
             velocity.Linear += g * dt;
+            var linear = new Vector<float>(LinearDamping);
+            var angular = new Vector<float>(AngularDamping);
+            Vector3Wide.Scale(velocity.Linear, linear, out velocity.Linear);
+            Vector3Wide.Scale(velocity.Angular, angular, out velocity.Angular);
         }
     }
 }
