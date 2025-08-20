@@ -10,6 +10,8 @@ public class BoneData
     public int Parent { get; set; } = -1;
     public Quaternion Rotation { get; set; } = Quaternion.Identity;
     public Vector3 Translation { get; set; } = Vector3.Zero;
+    public Quaternion InitialRotation { get; set; } = Quaternion.Identity;
+    public Vector3 InitialTranslation { get; set; } = Vector3.Zero;
     public Vector3 BaseForward { get; set; } = Vector3.UnitY;
     public Vector3 BaseUp { get; set; } = Vector3.UnitY;
     public bool InheritRotation { get; set; }

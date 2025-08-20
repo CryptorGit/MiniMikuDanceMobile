@@ -49,8 +49,17 @@ public sealed class BepuPhysicsWorld : IPhysicsWorld
             var body = _simulation.Bodies.GetBodyReference(handle);
             var pose = body.Pose;
             var bone = scene.Bones[info.Bone];
-            bone.Translation = pose.Position;
-            bone.Rotation = pose.Orientation;
+            if (info.Mode == 2)
+            {
+                const float blend = 0.5f; // TODO: 設定項目化
+                bone.Translation = Vector3.Lerp(bone.Translation, pose.Position, blend);
+                bone.Rotation = Quaternion.Slerp(bone.Rotation, pose.Orientation, blend);
+            }
+            else
+            {
+                bone.Translation = pose.Position;
+                bone.Rotation = pose.Orientation;
+            }
         }
     }
 

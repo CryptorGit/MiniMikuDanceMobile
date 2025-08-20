@@ -511,6 +511,8 @@ public PmxImporter(ILogger<PmxImporter>? logger = null)
                 Parent = b.ParentBone,
                 Rotation = System.Numerics.Quaternion.Identity,
                 Translation = pos,
+                InitialRotation = System.Numerics.Quaternion.Identity,
+                InitialTranslation = pos,
                 BaseForward = System.Numerics.Vector3.UnitY,
                 BaseUp = System.Numerics.Vector3.UnitY
             };
