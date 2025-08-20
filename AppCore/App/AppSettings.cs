@@ -1,4 +1,6 @@
 using MiniMikuDance.Util;
+using MiniMikuDance.Physics;
+using System.Numerics;
 
 namespace MiniMikuDance.App;
 
@@ -67,6 +69,10 @@ public class AppSettings
 
     /// <summary>トゥーンマップの強度。</summary>
     public float ToonStrength { get; set; } = DefaultToonStrength;
+
+    /// <summary>物理設定。</summary>
+    public PhysicsConfig Physics { get; set; } =
+        new(new Vector3(0f, -9.81f, 0f), 8, 1);
 
 
     private const string DefaultFile = "Configs/appsettings.json";
