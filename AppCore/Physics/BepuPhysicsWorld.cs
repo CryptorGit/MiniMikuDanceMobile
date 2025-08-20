@@ -9,6 +9,7 @@ using BepuUtilities;
 using BepuUtilities.Memory;
 using MiniMikuDance.Import;
 using MiniMikuDance.App;
+using MiniMikuDance.Physics.Cloth;
 
 namespace MiniMikuDance.Physics;
 
@@ -20,6 +21,7 @@ public sealed class BepuPhysicsWorld : IPhysicsWorld
     private readonly List<BodyHandle> _rigidBodyHandles = new();
     private readonly Dictionary<BodyHandle, Material> _materialMap = new();
     private readonly Dictionary<BodyHandle, SubgroupCollisionFilter> _bodyFilterMap = new();
+    private readonly ClothSimulator _cloth = new();
 
     public void Initialize()
     {
@@ -33,34 +35,38 @@ public sealed class BepuPhysicsWorld : IPhysicsWorld
     public void Step(float dt)
     {
         _simulation?.Timestep(dt);
+        _cloth.Step(dt);
     }
 
     public void SyncToBones(Scene scene)
     {
-        if (_simulation is null) return;
-        foreach (var pair in _bodyBoneMap)
+        if (_simulation is not null)
         {
-            var handle = pair.Key;
-            var info = pair.Value;
-            if (info.Bone < 0 || info.Bone >= scene.Bones.Count)
-                continue;
-            if (info.Mode == 0)
-                continue;
-            var body = _simulation.Bodies.GetBodyReference(handle);
-            var pose = body.Pose;
-            var bone = scene.Bones[info.Bone];
-            if (info.Mode == 2)
+            foreach (var pair in _bodyBoneMap)
             {
-                const float blend = 0.5f; // TODO: 設定項目化
-                bone.Translation = Vector3.Lerp(bone.Translation, pose.Position, blend);
-                bone.Rotation = Quaternion.Slerp(bone.Rotation, pose.Orientation, blend);
-            }
-            else
-            {
-                bone.Translation = pose.Position;
-                bone.Rotation = pose.Orientation;
+                var handle = pair.Key;
+                var info = pair.Value;
+                if (info.Bone < 0 || info.Bone >= scene.Bones.Count)
+                    continue;
+                if (info.Mode == 0)
+                    continue;
+                var body = _simulation.Bodies.GetBodyReference(handle);
+                var pose = body.Pose;
+                var bone = scene.Bones[info.Bone];
+                if (info.Mode == 2)
+                {
+                    const float blend = 0.5f; // TODO: 設定項目化
+                    bone.Translation = Vector3.Lerp(bone.Translation, pose.Position, blend);
+                    bone.Rotation = Quaternion.Slerp(bone.Rotation, pose.Orientation, blend);
+                }
+                else
+                {
+                    bone.Translation = pose.Position;
+                    bone.Rotation = pose.Orientation;
+                }
             }
         }
+        _cloth.SyncToBones(scene);
     }
 
     public void Dispose()
