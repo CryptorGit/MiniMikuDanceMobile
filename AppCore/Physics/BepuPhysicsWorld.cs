@@ -160,12 +160,6 @@ public sealed class BepuPhysicsWorld : IPhysicsWorld
             {
                 bodyDesc = BodyDescription.CreateDynamic(pose, inertia, collidable, new BodyActivityDescription());
             }
-            bodyDesc.LocalDamping = new BodyDamping
-            {
-                Linear = new Vector3(rb.LinearDamping),
-                Angular = new Vector3(rb.AngularDamping)
-            };
-
             var handle = _simulation.Bodies.Add(bodyDesc);
             _rigidBodyHandles.Add(handle);
             _bodyBoneMap[handle] = (rb.BoneIndex, rb.Mode);
