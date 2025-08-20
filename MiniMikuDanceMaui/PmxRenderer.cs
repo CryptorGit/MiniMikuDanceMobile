@@ -1138,7 +1138,7 @@ void main(){
                     GL.TexImage2D(
                         All.Texture2D,
                         0,
-                        (int)All.Rgba,
+                        All.Rgba,
                         sm.TextureWidth,
                         sm.TextureHeight,
                         0,
@@ -1167,7 +1167,7 @@ void main(){
                     GL.TexImage2D(
                         All.Texture2D,
                         0,
-                        (int)All.Rgba,
+                        All.Rgba,
                         sm.SphereTextureWidth,
                         sm.SphereTextureHeight,
                         0,
@@ -1196,7 +1196,7 @@ void main(){
                     GL.TexImage2D(
                         All.Texture2D,
                         0,
-                        (int)All.Rgba,
+                        All.Rgba,
                         sm.ToonTextureWidth,
                         sm.ToonTextureHeight,
                         0,
