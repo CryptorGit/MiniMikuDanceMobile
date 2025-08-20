@@ -76,6 +76,9 @@ public partial class PmxRenderer : IDisposable
     private int _gridVao;
     private int _gridVbo;
     private int _gridVertexCount;
+    private int _axesVao;
+    private int _axesVbo;
+    private int _axesVertexCount;
     private int _modelLoc;
     private int _viewLoc;
     private int _projLoc;
@@ -222,7 +225,10 @@ public partial class PmxRenderer : IDisposable
             {
                 _stageSize = value;
                 if (_program != 0)
+                {
                     GenerateGrid();
+                    GenerateAxes();
+                }
             }
         }
     }
@@ -404,6 +410,7 @@ void main(){
         _modelToonStrengthLoc = GL.GetUniformLocation(_modelProgram, "uToonStrength");
 
         GenerateGrid();
+        GenerateAxes();
     }
 
     private void GenerateGrid()
@@ -447,6 +454,47 @@ void main(){
         GL.BindVertexArray(_groundVao);
         GL.BindBuffer(BufferTarget.ArrayBuffer, _groundVbo);
         GL.BufferData(BufferTarget.ArrayBuffer, plane.Length * sizeof(float), plane, BufferUsageHint.StaticDraw);
+        GL.VertexAttribPointer(0, 3, VertexAttribPointerType.Float, false, 3 * sizeof(float), 0);
+        GL.EnableVertexAttribArray(0);
+        GL.BindBuffer(BufferTarget.ArrayBuffer, 0);
+        GL.BindVertexArray(0);
+    }
+
+    private void GenerateAxes()
+    {
+        _axesVertexCount = 6;
+        float length = _stageSize;
+        float arrow = length * 0.1f;
+        float cap = arrow * 0.5f;
+        float[] axes = new float[_axesVertexCount * 3 * 3];
+        int i = 0;
+        // X axis
+        axes[i++] = 0f; axes[i++] = 0f; axes[i++] = 0f;
+        axes[i++] = length; axes[i++] = 0f; axes[i++] = 0f;
+        axes[i++] = length; axes[i++] = 0f; axes[i++] = 0f;
+        axes[i++] = length - arrow; axes[i++] = cap; axes[i++] = 0f;
+        axes[i++] = length; axes[i++] = 0f; axes[i++] = 0f;
+        axes[i++] = length - arrow; axes[i++] = -cap; axes[i++] = 0f;
+        // Y axis
+        axes[i++] = 0f; axes[i++] = 0f; axes[i++] = 0f;
+        axes[i++] = 0f; axes[i++] = length; axes[i++] = 0f;
+        axes[i++] = 0f; axes[i++] = length; axes[i++] = 0f;
+        axes[i++] = cap; axes[i++] = length - arrow; axes[i++] = 0f;
+        axes[i++] = 0f; axes[i++] = length; axes[i++] = 0f;
+        axes[i++] = -cap; axes[i++] = length - arrow; axes[i++] = 0f;
+        // Z axis
+        axes[i++] = 0f; axes[i++] = 0f; axes[i++] = 0f;
+        axes[i++] = 0f; axes[i++] = 0f; axes[i++] = length;
+        axes[i++] = 0f; axes[i++] = 0f; axes[i++] = length;
+        axes[i++] = cap; axes[i++] = 0f; axes[i++] = length - arrow;
+        axes[i++] = 0f; axes[i++] = 0f; axes[i++] = length;
+        axes[i++] = -cap; axes[i++] = 0f; axes[i++] = length - arrow;
+
+        if (_axesVao == 0) _axesVao = GL.GenVertexArray();
+        if (_axesVbo == 0) _axesVbo = GL.GenBuffer();
+        GL.BindVertexArray(_axesVao);
+        GL.BindBuffer(BufferTarget.ArrayBuffer, _axesVbo);
+        GL.BufferData(BufferTarget.ArrayBuffer, axes.Length * sizeof(float), axes, BufferUsageHint.StaticDraw);
         GL.VertexAttribPointer(0, 3, VertexAttribPointerType.Float, false, 3 * sizeof(float), 0);
         GL.EnableVertexAttribArray(0);
         GL.BindBuffer(BufferTarget.ArrayBuffer, 0);
@@ -1302,11 +1350,13 @@ void main(){
         _meshes.Clear();
         _indexToHumanoidName.Clear();
         GL.DeleteBuffer(_gridVbo);
+        GL.DeleteBuffer(_axesVbo);
         GL.DeleteBuffer(_groundVbo);
         GL.DeleteBuffer(_boneVbo);
         GL.DeleteBuffer(_ikBoneVbo);
         GL.DeleteBuffer(_ikBoneEbo);
         GL.DeleteVertexArray(_gridVao);
+        GL.DeleteVertexArray(_axesVao);
         GL.DeleteVertexArray(_groundVao);
         GL.DeleteVertexArray(_boneVao);
         GL.DeleteVertexArray(_ikBoneVao);
