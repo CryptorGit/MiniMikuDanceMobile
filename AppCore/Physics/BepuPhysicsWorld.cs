@@ -114,7 +114,6 @@ public sealed class BepuPhysicsWorld : IPhysicsWorld
                     continue;
                 var bone = scene.Bones[info.Bone];
                 var pose = poseMap[info.Bone];
-                Vector3 localPos;
                 Quaternion localRot;
                 if (bone.Parent >= 0)
                 {
@@ -122,23 +121,20 @@ public sealed class BepuPhysicsWorld : IPhysicsWorld
                     Matrix4x4.Invert(parentWorld, out var invParent);
                     var world = Matrix4x4.CreateFromQuaternion(pose.Rot) * Matrix4x4.CreateTranslation(pose.Pos);
                     var local = world * invParent;
-                    Matrix4x4.Decompose(local, out _, out localRot, out localPos);
+                    Matrix4x4.Decompose(local, out _, out localRot, out _);
                 }
                 else
                 {
-                    localPos = pose.Pos;
                     localRot = pose.Rot;
                 }
 
                 if (info.Mode == 2)
                 {
                     const float blend = 0.5f; // TODO: 設定項目化
-                    bone.Translation = Vector3.Lerp(bone.Translation, localPos, blend);
                     bone.Rotation = Quaternion.Slerp(bone.Rotation, localRot, blend);
                 }
                 else
                 {
-                    bone.Translation = localPos;
                     bone.Rotation = localRot;
                 }
             }
