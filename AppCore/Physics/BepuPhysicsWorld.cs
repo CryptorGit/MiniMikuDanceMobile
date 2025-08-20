@@ -66,6 +66,8 @@ public sealed class BepuPhysicsWorld : IPhysicsWorld
                 }
             }
         }
+
+        // Soft body (rope, etc.) simulation results
         _cloth.SyncToBones(scene);
     }
 
@@ -130,6 +132,55 @@ public sealed class BepuPhysicsWorld : IPhysicsWorld
             _bodyBoneMap[handle] = (rb.BoneIndex, rb.Mode);
             _materialMap[handle] = new Material(rb.Restitution, rb.Friction);
             _bodyFilterMap[handle] = filter;
+        }
+    }
+
+    public void LoadSoftBodies(ModelData model)
+    {
+        _cloth.Nodes.Clear();
+        _cloth.Springs.Clear();
+        _cloth.BoneMap.Clear();
+
+        foreach (var sb in model.SoftBodies)
+        {
+            if (sb.Shape != SoftBodyShape.Rope)
+                continue;
+
+            var rootIndex = model.Bones.FindIndex(b => b.Name == sb.Name || b.NameEnglish == sb.NameEnglish);
+            if (rootIndex < 0)
+                continue;
+
+            var current = rootIndex;
+            var previousNode = -1;
+            while (current >= 0)
+            {
+                var bone = model.Bones[current];
+                var nodeIndex = _cloth.Nodes.Count;
+                var invMass = nodeIndex == 0 ? 0f : 1f;
+                _cloth.Nodes.Add(new Node { Position = bone.Translation, Velocity = Vector3.Zero, InverseMass = invMass });
+                _cloth.BoneMap.Add(current);
+
+                if (previousNode >= 0)
+                {
+                    var prevPos = _cloth.Nodes[previousNode].Position;
+                    var rest = Vector3.Distance(prevPos, bone.Translation);
+                    _cloth.Springs.Add(new Spring
+                    {
+                        NodeA = previousNode,
+                        NodeB = nodeIndex,
+                        RestLength = rest,
+                        Stiffness = 100f,
+                        Damping = 5f
+                    });
+                }
+
+                previousNode = nodeIndex;
+
+                var next = model.Bones.FindIndex(b => b.Parent == current);
+                if (next < 0)
+                    break;
+                current = next;
+            }
         }
     }
 
