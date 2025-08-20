@@ -10,6 +10,8 @@ using BepuUtilities.Memory;
 using MiniMikuDance.Import;
 using MiniMikuDance.App;
 using MiniMikuDance.Physics.Cloth;
+using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Logging.Abstractions;
 
 namespace MiniMikuDance.Physics;
 
@@ -25,18 +27,30 @@ public sealed class BepuPhysicsWorld : IPhysicsWorld
     private PhysicsConfig _config;
     private float _modelScale = 1f;
     private float _massScale = 1f;
+    private readonly ILogger<BepuPhysicsWorld> _logger;
+
+    public BepuPhysicsWorld(ILogger<BepuPhysicsWorld>? logger = null)
+    {
+        _logger = logger ?? NullLogger<BepuPhysicsWorld>.Instance;
+    }
 
     public void Initialize(PhysicsConfig config, float modelScale)
     {
         _modelScale = modelScale;
         _massScale = modelScale * modelScale * modelScale;
         var scaledGravity = config.Gravity * modelScale;
-        _config = new PhysicsConfig(scaledGravity, config.SolverIterationCount, config.SubstepCount, config.Damping);
+        var substepCount = config.SubstepCount;
+        if (substepCount <= 0)
+        {
+            _logger.LogWarning("SubstepCount が 0 以下のため、1 に補正しました。");
+            substepCount = 1;
+        }
+        _config = new PhysicsConfig(scaledGravity, config.SolverIterationCount, substepCount, config.Damping);
         _bufferPool = new BufferPool();
         _simulation = Simulation.Create(_bufferPool,
             new SubgroupFilteredCallbacks(_materialMap, _bodyFilterMap),
             new SimplePoseIntegratorCallbacks(scaledGravity, _config.Damping, _config.Damping),
-            new SolveDescription(config.SolverIterationCount, config.SubstepCount));
+            new SolveDescription(config.SolverIterationCount, substepCount));
         _cloth.Gravity = scaledGravity;
         _cloth.Damping = config.Damping;
     }
