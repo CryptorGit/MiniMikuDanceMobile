@@ -69,6 +69,7 @@ public sealed class BepuPhysicsWorld : IPhysicsWorld
         _cloth.Step(dt);
     }
 
+    /// <inheritdoc/>
     public void SyncFromBones(Scene scene)
     {
         if (_simulation is null)
