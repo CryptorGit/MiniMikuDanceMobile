@@ -22,18 +22,24 @@ public sealed class BepuPhysicsWorld : IPhysicsWorld
     private readonly Dictionary<BodyHandle, Material> _materialMap = new();
     private readonly Dictionary<BodyHandle, SubgroupCollisionFilter> _bodyFilterMap = new();
     private readonly ClothSimulator _cloth = new();
+    private PhysicsConfig _config;
 
     public void Initialize(PhysicsConfig config)
     {
+        _config = config;
         _bufferPool = new BufferPool();
         _simulation = Simulation.Create(_bufferPool,
             new SubgroupFilteredCallbacks(_materialMap, _bodyFilterMap),
             new SimplePoseIntegratorCallbacks(config.Gravity),
             new SolveDescription(config.SolverIterationCount, config.SubstepCount));
+        _cloth.Gravity = config.Gravity;
+        _cloth.Damping = config.Damping;
     }
 
     public void Step(float dt)
     {
+        _cloth.Gravity = _config.Gravity;
+        _cloth.Damping = _config.Damping;
         _simulation?.Timestep(dt);
         _cloth.Step(dt);
     }

@@ -76,7 +76,7 @@ public class AppSettings
 
     /// <summary>物理設定。</summary>
     public PhysicsConfig Physics { get; set; } =
-        new(new Vector3(0f, -9.81f, 0f), 8, 1);
+        new(new Vector3(0f, -9.81f, 0f), 8, 1, 0.98f);
 
 
     private const string DefaultFile = "Configs/appsettings.json";
