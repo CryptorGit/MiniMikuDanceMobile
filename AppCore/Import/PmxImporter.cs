@@ -166,6 +166,11 @@ public PmxImporter(ILogger<PmxImporter>? logger = null)
         return new System.Numerics.Vector3(v.X * Scale, v.Y * Scale, v.Z * Scale);
     }
 
+    private System.Numerics.Vector3 ScaleVectorFlipZ(Vector3 v)
+    {
+        return new System.Numerics.Vector3(v.X * Scale, v.Y * Scale, -v.Z * Scale);
+    }
+
     private static SubMeshData CreateSubMesh(PmxMaterial mat)
     {
         var sub = new Assimp.Mesh("pmx", Assimp.PrimitiveType.Triangle);
@@ -203,8 +208,8 @@ public PmxImporter(ILogger<PmxImporter>? logger = null)
 
     private void ProcessVertex(Assimp.Mesh mesh, SubMeshData smd, Vertex vertex)
     {
-        var pos = ScaleVector(vertex.Position);
-        mesh.Vertices.Add(new Vector3D(pos.X, pos.Y, -pos.Z));
+        var pos = ScaleVectorFlipZ(vertex.Position);
+        mesh.Vertices.Add(new Vector3D(pos.X, pos.Y, pos.Z));
         mesh.Normals.Add(new Vector3D(vertex.Normal.X, vertex.Normal.Y, -vertex.Normal.Z));
         mesh.TextureCoordinateChannels[0].Add(new Vector3D(vertex.UV.X, vertex.UV.Y, 0));
         smd.TexCoords.Add(new System.Numerics.Vector2(vertex.UV.X, vertex.UV.Y));
@@ -239,9 +244,9 @@ public PmxImporter(ILogger<PmxImporter>? logger = null)
                 ji.Y = vertex.BoneIndex2;
                 jw.X = vertex.Weight1;
                 jw.Y = 1f - vertex.Weight1;
-                sc = ScaleVector(vertex.C);
-                sr0 = ScaleVector(vertex.R0);
-                sr1 = ScaleVector(vertex.R1);
+                sc = ScaleVectorFlipZ(vertex.C);
+                sr0 = ScaleVectorFlipZ(vertex.R0);
+                sr1 = ScaleVectorFlipZ(vertex.R1);
                 break;
             case WeightTransformType.BDEF4:
             case WeightTransformType.QDEF:
@@ -502,7 +507,7 @@ public PmxImporter(ILogger<PmxImporter>? logger = null)
         {
             var b = bones[i];
             string name = string.IsNullOrEmpty(b.NameEnglish) ? b.Name : b.NameEnglish;
-            var pos = new System.Numerics.Vector3(b.Position.X, b.Position.Y, b.Position.Z) * Scale;
+            var pos = ScaleVectorFlipZ(b.Position);
             worldPositions[i] = pos;
             var bd = new BoneData
             {
@@ -531,8 +536,8 @@ public PmxImporter(ILogger<PmxImporter>? logger = null)
                     {
                         BoneIndex = link.Bone,
                         HasLimit = link.IsEnableAngleLimited,
-                        MinAngle = new System.Numerics.Vector3(link.MinLimit.X, link.MinLimit.Y, link.MinLimit.Z),
-                        MaxAngle = new System.Numerics.Vector3(link.MaxLimit.X, link.MaxLimit.Y, link.MaxLimit.Z)
+                        MinAngle = new System.Numerics.Vector3(link.MinLimit.X, link.MinLimit.Y, -link.MinLimit.Z),
+                        MaxAngle = new System.Numerics.Vector3(link.MaxLimit.X, link.MaxLimit.Y, -link.MaxLimit.Z)
                     };
                     ik.Links.Add(il);
                 }
@@ -545,13 +550,13 @@ public PmxImporter(ILogger<PmxImporter>? logger = null)
             if ((b.BoneFlag & BoneFlag.FixedAxis) != 0)
             {
                 bd.HasFixedAxis = true;
-                bd.FixedAxis = new System.Numerics.Vector3(b.AxisVec.X, b.AxisVec.Y, b.AxisVec.Z);
+                bd.FixedAxis = new System.Numerics.Vector3(b.AxisVec.X, b.AxisVec.Y, -b.AxisVec.Z);
             }
             if ((b.BoneFlag & BoneFlag.LocalAxis) != 0)
             {
                 bd.HasLocalAxis = true;
-                bd.LocalAxisX = new System.Numerics.Vector3(b.XAxisVec.X, b.XAxisVec.Y, b.XAxisVec.Z);
-                bd.LocalAxisZ = new System.Numerics.Vector3(b.ZAxisVec.X, b.ZAxisVec.Y, b.ZAxisVec.Z);
+                bd.LocalAxisX = new System.Numerics.Vector3(b.XAxisVec.X, b.XAxisVec.Y, -b.XAxisVec.Z);
+                bd.LocalAxisZ = new System.Numerics.Vector3(b.ZAxisVec.X, b.ZAxisVec.Y, -b.ZAxisVec.Z);
             }
             if ((b.BoneFlag & BoneFlag.ExternalParentTransform) != 0)
                 bd.ExternalParent = b.Key;
@@ -582,7 +587,7 @@ public PmxImporter(ILogger<PmxImporter>? logger = null)
                 var off = b.PositionOffset;
                 if (off.X != 0 || off.Y != 0 || off.Z != 0)
                 {
-                    var tail = worldPositions[i] + new System.Numerics.Vector3(off.X, off.Y, off.Z) * Scale;
+                    var tail = worldPositions[i] + ScaleVectorFlipZ(off);
                     var diff = tail - worldPositions[i];
                     if (diff.LengthSquared() > Eps)
                         forward = System.Numerics.Vector3.Normalize(diff);
@@ -688,7 +693,7 @@ public PmxImporter(ILogger<PmxImporter>? logger = null)
                         md.Offsets.Add(new MorphOffset
                         {
                             Index = elem.TargetVertex,
-                            Vertex = new System.Numerics.Vector3(elem.PosOffset.X * Scale, elem.PosOffset.Y * Scale, elem.PosOffset.Z * Scale)
+                            Vertex = ScaleVectorFlipZ(elem.PosOffset)
                         });
                     }
                     break;
@@ -710,8 +715,8 @@ public PmxImporter(ILogger<PmxImporter>? logger = null)
                             Index = elem.TargetBone,
                             Bone = new BoneOffset
                             {
-                                Translation = new System.Numerics.Vector3(elem.Translate.X * Scale, elem.Translate.Y * Scale, elem.Translate.Z * Scale),
-                                Rotation = new System.Numerics.Quaternion(elem.Quaternion.X, elem.Quaternion.Y, elem.Quaternion.Z, elem.Quaternion.W)
+                                Translation = ScaleVectorFlipZ(elem.Translate),
+                                Rotation = new System.Numerics.Quaternion(elem.Quaternion.X, elem.Quaternion.Y, -elem.Quaternion.Z, elem.Quaternion.W)
                             }
                         });
                     }
@@ -824,8 +829,8 @@ public PmxImporter(ILogger<PmxImporter>? logger = null)
                             {
                                 RigidBodyIndex = elem.TargetRigidBody,
                                 IsLocal = elem.IsLocal,
-                                Velocity = ScaleVector(elem.Velocity),
-                                Torque = new System.Numerics.Vector3(elem.RotationTorque.X, elem.RotationTorque.Y, elem.RotationTorque.Z)
+                                Velocity = ScaleVectorFlipZ(elem.Velocity),
+                                Torque = new System.Numerics.Vector3(elem.RotationTorque.X, elem.RotationTorque.Y, -elem.RotationTorque.Z)
                             }
                         });
                     }
@@ -868,7 +873,7 @@ public PmxImporter(ILogger<PmxImporter>? logger = null)
             System.Numerics.Vector3 rotation = System.Numerics.Vector3.Zero;
             if (rotProp?.GetValue(rb) is Vector3 rot)
             {
-                rotation = new System.Numerics.Vector3(rot.X, rot.Y, rot.Z);
+                rotation = new System.Numerics.Vector3(rot.X, rot.Y, -rot.Z);
             }
             var rbd = new RigidBodyData
             {
@@ -881,7 +886,7 @@ public PmxImporter(ILogger<PmxImporter>? logger = null)
                 AngularDamping = rb.RotationAttenuation,
                 Restitution = rb.Recoil,
                 Friction = rb.Friction,
-                Position = ScaleVector(rb.Position),
+                Position = ScaleVectorFlipZ(rb.Position),
                 Rotation = rotation,
                 Size = ScaleVector(rb.Size),
                 Group = rb.Group,
@@ -904,28 +909,28 @@ public PmxImporter(ILogger<PmxImporter>? logger = null)
             string name = string.IsNullOrEmpty(j.NameEnglish) ? j.Name : j.NameEnglish;
             var jd = new JointData { Name = name, NameEnglish = j.NameEnglish ?? string.Empty, RigidBodyA = rbA, RigidBodyB = rbB };
             if (type.GetProperty("Position")?.GetValue(j) is Vector3 pos)
-                jd.Position = ScaleVector(pos);
+                jd.Position = ScaleVectorFlipZ(pos);
             if (type.GetProperty("Rotation")?.GetValue(j) is Vector3 rot)
             {
-                jd.Rotation = new System.Numerics.Vector3(rot.X, rot.Y, rot.Z);
+                jd.Rotation = new System.Numerics.Vector3(rot.X, rot.Y, -rot.Z);
             }
             if (type.GetProperty("TranslationMinLimit")?.GetValue(j) is Vector3 tmin)
-                jd.PositionMin = ScaleVector(tmin);
+                jd.PositionMin = ScaleVectorFlipZ(tmin);
             if (type.GetProperty("TranslationMaxLimit")?.GetValue(j) is Vector3 tmax)
-                jd.PositionMax = ScaleVector(tmax);
+                jd.PositionMax = ScaleVectorFlipZ(tmax);
             if (type.GetProperty("RotationRadianMinLimit")?.GetValue(j) is Vector3 rmin)
             {
-                jd.RotationMin = new System.Numerics.Vector3(rmin.X, rmin.Y, rmin.Z);
+                jd.RotationMin = new System.Numerics.Vector3(rmin.X, rmin.Y, -rmin.Z);
             }
             if (type.GetProperty("RotationRadianMaxLimit")?.GetValue(j) is Vector3 rmax)
             {
-                jd.RotationMax = new System.Numerics.Vector3(rmax.X, rmax.Y, rmax.Z);
+                jd.RotationMax = new System.Numerics.Vector3(rmax.X, rmax.Y, -rmax.Z);
             }
             if (type.GetProperty("TranslationSpring")?.GetValue(j) is Vector3 ts)
-                jd.SpringPosition = ScaleVector(ts);
+                jd.SpringPosition = ScaleVectorFlipZ(ts);
             if (type.GetProperty("RotationSpring")?.GetValue(j) is Vector3 rs)
             {
-                jd.SpringRotation = new System.Numerics.Vector3(rs.X, rs.Y, rs.Z);
+                jd.SpringRotation = new System.Numerics.Vector3(rs.X, rs.Y, -rs.Z);
             }
             jointDatas.Add(jd);
         }
@@ -957,8 +962,8 @@ public PmxImporter(ILogger<PmxImporter>? logger = null)
         for (int i = 0; i < verts.Length; i++)
         {
             var v = verts[i];
-            combined.Vertices.Add(new Vector3D(v.Position.X * Scale, v.Position.Y * Scale, v.Position.Z * Scale));
-            combined.Normals.Add(new Vector3D(v.Normal.X, v.Normal.Y, v.Normal.Z));
+            combined.Vertices.Add(new Vector3D(v.Position.X * Scale, v.Position.Y * Scale, -v.Position.Z * Scale));
+            combined.Normals.Add(new Vector3D(v.Normal.X, v.Normal.Y, -v.Normal.Z));
             combined.TextureCoordinateChannels[0].Add(new Vector3D(v.UV.X, v.UV.Y, 0));
         }
         foreach (var f in faces)

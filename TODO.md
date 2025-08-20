@@ -19,3 +19,5 @@
 - モードに応じた追従率や補間、KeyframePlayerとの更新順序の整合
 - ClothSimulatorのBoneMap初期化と髪ボーン・メッシュへの反映方法を設計
 - SoftBody の TriMesh 対応とパラメータ詳細の検討
+- 既存モデルを用いた座標系変換の検証
+- PmxRenderer の `_externalRotation` 初期値見直し
