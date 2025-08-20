@@ -262,6 +262,15 @@ public partial class MainPage : ContentPage
                 _renderer.ShowBoneOutline = show;
                 Viewer?.InvalidateSurface();
             };
+            setting.DistinguishBoneTypes = _settings.DistinguishBoneTypes;
+            _renderer.DistinguishBoneTypes = _settings.DistinguishBoneTypes;
+            setting.BoneTypeChanged += flag =>
+            {
+                _renderer.DistinguishBoneTypes = flag;
+                _settings.DistinguishBoneTypes = flag;
+                _settings.Save();
+                Viewer?.InvalidateSurface();
+            };
             setting.ResetCameraRequested += () =>
             {
                 _renderer.ResetCamera();
@@ -433,6 +442,9 @@ public partial class MainPage : ContentPage
     private void SetupBoneView(BoneView bv)
     {
         UpdateBoneViewProperties(bv);
+        bv.BoneTapped += idx => _renderer.SelectedBoneIndex = idx;
+        _renderer.BoneSelectionChanged += bv.HighlightBone;
+        bv.HighlightBone(_renderer.SelectedBoneIndex);
     }
 
     private void UpdateBoneViewValues()

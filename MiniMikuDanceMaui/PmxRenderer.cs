@@ -100,6 +100,10 @@ public partial class PmxRenderer : IDisposable
     private int _ikBoneVbo;
     private int _ikBoneEbo;
     private int _ikBoneIndexCount;
+    private int _cubeVao;
+    private int _cubeVbo;
+    private int _cubeEbo;
+    private int _cubeIndexCount;
     private System.Numerics.Matrix4x4[] _worldMats = Array.Empty<System.Numerics.Matrix4x4>();
     private System.Numerics.Matrix4x4[] _skinMats = Array.Empty<System.Numerics.Matrix4x4>();
     private float[] _boneLines = Array.Empty<float>();
@@ -158,6 +162,10 @@ public partial class PmxRenderer : IDisposable
     private List<MiniMikuDance.Import.BoneData> _bones = new();
     private readonly List<IkBone> _ikBones = new();
     private readonly object _ikBonesLock = new();
+    private readonly HashSet<int> _ikBoneIndices = new();
+    private readonly HashSet<int> _physicsBones = new();
+    private int _selectedBoneIndex = -1;
+    public event Action<int>? BoneSelectionChanged;
     private readonly Dictionary<int, string> _indexToHumanoidName = new();
     public BonesConfig? BonesConfig { get; set; }
     private Quaternion _externalRotation = Quaternion.Identity;
@@ -201,6 +209,20 @@ public partial class PmxRenderer : IDisposable
         }
     }
 
+    private bool _distinguishBoneTypes;
+    public bool DistinguishBoneTypes
+    {
+        get => _distinguishBoneTypes;
+        set
+        {
+            if (_distinguishBoneTypes != value)
+            {
+                _distinguishBoneTypes = value;
+                Viewer?.InvalidateSurface();
+            }
+        }
+    }
+
     private float _ikBoneScale = AppSettings.DefaultIkBoneScale;
     public float IkBoneScale
     {
@@ -210,6 +232,20 @@ public partial class PmxRenderer : IDisposable
             if (_ikBoneScale != value)
             {
                 _ikBoneScale = value;
+                Viewer?.InvalidateSurface();
+            }
+        }
+    }
+
+    public int SelectedBoneIndex
+    {
+        get => _selectedBoneIndex;
+        set
+        {
+            if (_selectedBoneIndex != value)
+            {
+                _selectedBoneIndex = value;
+                BoneSelectionChanged?.Invoke(value);
                 Viewer?.InvalidateSurface();
             }
         }
@@ -569,9 +605,11 @@ void main(){
         lock (_ikBonesLock)
         {
             _ikBones.Clear();
-            _ikBones.AddRange(bones);
-            foreach (var ik in _ikBones)
+            _ikBoneIndices.Clear();
+            foreach (var ik in bones)
             {
+                _ikBones.Add(ik);
+                _ikBoneIndices.Add(ik.PmxBoneIndex);
                 ik.Position = GetBoneWorldPosition(ik.PmxBoneIndex);
             }
         }
@@ -582,6 +620,7 @@ void main(){
         lock (_ikBonesLock)
         {
             _ikBones.Clear();
+            _ikBoneIndices.Clear();
         }
     }
 
@@ -657,6 +696,48 @@ void main(){
         GL.BindVertexArray(0);
     }
 
+    private void EnsureCubeMesh()
+    {
+        if (_cubeVao != 0)
+            return;
+
+        float[] vertices =
+        {
+            -1f, -1f, -1f,
+             1f, -1f, -1f,
+             1f,  1f, -1f,
+            -1f,  1f, -1f,
+            -1f, -1f,  1f,
+             1f, -1f,  1f,
+             1f,  1f,  1f,
+            -1f,  1f,  1f
+        };
+
+        ushort[] indices =
+        {
+            0,1,2, 2,3,0,
+            4,5,6, 6,7,4,
+            0,4,7, 7,3,0,
+            1,5,6, 6,2,1,
+            3,2,6, 6,7,3,
+            0,1,5, 5,4,0
+        };
+
+        _cubeIndexCount = indices.Length;
+        _cubeVao = GL.GenVertexArray();
+        _cubeVbo = GL.GenBuffer();
+        _cubeEbo = GL.GenBuffer();
+
+        GL.BindVertexArray(_cubeVao);
+        GL.BindBuffer(BufferTarget.ArrayBuffer, _cubeVbo);
+        GL.BufferData(BufferTarget.ArrayBuffer, vertices.Length * sizeof(float), vertices, BufferUsageHint.StaticDraw);
+        GL.VertexAttribPointer(0, 3, VertexAttribPointerType.Float, false, 3 * sizeof(float), 0);
+        GL.EnableVertexAttribArray(0);
+        GL.BindBuffer(BufferTarget.ElementArrayBuffer, _cubeEbo);
+        GL.BufferData(BufferTarget.ElementArrayBuffer, indices.Length * sizeof(ushort), indices, BufferUsageHint.StaticDraw);
+        GL.BindVertexArray(0);
+    }
+
     // DrawIkBones は PmxRenderer.Render.cs へ移動
 
     // スクリーン座標から最も近いボーンを選択
@@ -718,6 +799,7 @@ void main(){
                 }
             }
         }
+        SelectedBoneIndex = result;
         return result;
     }
 
@@ -889,6 +971,13 @@ void main(){
         _meshes.Clear();
         _indexToHumanoidName.Clear();
         _bones = data.Bones;
+        _physicsBones.Clear();
+        foreach (var rb in data.RigidBodies)
+        {
+            if (rb.BoneIndex >= 0)
+                _physicsBones.Add(rb.BoneIndex);
+        }
+        _selectedBoneIndex = -1;
         _worldMats = new System.Numerics.Matrix4x4[_bones.Count];
         _skinMats = new System.Numerics.Matrix4x4[_bones.Count];
         foreach (var (name, idx) in data.HumanoidBoneList)
@@ -1355,11 +1444,14 @@ void main(){
         GL.DeleteBuffer(_boneVbo);
         GL.DeleteBuffer(_ikBoneVbo);
         GL.DeleteBuffer(_ikBoneEbo);
+        GL.DeleteBuffer(_cubeVbo);
+        GL.DeleteBuffer(_cubeEbo);
         GL.DeleteVertexArray(_gridVao);
         GL.DeleteVertexArray(_axesVao);
         GL.DeleteVertexArray(_groundVao);
         GL.DeleteVertexArray(_boneVao);
         GL.DeleteVertexArray(_ikBoneVao);
+        GL.DeleteVertexArray(_cubeVao);
         GL.DeleteProgram(_program);
         GL.DeleteProgram(_modelProgram);
     }
