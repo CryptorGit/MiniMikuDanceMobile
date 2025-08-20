@@ -18,12 +18,13 @@ public sealed class BepuPhysicsWorld : IPhysicsWorld
     private Simulation? _simulation;
     private readonly Dictionary<BodyHandle, (int Bone, int Mode)> _bodyBoneMap = new();
     private readonly List<BodyHandle> _rigidBodyHandles = new();
+    private readonly Dictionary<BodyHandle, Material> _materialMap = new();
 
     public void Initialize()
     {
         _bufferPool = new BufferPool();
         _simulation = Simulation.Create(_bufferPool,
-            new SimpleNarrowPhaseCallbacks(),
+            new SimpleNarrowPhaseCallbacks(_materialMap),
             new SimplePoseIntegratorCallbacks(new Vector3(0, -9.81f, 0)),
             new SolveDescription(8, 1));
     }
@@ -65,6 +66,7 @@ public sealed class BepuPhysicsWorld : IPhysicsWorld
     {
         if (_simulation is null) return;
         _rigidBodyHandles.Clear();
+        _materialMap.Clear();
         foreach (var rb in model.RigidBodies)
         {
             TypedIndex shapeIndex;
@@ -104,11 +106,13 @@ public sealed class BepuPhysicsWorld : IPhysicsWorld
                 bodyDesc = BodyDescription.CreateDynamic(pose, inertia, collidable, new BodyActivityDescription());
             }
 
-            // TODO: Apply damping parameters when Bepu API usage is defined
+            bodyDesc.LinearDamping = rb.LinearDamping;
+            bodyDesc.AngularDamping = rb.AngularDamping;
 
             var handle = _simulation.Bodies.Add(bodyDesc);
             _rigidBodyHandles.Add(handle);
             _bodyBoneMap[handle] = (rb.BoneIndex, rb.Mode);
+            _materialMap[handle] = new Material(rb.Restitution, rb.Friction);
         }
     }
 
@@ -215,6 +219,13 @@ public sealed class BepuPhysicsWorld : IPhysicsWorld
 
     private struct SimpleNarrowPhaseCallbacks : INarrowPhaseCallbacks
     {
+        private readonly Dictionary<BodyHandle, Material> _materials;
+
+        public SimpleNarrowPhaseCallbacks(Dictionary<BodyHandle, Material> materials)
+        {
+            _materials = materials;
+        }
+
         public void Initialize(Simulation simulation) { }
 
         public bool AllowContactGeneration(int workerIndex, CollidableReference a, CollidableReference b, ref float speculativeMargin) => true;
@@ -224,13 +235,29 @@ public sealed class BepuPhysicsWorld : IPhysicsWorld
         public bool ConfigureContactManifold<TManifold>(int workerIndex, CollidablePair pair, ref TManifold manifold, out PairMaterialProperties pairMaterial)
             where TManifold : unmanaged, IContactManifold<TManifold>
         {
-            pairMaterial = new PairMaterialProperties(1f, 1f, new SpringSettings(30f, 1f));
+            _materials.TryGetValue(pair.A.BodyHandle, out var matA);
+            _materials.TryGetValue(pair.B.BodyHandle, out var matB);
+            var friction = (matA.Friction + matB.Friction) * 0.5f;
+            var restitution = (matA.Restitution + matB.Restitution) * 0.5f;
+            pairMaterial = new PairMaterialProperties(friction, restitution, new SpringSettings(30f, 1f));
             return true;
         }
 
         public bool ConfigureContactManifold(int workerIndex, CollidablePair pair, int childIndexA, int childIndexB, ref ConvexContactManifold manifold) => true;
 
         public void Dispose() { }
+    }
+
+    private struct Material
+    {
+        public float Restitution;
+        public float Friction;
+
+        public Material(float restitution, float friction)
+        {
+            Restitution = restitution;
+            Friction = friction;
+        }
     }
 
     private struct SimplePoseIntegratorCallbacks : IPoseIntegratorCallbacks
