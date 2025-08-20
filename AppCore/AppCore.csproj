@@ -18,6 +18,9 @@
     <PackageReference Include="BepuPhysics" Version="2.4.0" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="..\Physics\Cloth\*.cs" />
+  </ItemGroup>
+  <ItemGroup>
     <PackageReference Include="Microsoft.CodeAnalysis.NetAnalyzers" Version="9.0.0">
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
