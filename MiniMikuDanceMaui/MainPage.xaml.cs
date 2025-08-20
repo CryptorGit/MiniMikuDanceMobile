@@ -63,7 +63,7 @@ public partial class MainPage : ContentPage
     private ModelData? _pendingModel;
     private ModelData? _currentModel;
     private readonly Scene _scene = new();
-    private readonly BepuPhysicsWorld _physics = new();
+    private readonly IPhysicsWorld _physics = new BepuPhysicsWorld();
     private DateTime _lastFrameTime = DateTime.UtcNow;
     private readonly Dictionary<long, SKPoint> _touchPoints = new();
     private readonly long[] _touchIds = new long[2];
@@ -603,9 +603,12 @@ public partial class MainPage : ContentPage
             UpdateRendererLightingProperties();
             _scene.Bones.Clear();
             _scene.Bones.AddRange(_currentModel.Bones);
-            _physics.LoadRigidBodies(_currentModel);
-            _physics.LoadSoftBodies(_currentModel);
-            _physics.LoadJoints(_currentModel);
+            if (_physics is BepuPhysicsWorld bepu)
+            {
+                bepu.LoadRigidBodies(_currentModel);
+                bepu.LoadSoftBodies(_currentModel);
+                bepu.LoadJoints(_currentModel);
+            }
             _pendingModel = null;
 
             if (_poseMode && _currentModel != null)
