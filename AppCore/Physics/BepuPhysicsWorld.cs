@@ -23,13 +23,13 @@ public sealed class BepuPhysicsWorld : IPhysicsWorld
     private readonly Dictionary<BodyHandle, SubgroupCollisionFilter> _bodyFilterMap = new();
     private readonly ClothSimulator _cloth = new();
 
-    public void Initialize()
+    public void Initialize(PhysicsConfig config)
     {
         _bufferPool = new BufferPool();
         _simulation = Simulation.Create(_bufferPool,
             new SubgroupFilteredCallbacks(_materialMap, _bodyFilterMap),
-            new SimplePoseIntegratorCallbacks(new Vector3(0, -9.81f, 0)),
-            new SolveDescription(8, 1));
+            new SimplePoseIntegratorCallbacks(config.Gravity),
+            new SolveDescription(config.SolverIterationCount, config.SubstepCount));
     }
 
     public void Step(float dt)
