@@ -38,6 +38,29 @@ public sealed class BepuPhysicsWorld : IPhysicsWorld
         _cloth.Step(dt);
     }
 
+    public void SyncFromBones(Scene scene)
+    {
+        if (_simulation is null)
+            return;
+
+        foreach (var pair in _bodyBoneMap)
+        {
+            var handle = pair.Key;
+            var info = pair.Value;
+            if (info.Bone < 0 || info.Bone >= scene.Bones.Count)
+                continue;
+            if (info.Mode == 1)
+                continue;
+
+            var body = _simulation.Bodies.GetBodyReference(handle);
+            var bone = scene.Bones[info.Bone];
+            body.Pose.Position = bone.Translation;
+            body.Pose.Orientation = bone.Rotation;
+            body.Velocity.Linear = Vector3.Zero;
+            body.Velocity.Angular = Vector3.Zero;
+        }
+    }
+
     public void SyncToBones(Scene scene)
     {
         if (_simulation is not null)

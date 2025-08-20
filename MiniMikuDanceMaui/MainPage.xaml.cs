@@ -582,6 +582,7 @@ public partial class MainPage : ContentPage
         var now = DateTime.UtcNow;
         float dt = (float)(now - _lastFrameTime).TotalSeconds;
         _lastFrameTime = now;
+        _physics.SyncFromBones(_scene);
         _physics.Step(dt);
         _physics.SyncToBones(_scene);
         _renderer.Resize(e.BackendRenderTarget.Width, e.BackendRenderTarget.Height);
