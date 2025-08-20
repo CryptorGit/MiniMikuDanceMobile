@@ -582,6 +582,21 @@ public partial class PmxRenderer
         GL.BindVertexArray(_gridVao);
         GL.DrawArrays(PrimitiveType.Lines, 0, _gridVertexCount);
         GL.BindVertexArray(0);
+        if (_axesVao != 0)
+        {
+            GL.UniformMatrix4(_modelLoc, false, ref gridModel);
+            GL.Disable(EnableCap.DepthTest);
+            GL.BindVertexArray(_axesVao);
+            int cnt = _axesVertexCount;
+            GL.Uniform4(_colorLoc, new Vector4(1f, 0f, 0f, 1f));
+            GL.DrawArrays(PrimitiveType.Lines, 0, cnt);
+            GL.Uniform4(_colorLoc, new Vector4(0f, 1f, 0f, 1f));
+            GL.DrawArrays(PrimitiveType.Lines, cnt, cnt);
+            GL.Uniform4(_colorLoc, new Vector4(0f, 0f, 1f, 1f));
+            GL.DrawArrays(PrimitiveType.Lines, cnt * 2, cnt);
+            GL.BindVertexArray(0);
+            GL.Enable(EnableCap.DepthTest);
+        }
         GL.DepthMask(true);
 
         if (ShowBoneOutline && _boneVertexCount > 0)

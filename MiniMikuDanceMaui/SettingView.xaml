@@ -4,6 +4,7 @@
              x:Class="MiniMikuDanceMaui.SettingView"
              BackgroundColor="{StaticResource BackgroundColor}">
     <VerticalStackLayout Spacing="10" Padding="10">
+        <Label Text="座標系: 右手系 (X:赤, Y:緑, Z:青)" TextColor="{StaticResource TextColor}"/>
         <Label Text="Bottom Region Height" TextColor="{StaticResource TextColor}"/>
         <Slider x:Name="HeightSlider" Minimum="0.1" Maximum="0.9" Value="0.33"
                 ValueChanged="OnHeightChanged"/>
