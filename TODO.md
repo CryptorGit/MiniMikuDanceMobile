@@ -1,6 +1,7 @@
 * `dotnet build` が `Microsoft.Build.Logging.TerminalLogger` の例外により完了しない問題の調査
 * 強く型付けした列挙体への置換後のテクスチャ読み込み動作の実機確認
 * MAUI ワークロードをインストールしてビルド確認を行う
+* Android SDK をインストールしてビルド・起動確認を行う
 * `MissingTexture.png` の追加
 * ModelData のシェーディング関連プロパティ削除後の UI/Renderer 調整
 * View>Lighting タブ名を Lighting に変更し、縦スクロールを実装する
