@@ -13,6 +13,18 @@ public class ClothSimulator
     private Vector3 _gravity = new(0, -9.81f, 0);
     private float _damping = 0.98f;
 
+    public Vector3 Gravity
+    {
+        get => _gravity;
+        set => _gravity = value;
+    }
+
+    public float Damping
+    {
+        get => _damping;
+        set => _damping = value;
+    }
+
     public void Step(float dt)
     {
         if (Nodes.Count == 0)
