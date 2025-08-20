@@ -13,7 +13,8 @@ public static class JSONUtil
         var opts = new JsonSerializerOptions
         {
             PropertyNameCaseInsensitive = true,
-            WriteIndented = writeIndented
+            WriteIndented = writeIndented,
+            IncludeFields = true
         };
         opts.Converters.Add(new Vector3JsonConverter());
         return opts;
