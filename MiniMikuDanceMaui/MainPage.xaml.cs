@@ -24,6 +24,7 @@ using MiniMikuDance.App;
 using SixLabors.ImageSharp.PixelFormats;
 using MiniMikuDance.IK;
 using MiniMikuDance.Util;
+using MiniMikuDance.Physics;
 
 namespace MiniMikuDanceMaui;
 
@@ -61,6 +62,9 @@ public partial class MainPage : ContentPage
     private bool _glInitialized;
     private ModelData? _pendingModel;
     private ModelData? _currentModel;
+    private readonly Scene _scene = new();
+    private readonly BepuPhysicsWorld _physics = new();
+    private DateTime _lastFrameTime = DateTime.UtcNow;
     private readonly Dictionary<long, SKPoint> _touchPoints = new();
     private readonly long[] _touchIds = new long[2];
     private readonly BonesConfig? _bonesConfig = App.Initializer.BonesConfig;
@@ -176,6 +180,7 @@ public partial class MainPage : ContentPage
         _renderer.BonePickPixels = _settings.BonePickPixels;
         _renderer.ShowIkBones = _poseMode;
         _renderer.IkBoneScale = _settings.IkBoneScale;
+        _physics.Initialize(_settings.Physics);
 
         if (Viewer is SKGLView glView)
         {
@@ -562,7 +567,11 @@ public partial class MainPage : ContentPage
         }
 
         LoadPendingModel();
-
+        var now = DateTime.UtcNow;
+        float dt = (float)(now - _lastFrameTime).TotalSeconds;
+        _lastFrameTime = now;
+        _physics.Step(dt);
+        _physics.SyncToBones(_scene);
         _renderer.Resize(e.BackendRenderTarget.Width, e.BackendRenderTarget.Height);
         _renderer.Render();
         GL.Flush();
@@ -579,6 +588,11 @@ public partial class MainPage : ContentPage
             _renderer.LoadModel(_pendingModel);
             _currentModel = _pendingModel;
             UpdateRendererLightingProperties();
+            _scene.Bones.Clear();
+            _scene.Bones.AddRange(_currentModel.Bones);
+            _physics.LoadRigidBodies(_currentModel);
+            _physics.LoadSoftBodies(_currentModel);
+            _physics.LoadJoints(_currentModel);
             _pendingModel = null;
 
             if (_poseMode && _currentModel != null)
