@@ -4,7 +4,6 @@ using System.Collections.Generic;
 using BepuPhysics;
 using BepuPhysics.CollisionDetection;
 using BepuPhysics.Collidables;
-using BepuPhysics.CollisionFiltering;
 using BepuPhysics.Constraints;
 using BepuUtilities;
 using BepuUtilities.Memory;
@@ -20,13 +19,13 @@ public sealed class BepuPhysicsWorld : IPhysicsWorld
     private readonly Dictionary<BodyHandle, (int Bone, int Mode)> _bodyBoneMap = new();
     private readonly List<BodyHandle> _rigidBodyHandles = new();
     private readonly Dictionary<BodyHandle, Material> _materialMap = new();
-    private readonly Dictionary<BodyHandle, CollisionFilter> _bodyFilterMap = new();
+    private readonly Dictionary<BodyHandle, SubgroupCollisionFilter> _bodyFilterMap = new();
 
     public void Initialize()
     {
         _bufferPool = new BufferPool();
         _simulation = Simulation.Create(_bufferPool,
-            new SimpleNarrowPhaseCallbacks(_materialMap),
+            new SubgroupFilteredCallbacks(_materialMap, _bodyFilterMap),
             new SimplePoseIntegratorCallbacks(new Vector3(0, -9.81f, 0)),
             new SolveDescription(8, 1));
     }
@@ -97,11 +96,8 @@ public sealed class BepuPhysicsWorld : IPhysicsWorld
 
             var pose = new RigidPose(rb.Position,
                 Quaternion.CreateFromYawPitchRoll(rb.Rotation.Y, rb.Rotation.X, rb.Rotation.Z));
-            var filter = new CollisionFilter { Group = rb.Group, Mask = rb.Mask };
-            var collidable = new CollidableDescription(shapeIndex, 0.1f)
-            {
-                CollisionFilter = filter
-            };
+            var filter = new SubgroupCollisionFilter((uint)rb.Group, (uint)rb.Mask);
+            var collidable = new CollidableDescription(shapeIndex, 0.1f);
 
             BodyDescription bodyDesc;
             if (rb.Mode == 0)
@@ -113,8 +109,6 @@ public sealed class BepuPhysicsWorld : IPhysicsWorld
                 bodyDesc = BodyDescription.CreateDynamic(pose, inertia, collidable, new BodyActivityDescription());
             }
 
-            bodyDesc.LinearDamping = rb.LinearDamping;
-            bodyDesc.AngularDamping = rb.AngularDamping;
 
             var handle = _simulation.Bodies.Add(bodyDesc);
             _rigidBodyHandles.Add(handle);
@@ -225,23 +219,31 @@ public sealed class BepuPhysicsWorld : IPhysicsWorld
         return Quaternion.CreateFromAxisAngle(rotAxis, angle);
     }
 
-    private struct SimpleNarrowPhaseCallbacks : INarrowPhaseCallbacks
+    private struct SubgroupFilteredCallbacks : INarrowPhaseCallbacks
     {
         private readonly Dictionary<BodyHandle, Material> _materials;
+        private readonly Dictionary<BodyHandle, SubgroupCollisionFilter> _filters;
 
-        public SimpleNarrowPhaseCallbacks(Dictionary<BodyHandle, Material> materials)
+        public SubgroupFilteredCallbacks(Dictionary<BodyHandle, Material> materials,
+            Dictionary<BodyHandle, SubgroupCollisionFilter> filters)
         {
             _materials = materials;
+            _filters = filters;
         }
 
         public void Initialize(Simulation simulation) { }
 
-        public bool AllowContactGeneration(int workerIndex, CollidableReference a, CollidableReference b, ref float speculativeMargin) => true;
+        public bool AllowContactGeneration(int workerIndex, CollidableReference a, CollidableReference b, ref float speculativeMargin)
+        {
+            _filters.TryGetValue(a.BodyHandle, out var filterA);
+            _filters.TryGetValue(b.BodyHandle, out var filterB);
+            return SubgroupCollisionFilter.AllowCollision(filterA, filterB);
+        }
 
         public bool AllowContactGeneration(int workerIndex, CollidablePair pair, int childIndexA, int childIndexB) => true;
 
-        public bool ConfigureContactManifold<TManifold>(int workerIndex, CollidablePair pair, ref TManifold manifold, out PairMaterialProperties pairMaterial)
-            where TManifold : unmanaged, IContactManifold<TManifold>
+        public bool ConfigureContactManifold<TManifold>(int workerIndex, CollidablePair pair, ref TManifold manifold,
+            out PairMaterialProperties pairMaterial) where TManifold : unmanaged, IContactManifold<TManifold>
         {
             _materials.TryGetValue(pair.A.BodyHandle, out var matA);
             _materials.TryGetValue(pair.B.BodyHandle, out var matB);
@@ -251,7 +253,8 @@ public sealed class BepuPhysicsWorld : IPhysicsWorld
             return true;
         }
 
-        public bool ConfigureContactManifold(int workerIndex, CollidablePair pair, int childIndexA, int childIndexB, ref ConvexContactManifold manifold) => true;
+        public bool ConfigureContactManifold(int workerIndex, CollidablePair pair, int childIndexA, int childIndexB,
+            ref ConvexContactManifold manifold) => true;
 
         public void Dispose() { }
     }
