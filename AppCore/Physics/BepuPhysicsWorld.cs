@@ -33,9 +33,15 @@ public sealed class BepuPhysicsWorld : IPhysicsWorld
         var scaledGravity = config.Gravity * modelScale;
         _config = new PhysicsConfig(scaledGravity, config.SolverIterationCount, config.SubstepCount, config.Damping);
         _bufferPool = new BufferPool();
-        _simulation = Simulation.Create(_bufferPool,
+        var poseIntegrator = new SimplePoseIntegratorCallbacks(scaledGravity)
+        {
+            LinearDamping = config.Damping,
+            AngularDamping = config.Damping
+        };
+        _simulation = Simulation.Create(
+            _bufferPool,
             new SubgroupFilteredCallbacks(_materialMap, _bodyFilterMap),
-            new SimplePoseIntegratorCallbacks(scaledGravity),
+            poseIntegrator,
             new SolveDescription(config.SolverIterationCount, config.SubstepCount));
         _cloth.Gravity = scaledGravity;
         _cloth.Damping = config.Damping;
@@ -160,11 +166,6 @@ public sealed class BepuPhysicsWorld : IPhysicsWorld
             {
                 bodyDesc = BodyDescription.CreateDynamic(pose, inertia, collidable, new BodyActivityDescription());
             }
-            bodyDesc.LocalDamping = new BodyDamping
-            {
-                Linear = new Vector3(rb.LinearDamping),
-                Angular = new Vector3(rb.AngularDamping)
-            };
 
             var handle = _simulation.Bodies.Add(bodyDesc);
             _rigidBodyHandles.Add(handle);
@@ -388,6 +389,8 @@ public sealed class BepuPhysicsWorld : IPhysicsWorld
     private struct SimplePoseIntegratorCallbacks : IPoseIntegratorCallbacks
     {
         public Vector3 Gravity;
+        public float LinearDamping;
+        public float AngularDamping;
         public AngularIntegrationMode AngularIntegrationMode => AngularIntegrationMode.Nonconserving;
         public bool AllowSubstepsForUnconstrainedBodies => false;
         public bool IntegrateVelocityForKinematics => false;
@@ -395,6 +398,8 @@ public sealed class BepuPhysicsWorld : IPhysicsWorld
         public SimplePoseIntegratorCallbacks(Vector3 gravity)
         {
             Gravity = gravity;
+            LinearDamping = 0f;
+            AngularDamping = 0f;
         }
 
         public void Initialize(Simulation simulation) { }
@@ -405,7 +410,8 @@ public sealed class BepuPhysicsWorld : IPhysicsWorld
             BodyInertiaWide localInertia, Vector<int> integrationMask, int workerIndex, Vector<float> dt, ref BodyVelocityWide velocity)
         {
             Vector3Wide.Broadcast(Gravity, out var g);
-            velocity.Linear += g * dt;
+            velocity.Linear = (velocity.Linear + g * dt) * (Vector<float>.One - LinearDamping * dt);
+            velocity.Angular *= Vector<float>.One - AngularDamping * dt;
         }
     }
 }
