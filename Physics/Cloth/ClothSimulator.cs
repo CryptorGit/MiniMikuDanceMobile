@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Numerics;
 using MiniMikuDance.App;
@@ -69,14 +70,76 @@ public class ClothSimulator
 
     public void SyncToBones(Scene scene)
     {
-        var count = System.Math.Min(Nodes.Count, BoneMap.Count);
+        var count = Math.Min(Nodes.Count, BoneMap.Count);
+        var worldCache = new Dictionary<int, (Vector3 Pos, Quaternion Rot)>();
+
+        (Vector3 Pos, Quaternion Rot) GetWorldPose(int idx)
+        {
+            if (worldCache.TryGetValue(idx, out var pose))
+                return pose;
+            var b = scene.Bones[idx];
+            var pos = b.Translation;
+            var rot = b.Rotation;
+            if (b.Parent >= 0)
+            {
+                var parent = GetWorldPose(b.Parent);
+                pos = Vector3.Transform(pos, parent.Rot) + parent.Pos;
+                rot = rot * parent.Rot;
+            }
+            pose = (pos, rot);
+            worldCache[idx] = pose;
+            return pose;
+        }
+
         for (int i = 0; i < count; i++)
         {
             var boneIndex = BoneMap[i];
             if (boneIndex < 0 || boneIndex >= scene.Bones.Count)
                 continue;
+
             var bone = scene.Bones[boneIndex];
-            bone.Translation = Nodes[i].Position;
+            var nodePos = Nodes[i].Position;
+            Quaternion parentRot = Quaternion.Identity;
+
+            if (bone.Parent >= 0)
+            {
+                var parentPose = GetWorldPose(bone.Parent);
+                parentRot = parentPose.Rot;
+                var localPos = Vector3.Transform(nodePos - parentPose.Pos, Quaternion.Conjugate(parentPose.Rot));
+                bone.Translation = localPos;
+            }
+            else
+            {
+                bone.Translation = nodePos;
+            }
+
+            if (i + 1 < count)
+            {
+                var nextPos = Nodes[i + 1].Position;
+                var dir = nextPos - nodePos;
+                if (dir.LengthSquared() > 1e-8f && bone.BaseForward.LengthSquared() > 1e-8f)
+                {
+                    var baseDir = Vector3.Normalize(bone.BaseForward);
+                    dir = Vector3.Normalize(dir);
+                    var dot = Math.Clamp(Vector3.Dot(baseDir, dir), -1f, 1f);
+                    var axis = Vector3.Cross(baseDir, dir);
+                    Quaternion delta;
+                    if (axis.LengthSquared() > 1e-8f)
+                    {
+                        axis = Vector3.Normalize(axis);
+                        var angle = MathF.Acos(dot);
+                        delta = Quaternion.CreateFromAxisAngle(axis, angle);
+                    }
+                    else
+                    {
+                        delta = dot > 0f ? Quaternion.Identity : Quaternion.CreateFromAxisAngle(Vector3.UnitY, MathF.PI);
+                    }
+                    bone.Rotation = delta * bone.InitialRotation;
+                }
+            }
+
+            scene.Bones[boneIndex] = bone;
+            worldCache[boneIndex] = (nodePos, bone.Rotation * parentRot);
         }
     }
 }
