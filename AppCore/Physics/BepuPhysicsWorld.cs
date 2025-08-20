@@ -96,33 +96,80 @@ public sealed class BepuPhysicsWorld : IPhysicsWorld
     {
         if (_simulation is not null)
         {
+            var poseMap = new Dictionary<int, (Vector3 Pos, Quaternion Rot)>();
             foreach (var pair in _bodyBoneMap)
             {
-                var handle = pair.Key;
+                var body = _simulation.Bodies.GetBodyReference(pair.Key);
+                poseMap[pair.Value.Bone] = (body.Pose.Position, body.Pose.Orientation);
+            }
+
+            var cache = new Dictionary<int, Matrix4x4>();
+            foreach (var pair in _bodyBoneMap)
+            {
                 var info = pair.Value;
                 if (info.Bone < 0 || info.Bone >= scene.Bones.Count)
                     continue;
                 if (info.Mode == 0)
                     continue;
-                var body = _simulation.Bodies.GetBodyReference(handle);
-                var pose = body.Pose;
                 var bone = scene.Bones[info.Bone];
-                if (info.Mode == 2)
+                var pose = poseMap[info.Bone];
+                Vector3 localPos;
+                Quaternion localRot;
+                if (bone.Parent >= 0)
                 {
-                    const float blend = 0.5f; // TODO: 設定項目化
-                    bone.Translation = Vector3.Lerp(bone.Translation, pose.Position, blend);
-                    bone.Rotation = Quaternion.Slerp(bone.Rotation, pose.Orientation, blend);
+                    var parentWorld = GetWorldMatrix(scene, bone.Parent, poseMap, cache);
+                    Matrix4x4.Invert(parentWorld, out var invParent);
+                    var world = Matrix4x4.CreateFromQuaternion(pose.Rot) * Matrix4x4.CreateTranslation(pose.Pos);
+                    var local = world * invParent;
+                    Matrix4x4.Decompose(local, out _, out localRot, out localPos);
                 }
                 else
                 {
-                    bone.Translation = pose.Position;
-                    bone.Rotation = pose.Orientation;
+                    localPos = pose.Pos;
+                    localRot = pose.Rot;
+                }
+
+                if (info.Mode == 2)
+                {
+                    const float blend = 0.5f; // TODO: 設定項目化
+                    bone.Translation = Vector3.Lerp(bone.Translation, localPos, blend);
+                    bone.Rotation = Quaternion.Slerp(bone.Rotation, localRot, blend);
+                }
+                else
+                {
+                    bone.Translation = localPos;
+                    bone.Rotation = localRot;
                 }
             }
         }
 
         // Soft body (rope, etc.) simulation results
         _cloth.SyncToBones(scene);
+    }
+
+    private static Matrix4x4 GetWorldMatrix(Scene scene, int index,
+        Dictionary<int, (Vector3 Pos, Quaternion Rot)> poses, Dictionary<int, Matrix4x4> cache)
+    {
+        if (cache.TryGetValue(index, out var mat))
+            return mat;
+
+        Matrix4x4 local;
+        if (poses.TryGetValue(index, out var pose))
+            local = Matrix4x4.CreateFromQuaternion(pose.Rot) * Matrix4x4.CreateTranslation(pose.Pos);
+        else
+        {
+            var bone = scene.Bones[index];
+            local = Matrix4x4.CreateFromQuaternion(bone.Rotation) * Matrix4x4.CreateTranslation(bone.Translation);
+        }
+
+        var boneData = scene.Bones[index];
+        if (boneData.Parent >= 0)
+            mat = local * GetWorldMatrix(scene, boneData.Parent, poses, cache);
+        else
+            mat = local;
+
+        cache[index] = mat;
+        return mat;
     }
 
     public void Dispose()
