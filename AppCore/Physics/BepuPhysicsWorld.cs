@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using BepuPhysics;
 using BepuPhysics.CollisionDetection;
 using BepuPhysics.Collidables;
+using BepuPhysics.CollisionFiltering;
 using BepuPhysics.Constraints;
 using BepuUtilities;
 using BepuUtilities.Memory;
@@ -19,6 +20,7 @@ public sealed class BepuPhysicsWorld : IPhysicsWorld
     private readonly Dictionary<BodyHandle, (int Bone, int Mode)> _bodyBoneMap = new();
     private readonly List<BodyHandle> _rigidBodyHandles = new();
     private readonly Dictionary<BodyHandle, Material> _materialMap = new();
+    private readonly Dictionary<BodyHandle, CollisionFilter> _bodyFilterMap = new();
 
     public void Initialize()
     {
@@ -67,6 +69,7 @@ public sealed class BepuPhysicsWorld : IPhysicsWorld
         if (_simulation is null) return;
         _rigidBodyHandles.Clear();
         _materialMap.Clear();
+        _bodyFilterMap.Clear();
         foreach (var rb in model.RigidBodies)
         {
             TypedIndex shapeIndex;
@@ -94,7 +97,11 @@ public sealed class BepuPhysicsWorld : IPhysicsWorld
 
             var pose = new RigidPose(rb.Position,
                 Quaternion.CreateFromYawPitchRoll(rb.Rotation.Y, rb.Rotation.X, rb.Rotation.Z));
-            var collidable = new CollidableDescription(shapeIndex, 0.1f);
+            var filter = new CollisionFilter { Group = rb.Group, Mask = rb.Mask };
+            var collidable = new CollidableDescription(shapeIndex, 0.1f)
+            {
+                CollisionFilter = filter
+            };
 
             BodyDescription bodyDesc;
             if (rb.Mode == 0)
@@ -113,6 +120,7 @@ public sealed class BepuPhysicsWorld : IPhysicsWorld
             _rigidBodyHandles.Add(handle);
             _bodyBoneMap[handle] = (rb.BoneIndex, rb.Mode);
             _materialMap[handle] = new Material(rb.Restitution, rb.Friction);
+            _bodyFilterMap[handle] = filter;
         }
     }
 
