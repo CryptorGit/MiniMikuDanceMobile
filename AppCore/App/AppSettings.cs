@@ -19,7 +19,7 @@ public class AppSettings
     /// <summary>PMXモデルのスケールのデフォルト値。</summary>
     public const float DefaultModelScale = 1.0f;
 
-    /// <summary>PMXモデルに適用するスケール。</summary>
+    /// <summary>PMXモデルに適用するスケール。物理シミュレーションでは重力と質量がこの値に応じてスケーリングされる。</summary>
     public float ModelScale { get; set; } = DefaultModelScale;
 
     /// <summary>ステージの半径のデフォルト値。</summary>
@@ -74,7 +74,7 @@ public class AppSettings
     public bool DistinguishBoneTypes { get; set; }
         = false;
 
-    /// <summary>物理設定。</summary>
+    /// <summary>物理設定。Gravity は ModelScale に合わせてスケーリングされる。</summary>
     public PhysicsConfig Physics { get; set; } =
         new(new Vector3(0f, -9.81f, 0f), 8, 1, 0.98f);
 
