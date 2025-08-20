@@ -180,7 +180,7 @@ public partial class MainPage : ContentPage
         _renderer.BonePickPixels = _settings.BonePickPixels;
         _renderer.ShowIkBones = _poseMode;
         _renderer.IkBoneScale = _settings.IkBoneScale;
-        _physics.Initialize(_settings.Physics);
+        _physics.Initialize(_settings.Physics, _settings.ModelScale);
 
         if (Viewer is SKGLView glView)
         {

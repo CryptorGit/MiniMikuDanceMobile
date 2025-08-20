@@ -23,16 +23,21 @@ public sealed class BepuPhysicsWorld : IPhysicsWorld
     private readonly Dictionary<BodyHandle, SubgroupCollisionFilter> _bodyFilterMap = new();
     private readonly ClothSimulator _cloth = new();
     private PhysicsConfig _config;
+    private float _modelScale = 1f;
+    private float _massScale = 1f;
 
-    public void Initialize(PhysicsConfig config)
+    public void Initialize(PhysicsConfig config, float modelScale)
     {
-        _config = config;
+        _modelScale = modelScale;
+        _massScale = modelScale * modelScale * modelScale;
+        var scaledGravity = config.Gravity * modelScale;
+        _config = new PhysicsConfig(scaledGravity, config.SolverIterationCount, config.SubstepCount, config.Damping);
         _bufferPool = new BufferPool();
         _simulation = Simulation.Create(_bufferPool,
             new SubgroupFilteredCallbacks(_materialMap, _bodyFilterMap),
-            new SimplePoseIntegratorCallbacks(config.Gravity),
+            new SimplePoseIntegratorCallbacks(scaledGravity),
             new SolveDescription(config.SolverIterationCount, config.SubstepCount));
-        _cloth.Gravity = config.Gravity;
+        _cloth.Gravity = scaledGravity;
         _cloth.Damping = config.Damping;
     }
 
@@ -117,6 +122,7 @@ public sealed class BepuPhysicsWorld : IPhysicsWorld
         _bodyFilterMap.Clear();
         foreach (var rb in model.RigidBodies)
         {
+            var mass = rb.Mass * _massScale;
             TypedIndex shapeIndex;
             BodyInertia inertia = default;
             switch (rb.Shape)
@@ -124,17 +130,17 @@ public sealed class BepuPhysicsWorld : IPhysicsWorld
                 case RigidBodyShape.Sphere:
                     var sphere = new Sphere(rb.Size.X);
                     shapeIndex = _simulation.Shapes.Add(sphere);
-                    inertia = sphere.ComputeInertia(rb.Mass);
+                    inertia = sphere.ComputeInertia(mass);
                     break;
                 case RigidBodyShape.Capsule:
                     var capsule = new Capsule(rb.Size.X, rb.Size.Y);
                     shapeIndex = _simulation.Shapes.Add(capsule);
-                    inertia = capsule.ComputeInertia(rb.Mass);
+                    inertia = capsule.ComputeInertia(mass);
                     break;
                 case RigidBodyShape.Box:
                     var box = new Box(rb.Size.X, rb.Size.Y, rb.Size.Z);
                     shapeIndex = _simulation.Shapes.Add(box);
-                    inertia = box.ComputeInertia(rb.Mass);
+                    inertia = box.ComputeInertia(mass);
                     break;
                 default:
                     continue;
@@ -189,7 +195,7 @@ public sealed class BepuPhysicsWorld : IPhysicsWorld
             {
                 var bone = model.Bones[current];
                 var nodeIndex = _cloth.Nodes.Count;
-                var invMass = nodeIndex == 0 ? 0f : 1f;
+                var invMass = nodeIndex == 0 ? 0f : 1f / _massScale;
                 _cloth.Nodes.Add(new Node { Position = bone.Translation, Velocity = Vector3.Zero, InverseMass = invMass });
                 _cloth.BoneMap.Add(current);
 
