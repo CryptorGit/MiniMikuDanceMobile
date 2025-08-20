@@ -1153,8 +1153,8 @@ void main(){
                 sm.TextureBytes = null;
                 sm.TextureWidth = 0;
                 sm.TextureHeight = 0;
-                GL.TexParameter(All.Texture2D, All.TextureMinFilter, (int)All.Linear);
-                GL.TexParameter(All.Texture2D, All.TextureMagFilter, (int)All.Linear);
+                GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureMinFilter, (int)All.Linear);
+                GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureMagFilter, (int)All.Linear);
                 rm.HasTexture = true;
             }
             if (sm.SphereTextureBytes != null)
@@ -1182,8 +1182,8 @@ void main(){
                 sm.SphereTextureBytes = null;
                 sm.SphereTextureWidth = 0;
                 sm.SphereTextureHeight = 0;
-                GL.TexParameter(All.Texture2D, All.TextureMinFilter, (int)All.Linear);
-                GL.TexParameter(All.Texture2D, All.TextureMagFilter, (int)All.Linear);
+                GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureMinFilter, (int)All.Linear);
+                GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureMagFilter, (int)All.Linear);
                 rm.HasSphereTexture = true;
             }
             if (sm.ToonTextureBytes != null)
@@ -1211,8 +1211,8 @@ void main(){
                 sm.ToonTextureBytes = null;
                 sm.ToonTextureWidth = 0;
                 sm.ToonTextureHeight = 0;
-                GL.TexParameter(All.Texture2D, All.TextureMinFilter, (int)All.Linear);
-                GL.TexParameter(All.Texture2D, All.TextureMagFilter, (int)All.Linear);
+                GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureMinFilter, (int)All.Linear);
+                GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureMagFilter, (int)All.Linear);
                 rm.HasToonTexture = true;
             }
 
