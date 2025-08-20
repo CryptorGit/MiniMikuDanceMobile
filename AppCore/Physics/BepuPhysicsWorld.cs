@@ -45,12 +45,18 @@ public sealed class BepuPhysicsWorld : IPhysicsWorld
             _logger.LogWarning("SubstepCount が 0 以下のため、1 に補正しました。");
             substepCount = 1;
         }
-        _config = new PhysicsConfig(scaledGravity, config.SolverIterationCount, substepCount, config.Damping);
+        var solverIterationCount = config.SolverIterationCount;
+        if (solverIterationCount < 1)
+        {
+            _logger.LogWarning("SolverIterationCount が 0 以下のため、1 に補正しました。");
+            solverIterationCount = 1;
+        }
+        _config = new PhysicsConfig(scaledGravity, solverIterationCount, substepCount, config.Damping);
         _bufferPool = new BufferPool();
         _simulation = Simulation.Create(_bufferPool,
             new SubgroupFilteredCallbacks(_materialMap, _bodyFilterMap),
             new SimplePoseIntegratorCallbacks(scaledGravity, _config.Damping, _config.Damping),
-            new SolveDescription(config.SolverIterationCount, substepCount));
+            new SolveDescription(solverIterationCount, substepCount));
         _cloth.Gravity = scaledGravity;
         _cloth.Damping = config.Damping;
     }
