@@ -88,6 +88,7 @@ public sealed class BepuPhysicsWorld : IPhysicsWorld
         if (_simulation is null)
             return;
 
+        var poseCache = new Dictionary<int, (Vector3 Pos, Quaternion Rot)>();
         foreach (var pair in _bodyBoneMap)
         {
             var handle = pair.Key;
@@ -98,19 +99,42 @@ public sealed class BepuPhysicsWorld : IPhysicsWorld
                 continue;
 
             var body = _simulation.Bodies.GetBodyReference(handle);
-            var bone = scene.Bones[info.Bone];
-            body.Pose.Position = bone.Translation;
-            body.Pose.Orientation = bone.Rotation;
-            UpdateBodyVelocity(info.Bone, bone, ref body);
+            var pose = GetWorldPose(scene, info.Bone, poseCache);
+            body.Pose.Position = pose.Pos;
+            body.Pose.Orientation = pose.Rot;
+            UpdateBodyVelocity(info.Bone, pose.Pos, pose.Rot, ref body);
         }
     }
 
-    private void UpdateBodyVelocity(int boneIndex, BoneData bone, ref BodyReference body)
+    private static (Vector3 Pos, Quaternion Rot) GetWorldPose(Scene scene, int index,
+        Dictionary<int, (Vector3 Pos, Quaternion Rot)> cache)
+    {
+        if (cache.TryGetValue(index, out var pose))
+            return pose;
+
+        var bone = scene.Bones[index];
+        if (bone.Parent >= 0)
+        {
+            var parent = GetWorldPose(scene, bone.Parent, cache);
+            var rot = bone.Rotation * parent.Rot;
+            var pos = Vector3.Transform(bone.Translation, parent.Rot) + parent.Pos;
+            pose = (pos, rot);
+        }
+        else
+        {
+            pose = (bone.Translation, bone.Rotation);
+        }
+
+        cache[index] = pose;
+        return pose;
+    }
+
+    private void UpdateBodyVelocity(int boneIndex, Vector3 worldPos, Quaternion worldRot, ref BodyReference body)
     {
         if (_prevBonePoses.TryGetValue(boneIndex, out var prev))
         {
-            var linear = (bone.Translation - prev.Pos) / _lastDt;
-            var delta = bone.Rotation * Quaternion.Conjugate(prev.Rot);
+            var linear = (worldPos - prev.Pos) / _lastDt;
+            var delta = worldRot * Quaternion.Conjugate(prev.Rot);
             delta = Quaternion.Normalize(delta);
             if (delta.W < 0f)
                 delta = new Quaternion(-delta.X, -delta.Y, -delta.Z, -delta.W);
@@ -129,7 +153,7 @@ public sealed class BepuPhysicsWorld : IPhysicsWorld
             body.Velocity.Linear = Vector3.Zero;
             body.Velocity.Angular = Vector3.Zero;
         }
-        _prevBonePoses[boneIndex] = (bone.Translation, bone.Rotation);
+        _prevBonePoses[boneIndex] = (worldPos, worldRot);
     }
 
     public void SyncToBones(Scene scene)
