@@ -2,6 +2,7 @@ using Assimp;
 using System;
 using System.IO;
 using System.Collections.Generic;
+using System.Linq;
 using System.Buffers;
 using Microsoft.CSharp.RuntimeBinder;
 using Microsoft.Extensions.Logging;
@@ -11,6 +12,7 @@ using SixLabors.ImageSharp.PixelFormats;
 using Vector3D = Assimp.Vector3D;
 using MMDTools;
 using MiniMikuDance.App;
+using MiniMikuDance.Data;
 using PmxMaterial = MMDTools.Material;
 
 namespace MiniMikuDance.Import;
@@ -37,6 +39,10 @@ public class PmxImporter : IModelImporter
 {
     private readonly AssimpContext _context = new();
     private readonly ILogger<PmxImporter> _logger;
+
+    private static readonly BonesConfig s_bonesConfig = DataManager.Instance.LoadConfig<BonesConfig>("BonesConfig");
+    private static readonly HashSet<string> s_humanoidBoneNames = new(s_bonesConfig.HumanoidBoneLimits.Select(l => l.Bone), StringComparer.OrdinalIgnoreCase);
+    private static readonly Dictionary<string, string> s_boneAliases = LoadBoneAliases();
     private sealed class TextureData
     {
         public int Width;
@@ -105,6 +111,30 @@ public class PmxImporter : IModelImporter
                 s_lruList.RemoveLast();
             }
         }
+    }
+
+    private static Dictionary<string, string> LoadBoneAliases()
+    {
+        var loaded = DataManager.Instance.LoadConfig<Dictionary<string, string>>("BoneAliases");
+        return new Dictionary<string, string>(loaded, StringComparer.OrdinalIgnoreCase);
+    }
+
+    private static string NormalizeBoneName(string name)
+    {
+        name = name.Trim();
+        if (s_boneAliases.TryGetValue(name, out var canonical) && s_humanoidBoneNames.Contains(canonical))
+        {
+            return canonical;
+        }
+        return name;
+    }
+
+    private static bool IsPhysicsBone(string name)
+    {
+        return !string.IsNullOrEmpty(name) &&
+               (name.Contains("物理", StringComparison.OrdinalIgnoreCase) ||
+                name.Contains("ダミー", StringComparison.OrdinalIgnoreCase) ||
+                name.Contains("dummy", StringComparison.OrdinalIgnoreCase));
     }
 
 public PmxImporter(ILogger<PmxImporter>? logger = null)
@@ -670,7 +700,12 @@ public PmxImporter(ILogger<PmxImporter>? logger = null)
         {
             for (int i = 0; i < boneDatas.Count; i++)
             {
-                if (boneDatas[i].Name.Equals(hb, StringComparison.OrdinalIgnoreCase))
+                var b = boneDatas[i];
+                if (IsPhysicsBone(b.Name) || IsPhysicsBone(b.NameEnglish))
+                    continue;
+
+                if (NormalizeBoneName(b.Name).Equals(hb, StringComparison.OrdinalIgnoreCase) ||
+                    NormalizeBoneName(b.NameEnglish).Equals(hb, StringComparison.OrdinalIgnoreCase))
                 {
                     data.HumanoidBones[hb] = i;
                     data.HumanoidBoneList.Add((hb, i));
