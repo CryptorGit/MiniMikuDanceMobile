@@ -137,17 +137,18 @@
 ## 5. 物理（BEPU + 質点ばね, フェーズ4）
 
 ### 5.1 BEPU World
-- `Physics/BepuPhysicsWorld.cs`
-  - `Simulation`, `BufferPool`, `NarrowPhase`, `PoseIntegrator`
-  - 形状: Sphere/Capsule/Box（最小）
-  - Joint: Hinge/Generic6DoF（最小）
+- [x] `Physics/BepuPhysicsWorld.cs`
+  - [x] `Simulation`, `BufferPool`, `NarrowPhase`, `PoseIntegrator`
+  - [x] 形状: Sphere/Capsule/Box（最小）
+  - [x] Joint: Hinge/Generic6DoF（最小）
+  - [ ] 物理設定を UI から調整する仕組み
 
 ### 5.2 質点ばね（髪/布）
-- `Physics/Cloth/`  
-  - パーティクル: `struct Node { Vector3 x,v; float invMass; }`
-  - バネ: 構造/せん断/曲げ、k, damping
-  - 射影法(PBD) or 速度Verlet + 拘束
-- **結果投影**: 髪ボーンに回転/位置を焼き込み（重みで配分）
+- [x] `Physics/Cloth/`
+  - [x] パーティクル: `struct Node { Vector3 x,v; float invMass; }`
+  - [x] バネ: 構造/せん断/曲げ、k, damping
+  - [x] 射影法(PBD) or 速度Verlet + 拘束
+- [x] **結果投影**: 髪ボーンに回転/位置を焼き込み（重みで配分）
 - **調査メモ**
   - PBD: 大きなタイムステップでも安定。距離/曲げ拘束を反復射影。
   - XPBD: コンプライアンスにより剛性を時間ステップに依存せず設定可能。
@@ -156,8 +157,8 @@
   - 布: 構造・せん断・曲げの3種バネ構成が基本。
 
 ### 5.3 PMX 剛体/ジョイントマップ
-- PMX剛体(質量/減衰/反発/摩擦/当たりグループ) → BEPUエンティティ
-- ジョイント(軸min/max/スプリング) → Generic6DoF近似
+- [x] PMX剛体(質量/減衰/反発/摩擦/当たりグループ) → BEPUエンティティ
+- [x] ジョイント(軸min/max/スプリング) → Generic6DoF近似
 
 **Acceptance**
 - サンプル髪/スカートが**不安定化せず**継続
@@ -227,9 +228,9 @@
 - [ ] UI 連携 + 反復/誤差設定
 
 ### 9.4 Physics
-- [ ] BEPU 初期化 + 形状/関節
-- [ ] 質点ばね（髪/布）
-- [ ] PMX剛体/ジョイントのマップ
+- [x] BEPU 初期化 + 形状/関節
+- [x] 質点ばね（髪/布）
+- [x] PMX剛体/ジョイントのマップ
 - [ ] UI パラメータ連携
 
 #### 調査メモ
