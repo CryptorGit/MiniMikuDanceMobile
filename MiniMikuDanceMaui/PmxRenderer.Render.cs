@@ -225,14 +225,13 @@ public partial class PmxRenderer
             if (_boneVertexCount > 0)
             {
                 GL.BindBuffer(BufferTarget.ArrayBuffer, _boneVbo);
-                var handle = System.Runtime.InteropServices.GCHandle.Alloc(_boneLines, System.Runtime.InteropServices.GCHandleType.Pinned);
-                try
+                unsafe
                 {
-                    GL.BufferSubData(BufferTarget.ArrayBuffer, IntPtr.Zero, lineIdx * sizeof(float), handle.AddrOfPinnedObject());
-                }
-                finally
-                {
-                    handle.Free();
+                    fixed (float* p = _boneLines)
+                    {
+                        GL.BufferSubData(BufferTarget.ArrayBuffer, IntPtr.Zero, lineIdx * sizeof(float), (IntPtr)p);
+                        GL.Finish();
+                    }
                 }
             }
         }
@@ -358,14 +357,13 @@ public partial class PmxRenderer
                             }
                         }
                         GL.BindBuffer(BufferTarget.ArrayBuffer, rm.Vbo);
-                        var handle = System.Runtime.InteropServices.GCHandle.Alloc(tmpVertexBuffer, System.Runtime.InteropServices.GCHandleType.Pinned);
-                        try
+                        unsafe
                         {
-                            GL.BufferSubData(BufferTarget.ArrayBuffer, IntPtr.Zero, required * sizeof(float), handle.AddrOfPinnedObject());
-                        }
-                        finally
-                        {
-                            handle.Free();
+                            fixed (float* p = tmpVertexBuffer)
+                            {
+                                GL.BufferSubData(BufferTarget.ArrayBuffer, IntPtr.Zero, required * sizeof(float), (IntPtr)p);
+                                GL.Finish();
+                            }
                         }
                     }
                 }
@@ -378,18 +376,19 @@ public partial class PmxRenderer
             else if ((_morphDirty || _uvMorphDirty) && changedVerts != null)
             {
                 var small = new float[8];
-                var handleSmall = System.Runtime.InteropServices.GCHandle.Alloc(small, System.Runtime.InteropServices.GCHandleType.Pinned);
-                try
+                unsafe
                 {
-                    var span = CollectionsMarshal.AsSpan(changedVerts);
-                    for (int ci = 0; ci < span.Length; ci++)
+                    fixed (float* smallPtr = small)
                     {
-                        var origIdx = span[ci];
-                        var mapped = _morphVertexMap[origIdx];
-                        if (mapped == null) continue;
-                        foreach (var (rm, vi) in mapped)
+                        var span = CollectionsMarshal.AsSpan(changedVerts);
+                        for (int ci = 0; ci < span.Length; ci++)
                         {
-                            var pos = System.Numerics.Vector3.Zero;
+                            var origIdx = span[ci];
+                            var mapped = _morphVertexMap[origIdx];
+                            if (mapped == null) continue;
+                            foreach (var (rm, vi) in mapped)
+                            {
+                                var pos = System.Numerics.Vector3.Zero;
                             var norm = System.Numerics.Vector3.Zero;
                             var jp = rm.JointIndices[vi];
                             var jw = rm.JointWeights[vi];
@@ -450,13 +449,10 @@ public partial class PmxRenderer
 
                             GL.BindBuffer(BufferTarget.ArrayBuffer, rm.Vbo);
                             IntPtr offset = new IntPtr(vi * 8 * sizeof(float));
-                            GL.BufferSubData(BufferTarget.ArrayBuffer, offset, 8 * sizeof(float), handleSmall.AddrOfPinnedObject());
+                            GL.BufferSubData(BufferTarget.ArrayBuffer, offset, 8 * sizeof(float), (IntPtr)smallPtr);
+                            GL.Finish();
                         }
                     }
-                }
-                finally
-                {
-                    handleSmall.Free();
                 }
             }
         }
@@ -503,14 +499,13 @@ public partial class PmxRenderer
                         }
                     }
                     GL.BindBuffer(BufferTarget.ArrayBuffer, rm.Vbo);
-                    var handle = System.Runtime.InteropServices.GCHandle.Alloc(tmpVertexBuffer, System.Runtime.InteropServices.GCHandleType.Pinned);
-                    try
+                    unsafe
                     {
-                        GL.BufferSubData(BufferTarget.ArrayBuffer, IntPtr.Zero, required * sizeof(float), handle.AddrOfPinnedObject());
-                    }
-                    finally
-                    {
-                        handle.Free();
+                        fixed (float* p = tmpVertexBuffer)
+                        {
+                            GL.BufferSubData(BufferTarget.ArrayBuffer, IntPtr.Zero, required * sizeof(float), (IntPtr)p);
+                            GL.Finish();
+                        }
                     }
                 }
             }
