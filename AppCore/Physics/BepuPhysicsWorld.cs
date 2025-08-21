@@ -43,7 +43,7 @@ public sealed class BepuPhysicsWorld : IPhysicsWorld
     {
         _modelScale = modelScale;
         _massScale = modelScale * modelScale * modelScale;
-        var scaledGravity = config.Gravity * modelScale;
+        var gravity = config.Gravity;
         var substepCount = config.SubstepCount;
         if (substepCount <= 0)
         {
@@ -56,14 +56,14 @@ public sealed class BepuPhysicsWorld : IPhysicsWorld
             _logger.LogWarning("SolverIterationCount が 0 以下のため、1 に補正しました。");
             solverIterationCount = 1;
         }
-        _config = new PhysicsConfig(scaledGravity, solverIterationCount, substepCount, config.Damping, config.BoneBlendFactor);
+        _config = new PhysicsConfig(gravity, solverIterationCount, substepCount, config.Damping, config.BoneBlendFactor);
         BoneBlendFactor = config.BoneBlendFactor;
         _bufferPool = new BufferPool();
         _simulation = Simulation.Create(_bufferPool,
             new SubgroupFilteredCallbacks(_materialMap, _bodyFilterMap),
-            new SimplePoseIntegratorCallbacks(scaledGravity, _config.Damping, _config.Damping),
+            new SimplePoseIntegratorCallbacks(gravity, _config.Damping, _config.Damping),
             new SolveDescription(solverIterationCount, substepCount));
-        _cloth.Gravity = scaledGravity;
+        _cloth.Gravity = gravity;
         _cloth.Damping = config.Damping;
     }
 
