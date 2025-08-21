@@ -4,6 +4,8 @@ using System.Collections.Generic;
 using BepuPhysics;
 using BepuPhysics.Collidables;
 using BepuPhysics.Constraints;
+using BepuPhysics.CollisionDetection;
+using BepuPhysics.CollisionDetection.CollisionTasks;
 using BepuUtilities;
 using BepuUtilities.Memory;
 using MiniMikuDance.Import;
@@ -586,8 +588,8 @@ public sealed class BepuPhysicsWorld : IPhysicsWorld
             var matA = GetMaterial(pair.A);
             var matB = GetMaterial(pair.B);
             var friction = (matA.Friction + matB.Friction) * 0.5f;
-            var restitution = (matA.Restitution + matB.Restitution) * 0.5f;
-            pairMaterial = new PairMaterialProperties(friction, restitution, new SpringSettings(30f, 1f));
+            var maxRecovery = (matA.MaximumRecoveryVelocity + matB.MaximumRecoveryVelocity) * 0.5f;
+            pairMaterial = new PairMaterialProperties(friction, maxRecovery, new SpringSettings(30f, 1f));
             return true;
         }
 
@@ -623,12 +625,12 @@ public sealed class BepuPhysicsWorld : IPhysicsWorld
 
     private struct Material
     {
-        public float Restitution;
+        public float MaximumRecoveryVelocity;
         public float Friction;
 
-        public Material(float restitution, float friction)
+        public Material(float maximumRecoveryVelocity, float friction)
         {
-            Restitution = restitution;
+            MaximumRecoveryVelocity = maximumRecoveryVelocity;
             Friction = friction;
         }
     }
