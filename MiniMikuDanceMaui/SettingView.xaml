@@ -37,6 +37,9 @@
                       CheckedChanged="OnBoneTypeChanged"/>
             <Label Text="Distinguish Bone Types" TextColor="{StaticResource TextColor}" VerticalOptions="Center"/>
         </HorizontalStackLayout>
+        <Label Text="Mode2 Blend" TextColor="{StaticResource TextColor}"/>
+        <Slider x:Name="Mode2BlendSlider" Minimum="0" Maximum="1" Value="0.5"
+                ValueChanged="OnMode2BlendChanged"/>
         <Button Text="Reset Camera" TextColor="{StaticResource TextColor}" Clicked="OnResetCameraClicked" />
     </VerticalStackLayout>
 </ContentView>

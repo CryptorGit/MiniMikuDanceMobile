@@ -35,6 +35,12 @@ public sealed class BepuPhysicsWorld : IPhysicsWorld
         _logger = logger ?? NullLogger<BepuPhysicsWorld>.Instance;
     }
 
+    public float Mode2Blend
+    {
+        get => _config.Mode2Blend;
+        set => _config.Mode2Blend = value;
+    }
+
     public void Initialize(PhysicsConfig config, float modelScale)
     {
         _modelScale = modelScale;
@@ -53,7 +59,7 @@ public sealed class BepuPhysicsWorld : IPhysicsWorld
             _logger.LogWarning("SolverIterationCount が 0 以下のため、1 に補正しました。");
             solverIterationCount = 1;
         }
-        _config = new PhysicsConfig(scaledGravity, solverIterationCount, substepCount, config.Damping);
+        _config = new PhysicsConfig(scaledGravity, solverIterationCount, substepCount, config.Damping, config.Mode2Blend);
         _bufferPool = new BufferPool();
         _simulation = Simulation.Create(_bufferPool,
             new SubgroupFilteredCallbacks(_materialMap, _bodyFilterMap),
@@ -134,7 +140,7 @@ public sealed class BepuPhysicsWorld : IPhysicsWorld
 
                 if (info.Mode == 2)
                 {
-                    const float blend = 0.5f; // TODO: 設定項目化
+                    var blend = _config.Mode2Blend;
                     bone.Rotation = Quaternion.Slerp(bone.Rotation, localRot, blend);
                     bone.Translation = Vector3.Lerp(bone.Translation, localPos, blend);
                 }

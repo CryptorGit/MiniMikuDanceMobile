@@ -256,6 +256,14 @@ public partial class MainPage : ContentPage
                 _settings.BonePickPixels = (float)v;
                 _settings.Save();
             };
+            setting.Mode2Blend = _settings.Physics.Mode2Blend;
+            setting.Mode2BlendChanged += v =>
+            {
+                _settings.Physics.Mode2Blend = (float)v;
+                if (_physics is BepuPhysicsWorld bepu)
+                    bepu.Mode2Blend = (float)v;
+                _settings.Save();
+            };
             setting.ShowBoneOutline = _renderer.ShowBoneOutline;
             setting.BoneOutlineChanged += show =>
             {
@@ -428,6 +436,7 @@ public partial class MainPage : ContentPage
         sv.PanSensitivity = _panSensitivity;
         sv.ZoomSensitivity = _renderer.ZoomSensitivity;
         sv.ShowBoneOutline = _renderer.ShowBoneOutline;
+        sv.Mode2Blend = _settings.Physics.Mode2Blend;
     }
 
     private void UpdateBoneViewProperties(BoneView? bv)
