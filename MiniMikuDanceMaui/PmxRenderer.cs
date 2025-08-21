@@ -11,6 +11,8 @@ using MiniMikuDance.App;
 using MiniMikuDance.IK;
 using MMDTools;
 using SkiaSharp.Views.Maui.Controls;
+using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Logging.Abstractions;
 using Vector2 = OpenTK.Mathematics.Vector2;
 using Vector3 = OpenTK.Mathematics.Vector3;
 using Vector4 = OpenTK.Mathematics.Vector4;
@@ -19,6 +21,7 @@ namespace MiniMikuDanceMaui;
 
 public partial class PmxRenderer : IDisposable
 {
+    private readonly ILogger<PmxRenderer> _logger;
     private int _program;
     private class RenderMesh
     {
@@ -168,6 +171,10 @@ public partial class PmxRenderer : IDisposable
     public event Action<int>? BoneSelectionChanged;
     private readonly Dictionary<int, string> _indexToHumanoidName = new();
     public BonesConfig? BonesConfig { get; set; }
+    public PmxRenderer(ILogger<PmxRenderer>? logger = null)
+    {
+        _logger = logger ?? NullLogger<PmxRenderer>.Instance;
+    }
     private Quaternion _externalRotation = Quaternion.Identity;
     // デフォルトのカメラ感度をスライダーの最小値に合わせる
     public float RotateSensitivity { get; set; } = 0.1f;
@@ -1130,90 +1137,114 @@ void main(){
 
             if (sm.TextureBytes != null)
             {
-                rm.Texture = GL.GenTexture();
-                GL.BindTexture(TextureTarget.Texture2D, rm.Texture);
-                var handle = System.Runtime.InteropServices.GCHandle.Alloc(sm.TextureBytes, System.Runtime.InteropServices.GCHandleType.Pinned);
-                try
+                int expected = sm.TextureWidth * sm.TextureHeight * 4;
+                if (sm.TextureBytes.Length != expected)
                 {
-                    GL.TexImage2D(
-                        All.Texture2D,
-                        0,
-                        All.Rgba,
-                        sm.TextureWidth,
-                        sm.TextureHeight,
-                        0,
-                        All.Rgba,
-                        All.UnsignedByte,
-                        handle.AddrOfPinnedObject());
+                    _logger.LogWarning("標準テクスチャのバイト数 {Length} が幅 {Width} 高さ {Height} の期待値 {Expected} と一致しません。読み込みをスキップします。", sm.TextureBytes.Length, sm.TextureWidth, sm.TextureHeight, expected);
                 }
-                finally
+                else
                 {
-                    handle.Free();
+                    rm.Texture = GL.GenTexture();
+                    GL.BindTexture(TextureTarget.Texture2D, rm.Texture);
+                    var handle = System.Runtime.InteropServices.GCHandle.Alloc(sm.TextureBytes, System.Runtime.InteropServices.GCHandleType.Pinned);
+                    try
+                    {
+                        GL.TexImage2D(
+                            All.Texture2D,
+                            0,
+                            All.Rgba,
+                            sm.TextureWidth,
+                            sm.TextureHeight,
+                            0,
+                            All.Rgba,
+                            All.UnsignedByte,
+                            handle.AddrOfPinnedObject());
+                    }
+                    finally
+                    {
+                        handle.Free();
+                    }
+                    GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureMinFilter, (int)All.Linear);
+                    GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureMagFilter, (int)All.Linear);
+                    rm.HasTexture = true;
                 }
                 sm.TextureBytes = null;
                 sm.TextureWidth = 0;
                 sm.TextureHeight = 0;
-                GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureMinFilter, (int)All.Linear);
-                GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureMagFilter, (int)All.Linear);
-                rm.HasTexture = true;
             }
             if (sm.SphereTextureBytes != null)
             {
-                rm.SphereTexture = GL.GenTexture();
-                GL.BindTexture(TextureTarget.Texture2D, rm.SphereTexture);
-                var handle = System.Runtime.InteropServices.GCHandle.Alloc(sm.SphereTextureBytes, System.Runtime.InteropServices.GCHandleType.Pinned);
-                try
+                int expectedSphere = sm.SphereTextureWidth * sm.SphereTextureHeight * 4;
+                if (sm.SphereTextureBytes.Length != expectedSphere)
                 {
-                    GL.TexImage2D(
-                        All.Texture2D,
-                        0,
-                        All.Rgba,
-                        sm.SphereTextureWidth,
-                        sm.SphereTextureHeight,
-                        0,
-                        All.Rgba,
-                        All.UnsignedByte,
-                        handle.AddrOfPinnedObject());
+                    _logger.LogWarning("スフィアテクスチャのバイト数 {Length} が幅 {Width} 高さ {Height} の期待値 {Expected} と一致しません。読み込みをスキップします。", sm.SphereTextureBytes.Length, sm.SphereTextureWidth, sm.SphereTextureHeight, expectedSphere);
                 }
-                finally
+                else
                 {
-                    handle.Free();
+                    rm.SphereTexture = GL.GenTexture();
+                    GL.BindTexture(TextureTarget.Texture2D, rm.SphereTexture);
+                    var handle = System.Runtime.InteropServices.GCHandle.Alloc(sm.SphereTextureBytes, System.Runtime.InteropServices.GCHandleType.Pinned);
+                    try
+                    {
+                        GL.TexImage2D(
+                            All.Texture2D,
+                            0,
+                            All.Rgba,
+                            sm.SphereTextureWidth,
+                            sm.SphereTextureHeight,
+                            0,
+                            All.Rgba,
+                            All.UnsignedByte,
+                            handle.AddrOfPinnedObject());
+                    }
+                    finally
+                    {
+                        handle.Free();
+                    }
+                    GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureMinFilter, (int)All.Linear);
+                    GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureMagFilter, (int)All.Linear);
+                    rm.HasSphereTexture = true;
                 }
                 sm.SphereTextureBytes = null;
                 sm.SphereTextureWidth = 0;
                 sm.SphereTextureHeight = 0;
-                GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureMinFilter, (int)All.Linear);
-                GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureMagFilter, (int)All.Linear);
-                rm.HasSphereTexture = true;
             }
             if (sm.ToonTextureBytes != null)
             {
-                rm.ToonTexture = GL.GenTexture();
-                GL.BindTexture(TextureTarget.Texture2D, rm.ToonTexture);
-                var handle = System.Runtime.InteropServices.GCHandle.Alloc(sm.ToonTextureBytes, System.Runtime.InteropServices.GCHandleType.Pinned);
-                try
+                int expectedToon = sm.ToonTextureWidth * sm.ToonTextureHeight * 4;
+                if (sm.ToonTextureBytes.Length != expectedToon)
                 {
-                    GL.TexImage2D(
-                        All.Texture2D,
-                        0,
-                        All.Rgba,
-                        sm.ToonTextureWidth,
-                        sm.ToonTextureHeight,
-                        0,
-                        All.Rgba,
-                        All.UnsignedByte,
-                        handle.AddrOfPinnedObject());
+                    _logger.LogWarning("トゥーンテクスチャのバイト数 {Length} が幅 {Width} 高さ {Height} の期待値 {Expected} と一致しません。読み込みをスキップします。", sm.ToonTextureBytes.Length, sm.ToonTextureWidth, sm.ToonTextureHeight, expectedToon);
                 }
-                finally
+                else
                 {
-                    handle.Free();
+                    rm.ToonTexture = GL.GenTexture();
+                    GL.BindTexture(TextureTarget.Texture2D, rm.ToonTexture);
+                    var handle = System.Runtime.InteropServices.GCHandle.Alloc(sm.ToonTextureBytes, System.Runtime.InteropServices.GCHandleType.Pinned);
+                    try
+                    {
+                        GL.TexImage2D(
+                            All.Texture2D,
+                            0,
+                            All.Rgba,
+                            sm.ToonTextureWidth,
+                            sm.ToonTextureHeight,
+                            0,
+                            All.Rgba,
+                            All.UnsignedByte,
+                            handle.AddrOfPinnedObject());
+                    }
+                    finally
+                    {
+                        handle.Free();
+                    }
+                    GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureMinFilter, (int)All.Linear);
+                    GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureMagFilter, (int)All.Linear);
+                    rm.HasToonTexture = true;
                 }
                 sm.ToonTextureBytes = null;
                 sm.ToonTextureWidth = 0;
                 sm.ToonTextureHeight = 0;
-                GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureMinFilter, (int)All.Linear);
-                GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureMagFilter, (int)All.Linear);
-                rm.HasToonTexture = true;
             }
 
             if (rm.HasTexture)
