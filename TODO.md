@@ -6,6 +6,7 @@
 * ModelData のシェーディング関連プロパティ削除後の UI/Renderer 調整
 * View>Lighting タブ名を Lighting に変更し、縦スクロールを実装する
 * ボーン接続線の種類別色分け
+* 設定値変更時に `ResetPhysicsWorld` を呼び出して Simulation を再生成する仕組みの実装
 
 ### Physics
 - 質点ばね実装の検討
