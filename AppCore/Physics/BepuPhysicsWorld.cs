@@ -73,7 +73,12 @@ public sealed class BepuPhysicsWorld : IPhysicsWorld
         // シミュレーション生成後に地面用の静的ボディを追加
         var groundShape = _simulation.Shapes.Add(new Box(1000f * _modelScale, 0.1f * _modelScale, 1000f * _modelScale));
         var groundPose = new RigidPose(new Vector3(0f, -0.05f * _modelScale, 0f));
-        var groundDesc = new StaticDescription(groundPose.Position, groundPose.Orientation, groundShape, 0.1f);
+        var groundDesc = new StaticDescription(
+            groundPose.Position,
+            groundPose.Orientation,
+            groundShape,
+            ContinuousDetection.Discrete,
+            0.1f);
         var groundHandle = _simulation.Statics.Add(groundDesc);
         _staticMaterialMap[groundHandle] = new Material(0f, 0.5f);
         _staticFilterMap[groundHandle] = new SubgroupCollisionFilter(uint.MaxValue, uint.MaxValue);
