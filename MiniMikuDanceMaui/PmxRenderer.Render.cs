@@ -8,6 +8,7 @@ using OpenTK.Graphics.ES30;
 using GL = OpenTK.Graphics.ES30.GL;
 using ErrorCode = OpenTK.Graphics.ES30.ErrorCode;
 using MiniMikuDance.Util;
+using MiniMikuDance.IK;
 using Vector2 = OpenTK.Mathematics.Vector2;
 using Vector3 = OpenTK.Mathematics.Vector3;
 using Vector4 = OpenTK.Mathematics.Vector4;
@@ -56,33 +57,45 @@ public partial class PmxRenderer
 
     private void DrawIkBones()
     {
+        UpdateIkBoneWorldPositions();
+
+        IkBone[] iks;
         lock (_ikBonesLock)
         {
-            UpdateIkBoneWorldPositions();
             if (_ikBones.Count == 0)
                 return;
-            EnsureIkBoneMesh();
-
-            GL.Disable(EnableCap.DepthTest);
-            GL.Uniform1(_pointSizeLoc, 1f);
-
-            GL.BindVertexArray(_ikBoneVao);
-            for (int i = 0; i < _ikBones.Count; i++)
-            {
-                var ik = _ikBones[i];
-                var worldPos = ik.Position.ToOpenTK();
-                float scale = _ikBoneScale * _distance;
-                if (ik.IsSelected)
-                    scale *= 1.4f;
-                var mat = Matrix4.CreateScale(scale) * Matrix4.CreateTranslation(worldPos);
-                GL.UniformMatrix4(_modelLoc, false, ref mat);
-                var color = ik.IsSelected ? new Vector4(1f, 0f, 0f, 1f) : new Vector4(0f, 1f, 0f, 1f);
-                GL.Uniform4(_colorLoc, color);
-                GL.DrawElements(PrimitiveType.Triangles, _ikBoneIndexCount, DrawElementsType.UnsignedShort, 0);
-            }
-            GL.BindVertexArray(0);
-            GL.Enable(EnableCap.DepthTest);
+            iks = _ikBones.ToArray();
         }
+
+        EnsureIkBoneMesh();
+
+        GL.Disable(EnableCap.DepthTest);
+        if (!CheckGLError("GL.Disable", $"cap={EnableCap.DepthTest}")) return;
+        GL.Uniform1(_pointSizeLoc, 1f);
+        if (!CheckGLError("GL.Uniform1", $"loc={_pointSizeLoc}")) return;
+
+        GL.BindVertexArray(_ikBoneVao);
+        if (!CheckGLError("GL.BindVertexArray", $"vao={_ikBoneVao}")) return;
+        for (int i = 0; i < iks.Length; i++)
+        {
+            var ik = iks[i];
+            var worldPos = ik.Position.ToOpenTK();
+            float scale = _ikBoneScale * _distance;
+            if (ik.IsSelected)
+                scale *= 1.4f;
+            var mat = Matrix4.CreateScale(scale) * Matrix4.CreateTranslation(worldPos);
+            GL.UniformMatrix4(_modelLoc, false, ref mat);
+            if (!CheckGLError("GL.UniformMatrix4", $"loc={_modelLoc}")) return;
+            var color = ik.IsSelected ? new Vector4(1f, 0f, 0f, 1f) : new Vector4(0f, 1f, 0f, 1f);
+            GL.Uniform4(_colorLoc, color);
+            if (!CheckGLError("GL.Uniform4", $"loc={_colorLoc}")) return;
+            GL.DrawElements(PrimitiveType.Triangles, _ikBoneIndexCount, DrawElementsType.UnsignedShort, 0);
+            if (!CheckGLError("GL.DrawElements", $"count={_ikBoneIndexCount}")) return;
+        }
+        GL.BindVertexArray(0);
+        if (!CheckGLError("GL.BindVertexArray", "vao=0")) return;
+        GL.Enable(EnableCap.DepthTest);
+        if (!CheckGLError("GL.Enable", $"cap={EnableCap.DepthTest}")) return;
     }
 
     private void DrawBoneMarkers()
@@ -95,11 +108,17 @@ public partial class PmxRenderer
             EnsureCubeMesh();
 
         GL.Disable(EnableCap.DepthTest);
+        if (!CheckGLError("GL.Disable", $"cap={EnableCap.DepthTest}")) return;
         GL.Uniform1(_pointSizeLoc, 1f);
+        if (!CheckGLError("GL.Uniform1", $"loc={_pointSizeLoc}")) return;
+
+        HashSet<int> ikIndices;
+        lock (_ikBonesLock)
+            ikIndices = new HashSet<int>(_ikBoneIndices);
 
         for (int i = 0; i < _bones.Count; i++)
         {
-            bool isIk = _ikBoneIndices.Contains(i);
+            bool isIk = ikIndices.Contains(i);
             if (isIk && ShowIkBones)
                 continue;
 
@@ -109,6 +128,7 @@ public partial class PmxRenderer
                 scale *= 1.4f;
             var mat = Matrix4.CreateScale(scale) * Matrix4.CreateTranslation(pos);
             GL.UniformMatrix4(_modelLoc, false, ref mat);
+            if (!CheckGLError("GL.UniformMatrix4", $"loc={_modelLoc}")) return;
             bool isPhysics = DistinguishBoneTypes && _physicsBones.Contains(i);
             bool isIkBone = DistinguishBoneTypes && isIk;
             Vector4 color = new Vector4(1f, 1f, 0f, 1f);
@@ -119,20 +139,27 @@ public partial class PmxRenderer
             else if (isIkBone)
                 color = new Vector4(0f, 1f, 0f, 1f);
             GL.Uniform4(_colorLoc, color);
+            if (!CheckGLError("GL.Uniform4", $"loc={_colorLoc}")) return;
 
             if (isPhysics)
             {
                 GL.BindVertexArray(_cubeVao);
+                if (!CheckGLError("GL.BindVertexArray", $"vao={_cubeVao}")) return;
                 GL.DrawElements(PrimitiveType.Triangles, _cubeIndexCount, DrawElementsType.UnsignedShort, 0);
+                if (!CheckGLError("GL.DrawElements", $"count={_cubeIndexCount}")) return;
             }
             else
             {
                 GL.BindVertexArray(_ikBoneVao);
+                if (!CheckGLError("GL.BindVertexArray", $"vao={_ikBoneVao}")) return;
                 GL.DrawElements(PrimitiveType.Triangles, _ikBoneIndexCount, DrawElementsType.UnsignedShort, 0);
+                if (!CheckGLError("GL.DrawElements", $"count={_ikBoneIndexCount}")) return;
             }
         }
         GL.BindVertexArray(0);
+        if (!CheckGLError("GL.BindVertexArray", "vao=0")) return;
         GL.Enable(EnableCap.DepthTest);
+        if (!CheckGLError("GL.Enable", $"cap={EnableCap.DepthTest}")) return;
     }
 
     public void Render()
@@ -163,6 +190,7 @@ public partial class PmxRenderer
         float aspect = _width == 0 || _height == 0 ? 1f : _width / (float)_height;
         _projMatrix = Matrix4.CreatePerspectiveFieldOfView(MathHelper.PiOver4, aspect, 0.1f, 100f);
         _viewProjDirty = false;
+        CheckGLError(nameof(UpdateViewProjection));
     }
 
     private void CpuSkinning()
@@ -274,6 +302,10 @@ public partial class PmxRenderer
             }
         }
 
+        RenderMesh[] meshes;
+        lock (_meshesLock)
+            meshes = _meshes.ToArray();
+
         if (_bones.Count > 0)
         {
             if (_bonesDirty)
@@ -281,7 +313,7 @@ public partial class PmxRenderer
                 float[]? tmpVertexBuffer = null;
                 try
                 {
-                    foreach (var rm in _meshes)
+                    foreach (var rm in meshes)
                     {
                         if (rm.JointIndices.Length != rm.BaseVertices.Length)
                             continue;
@@ -373,8 +405,14 @@ public partial class PmxRenderer
                         {
                             fixed (float* p = tmpVertexBuffer)
                             {
-                                GL.BufferSubData(BufferTarget.ArrayBuffer, IntPtr.Zero, required * sizeof(float), (IntPtr)p);
-                                if (!CheckGLError("GL.BufferSubData", $"size={required * sizeof(float)}, ptr={(IntPtr)p}"))
+                                int byteSize = rm.BaseVertices.Length * 8 * sizeof(float);
+                                if (required * sizeof(float) > byteSize)
+                                {
+                                    Console.Error.WriteLine($"Vertex buffer overflow: required={required * sizeof(float)}, available={byteSize}");
+                                    return;
+                                }
+                                GL.BufferSubData(BufferTarget.ArrayBuffer, IntPtr.Zero, byteSize, (IntPtr)p);
+                                if (!CheckGLError("GL.BufferSubData", $"size={byteSize}, ptr={(IntPtr)p}"))
                                     return;
                                 GL.Finish();
                                 if (!CheckGLError("GL.Finish"))
@@ -467,6 +505,13 @@ public partial class PmxRenderer
                                 if (!CheckGLError("GL.BindBuffer", $"target={BufferTarget.ArrayBuffer}, buffer={rm.Vbo}"))
                                     return;
                                 IntPtr offset = new IntPtr(vi * 8 * sizeof(float));
+                                long total = (long)rm.BaseVertices.Length * 8 * sizeof(float);
+                                long end = offset.ToInt64() + 8 * sizeof(float);
+                                if (end > total)
+                                {
+                                    Console.Error.WriteLine($"Vertex buffer overflow: offset={offset}, size={8 * sizeof(float)}, total={total}");
+                                    continue;
+                                }
                                 GL.BufferSubData(BufferTarget.ArrayBuffer, offset, 8 * sizeof(float), (IntPtr)smallPtr);
                                 if (!CheckGLError("GL.BufferSubData", $"offset={offset}, size={8 * sizeof(float)}, ptr={(IntPtr)smallPtr}"))
                                     return;
@@ -483,7 +528,7 @@ public partial class PmxRenderer
                 float[]? tmpVertexBuffer = null;
                 try
                 {
-                    foreach (var rm in _meshes)
+                    foreach (var rm in meshes)
                     {
                         int required = rm.BaseVertices.Length * 8;
                         if (tmpVertexBuffer == null || tmpVertexBuffer.Length < required)
@@ -527,8 +572,14 @@ public partial class PmxRenderer
                         {
                             fixed (float* p = tmpVertexBuffer)
                             {
-                                GL.BufferSubData(BufferTarget.ArrayBuffer, IntPtr.Zero, required * sizeof(float), (IntPtr)p);
-                                if (!CheckGLError("GL.BufferSubData", $"size={required * sizeof(float)}, ptr={(IntPtr)p}"))
+                                int byteSize = rm.BaseVertices.Length * 8 * sizeof(float);
+                                if (required * sizeof(float) > byteSize)
+                                {
+                                    Console.Error.WriteLine($"Vertex buffer overflow: required={required * sizeof(float)}, available={byteSize}");
+                                    return;
+                                }
+                                GL.BufferSubData(BufferTarget.ArrayBuffer, IntPtr.Zero, byteSize, (IntPtr)p);
+                                if (!CheckGLError("GL.BufferSubData", $"size={byteSize}, ptr={(IntPtr)p}"))
                                     return;
                                 GL.Finish();
                                 if (!CheckGLError("GL.Finish"))
@@ -590,7 +641,10 @@ public partial class PmxRenderer
         if (!CheckGLError("GL.Uniform1", $"loc={_modelAmbientLoc}")) return;
         GL.UniformMatrix4(_modelMatrixLoc, false, ref modelMat);
         if (!CheckGLError("GL.UniformMatrix4", $"loc={_modelMatrixLoc}")) return;
-        foreach (var rm in _meshes)
+        RenderMesh[] meshes;
+        lock (_meshesLock)
+            meshes = _meshes.ToArray();
+        foreach (var rm in meshes)
         {
             GL.Uniform4(_modelColorLoc, rm.Color);
             if (!CheckGLError("GL.Uniform4", $"loc={_modelColorLoc}")) return;
