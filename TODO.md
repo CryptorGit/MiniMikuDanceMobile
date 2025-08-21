@@ -33,3 +33,4 @@
 - PmxRenderer の `_externalRotation` 初期値見直し
 - 修正した軸制限がモデル（尻尾など）で想定通り動作するかを確認
 - サンプルモデルの尻尾や髪でジョイント回転が連続するかを確認し、90°ジャンプが解消されたか評価
+* BepuPhysics を `StaticDescription` の `ContinuousDetection` 対応版に更新し、ビルドが通ることを確認
