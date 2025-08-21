@@ -78,7 +78,7 @@ public sealed class BepuPhysicsWorld : IPhysicsWorld
             groundPose.Position,
             groundPose.Orientation,
             groundShape,
-            0.1f);
+            ContinuousDetection.Discrete);
         var groundHandle = _simulation.Statics.Add(groundDesc);
         _staticMaterialMap[groundHandle] = new Material(0f, 0.5f);
         _staticFilterMap[groundHandle] = new SubgroupCollisionFilter(uint.MaxValue, uint.MaxValue);
