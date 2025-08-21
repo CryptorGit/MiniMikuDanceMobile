@@ -171,6 +171,19 @@ public PmxImporter(ILogger<PmxImporter>? logger = null)
         return new System.Numerics.Vector3(v.X * Scale, v.Y * Scale, -v.Z * Scale);
     }
 
+    private static System.Numerics.Quaternion CreateInitialRotation(System.Numerics.Vector3 forward, System.Numerics.Vector3 up)
+    {
+        forward = System.Numerics.Vector3.Normalize(forward);
+        var right = System.Numerics.Vector3.Normalize(System.Numerics.Vector3.Cross(forward, up));
+        up = System.Numerics.Vector3.Cross(right, forward);
+        var m = new System.Numerics.Matrix4x4(
+            right.X, right.Y, right.Z, 0f,
+            forward.X, forward.Y, forward.Z, 0f,
+            up.X, up.Y, up.Z, 0f,
+            0f, 0f, 0f, 1f);
+        return System.Numerics.Quaternion.CreateFromRotationMatrix(m);
+    }
+
     private static SubMeshData CreateSubMesh(PmxMaterial mat)
     {
         var sub = new Assimp.Mesh("pmx", Assimp.PrimitiveType.Triangle);
@@ -501,14 +514,17 @@ public PmxImporter(ILogger<PmxImporter>? logger = null)
             Comment = pmx.Comment,
             CommentEnglish = pmx.CommentEnglish
         };
-        var boneDatas = new List<BoneData>(bones.Length);
         var worldPositions = new System.Numerics.Vector3[bones.Length];
+        for (int i = 0; i < bones.Length; i++)
+            worldPositions[i] = ScaleVectorFlipZ(bones[i].Position);
+
+        var boneDatas = new List<BoneData>(bones.Length);
+        const float Eps = 1e-6f;
         for (int i = 0; i < bones.Length; i++)
         {
             var b = bones[i];
             string name = string.IsNullOrEmpty(b.NameEnglish) ? b.Name : b.NameEnglish;
-            var pos = ScaleVectorFlipZ(b.Position);
-            worldPositions[i] = pos;
+            var pos = worldPositions[i];
             var bd = new BoneData
             {
                 Name = name,
@@ -521,6 +537,69 @@ public PmxImporter(ILogger<PmxImporter>? logger = null)
                 BaseForward = System.Numerics.Vector3.UnitY,
                 BaseUp = System.Numerics.Vector3.UnitY
             };
+
+            var forward = System.Numerics.Vector3.UnitY;
+            var up = System.Numerics.Vector3.UnitY;
+            if ((b.BoneFlag & BoneFlag.LocalAxis) != 0)
+            {
+                var xAxis = new System.Numerics.Vector3(b.XAxisVec.X, b.XAxisVec.Y, -b.XAxisVec.Z);
+                var zAxis = new System.Numerics.Vector3(b.ZAxisVec.X, b.ZAxisVec.Y, -b.ZAxisVec.Z);
+                if (xAxis.LengthSquared() > Eps && zAxis.LengthSquared() > Eps)
+                {
+                    forward = System.Numerics.Vector3.Normalize(System.Numerics.Vector3.Cross(xAxis, zAxis));
+                    up = System.Numerics.Vector3.Normalize(zAxis);
+                }
+            }
+            else
+            {
+                if ((b.BoneFlag & BoneFlag.ConnectionDestination) != 0 && b.ConnectedBone >= 0)
+                {
+                    var tail = worldPositions[b.ConnectedBone];
+                    var diff = tail - pos;
+                    if (diff.LengthSquared() > Eps)
+                        forward = System.Numerics.Vector3.Normalize(diff);
+                }
+                else
+                {
+                    var off = b.PositionOffset;
+                    if (off.X != 0 || off.Y != 0 || off.Z != 0)
+                    {
+                        var tail = pos + ScaleVectorFlipZ(off);
+                        var diff = tail - pos;
+                        if (diff.LengthSquared() > Eps)
+                            forward = System.Numerics.Vector3.Normalize(diff);
+                    }
+                    else if (childIndices[i].Count > 0)
+                    {
+                        var childPos = worldPositions[childIndices[i][0]];
+                        var diff = childPos - pos;
+                        if (diff.LengthSquared() > Eps)
+                            forward = System.Numerics.Vector3.Normalize(diff);
+                    }
+                    else if (b.ParentBone >= 0)
+                    {
+                        var diff = pos - worldPositions[b.ParentBone];
+                        if (diff.LengthSquared() > Eps)
+                            forward = System.Numerics.Vector3.Normalize(diff);
+                    }
+                }
+
+                if (b.ParentBone >= 0)
+                {
+                    var parentDir = pos - worldPositions[b.ParentBone];
+                    if (parentDir.LengthSquared() > Eps)
+                    {
+                        var upVec = System.Numerics.Vector3.Cross(parentDir, forward);
+                        if (upVec.LengthSquared() > Eps)
+                            up = System.Numerics.Vector3.Normalize(upVec);
+                    }
+                }
+            }
+
+            bd.BaseForward = forward;
+            bd.BaseUp = up;
+            bd.InitialRotation = CreateInitialRotation(forward, up);
+
             if (b.IKLinkCount > 0)
             {
                 var ik = new IkInfo
@@ -567,60 +646,6 @@ public PmxImporter(ILogger<PmxImporter>? logger = null)
         {
             int parent = boneDatas[i].Parent;
             boneDatas[i].Translation = parent >= 0 ? worldPositions[i] - worldPositions[parent] : worldPositions[i];
-        }
-
-        const float Eps = 1e-6f;
-        for (int i = 0; i < boneDatas.Count; i++)
-        {
-            var b = bones[i];
-            var bd = boneDatas[i];
-            var forward = System.Numerics.Vector3.UnitY;
-            if ((b.BoneFlag & BoneFlag.ConnectionDestination) != 0 && b.ConnectedBone >= 0)
-            {
-                var tail = worldPositions[b.ConnectedBone];
-                var diff = tail - worldPositions[i];
-                if (diff.LengthSquared() > Eps)
-                    forward = System.Numerics.Vector3.Normalize(diff);
-            }
-            else
-            {
-                var off = b.PositionOffset;
-                if (off.X != 0 || off.Y != 0 || off.Z != 0)
-                {
-                    var tail = worldPositions[i] + ScaleVectorFlipZ(off);
-                    var diff = tail - worldPositions[i];
-                    if (diff.LengthSquared() > Eps)
-                        forward = System.Numerics.Vector3.Normalize(diff);
-                }
-                else if (childIndices[i].Count > 0)
-                {
-                    var childPos = worldPositions[childIndices[i][0]];
-                    var diff = childPos - worldPositions[i];
-                    if (diff.LengthSquared() > Eps)
-                        forward = System.Numerics.Vector3.Normalize(diff);
-                }
-                else if (bd.Parent >= 0)
-                {
-                    var diff = worldPositions[i] - worldPositions[bd.Parent];
-                    if (diff.LengthSquared() > Eps)
-                        forward = System.Numerics.Vector3.Normalize(diff);
-                }
-            }
-
-            var up = System.Numerics.Vector3.UnitY;
-            if (bd.Parent >= 0)
-            {
-                var parentDir = worldPositions[i] - worldPositions[bd.Parent];
-                if (parentDir.LengthSquared() > Eps)
-                {
-                    var upVec = System.Numerics.Vector3.Cross(parentDir, forward);
-                    if (upVec.LengthSquared() > Eps)
-                        up = System.Numerics.Vector3.Normalize(upVec);
-                }
-            }
-
-            bd.BaseForward = forward;
-            bd.BaseUp = up;
         }
 
         // Bind/InverseBind 行列を計算
