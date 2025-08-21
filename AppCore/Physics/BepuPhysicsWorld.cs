@@ -21,6 +21,7 @@ public sealed class BepuPhysicsWorld : IPhysicsWorld
     private Simulation? _simulation;
     private readonly Dictionary<BodyHandle, (int Bone, int Mode)> _bodyBoneMap = new(); // Mode: 0=ボーン追従, 1=物理のみ, 2=物理+ボーン
     private readonly List<BodyHandle> _rigidBodyHandles = new();
+    private readonly List<TypedIndex> _shapeIndices = new();
     private readonly Dictionary<BodyHandle, Material> _materialMap = new();
     private readonly Dictionary<BodyHandle, SubgroupCollisionFilter> _bodyFilterMap = new();
     private readonly ClothSimulator _cloth = new();
@@ -240,7 +241,16 @@ public sealed class BepuPhysicsWorld : IPhysicsWorld
     public void LoadRigidBodies(ModelData model)
     {
         if (_simulation is null) return;
+        foreach (var handle in _rigidBodyHandles)
+        {
+            _simulation.Bodies.Remove(handle);
+        }
+        foreach (var shape in _shapeIndices)
+        {
+            _simulation.Shapes.Remove(shape);
+        }
         _rigidBodyHandles.Clear();
+        _shapeIndices.Clear();
         _materialMap.Clear();
         _bodyFilterMap.Clear();
         _prevBonePoses.Clear();
@@ -269,6 +279,7 @@ public sealed class BepuPhysicsWorld : IPhysicsWorld
                 default:
                     continue;
             }
+            _shapeIndices.Add(shapeIndex);
 
             var pose = new RigidPose(rb.Position,
                 FromEulerXyz(rb.Rotation));
