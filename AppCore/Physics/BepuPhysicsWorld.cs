@@ -2,7 +2,6 @@ using System;
 using System.Numerics;
 using System.Collections.Generic;
 using BepuPhysics;
-using BepuPhysics.CollisionDetection;
 using BepuPhysics.Collidables;
 using BepuPhysics.Constraints;
 using BepuUtilities;
@@ -77,7 +76,6 @@ public sealed class BepuPhysicsWorld : IPhysicsWorld
             groundPose.Position,
             groundPose.Orientation,
             groundShape,
-            ContinuousDetection.Discrete,
             0.1f);
         var groundHandle = _simulation.Statics.Add(groundDesc);
         _staticMaterialMap[groundHandle] = new Material(0f, 0.5f);
