@@ -6,6 +6,7 @@
 * ModelData のシェーディング関連プロパティ削除後の UI/Renderer 調整
 * View>Lighting タブ名を Lighting に変更し、縦スクロールを実装する
 * ボーン接続線の種類別色分け
+* PmxRenderer.Render.cs の未対応の GL 呼び出しに対するエラーチェック追加
 
 ### Physics
 - 質点ばね実装の検討

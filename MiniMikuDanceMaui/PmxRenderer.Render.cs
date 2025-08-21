@@ -6,6 +6,7 @@ using System.Runtime.InteropServices;
 using OpenTK.Mathematics;
 using OpenTK.Graphics.ES30;
 using GL = OpenTK.Graphics.ES30.GL;
+using ErrorCode = OpenTK.Graphics.ES30.ErrorCode;
 using MiniMikuDance.Util;
 using Vector2 = OpenTK.Mathematics.Vector2;
 using Vector3 = OpenTK.Mathematics.Vector3;
@@ -15,6 +16,15 @@ namespace MiniMikuDanceMaui;
 
 public partial class PmxRenderer
 {
+    private static bool CheckGLError(string api, string details = "")
+    {
+        var error = GL.GetError();
+        if (error == ErrorCode.NoError)
+            return true;
+        Console.Error.WriteLine($"GL error {error} after {api}. {details}");
+        return false;
+    }
+
     private void EnsureBoneCapacity()
     {
         if (_boneCapacity == _bones.Count)
@@ -357,12 +367,18 @@ public partial class PmxRenderer
                             }
                         }
                         GL.BindBuffer(BufferTarget.ArrayBuffer, rm.Vbo);
+                        if (!CheckGLError("GL.BindBuffer", $"target={BufferTarget.ArrayBuffer}, buffer={rm.Vbo}"))
+                            return;
                         unsafe
                         {
                             fixed (float* p = tmpVertexBuffer)
                             {
                                 GL.BufferSubData(BufferTarget.ArrayBuffer, IntPtr.Zero, required * sizeof(float), (IntPtr)p);
+                                if (!CheckGLError("GL.BufferSubData", $"size={required * sizeof(float)}, ptr={(IntPtr)p}"))
+                                    return;
                                 GL.Finish();
+                                if (!CheckGLError("GL.Finish"))
+                                    return;
                             }
                         }
                     }
@@ -448,9 +464,15 @@ public partial class PmxRenderer
                             else { small[6] = 0f; small[7] = 0f; }
 
                             GL.BindBuffer(BufferTarget.ArrayBuffer, rm.Vbo);
+                            if (!CheckGLError("GL.BindBuffer", $"target={BufferTarget.ArrayBuffer}, buffer={rm.Vbo}"))
+                                return;
                             IntPtr offset = new IntPtr(vi * 8 * sizeof(float));
                             GL.BufferSubData(BufferTarget.ArrayBuffer, offset, 8 * sizeof(float), (IntPtr)smallPtr);
+                            if (!CheckGLError("GL.BufferSubData", $"offset={offset}, size={8 * sizeof(float)}, ptr={(IntPtr)smallPtr}"))
+                                return;
                             GL.Finish();
+                            if (!CheckGLError("GL.Finish"))
+                                return;
                         }
                     }
                 }
@@ -499,12 +521,18 @@ public partial class PmxRenderer
                         }
                     }
                     GL.BindBuffer(BufferTarget.ArrayBuffer, rm.Vbo);
+                    if (!CheckGLError("GL.BindBuffer", $"target={BufferTarget.ArrayBuffer}, buffer={rm.Vbo}"))
+                        return;
                     unsafe
                     {
                         fixed (float* p = tmpVertexBuffer)
                         {
                             GL.BufferSubData(BufferTarget.ArrayBuffer, IntPtr.Zero, required * sizeof(float), (IntPtr)p);
+                            if (!CheckGLError("GL.BufferSubData", $"size={required * sizeof(float)}, ptr={(IntPtr)p}"))
+                                return;
                             GL.Finish();
+                            if (!CheckGLError("GL.Finish"))
+                                return;
                         }
                     }
                 }
@@ -524,125 +552,202 @@ public partial class PmxRenderer
     private void DrawScene()
     {
         GL.Enable(EnableCap.DepthTest);
+        if (!CheckGLError("GL.Enable", $"cap={EnableCap.DepthTest}")) return;
         GL.Enable(EnableCap.CullFace);
+        if (!CheckGLError("GL.Enable", $"cap={EnableCap.CullFace}")) return;
         GL.Enable(EnableCap.Blend); // 半透明描画のためブレンドを有効化
+        if (!CheckGLError("GL.Enable", $"cap={EnableCap.Blend}")) return;
         GL.FrontFace(FrontFaceDirection.Cw);
+        if (!CheckGLError("GL.FrontFace", $"dir={FrontFaceDirection.Cw}")) return;
         GL.ClearColor(1f, 1f, 1f, 1f);
+        if (!CheckGLError("GL.ClearColor", "1,1,1,1")) return;
         GL.Clear(ClearBufferMask.ColorBufferBit | ClearBufferMask.DepthBufferBit);
+        if (!CheckGLError("GL.Clear", $"mask={ClearBufferMask.ColorBufferBit | ClearBufferMask.DepthBufferBit}")) return;
 
         var modelMat = ModelTransform;
 
         GL.UseProgram(_modelProgram);
+        if (!CheckGLError("GL.UseProgram", $"program={_modelProgram}")) return;
         GL.UniformMatrix4(_modelViewLoc, false, ref _viewMatrix);
+        if (!CheckGLError("GL.UniformMatrix4", $"loc={_modelViewLoc}")) return;
         GL.UniformMatrix4(_modelProjLoc, false, ref _projMatrix);
+        if (!CheckGLError("GL.UniformMatrix4", $"loc={_modelProjLoc}")) return;
         Vector3 light = Vector3.Normalize(new Vector3(-0.3f, 0.6f, -0.7f));
         light = Vector3.TransformNormal(light, _cameraRot);
         GL.Uniform3(_modelLightDirLoc, ref light);
+        if (!CheckGLError("GL.Uniform3", $"loc={_modelLightDirLoc}")) return;
         Vector3 viewDir = Vector3.Normalize(_target - _cameraPos);
         GL.Uniform3(_modelViewDirLoc, ref viewDir);
+        if (!CheckGLError("GL.Uniform3", $"loc={_modelViewDirLoc}")) return;
         GL.Uniform1(_modelShadeShiftLoc, ShadeShift);
+        if (!CheckGLError("GL.Uniform1", $"loc={_modelShadeShiftLoc}")) return;
         GL.Uniform1(_modelShadeToonyLoc, ShadeToony);
+        if (!CheckGLError("GL.Uniform1", $"loc={_modelShadeToonyLoc}")) return;
         GL.Uniform1(_modelRimIntensityLoc, RimIntensity);
+        if (!CheckGLError("GL.Uniform1", $"loc={_modelRimIntensityLoc}")) return;
         GL.Uniform1(_modelAmbientLoc, Ambient);
+        if (!CheckGLError("GL.Uniform1", $"loc={_modelAmbientLoc}")) return;
         GL.UniformMatrix4(_modelMatrixLoc, false, ref modelMat);
+        if (!CheckGLError("GL.UniformMatrix4", $"loc={_modelMatrixLoc}")) return;
         foreach (var rm in _meshes)
         {
             GL.Uniform4(_modelColorLoc, rm.Color);
+            if (!CheckGLError("GL.Uniform4", $"loc={_modelColorLoc}")) return;
             GL.Uniform3(_modelSpecularLoc, rm.Specular);
+            if (!CheckGLError("GL.Uniform3", $"loc={_modelSpecularLoc}")) return;
             GL.Uniform1(_modelSpecularPowerLoc, rm.SpecularPower);
+            if (!CheckGLError("GL.Uniform1", $"loc={_modelSpecularPowerLoc}")) return;
             GL.Uniform4(_modelEdgeColorLoc, rm.EdgeColor);
+            if (!CheckGLError("GL.Uniform4", $"loc={_modelEdgeColorLoc}")) return;
             GL.Uniform1(_modelEdgeSizeLoc, rm.EdgeSize);
+            if (!CheckGLError("GL.Uniform1", $"loc={_modelEdgeSizeLoc}")) return;
             GL.Uniform3(_modelToonColorLoc, rm.ToonColor);
+            if (!CheckGLError("GL.Uniform3", $"loc={_modelToonColorLoc}")) return;
             GL.Uniform4(_modelTexTintLoc, rm.TextureTint);
+            if (!CheckGLError("GL.Uniform4", $"loc={_modelTexTintLoc}")) return;
             GL.Uniform1(_modelSphereModeLoc, (int)rm.SphereMode);
+            if (!CheckGLError("GL.Uniform1", $"loc={_modelSphereModeLoc}")) return;
             GL.Uniform1(_modelSphereStrengthLoc, SphereStrength);
+            if (!CheckGLError("GL.Uniform1", $"loc={_modelSphereStrengthLoc}")) return;
             GL.Uniform1(_modelToonStrengthLoc, ToonStrength);
+            if (!CheckGLError("GL.Uniform1", $"loc={_modelToonStrengthLoc}")) return;
             if (rm.HasTexture)
             {
                 GL.ActiveTexture(TextureUnit.Texture0);
+                if (!CheckGLError("GL.ActiveTexture", $"unit={TextureUnit.Texture0}")) return;
                 GL.BindTexture(TextureTarget.Texture2D, rm.Texture);
+                if (!CheckGLError("GL.BindTexture", $"target={TextureTarget.Texture2D}, tex={rm.Texture}")) return;
                 GL.Uniform1(_modelTexLoc, 0);
+                if (!CheckGLError("GL.Uniform1", $"loc={_modelTexLoc}")) return;
                 GL.Uniform1(_modelUseTexLoc, 1);
+                if (!CheckGLError("GL.Uniform1", $"loc={_modelUseTexLoc}")) return;
             }
             else
             {
                 GL.Uniform1(_modelUseTexLoc, 0);
+                if (!CheckGLError("GL.Uniform1", $"loc={_modelUseTexLoc}")) return;
             }
             if (rm.HasSphereTexture)
             {
                 GL.ActiveTexture(TextureUnit.Texture1);
+                if (!CheckGLError("GL.ActiveTexture", $"unit={TextureUnit.Texture1}")) return;
                 GL.BindTexture(TextureTarget.Texture2D, rm.SphereTexture);
+                if (!CheckGLError("GL.BindTexture", $"target={TextureTarget.Texture2D}, tex={rm.SphereTexture}")) return;
                 GL.Uniform1(_modelSphereTexLoc, 1);
+                if (!CheckGLError("GL.Uniform1", $"loc={_modelSphereTexLoc}")) return;
                 GL.Uniform1(_modelUseSphereTexLoc, 1);
+                if (!CheckGLError("GL.Uniform1", $"loc={_modelUseSphereTexLoc}")) return;
             }
             else
             {
                 GL.Uniform1(_modelUseSphereTexLoc, 0);
+                if (!CheckGLError("GL.Uniform1", $"loc={_modelUseSphereTexLoc}")) return;
             }
             if (rm.HasToonTexture)
             {
                 GL.ActiveTexture(TextureUnit.Texture2);
+                if (!CheckGLError("GL.ActiveTexture", $"unit={TextureUnit.Texture2}")) return;
                 GL.BindTexture(TextureTarget.Texture2D, rm.ToonTexture);
+                if (!CheckGLError("GL.BindTexture", $"target={TextureTarget.Texture2D}, tex={rm.ToonTexture}")) return;
                 GL.Uniform1(_modelToonTexLoc, 2);
+                if (!CheckGLError("GL.Uniform1", $"loc={_modelToonTexLoc}")) return;
                 GL.Uniform1(_modelUseToonTexLoc, 1);
+                if (!CheckGLError("GL.Uniform1", $"loc={_modelUseToonTexLoc}")) return;
             }
             else
             {
                 GL.Uniform1(_modelUseToonTexLoc, 0);
+                if (!CheckGLError("GL.Uniform1", $"loc={_modelUseToonTexLoc}")) return;
             }
             GL.BindVertexArray(rm.Vao);
+            if (!CheckGLError("GL.BindVertexArray", $"vao={rm.Vao}")) return;
             GL.DrawElements(PrimitiveType.Triangles, rm.IndexCount, DrawElementsType.UnsignedInt, IntPtr.Zero);
+            if (!CheckGLError("GL.DrawElements", $"count={rm.IndexCount}")) return;
             GL.BindVertexArray(0);
+            if (!CheckGLError("GL.BindVertexArray", "vao=0")) return;
             if (rm.HasTexture)
             {
                 GL.ActiveTexture(TextureUnit.Texture0);
+                if (!CheckGLError("GL.ActiveTexture", $"unit={TextureUnit.Texture0}")) return;
                 GL.BindTexture(TextureTarget.Texture2D, 0);
+                if (!CheckGLError("GL.BindTexture", $"target={TextureTarget.Texture2D}, tex=0")) return;
             }
             if (rm.HasSphereTexture)
             {
                 GL.ActiveTexture(TextureUnit.Texture1);
+                if (!CheckGLError("GL.ActiveTexture", $"unit={TextureUnit.Texture1}")) return;
                 GL.BindTexture(TextureTarget.Texture2D, 0);
+                if (!CheckGLError("GL.BindTexture", $"target={TextureTarget.Texture2D}, tex=0")) return;
             }
             if (rm.HasToonTexture)
             {
                 GL.ActiveTexture(TextureUnit.Texture2);
+                if (!CheckGLError("GL.ActiveTexture", $"unit={TextureUnit.Texture2}")) return;
                 GL.BindTexture(TextureTarget.Texture2D, 0);
+                if (!CheckGLError("GL.BindTexture", $"target={TextureTarget.Texture2D}, tex=0")) return;
             }
             GL.ActiveTexture(TextureUnit.Texture0);
+            if (!CheckGLError("GL.ActiveTexture", $"unit={TextureUnit.Texture0}")) return;
         }
         GL.UseProgram(_program);
+        if (!CheckGLError("GL.UseProgram", $"program={_program}")) return;
         GL.UniformMatrix4(_viewLoc, false, ref _viewMatrix);
+        if (!CheckGLError("GL.UniformMatrix4", $"loc={_viewLoc}")) return;
         GL.UniformMatrix4(_projLoc, false, ref _projMatrix);
+        if (!CheckGLError("GL.UniformMatrix4", $"loc={_projLoc}")) return;
 
         Matrix4 gridModel = Matrix4.Identity;
         GL.DepthMask(false);
+        if (!CheckGLError("GL.DepthMask", "false")) return;
         GL.UniformMatrix4(_modelLoc, false, ref gridModel);
+        if (!CheckGLError("GL.UniformMatrix4", $"loc={_modelLoc}")) return;
         GL.Uniform4(_colorLoc, new Vector4(1f, 1f, 1f, 0.3f));
+        if (!CheckGLError("GL.Uniform4", $"loc={_colorLoc}")) return;
         GL.BindVertexArray(_groundVao);
+        if (!CheckGLError("GL.BindVertexArray", $"vao={_groundVao}")) return;
         GL.DrawArrays(PrimitiveType.Triangles, 0, _groundVertexCount);
+        if (!CheckGLError("GL.DrawArrays", $"mode={PrimitiveType.Triangles}, count={_groundVertexCount}")) return;
         GL.BindVertexArray(0);
+        if (!CheckGLError("GL.BindVertexArray", "vao=0")) return;
 
         GL.UniformMatrix4(_modelLoc, false, ref gridModel);
+        if (!CheckGLError("GL.UniformMatrix4", $"loc={_modelLoc}")) return;
         GL.Uniform4(_colorLoc, new Vector4(0.8f, 0.8f, 0.8f, 0.5f));
+        if (!CheckGLError("GL.Uniform4", $"loc={_colorLoc}")) return;
         GL.BindVertexArray(_gridVao);
+        if (!CheckGLError("GL.BindVertexArray", $"vao={_gridVao}")) return;
         GL.DrawArrays(PrimitiveType.Lines, 0, _gridVertexCount);
+        if (!CheckGLError("GL.DrawArrays", $"mode={PrimitiveType.Lines}, count={_gridVertexCount}")) return;
         GL.BindVertexArray(0);
+        if (!CheckGLError("GL.BindVertexArray", "vao=0")) return;
         if (_axesVao != 0)
         {
             GL.UniformMatrix4(_modelLoc, false, ref gridModel);
+            if (!CheckGLError("GL.UniformMatrix4", $"loc={_modelLoc}")) return;
             GL.Disable(EnableCap.DepthTest);
+            if (!CheckGLError("GL.Disable", $"cap={EnableCap.DepthTest}")) return;
             GL.BindVertexArray(_axesVao);
+            if (!CheckGLError("GL.BindVertexArray", $"vao={_axesVao}")) return;
             int cnt = _axesVertexCount;
             GL.Uniform4(_colorLoc, new Vector4(1f, 0f, 0f, 1f));
+            if (!CheckGLError("GL.Uniform4", $"loc={_colorLoc}")) return;
             GL.DrawArrays(PrimitiveType.Lines, 0, cnt);
+            if (!CheckGLError("GL.DrawArrays", $"mode={PrimitiveType.Lines}, count={cnt}")) return;
             GL.Uniform4(_colorLoc, new Vector4(0f, 1f, 0f, 1f));
+            if (!CheckGLError("GL.Uniform4", $"loc={_colorLoc}")) return;
             GL.DrawArrays(PrimitiveType.Lines, cnt, cnt);
+            if (!CheckGLError("GL.DrawArrays", $"mode={PrimitiveType.Lines}, first={cnt}, count={cnt}")) return;
             GL.Uniform4(_colorLoc, new Vector4(0f, 0f, 1f, 1f));
+            if (!CheckGLError("GL.Uniform4", $"loc={_colorLoc}")) return;
             GL.DrawArrays(PrimitiveType.Lines, cnt * 2, cnt);
+            if (!CheckGLError("GL.DrawArrays", $"mode={PrimitiveType.Lines}, first={cnt * 2}, count={cnt}")) return;
             GL.BindVertexArray(0);
+            if (!CheckGLError("GL.BindVertexArray", "vao=0")) return;
             GL.Enable(EnableCap.DepthTest);
+            if (!CheckGLError("GL.Enable", $"cap={EnableCap.DepthTest}")) return;
         }
         GL.DepthMask(true);
+        if (!CheckGLError("GL.DepthMask", "true")) return;
 
         if (ShowBoneOutline)
         {
@@ -650,12 +755,19 @@ public partial class PmxRenderer
             if (_boneVertexCount > 0)
             {
                 GL.Disable(EnableCap.DepthTest);
+                if (!CheckGLError("GL.Disable", $"cap={EnableCap.DepthTest}")) return;
                 GL.UniformMatrix4(_modelLoc, false, ref modelMat);
+                if (!CheckGLError("GL.UniformMatrix4", $"loc={_modelLoc}")) return;
                 GL.Uniform4(_colorLoc, new Vector4(1f, 0f, 0f, 1f));
+                if (!CheckGLError("GL.Uniform4", $"loc={_colorLoc}")) return;
                 GL.BindVertexArray(_boneVao);
+                if (!CheckGLError("GL.BindVertexArray", $"vao={_boneVao}")) return;
                 GL.DrawArrays(PrimitiveType.Lines, 0, _boneVertexCount);
+                if (!CheckGLError("GL.DrawArrays", $"mode={PrimitiveType.Lines}, count={_boneVertexCount}")) return;
                 GL.BindVertexArray(0);
+                if (!CheckGLError("GL.BindVertexArray", "vao=0")) return;
                 GL.Enable(EnableCap.DepthTest);
+                if (!CheckGLError("GL.Enable", $"cap={EnableCap.DepthTest}")) return;
             }
         }
 
