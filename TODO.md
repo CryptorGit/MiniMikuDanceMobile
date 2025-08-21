@@ -26,5 +26,6 @@
 - ClothSimulatorのBoneMap初期化と髪ボーン・メッシュへの反映方法を設計
 - ClothSimulator.SyncToBones の軸計算変更後の髪・尻尾の挙動確認と Bone.BaseForward 初期値の再調整
 - SoftBody の TriMesh 対応とパラメータ詳細の検討
+- SoftBodyData の質量・剛性プロパティのマッピングを確認
 - 既存モデルを用いた座標系変換の検証
 - PmxRenderer の `_externalRotation` 初期値見直し

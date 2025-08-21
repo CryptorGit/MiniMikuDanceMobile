@@ -954,6 +954,15 @@ public PmxImporter(ILogger<PmxImporter>? logger = null)
                 sbd.Group = Convert.ToByte(group);
             if (sbType.GetProperty("GroupTarget")?.GetValue(sb) is object mask)
                 sbd.Mask = Convert.ToUInt16(mask);
+            var massProp = sbType.GetProperty("TotalMass") ?? sbType.GetProperty("Mass");
+            if (massProp?.GetValue(sb) is object mass)
+                sbd.NodeMass = Convert.ToSingle(mass);
+            var stiffProp = sbType.GetProperty("SpringStructuralStiffness") ?? sbType.GetProperty("SpringStiffness");
+            if (stiffProp?.GetValue(sb) is object stiff)
+                sbd.SpringStiffness = Convert.ToSingle(stiff);
+            var dampProp = sbType.GetProperty("SpringStructuralDamping") ?? sbType.GetProperty("SpringDamping");
+            if (dampProp?.GetValue(sb) is object damp)
+                sbd.SpringDamping = Convert.ToSingle(damp);
             softBodyDatas.Add(sbd);
         }
         data.SoftBodies = softBodyDatas;
