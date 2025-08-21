@@ -19,15 +19,17 @@ public sealed class BepuPhysicsWorld : IPhysicsWorld
 {
     private BufferPool? _bufferPool;
     private Simulation? _simulation;
-    private readonly Dictionary<BodyHandle, (int Bone, int Mode)> _bodyBoneMap = new();
+    private readonly Dictionary<BodyHandle, (int Bone, int Mode)> _bodyBoneMap = new(); // Mode: 0=ボーン追従, 1=物理のみ, 2=物理+ボーン
     private readonly List<BodyHandle> _rigidBodyHandles = new();
     private readonly Dictionary<BodyHandle, Material> _materialMap = new();
     private readonly Dictionary<BodyHandle, SubgroupCollisionFilter> _bodyFilterMap = new();
     private readonly ClothSimulator _cloth = new();
+    private readonly Dictionary<int, (Vector3 Pos, Quaternion Rot)> _prevBonePoses = new();
     private PhysicsConfig _config;
     private float _modelScale = 1f;
     private float _massScale = 1f;
     private readonly ILogger<BepuPhysicsWorld> _logger;
+    private float _lastDt = 1f / 60f;
 
     public float BoneBlendFactor { get; set; } = 0.5f;
 
@@ -70,9 +72,16 @@ public sealed class BepuPhysicsWorld : IPhysicsWorld
         _cloth.Damping = _config.Damping;
         _simulation?.Timestep(dt);
         _cloth.Step(dt);
+        _lastDt = dt;
     }
 
     /// <inheritdoc/>
+    /// <remarks>
+    /// 剛体モードの挙動:
+    /// 0 = ボーン追従 (キネマティック)、
+    /// 1 = 物理のみ (同期なし)、
+    /// 2 = 物理+ボーン (骨から速度を与え、結果をボーンへ反映)。
+    /// </remarks>
     public void SyncFromBones(Scene scene)
     {
         if (_simulation is null)
@@ -91,9 +100,35 @@ public sealed class BepuPhysicsWorld : IPhysicsWorld
             var bone = scene.Bones[info.Bone];
             body.Pose.Position = bone.Translation;
             body.Pose.Orientation = bone.Rotation;
+            UpdateBodyVelocity(info.Bone, bone, ref body);
+        }
+    }
+
+    private void UpdateBodyVelocity(int boneIndex, BoneData bone, ref BodyReference body)
+    {
+        if (_prevBonePoses.TryGetValue(boneIndex, out var prev))
+        {
+            var linear = (bone.Translation - prev.Pos) / _lastDt;
+            var delta = bone.Rotation * Quaternion.Conjugate(prev.Rot);
+            delta = Quaternion.Normalize(delta);
+            if (delta.W < 0f)
+                delta = new Quaternion(-delta.X, -delta.Y, -delta.Z, -delta.W);
+            var axis = new Vector3(delta.X, delta.Y, delta.Z);
+            var sinHalf = axis.Length();
+            if (sinHalf > 1e-5f)
+                axis /= sinHalf;
+            else
+                axis = Vector3.Zero;
+            var angle = 2f * MathF.Atan2(sinHalf, delta.W);
+            body.Velocity.Linear = linear;
+            body.Velocity.Angular = axis * angle / _lastDt;
+        }
+        else
+        {
             body.Velocity.Linear = Vector3.Zero;
             body.Velocity.Angular = Vector3.Zero;
         }
+        _prevBonePoses[boneIndex] = (bone.Translation, bone.Rotation);
     }
 
     public void SyncToBones(Scene scene)
@@ -208,6 +243,7 @@ public sealed class BepuPhysicsWorld : IPhysicsWorld
         _rigidBodyHandles.Clear();
         _materialMap.Clear();
         _bodyFilterMap.Clear();
+        _prevBonePoses.Clear();
         foreach (var rb in model.RigidBodies)
         {
             var mass = rb.Mass * _massScale;
