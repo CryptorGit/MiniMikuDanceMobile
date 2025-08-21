@@ -24,6 +24,8 @@ public sealed class BepuPhysicsWorld : IPhysicsWorld
     private readonly List<TypedIndex> _shapeIndices = new();
     private readonly Dictionary<BodyHandle, Material> _materialMap = new();
     private readonly Dictionary<BodyHandle, SubgroupCollisionFilter> _bodyFilterMap = new();
+    private readonly Dictionary<StaticHandle, Material> _staticMaterialMap = new();
+    private readonly Dictionary<StaticHandle, SubgroupCollisionFilter> _staticFilterMap = new();
     private readonly ClothSimulator _cloth = new();
     private readonly Dictionary<int, (Vector3 Pos, Quaternion Rot)> _prevBonePoses = new();
     private PhysicsConfig _config;
@@ -60,18 +62,21 @@ public sealed class BepuPhysicsWorld : IPhysicsWorld
         BoneBlendFactor = config.BoneBlendFactor;
         _bufferPool = new BufferPool();
         _simulation = Simulation.Create(_bufferPool,
-            new SubgroupFilteredCallbacks(_materialMap, _bodyFilterMap),
+            new SubgroupFilteredCallbacks(_materialMap, _bodyFilterMap, _staticMaterialMap, _staticFilterMap),
             // Damping は 1 秒あたりの減衰率 (0～1)
             new SimplePoseIntegratorCallbacks(gravity, _config.Damping, _config.Damping),
             new SolveDescription(solverIterationCount, substepCount));
 
+        _staticMaterialMap.Clear();
+        _staticFilterMap.Clear();
+
         // シミュレーション生成後に地面用の静的ボディを追加
         var groundShape = _simulation.Shapes.Add(new Box(1000f * _modelScale, 0.1f * _modelScale, 1000f * _modelScale));
         var groundPose = new RigidPose(new Vector3(0f, -0.05f * _modelScale, 0f));
-        var groundDesc = BodyDescription.CreateStatic(groundPose, new CollidableDescription(groundShape, 0.1f), new BodyActivityDescription());
-        var groundHandle = _simulation.Bodies.Add(groundDesc);
-        _materialMap[groundHandle] = new Material(0f, 0.5f);
-        _bodyFilterMap[groundHandle] = new SubgroupCollisionFilter(uint.MaxValue, uint.MaxValue);
+        var groundDesc = new StaticDescription(groundPose.Position, groundPose.Orientation, groundShape, 0.1f);
+        var groundHandle = _simulation.Statics.Add(groundDesc);
+        _staticMaterialMap[groundHandle] = new Material(0f, 0.5f);
+        _staticFilterMap[groundHandle] = new SubgroupCollisionFilter(uint.MaxValue, uint.MaxValue);
 
         _cloth.Gravity = gravity;
         _cloth.Damping = config.Damping; // 1 秒基準のダンピング
@@ -270,6 +275,8 @@ public sealed class BepuPhysicsWorld : IPhysicsWorld
 
         _bufferPool?.Clear();
         _bufferPool = null;
+        _staticMaterialMap.Clear();
+        _staticFilterMap.Clear();
     }
 
     public void LoadRigidBodies(ModelData model)
@@ -545,20 +552,26 @@ public sealed class BepuPhysicsWorld : IPhysicsWorld
     {
         private readonly Dictionary<BodyHandle, Material> _materials;
         private readonly Dictionary<BodyHandle, SubgroupCollisionFilter> _filters;
+        private readonly Dictionary<StaticHandle, Material> _staticMaterials;
+        private readonly Dictionary<StaticHandle, SubgroupCollisionFilter> _staticFilters;
 
         public SubgroupFilteredCallbacks(Dictionary<BodyHandle, Material> materials,
-            Dictionary<BodyHandle, SubgroupCollisionFilter> filters)
+            Dictionary<BodyHandle, SubgroupCollisionFilter> filters,
+            Dictionary<StaticHandle, Material> staticMaterials,
+            Dictionary<StaticHandle, SubgroupCollisionFilter> staticFilters)
         {
             _materials = materials;
             _filters = filters;
+            _staticMaterials = staticMaterials;
+            _staticFilters = staticFilters;
         }
 
         public void Initialize(Simulation simulation) { }
 
         public bool AllowContactGeneration(int workerIndex, CollidableReference a, CollidableReference b, ref float speculativeMargin)
         {
-            _filters.TryGetValue(a.BodyHandle, out var filterA);
-            _filters.TryGetValue(b.BodyHandle, out var filterB);
+            var filterA = GetFilter(a);
+            var filterB = GetFilter(b);
             return SubgroupCollisionFilter.AllowCollision(filterA, filterB);
         }
 
@@ -567,8 +580,8 @@ public sealed class BepuPhysicsWorld : IPhysicsWorld
         public bool ConfigureContactManifold<TManifold>(int workerIndex, CollidablePair pair, ref TManifold manifold,
             out PairMaterialProperties pairMaterial) where TManifold : unmanaged, IContactManifold<TManifold>
         {
-            _materials.TryGetValue(pair.A.BodyHandle, out var matA);
-            _materials.TryGetValue(pair.B.BodyHandle, out var matB);
+            var matA = GetMaterial(pair.A);
+            var matB = GetMaterial(pair.B);
             var friction = (matA.Friction + matB.Friction) * 0.5f;
             var restitution = (matA.Restitution + matB.Restitution) * 0.5f;
             pairMaterial = new PairMaterialProperties(friction, restitution, new SpringSettings(30f, 1f));
@@ -577,6 +590,30 @@ public sealed class BepuPhysicsWorld : IPhysicsWorld
 
         public bool ConfigureContactManifold(int workerIndex, CollidablePair pair, int childIndexA, int childIndexB,
             ref ConvexContactManifold manifold) => true;
+
+        private SubgroupCollisionFilter GetFilter(CollidableReference collidable)
+        {
+            if (collidable.Mobility == CollidableMobility.Static)
+            {
+                _staticFilters.TryGetValue(collidable.StaticHandle, out var filter);
+                return filter;
+            }
+
+            _filters.TryGetValue(collidable.BodyHandle, out var dynamicFilter);
+            return dynamicFilter;
+        }
+
+        private Material GetMaterial(CollidableReference collidable)
+        {
+            if (collidable.Mobility == CollidableMobility.Static)
+            {
+                _staticMaterials.TryGetValue(collidable.StaticHandle, out var mat);
+                return mat;
+            }
+
+            _materials.TryGetValue(collidable.BodyHandle, out var dynamicMat);
+            return dynamicMat;
+        }
 
         public void Dispose() { }
     }
