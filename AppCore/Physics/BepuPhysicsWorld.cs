@@ -61,6 +61,7 @@ public sealed class BepuPhysicsWorld : IPhysicsWorld
         _bufferPool = new BufferPool();
         _simulation = Simulation.Create(_bufferPool,
             new SubgroupFilteredCallbacks(_materialMap, _bodyFilterMap),
+            // Damping は 1 秒あたりの減衰率 (0～1)
             new SimplePoseIntegratorCallbacks(gravity, _config.Damping, _config.Damping),
             new SolveDescription(solverIterationCount, substepCount));
 
@@ -73,7 +74,7 @@ public sealed class BepuPhysicsWorld : IPhysicsWorld
         _bodyFilterMap[groundHandle] = new SubgroupCollisionFilter(uint.MaxValue, uint.MaxValue);
 
         _cloth.Gravity = gravity;
-        _cloth.Damping = config.Damping;
+        _cloth.Damping = config.Damping; // 1 秒基準のダンピング
     }
 
     public void Step(float dt)
@@ -595,8 +596,11 @@ public sealed class BepuPhysicsWorld : IPhysicsWorld
     private struct SimplePoseIntegratorCallbacks : IPoseIntegratorCallbacks
     {
         public Vector3 Gravity;
+        // 1秒あたりのダンピング率
         public float LinearDamping;
         public float AngularDamping;
+        private float _linearDt;
+        private float _angularDt;
         public AngularIntegrationMode AngularIntegrationMode => AngularIntegrationMode.Nonconserving;
         public bool AllowSubstepsForUnconstrainedBodies => false;
         public bool IntegrateVelocityForKinematics => false;
@@ -606,19 +610,25 @@ public sealed class BepuPhysicsWorld : IPhysicsWorld
             Gravity = gravity;
             LinearDamping = linearDamping;
             AngularDamping = angularDamping;
+            _linearDt = 1f;
+            _angularDt = 1f;
         }
 
         public void Initialize(Simulation simulation) { }
 
-        public void PrepareForIntegration(float dt) { }
+        public void PrepareForIntegration(float dt)
+        {
+            _linearDt = MathF.Pow(LinearDamping, dt);
+            _angularDt = MathF.Pow(AngularDamping, dt);
+        }
 
         public void IntegrateVelocity(Vector<int> bodyIndices, Vector3Wide position, QuaternionWide orientation,
             BodyInertiaWide localInertia, Vector<int> integrationMask, int workerIndex, Vector<float> dt, ref BodyVelocityWide velocity)
         {
             Vector3Wide.Broadcast(Gravity, out var g);
             velocity.Linear += g * dt;
-            var linear = new Vector<float>(LinearDamping);
-            var angular = new Vector<float>(AngularDamping);
+            var linear = new Vector<float>(_linearDt);
+            var angular = new Vector<float>(_angularDt);
             Vector3Wide.Scale(velocity.Linear, linear, out velocity.Linear);
             Vector3Wide.Scale(velocity.Angular, angular, out velocity.Angular);
         }

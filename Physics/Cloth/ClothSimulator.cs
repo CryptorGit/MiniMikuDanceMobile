@@ -12,6 +12,7 @@ public class ClothSimulator
     public List<int> BoneMap { get; } = new();
 
     private Vector3 _gravity = new(0, -9.81f, 0);
+    // 1秒あたりの速度減衰率 (0～1)
     private float _damping = 0.98f;
     private Vector3[] _forceBuffer = Array.Empty<Vector3>();
 
@@ -60,6 +61,7 @@ public class ClothSimulator
             forces[bIndex] -= force;
         }
 
+        // 1秒基準の値をdt秒分の係数に変換
         var damping = MathF.Pow(_damping, dt);
         for (int i = 0; i < Nodes.Count; i++)
         {
