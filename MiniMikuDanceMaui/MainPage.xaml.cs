@@ -259,7 +259,9 @@ public partial class MainPage : ContentPage
             setting.Mode2Blend = _settings.Physics.Mode2Blend;
             setting.Mode2BlendChanged += v =>
             {
-                _settings.Physics.Mode2Blend = (float)v;
+                var physics = _settings.Physics;
+                physics.Mode2Blend = (float)v;
+                _settings.Physics = physics;
                 if (_physics is BepuPhysicsWorld bepu)
                     bepu.Mode2Blend = (float)v;
                 _settings.Save();
