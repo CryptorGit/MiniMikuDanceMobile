@@ -405,148 +405,149 @@ public partial class PmxRenderer
                             foreach (var (rm, vi) in mapped)
                             {
                                 var pos = System.Numerics.Vector3.Zero;
-                            var norm = System.Numerics.Vector3.Zero;
-                            var jp = rm.JointIndices[vi];
-                            var jw = rm.JointWeights[vi];
-                            var basePos = (rm.BaseVertices[vi] + rm.VertexOffsets[vi]).ToNumerics();
-                            bool useSdef = rm.SdefC.Length > vi && rm.SdefR0.Length > vi && rm.SdefR1.Length > vi &&
-                                (rm.SdefC[vi] != Vector3.Zero || rm.SdefR0[vi] != Vector3.Zero || rm.SdefR1[vi] != Vector3.Zero);
-                            int loop = useSdef ? 2 : 4;
-                            for (int k = 0; k < loop; k++)
-                            {
-                                int bi = (int)jp[k];
-                                float w = jw[k];
-                                if (bi >= 0 && bi < _skinMats.Length && w > 0f)
+                                var norm = System.Numerics.Vector3.Zero;
+                                var jp = rm.JointIndices[vi];
+                                var jw = rm.JointWeights[vi];
+                                var basePos = (rm.BaseVertices[vi] + rm.VertexOffsets[vi]).ToNumerics();
+                                bool useSdef = rm.SdefC.Length > vi && rm.SdefR0.Length > vi && rm.SdefR1.Length > vi &&
+                                    (rm.SdefC[vi] != Vector3.Zero || rm.SdefR0[vi] != Vector3.Zero || rm.SdefR1[vi] != Vector3.Zero);
+                                int loop = useSdef ? 2 : 4;
+                                for (int k = 0; k < loop; k++)
                                 {
-                                    var m = _skinMats[bi];
-                                    pos += System.Numerics.Vector3.Transform(basePos, m) * w;
-                                    norm += System.Numerics.Vector3.TransformNormal(rm.Normals[vi].ToNumerics(), m) * w;
+                                    int bi = (int)jp[k];
+                                    float w = jw[k];
+                                    if (bi >= 0 && bi < _skinMats.Length && w > 0f)
+                                    {
+                                        var m = _skinMats[bi];
+                                        pos += System.Numerics.Vector3.Transform(basePos, m) * w;
+                                        norm += System.Numerics.Vector3.TransformNormal(rm.Normals[vi].ToNumerics(), m) * w;
+                                    }
                                 }
-                            }
-                            if (useSdef)
-                            {
-                                int b0 = (int)jp[0];
-                                int b1 = (int)jp[1];
-                                float w0 = jw[0];
-                                float w1 = jw[1];
-                                var c = rm.SdefC[vi].ToNumerics();
-                                var r0 = rm.SdefR0[vi].ToNumerics();
-                                var r1 = rm.SdefR1[vi].ToNumerics();
-                                var m0 = _skinMats[b0];
-                                var m1 = _skinMats[b1];
-                                var c0 = System.Numerics.Vector3.Transform(c, m0);
-                                var c1 = System.Numerics.Vector3.Transform(c, m1);
-                                var r0t = System.Numerics.Vector3.Transform(r0, m0) - c0;
-                                var r1t = System.Numerics.Vector3.Transform(r1, m1) - c1;
-                                var cMix = c0 * w0 + c1 * w1;
-                                var rMix = r0t * w0 + r1t * w1;
-                                var q0 = System.Numerics.Quaternion.CreateFromRotationMatrix(m0);
-                                var q1 = System.Numerics.Quaternion.CreateFromRotationMatrix(m1);
-                                var q = System.Numerics.Quaternion.Slerp(q0, q1, w1);
-                                var rotMat = System.Numerics.Matrix4x4.CreateFromQuaternion(q);
-                                var local = basePos - c;
-                                pos = System.Numerics.Vector3.Transform(local, rotMat) + cMix + rMix;
-                                var nLocal = rm.Normals[vi].ToNumerics();
-                                norm = System.Numerics.Vector3.TransformNormal(nLocal, rotMat);
-                            }
-                            if (norm.LengthSquared() > 0)
-                                norm = System.Numerics.Vector3.Normalize(norm);
+                                if (useSdef)
+                                {
+                                    int b0 = (int)jp[0];
+                                    int b1 = (int)jp[1];
+                                    float w0 = jw[0];
+                                    float w1 = jw[1];
+                                    var c = rm.SdefC[vi].ToNumerics();
+                                    var r0 = rm.SdefR0[vi].ToNumerics();
+                                    var r1 = rm.SdefR1[vi].ToNumerics();
+                                    var m0 = _skinMats[b0];
+                                    var m1 = _skinMats[b1];
+                                    var c0 = System.Numerics.Vector3.Transform(c, m0);
+                                    var c1 = System.Numerics.Vector3.Transform(c, m1);
+                                    var r0t = System.Numerics.Vector3.Transform(r0, m0) - c0;
+                                    var r1t = System.Numerics.Vector3.Transform(r1, m1) - c1;
+                                    var cMix = c0 * w0 + c1 * w1;
+                                    var rMix = r0t * w0 + r1t * w1;
+                                    var q0 = System.Numerics.Quaternion.CreateFromRotationMatrix(m0);
+                                    var q1 = System.Numerics.Quaternion.CreateFromRotationMatrix(m1);
+                                    var q = System.Numerics.Quaternion.Slerp(q0, q1, w1);
+                                    var rotMat = System.Numerics.Matrix4x4.CreateFromQuaternion(q);
+                                    var local = basePos - c;
+                                    pos = System.Numerics.Vector3.Transform(local, rotMat) + cMix + rMix;
+                                    var nLocal = rm.Normals[vi].ToNumerics();
+                                    norm = System.Numerics.Vector3.TransformNormal(nLocal, rotMat);
+                                }
+                                if (norm.LengthSquared() > 0)
+                                    norm = System.Numerics.Vector3.Normalize(norm);
 
-                            small[0] = pos.X; small[1] = pos.Y; small[2] = pos.Z;
-                            small[3] = norm.X; small[4] = norm.Y; small[5] = norm.Z;
+                                small[0] = pos.X; small[1] = pos.Y; small[2] = pos.Z;
+                                small[3] = norm.X; small[4] = norm.Y; small[5] = norm.Z;
+                                if (vi < rm.TexCoords.Length)
+                                {
+                                    var uv = rm.TexCoords[vi];
+                                    if (vi < rm.UvOffsets.Length)
+                                        uv += rm.UvOffsets[vi];
+                                    small[6] = uv.X; small[7] = uv.Y;
+                                }
+                                else { small[6] = 0f; small[7] = 0f; }
+
+                                GL.BindBuffer(BufferTarget.ArrayBuffer, rm.Vbo);
+                                if (!CheckGLError("GL.BindBuffer", $"target={BufferTarget.ArrayBuffer}, buffer={rm.Vbo}"))
+                                    return;
+                                IntPtr offset = new IntPtr(vi * 8 * sizeof(float));
+                                GL.BufferSubData(BufferTarget.ArrayBuffer, offset, 8 * sizeof(float), (IntPtr)smallPtr);
+                                if (!CheckGLError("GL.BufferSubData", $"offset={offset}, size={8 * sizeof(float)}, ptr={(IntPtr)smallPtr}"))
+                                    return;
+                                GL.Finish();
+                                if (!CheckGLError("GL.Finish"))
+                                    return;
+                            }
+                        }
+                    }
+                }
+            }
+            else
+            {
+                float[]? tmpVertexBuffer = null;
+                try
+                {
+                    foreach (var rm in _meshes)
+                    {
+                        int required = rm.BaseVertices.Length * 8;
+                        if (tmpVertexBuffer == null || tmpVertexBuffer.Length < required)
+                        {
+                            if (tmpVertexBuffer != null)
+                                ArrayPool<float>.Shared.Return(tmpVertexBuffer);
+                            tmpVertexBuffer = ArrayPool<float>.Shared.Rent(required);
+                        }
+                        else
+                        {
+                            Array.Clear(tmpVertexBuffer, 0, required);
+                        }
+                        for (int vi = 0; vi < rm.BaseVertices.Length; vi++)
+                        {
+                            var pos = rm.BaseVertices[vi] + rm.VertexOffsets[vi];
+                            var nor = vi < rm.Normals.Length ? rm.Normals[vi] : new Vector3(0, 0, 1);
+                            tmpVertexBuffer[vi * 8 + 0] = pos.X;
+                            tmpVertexBuffer[vi * 8 + 1] = pos.Y;
+                            tmpVertexBuffer[vi * 8 + 2] = pos.Z;
+                            tmpVertexBuffer[vi * 8 + 3] = nor.X;
+                            tmpVertexBuffer[vi * 8 + 4] = nor.Y;
+                            tmpVertexBuffer[vi * 8 + 5] = nor.Z;
                             if (vi < rm.TexCoords.Length)
                             {
                                 var uv = rm.TexCoords[vi];
                                 if (vi < rm.UvOffsets.Length)
                                     uv += rm.UvOffsets[vi];
-                                small[6] = uv.X; small[7] = uv.Y;
+                                tmpVertexBuffer[vi * 8 + 6] = uv.X;
+                                tmpVertexBuffer[vi * 8 + 7] = uv.Y;
                             }
-                            else { small[6] = 0f; small[7] = 0f; }
-
-                            GL.BindBuffer(BufferTarget.ArrayBuffer, rm.Vbo);
-                            if (!CheckGLError("GL.BindBuffer", $"target={BufferTarget.ArrayBuffer}, buffer={rm.Vbo}"))
-                                return;
-                            IntPtr offset = new IntPtr(vi * 8 * sizeof(float));
-                            GL.BufferSubData(BufferTarget.ArrayBuffer, offset, 8 * sizeof(float), (IntPtr)smallPtr);
-                            if (!CheckGLError("GL.BufferSubData", $"offset={offset}, size={8 * sizeof(float)}, ptr={(IntPtr)smallPtr}"))
-                                return;
-                            GL.Finish();
-                            if (!CheckGLError("GL.Finish"))
-                                return;
+                            else
+                            {
+                                tmpVertexBuffer[vi * 8 + 6] = 0f;
+                                tmpVertexBuffer[vi * 8 + 7] = 0f;
+                            }
+                        }
+                        GL.BindBuffer(BufferTarget.ArrayBuffer, rm.Vbo);
+                        if (!CheckGLError("GL.BindBuffer", $"target={BufferTarget.ArrayBuffer}, buffer={rm.Vbo}"))
+                            return;
+                        unsafe
+                        {
+                            fixed (float* p = tmpVertexBuffer)
+                            {
+                                GL.BufferSubData(BufferTarget.ArrayBuffer, IntPtr.Zero, required * sizeof(float), (IntPtr)p);
+                                if (!CheckGLError("GL.BufferSubData", $"size={required * sizeof(float)}, ptr={(IntPtr)p}"))
+                                    return;
+                                GL.Finish();
+                                if (!CheckGLError("GL.Finish"))
+                                    return;
+                            }
                         }
                     }
                 }
-            }
-        }
-        else
-        {
-            float[]? tmpVertexBuffer = null;
-            try
-            {
-                foreach (var rm in _meshes)
+                finally
                 {
-                    int required = rm.BaseVertices.Length * 8;
-                    if (tmpVertexBuffer == null || tmpVertexBuffer.Length < required)
-                    {
-                        if (tmpVertexBuffer != null)
-                            ArrayPool<float>.Shared.Return(tmpVertexBuffer);
-                        tmpVertexBuffer = ArrayPool<float>.Shared.Rent(required);
-                    }
-                    else
-                    {
-                        Array.Clear(tmpVertexBuffer, 0, required);
-                    }
-                    for (int vi = 0; vi < rm.BaseVertices.Length; vi++)
-                    {
-                        var pos = rm.BaseVertices[vi] + rm.VertexOffsets[vi];
-                        var nor = vi < rm.Normals.Length ? rm.Normals[vi] : new Vector3(0, 0, 1);
-                        tmpVertexBuffer[vi * 8 + 0] = pos.X;
-                        tmpVertexBuffer[vi * 8 + 1] = pos.Y;
-                        tmpVertexBuffer[vi * 8 + 2] = pos.Z;
-                        tmpVertexBuffer[vi * 8 + 3] = nor.X;
-                        tmpVertexBuffer[vi * 8 + 4] = nor.Y;
-                        tmpVertexBuffer[vi * 8 + 5] = nor.Z;
-                        if (vi < rm.TexCoords.Length)
-                        {
-                            var uv = rm.TexCoords[vi];
-                            if (vi < rm.UvOffsets.Length)
-                                uv += rm.UvOffsets[vi];
-                            tmpVertexBuffer[vi * 8 + 6] = uv.X;
-                            tmpVertexBuffer[vi * 8 + 7] = uv.Y;
-                        }
-                        else
-                        {
-                            tmpVertexBuffer[vi * 8 + 6] = 0f;
-                            tmpVertexBuffer[vi * 8 + 7] = 0f;
-                        }
-                    }
-                    GL.BindBuffer(BufferTarget.ArrayBuffer, rm.Vbo);
-                    if (!CheckGLError("GL.BindBuffer", $"target={BufferTarget.ArrayBuffer}, buffer={rm.Vbo}"))
-                        return;
-                    unsafe
-                    {
-                        fixed (float* p = tmpVertexBuffer)
-                        {
-                            GL.BufferSubData(BufferTarget.ArrayBuffer, IntPtr.Zero, required * sizeof(float), (IntPtr)p);
-                            if (!CheckGLError("GL.BufferSubData", $"size={required * sizeof(float)}, ptr={(IntPtr)p}"))
-                                return;
-                            GL.Finish();
-                            if (!CheckGLError("GL.Finish"))
-                                return;
-                        }
-                    }
+                    if (tmpVertexBuffer != null)
+                        ArrayPool<float>.Shared.Return(tmpVertexBuffer);
                 }
             }
-            finally
-            {
-                if (tmpVertexBuffer != null)
-                    ArrayPool<float>.Shared.Return(tmpVertexBuffer);
-            }
-        }
 
-        _bonesDirty = false;
-        _morphDirty = false;
-        _uvMorphDirty = false;
+            _bonesDirty = false;
+            _morphDirty = false;
+            _uvMorphDirty = false;
+        }
     }
 
     private void DrawScene()
