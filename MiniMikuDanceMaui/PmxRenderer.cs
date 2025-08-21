@@ -59,6 +59,7 @@ public partial class PmxRenderer : IDisposable
         public Vector3[] SdefR1 = Array.Empty<Vector3>();
     }
     private readonly System.Collections.Generic.List<RenderMesh> _meshes = new();
+    private readonly object _meshesLock = new();
     private readonly Dictionary<string, MorphData> _morphs = new(StringComparer.OrdinalIgnoreCase);
     private readonly Dictionary<MorphCategory, List<MorphData>> _morphsByCategory = new();
     private readonly Dictionary<string, float> _morphValues = new(StringComparer.OrdinalIgnoreCase);
@@ -959,7 +960,13 @@ void main(){
 
     public void LoadModel(MiniMikuDance.Import.ModelData data)
     {
-        foreach (var rm in _meshes)
+        RenderMesh[] oldMeshes;
+        lock (_meshesLock)
+        {
+            oldMeshes = _meshes.ToArray();
+            _meshes.Clear();
+        }
+        foreach (var rm in oldMeshes)
         {
             if (rm.Vao != 0) GL.DeleteVertexArray(rm.Vao);
             if (rm.Vbo != 0) GL.DeleteBuffer(rm.Vbo);
@@ -968,7 +975,6 @@ void main(){
             if (rm.SphereTexture != 0) GL.DeleteTexture(rm.SphereTexture);
             if (rm.ToonTexture != 0) GL.DeleteTexture(rm.ToonTexture);
         }
-        _meshes.Clear();
         _indexToHumanoidName.Clear();
         _bones = data.Bones;
         _physicsBones.Clear();
@@ -995,6 +1001,7 @@ void main(){
             });
         }
 
+        var newMeshes = new List<RenderMesh>();
         foreach (var sm in data.SubMeshes)
         {
             int vcount = sm.Mesh.VertexCount;
@@ -1224,9 +1231,11 @@ void main(){
                 rm.Color = Vector4.One;
             }
 
-            _meshes.Add(rm);
+            newMeshes.Add(rm);
         }
 
+        lock (_meshesLock)
+            _meshes.AddRange(newMeshes);
 
         _morphs.Clear();
         _morphsByCategory.Clear();
@@ -1323,7 +1332,10 @@ void main(){
             list.Add(i);
         }
 
-        foreach (var rm in _meshes)
+        RenderMesh[] meshesSnapshot;
+        lock (_meshesLock)
+            meshesSnapshot = _meshes.ToArray();
+        foreach (var rm in meshesSnapshot)
         {
             for (int i = 0; i < rm.BaseVertices.Length; i++)
             {
@@ -1430,13 +1442,18 @@ void main(){
 
     public void Dispose()
     {
-        foreach (var rm in _meshes)
+        RenderMesh[] meshes;
+        lock (_meshesLock)
+        {
+            meshes = _meshes.ToArray();
+            _meshes.Clear();
+        }
+        foreach (var rm in meshes)
         {
             if (rm.Vao != 0) GL.DeleteVertexArray(rm.Vao);
             if (rm.Vbo != 0) GL.DeleteBuffer(rm.Vbo);
             if (rm.Ebo != 0) GL.DeleteBuffer(rm.Ebo);
         }
-        _meshes.Clear();
         _indexToHumanoidName.Clear();
         GL.DeleteBuffer(_gridVbo);
         GL.DeleteBuffer(_axesVbo);

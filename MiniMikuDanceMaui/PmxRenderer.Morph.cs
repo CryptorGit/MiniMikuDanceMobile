@@ -50,7 +50,10 @@ public partial class PmxRenderer
 
     private void RecalculateMaterialMorphs()
     {
-        foreach (var rm in _meshes)
+        RenderMesh[] meshes;
+        lock (_meshesLock)
+            meshes = _meshes.ToArray();
+        foreach (var rm in meshes)
         {
             rm.Color = rm.BaseColor;
             rm.Specular = rm.BaseSpecular;
@@ -97,15 +100,15 @@ public partial class PmxRenderer
                     }
                 }
 
-                if (off.Material.IsAll)
-                {
-                    foreach (var mesh in _meshes)
-                        Apply(mesh);
-                }
-                else if (off.Index >= 0 && off.Index < _meshes.Count)
-                {
-                    Apply(_meshes[off.Index]);
-                }
+                    if (off.Material.IsAll)
+                    {
+                        foreach (var mesh in meshes)
+                            Apply(mesh);
+                    }
+                    else if (off.Index >= 0 && off.Index < meshes.Length)
+                    {
+                        Apply(meshes[off.Index]);
+                    }
             }
         }
     }
