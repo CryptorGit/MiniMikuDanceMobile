@@ -241,43 +241,57 @@ public sealed class BepuPhysicsWorld : IPhysicsWorld
 
         foreach (var sb in model.SoftBodies)
         {
-            if (sb.Shape != SoftBodyShape.Rope)
-                continue;
-
-            var rootIndex = model.Bones.FindIndex(b => b.Name == sb.Name || b.NameEnglish == sb.NameEnglish);
-            if (rootIndex < 0)
-                continue;
-
-            var current = rootIndex;
-            var previousNode = -1;
-            while (current >= 0)
+            switch (sb.Shape)
             {
-                var bone = model.Bones[current];
-                var nodeIndex = _cloth.Nodes.Count;
-                var invMass = nodeIndex == 0 ? 0f : 1f / _massScale;
-                _cloth.Nodes.Add(new Node { Position = bone.Translation, Velocity = Vector3.Zero, InverseMass = invMass });
-                _cloth.BoneMap.Add(current);
-
-                if (previousNode >= 0)
-                {
-                    var prevPos = _cloth.Nodes[previousNode].Position;
-                    var rest = Vector3.Distance(prevPos, bone.Translation);
-                    _cloth.Springs.Add(new Spring
-                    {
-                        NodeA = previousNode,
-                        NodeB = nodeIndex,
-                        RestLength = rest,
-                        Stiffness = 100f,
-                        Damping = 5f
-                    });
-                }
-
-                previousNode = nodeIndex;
-
-                var next = model.Bones.FindIndex(b => b.Parent == current);
-                if (next < 0)
+                case SoftBodyShape.Rope:
+                case SoftBodyShape.TriMesh:
+                case SoftBodyShape.Cloth:
+                    BuildSoftBodyFromBones(model, sb);
                     break;
-                current = next;
+            }
+        }
+    }
+
+    private void BuildSoftBodyFromBones(ModelData model, SoftBodyData sb)
+    {
+        var rootIndex = model.Bones.FindIndex(b => b.Name == sb.Name || b.NameEnglish == sb.NameEnglish);
+        if (rootIndex < 0)
+            return;
+
+        var queue = new Queue<(int Bone, int ParentNode)>();
+        queue.Enqueue((rootIndex, -1));
+
+        while (queue.Count > 0)
+        {
+            var (boneIndex, parentNode) = queue.Dequeue();
+            var bone = model.Bones[boneIndex];
+
+            var nodeIndex = _cloth.Nodes.Count;
+            var mass = sb.NodeMass > 0f ? sb.NodeMass * _massScale : _massScale;
+            var invMass = parentNode < 0 ? 0f : 1f / mass;
+            _cloth.Nodes.Add(new Node { Position = bone.Translation, Velocity = Vector3.Zero, InverseMass = invMass });
+            _cloth.BoneMap.Add(boneIndex);
+
+            if (parentNode >= 0)
+            {
+                var prevPos = _cloth.Nodes[parentNode].Position;
+                var rest = Vector3.Distance(prevPos, bone.Translation);
+                _cloth.Springs.Add(new Spring
+                {
+                    NodeA = parentNode,
+                    NodeB = nodeIndex,
+                    RestLength = rest,
+                    Stiffness = sb.SpringStiffness,
+                    Damping = sb.SpringDamping
+                });
+            }
+
+            var children = model.Bones.FindAll(b => b.Parent == boneIndex);
+            foreach (var child in children)
+            {
+                var childIndex = model.Bones.IndexOf(child);
+                if (childIndex >= 0)
+                    queue.Enqueue((childIndex, nodeIndex));
             }
         }
     }

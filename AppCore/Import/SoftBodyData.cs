@@ -3,7 +3,8 @@ namespace MiniMikuDance.Import;
 public enum SoftBodyShape
 {
     TriMesh,
-    Rope
+    Rope,
+    Cloth
 }
 
 public class SoftBodyData
@@ -14,4 +15,7 @@ public class SoftBodyData
     public SoftBodyShape Shape { get; set; }
     public byte Group { get; set; }
     public ushort Mask { get; set; }
+    public float NodeMass { get; set; } = 1f;
+    public float SpringStiffness { get; set; } = 100f;
+    public float SpringDamping { get; set; } = 5f;
 }
