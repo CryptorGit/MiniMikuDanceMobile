@@ -213,7 +213,7 @@ public sealed class BepuPhysicsWorld : IPhysicsWorld
             }
 
             var pose = new RigidPose(rb.Position,
-                Quaternion.CreateFromYawPitchRoll(rb.Rotation.Y, rb.Rotation.X, rb.Rotation.Z));
+                FromEulerXyz(rb.Rotation));
             var filter = new SubgroupCollisionFilter((uint)rb.Group, (uint)rb.Mask);
             var collidable = new CollidableDescription(shapeIndex, 0.1f);
 
@@ -382,17 +382,25 @@ public sealed class BepuPhysicsWorld : IPhysicsWorld
         return new SpringSettings(frequency, dampingRatio);
     }
 
+    private static Quaternion FromEulerXyz(Vector3 rot)
+    {
+        var m = Matrix4x4.CreateRotationX(rot.X)
+            * Matrix4x4.CreateRotationY(rot.Y)
+            * Matrix4x4.CreateRotationZ(rot.Z);
+        return Quaternion.Normalize(Quaternion.CreateFromRotationMatrix(m));
+    }
+
     private static void ComputeJointLocalPoses(JointData joint, RigidBodyData a, RigidBodyData b,
         out RigidPose localA, out RigidPose localB)
     {
-        var jointOrientation = Quaternion.CreateFromYawPitchRoll(joint.Rotation.Y, joint.Rotation.X, joint.Rotation.Z);
+        var jointOrientation = FromEulerXyz(joint.Rotation);
         localA = ToLocalPose(joint.Position, jointOrientation, a);
         localB = ToLocalPose(joint.Position, jointOrientation, b);
     }
 
     private static RigidPose ToLocalPose(Vector3 jointPos, Quaternion jointOrientation, RigidBodyData rb)
     {
-        var bodyOrientation = Quaternion.CreateFromYawPitchRoll(rb.Rotation.Y, rb.Rotation.X, rb.Rotation.Z);
+        var bodyOrientation = FromEulerXyz(rb.Rotation);
         var invBody = Quaternion.Conjugate(bodyOrientation);
         var localPos = Vector3.Transform(jointPos - rb.Position, invBody);
         var localRot = Quaternion.Concatenate(invBody, jointOrientation);
