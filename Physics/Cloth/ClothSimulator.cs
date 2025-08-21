@@ -79,6 +79,9 @@ public class ClothSimulator
     {
         var count = Math.Min(Nodes.Count, BoneMap.Count);
         var worldCache = new Dictionary<int, (Vector3 Pos, Quaternion Rot)>();
+        var boneToNode = new Dictionary<int, int>();
+        for (int i = 0; i < count; i++)
+            boneToNode[BoneMap[i]] = i;
 
         (Vector3 Pos, Quaternion Rot) GetWorldPose(int idx)
         {
@@ -107,17 +110,30 @@ public class ClothSimulator
             var bone = scene.Bones[boneIndex];
             var nodePos = Nodes[i].Position;
             Quaternion parentRot = Quaternion.Identity;
-            Vector3 localTranslation = nodePos;
+            Vector3 parentBonePos = Vector3.Zero;
+            Vector3 parentNodePos = Vector3.Zero;
 
             if (bone.Parent >= 0)
             {
                 var parentPose = GetWorldPose(bone.Parent);
                 parentRot = parentPose.Rot;
-                var invParentRot = Quaternion.Inverse(parentPose.Rot);
-                localTranslation = Vector3.Transform(nodePos - parentPose.Pos, invParentRot);
+                parentBonePos = parentPose.Pos;
+                parentNodePos = boneToNode.TryGetValue(bone.Parent, out var pn)
+                    ? Nodes[pn].Position : parentPose.Pos;
             }
 
-            bone.Translation = localTranslation;
+            var dirWorld = nodePos - parentNodePos;
+            var len = bone.InitialTranslation.Length();
+            if (dirWorld.LengthSquared() > 1e-8f)
+            {
+                var invParentRot = Quaternion.Inverse(parentRot);
+                var dirLocal = Vector3.Normalize(Vector3.Transform(dirWorld, invParentRot));
+                bone.Translation = dirLocal * len;
+            }
+            else
+            {
+                bone.Translation = bone.InitialTranslation;
+            }
 
             if (i + 1 < count)
             {
@@ -147,7 +163,8 @@ public class ClothSimulator
             }
 
             scene.Bones[boneIndex] = bone;
-            worldCache[boneIndex] = (nodePos, bone.Rotation * parentRot);
+            var worldPos = parentBonePos + Vector3.Transform(bone.Translation, parentRot);
+            worldCache[boneIndex] = (worldPos, bone.Rotation * parentRot);
         }
     }
 }
