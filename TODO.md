@@ -19,6 +19,7 @@
 - 衝突グループ/マスクのマッピング仕様を固める
 - BepuPhysicsWorldのコールバック実装と物理設定の詳細を検討
 - PhysicsConfig の重力と反復回数は暫定値（Gravity=(0,-9.81,0), SolverIterationCount=8, SubstepCount=1）
+- 物理設定を UI から変更できるようにする（重力・ダンピング・BoneBlendFactor 等）
 - 剛体→ボディ変換
   - 衝突グループ/マスクの反映
   - モード2ボーン同期のブレンド係数を設定可能にする（暫定値: 0.5）
