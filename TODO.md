@@ -19,8 +19,7 @@
 - PhysicsConfig の重力と反復回数は暫定値（Gravity=(0,-9.81,0), SolverIterationCount=8, SubstepCount=1）
 - 剛体→ボディ変換
   - 衝突グループ/マスクの反映
-  - モード2ボーン同期のブレンド係数を設定可能にする（暫定値: 0.5）
-- ジョイント回転軸変換とスプリング減衰値の調整
+  - ジョイント回転軸変換とスプリング減衰値の調整
 - モードに応じた追従率や補間、KeyframePlayerとの更新順序の整合
 - ClothSimulatorのBoneMap初期化と髪ボーン・メッシュへの反映方法を設計
 - SoftBody の TriMesh 対応とパラメータ詳細の検討

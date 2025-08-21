@@ -14,6 +14,7 @@ public partial class SettingView : ContentView
     public event Action<double>? BonePickPixelsChanged;
     public event Action<bool>? BoneOutlineChanged;
     public event Action<bool>? BoneTypeChanged;
+    public event Action<double>? Mode2BlendChanged;
     public event Action? ResetCameraRequested;
 
     public SettingView()
@@ -59,6 +60,11 @@ public partial class SettingView : ContentView
     private void OnBonePickPixelsChanged(object? sender, ValueChangedEventArgs e)
     {
         HandleSliderChange(BonePickPixelsChanged, e);
+    }
+
+    private void OnMode2BlendChanged(object? sender, ValueChangedEventArgs e)
+    {
+        HandleSliderChange(Mode2BlendChanged, e);
     }
 
 
@@ -120,6 +126,12 @@ public partial class SettingView : ContentView
     {
         get => BonePickSlider.Value;
         set => BonePickSlider.Value = value;
+    }
+
+    public double Mode2Blend
+    {
+        get => Mode2BlendSlider.Value;
+        set => Mode2BlendSlider.Value = value;
     }
 
 
