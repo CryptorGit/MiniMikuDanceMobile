@@ -138,7 +138,9 @@ public class ClothSimulator
                     }
                     else
                     {
-                        delta = dot > 0f ? Quaternion.Identity : Quaternion.CreateFromAxisAngle(Vector3.UnitY, MathF.PI);
+                        var upAxis = bone.BaseUp.LengthSquared() > 1e-8f ? Vector3.Normalize(bone.BaseUp) : Vector3.UnitY;
+                        var angle = dot > 0f ? 0f : MathF.PI;
+                        delta = Quaternion.CreateFromAxisAngle(upAxis, angle);
                     }
                     bone.Rotation = delta * bone.InitialRotation;
                 }
