@@ -13,6 +13,7 @@ public class ClothSimulator
 
     private Vector3 _gravity = new(0, -9.81f, 0);
     private float _damping = 0.98f;
+    private Vector3[] _forceBuffer = Array.Empty<Vector3>();
 
     public Vector3 Gravity
     {
@@ -31,7 +32,11 @@ public class ClothSimulator
         if (Nodes.Count == 0)
             return;
 
-        var forces = new Vector3[Nodes.Count];
+        if (_forceBuffer.Length < Nodes.Count)
+            _forceBuffer = new Vector3[Nodes.Count];
+
+        Array.Clear(_forceBuffer, 0, Nodes.Count);
+        var forces = _forceBuffer;
 
         foreach (var spring in Springs)
         {
@@ -55,15 +60,17 @@ public class ClothSimulator
             forces[bIndex] -= force;
         }
 
+        var damping = MathF.Pow(_damping, dt);
         for (int i = 0; i < Nodes.Count; i++)
         {
             var node = Nodes[i];
             if (node.InverseMass <= 0f)
                 continue;
+
             var accel = _gravity + forces[i] * node.InverseMass;
-            node.Velocity += accel * dt;
-            node.Velocity *= _damping;
-            node.Position += node.Velocity * dt;
+            var newVelocity = (node.Velocity + accel * dt) * damping;
+            node.Position += newVelocity * dt;
+            node.Velocity = newVelocity;
             Nodes[i] = node;
         }
     }
