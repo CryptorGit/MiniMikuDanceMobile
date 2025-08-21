@@ -342,7 +342,8 @@ public sealed class BepuPhysicsWorld : IPhysicsWorld
     private void AddLinearLimit(BodyHandle a, BodyHandle b, Vector3 localOffsetA, Vector3 localOffsetB,
         Quaternion localOrientationA, Vector3 axis, float min, float max, float spring)
     {
-        if (min == 0f && max == 0f && spring == 0f) return;
+        // PMX仕様では min > max の場合は「制限なし」と解釈する
+        if (min > max) return;
         var localAxis = Vector3.Transform(axis, Quaternion.Conjugate(localOrientationA));
         var limit = new LinearAxisLimit
         {
@@ -359,7 +360,8 @@ public sealed class BepuPhysicsWorld : IPhysicsWorld
     private void AddTwistLimit(BodyHandle a, BodyHandle b, Quaternion localOrientationA, Quaternion localOrientationB,
         Vector3 axis, float min, float max, float spring)
     {
-        if (min == 0f && max == 0f && spring == 0f) return;
+        // PMX仕様では min > max の場合は「制限なし」と解釈する
+        if (min > max) return;
         var basis = CreateBasisFromAxis(axis);
         var limit = new TwistLimit
         {
