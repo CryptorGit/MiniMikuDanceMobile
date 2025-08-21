@@ -13,7 +13,7 @@ public class BoneData
     public Quaternion InitialRotation { get; set; } = Quaternion.Identity;
     public Vector3 InitialTranslation { get; set; } = Vector3.Zero;
     public Vector3 BaseForward { get; set; } = Vector3.UnitY;
-    public Vector3 BaseUp { get; set; } = Vector3.UnitY;
+    public Vector3 BaseUp { get; set; } = Vector3.UnitZ;
     public bool InheritRotation { get; set; }
     public bool InheritTranslation { get; set; }
     public int InheritParent { get; set; } = -1;

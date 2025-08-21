@@ -535,11 +535,11 @@ public PmxImporter(ILogger<PmxImporter>? logger = null)
                 InitialRotation = System.Numerics.Quaternion.Identity,
                 InitialTranslation = pos,
                 BaseForward = System.Numerics.Vector3.UnitY,
-                BaseUp = System.Numerics.Vector3.UnitY
+                BaseUp = System.Numerics.Vector3.UnitZ
             };
 
             var forward = System.Numerics.Vector3.UnitY;
-            var up = System.Numerics.Vector3.UnitY;
+            var up = System.Numerics.Vector3.UnitZ;
             if ((b.BoneFlag & BoneFlag.LocalAxis) != 0)
             {
                 var xAxis = new System.Numerics.Vector3(b.XAxisVec.X, b.XAxisVec.Y, -b.XAxisVec.Z);

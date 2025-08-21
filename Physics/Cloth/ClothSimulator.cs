@@ -128,7 +128,7 @@ public class ClothSimulator
                     var baseDir = Vector3.Normalize(bone.BaseForward);
                     dir = Vector3.Normalize(dir);
                     var dot = Math.Clamp(Vector3.Dot(baseDir, dir), -1f, 1f);
-                    var axis = Vector3.Cross(dir, baseDir);
+                    var axis = Vector3.Cross(baseDir, dir);
                     Quaternion delta;
                     if (axis.LengthSquared() > 1e-8f)
                     {
