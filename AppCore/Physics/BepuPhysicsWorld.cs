@@ -23,6 +23,7 @@ public sealed class BepuPhysicsWorld : IPhysicsWorld
     private readonly List<BodyHandle> _rigidBodyHandles = new();
     private readonly Dictionary<BodyHandle, Material> _materialMap = new();
     private readonly Dictionary<BodyHandle, SubgroupCollisionFilter> _bodyFilterMap = new();
+    private readonly Dictionary<BodyHandle, (float Linear, float Angular)> _dampingMap = new();
     private readonly ClothSimulator _cloth = new();
     private PhysicsConfig _config;
     private float _modelScale = 1f;
@@ -39,6 +40,7 @@ public sealed class BepuPhysicsWorld : IPhysicsWorld
         _modelScale = modelScale;
         _massScale = modelScale * modelScale * modelScale;
         var scaledGravity = config.Gravity * modelScale;
+        _dampingMap.Clear();
         var substepCount = config.SubstepCount;
         if (substepCount <= 0)
         {
@@ -55,7 +57,7 @@ public sealed class BepuPhysicsWorld : IPhysicsWorld
         _bufferPool = new BufferPool();
         _simulation = Simulation.Create(_bufferPool,
             new SubgroupFilteredCallbacks(_materialMap, _bodyFilterMap),
-            new SimplePoseIntegratorCallbacks(scaledGravity, _config.Damping, _config.Damping),
+            new SimplePoseIntegratorCallbacks(scaledGravity, _dampingMap),
             new SolveDescription(solverIterationCount, substepCount));
         _cloth.Gravity = scaledGravity;
         _cloth.Damping = config.Damping;
@@ -188,6 +190,7 @@ public sealed class BepuPhysicsWorld : IPhysicsWorld
         _rigidBodyHandles.Clear();
         _materialMap.Clear();
         _bodyFilterMap.Clear();
+        _dampingMap.Clear();
         foreach (var rb in model.RigidBodies)
         {
             var mass = rb.Mass * _massScale;
@@ -234,6 +237,7 @@ public sealed class BepuPhysicsWorld : IPhysicsWorld
             _bodyBoneMap[handle] = (rb.BoneIndex, rb.Mode);
             _materialMap[handle] = new Material(rb.Restitution, rb.Friction);
             _bodyFilterMap[handle] = filter;
+            _dampingMap[handle] = (rb.LinearDamping, rb.AngularDamping);
         }
     }
 
@@ -451,20 +455,22 @@ public sealed class BepuPhysicsWorld : IPhysicsWorld
     private struct SimplePoseIntegratorCallbacks : IPoseIntegratorCallbacks
     {
         public Vector3 Gravity;
-        public float LinearDamping;
-        public float AngularDamping;
+        private readonly Dictionary<BodyHandle, (float Linear, float Angular)> _damping;
+        private Bodies _bodies = null!;
         public AngularIntegrationMode AngularIntegrationMode => AngularIntegrationMode.Nonconserving;
         public bool AllowSubstepsForUnconstrainedBodies => false;
         public bool IntegrateVelocityForKinematics => false;
 
-        public SimplePoseIntegratorCallbacks(Vector3 gravity, float linearDamping, float angularDamping)
+        public SimplePoseIntegratorCallbacks(Vector3 gravity, Dictionary<BodyHandle, (float Linear, float Angular)> damping)
         {
             Gravity = gravity;
-            LinearDamping = linearDamping;
-            AngularDamping = angularDamping;
+            _damping = damping;
         }
 
-        public void Initialize(Simulation simulation) { }
+        public void Initialize(Simulation simulation)
+        {
+            _bodies = simulation.Bodies;
+        }
 
         public void PrepareForIntegration(float dt) { }
 
@@ -473,8 +479,28 @@ public sealed class BepuPhysicsWorld : IPhysicsWorld
         {
             Vector3Wide.Broadcast(Gravity, out var g);
             velocity.Linear += g * dt;
-            var linear = new Vector<float>(LinearDamping);
-            var angular = new Vector<float>(AngularDamping);
+
+            Span<int> indices = stackalloc int[Vector<int>.Count];
+            bodyIndices.CopyTo(indices);
+            Span<float> linearValues = stackalloc float[Vector<float>.Count];
+            Span<float> angularValues = stackalloc float[Vector<float>.Count];
+            for (int i = 0; i < indices.Length; i++)
+            {
+                var handle = _bodies.ActiveSet.IndexToHandle[indices[i]];
+                if (_damping.TryGetValue(handle, out var d))
+                {
+                    linearValues[i] = d.Linear;
+                    angularValues[i] = d.Angular;
+                }
+                else
+                {
+                    linearValues[i] = 1f;
+                    angularValues[i] = 1f;
+                }
+            }
+
+            var linear = new Vector<float>(linearValues);
+            var angular = new Vector<float>(angularValues);
             Vector3Wide.Scale(velocity.Linear, linear, out velocity.Linear);
             Vector3Wide.Scale(velocity.Angular, angular, out velocity.Angular);
         }
