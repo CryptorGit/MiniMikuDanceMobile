@@ -568,6 +568,12 @@ public partial class MainPage : ContentPage
         _renderer.ToonStrength = _toonStrength;
     }
 
+    private void ResetPhysicsWorld()
+    {
+        _physics.Dispose();
+        _physics.Initialize(_settings.Physics, _settings.ModelScale);
+    }
+
     private void OnPaintSurface(object? sender, SKPaintGLSurfaceEventArgs e)
     {
         if (!_glInitialized)
@@ -595,6 +601,7 @@ public partial class MainPage : ContentPage
     {
         if (_pendingModel != null)
         {
+            ResetPhysicsWorld();
             IkManager.Clear();
             _renderer.ClearIkBones();
             _renderer.ClearBoneRotations();
