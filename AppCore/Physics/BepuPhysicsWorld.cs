@@ -108,6 +108,15 @@ public sealed class BepuPhysicsWorld : IPhysicsWorld
             }
 
             var cache = new Dictionary<int, Matrix4x4>();
+            var ikLinkMap = new Dictionary<int, IkLink>();
+            foreach (var b in scene.Bones)
+            {
+                var ik = b.Ik;
+                if (ik == null)
+                    continue;
+                foreach (var link in ik.Links)
+                    ikLinkMap[link.BoneIndex] = link;
+            }
             foreach (var pair in _bodyBoneMap)
             {
                 var info = pair.Value;
@@ -129,6 +138,13 @@ public sealed class BepuPhysicsWorld : IPhysicsWorld
                 else
                 {
                     localRot = pose.Rot;
+                }
+
+                if (ikLinkMap.TryGetValue(info.Bone, out var ikLink) && ikLink.HasLimit)
+                {
+                    var euler = ToEulerXyz(localRot);
+                    euler = Vector3.Clamp(euler, ikLink.MinAngle, ikLink.MaxAngle);
+                    localRot = FromEulerXyz(euler);
                 }
 
                 if (info.Mode == 2)
@@ -380,6 +396,26 @@ public sealed class BepuPhysicsWorld : IPhysicsWorld
         frequency = Math.Clamp(frequency, 0.0001f, 60f);
         const float dampingRatio = 1f;
         return new SpringSettings(frequency, dampingRatio);
+    }
+
+    private static Vector3 ToEulerXyz(Quaternion q)
+    {
+        var sinrCosp = 2f * (q.W * q.X + q.Y * q.Z);
+        var cosrCosp = 1f - 2f * (q.X * q.X + q.Y * q.Y);
+        var x = MathF.Atan2(sinrCosp, cosrCosp);
+
+        var sinp = 2f * (q.W * q.Y - q.Z * q.X);
+        float y;
+        if (MathF.Abs(sinp) >= 1f)
+            y = MathF.CopySign(MathF.PI / 2f, sinp);
+        else
+            y = MathF.Asin(sinp);
+
+        var sinyCosp = 2f * (q.W * q.Z + q.X * q.Y);
+        var cosyCosp = 1f - 2f * (q.Y * q.Y + q.Z * q.Z);
+        var z = MathF.Atan2(sinyCosp, cosyCosp);
+
+        return new Vector3(x, y, z);
     }
 
     private static Quaternion FromEulerXyz(Vector3 rot)
