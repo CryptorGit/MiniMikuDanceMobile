@@ -43,7 +43,7 @@ public sealed class BepuPhysicsWorld : IPhysicsWorld
     {
         _modelScale = modelScale;
         _massScale = modelScale * modelScale * modelScale;
-        var gravity = config.Gravity;
+        var gravity = config.Gravity * modelScale;
         var substepCount = config.SubstepCount;
         if (substepCount <= 0)
         {
