@@ -63,6 +63,15 @@ public sealed class BepuPhysicsWorld : IPhysicsWorld
             new SubgroupFilteredCallbacks(_materialMap, _bodyFilterMap),
             new SimplePoseIntegratorCallbacks(gravity, _config.Damping, _config.Damping),
             new SolveDescription(solverIterationCount, substepCount));
+
+        // シミュレーション生成後に地面用の静的ボディを追加
+        var groundShape = _simulation.Shapes.Add(new Box(1000f * _modelScale, 0.1f * _modelScale, 1000f * _modelScale));
+        var groundPose = new RigidPose(new Vector3(0f, -0.05f * _modelScale, 0f));
+        var groundDesc = BodyDescription.CreateStatic(groundPose, new CollidableDescription(groundShape, 0.1f), new BodyActivityDescription());
+        var groundHandle = _simulation.Bodies.Add(groundDesc);
+        _materialMap[groundHandle] = new Material(0f, 0.5f);
+        _bodyFilterMap[groundHandle] = new SubgroupCollisionFilter(uint.MaxValue, uint.MaxValue);
+
         _cloth.Gravity = gravity;
         _cloth.Damping = config.Damping;
     }
