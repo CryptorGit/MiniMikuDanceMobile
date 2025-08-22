@@ -76,7 +76,7 @@ public class AppSettings
 
     /// <summary>物理設定。Gravity は ModelScale に依存せず、設定した値がそのまま適用される。</summary>
     public PhysicsConfig Physics { get; set; } =
-        new(new Vector3(0f, -9.81f, 0f), 8, 1, 0.98f, 0.5f);
+        new(new Vector3(0f, -9.81f, 0f), 8, 1, 0.98f, 0.5f, 0f, 0.2f, 0.5f);
 
 
     private const string DefaultFile = "Configs/appsettings.json";
