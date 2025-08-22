@@ -425,6 +425,12 @@ public sealed class BepuPhysicsWorld : IPhysicsWorld
         if (rootIndex < 0)
             return;
 
+        var nodeCount = CountSoftBodyNodes(model, rootIndex);
+        var nodeMass = sb.NodeMassIsTotal ? sb.NodeMass / Math.Max(nodeCount, 1) : sb.NodeMass;
+        if (nodeMass <= 0f)
+            nodeMass = 1f;
+        var mass = nodeMass * _massScale;
+
         var rootBone = model.Bones[rootIndex];
         var rootPos = rootBone.Translation;
         var rootRot = rootBone.Rotation;
@@ -436,7 +442,6 @@ public sealed class BepuPhysicsWorld : IPhysicsWorld
         {
             var (boneIndex, parentNode, worldPos, worldRot) = queue.Dequeue();
             var nodeIndex = _cloth.Nodes.Count;
-            var mass = sb.NodeMass > 0f ? sb.NodeMass * _massScale : _massScale;
             var invMass = parentNode < 0 ? 0f : 1f / mass;
             _cloth.Nodes.Add(new Node { Position = worldPos, PrevPosition = worldPos, Velocity = Vector3.Zero, InverseMass = invMass });
             _cloth.BoneMap.Add(boneIndex);
@@ -470,6 +475,26 @@ public sealed class BepuPhysicsWorld : IPhysicsWorld
                 }
             }
         }
+    }
+
+    private int CountSoftBodyNodes(ModelData model, int rootIndex)
+    {
+        var count = 0;
+        var queue = new Queue<int>();
+        queue.Enqueue(rootIndex);
+        while (queue.Count > 0)
+        {
+            var boneIndex = queue.Dequeue();
+            count++;
+            var children = model.Bones.FindAll(b => b.Parent == boneIndex);
+            foreach (var child in children)
+            {
+                var childIndex = model.Bones.IndexOf(child);
+                if (childIndex >= 0)
+                    queue.Enqueue(childIndex);
+            }
+        }
+        return count;
     }
 
     public void LoadJoints(ModelData model)
