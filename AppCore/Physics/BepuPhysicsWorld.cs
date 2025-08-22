@@ -128,6 +128,7 @@ public sealed class BepuPhysicsWorld : IPhysicsWorld
             return;
 
         var poseCache = new Dictionary<int, (Vector3 Pos, Quaternion Rot)>();
+        var initialCache = new Dictionary<int, (Vector3 Pos, Quaternion Rot)>();
         foreach (var pair in _bodyBoneMap)
         {
             var handle = pair.Key;
@@ -138,6 +139,18 @@ public sealed class BepuPhysicsWorld : IPhysicsWorld
                 continue;
 
             var body = _simulation.Bodies.GetBodyReference(handle);
+            if (_config.LockTranslation)
+            {
+                var initPose = GetInitialWorldPose(scene, info.Bone, initialCache);
+                body.Pose.Position = initPose.Pos;
+                body.Pose.Orientation = initPose.Rot;
+                body.Velocity.Linear = Vector3.Zero;
+                body.Velocity.Angular = Vector3.Zero;
+                body.LocalInertia = default;
+                _prevBonePoses[info.Bone] = initPose;
+                continue;
+            }
+
             var pose = GetWorldPose(scene, info.Bone, poseCache);
             body.Pose.Position = pose.Pos;
             body.Pose.Orientation = pose.Rot;
@@ -180,6 +193,29 @@ public sealed class BepuPhysicsWorld : IPhysicsWorld
         else
         {
             pose = (bone.Translation, bone.Rotation);
+        }
+
+        cache[index] = pose;
+        return pose;
+    }
+
+    private static (Vector3 Pos, Quaternion Rot) GetInitialWorldPose(Scene scene, int index,
+        Dictionary<int, (Vector3 Pos, Quaternion Rot)> cache)
+    {
+        if (cache.TryGetValue(index, out var pose))
+            return pose;
+
+        var bone = scene.Bones[index];
+        if (bone.Parent >= 0)
+        {
+            var parent = GetInitialWorldPose(scene, bone.Parent, cache);
+            var rot = bone.InitialRotation * parent.Rot;
+            var pos = Vector3.Transform(bone.InitialTranslation, parent.Rot) + parent.Pos;
+            pose = (pos, rot);
+        }
+        else
+        {
+            pose = (bone.InitialTranslation, bone.InitialRotation);
         }
 
         cache[index] = pose;
@@ -242,6 +278,15 @@ public sealed class BepuPhysicsWorld : IPhysicsWorld
                 if (info.Mode == 0)
                     continue;
                 var bone = scene.Bones[info.Bone];
+
+                if (_config.LockTranslation)
+                {
+                    bone.Rotation = bone.InitialRotation;
+                    bone.Translation = bone.InitialTranslation;
+                    scene.Bones[info.Bone] = bone;
+                    continue;
+                }
+
                 var pose = poseMap[info.Bone];
                 Quaternion localRot;
                 Vector3 localPos;
