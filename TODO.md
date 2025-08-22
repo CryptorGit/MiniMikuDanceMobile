@@ -1,4 +1,5 @@
 * `dotnet build` が `Microsoft.Build.Logging.TerminalLogger` の例外により完了しない問題の調査
+* SyncToBones の Translation 長さ正規化変更がサンプルモデルで正しく反映されるか確認する
 * 強く型付けした列挙体への置換後のテクスチャ読み込み動作の実機確認
 * MAUI ワークロードをインストールしてビルド確認を行う
 * Android SDK をインストールしてビルド・起動確認を行う
