@@ -436,8 +436,8 @@ public sealed class BepuPhysicsWorld : IPhysicsWorld
         var mass = nodeMass * _massScale;
 
         var rootBone = model.Bones[rootIndex];
-        var rootPos = rootBone.Translation;
-        var rootRot = rootBone.Rotation;
+        var rootPos = rootBone.InitialTranslation;
+        var rootRot = rootBone.InitialRotation;
 
         var queue = new Queue<(int Bone, int ParentNode, Vector3 WorldPos, Quaternion WorldRot)>();
         queue.Enqueue((rootIndex, -1, rootPos, rootRot));
@@ -473,8 +473,8 @@ public sealed class BepuPhysicsWorld : IPhysicsWorld
                 var childIndex = model.Bones.IndexOf(child);
                 if (childIndex >= 0)
                 {
-                    var childWorldPos = Vector3.Transform(child.Translation, worldRot) + worldPos;
-                    var childWorldRot = child.Rotation * worldRot;
+                    var childWorldPos = Vector3.Transform(child.InitialTranslation, worldRot) + worldPos;
+                    var childWorldRot = child.InitialRotation * worldRot;
                     queue.Enqueue((childIndex, nodeIndex, childWorldPos, childWorldRot));
                 }
             }
