@@ -412,7 +412,7 @@ public sealed class BepuPhysicsWorld : IPhysicsWorld
             var nodeIndex = _cloth.Nodes.Count;
             var mass = sb.NodeMass > 0f ? sb.NodeMass * _massScale : _massScale;
             var invMass = parentNode < 0 ? 0f : 1f / mass;
-            _cloth.Nodes.Add(new Node { Position = worldPos, Velocity = Vector3.Zero, InverseMass = invMass });
+            _cloth.Nodes.Add(new Node { Position = worldPos, PrevPosition = worldPos, Velocity = Vector3.Zero, InverseMass = invMass });
             _cloth.BoneMap.Add(boneIndex);
 
             if (parentNode >= 0)
