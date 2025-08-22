@@ -1,5 +1,6 @@
 using Microsoft.Maui.Controls;
 using MiniMikuDance.Physics;
+using System.Numerics;
 
 namespace MiniMikuDanceMaui;
 
@@ -13,14 +14,74 @@ public partial class PhysicsView : ContentView
 
     public void SetConfig(PhysicsConfig config)
     {
-        GravityLabel.Text = $"Gravity: {config.Gravity} m/s² (ModelScaleでスケーリング)";
+        const float threshold = 1e-3f;
+
+        var gravity = config.Gravity;
+        var defaultGravity = new Vector3(0f, -9.81f, 0f);
+        bool gravityWarn = false;
+        if (System.MathF.Abs(gravity.X) < threshold) { gravity.X = defaultGravity.X; gravityWarn = true; }
+        if (System.MathF.Abs(gravity.Y) < threshold) { gravity.Y = defaultGravity.Y; gravityWarn = true; }
+        if (System.MathF.Abs(gravity.Z) < threshold) { gravity.Z = defaultGravity.Z; gravityWarn = true; }
+        GravityLabel.Text = $"Gravity: ({gravity.X:F2}, {gravity.Y:F2}, {gravity.Z:F2}) m/s² (ModelScaleでスケーリング)";
+        if (gravityWarn) GravityLabel.Text += " [警告: 極端に小さい値をデフォルトに差し替え]";
+
+        float damping = config.Damping;
+        if (System.MathF.Abs(damping) < threshold)
+        {
+            damping = 0.98f;
+            DampingLabel.Text = $"Damping: {damping:F2} [警告: 極端に小さい値をデフォルトに差し替え]";
+        }
+        else
+        {
+            DampingLabel.Text = $"Damping: {damping:F2}";
+        }
+
+        float boneBlend = config.BoneBlendFactor;
+        if (System.MathF.Abs(boneBlend) < threshold)
+        {
+            boneBlend = 0.5f;
+            BoneBlendLabel.Text = $"BoneBlendFactor: {boneBlend:F2} [警告: 極端に小さい値をデフォルトに差し替え]";
+        }
+        else
+        {
+            BoneBlendLabel.Text = $"BoneBlendFactor: {boneBlend:F2}";
+        }
+
+        float groundHeight = config.GroundHeight;
+        if (System.MathF.Abs(groundHeight) < threshold)
+        {
+            groundHeight = 0f;
+            GroundHeightLabel.Text = $"GroundHeight: {groundHeight:F2} [警告: 極端に小さい値をデフォルトに差し替え]";
+        }
+        else
+        {
+            GroundHeightLabel.Text = $"GroundHeight: {groundHeight:F2}";
+        }
+
+        float restitution = config.Restitution;
+        if (System.MathF.Abs(restitution) < threshold)
+        {
+            restitution = 0.2f;
+            RestitutionLabel.Text = $"Restitution: {restitution:F2} [警告: 極端に小さい値をデフォルトに差し替え]";
+        }
+        else
+        {
+            RestitutionLabel.Text = $"Restitution: {restitution:F2}";
+        }
+
+        float friction = config.Friction;
+        if (System.MathF.Abs(friction) < threshold)
+        {
+            friction = 0.5f;
+            FrictionLabel.Text = $"Friction: {friction:F2} [警告: 極端に小さい値をデフォルトに差し替え]";
+        }
+        else
+        {
+            FrictionLabel.Text = $"Friction: {friction:F2}";
+        }
+
         SolverLabel.Text = $"SolverIterationCount: {config.SolverIterationCount}";
         SubstepLabel.Text = $"SubstepCount: {config.SubstepCount}";
-        DampingLabel.Text = $"Damping: {config.Damping:F2}";
-        BoneBlendLabel.Text = $"BoneBlendFactor: {config.BoneBlendFactor:F2}";
-        GroundHeightLabel.Text = $"GroundHeight: {config.GroundHeight:F2}";
-        RestitutionLabel.Text = $"Restitution: {config.Restitution:F2}";
-        FrictionLabel.Text = $"Friction: {config.Friction:F2}";
         LockTranslationLabel.Text = $"LockTranslation: {config.LockTranslation}";
     }
 }

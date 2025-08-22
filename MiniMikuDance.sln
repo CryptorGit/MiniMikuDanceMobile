@@ -41,9 +41,9 @@ Global
 		{8D520E45-2B36-483E-BE97-D3183F22E32D}.Release|x64.ActiveCfg = Release|Any CPU
 		{8D520E45-2B36-483E-BE97-D3183F22E32D}.Release|x64.Build.0 = Release|Any CPU
 		{8D520E45-2B36-483E-BE97-D3183F22E32D}.Release|x86.ActiveCfg = Release|Any CPU
-		{8D520E45-2B36-483E-BE97-D3183F22E32D}.Release|x86.Build.0 = Release|Any CPU
-	EndGlobalSection
-	GlobalSection(SolutionProperties) = preSolution
-		HideSolutionNode = FALSE
+                {8D520E45-2B36-483E-BE97-D3183F22E32D}.Release|x86.Build.0 = Release|Any CPU
+        EndGlobalSection
+        GlobalSection(SolutionProperties) = preSolution
+                HideSolutionNode = FALSE
 	EndGlobalSection
 EndGlobal

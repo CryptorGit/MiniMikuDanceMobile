@@ -1,6 +1,8 @@
 using MiniMikuDance.Util;
 using MiniMikuDance.Physics;
 using System.Numerics;
+using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Logging.Abstractions;
 
 namespace MiniMikuDance.App;
 
@@ -83,10 +85,14 @@ public class AppSettings
 
     /// <summary>
     /// 設定ファイルを読み込む。存在しない場合はデフォルト値で生成する。
+    /// 読み込んだ Physics.Gravity の値をログ出力する。
     /// </summary>
-    public static AppSettings Load(string path = DefaultFile)
+    public static AppSettings Load(string path = DefaultFile, ILogger<AppSettings>? logger = null)
     {
-        return JSONUtil.Load<AppSettings>(path);
+        var result = JSONUtil.Load<AppSettings>(path);
+        var log = logger ?? NullLogger<AppSettings>.Instance;
+        log.LogInformation("Loaded Physics.Gravity: {Gravity}", result.Physics.Gravity);
+        return result;
     }
 
     /// <summary>
