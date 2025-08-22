@@ -55,7 +55,7 @@ public sealed class BepuPhysicsWorld : IPhysicsWorld
     {
         _modelScale = modelScale;
         _massScale = modelScale * modelScale * modelScale;
-        var gravity = config.Gravity;
+        var gravity = config.Gravity * modelScale;
         var substepCount = config.SubstepCount;
         if (substepCount <= 0)
         {
@@ -92,7 +92,7 @@ public sealed class BepuPhysicsWorld : IPhysicsWorld
         _staticMaterialMap[groundHandle] = new Material(config.Friction, config.Restitution);
         _staticFilterMap[groundHandle] = new SubgroupCollisionFilter(uint.MaxValue, uint.MaxValue);
 
-        _cloth.Gravity = config.Gravity;
+        _cloth.Gravity = gravity;
         _cloth.Damping = config.Damping; // 1 秒基準のダンピング
         _cloth.GroundHeight = config.GroundHeight;
         _cloth.Restitution = config.Restitution;
