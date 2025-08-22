@@ -19,6 +19,8 @@ public class ClothSimulator
     private float _friction = 0.5f;
     private Vector3[] _forceBuffer = Array.Empty<Vector3>();
 
+    public int Substeps { get; set; } = 1;
+
     public Vector3 Gravity
     {
         get => _gravity;
@@ -57,55 +59,71 @@ public class ClothSimulator
         if (_forceBuffer.Length < Nodes.Count)
             _forceBuffer = new Vector3[Nodes.Count];
 
-        Array.Clear(_forceBuffer, 0, Nodes.Count);
-        var forces = _forceBuffer;
+        var steps = Math.Max(1, Substeps);
+        var subDt = dt / steps;
 
-        foreach (var spring in Springs)
+        for (int step = 0; step < steps; step++)
         {
-            var aIndex = spring.NodeA;
-            var bIndex = spring.NodeB;
-            if (aIndex < 0 || aIndex >= Nodes.Count || bIndex < 0 || bIndex >= Nodes.Count)
-                continue;
+            Array.Clear(_forceBuffer, 0, Nodes.Count);
+            var forces = _forceBuffer;
 
-            var nodeA = Nodes[aIndex];
-            var nodeB = Nodes[bIndex];
-            var delta = nodeB.Position - nodeA.Position;
-            var length = delta.Length();
-            if (length <= 1e-6f)
-                continue;
-
-            var dir = delta / length;
-            var relativeVel = Vector3.Dot(nodeB.Velocity - nodeA.Velocity, dir);
-            var forceMag = (length - spring.RestLength) * spring.Stiffness + relativeVel * spring.Damping;
-            var force = dir * forceMag;
-            forces[aIndex] += force;
-            forces[bIndex] -= force;
-        }
-
-        // 1秒基準の値をdt秒分の係数に変換
-        var damping = MathF.Pow(_damping, dt);
-        for (int i = 0; i < Nodes.Count; i++)
-        {
-            var node = Nodes[i];
-            if (node.InverseMass <= 0f)
-                continue;
-
-            var accel = _gravity + forces[i] * node.InverseMass;
-            var newVelocity = (node.Velocity + accel * dt) * damping;
-            var newPos = node.Position + newVelocity * dt;
-
-            if (newPos.Y < _groundHeight)
+            foreach (var spring in Springs)
             {
-                newPos.Y = _groundHeight;
-                if (newVelocity.Y < 0f)
-                    newVelocity.Y = -newVelocity.Y * _restitution;
-                newVelocity.X *= _friction;
-                newVelocity.Z *= _friction;
+                var aIndex = spring.NodeA;
+                var bIndex = spring.NodeB;
+                if (aIndex < 0 || aIndex >= Nodes.Count || bIndex < 0 || bIndex >= Nodes.Count)
+                    continue;
+
+                var nodeA = Nodes[aIndex];
+                var nodeB = Nodes[bIndex];
+                var delta = nodeB.Position - nodeA.Position;
+                var length = delta.Length();
+                if (length <= 1e-6f)
+                    continue;
+
+                var dir = delta / length;
+                var relativeVel = Vector3.Dot(nodeB.Velocity - nodeA.Velocity, dir);
+                var forceMag = (length - spring.RestLength) * spring.Stiffness + relativeVel * spring.Damping;
+                var force = dir * forceMag;
+                forces[aIndex] += force;
+                forces[bIndex] -= force;
             }
 
-            node.Position = newPos;
-            node.Velocity = newVelocity;
-            Nodes[i] = node;
+            var damping = MathF.Pow(_damping, subDt);
+            for (int i = 0; i < Nodes.Count; i++)
+            {
+                var node = Nodes[i];
+                if (node.InverseMass <= 0f)
+                {
+                    node.PrevPosition = node.Position;
+                    node.Velocity = Vector3.Zero;
+                    Nodes[i] = node;
+                    continue;
+                }
+
+                var accel = _gravity + forces[i] * node.InverseMass;
+                var current = node.Position;
+                var nextPos = current + (current - node.PrevPosition) * damping + accel * subDt * subDt;
+                var newVelocity = (nextPos - current) / subDt;
+
+                if (nextPos.Y < _groundHeight)
+                {
+                    nextPos.Y = _groundHeight;
+                    if (newVelocity.Y < 0f)
+                        newVelocity.Y = -newVelocity.Y * _restitution;
+                    newVelocity.X *= _friction;
+                    newVelocity.Z *= _friction;
+                    node.PrevPosition = nextPos - newVelocity * subDt;
+                }
+                else
+                {
+                    node.PrevPosition = current;
+                }
+
+                node.Position = nextPos;
+                node.Velocity = newVelocity;
+                Nodes[i] = node;
+            }
         }
     }
 
