@@ -31,6 +31,11 @@
                     <TapGestureRecognizer Tapped="OnSettingMenuTapped" />
                 </Label.GestureRecognizers>
             </Label>
+            <Label Text="Physics" TextColor="{StaticResource TextColor}">
+                <Label.GestureRecognizers>
+                    <TapGestureRecognizer Tapped="OnPhysicsMenuTapped" />
+                </Label.GestureRecognizers>
+            </Label>
             <Grid HorizontalOptions="EndAndExpand" VerticalOptions="Center">
                 <Switch x:Name="PoseModeSwitch" Toggled="OnPoseModeToggled" HorizontalOptions="End" OnColor="Green">
                     <Switch.Triggers>
@@ -105,6 +110,35 @@
         <Border x:Name="SettingMenu" IsVisible="False" Background="{StaticResource BackgroundColor}" Padding="8" ZIndex="20">
             <VerticalStackLayout Spacing="10">
                 <mmd:SettingView x:Name="SettingContent" />
+            </VerticalStackLayout>
+        </Border>
+        <Border x:Name="PhysicsMenu" IsVisible="False" Background="{StaticResource BackgroundColor}" Padding="8" ZIndex="20">
+            <VerticalStackLayout Spacing="6">
+                <HorizontalStackLayout Spacing="6">
+                    <Label Text="Gravity X" TextColor="{StaticResource TextColor}" />
+                    <Entry x:Name="GravityXEntry" WidthRequest="80" TextColor="{StaticResource TextColor}" Keyboard="Numeric" />
+                </HorizontalStackLayout>
+                <HorizontalStackLayout Spacing="6">
+                    <Label Text="Gravity Y" TextColor="{StaticResource TextColor}" />
+                    <Entry x:Name="GravityYEntry" WidthRequest="80" TextColor="{StaticResource TextColor}" Keyboard="Numeric" />
+                </HorizontalStackLayout>
+                <HorizontalStackLayout Spacing="6">
+                    <Label Text="Gravity Z" TextColor="{StaticResource TextColor}" />
+                    <Entry x:Name="GravityZEntry" WidthRequest="80" TextColor="{StaticResource TextColor}" Keyboard="Numeric" />
+                </HorizontalStackLayout>
+                <HorizontalStackLayout Spacing="6">
+                    <Label Text="Damping" TextColor="{StaticResource TextColor}" />
+                    <Entry x:Name="DampingEntry" WidthRequest="80" TextColor="{StaticResource TextColor}" Keyboard="Numeric" />
+                </HorizontalStackLayout>
+                <HorizontalStackLayout Spacing="6">
+                    <Label Text="Restitution" TextColor="{StaticResource TextColor}" />
+                    <Entry x:Name="RestitutionEntry" WidthRequest="80" TextColor="{StaticResource TextColor}" Keyboard="Numeric" />
+                </HorizontalStackLayout>
+                <HorizontalStackLayout Spacing="6">
+                    <Label Text="Friction" TextColor="{StaticResource TextColor}" />
+                    <Entry x:Name="FrictionEntry" WidthRequest="80" TextColor="{StaticResource TextColor}" Keyboard="Numeric" />
+                </HorizontalStackLayout>
+                <Button Text="Save" Clicked="OnPhysicsSaveClicked" />
             </VerticalStackLayout>
         </Border>
         <!-- Overlay は BottomRegion より背面に配置しつつ Viewer より前面に表示する -->

@@ -25,6 +25,7 @@ using SixLabors.ImageSharp.PixelFormats;
 using MiniMikuDance.IK;
 using MiniMikuDance.Util;
 using MiniMikuDance.Physics;
+using System.Globalization;
 
 namespace MiniMikuDanceMaui;
 
@@ -37,8 +38,9 @@ public partial class MainPage : ContentPage
     private bool _viewMenuOpen;
     private bool _settingMenuOpen;
     private bool _fileMenuOpen;
+    private bool _physicsMenuOpen;
 
-    private void UpdateOverlay() => MenuOverlay.IsVisible = _viewMenuOpen || _settingMenuOpen || _fileMenuOpen;
+    private void UpdateOverlay() => MenuOverlay.IsVisible = _viewMenuOpen || _settingMenuOpen || _fileMenuOpen || _physicsMenuOpen;
     private readonly Dictionary<string, View> _bottomViews = new();
     private readonly Dictionary<string, Border> _bottomTabs = new();
     private string? _currentFeature;
@@ -180,7 +182,9 @@ public partial class MainPage : ContentPage
         _renderer.BonePickPixels = _settings.BonePickPixels;
         _renderer.ShowIkBones = _poseMode;
         _renderer.IkBoneScale = _settings.IkBoneScale;
+        _settings.ReloadPhysics();
         _physics.Initialize(_settings.Physics, _settings.ModelScale);
+        _settings.ReloadPhysics();
 
         if (Viewer is SKGLView glView)
         {
@@ -291,6 +295,7 @@ public partial class MainPage : ContentPage
     {
         SetMenuVisibility(ref _settingMenuOpen, SettingMenu, false);
         SetMenuVisibility(ref _fileMenuOpen, FileMenu, false);
+        SetMenuVisibility(ref _physicsMenuOpen, PhysicsMenu, false);
         SetMenuVisibility(ref _viewMenuOpen, ViewMenu, true);
     }
 
@@ -311,6 +316,7 @@ public partial class MainPage : ContentPage
     {
         SetMenuVisibility(ref _viewMenuOpen, ViewMenu, false);
         SetMenuVisibility(ref _fileMenuOpen, FileMenu, false);
+        SetMenuVisibility(ref _physicsMenuOpen, PhysicsMenu, false);
         SetMenuVisibility(ref _settingMenuOpen, SettingMenu, true);
         if (SettingContent is SettingView sv)
         {
@@ -330,10 +336,51 @@ public partial class MainPage : ContentPage
         UpdateLayout();
     }
 
+    private void OnPhysicsMenuTapped(object? sender, EventArgs e)
+    {
+        var visible = !_physicsMenuOpen;
+        HideAllMenus();
+        SetMenuVisibility(ref _physicsMenuOpen, PhysicsMenu, visible);
+        if (visible)
+            UpdatePhysicsMenu();
+        UpdateLayout();
+    }
+
+    private void UpdatePhysicsMenu()
+    {
+        var p = _settings.Physics;
+        GravityXEntry.Text = p.Gravity.X.ToString(CultureInfo.InvariantCulture);
+        GravityYEntry.Text = p.Gravity.Y.ToString(CultureInfo.InvariantCulture);
+        GravityZEntry.Text = p.Gravity.Z.ToString(CultureInfo.InvariantCulture);
+        DampingEntry.Text = p.Damping.ToString(CultureInfo.InvariantCulture);
+        RestitutionEntry.Text = p.Restitution.ToString(CultureInfo.InvariantCulture);
+        FrictionEntry.Text = p.Friction.ToString(CultureInfo.InvariantCulture);
+    }
+
+    private void OnPhysicsSaveClicked(object? sender, EventArgs e)
+    {
+        if (!float.TryParse(GravityXEntry.Text, NumberStyles.Float, CultureInfo.InvariantCulture, out var gx)) gx = 0f;
+        if (!float.TryParse(GravityYEntry.Text, NumberStyles.Float, CultureInfo.InvariantCulture, out var gy)) gy = -9.81f;
+        if (!float.TryParse(GravityZEntry.Text, NumberStyles.Float, CultureInfo.InvariantCulture, out var gz)) gz = 0f;
+        if (!float.TryParse(DampingEntry.Text, NumberStyles.Float, CultureInfo.InvariantCulture, out var damping)) damping = 0.98f;
+        if (!float.TryParse(RestitutionEntry.Text, NumberStyles.Float, CultureInfo.InvariantCulture, out var restitution)) restitution = 0.2f;
+        if (!float.TryParse(FrictionEntry.Text, NumberStyles.Float, CultureInfo.InvariantCulture, out var friction)) friction = 0.5f;
+
+        var old = _settings.Physics;
+        _settings.Physics = new PhysicsConfig(new System.Numerics.Vector3(gx, gy, gz),
+            old.SolverIterationCount, old.SubstepCount, damping,
+            old.BoneBlendFactor, old.GroundHeight, restitution, friction);
+        _settings.Save();
+        _settings.ReloadPhysics();
+        _physics.Initialize(_settings.Physics, _settings.ModelScale);
+        _settings.ReloadPhysics();
+    }
+
     private void ShowFileMenu()
     {
         SetMenuVisibility(ref _viewMenuOpen, ViewMenu, false);
         SetMenuVisibility(ref _settingMenuOpen, SettingMenu, false);
+        SetMenuVisibility(ref _physicsMenuOpen, PhysicsMenu, false);
         SetMenuVisibility(ref _fileMenuOpen, FileMenu, true);
     }
 
@@ -399,6 +446,7 @@ public partial class MainPage : ContentPage
         SetMenuVisibility(ref _viewMenuOpen, ViewMenu, false);
         SetMenuVisibility(ref _settingMenuOpen, SettingMenu, false);
         SetMenuVisibility(ref _fileMenuOpen, FileMenu, false);
+        SetMenuVisibility(ref _physicsMenuOpen, PhysicsMenu, false);
         UpdateLayout();
     }
 
@@ -415,6 +463,7 @@ public partial class MainPage : ContentPage
         SetMenuVisibility(ref _viewMenuOpen, ViewMenu, false);
         SetMenuVisibility(ref _settingMenuOpen, SettingMenu, false);
         SetMenuVisibility(ref _fileMenuOpen, FileMenu, false);
+        SetMenuVisibility(ref _physicsMenuOpen, PhysicsMenu, false);
         UpdateLayout();
     }
 
@@ -502,7 +551,7 @@ public partial class MainPage : ContentPage
 
     private void UpdateLayout()
     {
-        if (TopMenu == null || ViewMenu == null || FileMenu == null || SettingMenu == null ||
+        if (TopMenu == null || ViewMenu == null || FileMenu == null || SettingMenu == null || PhysicsMenu == null ||
             MenuOverlay == null || PmxImportDialog == null ||
             Viewer == null || BottomRegion == null)
             return;
@@ -523,6 +572,9 @@ public partial class MainPage : ContentPage
         AbsoluteLayout.SetLayoutBounds(SettingMenu, new Rect(0, TopMenuHeight, 250,
             SettingMenu.IsVisible ? AbsoluteLayout.AutoSize : 0));
         AbsoluteLayout.SetLayoutFlags(SettingMenu, AbsoluteLayoutFlags.None);
+        AbsoluteLayout.SetLayoutBounds(PhysicsMenu, new Rect(0, TopMenuHeight, 250,
+            PhysicsMenu.IsVisible ? AbsoluteLayout.AutoSize : 0));
+        AbsoluteLayout.SetLayoutFlags(PhysicsMenu, AbsoluteLayoutFlags.None);
 
         AbsoluteLayout.SetLayoutBounds(MenuOverlay, new Rect(0, 0, W, H));
         AbsoluteLayout.SetLayoutFlags(MenuOverlay, AbsoluteLayoutFlags.None);

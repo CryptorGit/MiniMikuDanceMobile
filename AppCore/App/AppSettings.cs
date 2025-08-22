@@ -96,4 +96,12 @@ public class AppSettings
     {
         JSONUtil.Save(path, this);
     }
+
+    /// <summary>
+    /// 設定ファイルから物理設定を再読み込みする。
+    /// </summary>
+    public void ReloadPhysics(string path = DefaultFile)
+    {
+        Physics = Load(path).Physics;
+    }
 }
