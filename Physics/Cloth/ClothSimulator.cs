@@ -27,6 +27,22 @@ public class ClothSimulator
     public List<SphereCollider> SphereColliders { get; } = new();
     public List<CapsuleCollider> CapsuleColliders { get; } = new();
 
+    public void ClearColliders()
+    {
+        SphereColliders.Clear();
+        CapsuleColliders.Clear();
+    }
+
+    public void AddSphereCollider(Vector3 center, float radius)
+    {
+        SphereColliders.Add(new SphereCollider { Center = center, Radius = radius });
+    }
+
+    public void AddCapsuleCollider(Vector3 pointA, Vector3 pointB, float radius)
+    {
+        CapsuleColliders.Add(new CapsuleCollider { PointA = pointA, PointB = pointB, Radius = radius });
+    }
+
     private Vector3 _gravity = new(0, -9.81f, 0);
     // 1秒あたりの速度減衰率 (0～1)
     private float _damping = 0.98f;
