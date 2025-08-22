@@ -37,6 +37,11 @@
                       CheckedChanged="OnBoneTypeChanged"/>
             <Label Text="Distinguish Bone Types" TextColor="{StaticResource TextColor}" VerticalOptions="Center"/>
         </HorizontalStackLayout>
+        <HorizontalStackLayout Spacing="6" VerticalOptions="Center">
+            <CheckBox x:Name="LockTranslationCheck" Color="{StaticResource TextColor}"
+                      CheckedChanged="OnLockTranslationChanged"/>
+            <Label Text="Lock Cloth Translation" TextColor="{StaticResource TextColor}" VerticalOptions="Center"/>
+        </HorizontalStackLayout>
         <Button Text="Reset Camera" TextColor="{StaticResource TextColor}" Clicked="OnResetCameraClicked" />
     </VerticalStackLayout>
 </ContentView>

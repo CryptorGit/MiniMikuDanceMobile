@@ -14,6 +14,7 @@ public partial class SettingView : ContentView
     public event Action<double>? BonePickPixelsChanged;
     public event Action<bool>? BoneOutlineChanged;
     public event Action<bool>? BoneTypeChanged;
+    public event Action<bool>? LockTranslationChanged;
     public event Action? ResetCameraRequested;
 
     public SettingView()
@@ -81,6 +82,11 @@ public partial class SettingView : ContentView
         HandleCheckChange(BoneTypeChanged, e);
     }
 
+    private void OnLockTranslationChanged(object? sender, CheckedChangedEventArgs e)
+    {
+        HandleCheckChange(LockTranslationChanged, e);
+    }
+
     private void OnResetCameraClicked(object? sender, EventArgs e)
     {
         ResetCameraRequested?.Invoke();
@@ -139,5 +145,11 @@ public partial class SettingView : ContentView
     {
         get => BoneTypeCheck.IsChecked;
         set => BoneTypeCheck.IsChecked = value;
+    }
+
+    public bool LockTranslation
+    {
+        get => LockTranslationCheck.IsChecked;
+        set => LockTranslationCheck.IsChecked = value;
     }
 }

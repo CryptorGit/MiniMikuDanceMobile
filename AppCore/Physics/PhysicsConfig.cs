@@ -12,8 +12,9 @@ public struct PhysicsConfig
     public float GroundHeight { get; set; }
     public float Restitution { get; set; }
     public float Friction { get; set; }
+    public bool LockTranslation { get; set; }
 
-    public PhysicsConfig(Vector3 gravity, int solverIterationCount, int substepCount, float damping = 0.98f, float boneBlendFactor = 0.5f, float groundHeight = 0f, float restitution = 0.2f, float friction = 0.5f)
+    public PhysicsConfig(Vector3 gravity, int solverIterationCount, int substepCount, float damping = 0.98f, float boneBlendFactor = 0.5f, float groundHeight = 0f, float restitution = 0.2f, float friction = 0.5f, bool lockTranslation = false)
     {
         Gravity = gravity;
         SolverIterationCount = solverIterationCount;
@@ -23,6 +24,7 @@ public struct PhysicsConfig
         GroundHeight = groundHeight;
         Restitution = restitution;
         Friction = friction;
+        LockTranslation = lockTranslation;
     }
 }
 

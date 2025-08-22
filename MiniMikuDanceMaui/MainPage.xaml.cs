@@ -271,6 +271,16 @@ public partial class MainPage : ContentPage
                 _settings.Save();
                 Viewer?.InvalidateSurface();
             };
+            setting.LockTranslation = _settings.Physics.LockTranslation;
+            setting.LockTranslationChanged += flag =>
+            {
+                if (_physics is BepuPhysicsWorld bepu)
+                    bepu.LockTranslation = flag;
+                var phys = _settings.Physics;
+                phys.LockTranslation = flag;
+                _settings.Physics = phys;
+                _settings.Save();
+            };
             setting.ResetCameraRequested += () =>
             {
                 _renderer.ResetCamera();
@@ -319,6 +329,7 @@ public partial class MainPage : ContentPage
             sv.PanSensitivity = _renderer.PanSensitivity;
             sv.IkBoneSize = _renderer.IkBoneScale;
             sv.BonePickPixels = _renderer.BonePickPixels;
+            sv.LockTranslation = _settings.Physics.LockTranslation;
         }
     }
 
@@ -428,6 +439,7 @@ public partial class MainPage : ContentPage
         sv.PanSensitivity = _panSensitivity;
         sv.ZoomSensitivity = _renderer.ZoomSensitivity;
         sv.ShowBoneOutline = _renderer.ShowBoneOutline;
+        sv.LockTranslation = _settings.Physics.LockTranslation;
     }
 
     private void UpdateBoneViewProperties(BoneView? bv)
