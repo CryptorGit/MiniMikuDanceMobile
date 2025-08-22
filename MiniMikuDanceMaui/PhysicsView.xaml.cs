@@ -13,7 +13,7 @@ public partial class PhysicsView : ContentView
 
     public void SetConfig(PhysicsConfig config)
     {
-        GravityLabel.Text = $"Gravity: {config.Gravity}";
+        GravityLabel.Text = $"Gravity: {config.Gravity} m/s² (ModelScaleでスケーリング)";
         SolverLabel.Text = $"SolverIterationCount: {config.SolverIterationCount}";
         SubstepLabel.Text = $"SubstepCount: {config.SubstepCount}";
         DampingLabel.Text = $"Damping: {config.Damping:F2}";
