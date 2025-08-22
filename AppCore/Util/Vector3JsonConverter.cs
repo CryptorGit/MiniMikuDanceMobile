@@ -32,15 +32,15 @@ public class Vector3JsonConverter : JsonConverter<Vector3>
                 {
                     case "X":
                     case "x":
-                        x = reader.GetSingle();
+                        x = Sanitize(reader.GetSingle());
                         break;
                     case "Y":
                     case "y":
-                        y = reader.GetSingle();
+                        y = Sanitize(reader.GetSingle());
                         break;
                     case "Z":
                     case "z":
-                        z = reader.GetSingle();
+                        z = Sanitize(reader.GetSingle());
                         break;
                     default:
                         reader.Skip();
@@ -50,6 +50,13 @@ public class Vector3JsonConverter : JsonConverter<Vector3>
         }
 
         throw new JsonException();
+    }
+
+    private static float Sanitize(float value)
+    {
+        return float.IsNaN(value) || float.IsInfinity(value) || value < -1000f || value > 1000f
+            ? 0f
+            : value;
     }
 
     public override void Write(Utf8JsonWriter writer, Vector3 value, JsonSerializerOptions options)
