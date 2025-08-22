@@ -91,7 +91,20 @@ public class AppSettings
     {
         var result = JSONUtil.Load<AppSettings>(path);
         var log = logger ?? NullLogger<AppSettings>.Instance;
-        log.LogInformation("Loaded Physics.Gravity: {Gravity}", result.Physics.Gravity);
+        var physics = result.Physics;
+        var gravity = physics.Gravity;
+        bool IsInvalid(float v) => float.IsNaN(v) || float.IsInfinity(v) || v < -1000f || v > 1000f;
+        if (IsInvalid(gravity.X) || IsInvalid(gravity.Y) || IsInvalid(gravity.Z))
+        {
+            log.LogWarning("Invalid Physics.Gravity detected: {Gravity}. Resetting to default.", gravity);
+            physics.Gravity = new Vector3(0f, -9.81f, 0f);
+            result.Physics = physics;
+            result.Save(path);
+        }
+        else
+        {
+            log.LogInformation("Loaded Physics.Gravity: {Gravity}", gravity);
+        }
         return result;
     }
 
