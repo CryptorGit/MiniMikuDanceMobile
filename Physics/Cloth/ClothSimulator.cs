@@ -169,9 +169,32 @@ public class ClothSimulator
                 bone.Translation = bone.InitialTranslation;
             }
 
-            if (i + 1 < count)
+            int childIndex = -1;
+            foreach (var spring in Springs)
             {
-                var nextPos = Nodes[i + 1].Position;
+                var other = -1;
+                if (spring.NodeA == i)
+                    other = spring.NodeB;
+                else if (spring.NodeB == i)
+                    other = spring.NodeA;
+
+                if (other < 0 || other >= Nodes.Count)
+                    continue;
+
+                if (other < BoneMap.Count)
+                {
+                    var childBoneIndex = BoneMap[other];
+                    if (childBoneIndex >= 0 && childBoneIndex < scene.Bones.Count && scene.Bones[childBoneIndex].Parent == boneIndex)
+                    {
+                        childIndex = other;
+                        break;
+                    }
+                }
+            }
+
+            if (childIndex >= 0)
+            {
+                var nextPos = Nodes[childIndex].Position;
                 var dir = nextPos - nodePos;
                 if (dir.LengthSquared() > 1e-8f && bone.BaseForward.LengthSquared() > 1e-8f)
                 {
