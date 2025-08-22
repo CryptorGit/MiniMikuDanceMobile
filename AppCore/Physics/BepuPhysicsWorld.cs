@@ -259,6 +259,11 @@ public sealed class BepuPhysicsWorld : IPhysicsWorld
                     localPos = pose.Pos;
                 }
 
+                if (_config.LockTranslation)
+                {
+                    localPos = bone.InitialTranslation;
+                }
+
                 if (ikLinkMap.TryGetValue(info.Bone, out var ikLink) && ikLink.HasLimit)
                 {
                     var delta = localRot * Quaternion.Conjugate(bone.InitialRotation);
@@ -299,13 +304,14 @@ public sealed class BepuPhysicsWorld : IPhysicsWorld
                 if (info.Mode == 2)
                 {
                     bone.Rotation = Quaternion.Slerp(bone.Rotation, localRot, BoneBlendFactor);
-                    bone.Translation = Vector3.Lerp(bone.Translation, localPos, BoneBlendFactor);
+                    localPos = Vector3.Lerp(bone.Translation, localPos, BoneBlendFactor);
                 }
                 else
                 {
                     bone.Rotation = localRot;
-                    bone.Translation = localPos;
                 }
+
+                bone.Translation = localPos;
 
                 scene.Bones[info.Bone] = bone;
             }
