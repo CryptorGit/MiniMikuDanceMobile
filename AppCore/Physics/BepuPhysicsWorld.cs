@@ -59,7 +59,7 @@ public sealed class BepuPhysicsWorld : IPhysicsWorld
             _logger.LogWarning("SolverIterationCount が 0 以下のため、1 に補正しました。");
             solverIterationCount = 1;
         }
-        _config = new PhysicsConfig(gravity, solverIterationCount, substepCount, config.Damping, config.BoneBlendFactor);
+        _config = new PhysicsConfig(gravity, solverIterationCount, substepCount, config.Damping, config.BoneBlendFactor, config.GroundHeight, config.Restitution, config.Friction);
         BoneBlendFactor = config.BoneBlendFactor;
         _bufferPool = new BufferPool();
         _simulation = Simulation.Create(_bufferPool,
@@ -73,24 +73,30 @@ public sealed class BepuPhysicsWorld : IPhysicsWorld
 
         // シミュレーション生成後に地面用の静的ボディを追加
         var groundShape = _simulation.Shapes.Add(new Box(1000f * _modelScale, 0.1f * _modelScale, 1000f * _modelScale));
-        var groundPose = new RigidPose(new Vector3(0f, -0.05f * _modelScale, 0f));
+        var groundPose = new RigidPose(new Vector3(0f, config.GroundHeight - 0.05f * _modelScale, 0f));
         var groundDesc = new StaticDescription(
             groundPose.Position,
             groundPose.Orientation,
             groundShape,
             ContinuousDetection.Discrete);
         var groundHandle = _simulation.Statics.Add(groundDesc);
-        _staticMaterialMap[groundHandle] = new Material(0f, 0.5f);
+        _staticMaterialMap[groundHandle] = new Material(config.Friction, config.Restitution);
         _staticFilterMap[groundHandle] = new SubgroupCollisionFilter(uint.MaxValue, uint.MaxValue);
 
         _cloth.Gravity = config.Gravity;
         _cloth.Damping = config.Damping; // 1 秒基準のダンピング
+        _cloth.GroundHeight = config.GroundHeight;
+        _cloth.Restitution = config.Restitution;
+        _cloth.Friction = config.Friction;
     }
 
     public void Step(float dt)
     {
         _cloth.Gravity = _config.Gravity;
         _cloth.Damping = _config.Damping;
+        _cloth.GroundHeight = _config.GroundHeight;
+        _cloth.Restitution = _config.Restitution;
+        _cloth.Friction = _config.Friction;
         _simulation?.Timestep(dt);
         _cloth.Step(dt);
         _lastDt = dt;

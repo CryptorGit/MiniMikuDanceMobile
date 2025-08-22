@@ -14,6 +14,9 @@ public class ClothSimulator
     private Vector3 _gravity = new(0, -9.81f, 0);
     // 1秒あたりの速度減衰率 (0～1)
     private float _damping = 0.98f;
+    private float _groundHeight = 0f;
+    private float _restitution = 0.2f;
+    private float _friction = 0.5f;
     private Vector3[] _forceBuffer = Array.Empty<Vector3>();
 
     public Vector3 Gravity
@@ -26,6 +29,24 @@ public class ClothSimulator
     {
         get => _damping;
         set => _damping = value;
+    }
+
+    public float GroundHeight
+    {
+        get => _groundHeight;
+        set => _groundHeight = value;
+    }
+
+    public float Restitution
+    {
+        get => _restitution;
+        set => _restitution = value;
+    }
+
+    public float Friction
+    {
+        get => _friction;
+        set => _friction = value;
     }
 
     public void Step(float dt)
@@ -71,7 +92,18 @@ public class ClothSimulator
 
             var accel = _gravity + forces[i] * node.InverseMass;
             var newVelocity = (node.Velocity + accel * dt) * damping;
-            node.Position += newVelocity * dt;
+            var newPos = node.Position + newVelocity * dt;
+
+            if (newPos.Y < _groundHeight)
+            {
+                newPos.Y = _groundHeight;
+                if (newVelocity.Y < 0f)
+                    newVelocity.Y = -newVelocity.Y * _restitution;
+                newVelocity.X *= _friction;
+                newVelocity.Z *= _friction;
+            }
+
+            node.Position = newPos;
             node.Velocity = newVelocity;
             Nodes[i] = node;
         }
