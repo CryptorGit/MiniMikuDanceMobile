@@ -381,32 +381,37 @@ public sealed class BepuPhysicsWorld : IPhysicsWorld
         if (rootIndex < 0)
             return;
 
-        var queue = new Queue<(int Bone, int ParentNode)>();
-        queue.Enqueue((rootIndex, -1));
+        var rootBone = model.Bones[rootIndex];
+        var rootPos = rootBone.Translation;
+        var rootRot = rootBone.Rotation;
+
+        var queue = new Queue<(int Bone, int ParentNode, Vector3 WorldPos, Quaternion WorldRot)>();
+        queue.Enqueue((rootIndex, -1, rootPos, rootRot));
 
         while (queue.Count > 0)
         {
-            var (boneIndex, parentNode) = queue.Dequeue();
-            var bone = model.Bones[boneIndex];
-
+            var (boneIndex, parentNode, worldPos, worldRot) = queue.Dequeue();
             var nodeIndex = _cloth.Nodes.Count;
             var mass = sb.NodeMass > 0f ? sb.NodeMass * _massScale : _massScale;
             var invMass = parentNode < 0 ? 0f : 1f / mass;
-            _cloth.Nodes.Add(new Node { Position = bone.Translation, Velocity = Vector3.Zero, InverseMass = invMass });
+            _cloth.Nodes.Add(new Node { Position = worldPos, Velocity = Vector3.Zero, InverseMass = invMass });
             _cloth.BoneMap.Add(boneIndex);
 
             if (parentNode >= 0)
             {
                 var prevPos = _cloth.Nodes[parentNode].Position;
-                var rest = Vector3.Distance(prevPos, bone.Translation);
-                _cloth.Springs.Add(new Spring
+                var rest = Vector3.Distance(prevPos, worldPos);
+                if (rest > 0f)
                 {
-                    NodeA = parentNode,
-                    NodeB = nodeIndex,
-                    RestLength = rest,
-                    Stiffness = sb.SpringStiffness,
-                    Damping = sb.SpringDamping
-                });
+                    _cloth.Springs.Add(new Spring
+                    {
+                        NodeA = parentNode,
+                        NodeB = nodeIndex,
+                        RestLength = rest,
+                        Stiffness = sb.SpringStiffness,
+                        Damping = sb.SpringDamping
+                    });
+                }
             }
 
             var children = model.Bones.FindAll(b => b.Parent == boneIndex);
@@ -414,7 +419,11 @@ public sealed class BepuPhysicsWorld : IPhysicsWorld
             {
                 var childIndex = model.Bones.IndexOf(child);
                 if (childIndex >= 0)
-                    queue.Enqueue((childIndex, nodeIndex));
+                {
+                    var childWorldPos = Vector3.Transform(child.Translation, worldRot) + worldPos;
+                    var childWorldRot = child.Rotation * worldRot;
+                    queue.Enqueue((childIndex, nodeIndex, childWorldPos, childWorldRot));
+                }
             }
         }
     }
