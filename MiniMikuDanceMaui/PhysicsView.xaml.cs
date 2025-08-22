@@ -15,15 +15,31 @@ public partial class PhysicsView : ContentView
     public void SetConfig(PhysicsConfig config)
     {
         const float threshold = 1e-3f;
+        const float max = 1e3f;
 
         var gravity = config.Gravity;
         var defaultGravity = new Vector3(0f, -9.81f, 0f);
         bool gravityWarn = false;
-        if (System.MathF.Abs(gravity.X) < threshold) { gravity.X = defaultGravity.X; gravityWarn = true; }
-        if (System.MathF.Abs(gravity.Y) < threshold) { gravity.Y = defaultGravity.Y; gravityWarn = true; }
-        if (System.MathF.Abs(gravity.Z) < threshold) { gravity.Z = defaultGravity.Z; gravityWarn = true; }
+        string gravityWarnMessage = string.Empty;
+        bool gravityInvalid =
+            float.IsNaN(gravity.X) || float.IsNaN(gravity.Y) || float.IsNaN(gravity.Z) ||
+            float.IsInfinity(gravity.X) || float.IsInfinity(gravity.Y) || float.IsInfinity(gravity.Z) ||
+            System.MathF.Abs(gravity.X) > max || System.MathF.Abs(gravity.Y) > max || System.MathF.Abs(gravity.Z) > max;
+        if (gravityInvalid)
+        {
+            gravity = defaultGravity;
+            gravityWarn = true;
+            gravityWarnMessage = "極端または無効な値をデフォルトに差し替え";
+        }
+        else
+        {
+            if (System.MathF.Abs(gravity.X) < threshold) { gravity.X = defaultGravity.X; gravityWarn = true; }
+            if (System.MathF.Abs(gravity.Y) < threshold) { gravity.Y = defaultGravity.Y; gravityWarn = true; }
+            if (System.MathF.Abs(gravity.Z) < threshold) { gravity.Z = defaultGravity.Z; gravityWarn = true; }
+            if (gravityWarn) gravityWarnMessage = "極端に小さい値をデフォルトに差し替え";
+        }
         GravityLabel.Text = $"Gravity: ({gravity.X:F2}, {gravity.Y:F2}, {gravity.Z:F2}) m/s² (ModelScaleでスケーリング)";
-        if (gravityWarn) GravityLabel.Text += " [警告: 極端に小さい値をデフォルトに差し替え]";
+        if (gravityWarn) GravityLabel.Text += $" [警告: {gravityWarnMessage}]";
 
         float damping = config.Damping;
         if (System.MathF.Abs(damping) < threshold)
