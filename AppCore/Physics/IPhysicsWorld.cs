@@ -1,7 +1,7 @@
 using System;
 using MiniMikuDance.App;
 
-namespace MiniMikuDance.Physics;
+namespace MiniMikuDance.AppCore.Physics;
 
 public interface IPhysicsWorld : IDisposable
 {

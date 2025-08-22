@@ -24,7 +24,7 @@ using MiniMikuDance.App;
 using SixLabors.ImageSharp.PixelFormats;
 using MiniMikuDance.IK;
 using MiniMikuDance.Util;
-using MiniMikuDance.Physics;
+using MiniMikuDance.AppCore.Physics;
 using System.Globalization;
 
 namespace MiniMikuDanceMaui;

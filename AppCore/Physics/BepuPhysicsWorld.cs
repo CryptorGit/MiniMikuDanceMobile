@@ -10,11 +10,11 @@ using BepuUtilities;
 using BepuUtilities.Memory;
 using MiniMikuDance.Import;
 using MiniMikuDance.App;
-using MiniMikuDance.Physics.Cloth;
+using MiniMikuDance.AppCore.Physics.Cloth;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
 
-namespace MiniMikuDance.Physics;
+namespace MiniMikuDance.AppCore.Physics;
 
 public sealed class BepuPhysicsWorld : IPhysicsWorld
 {

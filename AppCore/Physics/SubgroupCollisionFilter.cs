@@ -1,4 +1,4 @@
-namespace MiniMikuDance.Physics;
+namespace MiniMikuDance.AppCore.Physics;
 
 public struct SubgroupCollisionFilter
 {

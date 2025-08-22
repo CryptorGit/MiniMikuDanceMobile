@@ -1,6 +1,6 @@
 using System.Numerics;
 
-namespace MiniMikuDance.Physics.Cloth;
+namespace MiniMikuDance.AppCore.Physics.Cloth;
 
 public struct Node
 {

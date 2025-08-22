@@ -1,5 +1,5 @@
 using MiniMikuDance.Util;
-using MiniMikuDance.Physics;
+using MiniMikuDance.AppCore.Physics;
 using System.Numerics;
 
 namespace MiniMikuDance.App;

@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Numerics;
 using MiniMikuDance.App;
 
-namespace MiniMikuDance.Physics.Cloth;
+namespace MiniMikuDance.AppCore.Physics.Cloth;
 
 public class ClothSimulator
 {
