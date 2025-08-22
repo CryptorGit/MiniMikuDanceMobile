@@ -13,7 +13,18 @@ namespace MiniMikuDance.UI;
 
 public class UIManager : Singleton<UIManager>
 {
-    public UIConfig Config { get; private set; } = new();
+    private sealed record UIButton(string Label, string Message);
+    private sealed record UIToggle(string Label, string Id, bool DefaultValue);
+
+    private readonly List<UIButton> _buttons = new()
+    {
+        new("Load Model", "load_model"),
+        new("Analyze Video", "analyze_video"),
+    };
+
+    private readonly List<UIToggle> _toggles = new();
+    private readonly bool _showMessage = true;
+    private readonly bool _showThumbnail = true;
 
     private readonly Dictionary<string, bool> _toggleStates = new();
     public string Message { get; private set; } = string.Empty;
@@ -21,50 +32,23 @@ public class UIManager : Singleton<UIManager>
     private int _thumbnailTexture;
     private Vector2 _thumbnailSize;
 
+    public UIManager()
+    {
+        foreach (var t in _toggles)
+        {
+            _toggleStates[t.Id] = t.DefaultValue;
+        }
+    }
+
     public delegate int TextureLoaderDelegate(ReadOnlySpan<byte> data, int width, int height);
 
     public event Action<string>? OnButtonPressed;
     public event Action<string, bool>? OnToggleChanged;
     private TextureLoaderDelegate? _textureLoader;
 
-    /// <summary>
-    /// 指定されたパスから UI 設定を読み込みます。
-    /// <see cref="LoadConfigCore"/> を呼び出す薄いラッパーです。
-    /// </summary>
-    /// <param name="path">設定ファイルのパス。</param>
-    public void LoadConfig(string path) =>
-        LoadConfigCore(JSONUtil.Load<UIConfig>(path));
-
-    /// <summary>
-    /// テストなどで直接構築した <see cref="UIConfig"/> を読み込みます。
-    /// </summary>
-    /// <param name="config">UI 設定。</param>
-    public void LoadConfig(UIConfig config) => LoadConfigCore(config);
-
-    /// <summary>
-    /// UI 設定を内部状態に反映します。
-    /// 通常は <see cref="LoadConfig(string)"/> または <see cref="LoadConfig(UIConfig)"/>
-    /// を利用してください。
-    /// </summary>
-    /// <param name="config">UI 設定。</param>
-    private void LoadConfigCore(UIConfig config)
-    {
-        Config = config;
-        _toggleStates.Clear();
-        foreach (var t in Config.Toggles)
-        {
-            _toggleStates[t.Id] = t.DefaultValue;
-        }
-    }
-
     public void RegisterTextureLoader(TextureLoaderDelegate loader)
     {
         _textureLoader = loader;
-    }
-
-    public void SaveConfig(string path)
-    {
-        JSONUtil.Save(path, Config);
     }
 
     public void SetMessage(string message)
@@ -115,18 +99,18 @@ public class UIManager : Singleton<UIManager>
 
     public void Render()
     {
-        for (int i = 0, count = Config.Buttons.Count; i < count; i++)
+        for (int i = 0, count = _buttons.Count; i < count; i++)
         {
-            var btn = Config.Buttons[i];
+            var btn = _buttons[i];
             if (ImGui.Button(btn.Label))
             {
                 OnButtonPressed?.Invoke(btn.Message);
             }
         }
 
-        for (int i = 0, count = Config.Toggles.Count; i < count; i++)
+        for (int i = 0, count = _toggles.Count; i < count; i++)
         {
-            var toggle = Config.Toggles[i];
+            var toggle = _toggles[i];
             bool value = GetToggle(toggle.Id);
             if (ImGui.Checkbox(toggle.Label, ref value))
             {
@@ -135,12 +119,12 @@ public class UIManager : Singleton<UIManager>
             }
         }
 
-        if (Config.ShowMessage && !string.IsNullOrEmpty(Message))
+        if (_showMessage && !string.IsNullOrEmpty(Message))
         {
             ImGui.TextWrapped(Message);
         }
 
-        if (Config.ShowThumbnail && _thumbnailTexture != 0)
+        if (_showThumbnail && _thumbnailTexture != 0)
         {
             ImGui.Image((IntPtr)_thumbnailTexture, _thumbnailSize);
         }

@@ -21,11 +21,8 @@ public partial class AppInitializer : IDisposable
     private Action<float>? _frameUpdatedHandler;
 
 
-    public void Initialize(UIConfig uiConfig, string? modelPath, string baseDir)
+    public void Initialize(string? modelPath, string baseDir)
     {
-
-        UIManager.Instance.LoadConfig(uiConfig);
-
         Recorder = new RecorderController(Path.Combine(baseDir, "Recordings"));
         if (!string.IsNullOrEmpty(modelPath) && File.Exists(modelPath))
         {

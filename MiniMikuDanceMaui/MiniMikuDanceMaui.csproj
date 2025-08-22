@@ -39,9 +39,4 @@
     <!-- 追加のアセットが必要な場合はここに記述します -->
   </ItemGroup>
 
-  <ItemGroup>
-        <MauiAsset Include="..\Configs\UIConfig.json">
-          <Link>Configs\UIConfig.json</Link>
-        </MauiAsset>
-    </ItemGroup>
   </Project>
