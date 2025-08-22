@@ -36,6 +36,15 @@ public sealed class BepuPhysicsWorld : IPhysicsWorld
     private float _lastDt = 1f / 60f;
 
     public float BoneBlendFactor { get; set; } = 0.5f;
+    public bool LockTranslation
+    {
+        get => _config.LockTranslation;
+        set
+        {
+            _config.LockTranslation = value;
+            _cloth.LockTranslation = value;
+        }
+    }
 
     public BepuPhysicsWorld(ILogger<BepuPhysicsWorld>? logger = null)
     {
@@ -59,7 +68,7 @@ public sealed class BepuPhysicsWorld : IPhysicsWorld
             _logger.LogWarning("SolverIterationCount が 0 以下のため、1 に補正しました。");
             solverIterationCount = 1;
         }
-        _config = new PhysicsConfig(gravity, solverIterationCount, substepCount, config.Damping, config.BoneBlendFactor, config.GroundHeight, config.Restitution, config.Friction);
+        _config = new PhysicsConfig(gravity, solverIterationCount, substepCount, config.Damping, config.BoneBlendFactor, config.GroundHeight, config.Restitution, config.Friction, config.LockTranslation);
         BoneBlendFactor = config.BoneBlendFactor;
         _bufferPool = new BufferPool();
         _simulation = Simulation.Create(_bufferPool,
@@ -88,6 +97,7 @@ public sealed class BepuPhysicsWorld : IPhysicsWorld
         _cloth.GroundHeight = config.GroundHeight;
         _cloth.Restitution = config.Restitution;
         _cloth.Friction = config.Friction;
+        _cloth.LockTranslation = config.LockTranslation;
     }
 
     public void Step(float dt)
@@ -97,6 +107,7 @@ public sealed class BepuPhysicsWorld : IPhysicsWorld
         _cloth.GroundHeight = _config.GroundHeight;
         _cloth.Restitution = _config.Restitution;
         _cloth.Friction = _config.Friction;
+        _cloth.LockTranslation = _config.LockTranslation;
         _simulation?.Timestep(dt);
         _cloth.Step(dt);
         _lastDt = dt;

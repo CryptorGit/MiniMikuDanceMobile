@@ -37,6 +37,8 @@ public class ClothSimulator
 
     public int Substeps { get; set; } = 1;
 
+    public bool LockTranslation { get; set; } = false;
+
     public Vector3 Gravity
     {
         get => _gravity;
@@ -236,11 +238,18 @@ public class ClothSimulator
 
             var dirWorld = nodePos - parentNodePos;
             var len = bone.InitialTranslation.Length();
-            if (dirWorld.LengthSquared() > 1e-8f)
+            if (!LockTranslation)
             {
-                var invParentRot = Quaternion.Inverse(parentRot);
-                var dirLocal = Vector3.Normalize(Vector3.Transform(dirWorld, invParentRot));
-                bone.Translation = dirLocal * len;
+                if (dirWorld.LengthSquared() > 1e-8f)
+                {
+                    var invParentRot = Quaternion.Inverse(parentRot);
+                    var dirLocal = Vector3.Normalize(Vector3.Transform(dirWorld, invParentRot));
+                    bone.Translation = dirLocal * len;
+                }
+                else
+                {
+                    bone.Translation = bone.InitialTranslation;
+                }
             }
             else
             {
