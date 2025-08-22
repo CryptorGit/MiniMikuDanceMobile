@@ -382,6 +382,12 @@ public partial class MainPage : ContentPage
         HideAllMenusAndLayout();
     }
 
+    private void OnPhysicsClicked(object? sender, EventArgs e)
+    {
+        ShowBottomFeature("PHYSICS");
+        HideAllMenusAndLayout();
+    }
+
     private void OnCloseBottomTapped(object? sender, TappedEventArgs e)
     {
         if (_currentFeature != null)
@@ -927,6 +933,11 @@ public partial class MainPage : ContentPage
                 };
                 view = mv;
             }
+            else if (name == "PHYSICS")
+            {
+                var pv = new PhysicsView(_settings.Physics);
+                view = pv;
+            }
             else if (name == "SETTING")
             {
                 var sv = new SettingView();
@@ -1024,6 +1035,10 @@ public partial class MainPage : ContentPage
             {
                 morphView.SetMorphs(_currentModel.Morphs);
             }
+        }
+        else if (name == "PHYSICS" && _bottomViews[name] is PhysicsView pv2)
+        {
+            pv2.SetConfig(_settings.Physics);
         }
 
         SwitchBottomFeature(name);
