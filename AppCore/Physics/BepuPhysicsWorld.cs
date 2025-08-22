@@ -98,6 +98,7 @@ public sealed class BepuPhysicsWorld : IPhysicsWorld
         _cloth.Restitution = config.Restitution;
         _cloth.Friction = config.Friction;
         _cloth.LockTranslation = config.LockTranslation;
+        _cloth.Substeps = config.SubstepCount;
     }
 
     public void Step(float dt)
@@ -108,6 +109,7 @@ public sealed class BepuPhysicsWorld : IPhysicsWorld
         _cloth.Restitution = _config.Restitution;
         _cloth.Friction = _config.Friction;
         _cloth.LockTranslation = _config.LockTranslation;
+        _cloth.Substeps = _config.SubstepCount;
         _simulation?.Timestep(dt);
         _cloth.Step(dt);
         _lastDt = dt;
