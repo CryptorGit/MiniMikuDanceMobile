@@ -1016,7 +1016,10 @@ public PmxImporter(ILogger<PmxImporter>? logger = null)
                 sbd.Mask = Convert.ToUInt16(mask);
             var massProp = sbType.GetProperty("TotalMass") ?? sbType.GetProperty("Mass");
             if (massProp?.GetValue(sb) is object mass)
+            {
                 sbd.NodeMass = Convert.ToSingle(mass);
+                sbd.NodeMassIsTotal = massProp.Name == "TotalMass";
+            }
             var stiffProp = sbType.GetProperty("SpringStructuralStiffness") ?? sbType.GetProperty("SpringStiffness");
             if (stiffProp?.GetValue(sb) is object stiff)
                 sbd.SpringStiffness = Convert.ToSingle(stiff);

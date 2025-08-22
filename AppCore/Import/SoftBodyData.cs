@@ -16,6 +16,7 @@ public class SoftBodyData
     public byte Group { get; set; }
     public ushort Mask { get; set; }
     public float NodeMass { get; set; } = 1f;
+    public bool NodeMassIsTotal { get; set; }
     public float SpringStiffness { get; set; } = 100f;
     public float SpringDamping { get; set; } = 5f;
 }
