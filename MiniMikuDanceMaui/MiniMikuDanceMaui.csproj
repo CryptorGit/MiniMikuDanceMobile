@@ -46,8 +46,5 @@
       <MauiAsset Include="..\Configs\UIConfig.json">
         <Link>Configs\UIConfig.json</Link>
       </MauiAsset>
-      <MauiAsset Include="..\Configs\BoneAliases.json">
-        <Link>Configs\BoneAliases.json</Link>
-      </MauiAsset>
     </ItemGroup>
   </Project>
