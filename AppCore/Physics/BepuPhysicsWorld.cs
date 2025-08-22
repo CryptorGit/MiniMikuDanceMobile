@@ -273,6 +273,12 @@ public sealed class BepuPhysicsWorld : IPhysicsWorld
                     localRot = Quaternion.Normalize(delta * bone.InitialRotation);
                 }
 
+                var initialLen = bone.InitialTranslation.Length();
+                if (initialLen > 0f)
+                    localPos = Vector3.Normalize(localPos) * initialLen;
+                else
+                    localPos = Vector3.Zero;
+
                 if (info.Mode == 2)
                 {
                     bone.Rotation = Quaternion.Slerp(bone.Rotation, localRot, BoneBlendFactor);
