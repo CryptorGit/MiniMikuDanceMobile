@@ -18,7 +18,6 @@ public partial class AppInitializer : IDisposable
 
     public IViewer? Viewer { get; private set; }
     public RecorderController? Recorder { get; private set; }
-    public BonesConfig? BonesConfig { get; set; }
     private Action<float>? _frameUpdatedHandler;
 
 

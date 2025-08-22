@@ -85,7 +85,7 @@ maui run android
 ## 将来の拡張
 
 - ~~**物理演算の拡張**: BEPUphysics + 質点ばねモデルでの髪・服揺れ表現~~ ✅ 実装済み（UI パラメータ連携は未実装）
-- **IK ソルバー強化**: CCD / FABRIK + BonesConfig.Clamp による角度制約付き IK  
+- **IK ソルバー強化**: CCD / FABRIK による角度制約付き IK
 - **フォーマット拡張**: PMX/VMD 専用から glTF 読み込みへ拡大検討  
 - **録画強化**: PNG連番に加えて [FFmpegKit](https://github.com/arthenica/ffmpeg-kit) による動画変換オプション  
 

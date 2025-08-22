@@ -121,7 +121,7 @@
 ### 4.1 ソルバー
 - `Ik/IkManager.cs` に CCD, FABRIK 実装
 - `Clamp`:
-  - `BonesConfig.json` に `minDegXYZ`, `maxDegXYZ`
+  - PMX から取得した `minDegXYZ`, `maxDegXYZ`
   - 反復内で姿勢更新のたびにクランプ
 - パラメータ: 反復回数, 許容誤差, チェーン長, 重み
 
