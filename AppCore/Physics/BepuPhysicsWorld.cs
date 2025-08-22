@@ -130,6 +130,24 @@ public sealed class BepuPhysicsWorld : IPhysicsWorld
             body.Pose.Orientation = pose.Rot;
             UpdateBodyVelocity(info.Bone, pose.Pos, pose.Rot, ref body);
         }
+
+        var nodeCount = Math.Min(_cloth.Nodes.Count, _cloth.BoneMap.Count);
+        for (int i = 0; i < nodeCount; i++)
+        {
+            var node = _cloth.Nodes[i];
+            if (node.InverseMass > 0f)
+                continue;
+
+            var boneIndex = _cloth.BoneMap[i];
+            if (boneIndex < 0 || boneIndex >= scene.Bones.Count)
+                continue;
+
+            var pose = GetWorldPose(scene, boneIndex, poseCache);
+            var newPos = pose.Pos;
+            node.Velocity = (newPos - node.Position) / _lastDt;
+            node.Position = newPos;
+            _cloth.Nodes[i] = node;
+        }
     }
 
     private static (Vector3 Pos, Quaternion Rot) GetWorldPose(Scene scene, int index,

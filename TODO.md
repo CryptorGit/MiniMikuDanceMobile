@@ -28,6 +28,7 @@
 - モードに応じた追従率や補間、KeyframePlayerとの更新順序の整合
 - ClothSimulatorのBoneMap初期化と髪ボーン・メッシュへの反映方法を設計
 - ClothSimulator.SyncToBones の軸計算変更後、サンプルモデルの髪・尻尾で挙動確認を行う
+- Clothノードのボーン同期後、尾や胸が根元に追従するか実機で確認
 - SoftBody の TriMesh 対応とパラメータ詳細の検討
 - SoftBodyData の質量・剛性プロパティのマッピングを確認
 - 既存モデルを用いた座標系変換の検証
