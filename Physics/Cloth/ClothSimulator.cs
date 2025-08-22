@@ -34,6 +34,8 @@ public class ClothSimulator
     private float _restitution = 0.2f;
     private float _friction = 0.5f;
     private Vector3[] _forceBuffer = Array.Empty<Vector3>();
+    private readonly Dictionary<int, (Vector3 Pos, Quaternion Rot)> _worldCache = new();
+    private readonly Dictionary<int, int> _boneToNode = new();
 
     public int Substeps { get; set; } = 1;
 
@@ -192,14 +194,14 @@ public class ClothSimulator
     public void SyncToBones(Scene scene)
     {
         var count = Math.Min(Nodes.Count, BoneMap.Count);
-        var worldCache = new Dictionary<int, (Vector3 Pos, Quaternion Rot)>();
-        var boneToNode = new Dictionary<int, int>();
+        _worldCache.Clear();
+        _boneToNode.Clear();
         for (int i = 0; i < count; i++)
-            boneToNode[BoneMap[i]] = i;
+            _boneToNode[BoneMap[i]] = i;
 
         (Vector3 Pos, Quaternion Rot) GetWorldPose(int idx)
         {
-            if (worldCache.TryGetValue(idx, out var pose))
+            if (_worldCache.TryGetValue(idx, out var pose))
                 return pose;
             var b = scene.Bones[idx];
             var pos = b.Translation;
@@ -211,7 +213,7 @@ public class ClothSimulator
                 rot = rot * parent.Rot;
             }
             pose = (pos, rot);
-            worldCache[idx] = pose;
+            _worldCache[idx] = pose;
             return pose;
         }
 
@@ -232,7 +234,7 @@ public class ClothSimulator
                 var parentPose = GetWorldPose(bone.Parent);
                 parentRot = parentPose.Rot;
                 parentBonePos = parentPose.Pos;
-                parentNodePos = boneToNode.TryGetValue(bone.Parent, out var pn)
+                parentNodePos = _boneToNode.TryGetValue(bone.Parent, out var pn)
                     ? Nodes[pn].Position : parentPose.Pos;
             }
 
@@ -308,7 +310,7 @@ public class ClothSimulator
 
             scene.Bones[boneIndex] = bone;
             var worldPos = parentBonePos + Vector3.Transform(bone.Translation, parentRot);
-            worldCache[boneIndex] = (worldPos, bone.Rotation * parentRot);
+            _worldCache[boneIndex] = (worldPos, bone.Rotation * parentRot);
         }
     }
 }
