@@ -422,6 +422,25 @@ public sealed class BepuPhysicsWorld : IPhysicsWorld
         _cloth.Nodes.Clear();
         _cloth.Springs.Clear();
         _cloth.BoneMap.Clear();
+        _cloth.ClearColliders();
+
+        foreach (var rb in model.RigidBodies)
+        {
+            switch (rb.Shape)
+            {
+                case RigidBodyShape.Sphere:
+                    _cloth.AddSphereCollider(rb.Position, rb.Size.X);
+                    break;
+                case RigidBodyShape.Capsule:
+                    var rot = FromEulerXyz(rb.Rotation);
+                    var dir = Vector3.Transform(Vector3.UnitY, rot);
+                    var half = rb.Size.Y * 0.5f;
+                    var a = rb.Position + dir * half;
+                    var b = rb.Position - dir * half;
+                    _cloth.AddCapsuleCollider(a, b, rb.Size.X);
+                    break;
+            }
+        }
 
         foreach (var sb in model.SoftBodies)
         {
