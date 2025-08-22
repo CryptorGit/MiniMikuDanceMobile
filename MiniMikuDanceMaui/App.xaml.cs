@@ -1,8 +1,5 @@
 using Microsoft.Maui.Controls;
 using MiniMikuDance.App;
-using MiniMikuDance.Data;
-using MiniMikuDance.UI;
-using System;
 using System.IO;
 
 namespace MiniMikuDanceMaui;
@@ -16,8 +13,7 @@ public partial class App : Application, IDisposable
         InitializeComponent();
 
         Directory.SetCurrentDirectory(MmdFileSystem.BaseDir);
-        var uiConfig = DataManager.Instance.LoadConfig<UIConfig>("UIConfig");
-        Initializer.Initialize(uiConfig, null, MmdFileSystem.BaseDir);
+        Initializer.Initialize(null, MmdFileSystem.BaseDir);
     }
 
     protected override Window CreateWindow(Microsoft.Maui.IActivationState? activationState)
