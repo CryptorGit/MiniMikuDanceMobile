@@ -11,6 +11,22 @@ public class ClothSimulator
     public List<Spring> Springs { get; } = new();
     public List<int> BoneMap { get; } = new();
 
+    public struct SphereCollider
+    {
+        public Vector3 Center;
+        public float Radius;
+    }
+
+    public struct CapsuleCollider
+    {
+        public Vector3 PointA;
+        public Vector3 PointB;
+        public float Radius;
+    }
+
+    public List<SphereCollider> SphereColliders { get; } = new();
+    public List<CapsuleCollider> CapsuleColliders { get; } = new();
+
     private Vector3 _gravity = new(0, -9.81f, 0);
     // 1秒あたりの速度減衰率 (0～1)
     private float _damping = 0.98f;
@@ -105,20 +121,64 @@ public class ClothSimulator
                 var current = node.Position;
                 var nextPos = current + (current - node.PrevPosition) * damping + accel * subDt * subDt;
                 var newVelocity = (nextPos - current) / subDt;
+                var collided = false;
 
                 if (nextPos.Y < _groundHeight)
                 {
+                    collided = true;
                     nextPos.Y = _groundHeight;
                     if (newVelocity.Y < 0f)
                         newVelocity.Y = -newVelocity.Y * _restitution;
                     newVelocity.X *= _friction;
                     newVelocity.Z *= _friction;
-                    node.PrevPosition = nextPos - newVelocity * subDt;
                 }
-                else
+
+                foreach (var sphere in SphereColliders)
                 {
-                    node.PrevPosition = current;
+                    var toNode = nextPos - sphere.Center;
+                    var dist = toNode.Length();
+                    if (dist < sphere.Radius)
+                    {
+                        collided = true;
+                        var normal = dist > 1e-6f ? toNode / dist : Vector3.UnitY;
+                        nextPos = sphere.Center + normal * sphere.Radius;
+                        var vn = Vector3.Dot(newVelocity, normal);
+                        if (vn < 0f)
+                        {
+                            var vt = newVelocity - vn * normal;
+                            newVelocity = vt * _friction - vn * _restitution * normal;
+                        }
+                    }
                 }
+
+                foreach (var capsule in CapsuleColliders)
+                {
+                    var ab = capsule.PointB - capsule.PointA;
+                    var abLenSq = ab.LengthSquared();
+                    if (abLenSq < 1e-8f)
+                        continue;
+                    var t = Math.Clamp(Vector3.Dot(nextPos - capsule.PointA, ab) / abLenSq, 0f, 1f);
+                    var closest = capsule.PointA + ab * t;
+                    var toNode = nextPos - closest;
+                    var dist = toNode.Length();
+                    if (dist < capsule.Radius)
+                    {
+                        collided = true;
+                        var normal = dist > 1e-6f ? toNode / dist : Vector3.UnitY;
+                        nextPos = closest + normal * capsule.Radius;
+                        var vn = Vector3.Dot(newVelocity, normal);
+                        if (vn < 0f)
+                        {
+                            var vt = newVelocity - vn * normal;
+                            newVelocity = vt * _friction - vn * _restitution * normal;
+                        }
+                    }
+                }
+
+                if (collided)
+                    node.PrevPosition = nextPos - newVelocity * subDt;
+                else
+                    node.PrevPosition = current;
 
                 node.Position = nextPos;
                 node.Velocity = newVelocity;
