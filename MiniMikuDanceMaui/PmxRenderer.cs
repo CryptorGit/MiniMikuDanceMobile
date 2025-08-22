@@ -167,8 +167,6 @@ public partial class PmxRenderer : IDisposable
     private readonly HashSet<int> _physicsBones = new();
     private int _selectedBoneIndex = -1;
     public event Action<int>? BoneSelectionChanged;
-    private readonly Dictionary<int, string> _indexToHumanoidName = new();
-    public BonesConfig? BonesConfig { get; set; }
     private Quaternion _externalRotation = Quaternion.Identity;
     // デフォルトのカメラ感度をスライダーの最小値に合わせる
     public float RotateSensitivity { get; set; } = 0.1f;
@@ -856,11 +854,15 @@ void main(){
     {
         if (index < 0)
             return;
-        if (BonesConfig != null && index < _bones.Count)
+        if (index < _bones.Count)
         {
-            var name = _indexToHumanoidName.TryGetValue(index, out var n) ? n : _bones[index].Name;
-            var clamped = BonesConfig.Clamp(name, degrees.ToNumerics());
-            degrees = clamped.ToOpenTK();
+            var bone = _bones[index];
+            if (bone.HasRotationLimit)
+            {
+                degrees.X = Math.Clamp(degrees.X, bone.MinRotationDeg.X, bone.MaxRotationDeg.X);
+                degrees.Y = Math.Clamp(degrees.Y, bone.MinRotationDeg.Y, bone.MaxRotationDeg.Y);
+                degrees.Z = Math.Clamp(degrees.Z, bone.MinRotationDeg.Z, bone.MaxRotationDeg.Z);
+            }
         }
         while (_boneRotations.Count <= index)
             _boneRotations.Add(Vector3.Zero);
@@ -975,7 +977,6 @@ void main(){
             if (rm.SphereTexture != 0) GL.DeleteTexture(rm.SphereTexture);
             if (rm.ToonTexture != 0) GL.DeleteTexture(rm.ToonTexture);
         }
-        _indexToHumanoidName.Clear();
         _bones = data.Bones;
         _physicsBones.Clear();
         foreach (var rb in data.RigidBodies)
@@ -986,11 +987,6 @@ void main(){
         _selectedBoneIndex = -1;
         _worldMats = new System.Numerics.Matrix4x4[_bones.Count];
         _skinMats = new System.Numerics.Matrix4x4[_bones.Count];
-        foreach (var (name, idx) in data.HumanoidBoneList)
-        {
-            _indexToHumanoidName[idx] = name;
-        }
-
         _modelTransform = data.Transform.ToMatrix4();
 
         if (data.SubMeshes.Count == 0)
@@ -1454,7 +1450,6 @@ void main(){
             if (rm.Vbo != 0) GL.DeleteBuffer(rm.Vbo);
             if (rm.Ebo != 0) GL.DeleteBuffer(rm.Ebo);
         }
-        _indexToHumanoidName.Clear();
         GL.DeleteBuffer(_gridVbo);
         GL.DeleteBuffer(_axesVbo);
         GL.DeleteBuffer(_groundVbo);

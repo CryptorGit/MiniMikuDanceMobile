@@ -17,9 +17,6 @@ public partial class App : Application, IDisposable
 
         Directory.SetCurrentDirectory(MmdFileSystem.BaseDir);
         var uiConfig = DataManager.Instance.LoadConfig<UIConfig>("UIConfig");
-        var bonesConfig = DataManager.Instance.LoadConfig<BonesConfig>("BonesConfig");
-        Initializer.BonesConfig = bonesConfig;
-
         Initializer.Initialize(uiConfig, null, MmdFileSystem.BaseDir);
     }
 

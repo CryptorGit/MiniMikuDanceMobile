@@ -27,6 +27,9 @@ public class BoneData
     public Matrix4x4 BindMatrix { get; set; } = Matrix4x4.Identity;
     public Matrix4x4 InverseBindMatrix { get; set; } = Matrix4x4.Identity;
     public IkInfo? Ik { get; set; }
+    public bool HasRotationLimit { get; set; }
+    public Vector3 MinRotationDeg { get; set; } = Vector3.Zero;
+    public Vector3 MaxRotationDeg { get; set; } = Vector3.Zero;
 }
 
 public class IkInfo

@@ -67,7 +67,6 @@ public partial class MainPage : ContentPage
     private DateTime _lastFrameTime = DateTime.UtcNow;
     private readonly Dictionary<long, SKPoint> _touchPoints = new();
     private readonly long[] _touchIds = new long[2];
-    private readonly BonesConfig? _bonesConfig = App.Initializer.BonesConfig;
     private bool _needsRender;
     private readonly IDispatcherTimer _renderTimer;
     private int _renderTimerErrorCount;
@@ -592,7 +591,6 @@ public partial class MainPage : ContentPage
         {
             GL.LoadBindings(new SKGLViewBindingsContext());
             _renderer.Initialize();
-            _renderer.BonesConfig = _bonesConfig;
             _glInitialized = true;
         }
 
@@ -1308,16 +1306,6 @@ public partial class MainPage : ContentPage
         _modelDir = null;
         SetLoadingIndicatorVisibilityAndLayout(false);
         UpdateLayout();
-    }
-
-
-    private Vector3 ClampRotation(string bone, Vector3 rot)
-    {
-        if (_bonesConfig == null)
-            return rot;
-
-        var clamped = _bonesConfig.Clamp(bone, rot.ToNumerics());
-        return clamped.ToOpenTK();
     }
 
     private static System.Numerics.Quaternion AxisAngleToQuaternion(float x, float y, float z)

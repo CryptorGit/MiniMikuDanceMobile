@@ -40,11 +40,8 @@
   </ItemGroup>
 
   <ItemGroup>
-      <MauiAsset Include="..\Configs\BonesConfig.json">
-        <Link>Configs\BonesConfig.json</Link>
-      </MauiAsset>
-      <MauiAsset Include="..\Configs\UIConfig.json">
-        <Link>Configs\UIConfig.json</Link>
-      </MauiAsset>
+        <MauiAsset Include="..\Configs\UIConfig.json">
+          <Link>Configs\UIConfig.json</Link>
+        </MauiAsset>
     </ItemGroup>
   </Project>

@@ -12,7 +12,6 @@ using SixLabors.ImageSharp.PixelFormats;
 using Vector3D = Assimp.Vector3D;
 using MMDTools;
 using MiniMikuDance.App;
-using MiniMikuDance.Data;
 using PmxMaterial = MMDTools.Material;
 
 namespace MiniMikuDance.Import;
@@ -40,8 +39,6 @@ public class PmxImporter : IModelImporter
     private readonly AssimpContext _context = new();
     private readonly ILogger<PmxImporter> _logger;
 
-    private static readonly BonesConfig s_bonesConfig = DataManager.Instance.LoadConfig<BonesConfig>("BonesConfig");
-    private static readonly HashSet<string> s_humanoidBoneNames = new(s_bonesConfig.HumanoidBoneLimits.Select(l => l.Bone), StringComparer.OrdinalIgnoreCase);
     private sealed class TextureData
     {
         public int Width;
@@ -625,14 +622,24 @@ public PmxImporter(ILogger<PmxImporter>? logger = null)
                 var links = b.IKLinks.ToArray();
                 foreach (var link in links)
                 {
+                    var min = new System.Numerics.Vector3(link.MinLimit.X, link.MinLimit.Y, -link.MinLimit.Z);
+                    var max = new System.Numerics.Vector3(link.MaxLimit.X, link.MaxLimit.Y, -link.MaxLimit.Z);
                     var il = new IkLink
                     {
                         BoneIndex = link.Bone,
                         HasLimit = link.IsEnableAngleLimited,
-                        MinAngle = new System.Numerics.Vector3(link.MinLimit.X, link.MinLimit.Y, -link.MinLimit.Z),
-                        MaxAngle = new System.Numerics.Vector3(link.MaxLimit.X, link.MaxLimit.Y, -link.MaxLimit.Z)
+                        MinAngle = min,
+                        MaxAngle = max
                     };
                     ik.Links.Add(il);
+                    if (link.IsEnableAngleLimited && link.Bone >= 0 && link.Bone < boneDatas.Count)
+                    {
+                        const float rad2deg = 180f / (float)Math.PI;
+                        var target = boneDatas[link.Bone];
+                        target.HasRotationLimit = true;
+                        target.MinRotationDeg = min * rad2deg;
+                        target.MaxRotationDeg = max * rad2deg;
+                    }
                 }
                 bd.Ik = ik;
             }
