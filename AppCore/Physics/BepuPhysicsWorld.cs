@@ -248,9 +248,29 @@ public sealed class BepuPhysicsWorld : IPhysicsWorld
 
                 if (ikLinkMap.TryGetValue(info.Bone, out var ikLink) && ikLink.HasLimit)
                 {
-                    var euler = ToEulerXyz(localRot);
+                    var delta = localRot * Quaternion.Conjugate(bone.InitialRotation);
+                    Quaternion basisRot = default;
+                    if (bone.HasLocalAxis)
+                    {
+                        var x = Vector3.Normalize(bone.LocalAxisX);
+                        var z = Vector3.Normalize(bone.LocalAxisZ);
+                        var y = Vector3.Normalize(Vector3.Cross(z, x));
+                        basisRot = Quaternion.CreateFromRotationMatrix(new Matrix4x4(
+                            x.X, x.Y, x.Z, 0f,
+                            y.X, y.Y, y.Z, 0f,
+                            z.X, z.Y, z.Z, 0f,
+                            0f, 0f, 0f, 1f));
+                        delta = Quaternion.Normalize(Quaternion.Conjugate(basisRot) * delta * basisRot);
+                    }
+
+                    var euler = ToEulerXyz(delta);
                     euler = Vector3.Clamp(euler, ikLink.MinAngle, ikLink.MaxAngle);
-                    localRot = FromEulerXyz(euler);
+                    delta = FromEulerXyz(euler);
+
+                    if (bone.HasLocalAxis)
+                        delta = Quaternion.Normalize(basisRot * delta * Quaternion.Conjugate(basisRot));
+
+                    localRot = Quaternion.Normalize(delta * bone.InitialRotation);
                 }
 
                 if (info.Mode == 2)
