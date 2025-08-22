@@ -274,9 +274,13 @@ public class ClothSimulator
             {
                 var nextPos = Nodes[childIndex].Position;
                 var dir = nextPos - nodePos;
-                if (dir.LengthSquared() > 1e-8f && bone.BaseForward.LengthSquared() > 1e-8f)
+                if (dir.LengthSquared() > 1e-8f)
                 {
-                    var baseDir = Vector3.Normalize(bone.BaseForward);
+                    var baseDir = bone.BaseForward.LengthSquared() > 1e-8f
+                        ? Vector3.Normalize(bone.BaseForward)
+                        : (bone.InitialTranslation.LengthSquared() > 1e-8f
+                            ? Vector3.Normalize(bone.InitialTranslation)
+                            : Vector3.UnitY);
                     dir = Vector3.Normalize(dir);
                     var dot = Math.Clamp(Vector3.Dot(baseDir, dir), -1f, 1f);
                     var axis = Vector3.Cross(baseDir, dir);
@@ -289,7 +293,7 @@ public class ClothSimulator
                     }
                     else
                     {
-                        var upAxis = bone.BaseUp.LengthSquared() > 1e-8f ? Vector3.Normalize(bone.BaseUp) : Vector3.UnitY;
+                        var upAxis = bone.BaseUp.LengthSquared() > 1e-8f ? Vector3.Normalize(bone.BaseUp) : Vector3.UnitZ;
                         var angle = dot > 0f ? 0f : MathF.PI;
                         delta = Quaternion.CreateFromAxisAngle(upAxis, angle);
                     }
