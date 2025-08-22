@@ -255,10 +255,14 @@ public sealed class BepuPhysicsWorld : IPhysicsWorld
                         var x = Vector3.Normalize(bone.LocalAxisX);
                         var z = Vector3.Normalize(bone.LocalAxisZ);
                         var y = Vector3.Normalize(Vector3.Cross(z, x));
+                        // PMX仕様ではローカル軸は右手系で定義されており、
+                        // 指定されたX軸とZ軸からY軸を z × x で求める。
+                        // Matrix4x4 は列ベクトルが基底となるため、
+                        // 各軸ベクトルを列として配置する必要がある。
                         basisRot = Quaternion.CreateFromRotationMatrix(new Matrix4x4(
-                            x.X, x.Y, x.Z, 0f,
-                            y.X, y.Y, y.Z, 0f,
-                            z.X, z.Y, z.Z, 0f,
+                            x.X, y.X, z.X, 0f,
+                            x.Y, y.Y, z.Y, 0f,
+                            x.Z, y.Z, z.Z, 0f,
                             0f, 0f, 0f, 1f));
                         delta = Quaternion.Normalize(Quaternion.Conjugate(basisRot) * delta * basisRot);
                     }
