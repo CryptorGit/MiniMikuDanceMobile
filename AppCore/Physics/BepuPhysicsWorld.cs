@@ -122,7 +122,12 @@ public sealed class BepuPhysicsWorld : IPhysicsWorld
         _cloth.Friction = _config.Friction;
         _cloth.LockTranslation = _config.LockTranslation;
         _cloth.Substeps = _config.SubstepCount;
-        _simulation?.Timestep(dt, _threadDispatcher);
+        if (_simulation is not null)
+        {
+            // Refit broad phase using non-recursive method to avoid Refit2WithCacheOptimization issues
+            _simulation.BroadPhase.ActiveTree.Refit2();
+            _simulation.Timestep(dt, _threadDispatcher);
+        }
         _cloth.Step(dt);
         _lastDt = dt;
     }
@@ -571,19 +576,20 @@ public sealed class BepuPhysicsWorld : IPhysicsWorld
 
             try
             {
+                // Use non-recursive refit to avoid stack overflow in Refit2WithCacheOptimization
                 for (int i = 0; i < 4; i++)
                 {
-                    _simulation.BroadPhase.ActiveTree.RefitAndRefine(_bufferPool, 32, 0.1f);
+                    _simulation.BroadPhase.ActiveTree.Refit2();
                 }
             }
             catch (Exception ex)
             {
                 foreach (var info in invalidBodies)
                 {
-                    _logger.LogError("再フィット失敗剛体: {Index}, Min={Min}, Max={Max}", info.Index, info.Min, info.Max);
+                    _logger.LogError("Refit2 失敗剛体: {Index}, Min={Min}, Max={Max}", info.Index, info.Min, info.Max);
                 }
-                _logger.LogError(ex, "ActiveTree.RefitAndRefine に失敗しました。");
-                AppendCrashLog("ActiveTree.RefitAndRefine failed", ex);
+                _logger.LogError(ex, "ActiveTree.Refit2 に失敗しました。");
+                AppendCrashLog("ActiveTree.Refit2 failed", ex);
                 _skipSimulation = true;
             }
 
