@@ -401,33 +401,33 @@ public partial class MainPage : ContentPage
 
     private async void OnSelectClicked(object? sender, EventArgs e)
     {
-        HideAllMenusAndLayout();
+        HideAllMenus();
         await ShowModelSelector();
     }
 
     private void OnBoneClicked(object? sender, EventArgs e)
     {
         ShowBottomFeature("BONE");
-        HideAllMenusAndLayout();
+        HideAllMenus();
     }
 
 
     private void OnLightingClicked(object? sender, EventArgs e)
     {
         ShowBottomFeature("Lighting");
-        HideAllMenusAndLayout();
+        HideAllMenus();
     }
 
     private void OnMorphClicked(object? sender, EventArgs e)
     {
         ShowBottomFeature("MORPH");
-        HideAllMenusAndLayout();
+        HideAllMenus();
     }
 
     private void OnPhysicsClicked(object? sender, EventArgs e)
     {
         ShowBottomFeature("PHYSICS");
-        HideAllMenusAndLayout();
+        HideAllMenus();
     }
 
     private void OnCloseBottomTapped(object? sender, TappedEventArgs e)
@@ -440,17 +440,17 @@ public partial class MainPage : ContentPage
         {
             HideBottomRegion();
         }
-        HideAllMenusAndLayout();
+        HideAllMenus();
     }
 
     private void OnOverlayTapped(object? sender, TappedEventArgs e)
     {
-        HideAllMenusAndLayout();
+        HideAllMenus();
     }
 
     private void OnBottomRegionTapped(object? sender, TappedEventArgs e)
     {
-        HideAllMenusAndLayout();
+        HideAllMenus();
     }
 
     private void HideAllMenus()
@@ -467,14 +467,6 @@ public partial class MainPage : ContentPage
         _currentFeature = null;
         UpdateTabColors();
 
-    }
-
-    private void HideAllMenusAndLayout()
-    {
-        SetMenuVisibility(ref _viewMenuOpen, ViewMenu, false);
-        SetMenuVisibility(ref _settingMenuOpen, SettingMenu, false);
-        SetMenuVisibility(ref _fileMenuOpen, FileMenu, false);
-        UpdateLayout();
     }
 
     private void UpdateSettingViewProperties(SettingView? sv)
@@ -1055,7 +1047,7 @@ public partial class MainPage : ContentPage
             tap.Tapped += (s, e) =>
             {
                 SwitchBottomFeature(captured);
-                HideAllMenusAndLayout();
+                HideAllMenus();
             };
             border.GestureRecognizers.Add(tap);
             BottomTabBar.Add(border);
@@ -1196,7 +1188,7 @@ public partial class MainPage : ContentPage
 
     private void OnOpenInViewerClicked(object? sender, EventArgs e)
     {
-        HideAllMenusAndLayout();
+        HideAllMenus();
         SelectedModelPath.Text = string.Empty;
         _selectedModelPath = null;
         _modelDir = null;
