@@ -1060,14 +1060,14 @@ void main(){
         try
         {
             GL.TexImage2D(
-                TextureTarget.Texture2D,
+                (All)TextureTarget.Texture2D,
                 0,
-                PixelInternalFormat.Rgba,
+                (All)PixelInternalFormat.Rgba,
                 width,
                 height,
                 0,
-                PixelFormat.Rgba,
-                PixelType.UnsignedByte,
+                (All)PixelFormat.Rgba,
+                (All)PixelType.UnsignedByte,
                 handle.AddrOfPinnedObject());
             CheckGLError("GL.TexImage2D");
         }
