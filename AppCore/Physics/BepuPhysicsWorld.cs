@@ -498,22 +498,64 @@ public sealed class BepuPhysicsWorld : IPhysicsWorld
 
         void RefitBroadPhase()
         {
+            if (_simulation is null || _bufferPool is null)
+                return;
+
+            var bodyCount = _simulation.Bodies.ActiveSet.Count;
+            var leafCount = _simulation.BroadPhase.ActiveTree.LeafCount;
+            if (bodyCount != leafCount)
+            {
+                _logger.LogWarning("剛体数({BodyCount})と BroadPhase 葉数({LeafCount}) の不一致", bodyCount, leafCount);
+            }
+
+            const float limit = 1e6f;
+            var invalidBodies = new List<(int Index, Vector3 Min, Vector3 Max)>();
+
+            for (int i = _rigidBodyHandles.Count - 1; i >= 0; i--)
+            {
+                var handle = _rigidBodyHandles[i];
+                if (!_simulation.Bodies.BodyExists(handle))
+                    continue;
+
+                var body = _simulation.Bodies.GetBodyReference(handle);
+                var bounds = body.BoundingBox;
+                if (Invalid(bounds.Min) || Invalid(bounds.Max))
+                {
+                    invalidBodies.Add((handle.Value, bounds.Min, bounds.Max));
+                    _simulation.Bodies.Remove(handle);
+                    _rigidBodyHandles.RemoveAt(i);
+                    _bodyBoneMap.Remove(handle);
+                    _materialMap.Remove(handle);
+                    _bodyFilterMap.Remove(handle);
+                }
+            }
+
+            foreach (var info in invalidBodies)
+            {
+                _logger.LogWarning("AABB が異常な剛体を除外: {Index}, Min={Min}, Max={Max}", info.Index, info.Min, info.Max);
+            }
+
             try
             {
-                _simulation.BroadPhase.ActiveTree.Refit2();
+                for (int i = 0; i < 4; i++)
+                {
+                    _simulation.BroadPhase.ActiveTree.RefitAndRefine(_bufferPool, 32, 0.1f);
+                }
             }
             catch (Exception ex)
             {
-                _logger.LogWarning(ex, "ActiveTree.Refit2 に失敗しました。RefitAndRefine を試みます。");
-                try
+                foreach (var info in invalidBodies)
                 {
-                    if (_bufferPool is not null)
-                        _simulation.BroadPhase.ActiveTree.RefitAndRefine(_bufferPool, 32, 0.1f);
+                    _logger.LogError("再フィット失敗剛体: {Index}, Min={Min}, Max={Max}", info.Index, info.Min, info.Max);
                 }
-                catch (Exception refineEx)
-                {
-                    _logger.LogError(refineEx, "RefitAndRefine に失敗しました。BroadPhase の状態が不正な可能性があります。");
-                }
+                _logger.LogError(ex, "ActiveTree.RefitAndRefine に失敗しました。");
+            }
+
+            bool Invalid(Vector3 v)
+            {
+                return float.IsNaN(v.X) || float.IsInfinity(v.X) || MathF.Abs(v.X) > limit ||
+                       float.IsNaN(v.Y) || float.IsInfinity(v.Y) || MathF.Abs(v.Y) > limit ||
+                       float.IsNaN(v.Z) || float.IsInfinity(v.Z) || MathF.Abs(v.Z) > limit;
             }
         }
     }
