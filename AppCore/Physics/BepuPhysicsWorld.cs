@@ -160,7 +160,8 @@ public sealed class BepuPhysicsWorld : IPhysicsWorld
 
         var poseCache = new Dictionary<int, (Vector3 Pos, Quaternion Rot)>();
         var initialCache = new Dictionary<int, (Vector3 Pos, Quaternion Rot)>();
-        foreach (var pair in _bodyBoneMap)
+        var mapSnapshotFrom = _bodyBoneMap.ToArray();
+        foreach (var pair in mapSnapshotFrom)
         {
             var handle = pair.Key;
             var info = pair.Value;
@@ -290,7 +291,8 @@ public sealed class BepuPhysicsWorld : IPhysicsWorld
         if (_simulation is not null)
         {
             var poseMap = new Dictionary<int, (Vector3 Pos, Quaternion Rot)>();
-            foreach (var pair in _bodyBoneMap)
+            var mapSnapshot = _bodyBoneMap.ToArray();
+            foreach (var pair in mapSnapshot)
             {
                 var body = _simulation.Bodies.GetBodyReference(pair.Key);
                 poseMap[pair.Value.Bone] = (body.Pose.Position, body.Pose.Orientation);
@@ -306,7 +308,7 @@ public sealed class BepuPhysicsWorld : IPhysicsWorld
                 foreach (var link in ik.Links)
                     ikLinkMap[link.BoneIndex] = link;
             }
-            foreach (var pair in _bodyBoneMap)
+            foreach (var pair in mapSnapshot)
             {
                 var info = pair.Value;
                 if (info.Bone < 0 || info.Bone >= scene.Bones.Count)
