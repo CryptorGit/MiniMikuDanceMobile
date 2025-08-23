@@ -609,13 +609,19 @@ public partial class MainPage : ContentPage
 
     private void LoadPendingModel()
     {
-        if (_pendingModel != null)
+        if (_pendingModel == null)
+            return;
+
+        var model = _pendingModel;
+        _pendingModel = null;
+
+        try
         {
             IkManager.Clear();
             _renderer.ClearIkBones();
             _renderer.ClearBoneRotations();
-            _renderer.LoadModel(_pendingModel);
-            _currentModel = _pendingModel;
+            _renderer.LoadModel(model);
+            _currentModel = model;
             UpdateRendererLightingProperties();
             _scene.Bones.Clear();
             _scene.Bones.AddRange(_currentModel.Bones);
@@ -625,7 +631,6 @@ public partial class MainPage : ContentPage
                 bepu.LoadSoftBodies(_currentModel);
                 bepu.LoadJoints(_currentModel);
             }
-            _pendingModel = null;
 
             if (_poseMode && _currentModel != null)
             {
@@ -652,6 +657,17 @@ public partial class MainPage : ContentPage
                 IkManager.SetBoneWorldPosition = _renderer.SetBoneWorldPosition;
                 IkManager.ToModelSpaceFunc = _renderer.WorldToModel;
                 IkManager.ToWorldSpaceFunc = _renderer.ModelToWorld;
+            }
+        }
+        catch (Exception ex)
+        {
+            Debug.WriteLine(ex);
+            AppendCrashLog("LoadPendingModel failed", ex);
+            _renderTimer.Start();
+            if (Viewer is SKGLView gl)
+            {
+                gl.Touch -= OnViewTouch;
+                gl.Touch += OnViewTouch;
             }
         }
     }
@@ -1331,6 +1347,19 @@ public partial class MainPage : ContentPage
         pathLabel.Text = string.Empty;
         selectedPath = null;
         UpdateLayout();
+    }
+
+    private static void AppendCrashLog(string message, Exception ex)
+    {
+        try
+        {
+            var path = Path.Combine(AppContext.BaseDirectory, "crash_log.txt");
+            var text = $"[{DateTime.Now:O}] {message} {ex}";
+            File.AppendAllText(path, text + Environment.NewLine);
+        }
+        catch
+        {
+        }
     }
 
 }
