@@ -1055,7 +1055,7 @@ void main(){
         var handle = GCHandle.Alloc(bytes, GCHandleType.Pinned);
         try
         {
-            GL.TexImage2D(All.Texture2D, 0, All.Rgba, width, height, 0, All.Rgba, All.UnsignedByte, handle.AddrOfPinnedObject());
+            GL.TexImage2D(TextureTarget.Texture2D, 0, PixelInternalFormat.Rgba, width, height, 0, PixelFormat.Rgba, PixelType.UnsignedByte, handle.AddrOfPinnedObject());
             CheckGLError("GL.TexImage2D");
         }
         finally
