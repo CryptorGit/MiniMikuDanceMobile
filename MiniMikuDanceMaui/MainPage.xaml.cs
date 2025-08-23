@@ -25,6 +25,7 @@ using SixLabors.ImageSharp.PixelFormats;
 using MiniMikuDance.IK;
 using MiniMikuDance.Util;
 using MiniMikuDance.Physics;
+using MauiIcons.Material;
 
 namespace MiniMikuDanceMaui;
 
@@ -63,16 +64,16 @@ public partial class MainPage : ContentPage
     private ModelData? _pendingModel;
     private ModelData? _currentModel;
     private readonly Scene _scene = new();
-    private IPhysicsWorld _physics = new BepuPhysicsWorld();
+    private IPhysicsWorld _physics = new NullPhysicsWorld();
     private DateTime _lastFrameTime = DateTime.UtcNow;
     private readonly Dictionary<long, SKPoint> _touchPoints = new();
     private readonly long[] _touchIds = new long[2];
     private bool _needsRender;
     private readonly IDispatcherTimer _renderTimer;
     private int _renderTimerErrorCount;
-    private void OnPoseModeToggled(object? sender, ToggledEventArgs e)
+    private void OnPoseModeButtonClicked(object? sender, EventArgs e)
     {
-        _poseMode = e.Value;
+        _poseMode = !_poseMode;
         _touchPoints.Clear();
         if (_poseMode && _currentModel != null)
         {
@@ -83,7 +84,47 @@ public partial class MainPage : ContentPage
             DisablePoseMode();
         }
         _renderer.ShowIkBones = _poseMode;
+        PoseModeIcon.Icon = _poseMode ? MaterialIcons.AccessibilityNew : MaterialIcons.PhotoCamera;
+        PoseModeIcon.IconColor = _poseMode ? Colors.Green : Colors.Gray;
         Viewer?.InvalidateSurface();
+    }
+
+    private void OnPhysicsSwitchToggled(object? sender, ToggledEventArgs e)
+    {
+        ApplyPhysicsState(e.Value);
+        _settings.EnablePhysics = PhysicsSwitch.IsToggled;
+        _settings.Save();
+    }
+
+    private void ApplyPhysicsState(bool enabled)
+    {
+        (_physics as IDisposable)?.Dispose();
+        if (enabled)
+        {
+            _physics = new BepuPhysicsWorld();
+            try
+            {
+                _physics.Initialize(_settings.Physics, _settings.ModelScale);
+                if (_currentModel != null && _physics is BepuPhysicsWorld bepu)
+                {
+                    bepu.LoadRigidBodies(_currentModel);
+                    bepu.LoadSoftBodies(_currentModel);
+                    bepu.LoadJoints(_currentModel);
+                }
+            }
+            catch (Exception ex)
+            {
+                Debug.WriteLine(ex.ToString());
+                _physics = new NullPhysicsWorld();
+                PhysicsSwitch.IsToggled = false;
+                _settings.EnablePhysics = false;
+                _settings.Save();
+            }
+        }
+        else
+        {
+            _physics = new NullPhysicsWorld();
+        }
     }
 
     private void EnablePoseMode()
@@ -179,15 +220,9 @@ public partial class MainPage : ContentPage
         _renderer.BonePickPixels = _settings.BonePickPixels;
         _renderer.ShowIkBones = _poseMode;
         _renderer.IkBoneScale = _settings.IkBoneScale;
-        try
-        {
-            _physics.Initialize(_settings.Physics, _settings.ModelScale);
-        }
-        catch (Exception ex)
-        {
-            Debug.WriteLine(ex.ToString());
-            _physics = new NullPhysicsWorld();
-        }
+        PhysicsSwitch.IsToggled = _settings.EnablePhysics;
+        ApplyPhysicsState(_settings.EnablePhysics);
+        PhysicsSwitch.Toggled += OnPhysicsSwitchToggled;
 
         if (Viewer is SKGLView glView)
         {
