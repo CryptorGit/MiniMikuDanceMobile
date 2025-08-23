@@ -63,7 +63,7 @@ public partial class MainPage : ContentPage
     private ModelData? _pendingModel;
     private ModelData? _currentModel;
     private readonly Scene _scene = new();
-    private readonly IPhysicsWorld _physics = new BepuPhysicsWorld();
+    private IPhysicsWorld _physics = new BepuPhysicsWorld();
     private DateTime _lastFrameTime = DateTime.UtcNow;
     private readonly Dictionary<long, SKPoint> _touchPoints = new();
     private readonly long[] _touchIds = new long[2];
@@ -179,7 +179,15 @@ public partial class MainPage : ContentPage
         _renderer.BonePickPixels = _settings.BonePickPixels;
         _renderer.ShowIkBones = _poseMode;
         _renderer.IkBoneScale = _settings.IkBoneScale;
-        _physics.Initialize(_settings.Physics, _settings.ModelScale);
+        try
+        {
+            _physics.Initialize(_settings.Physics, _settings.ModelScale);
+        }
+        catch (Exception ex)
+        {
+            Debug.WriteLine(ex);
+            _physics = new NullPhysicsWorld();
+        }
 
         if (Viewer is SKGLView glView)
         {
@@ -1211,7 +1219,14 @@ public partial class MainPage : ContentPage
         RemoveBottomFeature("Open");
         PmxImportDialog.IsVisible = false;
         SetLoadingIndicatorVisibilityAndLayout(true);
+        _renderTimer.Stop();
         Viewer.HasRenderLoop = false;
+        _needsRender = false;
+        _touchPoints.Clear();
+        if (Viewer is SKGLView gl)
+        {
+            gl.Touch -= OnViewTouch;
+        }
 
         bool success = false;
 
@@ -1299,10 +1314,19 @@ public partial class MainPage : ContentPage
             Debug.WriteLine(ex);
             SelectedModelPath.Text = "モデルの読み込みに失敗しました";
             await DisplayAlert("Error", "モデルの読み込みに失敗しました", "OK");
+            _needsRender = true;
         }
         finally
         {
+            if (Viewer is SKGLView gl)
+            {
+                gl.Touch -= OnViewTouch;
+                gl.Touch += OnViewTouch;
+            }
+            _touchPoints.Clear();
+            _renderTimer.Start();
             Viewer.HasRenderLoop = true;
+            _needsRender = true;
             SetLoadingIndicatorVisibilityAndLayout(false);
             _selectedModelPath = null;
             _modelDir = null;
