@@ -51,6 +51,8 @@ public partial class MainPage : ContentPage
     private readonly Scene _scene = new();
     private IPhysicsWorld _physics = new NullPhysicsWorld();
     private readonly object _physicsLock = new();
+    private bool _pendingPhysicsReload;
+    private PhysicsState? _nextPhysics;
     private DateTime _lastFrameTime = DateTime.UtcNow;
     private readonly Dictionary<long, SKPoint> _touchPoints = new();
     private readonly long[] _touchIds = new long[2];
@@ -77,50 +79,57 @@ public partial class MainPage : ContentPage
 
     private void OnPhysicsButtonClicked(object? sender, TappedEventArgs e)
     {
+        var desired = !_physicsEnabled;
+        var state = BuildPhysicsState(desired);
         lock (_physicsLock)
         {
-            _physicsEnabled = !_physicsEnabled;
-            ApplyPhysicsState(_physicsEnabled);
+            if (_nextPhysics.HasValue)
+            {
+                (_nextPhysics.Value.World as IDisposable)?.Dispose();
+            }
+            _nextPhysics = state;
+            _pendingPhysicsReload = true;
+            _physicsEnabled = state.Enabled;
         }
         PhysicsIcon.SetIconColor(_physicsEnabled ? Colors.Green : Colors.Gray);
         _settings.EnablePhysics = _physicsEnabled;
         _settings.Save();
+        _needsRender = true;
+        Viewer?.InvalidateSurface();
     }
 
-    private void ApplyPhysicsState(bool enabled)
+    private PhysicsState BuildPhysicsState(bool enabled)
     {
-        lock (_physicsLock)
+        IPhysicsWorld physics;
+        if (enabled)
         {
-            (_physics as IDisposable)?.Dispose();
-            if (enabled)
+            physics = new BepuPhysicsWorld();
+            try
             {
-                _physics = new BepuPhysicsWorld();
-                try
+                physics.Initialize(_settings.Physics, _settings.ModelScale, _settings.UseScaledGravity);
+                if (_currentModel != null && physics is BepuPhysicsWorld bepu)
                 {
-                    _physics.Initialize(_settings.Physics, _settings.ModelScale, _settings.UseScaledGravity);
-                    if (_currentModel != null && _physics is BepuPhysicsWorld bepu)
-                    {
-                        bepu.LoadRigidBodies(_currentModel);
-                        bepu.LoadSoftBodies(_currentModel);
-                        bepu.LoadJoints(_currentModel);
-                    }
-                }
-                catch (Exception ex)
-                {
-                    Debug.WriteLine(ex.ToString());
-                    _physics = new NullPhysicsWorld();
-                    _physicsEnabled = false;
-                    PhysicsIcon.SetIconColor(Colors.Gray);
-                    _settings.EnablePhysics = false;
-                    _settings.Save();
+                    bepu.LoadRigidBodies(_currentModel);
+                    bepu.LoadSoftBodies(_currentModel);
+                    bepu.LoadJoints(_currentModel);
                 }
             }
-            else
+            catch (Exception ex)
             {
-                _physics = new NullPhysicsWorld();
+                Debug.WriteLine(ex.ToString());
+                physics = new NullPhysicsWorld();
+                enabled = false;
             }
         }
+        else
+        {
+            physics = new NullPhysicsWorld();
+        }
+
+        return new PhysicsState(physics, enabled);
     }
+
+    private record struct PhysicsState(IPhysicsWorld World, bool Enabled);
 
     private void EnablePoseMode()
     {
@@ -194,10 +203,9 @@ public partial class MainPage : ContentPage
         _renderer.ShowIkBones = _poseMode;
         _renderer.IkBoneScale = _settings.IkBoneScale;
         _physicsEnabled = _settings.EnablePhysics;
-        lock (_physicsLock)
-        {
-            ApplyPhysicsState(_physicsEnabled);
-        }
+        var initState = BuildPhysicsState(_physicsEnabled);
+        _physics = initState.World;
+        _physicsEnabled = initState.Enabled;
         PhysicsIcon.SetIconColor(_physicsEnabled ? Colors.Green : Colors.Gray);
 
         if (Viewer is SKGLView glView)
@@ -447,6 +455,17 @@ public partial class MainPage : ContentPage
         _renderer.Render();
         GL.Flush();
         _needsRender = false;
+
+        if (_pendingPhysicsReload && _nextPhysics.HasValue)
+        {
+            lock (_physicsLock)
+            {
+                (_physics as IDisposable)?.Dispose();
+                _physics = _nextPhysics.Value.World;
+            }
+            _nextPhysics = null;
+            _pendingPhysicsReload = false;
+        }
     }
 
 
