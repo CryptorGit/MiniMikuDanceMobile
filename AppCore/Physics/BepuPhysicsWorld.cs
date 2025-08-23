@@ -9,6 +9,7 @@ using BepuPhysics.CollisionDetection;
 using BepuPhysics.CollisionDetection.CollisionTasks;
 using BepuUtilities;
 using BepuUtilities.Memory;
+using BepuUtilities.Threading;
 using MiniMikuDance.Import;
 using MiniMikuDance.App;
 using MiniMikuDance.Physics.Cloth;
@@ -21,6 +22,7 @@ public sealed class BepuPhysicsWorld : IPhysicsWorld
 {
     private BufferPool? _bufferPool;
     private Simulation? _simulation;
+    private SimpleThreadDispatcher? _threadDispatcher;
     private readonly Dictionary<BodyHandle, (int Bone, RigidBodyMode Mode)> _bodyBoneMap = new(); // Mode: FollowBone=0, Physics=1, PhysicsWithBoneAlignment=2
     private readonly List<BodyHandle> _rigidBodyHandles = new();
     private readonly List<TypedIndex> _shapeIndices = new();
@@ -74,6 +76,8 @@ public sealed class BepuPhysicsWorld : IPhysicsWorld
         _config = new PhysicsConfig(gravity, solverIterationCount, substepCount, config.Damping, config.BoneBlendFactor, config.GroundHeight, config.Restitution, config.Friction, config.LockTranslation);
         BoneBlendFactor = config.BoneBlendFactor;
         _bufferPool = new BufferPool();
+        _threadDispatcher?.Dispose();
+        _threadDispatcher = new SimpleThreadDispatcher(Environment.ProcessorCount);
         _simulation = Simulation.Create(_bufferPool,
             new SubgroupFilteredCallbacks(_materialMap, _bodyFilterMap, _staticMaterialMap, _staticFilterMap),
             // Damping は 1 秒あたりの減衰率 (0～1)
@@ -118,7 +122,7 @@ public sealed class BepuPhysicsWorld : IPhysicsWorld
         _cloth.Friction = _config.Friction;
         _cloth.LockTranslation = _config.LockTranslation;
         _cloth.Substeps = _config.SubstepCount;
-        _simulation?.Timestep(dt);
+        _simulation?.Timestep(dt, _threadDispatcher);
         _cloth.Step(dt);
         _lastDt = dt;
     }
@@ -397,6 +401,8 @@ public sealed class BepuPhysicsWorld : IPhysicsWorld
 
         _bufferPool?.Clear();
         _bufferPool = null;
+        _threadDispatcher?.Dispose();
+        _threadDispatcher = null;
         _staticMaterialMap.Clear();
         _staticFilterMap.Clear();
     }
