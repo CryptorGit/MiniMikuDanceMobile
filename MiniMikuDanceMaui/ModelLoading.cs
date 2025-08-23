@@ -17,6 +17,7 @@ using MiniMikuDance.Util;
 using MiniMikuDance.App;
 using MiniMikuDance.IK;
 using MiniMikuDance.Physics;
+using System.Text;
 
 namespace MiniMikuDanceMaui;
 
@@ -112,6 +113,7 @@ public partial class MainPage
                 }
                 _renderer.LoadModel(data);
                 _currentModel = data;
+                WritePhysicsLog(_currentModel);
                 UpdateRendererLightingProperties();
                 UpdatePhysicsViewRigidBodies();
                 Viewer?.InvalidateSurface();
@@ -378,6 +380,7 @@ public partial class MainPage
             _renderer.ClearBoneRotations();
             _renderer.LoadModel(model);
             _currentModel = model;
+            WritePhysicsLog(_currentModel);
             UpdateRendererLightingProperties();
             _scene.Bones.Clear();
             _scene.Bones.AddRange(_currentModel.Bones);
@@ -426,6 +429,41 @@ public partial class MainPage
                 gl.Touch -= OnViewTouch;
                 gl.Touch += OnViewTouch;
             }
+        }
+    }
+
+    private void WritePhysicsLog(ModelData model)
+    {
+        try
+        {
+            var logDir = MmdFileSystem.Ensure("Log");
+            var logPath = Path.Combine(logDir, "physics.txt");
+            var sb = new StringBuilder();
+            sb.AppendLine($"[{DateTime.Now:O}] {model.ModelName}");
+            var cfg = _settings.Physics;
+            sb.AppendLine($"Gravity: {cfg.Gravity}");
+            sb.AppendLine($"SolverIterationCount: {cfg.SolverIterationCount}");
+            sb.AppendLine($"SubstepCount: {cfg.SubstepCount}");
+            sb.AppendLine($"Damping: {cfg.Damping}");
+            sb.AppendLine($"BoneBlendFactor: {cfg.BoneBlendFactor}");
+            sb.AppendLine($"GroundHeight: {cfg.GroundHeight}");
+            sb.AppendLine($"Restitution: {cfg.Restitution}");
+            sb.AppendLine($"Friction: {cfg.Friction}");
+            sb.AppendLine($"LockTranslation: {cfg.LockTranslation}");
+            foreach (var rb in model.RigidBodies)
+            {
+                sb.AppendLine(
+                    $"RigidBody: {rb.Name} BoneIndex:{rb.BoneIndex} Mass:{rb.Mass} Shape:{rb.Shape} " +
+                    $"LinearDamping:{rb.LinearDamping} AngularDamping:{rb.AngularDamping} " +
+                    $"Restitution:{rb.Restitution} Friction:{rb.Friction} Position:{rb.Position} Rotation:{rb.Rotation} " +
+                    $"Size:{rb.Size} Group:{rb.Group} Mask:{rb.Mask} Mode:{rb.Mode}");
+            }
+            sb.AppendLine();
+            File.AppendAllText(logPath, sb.ToString());
+        }
+        catch (Exception ex)
+        {
+            Debug.WriteLine(ex.ToString());
         }
     }
 

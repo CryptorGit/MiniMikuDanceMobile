@@ -258,6 +258,7 @@ public partial class MainPage
                 };
                 view = mv;
             }
+            // TODO: リリース時にはこの "PHYSICS" ケースを削除する
             else if (name == "PHYSICS")
             {
                 var rb = _currentModel?.RigidBodies ?? Enumerable.Empty<RigidBodyData>();
@@ -363,6 +364,7 @@ public partial class MainPage
                 morphView.SetMorphs(_currentModel.Morphs);
             }
         }
+        // TODO: リリース時にはこの "PHYSICS" ケースを削除する
         else if (name == "PHYSICS" && _bottomViews[name] is PhysicsView pv2)
         {
             pv2.SetConfig(_settings.Physics);
