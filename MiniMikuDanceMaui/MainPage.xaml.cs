@@ -71,7 +71,7 @@ public partial class MainPage : ContentPage
     private bool _needsRender;
     private readonly IDispatcherTimer _renderTimer;
     private int _renderTimerErrorCount;
-    private void OnPoseModeButtonClicked(object? sender, EventArgs e)
+    private void OnPoseModeButtonClicked(object? sender, TappedEventArgs e)
     {
         _poseMode = !_poseMode;
         _touchPoints.Clear();
