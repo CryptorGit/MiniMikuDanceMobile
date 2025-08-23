@@ -59,6 +59,7 @@ maui run android
 3. IKボーン球サイズや Bone Pick Pixels を好みの値に変更します。
 4. Show Bone Outline にチェックを入れると IK ボーンの表示を切り替えられます。
 5. Reset Camera ボタンでカメラ位置を初期化します。
+6. モデルがメートル系の場合は `appsettings.json` の `UseScaledGravity` を `false` にすると重力のスケーリングを無効化できます。
 
 ### 録画
 1. 録画ボタンを押すと `AppInitializer.ToggleRecord` が呼ばれ、録画を開始します。
