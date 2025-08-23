@@ -1121,6 +1121,187 @@ void main(){
 
     // Morph関連メソッドは PmxRenderer.Morph.cs へ移動
 
+    private static (float[] Verts, List<uint> Indices) CreateVertexData(MiniMikuDance.Import.SubMeshData sm, RenderMesh rm)
+    {
+        int vcount = sm.Mesh.VertexCount;
+        float[] verts = new float[vcount * 8];
+        for (int i = 0; i < vcount; i++)
+        {
+            var v = sm.Mesh.Vertices[i];
+            verts[i * 8 + 0] = v.X;
+            verts[i * 8 + 1] = v.Y;
+            verts[i * 8 + 2] = v.Z;
+            if (i < sm.Mesh.Normals.Count)
+            {
+                var n = sm.Mesh.Normals[i];
+                verts[i * 8 + 3] = n.X;
+                verts[i * 8 + 4] = n.Y;
+                verts[i * 8 + 5] = n.Z;
+            }
+            else
+            {
+                verts[i * 8 + 3] = 0f;
+                verts[i * 8 + 4] = 0f;
+                verts[i * 8 + 5] = 1f;
+            }
+            if (i < sm.TexCoords.Count)
+            {
+                var uv = sm.TexCoords[i];
+                verts[i * 8 + 6] = uv.X;
+                verts[i * 8 + 7] = uv.Y;
+            }
+            else
+            {
+                verts[i * 8 + 6] = 0f;
+                verts[i * 8 + 7] = 0f;
+            }
+        }
+
+        var indices = new List<uint>();
+        foreach (var f in sm.Mesh.Faces)
+        {
+            foreach (var idx in f.Indices)
+                indices.Add((uint)idx);
+        }
+
+        rm.IndexCount = indices.Count;
+
+        int baseVertCount = sm.Mesh.Vertices.Count;
+        rm.BaseVertices = new Vector3[baseVertCount];
+        for (int i = 0; i < baseVertCount; i++)
+        {
+            var v = sm.Mesh.Vertices[i];
+            rm.BaseVertices[i] = new Vector3(v.X, v.Y, v.Z);
+        }
+        rm.VertexOffsets = new Vector3[baseVertCount];
+
+        int normalsCount = sm.Mesh.Normals.Count;
+        rm.Normals = new Vector3[normalsCount];
+        for (int i = 0; i < normalsCount; i++)
+        {
+            var n = sm.Mesh.Normals[i];
+            rm.Normals[i] = new Vector3(n.X, n.Y, n.Z);
+        }
+
+        int texCount = sm.TexCoords.Count;
+        rm.TexCoords = new Vector2[texCount];
+        rm.UvOffsets = new Vector2[texCount];
+        for (int i = 0; i < texCount; i++)
+        {
+            var t = sm.TexCoords[i];
+            rm.TexCoords[i] = new Vector2(t.X, t.Y);
+        }
+
+        int jointIndexCount = sm.JointIndices.Count;
+        rm.JointIndices = new Vector4[jointIndexCount];
+        for (int i = 0; i < jointIndexCount; i++)
+        {
+            var j = sm.JointIndices[i];
+            rm.JointIndices[i] = new Vector4(j.X, j.Y, j.Z, j.W);
+        }
+
+        int jointWeightCount = sm.JointWeights.Count;
+        rm.JointWeights = new Vector4[jointWeightCount];
+        for (int i = 0; i < jointWeightCount; i++)
+        {
+            var w = sm.JointWeights[i];
+            rm.JointWeights[i] = new Vector4(w.X, w.Y, w.Z, w.W);
+        }
+
+        int sdefCount = sm.SdefC.Count;
+        rm.SdefC = new Vector3[sdefCount];
+        rm.SdefR0 = new Vector3[sdefCount];
+        rm.SdefR1 = new Vector3[sdefCount];
+        for (int i = 0; i < sdefCount; i++)
+        {
+            var c = sm.SdefC[i];
+            rm.SdefC[i] = new Vector3(c.X, c.Y, c.Z);
+            var r0 = sm.SdefR0[i];
+            rm.SdefR0[i] = new Vector3(r0.X, r0.Y, r0.Z);
+            var r1 = sm.SdefR1[i];
+            rm.SdefR1[i] = new Vector3(r1.X, r1.Y, r1.Z);
+        }
+
+        return (verts, indices);
+    }
+
+    private static void SetupBuffers(RenderMesh rm, MiniMikuDance.Import.SubMeshData sm, float[] verts, List<uint> indices)
+    {
+        rm.Vao = GL.GenVertexArray();
+        CheckGLError("GL.GenVertexArray");
+        rm.Vbo = GL.GenBuffer();
+        CheckGLError("GL.GenBuffer");
+        rm.Ebo = GL.GenBuffer();
+        CheckGLError("GL.GenBuffer");
+        rm.BaseColor = sm.ColorFactor.ToVector4();
+        rm.Color = rm.BaseColor;
+        rm.BaseSpecular = sm.Specular.ToOpenTK();
+        rm.Specular = rm.BaseSpecular;
+        rm.BaseSpecularPower = sm.SpecularPower;
+        rm.SpecularPower = rm.BaseSpecularPower;
+        rm.BaseEdgeColor = sm.EdgeColor.ToVector4();
+        rm.EdgeColor = rm.BaseEdgeColor;
+        rm.BaseEdgeSize = sm.EdgeSize;
+        rm.EdgeSize = rm.BaseEdgeSize;
+        rm.BaseToonColor = sm.ToonColor.ToOpenTK();
+        rm.ToonColor = rm.BaseToonColor;
+        rm.BaseTextureTint = sm.TextureTint.ToVector4();
+        rm.TextureTint = rm.BaseTextureTint;
+        rm.SphereMode = sm.SphereMode;
+
+        GL.BindVertexArray(rm.Vao);
+        CheckGLError("GL.BindVertexArray");
+        GL.BindBuffer(BufferTarget.ArrayBuffer, rm.Vbo);
+        CheckGLError("GL.BindBuffer");
+        GL.BufferData(BufferTarget.ArrayBuffer, verts.Length * sizeof(float), verts, BufferUsageHint.StaticDraw);
+        CheckGLError("GL.BufferData");
+        int stride = 8 * sizeof(float);
+        GL.VertexAttribPointer(0, 3, VertexAttribPointerType.Float, false, stride, 0);
+        CheckGLError("GL.VertexAttribPointer");
+        GL.EnableVertexAttribArray(0);
+        CheckGLError("GL.EnableVertexAttribArray");
+        GL.VertexAttribPointer(1, 3, VertexAttribPointerType.Float, false, stride, 3 * sizeof(float));
+        CheckGLError("GL.VertexAttribPointer");
+        GL.EnableVertexAttribArray(1);
+        CheckGLError("GL.EnableVertexAttribArray");
+        GL.VertexAttribPointer(2, 2, VertexAttribPointerType.Float, false, stride, 6 * sizeof(float));
+        CheckGLError("GL.VertexAttribPointer");
+        GL.EnableVertexAttribArray(2);
+        CheckGLError("GL.EnableVertexAttribArray");
+        GL.BindBuffer(BufferTarget.ElementArrayBuffer, rm.Ebo);
+        CheckGLError("GL.BindBuffer");
+        GL.BufferData(BufferTarget.ElementArrayBuffer, indices.Count * sizeof(uint), indices.ToArray(), BufferUsageHint.StaticDraw);
+        CheckGLError("GL.BufferData");
+        GL.BindVertexArray(0);
+        CheckGLError("GL.BindVertexArray");
+    }
+
+    private static void ApplyTextures(MiniMikuDance.Import.SubMeshData sm, RenderMesh rm)
+    {
+        (rm.Texture, rm.HasTexture) = LoadTextureBytes(sm.TextureBytes, sm.TextureWidth, sm.TextureHeight);
+        sm.TextureBytes = null;
+        sm.TextureWidth = 0;
+        sm.TextureHeight = 0;
+
+        (rm.SphereTexture, rm.HasSphereTexture) = LoadTextureBytes(sm.SphereTextureBytes, sm.SphereTextureWidth, sm.SphereTextureHeight);
+        sm.SphereTextureBytes = null;
+        sm.SphereTextureWidth = 0;
+        sm.SphereTextureHeight = 0;
+
+        (rm.ToonTexture, rm.HasToonTexture) = LoadTextureBytes(sm.ToonTextureBytes, sm.ToonTextureWidth, sm.ToonTextureHeight);
+        sm.ToonTextureBytes = null;
+        sm.ToonTextureWidth = 0;
+        sm.ToonTextureHeight = 0;
+
+        if (rm.HasTexture)
+        {
+            rm.BaseTextureTint *= rm.BaseColor;
+            rm.TextureTint = rm.BaseTextureTint;
+            rm.BaseColor = Vector4.One;
+            rm.Color = Vector4.One;
+        }
+    }
+
     public void LoadModel(MiniMikuDance.Import.ModelData data)
     {
         RenderMesh[] oldMeshes;
@@ -1185,175 +1366,10 @@ void main(){
         var newMeshes = new List<RenderMesh>();
         foreach (var sm in data.SubMeshes)
         {
-            int vcount = sm.Mesh.VertexCount;
-            float[] verts = new float[vcount * 8];
-            for (int i = 0; i < vcount; i++)
-            {
-                var v = sm.Mesh.Vertices[i];
-                verts[i * 8 + 0] = v.X;
-                verts[i * 8 + 1] = v.Y;
-                verts[i * 8 + 2] = v.Z;
-                if (i < sm.Mesh.Normals.Count)
-                {
-                    var n = sm.Mesh.Normals[i];
-                    verts[i * 8 + 3] = n.X;
-                    verts[i * 8 + 4] = n.Y;
-                    verts[i * 8 + 5] = n.Z;
-                }
-                else
-                {
-                    verts[i * 8 + 3] = 0f;
-                    verts[i * 8 + 4] = 0f;
-                    verts[i * 8 + 5] = 1f;
-                }
-                if (i < sm.TexCoords.Count)
-                {
-                    var uv = sm.TexCoords[i];
-                    verts[i * 8 + 6] = uv.X;
-                    verts[i * 8 + 7] = uv.Y;
-                }
-                else
-                {
-                    verts[i * 8 + 6] = 0f;
-                    verts[i * 8 + 7] = 0f;
-                }
-            }
-
-            var indices = new System.Collections.Generic.List<uint>();
-            foreach (var f in sm.Mesh.Faces)
-            {
-                foreach (var idx in f.Indices)
-                    indices.Add((uint)idx);
-            }
-
             var rm = new RenderMesh();
-            rm.IndexCount = indices.Count;
-
-            int baseVertCount = sm.Mesh.Vertices.Count;
-            rm.BaseVertices = new Vector3[baseVertCount];
-            for (int i = 0; i < baseVertCount; i++)
-            {
-                var v = sm.Mesh.Vertices[i];
-                rm.BaseVertices[i] = new Vector3(v.X, v.Y, v.Z);
-            }
-            rm.VertexOffsets = new Vector3[baseVertCount];
-
-            int normalsCount = sm.Mesh.Normals.Count;
-            rm.Normals = new Vector3[normalsCount];
-            for (int i = 0; i < normalsCount; i++)
-            {
-                var n = sm.Mesh.Normals[i];
-                rm.Normals[i] = new Vector3(n.X, n.Y, n.Z);
-            }
-
-            int texCount = sm.TexCoords.Count;
-            rm.TexCoords = new Vector2[texCount];
-            rm.UvOffsets = new Vector2[texCount];
-            for (int i = 0; i < texCount; i++)
-            {
-                var t = sm.TexCoords[i];
-                rm.TexCoords[i] = new Vector2(t.X, t.Y);
-            }
-
-            int jointIndexCount = sm.JointIndices.Count;
-            rm.JointIndices = new Vector4[jointIndexCount];
-            for (int i = 0; i < jointIndexCount; i++)
-            {
-                var j = sm.JointIndices[i];
-                rm.JointIndices[i] = new Vector4(j.X, j.Y, j.Z, j.W);
-            }
-
-            int jointWeightCount = sm.JointWeights.Count;
-            rm.JointWeights = new Vector4[jointWeightCount];
-            for (int i = 0; i < jointWeightCount; i++)
-            {
-                var w = sm.JointWeights[i];
-                rm.JointWeights[i] = new Vector4(w.X, w.Y, w.Z, w.W);
-            }
-            int sdefCount = sm.SdefC.Count;
-            rm.SdefC = new Vector3[sdefCount];
-            rm.SdefR0 = new Vector3[sdefCount];
-            rm.SdefR1 = new Vector3[sdefCount];
-            for (int i = 0; i < sdefCount; i++)
-            {
-                var c = sm.SdefC[i];
-                rm.SdefC[i] = new Vector3(c.X, c.Y, c.Z);
-                var r0 = sm.SdefR0[i];
-                rm.SdefR0[i] = new Vector3(r0.X, r0.Y, r0.Z);
-                var r1 = sm.SdefR1[i];
-                rm.SdefR1[i] = new Vector3(r1.X, r1.Y, r1.Z);
-            }
-            rm.Vao = GL.GenVertexArray();
-            CheckGLError("GL.GenVertexArray");
-            rm.Vbo = GL.GenBuffer();
-            CheckGLError("GL.GenBuffer");
-            rm.Ebo = GL.GenBuffer();
-            CheckGLError("GL.GenBuffer");
-            rm.BaseColor = sm.ColorFactor.ToVector4();
-            rm.Color = rm.BaseColor;
-            rm.BaseSpecular = sm.Specular.ToOpenTK();
-            rm.Specular = rm.BaseSpecular;
-            rm.BaseSpecularPower = sm.SpecularPower;
-            rm.SpecularPower = rm.BaseSpecularPower;
-            rm.BaseEdgeColor = sm.EdgeColor.ToVector4();
-            rm.EdgeColor = rm.BaseEdgeColor;
-            rm.BaseEdgeSize = sm.EdgeSize;
-            rm.EdgeSize = rm.BaseEdgeSize;
-            rm.BaseToonColor = sm.ToonColor.ToOpenTK();
-            rm.ToonColor = rm.BaseToonColor;
-            rm.BaseTextureTint = sm.TextureTint.ToVector4();
-            rm.TextureTint = rm.BaseTextureTint;
-            rm.SphereMode = sm.SphereMode;
-
-            GL.BindVertexArray(rm.Vao);
-            CheckGLError("GL.BindVertexArray");
-            GL.BindBuffer(BufferTarget.ArrayBuffer, rm.Vbo);
-            CheckGLError("GL.BindBuffer");
-            GL.BufferData(BufferTarget.ArrayBuffer, verts.Length * sizeof(float), verts, BufferUsageHint.StaticDraw);
-            CheckGLError("GL.BufferData");
-            int stride = 8 * sizeof(float);
-            GL.VertexAttribPointer(0, 3, VertexAttribPointerType.Float, false, stride, 0);
-            CheckGLError("GL.VertexAttribPointer");
-            GL.EnableVertexAttribArray(0);
-            CheckGLError("GL.EnableVertexAttribArray");
-            GL.VertexAttribPointer(1, 3, VertexAttribPointerType.Float, false, stride, 3 * sizeof(float));
-            CheckGLError("GL.VertexAttribPointer");
-            GL.EnableVertexAttribArray(1);
-            CheckGLError("GL.EnableVertexAttribArray");
-            GL.VertexAttribPointer(2, 2, VertexAttribPointerType.Float, false, stride, 6 * sizeof(float));
-            CheckGLError("GL.VertexAttribPointer");
-            GL.EnableVertexAttribArray(2);
-            CheckGLError("GL.EnableVertexAttribArray");
-            GL.BindBuffer(BufferTarget.ElementArrayBuffer, rm.Ebo);
-            CheckGLError("GL.BindBuffer");
-            GL.BufferData(BufferTarget.ElementArrayBuffer, indices.Count * sizeof(uint), indices.ToArray(), BufferUsageHint.StaticDraw);
-            CheckGLError("GL.BufferData");
-            GL.BindVertexArray(0);
-            CheckGLError("GL.BindVertexArray");
-
-            (rm.Texture, rm.HasTexture) = LoadTextureBytes(sm.TextureBytes, sm.TextureWidth, sm.TextureHeight);
-            sm.TextureBytes = null;
-            sm.TextureWidth = 0;
-            sm.TextureHeight = 0;
-
-            (rm.SphereTexture, rm.HasSphereTexture) = LoadTextureBytes(sm.SphereTextureBytes, sm.SphereTextureWidth, sm.SphereTextureHeight);
-            sm.SphereTextureBytes = null;
-            sm.SphereTextureWidth = 0;
-            sm.SphereTextureHeight = 0;
-
-            (rm.ToonTexture, rm.HasToonTexture) = LoadTextureBytes(sm.ToonTextureBytes, sm.ToonTextureWidth, sm.ToonTextureHeight);
-            sm.ToonTextureBytes = null;
-            sm.ToonTextureWidth = 0;
-            sm.ToonTextureHeight = 0;
-
-            if (rm.HasTexture)
-            {
-                rm.BaseTextureTint *= rm.BaseColor;
-                rm.TextureTint = rm.BaseTextureTint;
-                rm.BaseColor = Vector4.One;
-                rm.Color = Vector4.One;
-            }
-
+            var (verts, indices) = CreateVertexData(sm, rm);
+            SetupBuffers(rm, sm, verts, indices);
+            ApplyTextures(sm, rm);
             newMeshes.Add(rm);
         }
 
