@@ -26,16 +26,6 @@
     </PackageReference>
   </ItemGroup>
   <ItemGroup>
-    <Reference Include="PMXParser">
-      <HintPath>$(NuGetPackageRoot)pmxparser/1.1.1/lib/netstandard2.0/PMXParser.dll</HintPath>
-      <Private>true</Private>
-    </Reference>
-    <Reference Include="Microsoft.CSharp">
-      <HintPath>$(NuGetPackageRoot)microsoft.csharp/4.7.0/lib/netstandard2.0/Microsoft.CSharp.dll</HintPath>
-      <Private>true</Private>
-    </Reference>
-  </ItemGroup>
-  <ItemGroup>
     <TrimmerRootAssembly Include="PMXParser" />
     <TrimmerRootAssembly Include="Microsoft.CSharp" />
     <TrimmerRootAssembly Include="System.Linq.Expressions" />
