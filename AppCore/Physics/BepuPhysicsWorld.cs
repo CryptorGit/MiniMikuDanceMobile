@@ -21,7 +21,7 @@ public sealed class BepuPhysicsWorld : IPhysicsWorld
 {
     private BufferPool? _bufferPool;
     private Simulation? _simulation;
-    private readonly Dictionary<BodyHandle, (int Bone, int Mode)> _bodyBoneMap = new(); // Mode: 0=ボーン追従, 1=物理のみ, 2=物理+ボーン
+    private readonly Dictionary<BodyHandle, (int Bone, RigidBodyMode Mode)> _bodyBoneMap = new(); // Mode: FollowBone=0, Physics=1, PhysicsWithBoneAlignment=2
     private readonly List<BodyHandle> _rigidBodyHandles = new();
     private readonly List<TypedIndex> _shapeIndices = new();
     private readonly Dictionary<BodyHandle, Material> _materialMap = new();
@@ -143,7 +143,7 @@ public sealed class BepuPhysicsWorld : IPhysicsWorld
             var info = pair.Value;
             if (info.Bone < 0 || info.Bone >= scene.Bones.Count)
                 continue;
-            if (info.Mode == 1)
+            if (info.Mode == RigidBodyMode.Physics)
                 continue;
 
             var body = _simulation.Bodies.GetBodyReference(handle);
@@ -288,7 +288,7 @@ public sealed class BepuPhysicsWorld : IPhysicsWorld
                 var info = pair.Value;
                 if (info.Bone < 0 || info.Bone >= scene.Bones.Count)
                     continue;
-                if (info.Mode == 0)
+                if (info.Mode == RigidBodyMode.FollowBone)
                     continue;
                 var bone = scene.Bones[info.Bone];
 
@@ -346,7 +346,7 @@ public sealed class BepuPhysicsWorld : IPhysicsWorld
                     localRot = Quaternion.Normalize(delta * bone.InitialRotation);
                 }
 
-                if (info.Mode == 2)
+                if (info.Mode == RigidBodyMode.PhysicsWithBoneAlignment)
                 {
                     bone.Rotation = Quaternion.Slerp(bone.Rotation, localRot, BoneBlendFactor);
                 }
@@ -463,7 +463,7 @@ public sealed class BepuPhysicsWorld : IPhysicsWorld
             var collidable = new CollidableDescription(shapeIndex, 0.1f);
 
             BodyDescription bodyDesc;
-            if (rb.Mode == 0)
+            if (rb.Mode == RigidBodyMode.FollowBone)
             {
                 bodyDesc = BodyDescription.CreateKinematic(pose, collidable, new BodyActivityDescription());
             }
