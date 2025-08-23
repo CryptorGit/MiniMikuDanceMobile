@@ -21,7 +21,7 @@ public class AppSettings
     /// <summary>PMXモデルのスケールのデフォルト値。</summary>
     public const float DefaultModelScale = 1.0f;
 
-    /// <summary>PMXモデルに適用するスケール。物理シミュレーションでは重力は ModelScale 倍、質量は ModelScale の 3 乗倍にスケーリングされる。</summary>
+    /// <summary>PMXモデルに適用するスケール。UseScaledGravity が true の場合、重力は ModelScale 倍に、質量は ModelScale の 3 乗倍にスケーリングされる。</summary>
     public float ModelScale { get; set; } = DefaultModelScale;
 
     /// <summary>ステージの半径のデフォルト値。</summary>
@@ -79,7 +79,10 @@ public class AppSettings
     /// <summary>物理演算を有効にするか。</summary>
     public bool EnablePhysics { get; set; } = false;
 
-    /// <summary>物理設定。Gravity は ModelScale 倍にスケーリングされる。</summary>
+    /// <summary>重力に ModelScale を掛けるか。</summary>
+    public bool UseScaledGravity { get; set; } = true;
+
+    /// <summary>物理設定。UseScaledGravity が true の場合、Gravity は ModelScale 倍にスケーリングされる。</summary>
     public PhysicsConfig Physics { get; set; } =
         new(new Vector3(0f, -9.81f, 0f), 8, 1, 0.98f, 0.5f, 0f, 0.2f, 0.5f, true);
 
