@@ -311,25 +311,43 @@ void main(){
     FragColor = uColor;
 }";
         int vs = GL.CreateShader(ShaderType.VertexShader);
+        CheckGLError("GL.CreateShader");
         GL.ShaderSource(vs, vert);
+        CheckGLError("GL.ShaderSource");
         GL.CompileShader(vs);
+        CheckGLError("GL.CompileShader");
         int fs = GL.CreateShader(ShaderType.FragmentShader);
+        CheckGLError("GL.CreateShader");
         GL.ShaderSource(fs, frag);
+        CheckGLError("GL.ShaderSource");
         GL.CompileShader(fs);
+        CheckGLError("GL.CompileShader");
         _program = GL.CreateProgram();
+        CheckGLError("GL.CreateProgram");
         GL.AttachShader(_program, vs);
+        CheckGLError("GL.AttachShader");
         GL.AttachShader(_program, fs);
+        CheckGLError("GL.AttachShader");
         GL.LinkProgram(_program);
+        CheckGLError("GL.LinkProgram");
         GL.DeleteShader(vs);
+        CheckGLError("GL.DeleteShader");
         GL.DeleteShader(fs);
+        CheckGLError("GL.DeleteShader");
         _modelLoc = GL.GetUniformLocation(_program, "uModel");
+        CheckGLError("GL.GetUniformLocation");
         _viewLoc = GL.GetUniformLocation(_program, "uView");
+        CheckGLError("GL.GetUniformLocation");
         _projLoc = GL.GetUniformLocation(_program, "uProj");
+        CheckGLError("GL.GetUniformLocation");
         _colorLoc = GL.GetUniformLocation(_program, "uColor");
+        CheckGLError("GL.GetUniformLocation");
         _pointSizeLoc = GL.GetUniformLocation(_program, "uPointSize");
+        CheckGLError("GL.GetUniformLocation");
 
         // 透過描画設定（デフォルトでは無効）
         GL.BlendFunc(BlendingFactorSrc.SrcAlpha, BlendingFactorDest.OneMinusSrcAlpha);
+        CheckGLError("GL.BlendFunc");
 
 const string modelVert = @"#version 300 es
 layout(location = 0) in vec3 aPosition;
@@ -407,42 +425,79 @@ void main(){
     FragColor = vec4(color, base.a);
 }";
         int mvs = GL.CreateShader(ShaderType.VertexShader);
+        CheckGLError("GL.CreateShader");
         GL.ShaderSource(mvs, modelVert);
+        CheckGLError("GL.ShaderSource");
         GL.CompileShader(mvs);
+        CheckGLError("GL.CompileShader");
         int mfs = GL.CreateShader(ShaderType.FragmentShader);
+        CheckGLError("GL.CreateShader");
         GL.ShaderSource(mfs, modelFrag);
+        CheckGLError("GL.ShaderSource");
         GL.CompileShader(mfs);
+        CheckGLError("GL.CompileShader");
         _modelProgram = GL.CreateProgram();
+        CheckGLError("GL.CreateProgram");
         GL.AttachShader(_modelProgram, mvs);
+        CheckGLError("GL.AttachShader");
         GL.AttachShader(_modelProgram, mfs);
+        CheckGLError("GL.AttachShader");
         GL.LinkProgram(_modelProgram);
+        CheckGLError("GL.LinkProgram");
         GL.DeleteShader(mvs);
+        CheckGLError("GL.DeleteShader");
         GL.DeleteShader(mfs);
+        CheckGLError("GL.DeleteShader");
         _modelViewLoc = GL.GetUniformLocation(_modelProgram, "uView");
+        CheckGLError("GL.GetUniformLocation");
         _modelProjLoc = GL.GetUniformLocation(_modelProgram, "uProj");
+        CheckGLError("GL.GetUniformLocation");
         _modelMatrixLoc = GL.GetUniformLocation(_modelProgram, "uModel");
+        CheckGLError("GL.GetUniformLocation");
         _modelColorLoc = GL.GetUniformLocation(_modelProgram, "uColor");
+        CheckGLError("GL.GetUniformLocation");
         _modelTexLoc = GL.GetUniformLocation(_modelProgram, "uTex");
+        CheckGLError("GL.GetUniformLocation");
         _modelUseTexLoc = GL.GetUniformLocation(_modelProgram, "uUseTex");
+        CheckGLError("GL.GetUniformLocation");
         _modelLightDirLoc = GL.GetUniformLocation(_modelProgram, "uLightDir");
+        CheckGLError("GL.GetUniformLocation");
         _modelViewDirLoc = GL.GetUniformLocation(_modelProgram, "uViewDir");
+        CheckGLError("GL.GetUniformLocation");
         _modelShadeShiftLoc = GL.GetUniformLocation(_modelProgram, "uShadeShift");
+        CheckGLError("GL.GetUniformLocation");
         _modelShadeToonyLoc = GL.GetUniformLocation(_modelProgram, "uShadeToony");
+        CheckGLError("GL.GetUniformLocation");
         _modelRimIntensityLoc = GL.GetUniformLocation(_modelProgram, "uRimIntensity");
+        CheckGLError("GL.GetUniformLocation");
         _modelAmbientLoc = GL.GetUniformLocation(_modelProgram, "uAmbient");
+        CheckGLError("GL.GetUniformLocation");
         _modelSpecularLoc = GL.GetUniformLocation(_modelProgram, "uSpecular");
+        CheckGLError("GL.GetUniformLocation");
         _modelSpecularPowerLoc = GL.GetUniformLocation(_modelProgram, "uSpecularPower");
+        CheckGLError("GL.GetUniformLocation");
         _modelEdgeColorLoc = GL.GetUniformLocation(_modelProgram, "uEdgeColor");
+        CheckGLError("GL.GetUniformLocation");
         _modelEdgeSizeLoc = GL.GetUniformLocation(_modelProgram, "uEdgeSize");
+        CheckGLError("GL.GetUniformLocation");
         _modelToonColorLoc = GL.GetUniformLocation(_modelProgram, "uToonColor");
+        CheckGLError("GL.GetUniformLocation");
         _modelTexTintLoc = GL.GetUniformLocation(_modelProgram, "uTextureTint");
+        CheckGLError("GL.GetUniformLocation");
         _modelSphereTexLoc = GL.GetUniformLocation(_modelProgram, "uSphereTex");
+        CheckGLError("GL.GetUniformLocation");
         _modelUseSphereTexLoc = GL.GetUniformLocation(_modelProgram, "uUseSphereTex");
+        CheckGLError("GL.GetUniformLocation");
         _modelSphereModeLoc = GL.GetUniformLocation(_modelProgram, "uSphereMode");
+        CheckGLError("GL.GetUniformLocation");
         _modelToonTexLoc = GL.GetUniformLocation(_modelProgram, "uToonTex");
+        CheckGLError("GL.GetUniformLocation");
         _modelUseToonTexLoc = GL.GetUniformLocation(_modelProgram, "uUseToonTex");
+        CheckGLError("GL.GetUniformLocation");
         _modelSphereStrengthLoc = GL.GetUniformLocation(_modelProgram, "uSphereStrength");
+        CheckGLError("GL.GetUniformLocation");
         _modelToonStrengthLoc = GL.GetUniformLocation(_modelProgram, "uToonStrength");
+        CheckGLError("GL.GetUniformLocation");
 
         GenerateGrid();
         GenerateAxes();
@@ -462,15 +517,30 @@ void main(){
             grid[idx++] = -range; grid[idx++] = 0f; grid[idx++] = i;
             grid[idx++] = range; grid[idx++] = 0f; grid[idx++] = i;
         }
-        if (_gridVao == 0) _gridVao = GL.GenVertexArray();
-        if (_gridVbo == 0) _gridVbo = GL.GenBuffer();
+        if (_gridVao == 0)
+        {
+            _gridVao = GL.GenVertexArray();
+            CheckGLError("GL.GenVertexArray");
+        }
+        if (_gridVbo == 0)
+        {
+            _gridVbo = GL.GenBuffer();
+            CheckGLError("GL.GenBuffer");
+        }
         GL.BindVertexArray(_gridVao);
+        CheckGLError("GL.BindVertexArray");
         GL.BindBuffer(BufferTarget.ArrayBuffer, _gridVbo);
+        CheckGLError("GL.BindBuffer");
         GL.BufferData(BufferTarget.ArrayBuffer, gridSize * sizeof(float), grid, BufferUsageHint.StaticDraw);
+        CheckGLError("GL.BufferData");
         GL.VertexAttribPointer(0, 3, VertexAttribPointerType.Float, false, 3 * sizeof(float), 0);
+        CheckGLError("GL.VertexAttribPointer");
         GL.EnableVertexAttribArray(0);
+        CheckGLError("GL.EnableVertexAttribArray");
         GL.BindBuffer(BufferTarget.ArrayBuffer, 0);
+        CheckGLError("GL.BindBuffer");
         GL.BindVertexArray(0);
+        CheckGLError("GL.BindVertexArray");
         ArrayPool<float>.Shared.Return(grid);
 
         float r = _stageSize;
@@ -484,15 +554,30 @@ void main(){
             -r, 0f,  r
         };
         _groundVertexCount = 6;
-        if (_groundVao == 0) _groundVao = GL.GenVertexArray();
-        if (_groundVbo == 0) _groundVbo = GL.GenBuffer();
+        if (_groundVao == 0)
+        {
+            _groundVao = GL.GenVertexArray();
+            CheckGLError("GL.GenVertexArray");
+        }
+        if (_groundVbo == 0)
+        {
+            _groundVbo = GL.GenBuffer();
+            CheckGLError("GL.GenBuffer");
+        }
         GL.BindVertexArray(_groundVao);
+        CheckGLError("GL.BindVertexArray");
         GL.BindBuffer(BufferTarget.ArrayBuffer, _groundVbo);
+        CheckGLError("GL.BindBuffer");
         GL.BufferData(BufferTarget.ArrayBuffer, plane.Length * sizeof(float), plane, BufferUsageHint.StaticDraw);
+        CheckGLError("GL.BufferData");
         GL.VertexAttribPointer(0, 3, VertexAttribPointerType.Float, false, 3 * sizeof(float), 0);
+        CheckGLError("GL.VertexAttribPointer");
         GL.EnableVertexAttribArray(0);
+        CheckGLError("GL.EnableVertexAttribArray");
         GL.BindBuffer(BufferTarget.ArrayBuffer, 0);
+        CheckGLError("GL.BindBuffer");
         GL.BindVertexArray(0);
+        CheckGLError("GL.BindVertexArray");
     }
 
     private void GenerateAxes()
@@ -525,15 +610,30 @@ void main(){
         axes[i++] = 0f; axes[i++] = 0f; axes[i++] = length;
         axes[i++] = -cap; axes[i++] = 0f; axes[i++] = length - arrow;
 
-        if (_axesVao == 0) _axesVao = GL.GenVertexArray();
-        if (_axesVbo == 0) _axesVbo = GL.GenBuffer();
+        if (_axesVao == 0)
+        {
+            _axesVao = GL.GenVertexArray();
+            CheckGLError("GL.GenVertexArray");
+        }
+        if (_axesVbo == 0)
+        {
+            _axesVbo = GL.GenBuffer();
+            CheckGLError("GL.GenBuffer");
+        }
         GL.BindVertexArray(_axesVao);
+        CheckGLError("GL.BindVertexArray");
         GL.BindBuffer(BufferTarget.ArrayBuffer, _axesVbo);
+        CheckGLError("GL.BindBuffer");
         GL.BufferData(BufferTarget.ArrayBuffer, axes.Length * sizeof(float), axes, BufferUsageHint.StaticDraw);
+        CheckGLError("GL.BufferData");
         GL.VertexAttribPointer(0, 3, VertexAttribPointerType.Float, false, 3 * sizeof(float), 0);
+        CheckGLError("GL.VertexAttribPointer");
         GL.EnableVertexAttribArray(0);
+        CheckGLError("GL.EnableVertexAttribArray");
         GL.BindBuffer(BufferTarget.ArrayBuffer, 0);
+        CheckGLError("GL.BindBuffer");
         GL.BindVertexArray(0);
+        CheckGLError("GL.BindVertexArray");
     }
 
     public void Resize(int width, int height)
@@ -541,6 +641,7 @@ void main(){
         _width = width;
         _height = height;
         GL.Viewport(0, 0, width, height);
+        CheckGLError("GL.Viewport");
         _viewProjDirty = true;
     }
 
@@ -682,17 +783,28 @@ void main(){
 
         _ikBoneIndexCount = indices.Count;
         _ikBoneVao = GL.GenVertexArray();
+        CheckGLError("GL.GenVertexArray");
         _ikBoneVbo = GL.GenBuffer();
+        CheckGLError("GL.GenBuffer");
         _ikBoneEbo = GL.GenBuffer();
+        CheckGLError("GL.GenBuffer");
 
         GL.BindVertexArray(_ikBoneVao);
+        CheckGLError("GL.BindVertexArray");
         GL.BindBuffer(BufferTarget.ArrayBuffer, _ikBoneVbo);
+        CheckGLError("GL.BindBuffer");
         GL.BufferData(BufferTarget.ArrayBuffer, vertices.Count * sizeof(float), vertices.ToArray(), BufferUsageHint.StaticDraw);
+        CheckGLError("GL.BufferData");
         GL.VertexAttribPointer(0, 3, VertexAttribPointerType.Float, false, 3 * sizeof(float), 0);
+        CheckGLError("GL.VertexAttribPointer");
         GL.EnableVertexAttribArray(0);
+        CheckGLError("GL.EnableVertexAttribArray");
         GL.BindBuffer(BufferTarget.ElementArrayBuffer, _ikBoneEbo);
+        CheckGLError("GL.BindBuffer");
         GL.BufferData(BufferTarget.ElementArrayBuffer, indices.Count * sizeof(ushort), indices.ToArray(), BufferUsageHint.StaticDraw);
+        CheckGLError("GL.BufferData");
         GL.BindVertexArray(0);
+        CheckGLError("GL.BindVertexArray");
     }
 
     private void EnsureCubeMesh()
@@ -724,17 +836,28 @@ void main(){
 
         _cubeIndexCount = indices.Length;
         _cubeVao = GL.GenVertexArray();
+        CheckGLError("GL.GenVertexArray");
         _cubeVbo = GL.GenBuffer();
+        CheckGLError("GL.GenBuffer");
         _cubeEbo = GL.GenBuffer();
+        CheckGLError("GL.GenBuffer");
 
         GL.BindVertexArray(_cubeVao);
+        CheckGLError("GL.BindVertexArray");
         GL.BindBuffer(BufferTarget.ArrayBuffer, _cubeVbo);
+        CheckGLError("GL.BindBuffer");
         GL.BufferData(BufferTarget.ArrayBuffer, vertices.Length * sizeof(float), vertices, BufferUsageHint.StaticDraw);
+        CheckGLError("GL.BufferData");
         GL.VertexAttribPointer(0, 3, VertexAttribPointerType.Float, false, 3 * sizeof(float), 0);
+        CheckGLError("GL.VertexAttribPointer");
         GL.EnableVertexAttribArray(0);
+        CheckGLError("GL.EnableVertexAttribArray");
         GL.BindBuffer(BufferTarget.ElementArrayBuffer, _cubeEbo);
+        CheckGLError("GL.BindBuffer");
         GL.BufferData(BufferTarget.ElementArrayBuffer, indices.Length * sizeof(ushort), indices, BufferUsageHint.StaticDraw);
+        CheckGLError("GL.BufferData");
         GL.BindVertexArray(0);
+        CheckGLError("GL.BindVertexArray");
     }
 
     // DrawIkBones は PmxRenderer.Render.cs へ移動
@@ -929,7 +1052,9 @@ void main(){
             return (0, false);
 
         int texture = GL.GenTexture();
+        CheckGLError("GL.GenTexture");
         GL.BindTexture(All.Texture2D, texture);
+        CheckGLError("GL.BindTexture");
 
         var handle = GCHandle.Alloc(bytes, GCHandleType.Pinned);
         try
@@ -944,6 +1069,7 @@ void main(){
                 All.Rgba,
                 All.UnsignedByte,
                 handle.AddrOfPinnedObject());
+            CheckGLError("GL.TexImage2D");
         }
         finally
         {
@@ -951,7 +1077,9 @@ void main(){
         }
 
         GL.TexParameter(All.Texture2D, All.TextureMinFilter, (int)All.Linear);
+        CheckGLError("GL.TexParameter");
         GL.TexParameter(All.Texture2D, All.TextureMagFilter, (int)All.Linear);
+        CheckGLError("GL.TexParameter");
 
         return (texture, true);
     }
@@ -1003,12 +1131,36 @@ void main(){
         }
         foreach (var rm in oldMeshes)
         {
-            if (rm.Vao != 0) GL.DeleteVertexArray(rm.Vao);
-            if (rm.Vbo != 0) GL.DeleteBuffer(rm.Vbo);
-            if (rm.Ebo != 0) GL.DeleteBuffer(rm.Ebo);
-            if (rm.Texture != 0) GL.DeleteTexture(rm.Texture);
-            if (rm.SphereTexture != 0) GL.DeleteTexture(rm.SphereTexture);
-            if (rm.ToonTexture != 0) GL.DeleteTexture(rm.ToonTexture);
+            if (rm.Vao != 0)
+            {
+                GL.DeleteVertexArray(rm.Vao);
+                CheckGLError("GL.DeleteVertexArray");
+            }
+            if (rm.Vbo != 0)
+            {
+                GL.DeleteBuffer(rm.Vbo);
+                CheckGLError("GL.DeleteBuffer");
+            }
+            if (rm.Ebo != 0)
+            {
+                GL.DeleteBuffer(rm.Ebo);
+                CheckGLError("GL.DeleteBuffer");
+            }
+            if (rm.Texture != 0)
+            {
+                GL.DeleteTexture(rm.Texture);
+                CheckGLError("GL.DeleteTexture");
+            }
+            if (rm.SphereTexture != 0)
+            {
+                GL.DeleteTexture(rm.SphereTexture);
+                CheckGLError("GL.DeleteTexture");
+            }
+            if (rm.ToonTexture != 0)
+            {
+                GL.DeleteTexture(rm.ToonTexture);
+                CheckGLError("GL.DeleteTexture");
+            }
         }
         _bones = data.Bones;
         _physicsBones.Clear();
@@ -1132,8 +1284,11 @@ void main(){
                 rm.SdefR1[i] = new Vector3(r1.X, r1.Y, r1.Z);
             }
             rm.Vao = GL.GenVertexArray();
+            CheckGLError("GL.GenVertexArray");
             rm.Vbo = GL.GenBuffer();
+            CheckGLError("GL.GenBuffer");
             rm.Ebo = GL.GenBuffer();
+            CheckGLError("GL.GenBuffer");
             rm.BaseColor = sm.ColorFactor.ToVector4();
             rm.Color = rm.BaseColor;
             rm.BaseSpecular = sm.Specular.ToOpenTK();
@@ -1151,18 +1306,30 @@ void main(){
             rm.SphereMode = sm.SphereMode;
 
             GL.BindVertexArray(rm.Vao);
+            CheckGLError("GL.BindVertexArray");
             GL.BindBuffer(BufferTarget.ArrayBuffer, rm.Vbo);
+            CheckGLError("GL.BindBuffer");
             GL.BufferData(BufferTarget.ArrayBuffer, verts.Length * sizeof(float), verts, BufferUsageHint.StaticDraw);
+            CheckGLError("GL.BufferData");
             int stride = 8 * sizeof(float);
             GL.VertexAttribPointer(0, 3, VertexAttribPointerType.Float, false, stride, 0);
+            CheckGLError("GL.VertexAttribPointer");
             GL.EnableVertexAttribArray(0);
+            CheckGLError("GL.EnableVertexAttribArray");
             GL.VertexAttribPointer(1, 3, VertexAttribPointerType.Float, false, stride, 3 * sizeof(float));
+            CheckGLError("GL.VertexAttribPointer");
             GL.EnableVertexAttribArray(1);
+            CheckGLError("GL.EnableVertexAttribArray");
             GL.VertexAttribPointer(2, 2, VertexAttribPointerType.Float, false, stride, 6 * sizeof(float));
+            CheckGLError("GL.VertexAttribPointer");
             GL.EnableVertexAttribArray(2);
+            CheckGLError("GL.EnableVertexAttribArray");
             GL.BindBuffer(BufferTarget.ElementArrayBuffer, rm.Ebo);
+            CheckGLError("GL.BindBuffer");
             GL.BufferData(BufferTarget.ElementArrayBuffer, indices.Count * sizeof(uint), indices.ToArray(), BufferUsageHint.StaticDraw);
+            CheckGLError("GL.BufferData");
             GL.BindVertexArray(0);
+            CheckGLError("GL.BindVertexArray");
 
             (rm.Texture, rm.HasTexture) = LoadTextureBytes(sm.TextureBytes, sm.TextureWidth, sm.TextureHeight);
             sm.TextureBytes = null;
@@ -1406,25 +1573,53 @@ void main(){
         }
         foreach (var rm in meshes)
         {
-            if (rm.Vao != 0) GL.DeleteVertexArray(rm.Vao);
-            if (rm.Vbo != 0) GL.DeleteBuffer(rm.Vbo);
-            if (rm.Ebo != 0) GL.DeleteBuffer(rm.Ebo);
+            if (rm.Vao != 0)
+            {
+                GL.DeleteVertexArray(rm.Vao);
+                CheckGLError("GL.DeleteVertexArray");
+            }
+            if (rm.Vbo != 0)
+            {
+                GL.DeleteBuffer(rm.Vbo);
+                CheckGLError("GL.DeleteBuffer");
+            }
+            if (rm.Ebo != 0)
+            {
+                GL.DeleteBuffer(rm.Ebo);
+                CheckGLError("GL.DeleteBuffer");
+            }
         }
         GL.DeleteBuffer(_gridVbo);
+        CheckGLError("GL.DeleteBuffer");
         GL.DeleteBuffer(_axesVbo);
+        CheckGLError("GL.DeleteBuffer");
         GL.DeleteBuffer(_groundVbo);
+        CheckGLError("GL.DeleteBuffer");
         GL.DeleteBuffer(_boneVbo);
+        CheckGLError("GL.DeleteBuffer");
         GL.DeleteBuffer(_ikBoneVbo);
+        CheckGLError("GL.DeleteBuffer");
         GL.DeleteBuffer(_ikBoneEbo);
+        CheckGLError("GL.DeleteBuffer");
         GL.DeleteBuffer(_cubeVbo);
+        CheckGLError("GL.DeleteBuffer");
         GL.DeleteBuffer(_cubeEbo);
+        CheckGLError("GL.DeleteBuffer");
         GL.DeleteVertexArray(_gridVao);
+        CheckGLError("GL.DeleteVertexArray");
         GL.DeleteVertexArray(_axesVao);
+        CheckGLError("GL.DeleteVertexArray");
         GL.DeleteVertexArray(_groundVao);
+        CheckGLError("GL.DeleteVertexArray");
         GL.DeleteVertexArray(_boneVao);
+        CheckGLError("GL.DeleteVertexArray");
         GL.DeleteVertexArray(_ikBoneVao);
+        CheckGLError("GL.DeleteVertexArray");
         GL.DeleteVertexArray(_cubeVao);
+        CheckGLError("GL.DeleteVertexArray");
         GL.DeleteProgram(_program);
+        CheckGLError("GL.DeleteProgram");
         GL.DeleteProgram(_modelProgram);
+        CheckGLError("GL.DeleteProgram");
     }
 }
