@@ -142,7 +142,17 @@ public sealed class BepuPhysicsWorld : IPhysicsWorld
         _cloth.Substeps = _config.SubstepCount;
         // Refit broad phase using non-recursive method to avoid Refit2WithCacheOptimization issues
         _simulation.BroadPhase.ActiveTree.Refit2();
+        if (_skipSimulation)
+        {
+            _lastDt = dt;
+            return;
+        }
         _simulation.Timestep(dt, _threadDispatcher);
+        if (_skipSimulation)
+        {
+            _lastDt = dt;
+            return;
+        }
         _cloth.Step(dt);
         _lastDt = dt;
     }
@@ -418,6 +428,7 @@ public sealed class BepuPhysicsWorld : IPhysicsWorld
 
     public void Dispose()
     {
+        _skipSimulation = true;
         _simulation?.Dispose();
         _simulation = null;
 
