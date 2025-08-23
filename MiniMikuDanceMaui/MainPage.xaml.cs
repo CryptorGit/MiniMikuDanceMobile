@@ -84,8 +84,8 @@ public partial class MainPage : ContentPage
             DisablePoseMode();
         }
         _renderer.ShowIkBones = _poseMode;
-        PoseModeIcon.Icon = _poseMode ? MaterialIcons.AccessibilityNew : MaterialIcons.PhotoCamera;
-        PoseModeIcon.IconColor = _poseMode ? Colors.Green : Colors.Gray;
+        PoseModeIcon.Icon(_poseMode ? MaterialIcons.AccessibilityNew : MaterialIcons.PhotoCamera);
+        PoseModeIcon.IconColor(_poseMode ? Colors.Green : Colors.Gray);
         Viewer?.InvalidateSurface();
     }
 

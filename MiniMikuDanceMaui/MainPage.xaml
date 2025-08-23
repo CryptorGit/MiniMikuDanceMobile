@@ -31,11 +31,13 @@
                     <TapGestureRecognizer Tapped="OnSettingMenuTapped" />
                 </Label.GestureRecognizers>
             </Label>
-            <mi:MaterialIcon x:Name="PoseModeIcon" Icon="PhotoCamera" IconColor="Gray">
-                <mi:MaterialIcon.GestureRecognizers>
+            <ImageButton x:Name="PoseModeIcon"
+                         BackgroundColor="Transparent"
+                         mi:MauiIcon.Value="{mi:Material Icon=PhotoCamera, IconColor=Gray}">
+                <ImageButton.GestureRecognizers>
                     <TapGestureRecognizer Tapped="OnPoseModeButtonClicked" />
-                </mi:MaterialIcon.GestureRecognizers>
-            </mi:MaterialIcon>
+                </ImageButton.GestureRecognizers>
+            </ImageButton>
         </HorizontalStackLayout>
         <Border x:Name="ViewMenu" IsVisible="False" Background="{StaticResource BackgroundColor}" Padding="0" ZIndex="20">
             <VerticalStackLayout Spacing="4" Padding="8">
