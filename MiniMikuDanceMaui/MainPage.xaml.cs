@@ -566,5 +566,13 @@ public partial class MainPage : ContentPage
     {
         _touchPoints.Remove(e.Id);
     }
+
+    private void UpdatePhysicsViewRigidBodies()
+    {
+        if (_currentModel != null && _bottomViews.TryGetValue("PHYSICS", out var view) && view is PhysicsView pv)
+        {
+            pv.SetRigidBodies(_currentModel.RigidBodies, _currentModel.Bones);
+        }
+    }
 }
 

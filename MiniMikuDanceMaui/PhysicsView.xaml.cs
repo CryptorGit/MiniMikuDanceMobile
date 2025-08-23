@@ -1,15 +1,32 @@
 using Microsoft.Maui.Controls;
 using MiniMikuDance.Physics;
+using MiniMikuDance.Import;
+using System.Collections.Generic;
 using System.Numerics;
 
 namespace MiniMikuDanceMaui;
 
 public partial class PhysicsView : ContentView
 {
-    public PhysicsView(PhysicsConfig config)
+    private sealed class RigidBodyInfo
+    {
+        public string Name { get; init; } = string.Empty;
+        public string Bone { get; init; } = string.Empty;
+        public string Type { get; init; } = string.Empty;
+        public string Shape { get; init; } = string.Empty;
+        public string Size { get; init; } = string.Empty;
+        public string Offset { get; init; } = string.Empty;
+        public string Mass { get; init; } = string.Empty;
+        public string Damping { get; init; } = string.Empty;
+        public string Restitution { get; init; } = string.Empty;
+        public string Friction { get; init; } = string.Empty;
+    }
+
+    public PhysicsView(PhysicsConfig config, IEnumerable<RigidBodyData> rigidBodies, IList<BoneData> bones)
     {
         InitializeComponent();
         SetConfig(config);
+        SetRigidBodies(rigidBodies, bones);
     }
 
     public void SetConfig(PhysicsConfig config)
@@ -99,5 +116,31 @@ public partial class PhysicsView : ContentView
         SolverLabel.Text = $"SolverIterationCount: {config.SolverIterationCount}";
         SubstepLabel.Text = $"SubstepCount: {config.SubstepCount}";
         LockTranslationLabel.Text = $"LockTranslation: {config.LockTranslation}";
+    }
+
+    public void SetRigidBodies(IEnumerable<RigidBodyData> rigidBodies, IList<BoneData> bones)
+    {
+        var list = new List<RigidBodyInfo>();
+        foreach (var rb in rigidBodies)
+        {
+            var boneName = rb.BoneIndex >= 0 && rb.BoneIndex < bones.Count ? bones[rb.BoneIndex].Name : "";
+            var size = $"{rb.Size.X:F2},{rb.Size.Y:F2},{rb.Size.Z:F2}";
+            var offset = $"{rb.Position.X:F2},{rb.Position.Y:F2},{rb.Position.Z:F2}";
+            var damping = $"{rb.LinearDamping:F2}/{rb.AngularDamping:F2}";
+            list.Add(new RigidBodyInfo
+            {
+                Name = rb.Name,
+                Bone = boneName,
+                Type = rb.Mode.ToString(),
+                Shape = rb.Shape.ToString(),
+                Size = size,
+                Offset = offset,
+                Mass = rb.Mass.ToString("F2"),
+                Damping = damping,
+                Restitution = rb.Restitution.ToString("F2"),
+                Friction = rb.Friction.ToString("F2"),
+            });
+        }
+        RigidBodyList.ItemsSource = list;
     }
 }

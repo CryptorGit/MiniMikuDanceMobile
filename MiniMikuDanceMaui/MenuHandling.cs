@@ -3,6 +3,7 @@ using Microsoft.Maui.Graphics;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using MiniMikuDance.Import;
 
 namespace MiniMikuDanceMaui;
 
@@ -259,7 +260,9 @@ public partial class MainPage
             }
             else if (name == "PHYSICS")
             {
-                var pv = new PhysicsView(_settings.Physics);
+                var rb = _currentModel?.RigidBodies ?? Enumerable.Empty<RigidBodyData>();
+                var bones = _currentModel?.Bones ?? new List<BoneData>();
+                var pv = new PhysicsView(_settings.Physics, rb, bones);
                 view = pv;
             }
             else if (name == "SETTING")
@@ -363,6 +366,9 @@ public partial class MainPage
         else if (name == "PHYSICS" && _bottomViews[name] is PhysicsView pv2)
         {
             pv2.SetConfig(_settings.Physics);
+            var rb = _currentModel?.RigidBodies ?? Enumerable.Empty<RigidBodyData>();
+            var bones = _currentModel?.Bones ?? new List<BoneData>();
+            pv2.SetRigidBodies(rb, bones);
         }
 
         SwitchBottomFeature(name);
