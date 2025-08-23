@@ -1049,7 +1049,7 @@ void main(){
 
         int texture = GL.GenTexture();
         CheckGLError("GL.GenTexture");
-        GL.BindTexture((All)TextureTarget.Texture2D, texture);
+        GL.BindTexture(TextureTarget.Texture2D, texture);
         CheckGLError("GL.BindTexture");
 
         var handle = GCHandle.Alloc(bytes, GCHandleType.Pinned);
@@ -1063,9 +1063,9 @@ void main(){
             handle.Free();
         }
 
-        GL.TexParameter((All)TextureTarget.Texture2D, (All)TextureParameterName.TextureMinFilter, (int)All.Linear);
+        GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureMinFilter, (int)TextureMinFilter.Linear);
         CheckGLError("GL.TexParameter");
-        GL.TexParameter((All)TextureTarget.Texture2D, (All)TextureParameterName.TextureMagFilter, (int)All.Linear);
+        GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureMagFilter, (int)TextureMagFilter.Linear);
         CheckGLError("GL.TexParameter");
 
         return (texture, true);
