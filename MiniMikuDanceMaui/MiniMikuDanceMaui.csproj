@@ -39,17 +39,9 @@
         <PrivateAssets>all</PrivateAssets>
         <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
       </PackageReference>
+      <PackageReference Include="PMXParser" Version="1.1.1" />
+      <PackageReference Include="Microsoft.CSharp" Version="4.7.0" />
     </ItemGroup>
-  <ItemGroup>
-    <Reference Include="PMXParser">
-      <HintPath>$(NuGetPackageRoot)pmxparser/1.1.1/lib/netstandard2.0/PMXParser.dll</HintPath>
-      <Private>true</Private>
-    </Reference>
-    <Reference Include="Microsoft.CSharp">
-      <HintPath>$(NuGetPackageRoot)microsoft.csharp/4.7.0/lib/netstandard2.0/Microsoft.CSharp.dll</HintPath>
-      <Private>true</Private>
-    </Reference>
-  </ItemGroup>
   <ItemGroup>
     <TrimmerRootAssembly Include="PMXParser" />
     <TrimmerRootAssembly Include="Microsoft.CSharp" />
