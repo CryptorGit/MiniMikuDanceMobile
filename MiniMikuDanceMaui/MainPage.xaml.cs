@@ -50,6 +50,7 @@ public partial class MainPage : ContentPage
     private bool _glInitialized;
     private readonly Scene _scene = new();
     private IPhysicsWorld _physics = new NullPhysicsWorld();
+    private readonly object _physicsLock = new();
     private DateTime _lastFrameTime = DateTime.UtcNow;
     private readonly Dictionary<long, SKPoint> _touchPoints = new();
     private readonly long[] _touchIds = new long[2];
@@ -76,8 +77,11 @@ public partial class MainPage : ContentPage
 
     private void OnPhysicsButtonClicked(object? sender, TappedEventArgs e)
     {
-        _physicsEnabled = !_physicsEnabled;
-        ApplyPhysicsState(_physicsEnabled);
+        lock (_physicsLock)
+        {
+            _physicsEnabled = !_physicsEnabled;
+            ApplyPhysicsState(_physicsEnabled);
+        }
         PhysicsIcon.SetIconColor(_physicsEnabled ? Colors.Green : Colors.Gray);
         _settings.EnablePhysics = _physicsEnabled;
         _settings.Save();
@@ -85,33 +89,36 @@ public partial class MainPage : ContentPage
 
     private void ApplyPhysicsState(bool enabled)
     {
-        (_physics as IDisposable)?.Dispose();
-        if (enabled)
+        lock (_physicsLock)
         {
-            _physics = new BepuPhysicsWorld();
-            try
+            (_physics as IDisposable)?.Dispose();
+            if (enabled)
             {
-                _physics.Initialize(_settings.Physics, _settings.ModelScale, _settings.UseScaledGravity);
-                if (_currentModel != null && _physics is BepuPhysicsWorld bepu)
+                _physics = new BepuPhysicsWorld();
+                try
                 {
-                    bepu.LoadRigidBodies(_currentModel);
-                    bepu.LoadSoftBodies(_currentModel);
-                    bepu.LoadJoints(_currentModel);
+                    _physics.Initialize(_settings.Physics, _settings.ModelScale, _settings.UseScaledGravity);
+                    if (_currentModel != null && _physics is BepuPhysicsWorld bepu)
+                    {
+                        bepu.LoadRigidBodies(_currentModel);
+                        bepu.LoadSoftBodies(_currentModel);
+                        bepu.LoadJoints(_currentModel);
+                    }
+                }
+                catch (Exception ex)
+                {
+                    Debug.WriteLine(ex.ToString());
+                    _physics = new NullPhysicsWorld();
+                    _physicsEnabled = false;
+                    PhysicsIcon.SetIconColor(Colors.Gray);
+                    _settings.EnablePhysics = false;
+                    _settings.Save();
                 }
             }
-            catch (Exception ex)
+            else
             {
-                Debug.WriteLine(ex.ToString());
                 _physics = new NullPhysicsWorld();
-                _physicsEnabled = false;
-                PhysicsIcon.SetIconColor(Colors.Gray);
-                _settings.EnablePhysics = false;
-                _settings.Save();
             }
-        }
-        else
-        {
-            _physics = new NullPhysicsWorld();
         }
     }
 
@@ -187,7 +194,10 @@ public partial class MainPage : ContentPage
         _renderer.ShowIkBones = _poseMode;
         _renderer.IkBoneScale = _settings.IkBoneScale;
         _physicsEnabled = _settings.EnablePhysics;
-        ApplyPhysicsState(_physicsEnabled);
+        lock (_physicsLock)
+        {
+            ApplyPhysicsState(_physicsEnabled);
+        }
         PhysicsIcon.SetIconColor(_physicsEnabled ? Colors.Green : Colors.Gray);
 
         if (Viewer is SKGLView glView)
@@ -427,9 +437,12 @@ public partial class MainPage : ContentPage
         var now = DateTime.UtcNow;
         float dt = (float)(now - _lastFrameTime).TotalSeconds;
         _lastFrameTime = now;
-        _physics.SyncFromBones(_scene);
-        _physics.Step(dt);
-        _physics.SyncToBones(_scene);
+        lock (_physicsLock)
+        {
+            _physics.SyncFromBones(_scene);
+            _physics.Step(dt);
+            _physics.SyncToBones(_scene);
+        }
         _renderer.Resize(e.BackendRenderTarget.Width, e.BackendRenderTarget.Height);
         _renderer.Render();
         GL.Flush();
