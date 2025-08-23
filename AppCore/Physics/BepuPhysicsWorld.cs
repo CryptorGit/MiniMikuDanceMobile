@@ -418,6 +418,9 @@ public sealed class BepuPhysicsWorld : IPhysicsWorld
         _materialMap.Clear();
         _bodyFilterMap.Clear();
         _prevBonePoses.Clear();
+
+        const int batchSize = 256;
+        var processed = 0;
         foreach (var rb in model.RigidBodies)
         {
             if (!IsValidRigidBody(rb))
@@ -472,7 +475,17 @@ public sealed class BepuPhysicsWorld : IPhysicsWorld
             _bodyBoneMap[handle] = (rb.BoneIndex, rb.Mode);
             _materialMap[handle] = new Material(rb.Restitution, rb.Friction);
             _bodyFilterMap[handle] = filter;
+
+            processed++;
+            if (processed % batchSize == 0)
+            {
+                _simulation.BroadPhase.ActiveTree.Refit2();
+                _logger.LogInformation("剛体 {Count} 個追加: BroadPhase葉数={LeafCount}", processed, _simulation.BroadPhase.ActiveTree.LeafCount);
+            }
         }
+
+        _simulation.BroadPhase.ActiveTree.Refit2();
+        _logger.LogInformation("剛体ロード完了: 合計 {Count} 個, BroadPhase葉数={LeafCount}", processed, _simulation.BroadPhase.ActiveTree.LeafCount);
 
         static bool IsValidRigidBody(RigidBodyData rb)
         {
