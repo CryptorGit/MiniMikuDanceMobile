@@ -25,6 +25,7 @@ using SixLabors.ImageSharp.PixelFormats;
 using MiniMikuDance.IK;
 using MiniMikuDance.Util;
 using MiniMikuDance.Physics;
+using MauiIcons.Material;
 
 namespace MiniMikuDanceMaui;
 
@@ -70,9 +71,9 @@ public partial class MainPage : ContentPage
     private bool _needsRender;
     private readonly IDispatcherTimer _renderTimer;
     private int _renderTimerErrorCount;
-    private void OnPoseModeToggled(object? sender, ToggledEventArgs e)
+    private void OnPoseModeButtonClicked(object? sender, EventArgs e)
     {
-        _poseMode = e.Value;
+        _poseMode = !_poseMode;
         _touchPoints.Clear();
         if (_poseMode && _currentModel != null)
         {
@@ -83,6 +84,8 @@ public partial class MainPage : ContentPage
             DisablePoseMode();
         }
         _renderer.ShowIkBones = _poseMode;
+        PoseModeIcon.Icon = _poseMode ? MaterialIcons.AccessibilityNew : MaterialIcons.PhotoCamera;
+        PoseModeIcon.IconColor = _poseMode ? Colors.Green : Colors.Gray;
         Viewer?.InvalidateSurface();
     }
 
