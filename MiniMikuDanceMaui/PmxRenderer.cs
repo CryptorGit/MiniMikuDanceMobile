@@ -1139,14 +1139,14 @@ void main(){
                 try
                 {
                     GL.TexImage2D(
-                        (All)TextureTarget.Texture2D,
+                        TextureTarget.Texture2D,
                         0,
-                        (All)PixelInternalFormat.Rgba,
+                        PixelInternalFormat.Rgba,
                         sm.TextureWidth,
                         sm.TextureHeight,
                         0,
-                        (All)PixelFormat.Rgba,
-                        (All)PixelType.UnsignedByte,
+                        PixelFormat.Rgba,
+                        PixelType.UnsignedByte,
                         handle.AddrOfPinnedObject());
                 }
                 finally
@@ -1168,14 +1168,14 @@ void main(){
                 try
                 {
                     GL.TexImage2D(
-                        (All)TextureTarget.Texture2D,
+                        TextureTarget.Texture2D,
                         0,
-                        (All)PixelInternalFormat.Rgba,
+                        PixelInternalFormat.Rgba,
                         sm.SphereTextureWidth,
                         sm.SphereTextureHeight,
                         0,
-                        (All)PixelFormat.Rgba,
-                        (All)PixelType.UnsignedByte,
+                        PixelFormat.Rgba,
+                        PixelType.UnsignedByte,
                         handle.AddrOfPinnedObject());
                 }
                 finally
@@ -1197,14 +1197,14 @@ void main(){
                 try
                 {
                     GL.TexImage2D(
-                        (All)TextureTarget.Texture2D,
+                        TextureTarget.Texture2D,
                         0,
-                        (All)PixelInternalFormat.Rgba,
+                        PixelInternalFormat.Rgba,
                         sm.ToonTextureWidth,
                         sm.ToonTextureHeight,
                         0,
-                        (All)PixelFormat.Rgba,
-                        (All)PixelType.UnsignedByte,
+                        PixelFormat.Rgba,
+                        PixelType.UnsignedByte,
                         handle.AddrOfPinnedObject());
                 }
                 finally
