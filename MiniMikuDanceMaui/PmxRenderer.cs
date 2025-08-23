@@ -1134,19 +1134,19 @@ void main(){
             if (sm.TextureBytes != null)
             {
                 rm.Texture = GL.GenTexture();
-                GL.BindTexture(TextureTarget.Texture2D, rm.Texture);
+                GL.BindTexture(All.Texture2D, rm.Texture);
                 var handle = System.Runtime.InteropServices.GCHandle.Alloc(sm.TextureBytes, System.Runtime.InteropServices.GCHandleType.Pinned);
                 try
                 {
                     GL.TexImage2D(
-                        TextureTarget.Texture2D,
+                        All.Texture2D,
                         0,
-                        PixelInternalFormat.Rgba,
+                        (int)All.Rgba,
                         sm.TextureWidth,
                         sm.TextureHeight,
                         0,
-                        PixelFormat.Rgba,
-                        PixelType.UnsignedByte,
+                        All.Rgba,
+                        All.UnsignedByte,
                         handle.AddrOfPinnedObject());
                 }
                 finally
@@ -1156,26 +1156,26 @@ void main(){
                 sm.TextureBytes = null;
                 sm.TextureWidth = 0;
                 sm.TextureHeight = 0;
-                GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureMinFilter, (int)All.Linear);
-                GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureMagFilter, (int)All.Linear);
+                GL.TexParameter(All.Texture2D, All.TextureMinFilter, (int)All.Linear);
+                GL.TexParameter(All.Texture2D, All.TextureMagFilter, (int)All.Linear);
                 rm.HasTexture = true;
             }
             if (sm.SphereTextureBytes != null)
             {
                 rm.SphereTexture = GL.GenTexture();
-                GL.BindTexture(TextureTarget.Texture2D, rm.SphereTexture);
+                GL.BindTexture(All.Texture2D, rm.SphereTexture);
                 var handle = System.Runtime.InteropServices.GCHandle.Alloc(sm.SphereTextureBytes, System.Runtime.InteropServices.GCHandleType.Pinned);
                 try
                 {
                     GL.TexImage2D(
-                        TextureTarget.Texture2D,
+                        All.Texture2D,
                         0,
-                        PixelInternalFormat.Rgba,
+                        (int)All.Rgba,
                         sm.SphereTextureWidth,
                         sm.SphereTextureHeight,
                         0,
-                        PixelFormat.Rgba,
-                        PixelType.UnsignedByte,
+                        All.Rgba,
+                        All.UnsignedByte,
                         handle.AddrOfPinnedObject());
                 }
                 finally
@@ -1185,26 +1185,26 @@ void main(){
                 sm.SphereTextureBytes = null;
                 sm.SphereTextureWidth = 0;
                 sm.SphereTextureHeight = 0;
-                GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureMinFilter, (int)All.Linear);
-                GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureMagFilter, (int)All.Linear);
+                GL.TexParameter(All.Texture2D, All.TextureMinFilter, (int)All.Linear);
+                GL.TexParameter(All.Texture2D, All.TextureMagFilter, (int)All.Linear);
                 rm.HasSphereTexture = true;
             }
             if (sm.ToonTextureBytes != null)
             {
                 rm.ToonTexture = GL.GenTexture();
-                GL.BindTexture(TextureTarget.Texture2D, rm.ToonTexture);
+                GL.BindTexture(All.Texture2D, rm.ToonTexture);
                 var handle = System.Runtime.InteropServices.GCHandle.Alloc(sm.ToonTextureBytes, System.Runtime.InteropServices.GCHandleType.Pinned);
                 try
                 {
                     GL.TexImage2D(
-                        TextureTarget.Texture2D,
+                        All.Texture2D,
                         0,
-                        PixelInternalFormat.Rgba,
+                        (int)All.Rgba,
                         sm.ToonTextureWidth,
                         sm.ToonTextureHeight,
                         0,
-                        PixelFormat.Rgba,
-                        PixelType.UnsignedByte,
+                        All.Rgba,
+                        All.UnsignedByte,
                         handle.AddrOfPinnedObject());
                 }
                 finally
@@ -1214,8 +1214,8 @@ void main(){
                 sm.ToonTextureBytes = null;
                 sm.ToonTextureWidth = 0;
                 sm.ToonTextureHeight = 0;
-                GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureMinFilter, (int)All.Linear);
-                GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureMagFilter, (int)All.Linear);
+                GL.TexParameter(All.Texture2D, All.TextureMinFilter, (int)All.Linear);
+                GL.TexParameter(All.Texture2D, All.TextureMagFilter, (int)All.Linear);
                 rm.HasToonTexture = true;
             }
 
