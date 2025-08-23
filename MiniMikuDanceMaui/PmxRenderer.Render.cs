@@ -219,8 +219,6 @@ public partial class PmxRenderer
             System.Numerics.Vector3 trans = bone.Translation;
             if (i < _boneMorphTranslations.Length)
                 trans += _boneMorphTranslations[i];
-            if (i < _boneTranslations.Count)
-                trans += _boneTranslations[i].ToNumerics();
             var rot = bone.Rotation * morphRot * delta;
             if (bone.InheritParent >= 0 && bone.InheritParent < _worldMats.Length)
             {
