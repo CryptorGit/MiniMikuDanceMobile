@@ -1076,9 +1076,9 @@ void main(){
             handle.Free();
         }
 
-        GL.TexParameter(All.Texture2D, All.TextureMinFilter, (int)All.Linear);
+        GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureMinFilter, (int)TextureMinFilter.Linear);
         CheckGLError("GL.TexParameter");
-        GL.TexParameter(All.Texture2D, All.TextureMagFilter, (int)All.Linear);
+        GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureMagFilter, (int)TextureMagFilter.Linear);
         CheckGLError("GL.TexParameter");
 
         return (texture, true);
