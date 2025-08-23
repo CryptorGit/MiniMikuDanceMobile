@@ -292,7 +292,13 @@ public PmxImporter(ILogger<PmxImporter>? logger = null)
         int baseIndex = mesh.Vertices.Count;
         for (int j = 0; j < 3; j++)
         {
-            ProcessVertex(mesh, smd, verts[idxs[j]]);
+            var idx = idxs[j];
+            if (idx < 0 || idx >= verts.Length)
+            {
+                _logger.LogError("不正な頂点インデックス: {Index} / {VertexCount}", idx, verts.Length);
+                return;
+            }
+            ProcessVertex(mesh, smd, verts[idx]);
         }
         var f = new Face();
         f.Indices.Add(baseIndex);
@@ -310,6 +316,11 @@ public PmxImporter(ILogger<PmxImporter>? logger = null)
             var smd = CreateSubMesh(mat);
             var sub = smd.Mesh;
             int faceCount = mat.VertexCount / 3;
+            if (faceOffset + faceCount > faces.Length)
+            {
+                _logger.LogWarning("面データが不足しています: 必要 {Required}, 実際 {Actual}", faceOffset + faceCount, faces.Length);
+                break;
+            }
             for (int i = 0; i < faceCount; i++)
             {
                 var sf = faces[faceOffset + i];
@@ -343,6 +354,13 @@ public PmxImporter(ILogger<PmxImporter>? logger = null)
                 }
             }
 
+            // Validate vertex buffer sizes
+            var v = sub.Vertices.Count;
+            if (v != smd.TexCoords.Count || v != smd.JointIndices.Count || v != smd.JointWeights.Count)
+            {
+                _logger.LogWarning("頂点バッファサイズ不一致: Vertices={V}, Tex={T}, JI={JI}, JW={JW}",
+                    v, smd.TexCoords.Count, smd.JointIndices.Count, smd.JointWeights.Count);
+            }
             data.SubMeshes.Add(smd);
             faceOffset += faceCount;
         }
