@@ -28,6 +28,7 @@ public sealed class BepuPhysicsWorld : IPhysicsWorld
     private readonly List<TypedIndex> _shapeIndices = new();
     private readonly Dictionary<BodyHandle, Material> _materialMap = new();
     private readonly Dictionary<BodyHandle, SubgroupCollisionFilter> _bodyFilterMap = new();
+    private readonly Dictionary<BodyHandle, (float Linear, float Angular)> _dampingMap = new();
     private readonly Dictionary<StaticHandle, Material> _staticMaterialMap = new();
     private readonly Dictionary<StaticHandle, SubgroupCollisionFilter> _staticFilterMap = new();
     private readonly ClothSimulator _cloth = new();
@@ -87,7 +88,7 @@ public sealed class BepuPhysicsWorld : IPhysicsWorld
         _simulation = Simulation.Create(_bufferPool,
             new SubgroupFilteredCallbacks(_materialMap, _bodyFilterMap, _staticMaterialMap, _staticFilterMap),
             // Damping は 1 秒あたりの減衰率 (0～1)
-            new SimplePoseIntegratorCallbacks(gravity, _config.Damping, _config.Damping),
+            new SimplePoseIntegratorCallbacks(gravity, _config.Damping, _config.Damping, _dampingMap),
             new SolveDescription(solverIterationCount, substepCount));
         // Simulation 生成後に ConstraintRemover が確実に登録されているかチェック
         if (_simulation.NarrowPhase.ConstraintRemover == null)
@@ -444,6 +445,7 @@ public sealed class BepuPhysicsWorld : IPhysicsWorld
         _shapeIndices.Clear();
         _materialMap.Clear();
         _bodyFilterMap.Clear();
+        _dampingMap.Clear();
         _prevBonePoses.Clear();
 
         const int batchSize = 256;
@@ -504,6 +506,8 @@ public sealed class BepuPhysicsWorld : IPhysicsWorld
             _bodyBoneMap[handle] = (rb.BoneIndex, rb.Mode);
             _materialMap[handle] = new Material(rb.Restitution, rb.Friction);
             _bodyFilterMap[handle] = filter;
+            if (rb.LinearDamping != _config.Damping || rb.AngularDamping != _config.Damping)
+                _dampingMap[handle] = (rb.LinearDamping, rb.AngularDamping);
 
             processed++;
             if (processed % batchSize == 0)
@@ -981,41 +985,60 @@ public sealed class BepuPhysicsWorld : IPhysicsWorld
     private struct SimplePoseIntegratorCallbacks : IPoseIntegratorCallbacks
     {
         public Vector3 Gravity;
-        // 1秒あたりのダンピング率
-        public float LinearDamping;
-        public float AngularDamping;
-        private float _linearDt;
-        private float _angularDt;
+        private readonly Dictionary<BodyHandle, (float Linear, float Angular)> _damping;
+        private readonly float _defaultLinear;
+        private readonly float _defaultAngular;
         public AngularIntegrationMode AngularIntegrationMode => AngularIntegrationMode.Nonconserving;
         public bool AllowSubstepsForUnconstrainedBodies => false;
         public bool IntegrateVelocityForKinematics => false;
-
-        public SimplePoseIntegratorCallbacks(Vector3 gravity, float linearDamping, float angularDamping)
+        public SimplePoseIntegratorCallbacks(Vector3 gravity, float linearDamping, float angularDamping,
+            Dictionary<BodyHandle, (float Linear, float Angular)> damping)
         {
             Gravity = gravity;
-            LinearDamping = linearDamping;
-            AngularDamping = angularDamping;
-            _linearDt = 1f;
-            _angularDt = 1f;
+            _defaultLinear = linearDamping;
+            _defaultAngular = angularDamping;
+            _damping = damping;
         }
 
         public void Initialize(Simulation simulation) { }
 
-        public void PrepareForIntegration(float dt)
-        {
-            _linearDt = MathF.Pow(LinearDamping, dt);
-            _angularDt = MathF.Pow(AngularDamping, dt);
-        }
+        public void PrepareForIntegration(float dt) { }
 
         public void IntegrateVelocity(Vector<int> bodyIndices, Vector3Wide position, QuaternionWide orientation,
             BodyInertiaWide localInertia, Vector<int> integrationMask, int workerIndex, Vector<float> dt, ref BodyVelocityWide velocity)
         {
             Vector3Wide.Broadcast(Gravity, out var g);
             velocity.Linear += g * dt;
-            var linear = new Vector<float>(_linearDt);
-            var angular = new Vector<float>(_angularDt);
-            Vector3Wide.Scale(velocity.Linear, linear, out velocity.Linear);
-            Vector3Wide.Scale(velocity.Angular, angular, out velocity.Angular);
+
+            var linearX = velocity.Linear.X;
+            var linearY = velocity.Linear.Y;
+            var linearZ = velocity.Linear.Z;
+            var angularX = velocity.Angular.X;
+            var angularY = velocity.Angular.Y;
+            var angularZ = velocity.Angular.Z;
+
+            for (int i = 0; i < Vector<float>.Count; i++)
+            {
+                var handle = new BodyHandle(bodyIndices[i]);
+                (float Linear, float Angular) d;
+                if (!_damping.TryGetValue(handle, out d))
+                    d = (_defaultLinear, _defaultAngular);
+                var ldt = MathF.Pow(d.Linear, dt[i]);
+                var adt = MathF.Pow(d.Angular, dt[i]);
+                linearX = linearX.WithElement(i, linearX[i] * ldt);
+                linearY = linearY.WithElement(i, linearY[i] * ldt);
+                linearZ = linearZ.WithElement(i, linearZ[i] * ldt);
+                angularX = angularX.WithElement(i, angularX[i] * adt);
+                angularY = angularY.WithElement(i, angularY[i] * adt);
+                angularZ = angularZ.WithElement(i, angularZ[i] * adt);
+            }
+
+            velocity.Linear.X = linearX;
+            velocity.Linear.Y = linearY;
+            velocity.Linear.Z = linearZ;
+            velocity.Angular.X = angularX;
+            velocity.Angular.Y = angularY;
+            velocity.Angular.Z = angularZ;
         }
     }
 }
