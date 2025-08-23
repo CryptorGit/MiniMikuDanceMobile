@@ -76,6 +76,9 @@ public class AppSettings
     public bool DistinguishBoneTypes { get; set; }
         = false;
 
+    /// <summary>物理演算を有効にするか。</summary>
+    public bool EnablePhysics { get; set; } = false;
+
     /// <summary>物理設定。Gravity は ModelScale 倍にスケーリングされる。</summary>
     public PhysicsConfig Physics { get; set; } =
         new(new Vector3(0f, -9.81f, 0f), 8, 1, 0.98f, 0.5f, 0f, 0.2f, 0.5f, true);
