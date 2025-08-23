@@ -421,11 +421,12 @@ public sealed class BepuPhysicsWorld : IPhysicsWorld
 
         const int batchSize = 256;
         var processed = 0;
-        foreach (var rb in model.RigidBodies)
+        for (int i = 0; i < model.RigidBodies.Count; i++)
         {
+            var rb = model.RigidBodies[i];
             if (!IsValidRigidBody(rb))
             {
-                _logger.LogWarning("異常値の剛体をスキップ: {Name}", rb.Name);
+                _logger.LogWarning("異常値の剛体をスキップ: {Index}:{Name}", i, rb.Name);
                 continue;
             }
 
@@ -450,7 +451,7 @@ public sealed class BepuPhysicsWorld : IPhysicsWorld
                     inertia = box.ComputeInertia(mass);
                     break;
                 default:
-                    _logger.LogWarning("未知の剛体形状をスキップ: {Name}", rb.Name);
+                    _logger.LogWarning("未知の剛体形状をスキップ: {Index}:{Name}", i, rb.Name);
                     continue;
             }
             _shapeIndices.Add(shapeIndex);
@@ -479,12 +480,12 @@ public sealed class BepuPhysicsWorld : IPhysicsWorld
             processed++;
             if (processed % batchSize == 0)
             {
-                _simulation.BroadPhase.ActiveTree.Refit2();
+                RefitBroadPhase();
                 _logger.LogInformation("剛体 {Count} 個追加: BroadPhase葉数={LeafCount}", processed, _simulation.BroadPhase.ActiveTree.LeafCount);
             }
         }
 
-        _simulation.BroadPhase.ActiveTree.Refit2();
+        RefitBroadPhase();
         _logger.LogInformation("剛体ロード完了: 合計 {Count} 個, BroadPhase葉数={LeafCount}", processed, _simulation.BroadPhase.ActiveTree.LeafCount);
 
         static bool IsValidRigidBody(RigidBodyData rb)
@@ -495,6 +496,11 @@ public sealed class BepuPhysicsWorld : IPhysicsWorld
             }
 
             static bool Invalid(float v) => v <= 0 || float.IsNaN(v) || float.IsInfinity(v);
+            if (!(float.IsFinite(rb.Position.X) && float.IsFinite(rb.Position.Y) && float.IsFinite(rb.Position.Z) &&
+                  float.IsFinite(rb.Rotation.X) && float.IsFinite(rb.Rotation.Y) && float.IsFinite(rb.Rotation.Z)))
+            {
+                return false;
+            }
             return rb.Shape switch
             {
                 RigidBodyShape.Sphere => !Invalid(rb.Size.X),
@@ -502,6 +508,27 @@ public sealed class BepuPhysicsWorld : IPhysicsWorld
                 RigidBodyShape.Box => !Invalid(rb.Size.X) && !Invalid(rb.Size.Y) && !Invalid(rb.Size.Z),
                 _ => false,
             };
+        }
+
+        void RefitBroadPhase()
+        {
+            try
+            {
+                _simulation.BroadPhase.ActiveTree.Refit2();
+            }
+            catch (Exception ex)
+            {
+                _logger.LogWarning(ex, "ActiveTree.Refit2 に失敗しました。RefitAndRefine を試みます。");
+                try
+                {
+                    if (_bufferPool is not null)
+                        _simulation.BroadPhase.ActiveTree.RefitAndRefine(_bufferPool, 32, 0.1f);
+                }
+                catch (Exception refineEx)
+                {
+                    _logger.LogError(refineEx, "RefitAndRefine に失敗しました。BroadPhase の状態が不正な可能性があります。");
+                }
+            }
         }
     }
 
