@@ -20,7 +20,7 @@ public static class ImageButtonExtensions
 
     public static void SetIconColor(this ImageButton button, Color color)
     {
-        MauiIcon.SetIconColor(button, color);
+        button.SetValue(MauiIcon.IconColorProperty, color);
         if (MauiIcon.GetValue(button) is BaseIcon baseIcon && baseIcon.Icon is MaterialIcons icon)
         {
             button.Source = icon.ToImageSource(color);
