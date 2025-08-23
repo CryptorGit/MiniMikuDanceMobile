@@ -439,51 +439,7 @@ public partial class MainPage : ContentPage
         {
             try
             {
-                switch (e.ActionType)
-                {
-                    case SKTouchAction.Pressed:
-                        IkManager.PickBone(e.Location.X, e.Location.Y);
-                        if (!_poseMode)
-                        {
-                            e.Handled = true;
-                            return;
-                        }
-                        break;
-                    case SKTouchAction.Moved:
-                        if (!_poseMode)
-                        {
-                            e.Handled = true;
-                            return;
-                        }
-                        var ray = _renderer.ScreenPointToRay(e.Location.X, e.Location.Y);
-                        var pos = IkManager.IntersectDragPlane(ray);
-                        if (!_poseMode)
-                        {
-                            e.Handled = true;
-                            return;
-                        }
-                        if (pos.HasValue && IkManager.SelectedBoneIndex >= 0)
-                        {
-                            IkManager.UpdateTarget(IkManager.SelectedBoneIndex, pos.Value);
-                        }
-                        break;
-                    case SKTouchAction.Released:
-                    case SKTouchAction.Cancelled:
-                        IkManager.ReleaseSelection();
-                        if (!_poseMode)
-                        {
-                            e.Handled = true;
-                            return;
-                        }
-                        break;
-                }
-                if (!_poseMode)
-                {
-                    e.Handled = true;
-                    return;
-                }
-                if (IkManager.InvalidateViewer != null)
-                    IkManager.InvalidateViewer();
+                HandlePoseTouch(e);
             }
             catch (Exception ex)
             {
@@ -503,57 +459,112 @@ public partial class MainPage : ContentPage
             UpdateLayout();
         }
 
-        if (e.ActionType == SKTouchAction.Pressed)
+        switch (e.ActionType)
         {
-            _touchPoints[e.Id] = e.Location;
-        }
-        else if (e.ActionType == SKTouchAction.Moved)
-        {
-            if (_touchPoints.TryGetValue(e.Id, out var prev))
-            {
-                _touchPoints[e.Id] = e.Location;
-
-                if (_touchPoints.Count == 1)
-                {
-                    var dx = e.Location.X - prev.X;
-                    var dy = e.Location.Y - prev.Y;
-                    _renderer.Orbit(dx, dy);
-                }
-                else if (_touchPoints.Count == 2)
-                {
-                    var index = 0;
-                    foreach (var id in _touchPoints.Keys)
-                    {
-                        _touchIds[index++] = id;
-                    }
-
-                    var id0 = _touchIds[0];
-                    var id1 = _touchIds[1];
-
-                    var p0Old = id0 == e.Id ? prev : _touchPoints[id0];
-                    var p1Old = id1 == e.Id ? prev : _touchPoints[id1];
-                    var p0New = _touchPoints[id0];
-                    var p1New = _touchPoints[id1];
-
-                    var oldMid = new SKPoint((p0Old.X + p1Old.X) / 2, (p0Old.Y + p1Old.Y) / 2);
-                    var newMid = new SKPoint((p0New.X + p1New.X) / 2, (p0New.Y + p1New.Y) / 2);
-                    _renderer.Pan(newMid.X - oldMid.X, newMid.Y - oldMid.Y);
-                    float oldDist = (p0Old - p1Old).Length;
-                    float newDist = (p0New - p1New).Length;
-                    _renderer.Dolly(newDist - oldDist);
-                }
-            }
-            else
-            {
-                _touchPoints[e.Id] = e.Location;
-            }
-        }
-        else if (e.ActionType == SKTouchAction.Released || e.ActionType == SKTouchAction.Cancelled)
-        {
-            _touchPoints.Remove(e.Id);
+            case SKTouchAction.Pressed:
+                HandleViewPressed(e);
+                break;
+            case SKTouchAction.Moved:
+                HandleViewMoved(e);
+                break;
+            case SKTouchAction.Released:
+            case SKTouchAction.Cancelled:
+                HandleViewReleased(e);
+                break;
         }
         e.Handled = true;
         _needsRender = true;
+    }
+
+    private void HandlePoseTouch(SKTouchEventArgs e)
+    {
+        switch (e.ActionType)
+        {
+            case SKTouchAction.Pressed:
+                HandlePosePressed(e);
+                break;
+            case SKTouchAction.Moved:
+                HandlePoseMoved(e);
+                break;
+            case SKTouchAction.Released:
+            case SKTouchAction.Cancelled:
+                HandlePoseReleased(e);
+                break;
+        }
+        if (IkManager.InvalidateViewer != null)
+            IkManager.InvalidateViewer();
+    }
+
+    private void HandlePosePressed(SKTouchEventArgs e)
+    {
+        IkManager.PickBone(e.Location.X, e.Location.Y);
+    }
+
+    private void HandlePoseMoved(SKTouchEventArgs e)
+    {
+        var ray = _renderer.ScreenPointToRay(e.Location.X, e.Location.Y);
+        var pos = IkManager.IntersectDragPlane(ray);
+        if (pos.HasValue && IkManager.SelectedBoneIndex >= 0)
+        {
+            IkManager.UpdateTarget(IkManager.SelectedBoneIndex, pos.Value);
+        }
+    }
+
+    private void HandlePoseReleased(SKTouchEventArgs e)
+    {
+        IkManager.ReleaseSelection();
+    }
+
+    private void HandleViewPressed(SKTouchEventArgs e)
+    {
+        _touchPoints[e.Id] = e.Location;
+    }
+
+    private void HandleViewMoved(SKTouchEventArgs e)
+    {
+        if (_touchPoints.TryGetValue(e.Id, out var prev))
+        {
+            _touchPoints[e.Id] = e.Location;
+
+            if (_touchPoints.Count == 1)
+            {
+                var dx = e.Location.X - prev.X;
+                var dy = e.Location.Y - prev.Y;
+                _renderer.Orbit(dx, dy);
+            }
+            else if (_touchPoints.Count == 2)
+            {
+                var index = 0;
+                foreach (var id in _touchPoints.Keys)
+                {
+                    _touchIds[index++] = id;
+                }
+
+                var id0 = _touchIds[0];
+                var id1 = _touchIds[1];
+
+                var p0Old = id0 == e.Id ? prev : _touchPoints[id0];
+                var p1Old = id1 == e.Id ? prev : _touchPoints[id1];
+                var p0New = _touchPoints[id0];
+                var p1New = _touchPoints[id1];
+
+                var oldMid = new SKPoint((p0Old.X + p1Old.X) / 2, (p0Old.Y + p1Old.Y) / 2);
+                var newMid = new SKPoint((p0New.X + p1New.X) / 2, (p0New.Y + p1New.Y) / 2);
+                _renderer.Pan(newMid.X - oldMid.X, newMid.Y - oldMid.Y);
+                float oldDist = (p0Old - p1Old).Length;
+                float newDist = (p0New - p1New).Length;
+                _renderer.Dolly(newDist - oldDist);
+            }
+        }
+        else
+        {
+            _touchPoints[e.Id] = e.Location;
+        }
+    }
+
+    private void HandleViewReleased(SKTouchEventArgs e)
+    {
+        _touchPoints.Remove(e.Id);
     }
 }
 
