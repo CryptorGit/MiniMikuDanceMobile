@@ -289,24 +289,17 @@ public sealed class BepuPhysicsWorld : IPhysicsWorld
 
                 var pose = poseMap[info.Bone];
                 Quaternion localRot;
-                Vector3 localPos;
                 if (bone.Parent >= 0)
                 {
                     var parentWorld = GetWorldMatrix(scene, bone.Parent, poseMap, cache);
                     Matrix4x4.Invert(parentWorld, out var invParent);
                     var world = Matrix4x4.CreateFromQuaternion(pose.Rot) * Matrix4x4.CreateTranslation(pose.Pos);
                     var local = world * invParent;
-                    Matrix4x4.Decompose(local, out _, out localRot, out localPos);
+                    Matrix4x4.Decompose(local, out _, out localRot, out _);
                 }
                 else
                 {
                     localRot = pose.Rot;
-                    localPos = pose.Pos;
-                }
-
-                if (_config.LockTranslation)
-                {
-                    localPos = bone.InitialTranslation;
                 }
 
                 if (ikLinkMap.TryGetValue(info.Bone, out var ikLink) && ikLink.HasLimit)
@@ -340,23 +333,16 @@ public sealed class BepuPhysicsWorld : IPhysicsWorld
                     localRot = Quaternion.Normalize(delta * bone.InitialRotation);
                 }
 
-                var initialLen = bone.InitialTranslation.Length();
-                if (initialLen > 0f)
-                    localPos = Vector3.Normalize(localPos) * initialLen;
-                else
-                    localPos = Vector3.Zero;
-
                 if (info.Mode == 2)
                 {
                     bone.Rotation = Quaternion.Slerp(bone.Rotation, localRot, BoneBlendFactor);
-                    localPos = Vector3.Lerp(bone.Translation, localPos, BoneBlendFactor);
                 }
                 else
                 {
                     bone.Rotation = localRot;
                 }
 
-                bone.Translation = localPos;
+                bone.Translation = bone.InitialTranslation;
 
                 scene.Bones[info.Bone] = bone;
             }
