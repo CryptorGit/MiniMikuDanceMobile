@@ -5,7 +5,6 @@ using MauiIcons.Core;
 
 namespace MauiIcons.Material;
 
-[AcceptEmptyServiceProvider]
 public sealed class MaterialExtension : BaseIconExtension<MaterialIcons>
 {
 }
