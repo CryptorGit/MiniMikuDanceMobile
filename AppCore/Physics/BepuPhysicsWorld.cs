@@ -55,6 +55,12 @@ public sealed class BepuPhysicsWorld : IPhysicsWorld
         _logger = logger ?? NullLogger<BepuPhysicsWorld>.Instance;
     }
 
+    /// <summary>
+    /// 物理シミュレーションを初期化する。
+    /// Dispose 後に再利用する場合は、本メソッドを再度呼び出すこと。
+    /// バッファプール → スレッドディスパッチャ → Simulation の順に生成され、
+    /// 依存関係が解決される。
+    /// </summary>
     public void Initialize(PhysicsConfig config, float modelScale)
     {
         _skipSimulation = false;
@@ -83,6 +89,11 @@ public sealed class BepuPhysicsWorld : IPhysicsWorld
             // Damping は 1 秒あたりの減衰率 (0～1)
             new SimplePoseIntegratorCallbacks(gravity, _config.Damping, _config.Damping),
             new SolveDescription(solverIterationCount, substepCount));
+        // Simulation 生成後に ConstraintRemover が確実に登録されているかチェック
+        if (_simulation.NarrowPhase.ConstraintRemover == null)
+        {
+            _simulation.NarrowPhase.ConstraintRemover = new ConstraintRemover(_bufferPool, _simulation.Bodies, _simulation.Solver);
+        }
 
         _staticMaterialMap.Clear();
         _staticFilterMap.Clear();
@@ -115,6 +126,12 @@ public sealed class BepuPhysicsWorld : IPhysicsWorld
             _lastDt = dt;
             return;
         }
+        if (_simulation is null || _threadDispatcher is null)
+        {
+            _logger.LogWarning("Simulation が初期化されていないため Step をスキップします。");
+            _lastDt = dt;
+            return;
+        }
         _cloth.Gravity = _config.Gravity;
         _cloth.Damping = _config.Damping;
         _cloth.GroundHeight = _config.GroundHeight;
@@ -122,12 +139,9 @@ public sealed class BepuPhysicsWorld : IPhysicsWorld
         _cloth.Friction = _config.Friction;
         _cloth.LockTranslation = _config.LockTranslation;
         _cloth.Substeps = _config.SubstepCount;
-        if (_simulation is not null)
-        {
-            // Refit broad phase using non-recursive method to avoid Refit2WithCacheOptimization issues
-            _simulation.BroadPhase.ActiveTree.Refit2();
-            _simulation.Timestep(dt, _threadDispatcher);
-        }
+        // Refit broad phase using non-recursive method to avoid Refit2WithCacheOptimization issues
+        _simulation.BroadPhase.ActiveTree.Refit2();
+        _simulation.Timestep(dt, _threadDispatcher);
         _cloth.Step(dt);
         _lastDt = dt;
     }
