@@ -103,8 +103,6 @@
             <Grid>
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="*" />
-                    <ColumnDefinition Width="Auto" />
-                    <ColumnDefinition Width="Auto" />
                     <ColumnDefinition Width="40" />
                 </Grid.ColumnDefinitions>
                 <ScrollView Orientation="Horizontal">
@@ -120,10 +118,7 @@
                         </Trigger>
                     </Switch.Triggers>
                 </Switch>
-                <Button x:Name="PoseModeButton" Grid.Column="2" BackgroundColor="Transparent" HorizontalOptions="Center" VerticalOptions="Center" Clicked="OnPoseModeButtonClicked" Padding="0">
-                    <mi:MauiIcon x:Name="PoseModeIcon" Icon="{mi:Material Icon=PhotoCamera}" IconColor="Gray" />
-                </Button>
-                <Label Text="×" Grid.Column="3" TextColor="{StaticResource TextColor}" HorizontalTextAlignment="Center" VerticalTextAlignment="Center">
+                <Label Text="×" Grid.Column="2" TextColor="{StaticResource TextColor}" HorizontalTextAlignment="Center" VerticalTextAlignment="Center">
                     <Label.GestureRecognizers>
                         <TapGestureRecognizer Tapped="OnCloseBottomTapped" />
                     </Label.GestureRecognizers>
