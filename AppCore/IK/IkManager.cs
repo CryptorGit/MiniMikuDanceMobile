@@ -15,7 +15,7 @@ public static class IkManager
     public static System.Func<float, float, int>? PickFunc { get; set; }
     public static System.Func<int, Vector3>? GetBonePositionFunc { get; set; }
     public static System.Func<Vector3>? GetCameraPositionFunc { get; set; }
-    public static System.Action<int, OpenTK.Mathematics.Vector3>? SetBoneTranslation { get; set; }
+    public static System.Action<int, OpenTK.Mathematics.Vector3>? SetBoneWorldPosition { get; set; }
     public static System.Func<Vector3, Vector3>? ToModelSpaceFunc { get; set; }
     public static System.Func<Vector3, Vector3>? ToWorldSpaceFunc { get; set; }
     public static System.Action? InvalidateViewer { get; set; }
@@ -128,10 +128,10 @@ public static class IkManager
 
             bone.Position = position;
 
-            if (SetBoneTranslation != null)
+            if (SetBoneWorldPosition != null)
             {
                 var worldPos = ToWorldSpaceFunc != null ? ToWorldSpaceFunc(bone.Position) : bone.Position;
-                SetBoneTranslation(bone.PmxBoneIndex, worldPos.ToOpenTK());
+                SetBoneWorldPosition(bone.PmxBoneIndex, worldPos.ToOpenTK());
             }
 
             InvalidateViewer?.Invoke();

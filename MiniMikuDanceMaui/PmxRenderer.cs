@@ -156,7 +156,6 @@ public partial class PmxRenderer : IDisposable
     private Vector3 _cameraPos;
     private bool _viewProjDirty = true;
     private readonly List<Vector3> _boneRotations = new();
-    private readonly List<Vector3> _boneTranslations = new();
     private bool _bonesDirty;
     private bool _morphDirty;
     private bool _uvMorphDirty;
@@ -696,7 +695,6 @@ void main(){
     public void ClearBoneRotations()
     {
         _boneRotations.Clear();
-        _boneTranslations.Clear();
         _bonesDirty = true;
     }
 
@@ -1009,8 +1007,6 @@ void main(){
             if (bone.HasFixedAxis)
                 rot = ProjectRotation(rot, bone.FixedAxis);
             System.Numerics.Vector3 trans = bone.Translation;
-            if (i < _boneTranslations.Count)
-                trans += _boneTranslations[i].ToNumerics();
             var rotMat = System.Numerics.Matrix4x4.CreateFromQuaternion(rot);
             if (bone.HasLocalAxis)
             {
@@ -1084,7 +1080,7 @@ void main(){
         return (texture, true);
     }
 
-    public void SetBoneTranslation(int index, Vector3 worldPos)
+    public void SetBoneWorldPosition(int index, Vector3 worldPos)
     {
         if (index < 0 || index >= _bones.Count)
             return;
@@ -1096,11 +1092,31 @@ void main(){
             : System.Numerics.Matrix4x4.Identity;
         System.Numerics.Matrix4x4.Invert(parentWorld, out var invParent);
         var localPos = System.Numerics.Vector3.Transform(worldPos.ToNumerics(), invParent);
-        var delta = localPos - bone.Translation;
+        var length = bone.InitialTranslation.Length();
+        if (length < 1e-6f)
+            return;
 
-        while (_boneTranslations.Count <= index)
-            _boneTranslations.Add(Vector3.Zero);
-        _boneTranslations[index] = delta.ToOpenTK();
+        var dir = System.Numerics.Vector3.Normalize(localPos);
+        bone.Translation = dir * length;
+
+        var from = System.Numerics.Vector3.Normalize(bone.InitialTranslation);
+        var axis = System.Numerics.Vector3.Cross(from, dir);
+        float axisLen = axis.Length();
+        System.Numerics.Quaternion rot;
+        float dot = System.Numerics.Vector3.Dot(from, dir);
+        if (axisLen < 1e-6f)
+        {
+            rot = dot > 0f
+                ? System.Numerics.Quaternion.Identity
+                : System.Numerics.Quaternion.CreateFromAxisAngle(System.Numerics.Vector3.UnitY, MathF.PI);
+        }
+        else
+        {
+            axis /= axisLen;
+            float angle = MathF.Acos(Math.Clamp(dot, -1f, 1f));
+            rot = System.Numerics.Quaternion.CreateFromAxisAngle(axis, angle);
+        }
+        bone.Rotation = rot;
         _bonesDirty = true;
         Viewer?.InvalidateSurface();
     }
@@ -1112,12 +1128,6 @@ void main(){
         return _boneRotations[index];
     }
 
-    public Vector3 GetBoneTranslation(int index)
-    {
-        if (index < 0 || index >= _boneTranslations.Count)
-            return Vector3.Zero;
-        return _boneTranslations[index];
-    }
 
     // Morph関連メソッドは PmxRenderer.Morph.cs へ移動
 
