@@ -942,7 +942,7 @@ public PmxImporter(ILogger<PmxImporter>? logger = null)
                 Size = ScaleVector(rb.Size),
                 Group = rb.Group,
                 Mask = rb.GroupTarget,
-                Mode = (int)rb.PhysicsType
+                Mode = (RigidBodyMode)rb.PhysicsType
             };
             rigidBodyDatas.Add(rbd);
         }

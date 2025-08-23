@@ -9,6 +9,13 @@ public enum RigidBodyShape
     Capsule
 }
 
+public enum RigidBodyMode
+{
+    FollowBone = 0,
+    Physics = 1,
+    PhysicsWithBoneAlignment = 2
+}
+
 public class RigidBodyData
 {
     public string Name { get; set; } = string.Empty;
@@ -25,7 +32,7 @@ public class RigidBodyData
     public Vector3 Size { get; set; } = Vector3.Zero;
     public byte Group { get; set; }
     public ushort Mask { get; set; }
-    public int Mode { get; set; }
+    public RigidBodyMode Mode { get; set; }
 }
 
 public class JointData
