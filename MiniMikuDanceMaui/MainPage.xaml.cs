@@ -1209,6 +1209,7 @@ public partial class MainPage : ContentPage
 
     private async void OnImportPmxClicked(object? sender, EventArgs e)
     {
+        SKGLView? glView = Viewer as SKGLView;
 
         if (string.IsNullOrEmpty(_selectedModelPath))
         {
@@ -1223,7 +1224,7 @@ public partial class MainPage : ContentPage
         Viewer.HasRenderLoop = false;
         _needsRender = false;
         _touchPoints.Clear();
-        if (Viewer is SKGLView glView)
+        if (glView != null)
         {
             glView.Touch -= OnViewTouch;
         }
