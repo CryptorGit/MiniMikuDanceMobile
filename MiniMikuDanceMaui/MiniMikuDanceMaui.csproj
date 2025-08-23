@@ -21,6 +21,8 @@
                 <CopyLocalLockFileAssemblies>true</CopyLocalLockFileAssemblies>
                 <PublishTrimmed>false</PublishTrimmed>
                 <AndroidLinkMode>SdkOnly</AndroidLinkMode>
+                <RuntimeIdentifiers>android-arm64</RuntimeIdentifiers>
+                <UseFastDeployment>false</UseFastDeployment>
         </PropertyGroup>
 
   <ItemGroup>
