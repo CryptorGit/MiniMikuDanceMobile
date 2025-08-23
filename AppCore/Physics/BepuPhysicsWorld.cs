@@ -7,12 +7,12 @@ using BepuPhysics.Collidables;
 using BepuPhysics.Constraints;
 using BepuPhysics.CollisionDetection;
 using BepuPhysics.CollisionDetection.CollisionTasks;
-using BepuPhysics.Trees;
 using BepuUtilities;
 using BepuUtilities.Memory;
 using MiniMikuDance.Import;
 using MiniMikuDance.App;
 using MiniMikuDance.Physics.Cloth;
+using ClothNode = MiniMikuDance.Physics.Cloth.Node;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
 
@@ -169,7 +169,7 @@ public sealed class BepuPhysicsWorld : IPhysicsWorld
         {
             try
             {
-                var context = new Tree.RefitAndRefineMultithreadedContext();
+                var context = new BepuPhysics.Trees.Tree.RefitAndRefineMultithreadedContext();
                 context.RefitAndRefine(ref _simulation.BroadPhase.ActiveTree, _bufferPool, _threadDispatcher, _frameIndex++);
                 context.CleanUpForRefitAndRefine(_bufferPool);
                 bodyCount = _simulation.Bodies.ActiveSet.Count;
@@ -682,7 +682,7 @@ public sealed class BepuPhysicsWorld : IPhysicsWorld
             {
                 try
                 {
-                    var context = new Tree.RefitAndRefineMultithreadedContext();
+                    var context = new BepuPhysics.Trees.Tree.RefitAndRefineMultithreadedContext();
                     context.RefitAndRefine(ref _simulation.BroadPhase.ActiveTree, _bufferPool, _threadDispatcher, _frameIndex++);
                     context.CleanUpForRefitAndRefine(_bufferPool);
                     var bodyCount = _simulation.Bodies.ActiveSet.Count;
@@ -787,7 +787,7 @@ public sealed class BepuPhysicsWorld : IPhysicsWorld
             var (boneIndex, parentNode, worldPos, worldRot) = queue.Dequeue();
             var nodeIndex = _cloth.Nodes.Count;
             var invMass = parentNode < 0 ? 0f : 1f / mass;
-            _cloth.Nodes.Add(new Node { Position = worldPos, PrevPosition = worldPos, Velocity = Vector3.Zero, InverseMass = invMass });
+            _cloth.Nodes.Add(new ClothNode { Position = worldPos, PrevPosition = worldPos, Velocity = Vector3.Zero, InverseMass = invMass });
             _cloth.BoneMap.Add(boneIndex);
 
             if (parentNode >= 0)
