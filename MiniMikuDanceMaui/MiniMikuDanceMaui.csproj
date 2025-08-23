@@ -20,6 +20,15 @@
                 <MauiEnableXamlCBindingWithSourceCompilation>true</MauiEnableXamlCBindingWithSourceCompilation>
                 <CopyLocalLockFileAssemblies>true</CopyLocalLockFileAssemblies>
                 <PublishTrimmed>false</PublishTrimmed>
+        </PropertyGroup>
+
+        <PropertyGroup Condition="'$(Configuration)'=='Debug'">
+                <UseFastDeployment>true</UseFastDeployment>
+                <AndroidLinkMode>None</AndroidLinkMode>
+        </PropertyGroup>
+
+        <PropertyGroup Condition="'$(Configuration)'=='Release'">
+                <UseFastDeployment>false</UseFastDeployment>
                 <AndroidLinkMode>SdkOnly</AndroidLinkMode>
         </PropertyGroup>
 
