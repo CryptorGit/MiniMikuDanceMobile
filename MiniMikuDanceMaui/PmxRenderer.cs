@@ -1053,7 +1053,7 @@ void main(){
 
         int texture = GL.GenTexture();
         CheckGLError("GL.GenTexture");
-        GL.BindTexture(All.Texture2D, texture);
+        GL.BindTexture(TextureTarget.Texture2D, texture);
         CheckGLError("GL.BindTexture");
 
         var handle = GCHandle.Alloc(bytes, GCHandleType.Pinned);
