@@ -19,6 +19,8 @@
                 <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
                 <MauiEnableXamlCBindingWithSourceCompilation>true</MauiEnableXamlCBindingWithSourceCompilation>
                 <CopyLocalLockFileAssemblies>true</CopyLocalLockFileAssemblies>
+                <PublishTrimmed>false</PublishTrimmed>
+                <AndroidLinkMode>SdkOnly</AndroidLinkMode>
         </PropertyGroup>
 
   <ItemGroup>
