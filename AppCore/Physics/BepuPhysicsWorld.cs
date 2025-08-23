@@ -140,8 +140,53 @@ public sealed class BepuPhysicsWorld : IPhysicsWorld
         _cloth.Friction = _config.Friction;
         _cloth.LockTranslation = _config.LockTranslation;
         _cloth.Substeps = _config.SubstepCount;
-        // Refit broad phase using non-recursive method to avoid Refit2WithCacheOptimization issues
-        _simulation.BroadPhase.ActiveTree.Refit2();
+        var bodyCount = _simulation.Bodies.ActiveSet.Count;
+        var leafCount = _simulation.BroadPhase.ActiveTree.LeafCount;
+        var rebuild = false;
+        try
+        {
+            // Refit broad phase using non-recursive method to avoid Refit2WithCacheOptimization issues
+            _simulation.BroadPhase.ActiveTree.Refit2();
+            bodyCount = _simulation.Bodies.ActiveSet.Count;
+            leafCount = _simulation.BroadPhase.ActiveTree.LeafCount;
+            if (NeedsBroadPhaseRebuild(bodyCount, leafCount))
+            {
+                _logger.LogWarning("剛体数({BodyCount})と BroadPhase 葉数({LeafCount}) の不一致", bodyCount, leafCount);
+                rebuild = true;
+            }
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "ActiveTree.Refit2 に失敗しました。");
+            LogBodyAabbs(LogLevel.Error);
+            AppendCrashLog("ActiveTree.Refit2 failed", ex);
+            rebuild = true;
+        }
+
+        if (rebuild)
+        {
+            try
+            {
+                _simulation.BroadPhase.ActiveTree.Rebuild();
+                bodyCount = _simulation.Bodies.ActiveSet.Count;
+                leafCount = _simulation.BroadPhase.ActiveTree.LeafCount;
+                if (NeedsBroadPhaseRebuild(bodyCount, leafCount))
+                {
+                    _logger.LogError("BroadPhase 再構築後も不一致: BodyCount={BodyCount}, LeafCount={LeafCount}", bodyCount, leafCount);
+                    LogBodyAabbs(LogLevel.Error);
+                    AppendCrashLog("ActiveTree.Rebuild failed");
+                    _skipSimulation = true;
+                }
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "ActiveTree.Rebuild に失敗しました。");
+                LogBodyAabbs(LogLevel.Error);
+                AppendCrashLog("ActiveTree.Rebuild failed", ex);
+                _skipSimulation = true;
+            }
+        }
+
         if (_skipSimulation)
         {
             _lastDt = dt;
@@ -560,14 +605,16 @@ public sealed class BepuPhysicsWorld : IPhysicsWorld
 
             const float limit = 1e6f;
             var invalidBodies = new List<(int Index, Vector3 Min, Vector3 Max)>();
+            var rebuild = false;
 
             try
             {
                 var bodyCount = _simulation.Bodies.ActiveSet.Count;
                 var leafCount = _simulation.BroadPhase.ActiveTree.LeafCount;
-                if (bodyCount != leafCount)
+                if (NeedsBroadPhaseRebuild(bodyCount, leafCount))
                 {
                     _logger.LogWarning("剛体数({BodyCount})と BroadPhase 葉数({LeafCount}) の不一致", bodyCount, leafCount);
+                    rebuild = true;
                 }
 
                 for (int i = _rigidBodyHandles.Count - 1; i >= 0; i--)
@@ -605,23 +652,54 @@ public sealed class BepuPhysicsWorld : IPhysicsWorld
                 return;
             }
 
-            try
+            if (!rebuild)
             {
-                // Use non-recursive refit to avoid stack overflow in Refit2WithCacheOptimization
-                for (int i = 0; i < 4; i++)
+                try
                 {
-                    _simulation.BroadPhase.ActiveTree.Refit2();
+                    // Use non-recursive refit to avoid stack overflow in Refit2WithCacheOptimization
+                    for (int i = 0; i < 4; i++)
+                    {
+                        _simulation.BroadPhase.ActiveTree.Refit2();
+                    }
+                }
+                catch (Exception ex)
+                {
+                    foreach (var info in invalidBodies)
+                    {
+                        _logger.LogError("Refit2 失敗剛体: {Index}, Min={Min}, Max={Max}", info.Index, info.Min, info.Max);
+                    }
+                    _logger.LogError(ex, "ActiveTree.Refit2 に失敗しました。");
+                    AppendCrashLog("ActiveTree.Refit2 failed", ex);
+                    rebuild = true;
                 }
             }
-            catch (Exception ex)
+
+            if (rebuild)
             {
-                foreach (var info in invalidBodies)
+                try
                 {
-                    _logger.LogError("Refit2 失敗剛体: {Index}, Min={Min}, Max={Max}", info.Index, info.Min, info.Max);
+                    _simulation.BroadPhase.ActiveTree.Rebuild();
+                    var bodyCount = _simulation.Bodies.ActiveSet.Count;
+                    var leafCount = _simulation.BroadPhase.ActiveTree.LeafCount;
+                    if (NeedsBroadPhaseRebuild(bodyCount, leafCount))
+                    {
+                        _logger.LogError("BroadPhase 再構築後も不一致: BodyCount={BodyCount}, LeafCount={LeafCount}", bodyCount, leafCount);
+                        LogBodyAabbs(LogLevel.Error);
+                        AppendCrashLog("ActiveTree.Rebuild failed");
+                        _skipSimulation = true;
+                    }
                 }
-                _logger.LogError(ex, "ActiveTree.Refit2 に失敗しました。");
-                AppendCrashLog("ActiveTree.Refit2 failed", ex);
-                _skipSimulation = true;
+                catch (Exception ex)
+                {
+                    foreach (var info in invalidBodies)
+                    {
+                        _logger.LogError("Refit2 失敗剛体: {Index}, Min={Min}, Max={Max}", info.Index, info.Min, info.Max);
+                    }
+                    _logger.LogError(ex, "ActiveTree.Rebuild に失敗しました。");
+                    LogBodyAabbs(LogLevel.Error);
+                    AppendCrashLog("ActiveTree.Rebuild failed", ex);
+                    _skipSimulation = true;
+                }
             }
 
             bool InvalidVector(Vector3 v)
@@ -895,6 +973,27 @@ public sealed class BepuPhysicsWorld : IPhysicsWorld
         var rotAxis = Vector3.Normalize(Vector3.Cross(Vector3.UnitZ, axis));
         var angle = MathF.Acos(dot);
         return Quaternion.CreateFromAxisAngle(rotAxis, angle);
+    }
+
+    private void LogBodyAabbs(LogLevel level)
+    {
+        if (_simulation is null)
+            return;
+
+        foreach (var handle in _rigidBodyHandles)
+        {
+            if (!_simulation.Bodies.BodyExists(handle))
+                continue;
+
+            var bounds = _simulation.Bodies.GetBodyReference(handle).BoundingBox;
+            _logger.Log(level, "剛体状態: {Index}, Min={Min}, Max={Max}", handle.Value, bounds.Min, bounds.Max);
+        }
+    }
+
+    private static bool NeedsBroadPhaseRebuild(int bodyCount, int leafCount)
+    {
+        var diff = Math.Abs(bodyCount - leafCount);
+        return diff > 32 && diff > bodyCount / 2;
     }
 
     private static void AppendCrashLog(string message, Exception? ex = null)
