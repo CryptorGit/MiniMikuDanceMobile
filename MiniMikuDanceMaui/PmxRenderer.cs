@@ -923,6 +923,39 @@ void main(){
         return System.Numerics.Quaternion.CreateFromAxisAngle(axis, angle * proj);
     }
 
+    private static (int Texture, bool HasTexture) LoadTextureBytes(byte[]? bytes, int width, int height)
+    {
+        if (bytes == null)
+            return (0, false);
+
+        int texture = GL.GenTexture();
+        GL.BindTexture(All.Texture2D, texture);
+
+        var handle = GCHandle.Alloc(bytes, GCHandleType.Pinned);
+        try
+        {
+            GL.TexImage2D(
+                All.Texture2D,
+                0,
+                (int)All.Rgba,
+                width,
+                height,
+                0,
+                All.Rgba,
+                All.UnsignedByte,
+                handle.AddrOfPinnedObject());
+        }
+        finally
+        {
+            handle.Free();
+        }
+
+        GL.TexParameter(All.Texture2D, All.TextureMinFilter, (int)All.Linear);
+        GL.TexParameter(All.Texture2D, All.TextureMagFilter, (int)All.Linear);
+
+        return (texture, true);
+    }
+
     public void SetBoneTranslation(int index, Vector3 worldPos)
     {
         if (index < 0 || index >= _bones.Count)
@@ -1131,93 +1164,20 @@ void main(){
             GL.BufferData(BufferTarget.ElementArrayBuffer, indices.Count * sizeof(uint), indices.ToArray(), BufferUsageHint.StaticDraw);
             GL.BindVertexArray(0);
 
-            if (sm.TextureBytes != null)
-            {
-                rm.Texture = GL.GenTexture();
-                GL.BindTexture(All.Texture2D, rm.Texture);
-                var handle = System.Runtime.InteropServices.GCHandle.Alloc(sm.TextureBytes, System.Runtime.InteropServices.GCHandleType.Pinned);
-                try
-                {
-                    GL.TexImage2D(
-                        All.Texture2D,
-                        0,
-                        (int)All.Rgba,
-                        sm.TextureWidth,
-                        sm.TextureHeight,
-                        0,
-                        All.Rgba,
-                        All.UnsignedByte,
-                        handle.AddrOfPinnedObject());
-                }
-                finally
-                {
-                    handle.Free();
-                }
-                sm.TextureBytes = null;
-                sm.TextureWidth = 0;
-                sm.TextureHeight = 0;
-                GL.TexParameter(All.Texture2D, All.TextureMinFilter, (int)All.Linear);
-                GL.TexParameter(All.Texture2D, All.TextureMagFilter, (int)All.Linear);
-                rm.HasTexture = true;
-            }
-            if (sm.SphereTextureBytes != null)
-            {
-                rm.SphereTexture = GL.GenTexture();
-                GL.BindTexture(All.Texture2D, rm.SphereTexture);
-                var handle = System.Runtime.InteropServices.GCHandle.Alloc(sm.SphereTextureBytes, System.Runtime.InteropServices.GCHandleType.Pinned);
-                try
-                {
-                    GL.TexImage2D(
-                        All.Texture2D,
-                        0,
-                        (int)All.Rgba,
-                        sm.SphereTextureWidth,
-                        sm.SphereTextureHeight,
-                        0,
-                        All.Rgba,
-                        All.UnsignedByte,
-                        handle.AddrOfPinnedObject());
-                }
-                finally
-                {
-                    handle.Free();
-                }
-                sm.SphereTextureBytes = null;
-                sm.SphereTextureWidth = 0;
-                sm.SphereTextureHeight = 0;
-                GL.TexParameter(All.Texture2D, All.TextureMinFilter, (int)All.Linear);
-                GL.TexParameter(All.Texture2D, All.TextureMagFilter, (int)All.Linear);
-                rm.HasSphereTexture = true;
-            }
-            if (sm.ToonTextureBytes != null)
-            {
-                rm.ToonTexture = GL.GenTexture();
-                GL.BindTexture(All.Texture2D, rm.ToonTexture);
-                var handle = System.Runtime.InteropServices.GCHandle.Alloc(sm.ToonTextureBytes, System.Runtime.InteropServices.GCHandleType.Pinned);
-                try
-                {
-                    GL.TexImage2D(
-                        All.Texture2D,
-                        0,
-                        (int)All.Rgba,
-                        sm.ToonTextureWidth,
-                        sm.ToonTextureHeight,
-                        0,
-                        All.Rgba,
-                        All.UnsignedByte,
-                        handle.AddrOfPinnedObject());
-                }
-                finally
-                {
-                    handle.Free();
-                }
-                sm.ToonTextureBytes = null;
-                sm.ToonTextureWidth = 0;
-                sm.ToonTextureHeight = 0;
-                GL.TexParameter(All.Texture2D, All.TextureMinFilter, (int)All.Linear);
-                GL.TexParameter(All.Texture2D, All.TextureMagFilter, (int)All.Linear);
-                rm.HasToonTexture = true;
-            }
+            (rm.Texture, rm.HasTexture) = LoadTextureBytes(sm.TextureBytes, sm.TextureWidth, sm.TextureHeight);
+            sm.TextureBytes = null;
+            sm.TextureWidth = 0;
+            sm.TextureHeight = 0;
+
+            (rm.SphereTexture, rm.HasSphereTexture) = LoadTextureBytes(sm.SphereTextureBytes, sm.SphereTextureWidth, sm.SphereTextureHeight);
+            sm.SphereTextureBytes = null;
+            sm.SphereTextureWidth = 0;
+            sm.SphereTextureHeight = 0;
+
+            (rm.ToonTexture, rm.HasToonTexture) = LoadTextureBytes(sm.ToonTextureBytes, sm.ToonTextureWidth, sm.ToonTextureHeight);
+            sm.ToonTextureBytes = null;
+            sm.ToonTextureWidth = 0;
+            sm.ToonTextureHeight = 0;
 
             if (rm.HasTexture)
             {
