@@ -1,6 +1,7 @@
 using System;
 using System.Numerics;
 using System.Collections.Generic;
+using System.IO;
 using BepuPhysics;
 using BepuPhysics.Collidables;
 using BepuPhysics.Constraints;
@@ -29,6 +30,7 @@ public sealed class BepuPhysicsWorld : IPhysicsWorld
     private readonly Dictionary<StaticHandle, SubgroupCollisionFilter> _staticFilterMap = new();
     private readonly ClothSimulator _cloth = new();
     private readonly Dictionary<int, (Vector3 Pos, Quaternion Rot)> _prevBonePoses = new();
+    private bool _skipSimulation;
     private PhysicsConfig _config;
     private float _modelScale = 1f;
     private float _massScale = 1f;
@@ -53,6 +55,7 @@ public sealed class BepuPhysicsWorld : IPhysicsWorld
 
     public void Initialize(PhysicsConfig config, float modelScale)
     {
+        _skipSimulation = false;
         _modelScale = modelScale;
         _massScale = modelScale * modelScale * modelScale;
         var gravity = config.Gravity * modelScale;
@@ -103,6 +106,11 @@ public sealed class BepuPhysicsWorld : IPhysicsWorld
 
     public void Step(float dt)
     {
+        if (_skipSimulation)
+        {
+            _lastDt = dt;
+            return;
+        }
         _cloth.Gravity = _config.Gravity;
         _cloth.Damping = _config.Damping;
         _cloth.GroundHeight = _config.GroundHeight;
@@ -124,7 +132,7 @@ public sealed class BepuPhysicsWorld : IPhysicsWorld
     /// </remarks>
     public void SyncFromBones(Scene scene)
     {
-        if (_simulation is null)
+        if (_skipSimulation || _simulation is null)
             return;
 
         var poseCache = new Dictionary<int, (Vector3 Pos, Quaternion Rot)>();
@@ -251,6 +259,11 @@ public sealed class BepuPhysicsWorld : IPhysicsWorld
 
     public void SyncToBones(Scene scene)
     {
+        if (_skipSimulation)
+        {
+            _cloth.SyncToBones(scene);
+            return;
+        }
         if (_simulation is not null)
         {
             var poseMap = new Dictionary<int, (Vector3 Pos, Quaternion Rot)>();
@@ -390,6 +403,7 @@ public sealed class BepuPhysicsWorld : IPhysicsWorld
 
     public void LoadRigidBodies(ModelData model)
     {
+        _skipSimulation = false;
         if (_simulation is null) return;
         foreach (var handle in _rigidBodyHandles)
         {
@@ -413,6 +427,7 @@ public sealed class BepuPhysicsWorld : IPhysicsWorld
             if (!IsValidRigidBody(rb))
             {
                 _logger.LogWarning("異常値の剛体をスキップ: {Index}:{Name}", i, rb.Name);
+                AppendCrashLog($"Invalid rigid body skipped: {i}:{rb.Name}");
                 continue;
             }
 
@@ -501,38 +516,51 @@ public sealed class BepuPhysicsWorld : IPhysicsWorld
             if (_simulation is null || _bufferPool is null)
                 return;
 
-            var bodyCount = _simulation.Bodies.ActiveSet.Count;
-            var leafCount = _simulation.BroadPhase.ActiveTree.LeafCount;
-            if (bodyCount != leafCount)
-            {
-                _logger.LogWarning("剛体数({BodyCount})と BroadPhase 葉数({LeafCount}) の不一致", bodyCount, leafCount);
-            }
-
             const float limit = 1e6f;
             var invalidBodies = new List<(int Index, Vector3 Min, Vector3 Max)>();
 
-            for (int i = _rigidBodyHandles.Count - 1; i >= 0; i--)
+            try
             {
-                var handle = _rigidBodyHandles[i];
-                if (!_simulation.Bodies.BodyExists(handle))
-                    continue;
-
-                var body = _simulation.Bodies.GetBodyReference(handle);
-                var bounds = body.BoundingBox;
-                if (Invalid(bounds.Min) || Invalid(bounds.Max))
+                var bodyCount = _simulation.Bodies.ActiveSet.Count;
+                var leafCount = _simulation.BroadPhase.ActiveTree.LeafCount;
+                if (bodyCount != leafCount)
                 {
-                    invalidBodies.Add((handle.Value, bounds.Min, bounds.Max));
-                    _simulation.Bodies.Remove(handle);
-                    _rigidBodyHandles.RemoveAt(i);
-                    _bodyBoneMap.Remove(handle);
-                    _materialMap.Remove(handle);
-                    _bodyFilterMap.Remove(handle);
+                    _logger.LogWarning("剛体数({BodyCount})と BroadPhase 葉数({LeafCount}) の不一致", bodyCount, leafCount);
+                }
+
+                for (int i = _rigidBodyHandles.Count - 1; i >= 0; i--)
+                {
+                    var handle = _rigidBodyHandles[i];
+                    if (!_simulation.Bodies.BodyExists(handle))
+                        continue;
+
+                    var body = _simulation.Bodies.GetBodyReference(handle);
+                    var bounds = body.BoundingBox;
+                    if (InvalidVector(body.Pose.Position) || InvalidQuaternion(body.Pose.Orientation) ||
+                        InvalidVector(bounds.Min) || InvalidVector(bounds.Max) ||
+                        bounds.Min.X > bounds.Max.X || bounds.Min.Y > bounds.Max.Y || bounds.Min.Z > bounds.Max.Z)
+                    {
+                        invalidBodies.Add((handle.Value, bounds.Min, bounds.Max));
+                        _simulation.Bodies.Remove(handle);
+                        _rigidBodyHandles.RemoveAt(i);
+                        _bodyBoneMap.Remove(handle);
+                        _materialMap.Remove(handle);
+                        _bodyFilterMap.Remove(handle);
+                    }
+                }
+
+                foreach (var info in invalidBodies)
+                {
+                    _logger.LogWarning("AABB が異常な剛体を除外: {Index}, Min={Min}, Max={Max}", info.Index, info.Min, info.Max);
+                    AppendCrashLog($"Invalid rigid body removed: {info.Index}, Min={info.Min}, Max={info.Max}");
                 }
             }
-
-            foreach (var info in invalidBodies)
+            catch (Exception ex)
             {
-                _logger.LogWarning("AABB が異常な剛体を除外: {Index}, Min={Min}, Max={Max}", info.Index, info.Min, info.Max);
+                _logger.LogError(ex, "BroadPhase 再フィット準備中に例外が発生しました。");
+                AppendCrashLog("BroadPhase preprocess failed", ex);
+                _skipSimulation = true;
+                return;
             }
 
             try
@@ -549,13 +577,23 @@ public sealed class BepuPhysicsWorld : IPhysicsWorld
                     _logger.LogError("再フィット失敗剛体: {Index}, Min={Min}, Max={Max}", info.Index, info.Min, info.Max);
                 }
                 _logger.LogError(ex, "ActiveTree.RefitAndRefine に失敗しました。");
+                AppendCrashLog("ActiveTree.RefitAndRefine failed", ex);
+                _skipSimulation = true;
             }
 
-            bool Invalid(Vector3 v)
+            bool InvalidVector(Vector3 v)
             {
                 return float.IsNaN(v.X) || float.IsInfinity(v.X) || MathF.Abs(v.X) > limit ||
                        float.IsNaN(v.Y) || float.IsInfinity(v.Y) || MathF.Abs(v.Y) > limit ||
                        float.IsNaN(v.Z) || float.IsInfinity(v.Z) || MathF.Abs(v.Z) > limit;
+            }
+
+            bool InvalidQuaternion(Quaternion q)
+            {
+                return float.IsNaN(q.X) || float.IsInfinity(q.X) || MathF.Abs(q.X) > limit ||
+                       float.IsNaN(q.Y) || float.IsInfinity(q.Y) || MathF.Abs(q.Y) > limit ||
+                       float.IsNaN(q.Z) || float.IsInfinity(q.Z) || MathF.Abs(q.Z) > limit ||
+                       float.IsNaN(q.W) || float.IsInfinity(q.W) || MathF.Abs(q.W) > limit;
             }
         }
     }
@@ -814,6 +852,20 @@ public sealed class BepuPhysicsWorld : IPhysicsWorld
         var rotAxis = Vector3.Normalize(Vector3.Cross(Vector3.UnitZ, axis));
         var angle = MathF.Acos(dot);
         return Quaternion.CreateFromAxisAngle(rotAxis, angle);
+    }
+
+    private static void AppendCrashLog(string message, Exception? ex = null)
+    {
+        try
+        {
+            var path = Path.Combine(AppContext.BaseDirectory, "crash_log.txt");
+            var text = $"[{DateTime.Now:O}] {message}";
+            if (ex != null) text += $" {ex}";
+            File.AppendAllText(path, text + Environment.NewLine);
+        }
+        catch
+        {
+        }
     }
 
     private struct SubgroupFilteredCallbacks : INarrowPhaseCallbacks
