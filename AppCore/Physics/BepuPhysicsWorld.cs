@@ -420,6 +420,12 @@ public sealed class BepuPhysicsWorld : IPhysicsWorld
         _prevBonePoses.Clear();
         foreach (var rb in model.RigidBodies)
         {
+            if (!IsValidRigidBody(rb))
+            {
+                _logger.LogWarning("異常値の剛体をスキップ: {Name}", rb.Name);
+                continue;
+            }
+
             var mass = rb.Mass * _massScale;
             TypedIndex shapeIndex;
             BodyInertia inertia = default;
@@ -441,6 +447,7 @@ public sealed class BepuPhysicsWorld : IPhysicsWorld
                     inertia = box.ComputeInertia(mass);
                     break;
                 default:
+                    _logger.LogWarning("未知の剛体形状をスキップ: {Name}", rb.Name);
                     continue;
             }
             _shapeIndices.Add(shapeIndex);
@@ -465,6 +472,23 @@ public sealed class BepuPhysicsWorld : IPhysicsWorld
             _bodyBoneMap[handle] = (rb.BoneIndex, rb.Mode);
             _materialMap[handle] = new Material(rb.Restitution, rb.Friction);
             _bodyFilterMap[handle] = filter;
+        }
+
+        static bool IsValidRigidBody(RigidBodyData rb)
+        {
+            if (rb.Mass <= 0 || float.IsNaN(rb.Mass) || float.IsInfinity(rb.Mass))
+            {
+                return false;
+            }
+
+            static bool Invalid(float v) => v <= 0 || float.IsNaN(v) || float.IsInfinity(v);
+            return rb.Shape switch
+            {
+                RigidBodyShape.Sphere => !Invalid(rb.Size.X),
+                RigidBodyShape.Capsule => !Invalid(rb.Size.X) && !Invalid(rb.Size.Y),
+                RigidBodyShape.Box => !Invalid(rb.Size.X) && !Invalid(rb.Size.Y) && !Invalid(rb.Size.Z),
+                _ => false,
+            };
         }
     }
 
