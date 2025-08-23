@@ -47,6 +47,12 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
+    <TrimmerRootAssembly Include="PMXParser" />
+    <TrimmerRootAssembly Include="Microsoft.CSharp" />
+    <TrimmerRootAssembly Include="System.Linq.Expressions" />
+    <TrimmerRootAssembly Include="System.IO.Compression" />
+  </ItemGroup>
+  <ItemGroup>
     <!-- 追加のアセットが必要な場合はここに記述します -->
   </ItemGroup>
 
