@@ -25,6 +25,7 @@ using SixLabors.ImageSharp.PixelFormats;
 using MiniMikuDance.IK;
 using MiniMikuDance.Util;
 using MiniMikuDance.Physics;
+using MauiIcons.Core;
 using MauiIcons.Material;
 
 namespace MiniMikuDanceMaui;
@@ -68,8 +69,8 @@ public partial class MainPage : ContentPage
             DisablePoseMode();
         }
         _renderer.ShowIkBones = _poseMode;
-        PoseModeIcon.Icon(_poseMode ? MaterialIcons.AccessibilityNew : MaterialIcons.PhotoCamera);
-        PoseModeIcon.IconColor(_poseMode ? Colors.Green : Colors.Gray);
+        PoseModeIcon.SetIcon(_poseMode ? MaterialIcons.AccessibilityNew : MaterialIcons.PhotoCamera);
+        PoseModeIcon.SetIconColor(_poseMode ? Colors.Green : Colors.Gray);
         Viewer?.InvalidateSurface();
     }
 
