@@ -38,6 +38,13 @@
                     <TapGestureRecognizer Tapped="OnPoseModeButtonClicked" />
                 </ImageButton.GestureRecognizers>
             </ImageButton>
+            <ImageButton x:Name="PhysicsIcon"
+                         BackgroundColor="Transparent"
+                         mi:MauiIcon.Value="{mi:Material Icon=Science, IconColor=Gray}">
+                <ImageButton.GestureRecognizers>
+                    <TapGestureRecognizer Tapped="OnPhysicsButtonClicked" />
+                </ImageButton.GestureRecognizers>
+            </ImageButton>
         </HorizontalStackLayout>
         <Border x:Name="ViewMenu" IsVisible="False" Background="{StaticResource BackgroundColor}" Padding="0" ZIndex="20">
             <VerticalStackLayout Spacing="4" Padding="8">
@@ -115,17 +122,7 @@
                 <ScrollView Orientation="Horizontal">
                     <HorizontalStackLayout x:Name="BottomTabBar" Spacing="8" Padding="8" BackgroundColor="{StaticResource MenuBackgroundColor}" />
                 </ScrollView>
-                <Switch x:Name="PhysicsSwitch" Grid.Column="1" HorizontalOptions="Center" VerticalOptions="Center" OnColor="Green">
-                    <Switch.Triggers>
-                        <Trigger TargetType="Switch" Property="IsToggled" Value="True">
-                            <Setter Property="ThumbColor" Value="Green" />
-                        </Trigger>
-                        <Trigger TargetType="Switch" Property="IsToggled" Value="False">
-                            <Setter Property="ThumbColor" Value="Gray" />
-                        </Trigger>
-                    </Switch.Triggers>
-                </Switch>
-                <Label Text="×" Grid.Column="2" TextColor="{StaticResource TextColor}" HorizontalTextAlignment="Center" VerticalTextAlignment="Center">
+                <Label Text="×" Grid.Column="1" TextColor="{StaticResource TextColor}" HorizontalTextAlignment="Center" VerticalTextAlignment="Center">
                     <Label.GestureRecognizers>
                         <TapGestureRecognizer Tapped="OnCloseBottomTapped" />
                     </Label.GestureRecognizers>

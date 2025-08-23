@@ -44,6 +44,7 @@ public partial class MainPage : ContentPage
     private float _sphereStrength = 1f;
     private float _toonStrength = 0f;
     private bool _poseMode;
+    private bool _physicsEnabled;
     // bottomWidth is no longer used; bottom region spans full screen width
     // private double bottomWidth = 0;
     private bool _glInitialized;
@@ -73,10 +74,12 @@ public partial class MainPage : ContentPage
         Viewer?.InvalidateSurface();
     }
 
-    private void OnPhysicsSwitchToggled(object? sender, ToggledEventArgs e)
+    private void OnPhysicsButtonClicked(object? sender, TappedEventArgs e)
     {
-        ApplyPhysicsState(e.Value);
-        _settings.EnablePhysics = PhysicsSwitch.IsToggled;
+        _physicsEnabled = !_physicsEnabled;
+        ApplyPhysicsState(_physicsEnabled);
+        PhysicsIcon.SetIconColor(_physicsEnabled ? Colors.Green : Colors.Gray);
+        _settings.EnablePhysics = _physicsEnabled;
         _settings.Save();
     }
 
@@ -100,7 +103,8 @@ public partial class MainPage : ContentPage
             {
                 Debug.WriteLine(ex.ToString());
                 _physics = new NullPhysicsWorld();
-                PhysicsSwitch.IsToggled = false;
+                _physicsEnabled = false;
+                PhysicsIcon.SetIconColor(Colors.Gray);
                 _settings.EnablePhysics = false;
                 _settings.Save();
             }
@@ -182,9 +186,9 @@ public partial class MainPage : ContentPage
         _renderer.BonePickPixels = _settings.BonePickPixels;
         _renderer.ShowIkBones = _poseMode;
         _renderer.IkBoneScale = _settings.IkBoneScale;
-        PhysicsSwitch.IsToggled = _settings.EnablePhysics;
-        ApplyPhysicsState(_settings.EnablePhysics);
-        PhysicsSwitch.Toggled += OnPhysicsSwitchToggled;
+        _physicsEnabled = _settings.EnablePhysics;
+        ApplyPhysicsState(_physicsEnabled);
+        PhysicsIcon.SetIconColor(_physicsEnabled ? Colors.Green : Colors.Gray);
 
         if (Viewer is SKGLView glView)
         {
