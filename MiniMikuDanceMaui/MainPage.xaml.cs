@@ -105,7 +105,7 @@ public partial class MainPage : ContentPage
         }
         catch (Exception ex)
         {
-            Debug.WriteLine(ex);
+            Debug.WriteLine(ex.ToString());
         }
         IkManager.PickFunc = _renderer.PickBone;
         IkManager.GetBonePositionFunc = _renderer.GetBoneWorldPosition;
@@ -185,7 +185,7 @@ public partial class MainPage : ContentPage
         }
         catch (Exception ex)
         {
-            Debug.WriteLine(ex);
+            Debug.WriteLine(ex.ToString());
             _physics = new NullPhysicsWorld();
         }
 
@@ -504,7 +504,7 @@ public partial class MainPage : ContentPage
                 }
                 catch (Exception ex)
                 {
-                    Debug.WriteLine(ex);
+                    Debug.WriteLine(ex.ToString());
                     await DisplayAlert("Error", ex.Message, "OK");
                 }
             }
@@ -657,7 +657,7 @@ public partial class MainPage : ContentPage
                 }
                 catch (Exception ex)
                 {
-                    Debug.WriteLine(ex);
+                    Debug.WriteLine(ex.ToString());
                 }
                 IkManager.PickFunc = _renderer.PickBone;
                 IkManager.GetBonePositionFunc = _renderer.GetBoneWorldPosition;
@@ -669,7 +669,7 @@ public partial class MainPage : ContentPage
         }
         catch (Exception ex)
         {
-            Debug.WriteLine(ex);
+            Debug.WriteLine(ex.ToString());
             AppendCrashLog("LoadPendingModel failed", ex);
             _renderTimer.Start();
             if (Viewer is SKGLView gl)
@@ -734,7 +734,7 @@ public partial class MainPage : ContentPage
             }
             catch (Exception ex)
             {
-                Debug.WriteLine(ex);
+                Debug.WriteLine(ex.ToString());
                 IkManager.ReleaseSelection();
                 MainThread.BeginInvokeOnMainThread(async () =>
                     await DisplayAlert("Error", ex.Message, "OK"));
@@ -852,7 +852,7 @@ public partial class MainPage : ContentPage
                     }
                     catch (Exception ex)
                     {
-                        Debug.WriteLine(ex);
+                        Debug.WriteLine(ex.ToString());
                         dir = null;
                     }
                     data = importer.ImportModel(stream, dir);
@@ -865,7 +865,7 @@ public partial class MainPage : ContentPage
         }
         catch (Exception ex)
         {
-            Debug.WriteLine(ex);
+            Debug.WriteLine(ex.ToString());
             await DisplayAlert("Error", ex.Message, "OK");
         }
     }
@@ -1154,7 +1154,7 @@ public partial class MainPage : ContentPage
         }
         catch (Exception ex)
         {
-            Debug.WriteLine(ex);
+            Debug.WriteLine(ex.ToString());
             await DisplayAlert("Error", ex.Message, "OK");
         }
     }
@@ -1290,7 +1290,7 @@ public partial class MainPage : ContentPage
                     }
                     catch (Exception ex)
                     {
-                        Debug.WriteLine(ex);
+                        Debug.WriteLine(ex.ToString());
                     }
                     finally
                     {
@@ -1312,7 +1312,7 @@ public partial class MainPage : ContentPage
         }
         catch (Exception ex)
         {
-            Debug.WriteLine(ex);
+            Debug.WriteLine(ex.ToString());
             SelectedModelPath.Text = "モデルの読み込みに失敗しました";
             await DisplayAlert("Error", "モデルの読み込みに失敗しました", "OK");
             _needsRender = true;
