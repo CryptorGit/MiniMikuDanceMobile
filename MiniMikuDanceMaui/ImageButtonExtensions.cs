@@ -9,15 +9,18 @@ public static class ImageButtonExtensions
 {
     public static void SetIcon(this ImageButton button, MaterialIcons icon)
     {
-        MauiIcon.SetValue(button, icon);
-        var color = MauiIcon.GetIconColor(button);
-        button.ImageSource = icon.ToImageSource(color);
+        MauiIcon.SetIcon(button, icon);
+        var color = (Color)button.GetValue(MauiIcon.IconColorProperty);
+        button.Source = icon.ToImageSource(color);
     }
 
     public static void SetIconColor(this ImageButton button, Color color)
     {
-        MauiIcon.SetIconColor(button, color);
-        var icon = (MaterialIcons)MauiIcon.GetValue(button);
-        button.ImageSource = icon.ToImageSource(color);
+        MauiIcon.SetIconColor(button, color, false);
+        var icon = MauiIcon.GetValue(button) as MaterialIcons;
+        if (icon is not null)
+        {
+            button.Source = icon.ToImageSource(color);
+        }
     }
 }
