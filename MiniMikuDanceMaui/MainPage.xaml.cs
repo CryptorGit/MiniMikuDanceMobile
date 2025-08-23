@@ -25,7 +25,6 @@ using SixLabors.ImageSharp.PixelFormats;
 using MiniMikuDance.IK;
 using MiniMikuDance.Util;
 using MiniMikuDance.Physics;
-using MauiIcons.Core;
 using MauiIcons.Material;
 
 namespace MiniMikuDanceMaui;
