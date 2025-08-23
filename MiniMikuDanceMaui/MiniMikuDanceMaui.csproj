@@ -18,6 +18,7 @@
                 <Nullable>enable</Nullable>
                 <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
                 <MauiEnableXamlCBindingWithSourceCompilation>true</MauiEnableXamlCBindingWithSourceCompilation>
+                <CopyLocalLockFileAssemblies>true</CopyLocalLockFileAssemblies>
         </PropertyGroup>
 
   <ItemGroup>
@@ -35,6 +36,16 @@
         <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
       </PackageReference>
     </ItemGroup>
+  <ItemGroup>
+    <Reference Include="PMXParser">
+      <HintPath>$(NuGetPackageRoot)pmxparser/1.1.1/lib/netstandard2.0/PMXParser.dll</HintPath>
+      <Private>true</Private>
+    </Reference>
+    <Reference Include="Microsoft.CSharp">
+      <HintPath>$(NuGetPackageRoot)microsoft.csharp/4.7.0/lib/netstandard2.0/Microsoft.CSharp.dll</HintPath>
+      <Private>true</Private>
+    </Reference>
+  </ItemGroup>
   <ItemGroup>
     <!-- 追加のアセットが必要な場合はここに記述します -->
   </ItemGroup>
