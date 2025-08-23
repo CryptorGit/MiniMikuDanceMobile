@@ -555,4 +555,5 @@ public partial class MainPage : ContentPage
         e.Handled = true;
         _needsRender = true;
     }
+}
 
