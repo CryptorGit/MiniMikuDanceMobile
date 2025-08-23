@@ -1223,9 +1223,9 @@ public partial class MainPage : ContentPage
         Viewer.HasRenderLoop = false;
         _needsRender = false;
         _touchPoints.Clear();
-        if (Viewer is SKGLView gl)
+        if (Viewer is SKGLView glView)
         {
-            gl.Touch -= OnViewTouch;
+            glView.Touch -= OnViewTouch;
         }
 
         bool success = false;
@@ -1318,10 +1318,10 @@ public partial class MainPage : ContentPage
         }
         finally
         {
-            if (Viewer is SKGLView gl)
+            if (glView != null)
             {
-                gl.Touch -= OnViewTouch;
-                gl.Touch += OnViewTouch;
+                glView.Touch -= OnViewTouch;
+                glView.Touch += OnViewTouch;
             }
             _touchPoints.Clear();
             _renderTimer.Start();
