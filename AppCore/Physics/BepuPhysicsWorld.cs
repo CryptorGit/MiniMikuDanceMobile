@@ -521,7 +521,6 @@ public sealed class BepuPhysicsWorld : IPhysicsWorld
         _dampingMap.Clear();
         _prevBonePoses.Clear();
 
-        const int batchSize = 256;
         var processed = 0;
         for (int i = 0; i < model.RigidBodies.Count; i++)
         {
@@ -583,14 +582,15 @@ public sealed class BepuPhysicsWorld : IPhysicsWorld
                 _dampingMap[handle] = (rb.LinearDamping, rb.AngularDamping);
 
             processed++;
-            if (processed % batchSize == 0)
-            {
-                RefitBroadPhase();
-                _logger.LogInformation("剛体 {Count} 個追加: BroadPhase葉数={LeafCount}", processed, _simulation.BroadPhase.ActiveTree.LeafCount);
-            }
         }
 
-        RefitBroadPhase();
+        if (_bufferPool is not null && _threadDispatcher is not null)
+        {
+            var context = new BepuPhysics.Trees.Tree.RefitAndRefineMultithreadedContext();
+            context.RefitAndRefine(ref _simulation.BroadPhase.ActiveTree, _bufferPool, _threadDispatcher, _frameIndex++);
+            context.CleanUpForRefitAndRefine(_bufferPool);
+        }
+
         _logger.LogInformation("剛体ロード完了: 合計 {Count} 個, BroadPhase葉数={LeafCount}", processed, _simulation.BroadPhase.ActiveTree.LeafCount);
 
         static bool IsValidRigidBody(RigidBodyData rb)
@@ -614,7 +614,6 @@ public sealed class BepuPhysicsWorld : IPhysicsWorld
                 _ => false,
             };
         }
-
         void RefitBroadPhase()
         {
             RefitAndRefineBroadPhase();
