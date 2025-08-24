@@ -55,7 +55,7 @@ public class ClothSimulator
 
     public int Substeps { get; set; } = 1;
 
-    public bool LockTranslation { get; set; } = true;
+    public bool LockTranslation { get; set; } = false;
 
     public Vector3 Gravity
     {

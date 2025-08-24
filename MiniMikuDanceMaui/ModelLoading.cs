@@ -386,6 +386,13 @@ public partial class MainPage
             _scene.Bones.AddRange(_currentModel.Bones);
             if (_physics is BepuPhysicsWorld bepu)
             {
+                var cfg = _settings.Physics;
+                bepu.LockTranslation = cfg.LockTranslation;
+                if (cfg.LockTranslation)
+                {
+                    MainThread.BeginInvokeOnMainThread(async () =>
+                        await DisplayAlert("警告", "LockTranslation が有効です。布の移動が固定されます。", "OK"));
+                }
                 bepu.LoadRigidBodies(_currentModel);
                 bepu.LoadSoftBodies(_currentModel);
                 bepu.LoadJoints(_currentModel);
