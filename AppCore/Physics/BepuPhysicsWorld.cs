@@ -447,9 +447,9 @@ public sealed class BepuPhysicsWorld : IPhysicsWorld
                         delta = Quaternion.Normalize(Quaternion.Conjugate(basisRot) * delta * basisRot);
                     }
 
-                    var euler = ToEulerXyz(delta);
+                    var euler = ToEulerZxy(delta);
                     euler = Vector3.Clamp(euler, ikLink.MinAngle, ikLink.MaxAngle);
-                    delta = FromEulerXyz(euler);
+                    delta = FromEulerZxy(euler);
 
                     if (bone.HasLocalAxis)
                         delta = Quaternion.Normalize(basisRot * delta * Quaternion.Conjugate(basisRot));
@@ -593,7 +593,7 @@ public sealed class BepuPhysicsWorld : IPhysicsWorld
             _shapeIndices.Add(shapeIndex);
 
             var pose = new RigidPose(rb.Position,
-                FromEulerXyz(rb.Rotation));
+                FromEulerZxy(rb.Rotation));
             var filter = new SubgroupCollisionFilter((uint)rb.Group, (uint)rb.Mask);
             var collidable = new CollidableDescription(shapeIndex, 0.1f);
 
@@ -786,7 +786,7 @@ public sealed class BepuPhysicsWorld : IPhysicsWorld
                     _cloth.AddSphereCollider(rb.Position, rb.Size.X);
                     break;
                 case RigidBodyShape.Capsule:
-                    var rot = FromEulerXyz(rb.Rotation);
+                    var rot = FromEulerZxy(rb.Rotation);
                     var dir = Vector3.Transform(Vector3.UnitY, rot);
                     var half = rb.Size.Y * 0.5f;
                     var a = rb.Position + dir * half;
@@ -980,45 +980,43 @@ public sealed class BepuPhysicsWorld : IPhysicsWorld
         return new SpringSettings(frequency, dampingRatio);
     }
 
-    private static Vector3 ToEulerXyz(Quaternion q)
+    private static Vector3 ToEulerZxy(Quaternion q)
     {
-        var sinrCosp = 2f * (q.W * q.X + q.Y * q.Z);
-        var cosrCosp = 1f - 2f * (q.X * q.X + q.Y * q.Y);
-        var x = MathF.Atan2(sinrCosp, cosrCosp);
-
-        var sinp = 2f * (q.W * q.Y - q.Z * q.X);
-        float y;
-        if (MathF.Abs(sinp) >= 1f)
-            y = MathF.CopySign(MathF.PI / 2f, sinp);
+        var m = Matrix4x4.CreateFromQuaternion(q);
+        var x = MathF.Asin(Math.Clamp(m.M32, -1f, 1f));
+        float y, z;
+        if (MathF.Abs(m.M32) < 0.999999f)
+        {
+            z = MathF.Atan2(-m.M12, m.M22);
+            y = MathF.Atan2(-m.M31, m.M33);
+        }
         else
-            y = MathF.Asin(sinp);
-
-        var sinyCosp = 2f * (q.W * q.Z + q.X * q.Y);
-        var cosyCosp = 1f - 2f * (q.Y * q.Y + q.Z * q.Z);
-        var z = MathF.Atan2(sinyCosp, cosyCosp);
-
+        {
+            z = MathF.Atan2(m.M21, m.M11);
+            y = 0f;
+        }
         return new Vector3(x, y, z);
     }
 
-    private static Quaternion FromEulerXyz(Vector3 rot)
+    private static Quaternion FromEulerZxy(Vector3 rot)
     {
-        var m = Matrix4x4.CreateRotationX(rot.X)
-            * Matrix4x4.CreateRotationY(rot.Y)
-            * Matrix4x4.CreateRotationZ(rot.Z);
-        return Quaternion.Normalize(Quaternion.CreateFromRotationMatrix(m));
+        var qz = Quaternion.CreateFromAxisAngle(Vector3.UnitZ, rot.Z);
+        var qx = Quaternion.CreateFromAxisAngle(Vector3.UnitX, rot.X);
+        var qy = Quaternion.CreateFromAxisAngle(Vector3.UnitY, rot.Y);
+        return Quaternion.Normalize(qy * qx * qz);
     }
 
     private static void ComputeJointLocalPoses(JointData joint, RigidBodyData a, RigidBodyData b,
         out RigidPose localA, out RigidPose localB)
     {
-        var jointOrientation = FromEulerXyz(joint.Rotation);
+        var jointOrientation = FromEulerZxy(joint.Rotation);
         localA = ToLocalPose(joint.Position, jointOrientation, a);
         localB = ToLocalPose(joint.Position, jointOrientation, b);
     }
 
     private static RigidPose ToLocalPose(Vector3 jointPos, Quaternion jointOrientation, RigidBodyData rb)
     {
-        var bodyOrientation = FromEulerXyz(rb.Rotation);
+        var bodyOrientation = FromEulerZxy(rb.Rotation);
         var invBody = Quaternion.Conjugate(bodyOrientation);
         var localPos = Vector3.Transform(jointPos - rb.Position, invBody);
         var localRot = Quaternion.Concatenate(invBody, jointOrientation);
