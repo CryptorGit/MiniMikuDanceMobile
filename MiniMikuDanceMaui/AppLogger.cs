@@ -14,4 +14,6 @@ internal static class AppLogger
     });
 
     public static ILogger<T> Create<T>() => Factory.CreateLogger<T>();
+
+    public static ILogger Create(string categoryName) => Factory.CreateLogger(categoryName);
 }

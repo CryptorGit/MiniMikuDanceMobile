@@ -37,7 +37,7 @@ public sealed class BepuPhysicsWorld : IPhysicsWorld
     private bool _skipSimulation;
     private PhysicsConfig _config = new() { LockTranslation = false };
     private float _modelScale = 1f;
-    private readonly ILogger<BepuPhysicsWorld> _logger;
+    private readonly ILogger _logger;
     private float _lastDt = 1f / 60f;
     private int _frameIndex;
 
@@ -52,9 +52,9 @@ public sealed class BepuPhysicsWorld : IPhysicsWorld
         }
     }
 
-    public BepuPhysicsWorld(ILogger<BepuPhysicsWorld>? logger = null)
+    public BepuPhysicsWorld(ILogger? logger = null)
     {
-        _logger = logger ?? NullLogger<BepuPhysicsWorld>.Instance;
+        _logger = logger ?? NullLogger.Instance;
     }
 
     /// <summary>

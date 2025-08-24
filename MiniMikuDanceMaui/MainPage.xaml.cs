@@ -103,7 +103,7 @@ public partial class MainPage : ContentPage
         IPhysicsWorld physics;
         if (enabled)
         {
-            physics = new BepuPhysicsWorld(AppLogger.Create<BepuPhysicsWorld>());
+            physics = new BepuPhysicsWorld(AppLogger.Create("BepuPhysicsWorld"));
             try
             {
                 physics.Initialize(_settings.Physics, _settings.ModelScale);
