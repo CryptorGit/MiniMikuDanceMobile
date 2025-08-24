@@ -1,5 +1,6 @@
 using Microsoft.Maui.Controls;
 using MiniMikuDance.App;
+using System;
 using System.IO;
 
 namespace MiniMikuDanceMaui;
@@ -14,6 +15,12 @@ public partial class App : Application, IDisposable
 
         Directory.SetCurrentDirectory(MmdFileSystem.BaseDir);
         Initializer.Initialize(null, MmdFileSystem.BaseDir);
+
+        var baseDir = AppContext.BaseDirectory;
+        var crashLog = Path.Combine(baseDir, "crash_log.txt");
+        if (!File.Exists(crashLog)) File.WriteAllText(crashLog, string.Empty);
+        var logFile = Path.Combine(baseDir, "log.txt");
+        if (!File.Exists(logFile)) File.WriteAllText(logFile, string.Empty);
     }
 
     protected override Window CreateWindow(Microsoft.Maui.IActivationState? activationState)

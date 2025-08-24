@@ -429,7 +429,7 @@ public partial class MainPage
         catch (Exception ex)
         {
             Debug.WriteLine(ex.ToString());
-            AppendCrashLog("LoadPendingModel failed", ex);
+            ErrorNotifier.Notify("LoadPendingModel failed", ex);
             _renderTimer.Start();
             if (Viewer is SKGLView gl)
             {
@@ -498,16 +498,4 @@ public partial class MainPage
         }
     }
 
-    private static void AppendCrashLog(string message, Exception ex)
-    {
-        try
-        {
-            var path = Path.Combine(AppContext.BaseDirectory, "crash_log.txt");
-            var text = $"[{DateTime.Now:O}] {message} {ex}";
-            File.AppendAllText(path, text + Environment.NewLine);
-        }
-        catch
-        {
-        }
-    }
 }
