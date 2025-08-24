@@ -94,6 +94,8 @@ public partial class MainPage : ContentPage
         PhysicsIcon.SetIconColor(_physicsEnabled ? Colors.Green : Colors.Gray);
         _settings.EnablePhysics = _physicsEnabled;
         _settings.Save();
+        if (SettingContent is SettingView sv)
+            sv.EnablePhysics = _physicsEnabled;
         _needsRender = true;
         Viewer?.InvalidateSurface();
     }
@@ -296,6 +298,29 @@ public partial class MainPage : ContentPage
                 _settings.DistinguishBoneTypes = flag;
                 _settings.Save();
                 Viewer?.InvalidateSurface();
+            };
+            setting.EnablePhysics = _settings.EnablePhysics;
+            setting.PhysicsEnableChanged += flag =>
+            {
+                if (_physicsEnabled != flag)
+                {
+                    var state = BuildPhysicsState(flag);
+                    lock (_physicsLock)
+                    {
+                        if (_nextPhysics.HasValue)
+                        {
+                            (_nextPhysics.Value.World as IDisposable)?.Dispose();
+                        }
+                        _nextPhysics = state;
+                        _pendingPhysicsReload = true;
+                        _physicsEnabled = state.Enabled;
+                    }
+                    PhysicsIcon.SetIconColor(_physicsEnabled ? Colors.Green : Colors.Gray);
+                    _settings.EnablePhysics = _physicsEnabled;
+                    _settings.Save();
+                    _needsRender = true;
+                    Viewer?.InvalidateSurface();
+                }
             };
             setting.LockTranslation = _settings.Physics.LockTranslation;
             setting.LockTranslationChanged += flag =>
