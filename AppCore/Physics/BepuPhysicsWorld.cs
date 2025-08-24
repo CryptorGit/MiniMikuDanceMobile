@@ -616,20 +616,6 @@ public sealed class BepuPhysicsWorld : IPhysicsWorld
                 _ => false,
             };
         }
-        void RefitBroadPhase()
-        {
-            RefitAndRefineBroadPhase();
-            if (_simulation is null)
-                return;
-
-            var bodyCount = _simulation.Bodies.ActiveSet.Count;
-            var leafCount = _simulation.BroadPhase.ActiveTree.LeafCount;
-            Debug.Assert(!NeedsBroadPhaseRebuild(bodyCount, leafCount));
-            if (NeedsBroadPhaseRebuild(bodyCount, leafCount))
-            {
-                _logger.LogWarning("BroadPhase 再構築後も不一致: BodyCount={BodyCount}, LeafCount={LeafCount}", bodyCount, leafCount);
-            }
-        }
     }
 
     public void LoadSoftBodies(ModelData model)
