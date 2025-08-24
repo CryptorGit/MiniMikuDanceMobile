@@ -27,6 +27,7 @@
   </ItemGroup>
   <ItemGroup>
     <TrimmerRootAssembly Include="PMXParser" />
+    <TrimmerRootAssembly Include="BepuPhysics" />
     <TrimmerRootAssembly Include="Microsoft.CSharp" />
     <TrimmerRootAssembly Include="System.Linq.Expressions" />
     <TrimmerRootAssembly Include="System.IO.Compression" />
