@@ -22,7 +22,8 @@ public class AppSettings
     /// <summary>PMXモデルのスケールのデフォルト値。</summary>
     public const float DefaultModelScale = 1.0f;
 
-    /// <summary>PMXモデルに適用するスケール。質量は ModelScale の 3 乗倍にスケーリングされるが、重力はスケールされない。</summary>
+    /// <summary>PMXモデルに適用するスケール。質量や重力などの物理パラメータは自動的にスケーリングされないため、
+    /// 1 単位 = 1 メートルに合わせてモデル側を調整する。</summary>
     public float ModelScale { get; set; } = DefaultModelScale;
 
     /// <summary>ステージの半径のデフォルト値。</summary>
