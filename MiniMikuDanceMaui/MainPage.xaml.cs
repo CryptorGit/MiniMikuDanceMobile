@@ -209,6 +209,17 @@ public partial class MainPage : ContentPage
         _physics = initState.World;
         _physicsEnabled = initState.Enabled;
         PhysicsIcon.SetIconColor(_physicsEnabled ? Colors.Green : Colors.Gray);
+        PhysicsIcon.IsVisible = _physicsEnabled;
+        if (PhysicsMenuLabel != null)
+        {
+            PhysicsMenuLabel.IsVisible = _physicsEnabled;
+        }
+        if (_settings.EnablePhysics && !_physicsEnabled)
+        {
+            AppLogger.Create("MainPage").LogWarning("Physics engine is unavailable. Falling back to NullPhysicsWorld.");
+            MainThread.BeginInvokeOnMainThread(async () =>
+                await DisplayAlert("警告", "物理機能を初期化できませんでした。", "OK"));
+        }
 
         if (Viewer is SKGLView glView)
         {

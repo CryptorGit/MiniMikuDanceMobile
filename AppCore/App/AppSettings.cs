@@ -118,6 +118,20 @@ public class AppSettings
         {
             log.LogInformation("Loaded Physics.Gravity: {Gravity}", gravity);
         }
+
+        if (result.EnablePhysics)
+        {
+            try
+            {
+                using var test = new BepuPhysicsWorld(log);
+                test.Initialize(result.Physics, result.ModelScale, result.Physics.MaxThreadCount);
+            }
+            catch (Exception ex)
+            {
+                log.LogWarning(ex, "Physics engine is unavailable. Disabling physics feature.");
+                result.EnablePhysics = false;
+            }
+        }
         return result;
     }
 

@@ -64,7 +64,7 @@
                         <TapGestureRecognizer Tapped="OnMorphClicked" />
                     </Label.GestureRecognizers>
                 </Label>
-                <Label Text="Physics" TextColor="{StaticResource TextColor}">
+                <Label x:Name="PhysicsMenuLabel" Text="Physics" TextColor="{StaticResource TextColor}">
                     <Label.GestureRecognizers>
                         <TapGestureRecognizer Tapped="OnPhysicsClicked" />
                     </Label.GestureRecognizers>
