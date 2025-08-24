@@ -53,7 +53,8 @@ public partial class MainPage : ContentPage
     private readonly object _physicsLock = new();
     private bool _pendingPhysicsReload;
     private PhysicsState? _nextPhysics;
-    private DateTime _lastFrameTime = DateTime.UtcNow;
+    private readonly CancellationTokenSource _physicsCts = new();
+    private DateTime _lastPhysicsTime = DateTime.UtcNow;
     private readonly Dictionary<long, SKPoint> _touchPoints = new();
     private readonly long[] _touchIds = new long[2];
     private bool _needsRender;
@@ -241,6 +242,7 @@ public partial class MainPage : ContentPage
         };
         _renderTimer.Start();
         _needsRender = true;
+        StartPhysicsLoop();
 
         if (SettingContent is SettingView setting)
         {
@@ -360,6 +362,7 @@ public partial class MainPage : ContentPage
     protected override void OnDisappearing()
     {
         base.OnDisappearing();
+        _physicsCts.Cancel();
     }
 
     private void OnSizeChanged(object? sender, EventArgs e) => UpdateLayout();
@@ -441,18 +444,77 @@ public partial class MainPage : ContentPage
             _glInitialized = true;
         }
 
-        LoadPendingModel();
-        var now = DateTime.UtcNow;
-        float dt = (float)(now - _lastFrameTime).TotalSeconds;
-        _lastFrameTime = now;
+        if (_modelLoadCompleted && _loadedModel != null)
+        {
+            var model = _loadedModel;
+            _loadedModel = null;
+            _modelLoadCompleted = false;
+            MainThread.BeginInvokeOnMainThread(() =>
+            {
+                try
+                {
+                    IkManager.Clear();
+                    _renderer.ClearIkBones();
+                    _renderer.ClearBoneRotations();
+                    _renderer.LoadModel(model);
+                    _currentModel = model;
+                    WritePhysicsLog(_currentModel);
+                    UpdateRendererLightingProperties();
+                    _scene.Bones.Clear();
+                    _scene.Bones.AddRange(_currentModel.Bones);
+                    if (_poseMode && _currentModel != null)
+                    {
+                        IkManager.LoadPmxIkBones(_currentModel.Bones);
+                        try
+                        {
+                            var ikBones = IkManager.Bones.Values;
+                            if (ikBones.Any())
+                            {
+                                _renderer.SetIkBones(ikBones);
+                            }
+                            else
+                            {
+                                _renderer.ClearIkBones();
+                            }
+                        }
+                        catch (Exception ex)
+                        {
+                            Debug.WriteLine(ex.ToString());
+                        }
+                        IkManager.PickFunc = _renderer.PickBone;
+                        IkManager.GetBonePositionFunc = _renderer.GetBoneWorldPosition;
+                        IkManager.GetCameraPositionFunc = _renderer.GetCameraPosition;
+                        IkManager.SetBoneWorldPosition = _renderer.SetBoneWorldPosition;
+                        IkManager.ToModelSpaceFunc = _renderer.WorldToModel;
+                        IkManager.ToWorldSpaceFunc = _renderer.ModelToWorld;
+                    }
+                    UpdatePhysicsViewRigidBodies();
+                    _needsRender = true;
+                    Viewer?.InvalidateSurface();
+                }
+                catch (Exception ex)
+                {
+                    Debug.WriteLine(ex.ToString());
+                    AppendCrashLog("LoadPendingModel failed", ex);
+                    _renderTimer.Start();
+                    if (Viewer is SKGLView gl)
+                    {
+                        gl.Touch -= OnViewTouch;
+                        gl.Touch += OnViewTouch;
+                    }
+                }
+            });
+        }
+        else if (_modelLoadCompleted)
+        {
+            _modelLoadCompleted = false;
+        }
+
         lock (_physicsLock)
         {
-            _physics.SyncFromBones(_scene);
-            _physics.Step(dt);
-            _physics.SyncToBones(_scene);
+            _renderer.Resize(e.BackendRenderTarget.Width, e.BackendRenderTarget.Height);
+            _renderer.Render();
         }
-        _renderer.Resize(e.BackendRenderTarget.Width, e.BackendRenderTarget.Height);
-        _renderer.Render();
         GL.Flush();
         _needsRender = false;
 
@@ -466,6 +528,38 @@ public partial class MainPage : ContentPage
             _nextPhysics = null;
             _pendingPhysicsReload = false;
         }
+    }
+
+    private void StartPhysicsLoop()
+    {
+        Task.Run(async () =>
+        {
+            while (!_physicsCts.IsCancellationRequested)
+            {
+                var now = DateTime.UtcNow;
+                float dt = (float)(now - _lastPhysicsTime).TotalSeconds;
+                _lastPhysicsTime = now;
+                lock (_physicsLock)
+                {
+                    _physics.SyncFromBones(_scene);
+                    _physics.Step(dt);
+                    _physics.SyncToBones(_scene);
+                }
+                MainThread.BeginInvokeOnMainThread(() =>
+                {
+                    _needsRender = true;
+                    Viewer?.InvalidateSurface();
+                });
+                try
+                {
+                    await Task.Delay(16, _physicsCts.Token).ConfigureAwait(false);
+                }
+                catch (TaskCanceledException)
+                {
+                    break;
+                }
+            }
+        });
     }
 
 

@@ -29,6 +29,9 @@ public partial class MainPage
     private float _modelScale = 1f;
     private ModelData? _pendingModel;
     private ModelData? _currentModel;
+    private ModelData? _loadedModel;
+    private volatile bool _modelLoadCompleted;
+    private bool _modelLoading;
 
     private static string GetAppPackageDirectory()
     {
@@ -304,6 +307,7 @@ public partial class MainPage
             }
 
             _pendingModel = data;
+            LoadPendingModel();
             Viewer.InvalidateSurface();
             if (_bottomViews.TryGetValue("MORPH", out var view) && view is MorphView mv)
             {
@@ -367,69 +371,49 @@ public partial class MainPage
 
     private void LoadPendingModel()
     {
-        if (_pendingModel == null)
+        if (_pendingModel == null || _modelLoading)
             return;
 
         var model = _pendingModel;
         _pendingModel = null;
+        _modelLoading = true;
 
-        try
+        Task.Run(() =>
         {
-            IkManager.Clear();
-            _renderer.ClearIkBones();
-            _renderer.ClearBoneRotations();
-            _renderer.LoadModel(model);
-            _currentModel = model;
-            WritePhysicsLog(_currentModel);
-            UpdateRendererLightingProperties();
-            _scene.Bones.Clear();
-            _scene.Bones.AddRange(_currentModel.Bones);
-            if (_physics is BepuPhysicsWorld bepu)
+            try
             {
-                bepu.LoadRigidBodies(_currentModel);
-                bepu.LoadSoftBodies(_currentModel);
-                bepu.LoadJoints(_currentModel);
-            }
-
-            if (_poseMode && _currentModel != null)
-            {
-                IkManager.LoadPmxIkBones(_currentModel.Bones);
-                try
+                if (_physics is BepuPhysicsWorld bepu)
                 {
-                    var ikBones = IkManager.Bones.Values;
-                    if (ikBones.Any())
+                    lock (_physicsLock)
                     {
-                        _renderer.SetIkBones(ikBones);
-                    }
-                    else
-                    {
-                        _renderer.ClearIkBones();
+                        bepu.LoadRigidBodies(model);
+                        bepu.LoadSoftBodies(model);
+                        bepu.LoadJoints(model);
                     }
                 }
-                catch (Exception ex)
-                {
-                    Debug.WriteLine(ex.ToString());
-                }
-                IkManager.PickFunc = _renderer.PickBone;
-                IkManager.GetBonePositionFunc = _renderer.GetBoneWorldPosition;
-                IkManager.GetCameraPositionFunc = _renderer.GetCameraPosition;
-                IkManager.SetBoneWorldPosition = _renderer.SetBoneWorldPosition;
-                IkManager.ToModelSpaceFunc = _renderer.WorldToModel;
-                IkManager.ToWorldSpaceFunc = _renderer.ModelToWorld;
+                _loadedModel = model;
             }
-            UpdatePhysicsViewRigidBodies();
-        }
-        catch (Exception ex)
-        {
-            Debug.WriteLine(ex.ToString());
-            AppendCrashLog("LoadPendingModel failed", ex);
-            _renderTimer.Start();
-            if (Viewer is SKGLView gl)
+            catch (Exception ex)
             {
-                gl.Touch -= OnViewTouch;
-                gl.Touch += OnViewTouch;
+                Debug.WriteLine(ex.ToString());
+                AppendCrashLog("LoadPendingModel failed", ex);
+                MainThread.BeginInvokeOnMainThread(() =>
+                {
+                    _renderTimer.Start();
+                    if (Viewer is SKGLView gl)
+                    {
+                        gl.Touch -= OnViewTouch;
+                        gl.Touch += OnViewTouch;
+                    }
+                });
             }
-        }
+            finally
+            {
+                _modelLoading = false;
+                _modelLoadCompleted = true;
+                MainThread.BeginInvokeOnMainThread(() => Viewer?.InvalidateSurface());
+            }
+        });
     }
 
     private void WritePhysicsLog(ModelData model)
