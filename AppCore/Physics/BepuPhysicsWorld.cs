@@ -35,7 +35,7 @@ public sealed class BepuPhysicsWorld : IPhysicsWorld
     private readonly ClothSimulator _cloth = new();
     private readonly Dictionary<int, (Vector3 Pos, Quaternion Rot)> _prevBonePoses = new();
     private bool _skipSimulation;
-    private PhysicsConfig _config;
+    private PhysicsConfig _config = new() { LockTranslation = false };
     private float _modelScale = 1f;
     private readonly ILogger<BepuPhysicsWorld> _logger;
     private float _lastDt = 1f / 60f;

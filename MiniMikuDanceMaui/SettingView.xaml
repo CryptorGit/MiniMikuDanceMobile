@@ -39,7 +39,7 @@
         </HorizontalStackLayout>
         <HorizontalStackLayout Spacing="6" VerticalOptions="Center">
             <CheckBox x:Name="LockTranslationCheck" Color="{StaticResource TextColor}"
-                      IsChecked="True"
+                      IsChecked="False"
                       CheckedChanged="OnLockTranslationChanged"/>
             <Label Text="Lock Cloth Translation (布の移動を固定)" TextColor="{StaticResource TextColor}" VerticalOptions="Center"/>
         </HorizontalStackLayout>
