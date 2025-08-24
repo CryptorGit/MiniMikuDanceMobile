@@ -442,6 +442,7 @@ public partial class MainPage
             sb.AppendLine($"[{DateTime.Now:O}] {model.ModelName}");
             var cfg = _settings.Physics;
             sb.AppendLine($"Gravity: {cfg.Gravity}");
+            sb.AppendLine($"EffectiveGravity: {_physics.GetGravity()}");
             sb.AppendLine($"SolverIterationCount: {cfg.SolverIterationCount}");
             sb.AppendLine($"SubstepCount: {cfg.SubstepCount}");
             sb.AppendLine($"Damping: {cfg.Damping}");
