@@ -144,8 +144,8 @@ public partial class MainPage
             return;
 
         sv.HeightRatio = _bottomHeightRatio;
-        sv.RotateSensitivity = _rotateSensitivity;
-        sv.PanSensitivity = _panSensitivity;
+        sv.RotateSensitivity = _renderer.RotateSensitivity;
+        sv.PanSensitivity = _renderer.PanSensitivity;
         sv.ZoomSensitivity = _renderer.ZoomSensitivity;
         sv.ShowBoneOutline = _renderer.ShowBoneOutline;
         sv.LockTranslation = _settings.Physics.LockTranslation;
