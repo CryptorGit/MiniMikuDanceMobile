@@ -272,6 +272,11 @@ public partial class MainPage
                     if (_renderer != null)
                         _renderer.PanSensitivity = (float)v;
                 };
+                sv.ZoomSensitivityChanged += v =>
+                {
+                    if (_renderer != null)
+                        _renderer.ZoomSensitivity = (float)v;
+                };
                 sv.LockTranslationChanged += flag =>
                 {
                     if (_physics is BepuPhysicsWorld bepu)
