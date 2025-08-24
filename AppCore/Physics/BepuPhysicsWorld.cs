@@ -866,6 +866,15 @@ public sealed class BepuPhysicsWorld : IPhysicsWorld
 
     public void LoadJoints(ModelData model)
     {
+        if (model.Joints.Count == 0)
+        {
+            _logger.LogWarning(
+                "モデル {ModelName} はジョイントが定義されていません（剛体数: {RigidBodyCount}）。ジョイントが欠落しているためシミュレーションをスキップします。",
+                model.ModelName,
+                model.RigidBodies.Count);
+            _skipSimulation = true;
+            return;
+        }
         if (_simulation is null) return;
         for (int i = 0; i < model.Joints.Count; i++)
         {
