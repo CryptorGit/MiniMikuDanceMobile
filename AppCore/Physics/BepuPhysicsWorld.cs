@@ -65,7 +65,7 @@ public sealed class BepuPhysicsWorld : IPhysicsWorld
     /// バッファプール → スレッドディスパッチャ → Simulation の順に生成され、
     /// 依存関係が解決される。
     /// </summary>
-    public void Initialize(PhysicsConfig config, float modelScale)
+    public void Initialize(PhysicsConfig config, float modelScale, int maxThreadCount)
     {
         _skipSimulation = false;
         _modelScale = modelScale;
@@ -91,11 +91,12 @@ public sealed class BepuPhysicsWorld : IPhysicsWorld
             _logger.LogWarning("SolverIterationCount が 0 以下のため、1 に補正しました。");
             solverIterationCount = 1;
         }
-        _config = new PhysicsConfig(gravity, solverIterationCount, substepCount, config.Damping, config.BoneBlendFactor, config.GroundHeight, config.Restitution, config.Friction, config.LockTranslation);
+        _config = new PhysicsConfig(gravity, solverIterationCount, substepCount, config.Damping, config.BoneBlendFactor, config.GroundHeight, config.Restitution, config.Friction, config.LockTranslation, config.MaxThreadCount);
         BoneBlendFactor = config.BoneBlendFactor;
         _bufferPool = new BufferPool();
         _threadDispatcher?.Dispose();
-        _threadDispatcher = new ThreadDispatcher(Environment.ProcessorCount);
+        var threads = maxThreadCount > 0 ? Math.Clamp(Environment.ProcessorCount, 1, maxThreadCount) : Environment.ProcessorCount;
+        _threadDispatcher = new ThreadDispatcher(threads);
         _simulation = Simulation.Create(_bufferPool,
             new SubgroupFilteredCallbacks(_materialMap, _bodyFilterMap, _staticMaterialMap, _staticFilterMap),
             // Damping は 1 秒あたりの減衰率 (0～1)
