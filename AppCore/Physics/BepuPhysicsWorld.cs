@@ -594,7 +594,7 @@ public sealed class BepuPhysicsWorld : IPhysicsWorld
 
             var pose = new RigidPose(rb.Position,
                 FromEulerXyz(rb.Rotation));
-            var filter = new SubgroupCollisionFilter((uint)rb.Group, (uint)rb.Mask);
+            var filter = new SubgroupCollisionFilter(1u << rb.Group, rb.Mask);
             var collidable = new CollidableDescription(shapeIndex, 0.1f);
 
             BodyDescription bodyDesc;
