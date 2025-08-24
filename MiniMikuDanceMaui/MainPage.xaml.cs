@@ -36,8 +36,6 @@ public partial class MainPage : ContentPage
     private readonly AppSettings _settings = AppSettings.Load();
 
     private readonly PmxRenderer _renderer = new();
-    private float _rotateSensitivity = 0.1f;
-    private float _panSensitivity = 1f;
     private float _shadeShift = -0.1f;
     private float _shadeToony = 0.9f;
     private float _rimIntensity = 0.5f;
@@ -57,6 +55,7 @@ public partial class MainPage : ContentPage
     private readonly IDispatcherTimer _renderTimer;
     private int _renderTimerErrorCount;
     private Task? _physicsTask;
+    private CancellationTokenSource _physicsCts = new();
     private readonly TimeSpan _physicsTimeout = TimeSpan.FromSeconds(1);
     private void OnPoseModeButtonClicked(object? sender, TappedEventArgs e)
     {
@@ -111,6 +110,31 @@ public partial class MainPage : ContentPage
     }
 
     private record struct PhysicsState(IPhysicsWorld World, bool Enabled);
+
+    private void SetPhysicsWorld(IPhysicsWorld world)
+    {
+        Task? task;
+        lock (_physicsLock)
+        {
+            _physicsCts.Cancel();
+            task = _physicsTask;
+        }
+        try
+        {
+            task?.Wait(_physicsTimeout);
+        }
+        catch (AggregateException ex)
+        {
+            Debug.WriteLine(ex.ToString());
+        }
+        lock (_physicsLock)
+        {
+            _physics.Dispose();
+            _physics = world;
+            _physicsCts = new CancellationTokenSource();
+            _physicsTask = null;
+        }
+    }
 
     private void EnablePoseMode()
     {
@@ -184,7 +208,7 @@ public partial class MainPage : ContentPage
         _renderer.ShowIkBones = _poseMode;
         _renderer.IkBoneScale = _settings.IkBoneScale;
         var initState = BuildPhysicsState(_settings.EnablePhysics);
-        _physics = initState.World;
+        SetPhysicsWorld(initState.World);
         _settings.EnablePhysics = initState.Enabled;
 
         if (Viewer is SKGLView glView)
@@ -339,6 +363,25 @@ public partial class MainPage : ContentPage
     protected override void OnDisappearing()
     {
         base.OnDisappearing();
+        Task? task;
+        lock (_physicsLock)
+        {
+            _physicsCts.Cancel();
+            task = _physicsTask;
+        }
+        try
+        {
+            task?.Wait(_physicsTimeout);
+        }
+        catch (AggregateException ex)
+        {
+            Debug.WriteLine(ex.ToString());
+        }
+        lock (_physicsLock)
+        {
+            _physics.Dispose();
+            _physicsTask = null;
+        }
     }
 
     private void OnSizeChanged(object? sender, EventArgs e) => UpdateLayout();
@@ -427,8 +470,10 @@ public partial class MainPage : ContentPage
         if (_physicsTask == null || _physicsTask.IsCompleted)
         {
             var physics = _physics;
+            var token = _physicsCts.Token;
             _physicsTask = Task.Run(() =>
             {
+                if (token.IsCancellationRequested) return;
                 try
                 {
                     lock (_physicsLock)
@@ -438,12 +483,16 @@ public partial class MainPage : ContentPage
 
                     try
                     {
-                        var stepTask = Task.Run(() => physics.Step(dt));
-                        if (!stepTask.Wait(_physicsTimeout))
+                        var stepTask = Task.Run(() => physics.Step(dt), token);
+                        if (!stepTask.Wait(_physicsTimeout, token))
                         {
                             Debug.WriteLine($"Physics step timeout after {_physicsTimeout.TotalMilliseconds}ms");
                             return;
                         }
+                    }
+                    catch (OperationCanceledException)
+                    {
+                        return;
                     }
                     catch (Exception ex)
                     {
@@ -456,18 +505,22 @@ public partial class MainPage : ContentPage
                         physics.SyncToBones(_scene);
                     }
                 }
+                catch (OperationCanceledException)
+                {
+                }
                 catch (Exception ex)
                 {
                     Debug.WriteLine(ex.ToString());
                 }
-            }).ContinueWith(_ =>
+            }, token).ContinueWith(_ =>
             {
+                if (token.IsCancellationRequested) return;
                 MainThread.BeginInvokeOnMainThread(() =>
                 {
                     _needsRender = true;
                     Viewer?.InvalidateSurface();
                 });
-            });
+            }, token);
         }
         _renderer.Resize(e.BackendRenderTarget.Width, e.BackendRenderTarget.Height);
         _renderer.Render();

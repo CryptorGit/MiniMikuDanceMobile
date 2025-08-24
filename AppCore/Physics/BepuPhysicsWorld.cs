@@ -152,9 +152,16 @@ public sealed class BepuPhysicsWorld : IPhysicsWorld
         _cloth.Friction = _config.Friction;
         _cloth.LockTranslation = _config.LockTranslation;
         _cloth.Substeps = _config.SubstepCount;
+        _logger.LogDebug("Step start dt={Dt}, memory={Memory}", dt, GC.GetTotalMemory(false));
         try
         {
             _simulation.Timestep(dt, _threadDispatcher);
+        }
+        catch (AccessViolationException ave)
+        {
+            _logger.LogCritical(ave, "Access violation in Simulation.Timestep");
+            AppendCrashLog("Simulation.Timestep access violation", ave);
+            _skipSimulation = true;
         }
         catch (Exception ex)
         {
@@ -189,8 +196,24 @@ public sealed class BepuPhysicsWorld : IPhysicsWorld
             _lastDt = dt;
             return;
         }
-        _cloth.Step(dt);
+        try
+        {
+            _cloth.Step(dt);
+        }
+        catch (AccessViolationException ave)
+        {
+            _logger.LogCritical(ave, "Access violation in Cloth.Step");
+            AppendCrashLog("Cloth.Step access violation", ave);
+            _skipSimulation = true;
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Cloth.Step failed");
+            AppendCrashLog("Cloth.Step failed", ex);
+            _skipSimulation = true;
+        }
         _lastDt = dt;
+        _logger.LogDebug("Step end memory={Memory}", GC.GetTotalMemory(false));
     }
 
     public Vector3 GetGravity()
