@@ -36,16 +36,12 @@ public partial class MainPage : ContentPage
     private readonly AppSettings _settings = AppSettings.Load();
 
     private readonly PmxRenderer _renderer = new();
-    private float _rotateSensitivity = 0.1f;
-    private float _panSensitivity = 1f;
     private float _shadeShift = -0.1f;
     private float _shadeToony = 0.9f;
     private float _rimIntensity = 0.5f;
     private float _sphereStrength = 1f;
     private float _toonStrength = 0f;
     private bool _poseMode;
-    // bottomWidth is no longer used; bottom region spans full screen width
-    // private double bottomWidth = 0;
     private bool _glInitialized;
     private readonly Scene _scene = new();
     private IPhysicsWorld _physics = new NullPhysicsWorld();
@@ -73,6 +69,20 @@ public partial class MainPage : ContentPage
         _renderer.ShowIkBones = _poseMode;
         PoseModeIcon.SetIcon(_poseMode ? MaterialIcons.AccessibilityNew : MaterialIcons.PhotoCamera);
         PoseModeIcon.SetIconColor(_poseMode ? Colors.Green : Colors.Gray);
+        Viewer?.InvalidateSurface();
+    }
+
+    private void OnPhysicsButtonClicked(object? sender, TappedEventArgs e)
+    {
+        var state = BuildPhysicsState(!_settings.EnablePhysics);
+        lock (_physicsLock)
+        {
+            _physics.Dispose();
+            _physics = state.World;
+        }
+        _settings.EnablePhysics = state.Enabled;
+        _settings.Save();
+        PhysicsIcon.SetIconColor(_settings.EnablePhysics ? Colors.Green : Colors.Gray);
         Viewer?.InvalidateSurface();
     }
 
@@ -186,6 +196,7 @@ public partial class MainPage : ContentPage
         var initState = BuildPhysicsState(_settings.EnablePhysics);
         _physics = initState.World;
         _settings.EnablePhysics = initState.Enabled;
+        PhysicsIcon.SetIconColor(_settings.EnablePhysics ? Colors.Green : Colors.Gray);
 
         if (Viewer is SKGLView glView)
         {
