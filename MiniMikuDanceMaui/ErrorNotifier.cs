@@ -8,7 +8,7 @@ namespace MiniMikuDanceMaui;
 
 internal static class ErrorNotifier
 {
-    private static readonly ILogger Logger = AppLogger.Create<ErrorNotifier>();
+    private static readonly ILogger Logger = AppLogger.Create("ErrorNotifier");
 
     public static void Notify(string message, Exception ex)
     {
