@@ -448,6 +448,7 @@ public partial class MainPage
             var sb = new StringBuilder();
             sb.AppendLine($"[{DateTime.Now:O}] {model.ModelName}");
             var cfg = _settings.Physics;
+            sb.AppendLine($"EnablePhysics: {_settings.EnablePhysics}");
             sb.AppendLine($"Gravity: {cfg.Gravity}");
             sb.AppendLine($"EffectiveGravity: {_physics.GetGravity()}");
             sb.AppendLine($"SolverIterationCount: {cfg.SolverIterationCount}");

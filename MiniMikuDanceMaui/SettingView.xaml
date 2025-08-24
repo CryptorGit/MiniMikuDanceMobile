@@ -38,6 +38,11 @@
             <Label Text="Distinguish Bone Types" TextColor="{StaticResource TextColor}" VerticalOptions="Center"/>
         </HorizontalStackLayout>
         <HorizontalStackLayout Spacing="6" VerticalOptions="Center">
+            <CheckBox x:Name="PhysicsEnableCheck" Color="{StaticResource TextColor}"
+                      CheckedChanged="OnPhysicsEnableChanged"/>
+            <Label Text="Enable Physics" TextColor="{StaticResource TextColor}" VerticalOptions="Center"/>
+        </HorizontalStackLayout>
+        <HorizontalStackLayout Spacing="6" VerticalOptions="Center">
             <CheckBox x:Name="LockTranslationCheck" Color="{StaticResource TextColor}"
                       IsChecked="False"
                       CheckedChanged="OnLockTranslationChanged"/>

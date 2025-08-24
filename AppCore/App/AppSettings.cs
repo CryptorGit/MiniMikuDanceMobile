@@ -78,8 +78,11 @@ public class AppSettings
     public bool DistinguishBoneTypes { get; set; }
         = false;
 
+    /// <summary>物理演算を有効にするかの既定値。</summary>
+    public const bool DefaultEnablePhysics = false;
+
     /// <summary>物理演算を有効にするか。</summary>
-    public bool EnablePhysics { get; set; } = false;
+    public bool EnablePhysics { get; set; } = DefaultEnablePhysics;
 
     /// <summary>物理設定。</summary>
     public PhysicsConfig Physics { get; set; } =

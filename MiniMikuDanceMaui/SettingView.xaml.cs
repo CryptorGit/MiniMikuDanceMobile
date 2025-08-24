@@ -14,6 +14,7 @@ public partial class SettingView : ContentView
     public event Action<double>? BonePickPixelsChanged;
     public event Action<bool>? BoneOutlineChanged;
     public event Action<bool>? BoneTypeChanged;
+    public event Action<bool>? PhysicsEnableChanged;
     public event Action<bool>? LockTranslationChanged;
     public event Action? ResetCameraRequested;
 
@@ -82,6 +83,11 @@ public partial class SettingView : ContentView
         HandleCheckChange(BoneTypeChanged, e);
     }
 
+    private void OnPhysicsEnableChanged(object? sender, CheckedChangedEventArgs e)
+    {
+        HandleCheckChange(PhysicsEnableChanged, e);
+    }
+
     private void OnLockTranslationChanged(object? sender, CheckedChangedEventArgs e)
     {
         HandleCheckChange(LockTranslationChanged, e);
@@ -145,6 +151,12 @@ public partial class SettingView : ContentView
     {
         get => BoneTypeCheck.IsChecked;
         set => BoneTypeCheck.IsChecked = value;
+    }
+
+    public bool EnablePhysics
+    {
+        get => PhysicsEnableCheck.IsChecked;
+        set => PhysicsEnableCheck.IsChecked = value;
     }
 
     public bool LockTranslation
