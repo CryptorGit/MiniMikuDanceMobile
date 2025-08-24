@@ -31,7 +31,7 @@ internal sealed class SimpleFileLoggerProvider : ILoggerProvider
             _lock = @lock;
         }
 
-        public IDisposable BeginScope<TState>(TState state) => null!;
+        IDisposable ILogger.BeginScope<TState>(TState state) where TState : notnull => NullScope.Instance;
 
         public bool IsEnabled(LogLevel logLevel) => logLevel >= LogLevel.Error;
 
@@ -45,6 +45,15 @@ internal sealed class SimpleFileLoggerProvider : ILoggerProvider
             lock (_lock)
             {
                 File.AppendAllText(_path, text + Environment.NewLine);
+            }
+        }
+
+        private sealed class NullScope : IDisposable
+        {
+            public static readonly NullScope Instance = new();
+
+            public void Dispose()
+            {
             }
         }
     }
