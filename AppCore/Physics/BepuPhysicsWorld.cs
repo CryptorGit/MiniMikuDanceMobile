@@ -203,7 +203,18 @@ public sealed class BepuPhysicsWorld : IPhysicsWorld
             _lastDt = dt;
             return;
         }
-        _simulation.Timestep(dt, _threadDispatcher);
+        try
+        {
+            _simulation.Timestep(dt, _threadDispatcher);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Simulation.Timestep に失敗しました。");
+            LogBodyAabbs(LogLevel.Error);
+            LogCollidablePairs(LogLevel.Error);
+            AppendCrashLog("Simulation.Timestep failed", ex);
+            _skipSimulation = true;
+        }
         if (_skipSimulation)
         {
             _lastDt = dt;
@@ -1005,6 +1016,18 @@ public sealed class BepuPhysicsWorld : IPhysicsWorld
 
             var bounds = _simulation.Bodies.GetBodyReference(handle).BoundingBox;
             _logger.Log(level, "剛体状態: {Index}, Min={Min}, Max={Max}", handle.Value, bounds.Min, bounds.Max);
+        }
+    }
+
+    private void LogCollidablePairs(LogLevel level)
+    {
+        if (_simulation is null)
+            return;
+
+        foreach (var entry in _simulation.NarrowPhase.PairCache.Mapping)
+        {
+            var pair = entry.Key;
+            _logger.Log(level, "ペア状態: A={A}, B={B}", pair.A, pair.B);
         }
     }
 
