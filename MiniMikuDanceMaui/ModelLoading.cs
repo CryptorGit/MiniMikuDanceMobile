@@ -459,6 +459,29 @@ public partial class MainPage
                     $"Restitution:{rb.Restitution} Friction:{rb.Friction} Position:{rb.Position} Rotation:{rb.Rotation} " +
                     $"Size:{rb.Size} Group:{rb.Group} Mask:{rb.Mask} Mode:{rb.Mode}");
             }
+            var jointCount = model.Joints.Count;
+            sb.AppendLine($"JointCount: {jointCount}");
+            if (jointCount == 0)
+            {
+                sb.AppendLine("Warning: No joints found");
+            }
+            else
+            {
+                foreach (var joint in model.Joints)
+                {
+                    var rbAName = joint.RigidBodyA >= 0 && joint.RigidBodyA < model.RigidBodies.Count
+                        ? model.RigidBodies[joint.RigidBodyA].Name
+                        : joint.RigidBodyA.ToString();
+                    var rbBName = joint.RigidBodyB >= 0 && joint.RigidBodyB < model.RigidBodies.Count
+                        ? model.RigidBodies[joint.RigidBodyB].Name
+                        : joint.RigidBodyB.ToString();
+                    sb.AppendLine(
+                        $"Joint: {joint.Name} BodyA:{rbAName} BodyB:{rbBName} " +
+                        $"PosMin:{joint.PositionMin} PosMax:{joint.PositionMax} " +
+                        $"RotMin:{joint.RotationMin} RotMax:{joint.RotationMax} " +
+                        $"SpringPos:{joint.SpringPosition} SpringRot:{joint.SpringRotation}");
+                }
+            }
             sb.AppendLine();
             File.AppendAllText(logPath, sb.ToString());
         }
