@@ -115,7 +115,6 @@ public partial class MainPage
                 _currentModel = data;
                 WritePhysicsLog(_currentModel);
                 UpdateRendererLightingProperties();
-                UpdatePhysicsViewRigidBodies();
                 Viewer?.InvalidateSurface();
             }
         }
@@ -424,7 +423,6 @@ public partial class MainPage
                 IkManager.ToModelSpaceFunc = _renderer.WorldToModel;
                 IkManager.ToWorldSpaceFunc = _renderer.ModelToWorld;
             }
-            UpdatePhysicsViewRigidBodies();
         }
         catch (Exception ex)
         {

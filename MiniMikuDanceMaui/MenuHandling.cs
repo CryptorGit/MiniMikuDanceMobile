@@ -4,7 +4,6 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using MiniMikuDance.Import;
-using MiniMikuDance.Physics;
 
 namespace MiniMikuDanceMaui;
 
@@ -97,12 +96,6 @@ public partial class MainPage
     private void OnMorphClicked(object? sender, EventArgs e)
     {
         ShowBottomFeature("MORPH");
-        HideAllMenus();
-    }
-
-    private void OnPhysicsClicked(object? sender, EventArgs e)
-    {
-        ShowBottomFeature("PHYSICS");
         HideAllMenus();
     }
 
@@ -259,14 +252,6 @@ public partial class MainPage
                 };
                 view = mv;
             }
-            // TODO: リリース時にはこの "PHYSICS" ケースを削除する
-            else if (name == "PHYSICS")
-            {
-                var rb = _currentModel?.RigidBodies ?? Enumerable.Empty<RigidBodyData>();
-                var bones = _currentModel?.Bones ?? new List<BoneData>();
-                var pv = new PhysicsView(_settings.Physics, rb, bones);
-                view = pv;
-            }
             else if (name == "SETTING")
             {
                 var sv = new SettingView();
@@ -373,14 +358,6 @@ public partial class MainPage
             {
                 morphView.SetMorphs(_currentModel.Morphs);
             }
-        }
-        // TODO: リリース時にはこの "PHYSICS" ケースを削除する
-        else if (name == "PHYSICS" && _bottomViews[name] is PhysicsView pv2)
-        {
-            pv2.SetConfig(_settings.Physics);
-            var rb = _currentModel?.RigidBodies ?? Enumerable.Empty<RigidBodyData>();
-            var bones = _currentModel?.Bones ?? new List<BoneData>();
-            pv2.SetRigidBodies(rb, bones);
         }
 
         SwitchBottomFeature(name);
