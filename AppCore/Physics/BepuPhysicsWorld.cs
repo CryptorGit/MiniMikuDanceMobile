@@ -37,7 +37,6 @@ public sealed class BepuPhysicsWorld : IPhysicsWorld
     private bool _skipSimulation;
     private PhysicsConfig _config;
     private float _modelScale = 1f;
-    private float _massScale = 1f;
     private readonly ILogger<BepuPhysicsWorld> _logger;
     private float _lastDt = 1f / 60f;
     private int _frameIndex;
@@ -68,7 +67,6 @@ public sealed class BepuPhysicsWorld : IPhysicsWorld
     {
         _skipSimulation = false;
         _modelScale = modelScale;
-        _massScale = modelScale * modelScale * modelScale;
         var gravity = config.Gravity;
         bool IsInvalid(float v) => float.IsNaN(v) || float.IsInfinity(v) || v < -1000f || v > 1000f;
         bool IsNearZero(float v) => MathF.Abs(v) < 1e-3f;
@@ -534,7 +532,7 @@ public sealed class BepuPhysicsWorld : IPhysicsWorld
                 continue;
             }
 
-            var mass = rb.Mass * _massScale;
+            var mass = rb.Mass;
             TypedIndex shapeIndex;
             BodyInertia inertia = default;
             switch (rb.Shape)
@@ -787,7 +785,7 @@ public sealed class BepuPhysicsWorld : IPhysicsWorld
         var nodeMass = sb.NodeMassIsTotal ? sb.NodeMass / Math.Max(nodeCount, 1) : sb.NodeMass;
         if (nodeMass <= 0f)
             nodeMass = 1f;
-        var mass = nodeMass * _massScale;
+        var mass = nodeMass;
 
         var rootBone = model.Bones[rootIndex];
         var rootPos = rootBone.Translation;
