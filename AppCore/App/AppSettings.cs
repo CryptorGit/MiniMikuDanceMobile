@@ -1,5 +1,6 @@
 using MiniMikuDance.Util;
 using MiniMikuDance.Physics;
+using System;
 using System.Numerics;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
@@ -21,7 +22,8 @@ public class AppSettings
     /// <summary>PMXモデルのスケールのデフォルト値。</summary>
     public const float DefaultModelScale = 1.0f;
 
-    /// <summary>PMXモデルに適用するスケール。UseScaledGravity が true の場合、重力は ModelScale 倍に、質量は ModelScale の 3 乗倍にスケーリングされる。</summary>
+    /// <summary>PMXモデルに適用するスケール。質量や重力などの物理パラメータは自動的にスケーリングされないため、
+    /// 1 単位 = 1 メートルに合わせてモデル側を調整する。</summary>
     public float ModelScale { get; set; } = DefaultModelScale;
 
     /// <summary>ステージの半径のデフォルト値。</summary>
@@ -79,10 +81,7 @@ public class AppSettings
     /// <summary>物理演算を有効にするか。</summary>
     public bool EnablePhysics { get; set; } = false;
 
-    /// <summary>重力に ModelScale を掛けるか。</summary>
-    public bool UseScaledGravity { get; set; } = true;
-
-    /// <summary>物理設定。UseScaledGravity が true の場合、Gravity は ModelScale 倍にスケーリングされる。</summary>
+    /// <summary>物理設定。</summary>
     public PhysicsConfig Physics { get; set; } =
         new(new Vector3(0f, -9.81f, 0f), 8, 1, 0.98f, 0.5f, 0f, 0.2f, 0.5f, true);
 
@@ -100,9 +99,17 @@ public class AppSettings
         var physics = result.Physics;
         var gravity = physics.Gravity;
         bool IsInvalid(float v) => float.IsNaN(v) || float.IsInfinity(v) || v < -1000f || v > 1000f;
+        bool IsNearZero(float v) => MathF.Abs(v) < 1e-3f;
         if (IsInvalid(gravity.X) || IsInvalid(gravity.Y) || IsInvalid(gravity.Z))
         {
             log.LogWarning("Invalid Physics.Gravity detected: {Gravity}. Resetting to default.", gravity);
+            physics.Gravity = new Vector3(0f, -9.81f, 0f);
+            result.Physics = physics;
+            result.Save(path);
+        }
+        else if (IsNearZero(gravity.X) && IsNearZero(gravity.Y) && IsNearZero(gravity.Z))
+        {
+            log.LogWarning("Physics.Gravity magnitude too small: {Gravity}. Resetting to default.", gravity);
             physics.Gravity = new Vector3(0f, -9.81f, 0f);
             result.Physics = physics;
             result.Save(path);

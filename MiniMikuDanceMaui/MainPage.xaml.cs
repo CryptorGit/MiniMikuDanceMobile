@@ -106,7 +106,7 @@ public partial class MainPage : ContentPage
             physics = new BepuPhysicsWorld();
             try
             {
-                physics.Initialize(_settings.Physics, _settings.ModelScale, _settings.UseScaledGravity);
+                physics.Initialize(_settings.Physics, _settings.ModelScale);
                 if (_currentModel != null && physics is BepuPhysicsWorld bepu)
                 {
                     bepu.LoadRigidBodies(_currentModel);

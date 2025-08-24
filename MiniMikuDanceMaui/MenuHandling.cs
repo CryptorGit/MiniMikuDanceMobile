@@ -263,7 +263,7 @@ public partial class MainPage
             {
                 var rb = _currentModel?.RigidBodies ?? Enumerable.Empty<RigidBodyData>();
                 var bones = _currentModel?.Bones ?? new List<BoneData>();
-                var pv = new PhysicsView(_settings.Physics, _settings.UseScaledGravity, rb, bones);
+                var pv = new PhysicsView(_settings.Physics, rb, bones);
                 view = pv;
             }
             else if (name == "SETTING")
@@ -367,7 +367,7 @@ public partial class MainPage
         // TODO: リリース時にはこの "PHYSICS" ケースを削除する
         else if (name == "PHYSICS" && _bottomViews[name] is PhysicsView pv2)
         {
-            pv2.SetConfig(_settings.Physics, _settings.UseScaledGravity);
+            pv2.SetConfig(_settings.Physics);
             var rb = _currentModel?.RigidBodies ?? Enumerable.Empty<RigidBodyData>();
             var bones = _currentModel?.Bones ?? new List<BoneData>();
             pv2.SetRigidBodies(rb, bones);
