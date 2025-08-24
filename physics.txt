@@ -1,5 +1,6 @@
-[2025-08-24T11:17:07.9368674+09:00] Ellen
-Gravity: <0, 1.72E-43, -3.0988732E-13>
+[2025-08-24T14:27:35.6731941+09:00] Ellen
+Gravity: <0, -9.81, 0>
+EffectiveGravity: <0, -9.81, 0>
 SolverIterationCount: 8
 SubstepCount: 1
 Damping: 0.98
