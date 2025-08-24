@@ -64,12 +64,12 @@ public sealed class BepuPhysicsWorld : IPhysicsWorld
     /// バッファプール → スレッドディスパッチャ → Simulation の順に生成され、
     /// 依存関係が解決される。
     /// </summary>
-    public void Initialize(PhysicsConfig config, float modelScale, bool useScaledGravity)
+    public void Initialize(PhysicsConfig config, float modelScale)
     {
         _skipSimulation = false;
         _modelScale = modelScale;
         _massScale = modelScale * modelScale * modelScale;
-        var gravity = useScaledGravity ? config.Gravity * modelScale : config.Gravity;
+        var gravity = config.Gravity;
         var substepCount = config.SubstepCount;
         if (substepCount <= 0)
         {

@@ -12,6 +12,7 @@ namespace MiniMikuDance.App;
 /// </summary>
 public class AppSettings
 {
+    private const int CurrentVersion = 1;
     /// <summary>最後に使用したモデルファイルのパス。</summary>
     public string LastModelPath { get; set; } = string.Empty;
 
@@ -21,7 +22,7 @@ public class AppSettings
     /// <summary>PMXモデルのスケールのデフォルト値。</summary>
     public const float DefaultModelScale = 1.0f;
 
-    /// <summary>PMXモデルに適用するスケール。UseScaledGravity が true の場合、重力は ModelScale 倍に、質量は ModelScale の 3 乗倍にスケーリングされる。</summary>
+    /// <summary>PMXモデルに適用するスケール。質量は ModelScale の 3 乗倍にスケーリングされる。</summary>
     public float ModelScale { get; set; } = DefaultModelScale;
 
     /// <summary>ステージの半径のデフォルト値。</summary>
@@ -79,10 +80,13 @@ public class AppSettings
     /// <summary>物理演算を有効にするか。</summary>
     public bool EnablePhysics { get; set; } = false;
 
-    /// <summary>重力に ModelScale を掛けるか。</summary>
-    public bool UseScaledGravity { get; set; } = true;
+    /// <summary>旧バージョンとの互換性のためのプロパティ。true の場合は読み込み時に Physics.Gravity に ModelScale を乗算し、自動的に false に更新される。</summary>
+    public bool UseScaledGravity { get; set; } = false;
 
-    /// <summary>物理設定。UseScaledGravity が true の場合、Gravity は ModelScale 倍にスケーリングされる。</summary>
+    /// <summary>設定ファイルのバージョン。互換性維持のために使用する。</summary>
+    public int Version { get; set; } = 0;
+
+    /// <summary>物理設定。Gravity は設定値をそのまま使用する。</summary>
     public PhysicsConfig Physics { get; set; } =
         new(new Vector3(0f, -9.81f, 0f), 8, 1, 0.98f, 0.5f, 0f, 0.2f, 0.5f, true);
 
@@ -110,6 +114,19 @@ public class AppSettings
         else
         {
             log.LogInformation("Loaded Physics.Gravity: {Gravity}", gravity);
+        }
+
+        if (result.Version < CurrentVersion)
+        {
+            if (result.UseScaledGravity)
+            {
+                physics.Gravity *= result.ModelScale;
+                result.Physics = physics;
+                result.UseScaledGravity = false;
+                log.LogInformation("Applied ModelScale to Gravity for legacy UseScaledGravity setting.");
+            }
+            result.Version = CurrentVersion;
+            result.Save(path);
         }
         return result;
     }

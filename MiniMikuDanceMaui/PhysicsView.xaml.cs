@@ -22,14 +22,14 @@ public partial class PhysicsView : ContentView
         public string Friction { get; init; } = string.Empty;
     }
 
-    public PhysicsView(PhysicsConfig config, bool useScaledGravity, IEnumerable<RigidBodyData> rigidBodies, IList<BoneData> bones)
+    public PhysicsView(PhysicsConfig config, IEnumerable<RigidBodyData> rigidBodies, IList<BoneData> bones)
     {
         InitializeComponent();
-        SetConfig(config, useScaledGravity);
+        SetConfig(config);
         SetRigidBodies(rigidBodies, bones);
     }
 
-    public void SetConfig(PhysicsConfig config, bool useScaledGravity)
+    public void SetConfig(PhysicsConfig config)
     {
         const float threshold = 1e-3f;
         const float max = 1e3f;
@@ -55,7 +55,7 @@ public partial class PhysicsView : ContentView
             if (System.MathF.Abs(gravity.Z) < threshold) { gravity.Z = defaultGravity.Z; gravityWarn = true; }
             if (gravityWarn) gravityWarnMessage = "極端に小さい値をデフォルトに差し替え";
         }
-        GravityLabel.Text = $"Gravity: ({gravity.X:F2}, {gravity.Y:F2}, {gravity.Z:F2}) m/s²" + (useScaledGravity ? " (ModelScaleでスケーリング)" : string.Empty);
+        GravityLabel.Text = $"Gravity: ({gravity.X:F2}, {gravity.Y:F2}, {gravity.Z:F2}) m/s²";
         if (gravityWarn) GravityLabel.Text += $" [警告: {gravityWarnMessage}]";
 
         float damping = config.Damping;
