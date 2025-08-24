@@ -1058,7 +1058,7 @@ void main(){
             GL.TexImage2D(
                 (All)TextureTarget.Texture2D,
                 0,
-                (int)All.Rgba,
+                All.Rgba,
                 width,
                 height,
                 0,
