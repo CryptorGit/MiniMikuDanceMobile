@@ -64,18 +64,18 @@ public sealed class BepuPhysicsWorld : IPhysicsWorld
     /// バッファプール → スレッドディスパッチャ → Simulation の順に生成され、
     /// 依存関係が解決される。
     /// </summary>
-    public void Initialize(PhysicsConfig config, float modelScale, bool useScaledGravity)
+    public void Initialize(PhysicsConfig config, float modelScale)
     {
         _skipSimulation = false;
         _modelScale = modelScale;
         _massScale = modelScale * modelScale * modelScale;
-        var gravity = useScaledGravity ? config.Gravity * modelScale : config.Gravity;
+        var gravity = config.Gravity;
         bool IsInvalid(float v) => float.IsNaN(v) || float.IsInfinity(v) || v < -1000f || v > 1000f;
         bool IsNearZero(float v) => MathF.Abs(v) < 1e-3f;
         if (IsInvalid(gravity.X) || IsInvalid(gravity.Y) || IsInvalid(gravity.Z) ||
             (IsNearZero(gravity.X) && IsNearZero(gravity.Y) && IsNearZero(gravity.Z)))
         {
-            var corrected = (useScaledGravity ? new Vector3(0f, -9.81f, 0f) * modelScale : new Vector3(0f, -9.81f, 0f));
+            var corrected = new Vector3(0f, -9.81f, 0f);
             _logger.LogWarning("Invalid gravity passed: {Gravity}. Resetting to {Corrected}.", gravity, corrected);
             gravity = corrected;
         }
