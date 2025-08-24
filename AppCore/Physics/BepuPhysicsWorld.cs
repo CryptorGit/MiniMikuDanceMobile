@@ -291,27 +291,53 @@ public sealed class BepuPhysicsWorld : IPhysicsWorld
         }
     }
 
-    private static (Vector3 Pos, Quaternion Rot) GetWorldPose(Scene scene, int index,
+    private (Vector3 Pos, Quaternion Rot) GetWorldPose(Scene scene, int index,
         Dictionary<int, (Vector3 Pos, Quaternion Rot)> cache)
     {
         if (cache.TryGetValue(index, out var pose))
             return pose;
 
-        var bone = scene.Bones[index];
-        if (bone.Parent >= 0)
+        var visited = new HashSet<int>();
+        var order = new List<int>();
+        int current = index;
+        while (!cache.TryGetValue(current, out pose))
         {
-            var parent = GetWorldPose(scene, bone.Parent, cache);
+            if (!visited.Add(current))
+            {
+                _logger.LogWarning("ボーン階層に循環が検出されました: {Index}", current);
+                var boneFallback = scene.Bones[current];
+                pose = (boneFallback.Translation, boneFallback.Rotation);
+                cache[current] = pose;
+                break;
+            }
+
+            order.Add(current);
+            var bone = scene.Bones[current];
+            if (bone.Parent < 0)
+            {
+                pose = (bone.Translation, bone.Rotation);
+                cache[current] = pose;
+                break;
+            }
+
+            current = bone.Parent;
+        }
+
+        for (int i = order.Count - 1; i >= 0; i--)
+        {
+            current = order[i];
+            var bone = scene.Bones[current];
+            if (bone.Parent < 0)
+                continue;
+
+            var parent = cache[bone.Parent];
             var rot = bone.Rotation * parent.Rot;
             var pos = Vector3.Transform(bone.Translation, parent.Rot) + parent.Pos;
             pose = (pos, rot);
-        }
-        else
-        {
-            pose = (bone.Translation, bone.Rotation);
+            cache[current] = pose;
         }
 
-        cache[index] = pose;
-        return pose;
+        return cache[index];
     }
 
     private static (Vector3 Pos, Quaternion Rot) GetInitialWorldPose(Scene scene, int index,
@@ -475,29 +501,60 @@ public sealed class BepuPhysicsWorld : IPhysicsWorld
         _cloth.SyncToBones(scene);
     }
 
-    private static Matrix4x4 GetWorldMatrix(Scene scene, int index,
+    private Matrix4x4 GetWorldMatrix(Scene scene, int index,
         Dictionary<int, (Vector3 Pos, Quaternion Rot)> poses, Dictionary<int, Matrix4x4> cache)
     {
         if (cache.TryGetValue(index, out var mat))
             return mat;
 
-        Matrix4x4 local;
-        if (poses.TryGetValue(index, out var pose))
-            local = Matrix4x4.CreateFromQuaternion(pose.Rot) * Matrix4x4.CreateTranslation(pose.Pos);
-        else
+        var visited = new HashSet<int>();
+        var order = new List<int>();
+        int current = index;
+        while (!cache.TryGetValue(current, out mat))
         {
-            var bone = scene.Bones[index];
-            local = Matrix4x4.CreateFromQuaternion(bone.Rotation) * Matrix4x4.CreateTranslation(bone.Translation);
+            if (!visited.Add(current))
+            {
+                _logger.LogWarning("ボーン行列計算中に循環が検出されました: {Index}", current);
+                var fallback = scene.Bones[current];
+                mat = Matrix4x4.CreateFromQuaternion(fallback.Rotation) * Matrix4x4.CreateTranslation(fallback.Translation);
+                cache[current] = mat;
+                break;
+            }
+
+            order.Add(current);
+            var bone = scene.Bones[current];
+            if (bone.Parent < 0)
+            {
+                if (poses.TryGetValue(current, out var pose))
+                    mat = Matrix4x4.CreateFromQuaternion(pose.Rot) * Matrix4x4.CreateTranslation(pose.Pos);
+                else
+                    mat = Matrix4x4.CreateFromQuaternion(bone.Rotation) * Matrix4x4.CreateTranslation(bone.Translation);
+                cache[current] = mat;
+                break;
+            }
+
+            current = bone.Parent;
         }
 
-        var boneData = scene.Bones[index];
-        if (boneData.Parent >= 0)
-            mat = local * GetWorldMatrix(scene, boneData.Parent, poses, cache);
-        else
-            mat = local;
+        for (int i = order.Count - 1; i >= 0; i--)
+        {
+            current = order[i];
+            var bone = scene.Bones[current];
+            if (bone.Parent < 0)
+                continue;
 
-        cache[index] = mat;
-        return mat;
+            Matrix4x4 local;
+            if (poses.TryGetValue(current, out var pose))
+                local = Matrix4x4.CreateFromQuaternion(pose.Rot) * Matrix4x4.CreateTranslation(pose.Pos);
+            else
+                local = Matrix4x4.CreateFromQuaternion(bone.Rotation) * Matrix4x4.CreateTranslation(bone.Translation);
+
+            var parentMat = cache[bone.Parent];
+            mat = local * parentMat;
+            cache[current] = mat;
+        }
+
+        return cache[index];
     }
 
     public void Dispose()
