@@ -301,7 +301,7 @@ public sealed class BepuPhysicsWorld : IPhysicsWorld
         if (bone.Parent >= 0)
         {
             var parent = GetWorldPose(scene, bone.Parent, cache);
-            var rot = bone.Rotation * parent.Rot;
+            var rot = parent.Rot * bone.Rotation;
             var pos = Vector3.Transform(bone.Translation, parent.Rot) + parent.Pos;
             pose = (pos, rot);
         }
@@ -324,7 +324,7 @@ public sealed class BepuPhysicsWorld : IPhysicsWorld
         if (bone.Parent >= 0)
         {
             var parent = GetInitialWorldPose(scene, bone.Parent, cache);
-            var rot = bone.InitialRotation * parent.Rot;
+            var rot = parent.Rot * bone.InitialRotation;
             var pos = Vector3.Transform(bone.InitialTranslation, parent.Rot) + parent.Pos;
             pose = (pos, rot);
         }
@@ -418,7 +418,7 @@ public sealed class BepuPhysicsWorld : IPhysicsWorld
                     parentWorld = GetWorldMatrix(scene, bone.Parent, poseMap, cache);
                     Matrix4x4.Invert(parentWorld, out invParent);
                     var world = Matrix4x4.CreateFromQuaternion(pose.Rot) * Matrix4x4.CreateTranslation(pose.Pos);
-                    var local = world * invParent;
+                    var local = invParent * world;
                     Matrix4x4.Decompose(local, out _, out localRot, out _);
                 }
                 else
@@ -513,7 +513,7 @@ public sealed class BepuPhysicsWorld : IPhysicsWorld
 
         var boneData = scene.Bones[index];
         if (boneData.Parent >= 0)
-            mat = local * GetWorldMatrix(scene, boneData.Parent, poses, cache);
+            mat = GetWorldMatrix(scene, boneData.Parent, poses, cache) * local;
         else
             mat = local;
 
