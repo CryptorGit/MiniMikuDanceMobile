@@ -1,5 +1,6 @@
 using System;
 using System.IO;
+using System.Linq;
 using Microsoft.Extensions.Logging;
 using Microsoft.Maui.ApplicationModel;
 using Microsoft.Maui.Controls;
@@ -24,17 +25,21 @@ internal static class ErrorNotifier
 
         MainThread.BeginInvokeOnMainThread(async () =>
         {
-            var steps = await Application.Current?.MainPage?.DisplayPromptAsync(
-                "エラー", "エラーが発生しました。再現手順を入力してください。", "送信", "キャンセル");
-            if (!string.IsNullOrWhiteSpace(steps))
+            var page = Application.Current?.Windows.FirstOrDefault()?.Page;
+            if (page != null)
             {
-                try
+                var steps = await page.DisplayPromptAsync(
+                    "エラー", "エラーが発生しました。再現手順を入力してください。", "送信", "キャンセル");
+                if (!string.IsNullOrWhiteSpace(steps))
                 {
-                    File.AppendAllText(crashPath,
-                        $"[STEPS {DateTime.Now:O}] {steps}{Environment.NewLine}");
-                }
-                catch
-                {
+                    try
+                    {
+                        File.AppendAllText(crashPath,
+                            $"[STEPS {DateTime.Now:O}] {steps}{Environment.NewLine}");
+                    }
+                    catch
+                    {
+                    }
                 }
             }
         });
