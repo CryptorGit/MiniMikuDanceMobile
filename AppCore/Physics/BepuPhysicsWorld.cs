@@ -2,6 +2,7 @@ using System;
 using System.Numerics;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Diagnostics;
 using BepuPhysics;
 using BepuPhysics.Collidables;
@@ -947,7 +948,26 @@ public sealed class BepuPhysicsWorld : IPhysicsWorld
     {
         try
         {
-            var path = Path.Combine(AppContext.BaseDirectory, "crash_log.txt");
+            var directory = Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData);
+            if (string.IsNullOrEmpty(directory)) directory = AppContext.BaseDirectory;
+            Directory.CreateDirectory(directory);
+            var path = Path.Combine(directory, "crash_log.txt");
+
+            const long maxSize = 1 * 1024 * 1024;
+            if (File.Exists(path))
+            {
+                var info = new FileInfo(path);
+                if (info.Length > maxSize)
+                {
+                    var archive = Path.Combine(directory, $"crash_log_{DateTime.Now:yyyyMMddHHmmss}.txt");
+                    File.Move(path, archive);
+                    var archives = Directory.GetFiles(directory, "crash_log_*.txt")
+                        .OrderByDescending(f => f)
+                        .Skip(5);
+                    foreach (var old in archives) File.Delete(old);
+                }
+            }
+
             var text = $"[{DateTime.Now:O}] {message}";
             if (ex != null) text += $" {ex}";
             File.AppendAllText(path, text + Environment.NewLine);
