@@ -20,6 +20,11 @@
     <PackageReference Include="Microsoft.CSharp" Version="4.7.0" />
   </ItemGroup>
   <ItemGroup>
+    <EmbeddedResource Include="$(NuGetPackageRoot)assimpnet/4.1.0/runtimes/android-arm64/native/libassimp.so" />
+    <EmbeddedResource Include="$(NuGetPackageRoot)imgui.net/1.90.5.1/runtimes/android-arm64/native/libcimgui.so" />
+    <EmbeddedResource Include="$(NuGetPackageRoot)microsoft.ml.onnxruntime/1.17.0/runtimes/android-arm64/native/libonnxruntime.so" />
+  </ItemGroup>
+  <ItemGroup>
     <PackageReference Include="Microsoft.CodeAnalysis.NetAnalyzers" Version="9.0.0">
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
