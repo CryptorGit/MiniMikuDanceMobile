@@ -44,15 +44,12 @@ public partial class MainPage : ContentPage
     private float _sphereStrength = 1f;
     private float _toonStrength = 0f;
     private bool _poseMode;
-    private bool _physicsEnabled;
     // bottomWidth is no longer used; bottom region spans full screen width
     // private double bottomWidth = 0;
     private bool _glInitialized;
     private readonly Scene _scene = new();
     private IPhysicsWorld _physics = new NullPhysicsWorld();
     private readonly object _physicsLock = new();
-    private bool _pendingPhysicsReload;
-    private PhysicsState? _nextPhysics;
     private DateTime _lastFrameTime = DateTime.UtcNow;
     private readonly Dictionary<long, SKPoint> _touchPoints = new();
     private readonly long[] _touchIds = new long[2];
@@ -76,27 +73,6 @@ public partial class MainPage : ContentPage
         _renderer.ShowIkBones = _poseMode;
         PoseModeIcon.SetIcon(_poseMode ? MaterialIcons.AccessibilityNew : MaterialIcons.PhotoCamera);
         PoseModeIcon.SetIconColor(_poseMode ? Colors.Green : Colors.Gray);
-        Viewer?.InvalidateSurface();
-    }
-
-    private void OnPhysicsButtonClicked(object? sender, TappedEventArgs e)
-    {
-        var desired = !_physicsEnabled;
-        var state = BuildPhysicsState(desired);
-        lock (_physicsLock)
-        {
-            if (_nextPhysics.HasValue)
-            {
-                (_nextPhysics.Value.World as IDisposable)?.Dispose();
-            }
-            _nextPhysics = state;
-            _pendingPhysicsReload = true;
-            _physicsEnabled = state.Enabled;
-        }
-        PhysicsIcon.SetIconColor(_physicsEnabled ? Colors.Green : Colors.Gray);
-        _settings.EnablePhysics = _physicsEnabled;
-        _settings.Save();
-        _needsRender = true;
         Viewer?.InvalidateSurface();
     }
 
@@ -204,11 +180,9 @@ public partial class MainPage : ContentPage
         _renderer.BonePickPixels = _settings.BonePickPixels;
         _renderer.ShowIkBones = _poseMode;
         _renderer.IkBoneScale = _settings.IkBoneScale;
-        _physicsEnabled = _settings.EnablePhysics;
-        var initState = BuildPhysicsState(_physicsEnabled);
+        var initState = BuildPhysicsState(_settings.EnablePhysics);
         _physics = initState.World;
-        _physicsEnabled = initState.Enabled;
-        PhysicsIcon.SetIconColor(_physicsEnabled ? Colors.Green : Colors.Gray);
+        _settings.EnablePhysics = initState.Enabled;
 
         if (Viewer is SKGLView glView)
         {
@@ -496,17 +470,6 @@ public partial class MainPage : ContentPage
         _renderer.Render();
         GL.Flush();
         _needsRender = false;
-
-        if (_pendingPhysicsReload && _nextPhysics.HasValue && (_physicsTask == null || _physicsTask.IsCompleted))
-        {
-            lock (_physicsLock)
-            {
-                (_physics as IDisposable)?.Dispose();
-                _physics = _nextPhysics.Value.World;
-            }
-            _nextPhysics = null;
-            _pendingPhysicsReload = false;
-        }
     }
 
 
@@ -644,12 +607,5 @@ public partial class MainPage : ContentPage
         _touchPoints.Remove(e.Id);
     }
 
-    private void UpdatePhysicsViewRigidBodies()
-    {
-        if (_currentModel != null && _bottomViews.TryGetValue("PHYSICS", out var view) && view is PhysicsView pv)
-        {
-            pv.SetRigidBodies(_currentModel.RigidBodies, _currentModel.Bones);
-        }
-    }
 }
 
