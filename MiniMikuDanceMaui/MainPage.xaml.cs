@@ -59,6 +59,8 @@ public partial class MainPage : ContentPage
     private bool _needsRender;
     private readonly IDispatcherTimer _renderTimer;
     private int _renderTimerErrorCount;
+    private Task? _physicsTask;
+    private readonly TimeSpan _physicsTimeout = TimeSpan.FromSeconds(1);
     private void OnPoseModeButtonClicked(object? sender, TappedEventArgs e)
     {
         _poseMode = !_poseMode;
@@ -445,18 +447,57 @@ public partial class MainPage : ContentPage
         var now = DateTime.UtcNow;
         float dt = (float)(now - _lastFrameTime).TotalSeconds;
         _lastFrameTime = now;
-        lock (_physicsLock)
+        if (_physicsTask == null || _physicsTask.IsCompleted)
         {
-            _physics.SyncFromBones(_scene);
-            _physics.Step(dt);
-            _physics.SyncToBones(_scene);
+            var physics = _physics;
+            _physicsTask = Task.Run(() =>
+            {
+                try
+                {
+                    lock (_physicsLock)
+                    {
+                        physics.SyncFromBones(_scene);
+                    }
+
+                    try
+                    {
+                        var stepTask = Task.Run(() => physics.Step(dt));
+                        if (!stepTask.Wait(_physicsTimeout))
+                        {
+                            Debug.WriteLine($"Physics step timeout after {_physicsTimeout.TotalMilliseconds}ms");
+                            return;
+                        }
+                    }
+                    catch (Exception ex)
+                    {
+                        Debug.WriteLine(ex.ToString());
+                        return;
+                    }
+
+                    lock (_physicsLock)
+                    {
+                        physics.SyncToBones(_scene);
+                    }
+                }
+                catch (Exception ex)
+                {
+                    Debug.WriteLine(ex.ToString());
+                }
+            }).ContinueWith(_ =>
+            {
+                MainThread.BeginInvokeOnMainThread(() =>
+                {
+                    _needsRender = true;
+                    Viewer?.InvalidateSurface();
+                });
+            });
         }
         _renderer.Resize(e.BackendRenderTarget.Width, e.BackendRenderTarget.Height);
         _renderer.Render();
         GL.Flush();
         _needsRender = false;
 
-        if (_pendingPhysicsReload && _nextPhysics.HasValue)
+        if (_pendingPhysicsReload && _nextPhysics.HasValue && (_physicsTask == null || _physicsTask.IsCompleted))
         {
             lock (_physicsLock)
             {
