@@ -1049,21 +1049,21 @@ void main(){
 
         int texture = GL.GenTexture();
         CheckGLError("GL.GenTexture");
-        GL.BindTexture(TextureTarget.Texture2D, texture);
+        GL.BindTexture((All)TextureTarget.Texture2D, texture);
         CheckGLError("GL.BindTexture");
 
         var handle = GCHandle.Alloc(bytes, GCHandleType.Pinned);
         try
         {
             GL.TexImage2D(
-                TextureTarget.Texture2D,
+                (All)TextureTarget.Texture2D,
                 0,
-                PixelInternalFormat.Rgba,
+                (All)PixelInternalFormat.Rgba,
                 width,
                 height,
                 0,
-                PixelFormat.Rgba,
-                PixelType.UnsignedByte,
+                (All)PixelFormat.Rgba,
+                (All)PixelType.UnsignedByte,
                 handle.AddrOfPinnedObject());
             CheckGLError("GL.TexImage2D");
         }
@@ -1072,9 +1072,9 @@ void main(){
             handle.Free();
         }
 
-        GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureMinFilter, (int)TextureMinFilter.Linear);
+        GL.TexParameter((All)TextureTarget.Texture2D, (All)TextureParameterName.TextureMinFilter, (int)All.Linear);
         CheckGLError("GL.TexParameter");
-        GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureMagFilter, (int)TextureMagFilter.Linear);
+        GL.TexParameter((All)TextureTarget.Texture2D, (All)TextureParameterName.TextureMagFilter, (int)All.Linear);
         CheckGLError("GL.TexParameter");
 
         return (texture, true);
