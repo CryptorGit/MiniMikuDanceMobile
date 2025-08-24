@@ -31,7 +31,7 @@ internal sealed class SimpleFileLoggerProvider : ILoggerProvider
             _lock = @lock;
         }
 
-        IDisposable ILogger.BeginScope<TState>(TState state) where TState : notnull => NullScope.Instance;
+        IDisposable ILogger.BeginScope<TState>(TState state) => NullScope.Instance;
 
         public bool IsEnabled(LogLevel logLevel) => logLevel >= LogLevel.Error;
 
