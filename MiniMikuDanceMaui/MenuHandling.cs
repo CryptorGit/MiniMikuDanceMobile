@@ -4,6 +4,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using MiniMikuDance.Import;
+using MiniMikuDance.Physics;
 
 namespace MiniMikuDanceMaui;
 
@@ -284,6 +285,15 @@ public partial class MainPage
                 {
                     if (_renderer != null)
                         _renderer.PanSensitivity = (float)v;
+                };
+                sv.LockTranslationChanged += flag =>
+                {
+                    if (_physics is BepuPhysicsWorld bepu)
+                        bepu.LockTranslation = flag;
+                    var phys = _settings.Physics;
+                    phys.LockTranslation = flag;
+                    _settings.Physics = phys;
+                    _settings.Save();
                 };
                 sv.ResetCameraRequested += () =>
                 {
