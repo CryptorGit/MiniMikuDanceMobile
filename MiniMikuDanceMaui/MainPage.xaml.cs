@@ -105,19 +105,22 @@ public partial class MainPage : ContentPage
         IPhysicsWorld physics;
         if (enabled)
         {
-            physics = new BepuPhysicsWorld(AppLogger.Create("BepuPhysicsWorld"));
+            BepuPhysicsWorld? bepu = null;
             try
             {
-                physics.Initialize(_settings.Physics, _settings.ModelScale, _settings.Physics.MaxThreadCount);
-                if (_currentModel != null && physics is BepuPhysicsWorld bepu)
+                bepu = new BepuPhysicsWorld(AppLogger.Create("BepuPhysicsWorld"));
+                bepu.Initialize(_settings.Physics, _settings.ModelScale, _settings.Physics.MaxThreadCount);
+                if (_currentModel != null)
                 {
                     bepu.LoadRigidBodies(_currentModel);
                     bepu.LoadSoftBodies(_currentModel);
                     bepu.LoadJoints(_currentModel);
                 }
+                physics = bepu;
             }
             catch (Exception ex)
             {
+                bepu?.Dispose();
                 Debug.WriteLine(ex.ToString());
                 physics = new NullPhysicsWorld();
                 enabled = false;
