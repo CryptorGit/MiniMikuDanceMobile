@@ -1,3 +1,4 @@
+using System;
 using System.Numerics;
 
 namespace MiniMikuDance.Physics;
@@ -7,7 +8,14 @@ public struct PhysicsConfig
     public Vector3 Gravity { get; set; }
     public int SolverIterationCount { get; set; }
     public int SubstepCount { get; set; }
-    public float Damping { get; set; }
+
+    private float damping;
+    public float Damping
+    {
+        readonly get => damping;
+        set => damping = Math.Clamp(value, 0f, 1f);
+    }
+
     public float BoneBlendFactor { get; set; }
     public float GroundHeight { get; set; }
     public float MaxRecoveryVelocity { get; set; }
