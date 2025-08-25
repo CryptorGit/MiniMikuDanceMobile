@@ -93,13 +93,25 @@ public class ClothSimulator
     public float Restitution
     {
         get => _restitution;
-        set => _restitution = value;
+        set
+        {
+            var clamped = Math.Clamp(value, 0f, 1f);
+            if (clamped != value)
+                _logger.LogWarning("Restitution は 0～1 の範囲に収めてください。入力値 {Value} を {Clamped} に補正します。", value, clamped);
+            _restitution = clamped;
+        }
     }
 
     public float Friction
     {
         get => _friction;
-        set => _friction = value;
+        set
+        {
+            var clamped = Math.Clamp(value, 0f, 1f);
+            if (clamped != value)
+                _logger.LogWarning("Friction は 0～1 の範囲に収めてください。入力値 {Value} を {Clamped} に補正します。", value, clamped);
+            _friction = clamped;
+        }
     }
 
     public void Step(float dt)
