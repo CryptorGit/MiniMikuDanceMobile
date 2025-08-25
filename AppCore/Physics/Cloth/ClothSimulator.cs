@@ -44,9 +44,21 @@ public class ClothSimulator
 
     public void AddSphereCollider(Vector3 center, float radius)
     {
+        if (!float.IsFinite(radius))
+        {
+            _logger.LogWarning("SphereCollider の radius が有限値ではありません。入力値 {Radius} を無視します。", radius);
+            return;
+        }
+
         if (radius <= 0f)
         {
             _logger.LogWarning("SphereCollider の radius は 0 より大きい必要があります。入力値 {Radius} を無視します。", radius);
+            return;
+        }
+
+        if (!float.IsFinite(center.X) || !float.IsFinite(center.Y) || !float.IsFinite(center.Z))
+        {
+            _logger.LogWarning("SphereCollider の center に有限でない成分が含まれているため入力を無視します。center: {Center}", center);
             return;
         }
 
@@ -55,9 +67,22 @@ public class ClothSimulator
 
     public void AddCapsuleCollider(Vector3 pointA, Vector3 pointB, float radius)
     {
+        if (!float.IsFinite(radius))
+        {
+            _logger.LogWarning("CapsuleCollider の radius が有限値ではありません。入力値 {Radius} を無視します。", radius);
+            return;
+        }
+
         if (radius <= 0f)
         {
             _logger.LogWarning("CapsuleCollider の radius は 0 より大きい必要があります。入力値 {Radius} を無視します。", radius);
+            return;
+        }
+
+        if (!float.IsFinite(pointA.X) || !float.IsFinite(pointA.Y) || !float.IsFinite(pointA.Z)
+            || !float.IsFinite(pointB.X) || !float.IsFinite(pointB.Y) || !float.IsFinite(pointB.Z))
+        {
+            _logger.LogWarning("CapsuleCollider の pointA または pointB に有限でない成分が含まれているため入力を無視します。pointA: {PointA}, pointB: {PointB}", pointA, pointB);
             return;
         }
 
