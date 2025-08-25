@@ -96,7 +96,7 @@ public partial class MainPage : ContentPage
             try
             {
                 bepu = new BepuPhysicsWorld(AppLogger.Create("BepuPhysicsWorld"));
-                bepu.Initialize(_settings.Physics, _settings.ModelScale, _settings.Physics.MaxThreadCount);
+                bepu.Initialize(_settings.Physics, _modelScale, _settings.Physics.MaxThreadCount);
                 if (_currentModel != null)
                 {
                     bepu.LoadRigidBodies(_currentModel);
@@ -219,6 +219,7 @@ public partial class MainPage : ContentPage
         _renderer.BonePickPixels = _settings.BonePickPixels;
         _renderer.ShowIkBones = _poseMode;
         _renderer.IkBoneScale = _settings.IkBoneScale;
+        _modelScale = _settings.ModelScale;
         var initState = BuildPhysicsState(_settings.EnablePhysics);
         SetPhysicsWorld(initState.World);
         _settings.EnablePhysics = initState.Enabled;
