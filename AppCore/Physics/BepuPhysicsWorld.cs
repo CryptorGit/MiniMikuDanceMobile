@@ -606,17 +606,20 @@ public sealed class BepuPhysicsWorld : IPhysicsWorld
                 case RigidBodyShape.Sphere:
                     var sphere = new Sphere(rb.Size.X);
                     shapeIndex = _simulation.Shapes.Add(sphere);
-                    inertia = sphere.ComputeInertia(mass);
+                    if (mass > 0f)
+                        inertia = sphere.ComputeInertia(mass);
                     break;
                 case RigidBodyShape.Capsule:
                     var capsule = new Capsule(rb.Size.X, rb.Size.Y);
                     shapeIndex = _simulation.Shapes.Add(capsule);
-                    inertia = capsule.ComputeInertia(mass);
+                    if (mass > 0f)
+                        inertia = capsule.ComputeInertia(mass);
                     break;
                 case RigidBodyShape.Box:
                     var box = new Box(rb.Size.X, rb.Size.Y, rb.Size.Z);
                     shapeIndex = _simulation.Shapes.Add(box);
-                    inertia = box.ComputeInertia(mass);
+                    if (mass > 0f)
+                        inertia = box.ComputeInertia(mass);
                     break;
                 default:
                     _logger.LogWarning("未知の剛体形状をスキップ: {Index}:{Name}", i, rb.Name);
@@ -630,7 +633,12 @@ public sealed class BepuPhysicsWorld : IPhysicsWorld
             var collidable = new CollidableDescription(shapeIndex, 0.1f);
 
             BodyDescription bodyDesc;
-            if (rb.Mode == RigidBodyMode.FollowBone)
+            if (mass == 0f)
+            {
+                bodyDesc = BodyDescription.CreateKinematic(pose, collidable, new BodyActivityDescription());
+                _logger.LogWarning("質量0の剛体を静的剛体として処理しました: {Index}:{Name}", i, rb.Name);
+            }
+            else if (rb.Mode == RigidBodyMode.FollowBone)
             {
                 bodyDesc = BodyDescription.CreateKinematic(pose, collidable, new BodyActivityDescription());
             }
@@ -641,7 +649,7 @@ public sealed class BepuPhysicsWorld : IPhysicsWorld
 
             var handle = _simulation.Bodies.Add(bodyDesc);
             _rigidBodyHandles.Add(handle);
-            _bodyBoneMap[handle] = (rb.BoneIndex, rb.Mode);
+            _bodyBoneMap[handle] = (rb.BoneIndex, mass == 0f ? RigidBodyMode.FollowBone : rb.Mode);
             var maxRecovery = ComputeMaxRecoveryVelocity(rb.Restitution, _config.RestitutionRecoveryScale);
             _materialMap[handle] = new Material(rb.Friction, maxRecovery);
             _bodyFilterMap[handle] = filter;
@@ -662,7 +670,7 @@ public sealed class BepuPhysicsWorld : IPhysicsWorld
 
         static bool IsValidRigidBody(RigidBodyData rb)
         {
-            if (rb.Mass <= 0 || float.IsNaN(rb.Mass) || float.IsInfinity(rb.Mass))
+            if (rb.Mass < 0 || float.IsNaN(rb.Mass) || float.IsInfinity(rb.Mass))
             {
                 return false;
             }
