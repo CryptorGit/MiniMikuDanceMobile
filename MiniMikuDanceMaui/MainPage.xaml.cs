@@ -85,35 +85,11 @@ public partial class MainPage : ContentPage
 
     private PhysicsState BuildPhysicsState(bool enabled)
     {
-        IPhysicsWorld physics;
+        var physics = new NullPhysicsWorld();
         if (enabled)
         {
-            BepuPhysicsWorld? bepu = null;
-            try
-            {
-                bepu = new BepuPhysicsWorld(AppLogger.Create("BepuPhysicsWorld"));
-                bepu.Initialize(_settings.Physics, _modelScale);
-                if (_currentModel != null)
-                {
-                    bepu.LoadRigidBodies(_currentModel);
-                    bepu.LoadSoftBodies(_currentModel);
-                    bepu.LoadJoints(_currentModel);
-                }
-                physics = bepu;
-            }
-            catch (Exception ex)
-            {
-                bepu?.Dispose();
-                Debug.WriteLine(ex.ToString());
-                physics = new NullPhysicsWorld();
-                enabled = false;
-            }
+            physics.Initialize(_modelScale);
         }
-        else
-        {
-            physics = new NullPhysicsWorld();
-        }
-
         return new PhysicsState(physics, enabled);
     }
 
@@ -310,16 +286,7 @@ public partial class MainPage : ContentPage
                 _settings.Save();
                 Viewer?.InvalidateSurface();
             };
-            setting.LockTranslation = _settings.Physics.LockTranslation;
-            setting.LockTranslationChanged += flag =>
-            {
-                if (_physics is BepuPhysicsWorld bepu)
-                    bepu.LockTranslation = flag;
-                var phys = _settings.Physics;
-                phys.LockTranslation = flag;
-                _settings.Physics = phys;
-                _settings.Save();
-            };
+            setting.LockTranslation = false;
             setting.ResetCameraRequested += () =>
             {
                 _renderer.ResetCamera();

@@ -383,19 +383,7 @@ public partial class MainPage
             UpdateRendererLightingProperties();
             _scene.Bones.Clear();
             _scene.Bones.AddRange(_currentModel.Bones);
-            if (_physics is BepuPhysicsWorld bepu)
-            {
-                var cfg = _settings.Physics;
-                bepu.LockTranslation = cfg.LockTranslation;
-                if (cfg.LockTranslation)
-                {
-                    MainThread.BeginInvokeOnMainThread(async () =>
-                        await DisplayAlert("警告", "LockTranslation が有効です。布の移動が固定されます。", "OK"));
-                }
-                bepu.LoadRigidBodies(_currentModel);
-                bepu.LoadSoftBodies(_currentModel);
-                bepu.LoadJoints(_currentModel);
-            }
+            // 物理エンジン未実装のため処理なし
 
             if (_poseMode && _currentModel != null)
             {
@@ -445,18 +433,7 @@ public partial class MainPage
             var logPath = Path.Combine(logDir, "physics.txt");
             var sb = new StringBuilder();
             sb.AppendLine($"[{DateTime.Now:O}] {model.ModelName}");
-            var cfg = _settings.Physics;
-            sb.AppendLine($"Gravity: {cfg.Gravity}");
             sb.AppendLine($"EffectiveGravity: {_physics.GetGravity()}");
-            sb.AppendLine($"SolverIterationCount: {cfg.SolverIterationCount}");
-            sb.AppendLine($"SubstepCount: {cfg.SubstepCount}");
-            sb.AppendLine($"Damping: {cfg.Damping}");
-            sb.AppendLine($"BoneBlendFactor: {cfg.BoneBlendFactor}");
-            sb.AppendLine($"GroundHeight: {cfg.GroundHeight}");
-            sb.AppendLine($"Restitution: {cfg.Restitution}");
-            sb.AppendLine($"RestitutionRecoveryScale: {cfg.RestitutionRecoveryScale}");
-            sb.AppendLine($"Friction: {cfg.Friction}");
-            sb.AppendLine($"LockTranslation: {cfg.LockTranslation}");
             foreach (var rb in model.RigidBodies)
             {
                 sb.AppendLine(
