@@ -76,11 +76,7 @@ public partial class MainPage : ContentPage
     private void OnPhysicsButtonClicked(object? sender, TappedEventArgs e)
     {
         var state = BuildPhysicsState(!_settings.EnablePhysics);
-        lock (_physicsLock)
-        {
-            _physics.Dispose();
-            _physics = state.World;
-        }
+        SetPhysicsWorld(state.World);
         _settings.EnablePhysics = state.Enabled;
         _settings.Save();
         PhysicsIcon.SetIconColor(_settings.EnablePhysics ? Colors.Green : Colors.Gray);
@@ -123,7 +119,7 @@ public partial class MainPage : ContentPage
 
     private record struct PhysicsState(IPhysicsWorld World, bool Enabled);
 
-    private void SetPhysicsWorld(IPhysicsWorld world)
+    public void SetPhysicsWorld(IPhysicsWorld world)
     {
         Task? task;
         lock (_physicsLock)
@@ -377,25 +373,7 @@ public partial class MainPage : ContentPage
     protected override void OnDisappearing()
     {
         base.OnDisappearing();
-        Task? task;
-        lock (_physicsLock)
-        {
-            _physicsCts.Cancel();
-            task = _physicsTask;
-        }
-        try
-        {
-            task?.Wait(_physicsTimeout);
-        }
-        catch (AggregateException ex)
-        {
-            Debug.WriteLine(ex.ToString());
-        }
-        lock (_physicsLock)
-        {
-            _physics.Dispose();
-            _physicsTask = null;
-        }
+        SetPhysicsWorld(new NullPhysicsWorld());
     }
 
     private void OnSizeChanged(object? sender, EventArgs e) => UpdateLayout();
