@@ -698,6 +698,11 @@ void main(){
         _bonesDirty = true;
     }
 
+    public void MarkBonesDirty()
+    {
+        _bonesDirty = true;
+    }
+
     public void SetIkBones(IEnumerable<IkBone> bones)
     {
         lock (_ikBonesLock)

@@ -518,6 +518,7 @@ public partial class MainPage : ContentPage
                     {
                         physics.SyncToBones(_scene);
                     }
+                    _renderer.MarkBonesDirty();
                 }
                 catch (OperationCanceledException)
                 {
