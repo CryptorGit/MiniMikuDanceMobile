@@ -741,12 +741,11 @@ public sealed class BepuPhysicsWorld : IPhysicsWorld
                 }
             }
 
-            var children = model.Bones.FindAll(b => b.Parent == boneIndex);
-            foreach (var child in children)
+            if (model.BoneChildren.TryGetValue(boneIndex, out var childIndices))
             {
-                var childIndex = model.Bones.IndexOf(child);
-                if (childIndex >= 0)
+                foreach (var childIndex in childIndices)
                 {
+                    var child = model.Bones[childIndex];
                     var childWorldPos = Vector3.Transform(child.Translation, worldRot) + worldPos;
                     var childWorldRot = child.Rotation * worldRot;
                     queue.Enqueue((childIndex, nodeIndex, childWorldPos, childWorldRot));
@@ -764,11 +763,9 @@ public sealed class BepuPhysicsWorld : IPhysicsWorld
         {
             var boneIndex = queue.Dequeue();
             count++;
-            var children = model.Bones.FindAll(b => b.Parent == boneIndex);
-            foreach (var child in children)
+            if (model.BoneChildren.TryGetValue(boneIndex, out var childIndices))
             {
-                var childIndex = model.Bones.IndexOf(child);
-                if (childIndex >= 0)
+                foreach (var childIndex in childIndices)
                     queue.Enqueue(childIndex);
             }
         }
