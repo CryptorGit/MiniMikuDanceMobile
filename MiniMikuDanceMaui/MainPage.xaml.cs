@@ -96,7 +96,7 @@ public partial class MainPage : ContentPage
             try
             {
                 bepu = new BepuPhysicsWorld(AppLogger.Create("BepuPhysicsWorld"));
-                bepu.Initialize(_settings.Physics, _modelScale, _settings.Physics.MaxThreadCount);
+                bepu.Initialize(_settings.Physics, _modelScale);
                 if (_currentModel != null)
                 {
                     bepu.LoadRigidBodies(_currentModel);

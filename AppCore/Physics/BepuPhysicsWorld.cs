@@ -77,7 +77,7 @@ public sealed class BepuPhysicsWorld : IPhysicsWorld
     /// バッファプール → スレッドディスパッチャ → Simulation の順に生成され、
     /// 依存関係が解決される。
     /// </summary>
-    public void Initialize(PhysicsConfig config, float modelScale, int maxThreadCount)
+    public void Initialize(PhysicsConfig config, float modelScale)
     {
         _simulation?.Dispose();
         _bufferPool?.Clear();
@@ -109,12 +109,20 @@ public sealed class BepuPhysicsWorld : IPhysicsWorld
             solverIterationCount = 1;
         }
 
-        _config = new PhysicsConfig(gravity, solverIterationCount, substepCount, config.Damping, config.BoneBlendFactor, config.GroundHeight, config.Restitution, config.RestitutionRecoveryScale, config.Friction, config.LockTranslation, config.MaxThreadCount);
+        var maxThreadCount = config.MaxThreadCount;
+        if (maxThreadCount <= 0)
+        {
+            var defaultCount = Environment.ProcessorCount;
+            _logger.LogWarning("MaxThreadCount が 0 以下のため、{Default} に補正しました。", defaultCount);
+            maxThreadCount = defaultCount;
+        }
+
+        _config = new PhysicsConfig(gravity, solverIterationCount, substepCount, config.Damping, config.BoneBlendFactor, config.GroundHeight, config.Restitution, config.RestitutionRecoveryScale, config.Friction, config.LockTranslation, maxThreadCount);
         BoneBlendFactor = _config.BoneBlendFactor;
         _bufferPool = new BufferPool();
         _threadDispatcher?.Dispose();
         _threadDispatcher = null;
-        var threads = maxThreadCount > 0 ? Math.Clamp(Environment.ProcessorCount, 1, maxThreadCount) : Environment.ProcessorCount;
+        var threads = Math.Clamp(Environment.ProcessorCount, 1, maxThreadCount);
         _threadDispatcher = new ThreadDispatcher(threads);
         _simulation = Simulation.Create(_bufferPool,
             new SubgroupFilteredCallbacks(_materialMap, _bodyFilterMap, _staticMaterialMap, _staticFilterMap),
