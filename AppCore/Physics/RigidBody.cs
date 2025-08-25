@@ -17,6 +17,8 @@ public class RigidBody
     public float Friction { get; set; }
     public Vector3 Position { get; set; } = Vector3.Zero;
     public Vector3 Rotation { get; set; } = Vector3.Zero;
+    public Vector3 Velocity { get; set; } = Vector3.Zero;
+    public Vector3 AngularVelocity { get; set; } = Vector3.Zero;
     public Vector3 Size { get; set; } = Vector3.Zero;
     public byte Group { get; set; }
     public ushort GroupTarget { get; set; }
