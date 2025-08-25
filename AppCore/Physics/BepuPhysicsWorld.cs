@@ -79,6 +79,11 @@ public sealed class BepuPhysicsWorld : IPhysicsWorld
     /// </summary>
     public void Initialize(PhysicsConfig config, float modelScale, int maxThreadCount)
     {
+        _simulation?.Dispose();
+        _bufferPool?.Clear();
+        _simulation = null;
+        _bufferPool = null;
+
         _skipSimulation = false;
         _modelScale = modelScale;
         var gravity = config.Gravity;
@@ -108,6 +113,7 @@ public sealed class BepuPhysicsWorld : IPhysicsWorld
         BoneBlendFactor = _config.BoneBlendFactor;
         _bufferPool = new BufferPool();
         _threadDispatcher?.Dispose();
+        _threadDispatcher = null;
         var threads = maxThreadCount > 0 ? Math.Clamp(Environment.ProcessorCount, 1, maxThreadCount) : Environment.ProcessorCount;
         _threadDispatcher = new ThreadDispatcher(threads);
         _simulation = Simulation.Create(_bufferPool,
