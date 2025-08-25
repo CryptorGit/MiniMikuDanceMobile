@@ -454,7 +454,7 @@ public partial class MainPage
             sb.AppendLine($"BoneBlendFactor: {cfg.BoneBlendFactor}");
             sb.AppendLine($"GroundHeight: {cfg.GroundHeight}");
             sb.AppendLine($"Restitution: {cfg.Restitution}");
-            sb.AppendLine($"MaxRecoveryVelocity: {cfg.MaxRecoveryVelocity}");
+            sb.AppendLine($"RestitutionRecoveryScale: {cfg.RestitutionRecoveryScale}");
             sb.AppendLine($"Friction: {cfg.Friction}");
             sb.AppendLine($"LockTranslation: {cfg.LockTranslation}");
             foreach (var rb in model.RigidBodies)
