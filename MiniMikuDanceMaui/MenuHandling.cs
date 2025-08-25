@@ -4,7 +4,6 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using MiniMikuDance.Import;
-using MiniMikuDance.Physics;
 
 namespace MiniMikuDanceMaui;
 
@@ -55,7 +54,7 @@ public partial class MainPage
             sv.PanSensitivity = _renderer.PanSensitivity;
             sv.IkBoneSize = _renderer.IkBoneScale;
             sv.BonePickPixels = _renderer.BonePickPixels;
-            sv.LockTranslation = _settings.Physics.LockTranslation;
+            sv.LockTranslation = false;
         }
     }
 
@@ -148,7 +147,7 @@ public partial class MainPage
         sv.PanSensitivity = _renderer.PanSensitivity;
         sv.ZoomSensitivity = _renderer.ZoomSensitivity;
         sv.ShowBoneOutline = _renderer.ShowBoneOutline;
-        sv.LockTranslation = _settings.Physics.LockTranslation;
+        sv.LockTranslation = false;
     }
 
     private void UpdateBoneViewProperties(BoneView? bv)
@@ -277,15 +276,7 @@ public partial class MainPage
                     if (_renderer != null)
                         _renderer.ZoomSensitivity = (float)v;
                 };
-                sv.LockTranslationChanged += flag =>
-                {
-                    if (_physics is BepuPhysicsWorld bepu)
-                        bepu.LockTranslation = flag;
-                    var phys = _settings.Physics;
-                    phys.LockTranslation = flag;
-                    _settings.Physics = phys;
-                    _settings.Save();
-                };
+                sv.LockTranslationChanged += flag => { };
                 sv.ResetCameraRequested += () =>
                 {
                     if (_renderer != null)

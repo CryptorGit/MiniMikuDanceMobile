@@ -15,7 +15,7 @@ public sealed class NullPhysicsWorld : IPhysicsWorld
         _logger = logger ?? NullLogger.Instance;
     }
 
-    public void Initialize(PhysicsConfig config, float modelScale) { }
+    public void Initialize(float modelScale) { }
     public void Step(float dt)
     {
         if (!float.IsFinite(dt) || dt <= 0f)

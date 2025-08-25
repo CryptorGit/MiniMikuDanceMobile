@@ -1,7 +1,5 @@
 using MiniMikuDance.Util;
-using MiniMikuDance.Physics;
 using System;
-using System.Numerics;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
 
@@ -81,10 +79,6 @@ public class AppSettings
     /// <summary>物理演算を有効にするか。</summary>
     public bool EnablePhysics { get; set; } = false;
 
-    /// <summary>物理設定。</summary>
-    public PhysicsConfig Physics { get; set; } =
-        new(new Vector3(0f, -9.81f, 0f), 8, 1, 0.98f, 0.5f, 0f, 0.2f, 0.2f, 0.5f, lockTranslation: false, maxThreadCount: 4);
-
 
     private const string DefaultFile = "Configs/appsettings.json";
 
@@ -96,28 +90,7 @@ public class AppSettings
     {
         var result = JSONUtil.Load<AppSettings>(path);
         var log = logger ?? NullLogger<AppSettings>.Instance;
-        var physics = result.Physics;
-        var gravity = physics.Gravity;
-        bool IsInvalid(float v) => float.IsNaN(v) || float.IsInfinity(v) || v < -1000f || v > 1000f;
-        bool IsNearZero(float v) => MathF.Abs(v) < 1e-3f;
-        if (IsInvalid(gravity.X) || IsInvalid(gravity.Y) || IsInvalid(gravity.Z))
-        {
-            log.LogWarning("Invalid Physics.Gravity detected: {Gravity}. Resetting to default.", gravity);
-            physics.Gravity = new Vector3(0f, -9.81f, 0f);
-            result.Physics = physics;
-            result.Save(path);
-        }
-        else if (IsNearZero(gravity.X) && IsNearZero(gravity.Y) && IsNearZero(gravity.Z))
-        {
-            log.LogWarning("Physics.Gravity magnitude too small: {Gravity}. Resetting to default.", gravity);
-            physics.Gravity = new Vector3(0f, -9.81f, 0f);
-            result.Physics = physics;
-            result.Save(path);
-        }
-        else
-        {
-            log.LogInformation("Loaded Physics.Gravity: {Gravity}", gravity);
-        }
+        log.LogInformation("AppSettings loaded from {Path}", path);
         return result;
     }
 
