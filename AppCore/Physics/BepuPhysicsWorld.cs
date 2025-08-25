@@ -37,6 +37,11 @@ public sealed class BepuPhysicsWorld : IPhysicsWorld
     private readonly ClothSimulator _cloth;
     private readonly Dictionary<int, (Vector3 Pos, Quaternion Rot)> _prevBonePoses = new();
     private readonly Dictionary<BodyHandle, BodyInertia> _originalInertiaMap = new();
+    private readonly Dictionary<int, (Vector3 Pos, Quaternion Rot)> _poseCache = new();
+    private readonly Dictionary<int, (Vector3 Pos, Quaternion Rot)> _initialCache = new();
+    private readonly Dictionary<int, (Vector3 Pos, Quaternion Rot)> _poseMap = new();
+    private readonly Dictionary<int, Matrix4x4> _matrixCache = new();
+    private readonly Dictionary<int, IkLink> _ikLinkMap = new();
     private bool _skipSimulation;
     private PhysicsConfig _config = new() { LockTranslation = false };
     private float _modelScale = 1f;
@@ -260,9 +265,8 @@ public sealed class BepuPhysicsWorld : IPhysicsWorld
     {
         if (_skipSimulation || _simulation is null)
             return;
-
-        var poseCache = new Dictionary<int, (Vector3 Pos, Quaternion Rot)>();
-        var initialCache = new Dictionary<int, (Vector3 Pos, Quaternion Rot)>();
+        _poseCache.Clear();
+        _initialCache.Clear();
         var mapSnapshotFrom = _bodyBoneMap.ToArray();
         foreach (var pair in mapSnapshotFrom)
         {
@@ -276,7 +280,7 @@ public sealed class BepuPhysicsWorld : IPhysicsWorld
             var body = _simulation.Bodies.GetBodyReference(handle);
             if (_config.LockTranslation)
             {
-                var initPose = GetInitialWorldPose(scene, info.Bone, initialCache);
+                var initPose = GetInitialWorldPose(scene, info.Bone, _initialCache);
                 body.Pose.Position = initPose.Pos;
                 body.Pose.Orientation = initPose.Rot;
                 body.Velocity.Linear = Vector3.Zero;
@@ -288,7 +292,7 @@ public sealed class BepuPhysicsWorld : IPhysicsWorld
                 continue;
             }
 
-            var pose = GetWorldPose(scene, info.Bone, poseCache);
+            var pose = GetWorldPose(scene, info.Bone, _poseCache);
             body.Pose.Position = pose.Pos;
             body.Pose.Orientation = pose.Rot;
             UpdateBodyVelocity(info.Bone, pose.Pos, pose.Rot, ref body);
@@ -305,7 +309,7 @@ public sealed class BepuPhysicsWorld : IPhysicsWorld
             if (boneIndex < 0 || boneIndex >= scene.Bones.Count)
                 continue;
 
-            var pose = GetWorldPose(scene, boneIndex, poseCache);
+            var pose = GetWorldPose(scene, boneIndex, _poseCache);
             var newPos = pose.Pos;
             node.Velocity = (newPos - node.Position) / _lastDt;
             node.Position = newPos;
@@ -395,23 +399,23 @@ public sealed class BepuPhysicsWorld : IPhysicsWorld
         }
         if (_simulation is not null)
         {
-            var poseMap = new Dictionary<int, (Vector3 Pos, Quaternion Rot)>();
+            _poseMap.Clear();
+            _matrixCache.Clear();
+            _ikLinkMap.Clear();
             var mapSnapshot = _bodyBoneMap.ToArray();
             foreach (var pair in mapSnapshot)
             {
                 var body = _simulation.Bodies.GetBodyReference(pair.Key);
-                poseMap[pair.Value.Bone] = (body.Pose.Position, body.Pose.Orientation);
+                _poseMap[pair.Value.Bone] = (body.Pose.Position, body.Pose.Orientation);
             }
 
-            var cache = new Dictionary<int, Matrix4x4>();
-            var ikLinkMap = new Dictionary<int, IkLink>();
             foreach (var b in scene.Bones)
             {
                 var ik = b.Ik;
                 if (ik == null)
                     continue;
                 foreach (var link in ik.Links)
-                    ikLinkMap[link.BoneIndex] = link;
+                    _ikLinkMap[link.BoneIndex] = link;
             }
             foreach (var pair in mapSnapshot)
             {
@@ -430,14 +434,14 @@ public sealed class BepuPhysicsWorld : IPhysicsWorld
                     continue;
                 }
 
-                var pose = poseMap[info.Bone];
+                var pose = _poseMap[info.Bone];
                 Quaternion localRot;
                 Matrix4x4 parentWorld = default;
                 Matrix4x4 invParent = default;
                 var hasParent = bone.Parent >= 0;
                 if (hasParent)
                 {
-                    parentWorld = GetWorldMatrix(scene, bone.Parent, poseMap, cache);
+                    parentWorld = GetWorldMatrix(scene, bone.Parent, _poseMap, _matrixCache);
                     Matrix4x4.Invert(parentWorld, out invParent);
                     var world = Matrix4x4.CreateFromQuaternion(pose.Rot) * Matrix4x4.CreateTranslation(pose.Pos);
                     var local = invParent * world;
@@ -448,7 +452,7 @@ public sealed class BepuPhysicsWorld : IPhysicsWorld
                     localRot = pose.Rot;
                 }
 
-                if (ikLinkMap.TryGetValue(info.Bone, out var ikLink) && ikLink.HasLimit)
+                if (_ikLinkMap.TryGetValue(info.Bone, out var ikLink) && ikLink.HasLimit)
                 {
                     var delta = localRot * Quaternion.Conjugate(bone.InitialRotation);
                     Quaternion basisRot = default;
