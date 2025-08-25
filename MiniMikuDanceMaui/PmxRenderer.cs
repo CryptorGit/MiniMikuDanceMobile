@@ -159,6 +159,7 @@ public partial class PmxRenderer : IDisposable
     private bool _bonesDirty;
     private bool _morphDirty;
     private bool _uvMorphDirty;
+    private bool _bufferUpdatePending;
     private List<MiniMikuDance.Import.BoneData> _bones = new();
     private readonly List<IkBone> _ikBones = new();
     private readonly object _ikBonesLock = new();

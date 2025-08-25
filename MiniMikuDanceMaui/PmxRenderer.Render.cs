@@ -212,6 +212,12 @@ public partial class PmxRenderer
             if (_bones.Count > 0)
                 CpuSkinning();
             UpdateVertexBuffers();
+            if (_bufferUpdatePending)
+            {
+                GL.Flush();
+                CheckGLError("GL.Flush");
+                _bufferUpdatePending = false;
+            }
         }
 
         DrawScene();
@@ -308,7 +314,7 @@ public partial class PmxRenderer
                     fixed (float* p = _boneLines)
                     {
                         GL.BufferSubData(BufferTarget.ArrayBuffer, IntPtr.Zero, lineIdx * sizeof(float), (IntPtr)p);
-                        GL.Finish();
+                        _bufferUpdatePending = true;
                     }
                 }
             }
@@ -468,6 +474,7 @@ public partial class PmxRenderer
                             if (!CheckGLError("GL.Finish"))
                                 return;
 #endif
+                            _bufferUpdatePending = true;
                         }
                         finally
                         {
@@ -579,6 +586,7 @@ public partial class PmxRenderer
                             if (!CheckGLError("GL.Finish"))
                                 return;
 #endif
+                            _bufferUpdatePending = true;
                         }
                     }
                 }
@@ -659,6 +667,7 @@ public partial class PmxRenderer
                             if (!CheckGLError("GL.Finish"))
                                 return;
 #endif
+                            _bufferUpdatePending = true;
                         }
                         finally
                         {
