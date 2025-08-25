@@ -42,4 +42,6 @@ public class Joint
     public Vector3 RotationMax { get; set; } = Vector3.Zero;
     public Vector3 SpringPosition { get; set; } = Vector3.Zero;
     public Vector3 SpringRotation { get; set; } = Vector3.Zero;
+    public Vector3 DampingPosition { get; set; } = Vector3.Zero;
+    public Vector3 DampingRotation { get; set; } = Vector3.Zero;
 }

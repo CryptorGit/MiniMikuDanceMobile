@@ -43,6 +43,8 @@ public sealed class SimplePhysicsWorld : IPhysicsWorld
         Joints.Clear();
         foreach (var j in model.Joints)
         {
+            var dampingPosition = j.DampingPosition == Vector3.Zero ? j.SpringPosition * 0.2f : j.DampingPosition;
+            var dampingRotation = j.DampingRotation == Vector3.Zero ? j.SpringRotation * 0.2f : j.DampingRotation;
             var joint = new Joint
             {
                 Name = j.Name,
@@ -55,7 +57,9 @@ public sealed class SimplePhysicsWorld : IPhysicsWorld
                 RotationMin = j.RotationMin,
                 RotationMax = j.RotationMax,
                 SpringPosition = j.SpringPosition,
-                SpringRotation = j.SpringRotation
+                SpringRotation = j.SpringRotation,
+                DampingPosition = dampingPosition,
+                DampingRotation = dampingRotation
             };
             Joints.Add(joint);
             if (joint.RigidBodyA >= 0 && joint.RigidBodyA < RigidBodies.Count)
@@ -243,7 +247,7 @@ public sealed class SimplePhysicsWorld : IPhysicsWorld
         var current = b.Position - a.Position;
         var error = current - joint.Position;
         var relVel = b.Velocity - a.Velocity;
-        var force = error * joint.SpringPosition - relVel * joint.SpringPosition;
+        var force = error * joint.SpringPosition - relVel * joint.DampingPosition;
         if (a.PhysicsType != RigidBodyPhysicsType.FollowBone && a.Mass > 0f)
         {
             a.Velocity += force / a.Mass * dt;
@@ -255,7 +259,7 @@ public sealed class SimplePhysicsWorld : IPhysicsWorld
 
         var rotError = (b.Rotation - a.Rotation) - joint.Rotation;
         var relAng = b.AngularVelocity - a.AngularVelocity;
-        var torque = rotError * joint.SpringRotation - relAng * joint.SpringRotation;
+        var torque = rotError * joint.SpringRotation - relAng * joint.DampingRotation;
 
         if (a.PhysicsType != RigidBodyPhysicsType.FollowBone)
         {
