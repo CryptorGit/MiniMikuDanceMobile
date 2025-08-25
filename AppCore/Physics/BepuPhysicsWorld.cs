@@ -916,7 +916,12 @@ public sealed class BepuPhysicsWorld : IPhysicsWorld
 
     private static SpringSettings ToSpringSettings(float pmxSpring)
     {
-        var frequency = MathF.Sqrt(MathF.Max(pmxSpring, 0f));
+        if (pmxSpring <= 0f)
+        {
+            return new SpringSettings(0f, 1f);
+        }
+
+        var frequency = MathF.Sqrt(pmxSpring);
         frequency = Math.Clamp(frequency, 0.0001f, 60f);
         const float dampingRatio = 1f;
         return new SpringSettings(frequency, dampingRatio);
