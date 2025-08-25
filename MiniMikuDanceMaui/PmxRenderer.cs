@@ -111,6 +111,7 @@ public partial class PmxRenderer : IDisposable
     private System.Numerics.Matrix4x4[] _skinMats = Array.Empty<System.Numerics.Matrix4x4>();
     private float[] _boneMatrices = Array.Empty<float>();
     private float[] _boneLines = Array.Empty<float>();
+    private float[] _vertexBuffer = Array.Empty<float>();
     private int _boneCapacity;
     private int _modelProgram;
     private int _modelViewLoc;

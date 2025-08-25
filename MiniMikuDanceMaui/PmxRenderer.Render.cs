@@ -1,8 +1,6 @@
 using System;
-using System.Buffers;
 using System.Collections.Generic;
 using System.Numerics;
-using System.Runtime.InteropServices;
 using OpenTK.Mathematics;
 using OpenTK.Graphics.ES30;
 using GL = OpenTK.Graphics.ES30.GL;
@@ -348,66 +346,65 @@ public partial class PmxRenderer
         lock (_meshesLock)
             meshes = _meshes.ToArray();
 
-        float[]? tmpVertexBuffer = null;
-        try
+        foreach (var rm in meshes)
         {
-            foreach (var rm in meshes)
+            int required = rm.BaseVertices.Length * 8;
+            if (_vertexBuffer.Length < required)
             {
-                int required = rm.BaseVertices.Length * 8;
-                if (tmpVertexBuffer == null || tmpVertexBuffer.Length < required)
+                _vertexBuffer = new float[required];
+            }
+            else
+            {
+                Array.Clear(_vertexBuffer, 0, required);
+            }
+
+            for (int vi = 0; vi < rm.BaseVertices.Length; vi++)
+            {
+                var pos = rm.BaseVertices[vi] + rm.VertexOffsets[vi];
+                var nor = vi < rm.Normals.Length ? rm.Normals[vi] : new Vector3(0, 0, 1);
+                _vertexBuffer[vi * 8 + 0] = pos.X;
+                _vertexBuffer[vi * 8 + 1] = pos.Y;
+                _vertexBuffer[vi * 8 + 2] = pos.Z;
+                _vertexBuffer[vi * 8 + 3] = nor.X;
+                _vertexBuffer[vi * 8 + 4] = nor.Y;
+                _vertexBuffer[vi * 8 + 5] = nor.Z;
+                if (vi < rm.TexCoords.Length)
                 {
-                    if (tmpVertexBuffer != null)
-                        ArrayPool<float>.Shared.Return(tmpVertexBuffer);
-                    tmpVertexBuffer = ArrayPool<float>.Shared.Rent(required);
+                    var uv = rm.TexCoords[vi];
+                    if (vi < rm.UvOffsets.Length)
+                        uv += rm.UvOffsets[vi];
+                    _vertexBuffer[vi * 8 + 6] = uv.X;
+                    _vertexBuffer[vi * 8 + 7] = uv.Y;
                 }
                 else
                 {
-                    Array.Clear(tmpVertexBuffer, 0, required);
+                    _vertexBuffer[vi * 8 + 6] = 0f;
+                    _vertexBuffer[vi * 8 + 7] = 0f;
                 }
-                for (int vi = 0; vi < rm.BaseVertices.Length; vi++)
+            }
+
+            GL.BindBuffer(BufferTarget.ArrayBuffer, rm.Vbo);
+            if (!CheckGLError("GL.BindBuffer", $"target={BufferTarget.ArrayBuffer}, buffer={rm.Vbo}"))
+                return;
+
+            int byteSize = rm.BaseVertices.Length * 8 * sizeof(float);
+            int bufferSize = _vertexBuffer.Length * sizeof(float);
+            if (bufferSize < byteSize)
+            {
+                Console.Error.WriteLine($"Vertex buffer overflow: required={byteSize}, available={bufferSize}");
+                byteSize = bufferSize;
+            }
+            else if (bufferSize > byteSize)
+            {
+                Console.Error.WriteLine($"Vertex buffer size mismatch: required={byteSize}, available={bufferSize}");
+            }
+
+            unsafe
+            {
+                fixed (float* ptr = _vertexBuffer)
                 {
-                    var pos = rm.BaseVertices[vi] + rm.VertexOffsets[vi];
-                    var nor = vi < rm.Normals.Length ? rm.Normals[vi] : new Vector3(0, 0, 1);
-                    tmpVertexBuffer[vi * 8 + 0] = pos.X;
-                    tmpVertexBuffer[vi * 8 + 1] = pos.Y;
-                    tmpVertexBuffer[vi * 8 + 2] = pos.Z;
-                    tmpVertexBuffer[vi * 8 + 3] = nor.X;
-                    tmpVertexBuffer[vi * 8 + 4] = nor.Y;
-                    tmpVertexBuffer[vi * 8 + 5] = nor.Z;
-                    if (vi < rm.TexCoords.Length)
-                    {
-                        var uv = rm.TexCoords[vi];
-                        if (vi < rm.UvOffsets.Length)
-                            uv += rm.UvOffsets[vi];
-                        tmpVertexBuffer[vi * 8 + 6] = uv.X;
-                        tmpVertexBuffer[vi * 8 + 7] = uv.Y;
-                    }
-                    else
-                    {
-                        tmpVertexBuffer[vi * 8 + 6] = 0f;
-                        tmpVertexBuffer[vi * 8 + 7] = 0f;
-                    }
-                }
-                GL.BindBuffer(BufferTarget.ArrayBuffer, rm.Vbo);
-                if (!CheckGLError("GL.BindBuffer", $"target={BufferTarget.ArrayBuffer}, buffer={rm.Vbo}"))
-                    return;
-                int byteSize = rm.BaseVertices.Length * 8 * sizeof(float);
-                int poolSize = tmpVertexBuffer.Length * sizeof(float);
-                if (poolSize < byteSize)
-                {
-                    Console.Error.WriteLine($"Vertex buffer overflow: required={byteSize}, available={poolSize}");
-                    byteSize = poolSize;
-                }
-                else if (poolSize > byteSize)
-                {
-                    Console.Error.WriteLine($"Vertex buffer size mismatch: required={byteSize}, available={poolSize}");
-                }
-                var handle = GCHandle.Alloc(tmpVertexBuffer, GCHandleType.Pinned);
-                try
-                {
-                    IntPtr ptr = handle.AddrOfPinnedObject();
-                    GL.BufferSubData(BufferTarget.ArrayBuffer, IntPtr.Zero, byteSize, ptr);
-                    if (!CheckGLError("GL.BufferSubData", $"size={byteSize}, ptr={ptr}"))
+                    GL.BufferSubData(BufferTarget.ArrayBuffer, IntPtr.Zero, byteSize, (IntPtr)ptr);
+                    if (!CheckGLError("GL.BufferSubData", $"size={byteSize}, ptr={(IntPtr)ptr}"))
                         return;
 #if DEBUG
                     GL.Finish();
@@ -419,16 +416,7 @@ public partial class PmxRenderer
                         return;
 #endif
                 }
-                finally
-                {
-                    handle.Free();
-                }
             }
-        }
-        finally
-        {
-            if (tmpVertexBuffer != null)
-                ArrayPool<float>.Shared.Return(tmpVertexBuffer);
         }
 
         _bonesDirty = false;
