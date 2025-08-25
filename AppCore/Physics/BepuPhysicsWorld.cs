@@ -167,15 +167,18 @@ public sealed class BepuPhysicsWorld : IPhysicsWorld
 
     public void Step(float dt)
     {
+        if (!float.IsFinite(dt) || dt <= 0f)
+        {
+            _logger.LogWarning("dt が不正な値のため Step をスキップします: {Dt}", dt);
+            return;
+        }
         if (_skipSimulation)
         {
-            _lastDt = dt;
             return;
         }
         if (_simulation is null || _threadDispatcher is null)
         {
             _logger.LogWarning("Simulation が初期化されていないため Step をスキップします。");
-            _lastDt = dt;
             return;
         }
         _cloth.Gravity = _config.Gravity;
@@ -206,7 +209,6 @@ public sealed class BepuPhysicsWorld : IPhysicsWorld
         }
         if (_skipSimulation)
         {
-            _lastDt = dt;
             return;
         }
         var bodyCount = _simulation.Bodies.ActiveSet.Count;
@@ -226,7 +228,6 @@ public sealed class BepuPhysicsWorld : IPhysicsWorld
         }
         if (_skipSimulation)
         {
-            _lastDt = dt;
             return;
         }
         try
@@ -244,6 +245,10 @@ public sealed class BepuPhysicsWorld : IPhysicsWorld
             _logger.LogError(ex, "Cloth.Step failed");
             AppendCrashLog("Cloth.Step failed", ex);
             _skipSimulation = true;
+        }
+        if (_skipSimulation)
+        {
+            return;
         }
         _lastDt = dt;
         _logger.LogDebug("Step end memory={Memory}", GC.GetTotalMemory(false));
