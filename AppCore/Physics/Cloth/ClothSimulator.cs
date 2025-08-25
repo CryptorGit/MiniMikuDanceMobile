@@ -116,6 +116,11 @@ public class ClothSimulator
 
     public void Step(float dt)
     {
+        if (!float.IsFinite(dt) || dt <= 0f)
+        {
+            _logger.LogWarning("dt が不正な値のため Step をスキップします: {Dt}", dt);
+            return;
+        }
         if (Nodes.Count == 0)
             return;
 
