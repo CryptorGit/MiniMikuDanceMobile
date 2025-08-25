@@ -24,6 +24,7 @@ public partial class PmxRenderer : IDisposable
     {
         public int Vao;
         public int Vbo;
+        public int SkinVbo;
         public int Ebo;
         public int IndexCount;
         public Vector4 Color = Vector4.One;
@@ -105,8 +106,10 @@ public partial class PmxRenderer : IDisposable
     private int _cubeVbo;
     private int _cubeEbo;
     private int _cubeIndexCount;
+    private const int MaxBones = 256;
     private System.Numerics.Matrix4x4[] _worldMats = Array.Empty<System.Numerics.Matrix4x4>();
     private System.Numerics.Matrix4x4[] _skinMats = Array.Empty<System.Numerics.Matrix4x4>();
+    private float[] _boneMatrices = Array.Empty<float>();
     private float[] _boneLines = Array.Empty<float>();
     private int _boneCapacity;
     private int _modelProgram;
@@ -128,6 +131,7 @@ public partial class PmxRenderer : IDisposable
     private int _modelEdgeSizeLoc;
     private int _modelToonColorLoc;
     private int _modelTexTintLoc;
+    private int _modelBonesLoc;
     private int _modelSphereTexLoc;
     private int _modelUseSphereTexLoc;
     private int _modelSphereModeLoc;
@@ -388,15 +392,25 @@ const string modelVert = @"#version 300 es
 layout(location = 0) in vec3 aPosition;
 layout(location = 1) in vec3 aNormal;
 layout(location = 2) in vec2 aTex;
+layout(location = 3) in vec4 aJoints;
+layout(location = 4) in vec4 aWeights;
 uniform mat4 uModel;
 uniform mat4 uView;
 uniform mat4 uProj;
+uniform mat4 uBones[256];
 uniform float uPointSize;
 out vec3 vNormal;
 out vec2 vTex;
 void main(){
-    vec4 pos = uModel * vec4(aPosition,1.0);
-    vNormal = mat3(uModel) * aNormal;
+    mat4 skinMat =
+        aWeights.x * uBones[int(aJoints.x)] +
+        aWeights.y * uBones[int(aJoints.y)] +
+        aWeights.z * uBones[int(aJoints.z)] +
+        aWeights.w * uBones[int(aJoints.w)];
+    vec4 skinnedPos = skinMat * vec4(aPosition,1.0);
+    vec3 skinnedNorm = mat3(skinMat) * aNormal;
+    vec4 pos = uModel * skinnedPos;
+    vNormal = mat3(uModel) * skinnedNorm;
     vTex = aTex;
     gl_Position = uProj * uView * pos;
     gl_PointSize = uPointSize;
@@ -516,6 +530,10 @@ void main(){
         CheckGLError("GL.GetUniformLocation");
         #endif
         _modelMatrixLoc = GL.GetUniformLocation(_modelProgram, "uModel");
+        #if DEBUG
+        CheckGLError("GL.GetUniformLocation");
+        #endif
+        _modelBonesLoc = GL.GetUniformLocation(_modelProgram, "uBones[0]");
         #if DEBUG
         CheckGLError("GL.GetUniformLocation");
         #endif
@@ -1527,6 +1545,51 @@ void main(){
         #if DEBUG
         CheckGLError("GL.EnableVertexAttribArray");
         #endif
+
+        float[] skinData = new float[sm.Mesh.VertexCount * 8];
+        for (int i = 0; i < sm.Mesh.VertexCount; i++)
+        {
+            var ji = rm.JointIndices.Length > i ? rm.JointIndices[i] : Vector4.Zero;
+            var jw = rm.JointWeights.Length > i ? rm.JointWeights[i] : Vector4.Zero;
+            skinData[i * 8 + 0] = ji.X;
+            skinData[i * 8 + 1] = ji.Y;
+            skinData[i * 8 + 2] = ji.Z;
+            skinData[i * 8 + 3] = ji.W;
+            skinData[i * 8 + 4] = jw.X;
+            skinData[i * 8 + 5] = jw.Y;
+            skinData[i * 8 + 6] = jw.Z;
+            skinData[i * 8 + 7] = jw.W;
+        }
+        rm.SkinVbo = GL.GenBuffer();
+        #if DEBUG
+        CheckGLError("GL.GenBuffer");
+        #endif
+        GL.BindBuffer(BufferTarget.ArrayBuffer, rm.SkinVbo);
+        #if DEBUG
+        CheckGLError("GL.BindBuffer");
+        #endif
+        GL.BufferData(BufferTarget.ArrayBuffer, skinData.Length * sizeof(float), skinData, BufferUsageHint.StaticDraw);
+        #if DEBUG
+        CheckGLError("GL.BufferData");
+        #endif
+        int skinStride = 8 * sizeof(float);
+        GL.VertexAttribPointer(3, 4, VertexAttribPointerType.Float, false, skinStride, 0);
+        #if DEBUG
+        CheckGLError("GL.VertexAttribPointer");
+        #endif
+        GL.EnableVertexAttribArray(3);
+        #if DEBUG
+        CheckGLError("GL.EnableVertexAttribArray");
+        #endif
+        GL.VertexAttribPointer(4, 4, VertexAttribPointerType.Float, false, skinStride, 4 * sizeof(float));
+        #if DEBUG
+        CheckGLError("GL.VertexAttribPointer");
+        #endif
+        GL.EnableVertexAttribArray(4);
+        #if DEBUG
+        CheckGLError("GL.EnableVertexAttribArray");
+        #endif
+
         GL.BindBuffer(BufferTarget.ElementArrayBuffer, rm.Ebo);
         #if DEBUG
         CheckGLError("GL.BindBuffer");
@@ -1587,6 +1650,13 @@ void main(){
             if (rm.Vbo != 0)
             {
                 GL.DeleteBuffer(rm.Vbo);
+                #if DEBUG
+                CheckGLError("GL.DeleteBuffer");
+                #endif
+            }
+            if (rm.SkinVbo != 0)
+            {
+                GL.DeleteBuffer(rm.SkinVbo);
                 #if DEBUG
                 CheckGLError("GL.DeleteBuffer");
                 #endif
@@ -1876,6 +1946,13 @@ void main(){
             if (rm.Vbo != 0)
             {
                 GL.DeleteBuffer(rm.Vbo);
+                #if DEBUG
+                CheckGLError("GL.DeleteBuffer");
+                #endif
+            }
+            if (rm.SkinVbo != 0)
+            {
+                GL.DeleteBuffer(rm.SkinVbo);
                 #if DEBUG
                 CheckGLError("GL.DeleteBuffer");
                 #endif
