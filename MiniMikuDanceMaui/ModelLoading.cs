@@ -438,9 +438,9 @@ public partial class MainPage
             {
                 sb.AppendLine(
                     $"RigidBody: {rb.Name} BoneIndex:{rb.BoneIndex} Mass:{rb.Mass} Shape:{rb.Shape} " +
-                    $"LinearDamping:{rb.LinearDamping} AngularDamping:{rb.AngularDamping} " +
-                    $"Restitution:{rb.Restitution} Friction:{rb.Friction} Position:{rb.Position} Rotation:{rb.Rotation} " +
-                    $"Size:{rb.Size} Group:{rb.Group} Mask:{rb.Mask} Mode:{rb.Mode}");
+                    $"TransAtten:{rb.TranslationAttenuation} RotAtten:{rb.RotationAttenuation} " +
+                    $"Recoil:{rb.Recoil} Friction:{rb.Friction} Position:{rb.Position} Rotation:{rb.Rotation} " +
+                    $"Size:{rb.Size} Group:{rb.Group} GroupTarget:{rb.GroupTarget} PhysicsType:{rb.PhysicsType}");
             }
             var jointCount = model.Joints.Count;
             sb.AppendLine($"JointCount: {jointCount}");

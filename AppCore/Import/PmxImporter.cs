@@ -960,16 +960,16 @@ public PmxImporter(ILogger<PmxImporter>? logger = null)
                 BoneIndex = rb.Bone,
                 Mass = rb.Mass,
                 Shape = (RigidBodyShape)rb.Shape,
-                LinearDamping = rb.TranslationAttenuation,
-                AngularDamping = rb.RotationAttenuation,
-                Restitution = rb.Recoil,
+                TranslationAttenuation = rb.TranslationAttenuation,
+                RotationAttenuation = rb.RotationAttenuation,
+                Recoil = rb.Recoil,
                 Friction = rb.Friction,
                 Position = ScaleVectorFlipZ(rb.Position),
                 Rotation = rotation,
                 Size = ScaleVector(rb.Size),
                 Group = rb.Group,
-                Mask = rb.GroupTarget,
-                Mode = (RigidBodyMode)rb.PhysicsType
+                GroupTarget = rb.GroupTarget,
+                PhysicsType = (RigidBodyPhysicsType)rb.PhysicsType
             };
             rigidBodyDatas.Add(rbd);
         }

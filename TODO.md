@@ -1,7 +1,8 @@
 # TODO
 
 ## SimplePhysicsWorld 実装計画
-- [ ] PMX剛体情報を読み込み、`Group`や`Shape`など主要プロパティを保持する。
+- [x] PMX剛体情報を読み込み、`Group`や`Shape`など主要プロパティを保持する。
+- [ ] ModelData から Scene へ剛体・ジョイント情報を転送する。
 - [ ] 剛体タイプ（Static / Dynamic / DynamicAndBonePosition）ごとの挙動を実装する。
 - [ ] 対応する基本形状（Sphere・Box・Capsule）の衝突判定と質量計算を実装する。
 - [ ] 重力とオイラー積分による位置・速度の更新を行う。
