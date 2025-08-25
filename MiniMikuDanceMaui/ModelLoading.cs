@@ -26,7 +26,7 @@ public partial class MainPage
     private string? _selectedModelPath;
     private static readonly HashSet<string> ModelExtensions = new() { ".pmx", ".pmd" };
     private string? _modelDir;
-    private float _modelScale = 1f;
+    private float _modelScale;
     private ModelData? _pendingModel;
     private ModelData? _currentModel;
 
@@ -169,7 +169,7 @@ public partial class MainPage
         SelectedModelPath.Text = string.Empty;
         _selectedModelPath = null;
         _modelDir = null;
-        _modelScale = 1f;
+        _modelScale = _settings.ModelScale;
         ShowExplorer("Open", PmxImportDialog, SelectedModelPath, ref _selectedModelPath);
     }
 
@@ -234,7 +234,7 @@ public partial class MainPage
 
         try
         {
-            _modelScale = 1f;
+            _modelScale = _settings.ModelScale;
             PmxImporter.CacheCapacity = _settings.TextureCacheSize;
             using IModelImporter importer = new PmxImporter { Scale = _modelScale };
             var data = await Task.Run(() => importer.ImportModel(_selectedModelPath));
@@ -343,7 +343,7 @@ public partial class MainPage
         _selectedModelPath = null;
         PmxImportDialog.IsVisible = false;
         SelectedModelPath.Text = string.Empty;
-        _modelScale = 1f;
+        _modelScale = _settings.ModelScale;
         _modelDir = null;
         SetLoadingIndicatorVisibilityAndLayout(false);
         UpdateLayout();
