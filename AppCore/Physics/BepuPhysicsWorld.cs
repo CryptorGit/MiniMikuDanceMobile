@@ -855,9 +855,9 @@ public sealed class BepuPhysicsWorld : IPhysicsWorld
 
             AddTwistLimit(handleA, handleB, localA.Orientation, localB.Orientation,
                 Vector3.UnitX, jd.RotationMin.X, jd.RotationMax.X, jd.SpringRotation.X);
-            AddTwistLimit(handleA, handleB, localA.Orientation, localB.Orientation,
+            AddSwingLimit(handleA, handleB, localA.Orientation, localB.Orientation,
                 Vector3.UnitY, jd.RotationMin.Y, jd.RotationMax.Y, jd.SpringRotation.Y);
-            AddTwistLimit(handleA, handleB, localA.Orientation, localB.Orientation,
+            AddSwingLimit(handleA, handleB, localA.Orientation, localB.Orientation,
                 Vector3.UnitZ, jd.RotationMin.Z, jd.RotationMax.Z, jd.SpringRotation.Z);
         }
     }
@@ -892,6 +892,24 @@ public sealed class BepuPhysicsWorld : IPhysicsWorld
             LocalBasisB = Quaternion.Concatenate(basis, localOrientationB),
             MinimumAngle = min,
             MaximumAngle = max,
+            SpringSettings = ToSpringSettings(spring)
+        };
+        _simulation!.Solver.Add(a, b, limit);
+    }
+
+    private void AddSwingLimit(BodyHandle a, BodyHandle b, Quaternion localOrientationA, Quaternion localOrientationB,
+        Vector3 axis, float min, float max, float spring)
+    {
+        // PMX仕様では min > max の場合は「制限なし」と解釈する
+        if (min > max) return;
+        var localAxisA = Vector3.Transform(axis, Quaternion.Conjugate(localOrientationA));
+        var localAxisB = Vector3.Transform(axis, Quaternion.Conjugate(localOrientationB));
+        var maxAngle = MathF.Max(MathF.Abs(min), MathF.Abs(max));
+        var limit = new SwingLimit
+        {
+            AxisLocalA = localAxisA,
+            AxisLocalB = localAxisB,
+            MaximumSwingAngle = maxAngle,
             SpringSettings = ToSpringSettings(spring)
         };
         _simulation!.Solver.Add(a, b, limit);
