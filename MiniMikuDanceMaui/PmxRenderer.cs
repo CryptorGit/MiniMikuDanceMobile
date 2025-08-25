@@ -310,43 +310,79 @@ void main(){
     FragColor = uColor;
 }";
         int vs = GL.CreateShader(ShaderType.VertexShader);
+        #if DEBUG
         CheckGLError("GL.CreateShader");
+        #endif
         GL.ShaderSource(vs, vert);
+        #if DEBUG
         CheckGLError("GL.ShaderSource");
+        #endif
         GL.CompileShader(vs);
+        #if DEBUG
         CheckGLError("GL.CompileShader");
+        #endif
         int fs = GL.CreateShader(ShaderType.FragmentShader);
+        #if DEBUG
         CheckGLError("GL.CreateShader");
+        #endif
         GL.ShaderSource(fs, frag);
+        #if DEBUG
         CheckGLError("GL.ShaderSource");
+        #endif
         GL.CompileShader(fs);
+        #if DEBUG
         CheckGLError("GL.CompileShader");
+        #endif
         _program = GL.CreateProgram();
+        #if DEBUG
         CheckGLError("GL.CreateProgram");
+        #endif
         GL.AttachShader(_program, vs);
+        #if DEBUG
         CheckGLError("GL.AttachShader");
+        #endif
         GL.AttachShader(_program, fs);
+        #if DEBUG
         CheckGLError("GL.AttachShader");
+        #endif
         GL.LinkProgram(_program);
+        #if DEBUG
         CheckGLError("GL.LinkProgram");
+        #endif
         GL.DeleteShader(vs);
+        #if DEBUG
         CheckGLError("GL.DeleteShader");
+        #endif
         GL.DeleteShader(fs);
+        #if DEBUG
         CheckGLError("GL.DeleteShader");
+        #endif
         _modelLoc = GL.GetUniformLocation(_program, "uModel");
+        #if DEBUG
         CheckGLError("GL.GetUniformLocation");
+        #endif
         _viewLoc = GL.GetUniformLocation(_program, "uView");
+        #if DEBUG
         CheckGLError("GL.GetUniformLocation");
+        #endif
         _projLoc = GL.GetUniformLocation(_program, "uProj");
+        #if DEBUG
         CheckGLError("GL.GetUniformLocation");
+        #endif
         _colorLoc = GL.GetUniformLocation(_program, "uColor");
+        #if DEBUG
         CheckGLError("GL.GetUniformLocation");
+        #endif
         _pointSizeLoc = GL.GetUniformLocation(_program, "uPointSize");
+        #if DEBUG
         CheckGLError("GL.GetUniformLocation");
+        #endif
 
         // 透過描画設定（デフォルトでは無効）
         GL.BlendFunc(BlendingFactorSrc.SrcAlpha, BlendingFactorDest.OneMinusSrcAlpha);
+        #if DEBUG
         CheckGLError("GL.BlendFunc");
+        #endif
 
 const string modelVert = @"#version 300 es
 layout(location = 0) in vec3 aPosition;
@@ -424,79 +460,153 @@ void main(){
     FragColor = vec4(color, base.a);
 }";
         int mvs = GL.CreateShader(ShaderType.VertexShader);
+        #if DEBUG
         CheckGLError("GL.CreateShader");
+        #endif
         GL.ShaderSource(mvs, modelVert);
+        #if DEBUG
         CheckGLError("GL.ShaderSource");
+        #endif
         GL.CompileShader(mvs);
+        #if DEBUG
         CheckGLError("GL.CompileShader");
+        #endif
         int mfs = GL.CreateShader(ShaderType.FragmentShader);
+        #if DEBUG
         CheckGLError("GL.CreateShader");
+        #endif
         GL.ShaderSource(mfs, modelFrag);
+        #if DEBUG
         CheckGLError("GL.ShaderSource");
+        #endif
         GL.CompileShader(mfs);
+        #if DEBUG
         CheckGLError("GL.CompileShader");
+        #endif
         _modelProgram = GL.CreateProgram();
+        #if DEBUG
         CheckGLError("GL.CreateProgram");
+        #endif
         GL.AttachShader(_modelProgram, mvs);
+        #if DEBUG
         CheckGLError("GL.AttachShader");
+        #endif
         GL.AttachShader(_modelProgram, mfs);
+        #if DEBUG
         CheckGLError("GL.AttachShader");
+        #endif
         GL.LinkProgram(_modelProgram);
+        #if DEBUG
         CheckGLError("GL.LinkProgram");
+        #endif
         GL.DeleteShader(mvs);
+        #if DEBUG
         CheckGLError("GL.DeleteShader");
+        #endif
         GL.DeleteShader(mfs);
+        #if DEBUG
         CheckGLError("GL.DeleteShader");
+        #endif
         _modelViewLoc = GL.GetUniformLocation(_modelProgram, "uView");
+        #if DEBUG
         CheckGLError("GL.GetUniformLocation");
+        #endif
         _modelProjLoc = GL.GetUniformLocation(_modelProgram, "uProj");
+        #if DEBUG
         CheckGLError("GL.GetUniformLocation");
+        #endif
         _modelMatrixLoc = GL.GetUniformLocation(_modelProgram, "uModel");
+        #if DEBUG
         CheckGLError("GL.GetUniformLocation");
+        #endif
         _modelColorLoc = GL.GetUniformLocation(_modelProgram, "uColor");
+        #if DEBUG
         CheckGLError("GL.GetUniformLocation");
+        #endif
         _modelTexLoc = GL.GetUniformLocation(_modelProgram, "uTex");
+        #if DEBUG
         CheckGLError("GL.GetUniformLocation");
+        #endif
         _modelUseTexLoc = GL.GetUniformLocation(_modelProgram, "uUseTex");
+        #if DEBUG
         CheckGLError("GL.GetUniformLocation");
+        #endif
         _modelLightDirLoc = GL.GetUniformLocation(_modelProgram, "uLightDir");
+        #if DEBUG
         CheckGLError("GL.GetUniformLocation");
+        #endif
         _modelViewDirLoc = GL.GetUniformLocation(_modelProgram, "uViewDir");
+        #if DEBUG
         CheckGLError("GL.GetUniformLocation");
+        #endif
         _modelShadeShiftLoc = GL.GetUniformLocation(_modelProgram, "uShadeShift");
+        #if DEBUG
         CheckGLError("GL.GetUniformLocation");
+        #endif
         _modelShadeToonyLoc = GL.GetUniformLocation(_modelProgram, "uShadeToony");
+        #if DEBUG
         CheckGLError("GL.GetUniformLocation");
+        #endif
         _modelRimIntensityLoc = GL.GetUniformLocation(_modelProgram, "uRimIntensity");
+        #if DEBUG
         CheckGLError("GL.GetUniformLocation");
+        #endif
         _modelAmbientLoc = GL.GetUniformLocation(_modelProgram, "uAmbient");
+        #if DEBUG
         CheckGLError("GL.GetUniformLocation");
+        #endif
         _modelSpecularLoc = GL.GetUniformLocation(_modelProgram, "uSpecular");
+        #if DEBUG
         CheckGLError("GL.GetUniformLocation");
+        #endif
         _modelSpecularPowerLoc = GL.GetUniformLocation(_modelProgram, "uSpecularPower");
+        #if DEBUG
         CheckGLError("GL.GetUniformLocation");
+        #endif
         _modelEdgeColorLoc = GL.GetUniformLocation(_modelProgram, "uEdgeColor");
+        #if DEBUG
         CheckGLError("GL.GetUniformLocation");
+        #endif
         _modelEdgeSizeLoc = GL.GetUniformLocation(_modelProgram, "uEdgeSize");
+        #if DEBUG
         CheckGLError("GL.GetUniformLocation");
+        #endif
         _modelToonColorLoc = GL.GetUniformLocation(_modelProgram, "uToonColor");
+        #if DEBUG
         CheckGLError("GL.GetUniformLocation");
+        #endif
         _modelTexTintLoc = GL.GetUniformLocation(_modelProgram, "uTextureTint");
+        #if DEBUG
         CheckGLError("GL.GetUniformLocation");
+        #endif
         _modelSphereTexLoc = GL.GetUniformLocation(_modelProgram, "uSphereTex");
+        #if DEBUG
         CheckGLError("GL.GetUniformLocation");
+        #endif
         _modelUseSphereTexLoc = GL.GetUniformLocation(_modelProgram, "uUseSphereTex");
+        #if DEBUG
         CheckGLError("GL.GetUniformLocation");
+        #endif
         _modelSphereModeLoc = GL.GetUniformLocation(_modelProgram, "uSphereMode");
+        #if DEBUG
         CheckGLError("GL.GetUniformLocation");
+        #endif
         _modelToonTexLoc = GL.GetUniformLocation(_modelProgram, "uToonTex");
+        #if DEBUG
         CheckGLError("GL.GetUniformLocation");
+        #endif
         _modelUseToonTexLoc = GL.GetUniformLocation(_modelProgram, "uUseToonTex");
+        #if DEBUG
         CheckGLError("GL.GetUniformLocation");
+        #endif
         _modelSphereStrengthLoc = GL.GetUniformLocation(_modelProgram, "uSphereStrength");
+        #if DEBUG
         CheckGLError("GL.GetUniformLocation");
+        #endif
         _modelToonStrengthLoc = GL.GetUniformLocation(_modelProgram, "uToonStrength");
+        #if DEBUG
         CheckGLError("GL.GetUniformLocation");
+        #endif
 
         GenerateGrid();
         GenerateAxes();
@@ -519,27 +629,45 @@ void main(){
         if (_gridVao == 0)
         {
             _gridVao = GL.GenVertexArray();
+            #if DEBUG
             CheckGLError("GL.GenVertexArray");
+            #endif
         }
         if (_gridVbo == 0)
         {
             _gridVbo = GL.GenBuffer();
+            #if DEBUG
             CheckGLError("GL.GenBuffer");
+            #endif
         }
         GL.BindVertexArray(_gridVao);
+        #if DEBUG
         CheckGLError("GL.BindVertexArray");
+        #endif
         GL.BindBuffer(BufferTarget.ArrayBuffer, _gridVbo);
+        #if DEBUG
         CheckGLError("GL.BindBuffer");
+        #endif
         GL.BufferData(BufferTarget.ArrayBuffer, gridSize * sizeof(float), grid, BufferUsageHint.StaticDraw);
+        #if DEBUG
         CheckGLError("GL.BufferData");
+        #endif
         GL.VertexAttribPointer(0, 3, VertexAttribPointerType.Float, false, 3 * sizeof(float), 0);
+        #if DEBUG
         CheckGLError("GL.VertexAttribPointer");
+        #endif
         GL.EnableVertexAttribArray(0);
+        #if DEBUG
         CheckGLError("GL.EnableVertexAttribArray");
+        #endif
         GL.BindBuffer(BufferTarget.ArrayBuffer, 0);
+        #if DEBUG
         CheckGLError("GL.BindBuffer");
+        #endif
         GL.BindVertexArray(0);
+        #if DEBUG
         CheckGLError("GL.BindVertexArray");
+        #endif
         ArrayPool<float>.Shared.Return(grid);
 
         float r = _stageSize;
@@ -556,27 +684,45 @@ void main(){
         if (_groundVao == 0)
         {
             _groundVao = GL.GenVertexArray();
+            #if DEBUG
             CheckGLError("GL.GenVertexArray");
+            #endif
         }
         if (_groundVbo == 0)
         {
             _groundVbo = GL.GenBuffer();
+            #if DEBUG
             CheckGLError("GL.GenBuffer");
+            #endif
         }
         GL.BindVertexArray(_groundVao);
+        #if DEBUG
         CheckGLError("GL.BindVertexArray");
+        #endif
         GL.BindBuffer(BufferTarget.ArrayBuffer, _groundVbo);
+        #if DEBUG
         CheckGLError("GL.BindBuffer");
+        #endif
         GL.BufferData(BufferTarget.ArrayBuffer, plane.Length * sizeof(float), plane, BufferUsageHint.StaticDraw);
+        #if DEBUG
         CheckGLError("GL.BufferData");
+        #endif
         GL.VertexAttribPointer(0, 3, VertexAttribPointerType.Float, false, 3 * sizeof(float), 0);
+        #if DEBUG
         CheckGLError("GL.VertexAttribPointer");
+        #endif
         GL.EnableVertexAttribArray(0);
+        #if DEBUG
         CheckGLError("GL.EnableVertexAttribArray");
+        #endif
         GL.BindBuffer(BufferTarget.ArrayBuffer, 0);
+        #if DEBUG
         CheckGLError("GL.BindBuffer");
+        #endif
         GL.BindVertexArray(0);
+        #if DEBUG
         CheckGLError("GL.BindVertexArray");
+        #endif
     }
 
     private void GenerateAxes()
@@ -612,27 +758,45 @@ void main(){
         if (_axesVao == 0)
         {
             _axesVao = GL.GenVertexArray();
+            #if DEBUG
             CheckGLError("GL.GenVertexArray");
+            #endif
         }
         if (_axesVbo == 0)
         {
             _axesVbo = GL.GenBuffer();
+            #if DEBUG
             CheckGLError("GL.GenBuffer");
+            #endif
         }
         GL.BindVertexArray(_axesVao);
+        #if DEBUG
         CheckGLError("GL.BindVertexArray");
+        #endif
         GL.BindBuffer(BufferTarget.ArrayBuffer, _axesVbo);
+        #if DEBUG
         CheckGLError("GL.BindBuffer");
+        #endif
         GL.BufferData(BufferTarget.ArrayBuffer, axes.Length * sizeof(float), axes, BufferUsageHint.StaticDraw);
+        #if DEBUG
         CheckGLError("GL.BufferData");
+        #endif
         GL.VertexAttribPointer(0, 3, VertexAttribPointerType.Float, false, 3 * sizeof(float), 0);
+        #if DEBUG
         CheckGLError("GL.VertexAttribPointer");
+        #endif
         GL.EnableVertexAttribArray(0);
+        #if DEBUG
         CheckGLError("GL.EnableVertexAttribArray");
+        #endif
         GL.BindBuffer(BufferTarget.ArrayBuffer, 0);
+        #if DEBUG
         CheckGLError("GL.BindBuffer");
+        #endif
         GL.BindVertexArray(0);
+        #if DEBUG
         CheckGLError("GL.BindVertexArray");
+        #endif
     }
 
     public void Resize(int width, int height)
@@ -640,7 +804,9 @@ void main(){
         _width = width;
         _height = height;
         GL.Viewport(0, 0, width, height);
+        #if DEBUG
         CheckGLError("GL.Viewport");
+        #endif
         _viewProjDirty = true;
     }
 
@@ -786,28 +952,50 @@ void main(){
 
         _ikBoneIndexCount = indices.Count;
         _ikBoneVao = GL.GenVertexArray();
+        #if DEBUG
         CheckGLError("GL.GenVertexArray");
+        #endif
         _ikBoneVbo = GL.GenBuffer();
+        #if DEBUG
         CheckGLError("GL.GenBuffer");
+        #endif
         _ikBoneEbo = GL.GenBuffer();
+        #if DEBUG
         CheckGLError("GL.GenBuffer");
+        #endif
 
         GL.BindVertexArray(_ikBoneVao);
+        #if DEBUG
         CheckGLError("GL.BindVertexArray");
+        #endif
         GL.BindBuffer(BufferTarget.ArrayBuffer, _ikBoneVbo);
+        #if DEBUG
         CheckGLError("GL.BindBuffer");
+        #endif
         GL.BufferData(BufferTarget.ArrayBuffer, vertices.Count * sizeof(float), vertices.ToArray(), BufferUsageHint.StaticDraw);
+        #if DEBUG
         CheckGLError("GL.BufferData");
+        #endif
         GL.VertexAttribPointer(0, 3, VertexAttribPointerType.Float, false, 3 * sizeof(float), 0);
+        #if DEBUG
         CheckGLError("GL.VertexAttribPointer");
+        #endif
         GL.EnableVertexAttribArray(0);
+        #if DEBUG
         CheckGLError("GL.EnableVertexAttribArray");
+        #endif
         GL.BindBuffer(BufferTarget.ElementArrayBuffer, _ikBoneEbo);
+        #if DEBUG
         CheckGLError("GL.BindBuffer");
+        #endif
         GL.BufferData(BufferTarget.ElementArrayBuffer, indices.Count * sizeof(ushort), indices.ToArray(), BufferUsageHint.StaticDraw);
+        #if DEBUG
         CheckGLError("GL.BufferData");
+        #endif
         GL.BindVertexArray(0);
+        #if DEBUG
         CheckGLError("GL.BindVertexArray");
+        #endif
     }
 
     private void EnsureCubeMesh()
@@ -839,28 +1027,50 @@ void main(){
 
         _cubeIndexCount = indices.Length;
         _cubeVao = GL.GenVertexArray();
+        #if DEBUG
         CheckGLError("GL.GenVertexArray");
+        #endif
         _cubeVbo = GL.GenBuffer();
+        #if DEBUG
         CheckGLError("GL.GenBuffer");
+        #endif
         _cubeEbo = GL.GenBuffer();
+        #if DEBUG
         CheckGLError("GL.GenBuffer");
+        #endif
 
         GL.BindVertexArray(_cubeVao);
+        #if DEBUG
         CheckGLError("GL.BindVertexArray");
+        #endif
         GL.BindBuffer(BufferTarget.ArrayBuffer, _cubeVbo);
+        #if DEBUG
         CheckGLError("GL.BindBuffer");
+        #endif
         GL.BufferData(BufferTarget.ArrayBuffer, vertices.Length * sizeof(float), vertices, BufferUsageHint.StaticDraw);
+        #if DEBUG
         CheckGLError("GL.BufferData");
+        #endif
         GL.VertexAttribPointer(0, 3, VertexAttribPointerType.Float, false, 3 * sizeof(float), 0);
+        #if DEBUG
         CheckGLError("GL.VertexAttribPointer");
+        #endif
         GL.EnableVertexAttribArray(0);
+        #if DEBUG
         CheckGLError("GL.EnableVertexAttribArray");
+        #endif
         GL.BindBuffer(BufferTarget.ElementArrayBuffer, _cubeEbo);
+        #if DEBUG
         CheckGLError("GL.BindBuffer");
+        #endif
         GL.BufferData(BufferTarget.ElementArrayBuffer, indices.Length * sizeof(ushort), indices, BufferUsageHint.StaticDraw);
+        #if DEBUG
         CheckGLError("GL.BufferData");
+        #endif
         GL.BindVertexArray(0);
+        #if DEBUG
         CheckGLError("GL.BindVertexArray");
+        #endif
     }
 
     // DrawIkBones は PmxRenderer.Render.cs へ移動
@@ -1053,9 +1263,13 @@ void main(){
             return (0, false);
 
         int texture = GL.GenTexture();
+        #if DEBUG
         CheckGLError("GL.GenTexture");
+        #endif
         GL.BindTexture((All)TextureTarget.Texture2D, texture);
+        #if DEBUG
         CheckGLError("GL.BindTexture");
+        #endif
 
         var handle = GCHandle.Alloc(bytes, GCHandleType.Pinned);
         try
@@ -1070,7 +1284,9 @@ void main(){
                 (All)PixelFormat.Rgba,
                 (All)PixelType.UnsignedByte,
                 handle.AddrOfPinnedObject());
+            #if DEBUG
             CheckGLError("GL.TexImage2D");
+            #endif
         }
         finally
         {
@@ -1078,9 +1294,13 @@ void main(){
         }
 
         GL.TexParameter((All)TextureTarget.Texture2D, (All)TextureParameterName.TextureMinFilter, (int)All.Linear);
+        #if DEBUG
         CheckGLError("GL.TexParameter");
+        #endif
         GL.TexParameter((All)TextureTarget.Texture2D, (All)TextureParameterName.TextureMagFilter, (int)All.Linear);
+        #if DEBUG
         CheckGLError("GL.TexParameter");
+        #endif
 
         return (texture, true);
     }
@@ -1243,11 +1463,17 @@ void main(){
     private static void SetupBuffers(RenderMesh rm, MiniMikuDance.Import.SubMeshData sm, float[] verts, List<uint> indices)
     {
         rm.Vao = GL.GenVertexArray();
+        #if DEBUG
         CheckGLError("GL.GenVertexArray");
+        #endif
         rm.Vbo = GL.GenBuffer();
+        #if DEBUG
         CheckGLError("GL.GenBuffer");
+        #endif
         rm.Ebo = GL.GenBuffer();
+        #if DEBUG
         CheckGLError("GL.GenBuffer");
+        #endif
         rm.BaseColor = sm.ColorFactor.ToVector4();
         rm.Color = rm.BaseColor;
         rm.BaseSpecular = sm.Specular.ToOpenTK();
@@ -1265,30 +1491,54 @@ void main(){
         rm.SphereMode = sm.SphereMode;
 
         GL.BindVertexArray(rm.Vao);
+        #if DEBUG
         CheckGLError("GL.BindVertexArray");
+        #endif
         GL.BindBuffer(BufferTarget.ArrayBuffer, rm.Vbo);
+        #if DEBUG
         CheckGLError("GL.BindBuffer");
+        #endif
         GL.BufferData(BufferTarget.ArrayBuffer, verts.Length * sizeof(float), verts, BufferUsageHint.StaticDraw);
+        #if DEBUG
         CheckGLError("GL.BufferData");
+        #endif
         int stride = 8 * sizeof(float);
         GL.VertexAttribPointer(0, 3, VertexAttribPointerType.Float, false, stride, 0);
+        #if DEBUG
         CheckGLError("GL.VertexAttribPointer");
+        #endif
         GL.EnableVertexAttribArray(0);
+        #if DEBUG
         CheckGLError("GL.EnableVertexAttribArray");
+        #endif
         GL.VertexAttribPointer(1, 3, VertexAttribPointerType.Float, false, stride, 3 * sizeof(float));
+        #if DEBUG
         CheckGLError("GL.VertexAttribPointer");
+        #endif
         GL.EnableVertexAttribArray(1);
+        #if DEBUG
         CheckGLError("GL.EnableVertexAttribArray");
+        #endif
         GL.VertexAttribPointer(2, 2, VertexAttribPointerType.Float, false, stride, 6 * sizeof(float));
+        #if DEBUG
         CheckGLError("GL.VertexAttribPointer");
+        #endif
         GL.EnableVertexAttribArray(2);
+        #if DEBUG
         CheckGLError("GL.EnableVertexAttribArray");
+        #endif
         GL.BindBuffer(BufferTarget.ElementArrayBuffer, rm.Ebo);
+        #if DEBUG
         CheckGLError("GL.BindBuffer");
+        #endif
         GL.BufferData(BufferTarget.ElementArrayBuffer, indices.Count * sizeof(uint), indices.ToArray(), BufferUsageHint.StaticDraw);
+        #if DEBUG
         CheckGLError("GL.BufferData");
+        #endif
         GL.BindVertexArray(0);
+        #if DEBUG
         CheckGLError("GL.BindVertexArray");
+        #endif
     }
 
     private static void ApplyTextures(MiniMikuDance.Import.SubMeshData sm, RenderMesh rm)
@@ -1330,32 +1580,44 @@ void main(){
             if (rm.Vao != 0)
             {
                 GL.DeleteVertexArray(rm.Vao);
+                #if DEBUG
                 CheckGLError("GL.DeleteVertexArray");
+                #endif
             }
             if (rm.Vbo != 0)
             {
                 GL.DeleteBuffer(rm.Vbo);
+                #if DEBUG
                 CheckGLError("GL.DeleteBuffer");
+                #endif
             }
             if (rm.Ebo != 0)
             {
                 GL.DeleteBuffer(rm.Ebo);
+                #if DEBUG
                 CheckGLError("GL.DeleteBuffer");
+                #endif
             }
             if (rm.Texture != 0)
             {
                 GL.DeleteTexture(rm.Texture);
+                #if DEBUG
                 CheckGLError("GL.DeleteTexture");
+                #endif
             }
             if (rm.SphereTexture != 0)
             {
                 GL.DeleteTexture(rm.SphereTexture);
+                #if DEBUG
                 CheckGLError("GL.DeleteTexture");
+                #endif
             }
             if (rm.ToonTexture != 0)
             {
                 GL.DeleteTexture(rm.ToonTexture);
+                #if DEBUG
                 CheckGLError("GL.DeleteTexture");
+                #endif
             }
         }
         _bones = data.Bones;
@@ -1607,50 +1869,88 @@ void main(){
             if (rm.Vao != 0)
             {
                 GL.DeleteVertexArray(rm.Vao);
+                #if DEBUG
                 CheckGLError("GL.DeleteVertexArray");
+                #endif
             }
             if (rm.Vbo != 0)
             {
                 GL.DeleteBuffer(rm.Vbo);
+                #if DEBUG
                 CheckGLError("GL.DeleteBuffer");
+                #endif
             }
             if (rm.Ebo != 0)
             {
                 GL.DeleteBuffer(rm.Ebo);
+                #if DEBUG
                 CheckGLError("GL.DeleteBuffer");
+                #endif
             }
         }
         GL.DeleteBuffer(_gridVbo);
+        #if DEBUG
         CheckGLError("GL.DeleteBuffer");
+        #endif
         GL.DeleteBuffer(_axesVbo);
+        #if DEBUG
         CheckGLError("GL.DeleteBuffer");
+        #endif
         GL.DeleteBuffer(_groundVbo);
+        #if DEBUG
         CheckGLError("GL.DeleteBuffer");
+        #endif
         GL.DeleteBuffer(_boneVbo);
+        #if DEBUG
         CheckGLError("GL.DeleteBuffer");
+        #endif
         GL.DeleteBuffer(_ikBoneVbo);
+        #if DEBUG
         CheckGLError("GL.DeleteBuffer");
+        #endif
         GL.DeleteBuffer(_ikBoneEbo);
+        #if DEBUG
         CheckGLError("GL.DeleteBuffer");
+        #endif
         GL.DeleteBuffer(_cubeVbo);
+        #if DEBUG
         CheckGLError("GL.DeleteBuffer");
+        #endif
         GL.DeleteBuffer(_cubeEbo);
+        #if DEBUG
         CheckGLError("GL.DeleteBuffer");
+        #endif
         GL.DeleteVertexArray(_gridVao);
+        #if DEBUG
         CheckGLError("GL.DeleteVertexArray");
+        #endif
         GL.DeleteVertexArray(_axesVao);
+        #if DEBUG
         CheckGLError("GL.DeleteVertexArray");
+        #endif
         GL.DeleteVertexArray(_groundVao);
+        #if DEBUG
         CheckGLError("GL.DeleteVertexArray");
+        #endif
         GL.DeleteVertexArray(_boneVao);
+        #if DEBUG
         CheckGLError("GL.DeleteVertexArray");
+        #endif
         GL.DeleteVertexArray(_ikBoneVao);
+        #if DEBUG
         CheckGLError("GL.DeleteVertexArray");
+        #endif
         GL.DeleteVertexArray(_cubeVao);
+        #if DEBUG
         CheckGLError("GL.DeleteVertexArray");
+        #endif
         GL.DeleteProgram(_program);
+        #if DEBUG
         CheckGLError("GL.DeleteProgram");
+        #endif
         GL.DeleteProgram(_modelProgram);
+        #if DEBUG
         CheckGLError("GL.DeleteProgram");
+        #endif
     }
 }
