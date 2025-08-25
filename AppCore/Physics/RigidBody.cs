@@ -1,22 +1,10 @@
+using System.Collections.Generic;
 using System.Numerics;
+using MiniMikuDance.Import;
 
-namespace MiniMikuDance.Import;
+namespace MiniMikuDance.Physics;
 
-public enum RigidBodyShape
-{
-    Sphere,
-    Box,
-    Capsule
-}
-
-public enum RigidBodyPhysicsType
-{
-    FollowBone = 0,
-    Physics = 1,
-    PhysicsWithBoneAlignment = 2
-}
-
-public class RigidBodyData
+public class RigidBody
 {
     public string Name { get; set; } = string.Empty;
     public string NameEnglish { get; set; } = string.Empty;
@@ -33,12 +21,12 @@ public class RigidBodyData
     public byte Group { get; set; }
     public ushort GroupTarget { get; set; }
     public RigidBodyPhysicsType PhysicsType { get; set; }
+    public List<Joint> Joints { get; } = new();
 }
 
-public class JointData
+public class Joint
 {
     public string Name { get; set; } = string.Empty;
-    public string NameEnglish { get; set; } = string.Empty;
     public int RigidBodyA { get; set; } = -1;
     public int RigidBodyB { get; set; } = -1;
     public Vector3 Position { get; set; } = Vector3.Zero;
@@ -50,4 +38,3 @@ public class JointData
     public Vector3 SpringPosition { get; set; } = Vector3.Zero;
     public Vector3 SpringRotation { get; set; } = Vector3.Zero;
 }
-
