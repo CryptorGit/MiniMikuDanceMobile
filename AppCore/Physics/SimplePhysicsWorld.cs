@@ -30,8 +30,10 @@ public sealed class SimplePhysicsWorld : IPhysicsWorld
                 RotationAttenuation = rb.RotationAttenuation,
                 Recoil = rb.Recoil,
                 Friction = rb.Friction,
-                Position = rb.Position,
-                Rotation = rb.Rotation,
+                Position = Vector3.Zero,
+                Rotation = Vector3.Zero,
+                BoneOffsetPosition = rb.Position,
+                BoneOffsetRotation = rb.Rotation,
                 Size = rb.Size,
                 Group = rb.Group,
                 GroupTarget = rb.GroupTarget,
@@ -41,7 +43,7 @@ public sealed class SimplePhysicsWorld : IPhysicsWorld
         Joints.Clear();
         foreach (var j in model.Joints)
         {
-            Joints.Add(new Joint
+            var joint = new Joint
             {
                 Name = j.Name,
                 RigidBodyA = j.RigidBodyA,
@@ -54,7 +56,16 @@ public sealed class SimplePhysicsWorld : IPhysicsWorld
                 RotationMax = j.RotationMax,
                 SpringPosition = j.SpringPosition,
                 SpringRotation = j.SpringRotation
-            });
+            };
+            Joints.Add(joint);
+            if (joint.RigidBodyA >= 0 && joint.RigidBodyA < RigidBodies.Count)
+            {
+                RigidBodies[joint.RigidBodyA].Joints.Add(joint);
+            }
+            if (joint.RigidBodyB >= 0 && joint.RigidBodyB < RigidBodies.Count)
+            {
+                RigidBodies[joint.RigidBodyB].Joints.Add(joint);
+            }
         }
     }
 
@@ -93,6 +104,11 @@ public sealed class SimplePhysicsWorld : IPhysicsWorld
                 ResolveBodyCollision(RigidBodies[i], RigidBodies[j]);
             }
         }
+
+        foreach (var j in Joints)
+        {
+            SolveJoint(j, dt);
+        }
     }
 
     public void SyncFromBones(Scene scene)
@@ -109,9 +125,12 @@ public sealed class SimplePhysicsWorld : IPhysicsWorld
                 continue;
             }
 
-            var bone = scene.Bones[rb.BoneIndex];
-            rb.Position = bone.Translation;
-            rb.Rotation = ToEuler(bone.Rotation);
+            var boneWorld = GetBoneWorldMatrix(scene, rb.BoneIndex);
+            var offset = Matrix4x4.CreateFromYawPitchRoll(rb.BoneOffsetRotation.Y, rb.BoneOffsetRotation.X, rb.BoneOffsetRotation.Z) *
+                         Matrix4x4.CreateTranslation(rb.BoneOffsetPosition);
+            var world = offset * boneWorld;
+            rb.Position = world.Translation;
+            rb.Rotation = ToEuler(Quaternion.CreateFromRotationMatrix(world));
         }
     }
 
@@ -129,9 +148,27 @@ public sealed class SimplePhysicsWorld : IPhysicsWorld
                 continue;
             }
 
+            var world = Matrix4x4.CreateFromYawPitchRoll(rb.Rotation.Y, rb.Rotation.X, rb.Rotation.Z) *
+                        Matrix4x4.CreateTranslation(rb.Position);
+            var offset = Matrix4x4.CreateFromYawPitchRoll(rb.BoneOffsetRotation.Y, rb.BoneOffsetRotation.X, rb.BoneOffsetRotation.Z) *
+                         Matrix4x4.CreateTranslation(rb.BoneOffsetPosition);
+            Matrix4x4.Invert(offset, out var invOffset);
+            var boneWorld = invOffset * world;
+
             var bone = scene.Bones[rb.BoneIndex];
-            bone.Translation = rb.Position;
-            bone.Rotation = Quaternion.CreateFromYawPitchRoll(rb.Rotation.Y, rb.Rotation.X, rb.Rotation.Z);
+            if (bone.Parent >= 0 && bone.Parent < scene.Bones.Count)
+            {
+                var parentWorld = GetBoneWorldMatrix(scene, bone.Parent);
+                Matrix4x4.Invert(parentWorld, out var invParent);
+                var local = boneWorld * invParent;
+                bone.Translation = local.Translation;
+                bone.Rotation = Quaternion.CreateFromRotationMatrix(local);
+            }
+            else
+            {
+                bone.Translation = boneWorld.Translation;
+                bone.Rotation = Quaternion.CreateFromRotationMatrix(boneWorld);
+            }
         }
     }
 
@@ -179,15 +216,77 @@ public sealed class SimplePhysicsWorld : IPhysicsWorld
             : rb.Position.Y - GetBoundingRadius(rb);
         if (bottom < 0f)
         {
-            rb.Position.Y -= bottom;
+            var pos = rb.Position;
+            pos.Y -= bottom;
+            rb.Position = pos;
             var vn = rb.Velocity.Y;
             if (vn < 0f)
             {
-                rb.Velocity.Y = -vn * rb.Recoil;
-                var tangent = new Vector3(rb.Velocity.X, 0f, rb.Velocity.Z);
-                rb.Velocity -= tangent * rb.Friction;
+                var vel = rb.Velocity;
+                vel.Y = -vn * rb.Recoil;
+                var tangent = new Vector3(vel.X, 0f, vel.Z);
+                vel -= tangent * rb.Friction;
+                rb.Velocity = vel;
             }
         }
+    }
+
+    private void SolveJoint(Joint joint, float dt)
+    {
+        if (joint.RigidBodyA < 0 || joint.RigidBodyA >= RigidBodies.Count || joint.RigidBodyB < 0 || joint.RigidBodyB >= RigidBodies.Count)
+        {
+            return;
+        }
+
+        var a = RigidBodies[joint.RigidBodyA];
+        var b = RigidBodies[joint.RigidBodyB];
+        var current = b.Position - a.Position;
+        var error = current - joint.Position;
+        var relVel = b.Velocity - a.Velocity;
+        var force = error * joint.SpringPosition - relVel * joint.SpringPosition;
+        if (a.PhysicsType != RigidBodyPhysicsType.FollowBone && a.Mass > 0f)
+        {
+            a.Velocity += force / a.Mass * dt;
+        }
+        if (b.PhysicsType != RigidBodyPhysicsType.FollowBone && b.Mass > 0f)
+        {
+            b.Velocity -= force / b.Mass * dt;
+        }
+
+        var rotError = (b.Rotation - a.Rotation) - joint.Rotation;
+        var relAng = b.AngularVelocity - a.AngularVelocity;
+        var torque = rotError * joint.SpringRotation - relAng * joint.SpringRotation;
+
+        if (a.PhysicsType != RigidBodyPhysicsType.FollowBone)
+        {
+            var invIa = new Vector3(
+                a.Inertia.X > 0f ? 1f / a.Inertia.X : 0f,
+                a.Inertia.Y > 0f ? 1f / a.Inertia.Y : 0f,
+                a.Inertia.Z > 0f ? 1f / a.Inertia.Z : 0f);
+            a.AngularVelocity += torque * invIa * dt;
+        }
+        if (b.PhysicsType != RigidBodyPhysicsType.FollowBone)
+        {
+            var invIb = new Vector3(
+                b.Inertia.X > 0f ? 1f / b.Inertia.X : 0f,
+                b.Inertia.Y > 0f ? 1f / b.Inertia.Y : 0f,
+                b.Inertia.Z > 0f ? 1f / b.Inertia.Z : 0f);
+            b.AngularVelocity -= torque * invIb * dt;
+        }
+    }
+
+    private static Matrix4x4 GetBoneWorldMatrix(Scene scene, int index)
+    {
+        var mat = Matrix4x4.Identity;
+        var current = index;
+        while (current >= 0 && current < scene.Bones.Count)
+        {
+            var b = scene.Bones[current];
+            var local = Matrix4x4.CreateFromQuaternion(b.Rotation) * Matrix4x4.CreateTranslation(b.Translation);
+            mat = local * mat;
+            current = b.Parent;
+        }
+        return mat;
     }
 
     private void ResolveBodyCollision(RigidBody a, RigidBody b)
