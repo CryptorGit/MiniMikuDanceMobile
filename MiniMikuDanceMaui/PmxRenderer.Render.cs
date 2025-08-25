@@ -266,7 +266,11 @@ public partial class PmxRenderer
                     fixed (float* p = _boneLines)
                     {
                         GL.BufferSubData(BufferTarget.ArrayBuffer, IntPtr.Zero, lineIdx * sizeof(float), (IntPtr)p);
+#if DEBUG
                         GL.Finish();
+#else
+                        GL.Flush();
+#endif
                     }
                 }
             }
@@ -417,9 +421,15 @@ public partial class PmxRenderer
                             GL.BufferSubData(BufferTarget.ArrayBuffer, IntPtr.Zero, byteSize, ptr);
                             if (!CheckGLError("GL.BufferSubData", $"size={byteSize}, ptr={ptr}"))
                                 return;
+#if DEBUG
                             GL.Finish();
                             if (!CheckGLError("GL.Finish"))
                                 return;
+#else
+                            GL.Flush();
+                            if (!CheckGLError("GL.Flush"))
+                                return;
+#endif
                         }
                         finally
                         {
@@ -522,9 +532,15 @@ public partial class PmxRenderer
                             GL.BufferSubData(BufferTarget.ArrayBuffer, offset, smallByteSize, smallPtr);
                             if (!CheckGLError("GL.BufferSubData", $"offset={offset}, size={smallByteSize}, ptr={smallPtr}"))
                                 return;
+#if DEBUG
                             GL.Finish();
                             if (!CheckGLError("GL.Finish"))
                                 return;
+#else
+                            GL.Flush();
+                            if (!CheckGLError("GL.Flush"))
+                                return;
+#endif
                         }
                     }
                 }
@@ -596,9 +612,15 @@ public partial class PmxRenderer
                             GL.BufferSubData(BufferTarget.ArrayBuffer, IntPtr.Zero, byteSize2, ptr2);
                             if (!CheckGLError("GL.BufferSubData", $"size={byteSize2}, ptr={ptr2}"))
                                 return;
+#if DEBUG
                             GL.Finish();
                             if (!CheckGLError("GL.Finish"))
                                 return;
+#else
+                            GL.Flush();
+                            if (!CheckGLError("GL.Flush"))
+                                return;
+#endif
                         }
                         finally
                         {
