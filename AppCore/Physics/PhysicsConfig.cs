@@ -20,7 +20,19 @@ public struct PhysicsConfig
         set => damping = Math.Clamp(value, 0f, 1f);
     }
 
-    public float BoneBlendFactor { get; set; }
+    private float boneBlendFactor;
+    public float BoneBlendFactor
+    {
+        readonly get => boneBlendFactor;
+        set
+        {
+            var clamped = Math.Clamp(value, 0f, 1f);
+            if (clamped != value)
+                _logger?.LogWarning("BoneBlendFactor は 0～1 の範囲に収めてください。入力値 {Value} を {Clamped} に補正します。", value, clamped);
+            boneBlendFactor = clamped;
+        }
+    }
+
     public float GroundHeight { get; set; }
     private float restitution;
     /// <summary>反発係数 (0～1)。</summary>
