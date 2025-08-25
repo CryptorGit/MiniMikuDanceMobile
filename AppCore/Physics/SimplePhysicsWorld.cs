@@ -17,12 +17,14 @@ public sealed class SimplePhysicsWorld : IPhysicsWorld
         RigidBodies.Clear();
         foreach (var rb in model.RigidBodies)
         {
+            var (mass, inertia) = PhysicsHelper.Compute(rb.Shape, rb.Size, rb.Mass);
             RigidBodies.Add(new RigidBody
             {
                 Name = rb.Name,
                 NameEnglish = rb.NameEnglish,
                 BoneIndex = rb.BoneIndex,
-                Mass = rb.Mass,
+                Mass = mass,
+                Inertia = inertia,
                 Shape = rb.Shape,
                 TranslationAttenuation = rb.TranslationAttenuation,
                 RotationAttenuation = rb.RotationAttenuation,
@@ -154,9 +156,15 @@ public sealed class SimplePhysicsWorld : IPhysicsWorld
         return new Vector3(pitch, yaw, roll);
     }
 
-    private static float GetRadius(RigidBody rb)
+    private static float GetBoundingRadius(RigidBody rb)
     {
-        return MathF.Max(rb.Size.X, MathF.Max(rb.Size.Y, rb.Size.Z)) * 0.5f;
+        return rb.Shape switch
+        {
+            RigidBodyShape.Sphere => rb.Size.X * 0.5f,
+            RigidBodyShape.Box => rb.Size.Length() * 0.5f,
+            RigidBodyShape.Capsule => rb.Size.X * 0.5f + rb.Size.Y * 0.5f,
+            _ => MathF.Max(rb.Size.X, MathF.Max(rb.Size.Y, rb.Size.Z)) * 0.5f
+        };
     }
 
     private void ResolveFloorCollision(RigidBody rb)
@@ -166,8 +174,9 @@ public sealed class SimplePhysicsWorld : IPhysicsWorld
             return;
         }
 
-        var radius = GetRadius(rb);
-        var bottom = rb.Position.Y - radius;
+        var bottom = rb.Shape == RigidBodyShape.Box
+            ? rb.Position.Y - rb.Size.Y * 0.5f
+            : rb.Position.Y - GetBoundingRadius(rb);
         if (bottom < 0f)
         {
             rb.Position.Y -= bottom;
@@ -188,19 +197,11 @@ public sealed class SimplePhysicsWorld : IPhysicsWorld
             return;
         }
 
-        var ra = GetRadius(a);
-        var rbRadius = GetRadius(b);
-        var delta = b.Position - a.Position;
-        var dist = delta.Length();
-        var minDist = ra + rbRadius;
-
-        if (dist >= minDist || dist <= 0f)
+        if (!ComputeCollision(a, b, out var normal, out var penetration))
         {
             return;
         }
 
-        var normal = delta / dist;
-        var penetration = minDist - dist;
         var invMassA = a.PhysicsType == RigidBodyPhysicsType.FollowBone ? 0f : 1f / MathF.Max(a.Mass, 1e-6f);
         var invMassB = b.PhysicsType == RigidBodyPhysicsType.FollowBone ? 0f : 1f / MathF.Max(b.Mass, 1e-6f);
         var totalInv = invMassA + invMassB;
@@ -232,6 +233,122 @@ public sealed class SimplePhysicsWorld : IPhysicsWorld
                 b.Velocity += frictionImpulse * invMassB;
             }
         }
+    }
+
+    private static bool ComputeCollision(RigidBody a, RigidBody b, out Vector3 normal, out float penetration)
+    {
+        switch (a.Shape, b.Shape)
+        {
+            case (RigidBodyShape.Sphere, RigidBodyShape.Sphere):
+                return SphereSphere(a, b, out normal, out penetration);
+            case (RigidBodyShape.Box, RigidBodyShape.Box):
+                return BoxBox(a, b, out normal, out penetration);
+            case (RigidBodyShape.Sphere, RigidBodyShape.Box):
+                return SphereBox(a, b, out normal, out penetration);
+            case (RigidBodyShape.Box, RigidBodyShape.Sphere):
+                if (SphereBox(b, a, out normal, out penetration))
+                {
+                    normal = -normal;
+                    return true;
+                }
+                return false;
+            default:
+                return BoundingSphere(a, b, out normal, out penetration);
+        }
+    }
+
+    private static bool SphereSphere(RigidBody a, RigidBody b, out Vector3 normal, out float penetration)
+    {
+        var ra = a.Size.X * 0.5f;
+        var rbRadius = b.Size.X * 0.5f;
+        var delta = b.Position - a.Position;
+        var dist = delta.Length();
+        var minDist = ra + rbRadius;
+        if (dist >= minDist || dist <= 0f)
+        {
+            normal = Vector3.UnitY;
+            penetration = 0f;
+            return false;
+        }
+        normal = delta / dist;
+        penetration = minDist - dist;
+        return true;
+    }
+
+    private static bool BoxBox(RigidBody a, RigidBody b, out Vector3 normal, out float penetration)
+    {
+        var halfA = a.Size * 0.5f;
+        var halfB = b.Size * 0.5f;
+        var minA = a.Position - halfA;
+        var maxA = a.Position + halfA;
+        var minB = b.Position - halfB;
+        var maxB = b.Position + halfB;
+
+        if (maxA.X < minB.X || minA.X > maxB.X ||
+            maxA.Y < minB.Y || minA.Y > maxB.Y ||
+            maxA.Z < minB.Z || minA.Z > maxB.Z)
+        {
+            normal = Vector3.UnitY;
+            penetration = 0f;
+            return false;
+        }
+
+        var overlapX = MathF.Min(maxA.X, maxB.X) - MathF.Max(minA.X, minB.X);
+        var overlapY = MathF.Min(maxA.Y, maxB.Y) - MathF.Max(minA.Y, minB.Y);
+        var overlapZ = MathF.Min(maxA.Z, maxB.Z) - MathF.Max(minA.Z, minB.Z);
+
+        penetration = overlapX;
+        normal = new Vector3(MathF.Sign(b.Position.X - a.Position.X), 0f, 0f);
+
+        if (overlapY < penetration)
+        {
+            penetration = overlapY;
+            normal = new Vector3(0f, MathF.Sign(b.Position.Y - a.Position.Y), 0f);
+        }
+        if (overlapZ < penetration)
+        {
+            penetration = overlapZ;
+            normal = new Vector3(0f, 0f, MathF.Sign(b.Position.Z - a.Position.Z));
+        }
+        return true;
+    }
+
+    private static bool SphereBox(RigidBody sphere, RigidBody box, out Vector3 normal, out float penetration)
+    {
+        var r = sphere.Size.X * 0.5f;
+        var halfB = box.Size * 0.5f;
+        var minB = box.Position - halfB;
+        var maxB = box.Position + halfB;
+        var closest = Vector3.Clamp(sphere.Position, minB, maxB);
+        var delta = sphere.Position - closest;
+        var dist = delta.Length();
+        if (dist >= r || dist <= 0f)
+        {
+            normal = Vector3.UnitY;
+            penetration = 0f;
+            return false;
+        }
+        normal = delta / dist;
+        penetration = r - dist;
+        return true;
+    }
+
+    private static bool BoundingSphere(RigidBody a, RigidBody b, out Vector3 normal, out float penetration)
+    {
+        var ra = GetBoundingRadius(a);
+        var rbRadius = GetBoundingRadius(b);
+        var delta = b.Position - a.Position;
+        var dist = delta.Length();
+        var minDist = ra + rbRadius;
+        if (dist >= minDist || dist <= 0f)
+        {
+            normal = Vector3.UnitY;
+            penetration = 0f;
+            return false;
+        }
+        normal = delta / dist;
+        penetration = minDist - dist;
+        return true;
     }
 
     private static bool ShouldCollide(RigidBody a, RigidBody b)

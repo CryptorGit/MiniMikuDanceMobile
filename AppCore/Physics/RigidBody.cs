@@ -10,6 +10,7 @@ public class RigidBody
     public string NameEnglish { get; set; } = string.Empty;
     public int BoneIndex { get; set; } = -1;
     public float Mass { get; set; }
+    public Vector3 Inertia { get; set; } = Vector3.Zero;
     public RigidBodyShape Shape { get; set; }
     public float TranslationAttenuation { get; set; }
     public float RotationAttenuation { get; set; }
