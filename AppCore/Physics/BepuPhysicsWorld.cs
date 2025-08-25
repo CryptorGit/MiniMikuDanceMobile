@@ -427,7 +427,11 @@ public sealed class BepuPhysicsWorld : IPhysicsWorld
                 var info = pair.Value;
                 if (info.Bone < 0 || info.Bone >= scene.Bones.Count)
                     continue;
-                if (info.Mode == RigidBodyMode.FollowBone)
+                // モードごとの処理方針:
+                //   FollowBone            : 剛体がボーンに追従するため、書き戻し不要
+                //   Physics               : 剛体のみ物理演算を行い、ボーンには書き戻さない
+                //   PhysicsWithBoneAlignment : 物理演算結果をボーンに書き戻し、BoneBlendFactor で補間する
+                if (info.Mode == RigidBodyMode.FollowBone || info.Mode == RigidBodyMode.Physics)
                     continue;
                 var bone = scene.Bones[info.Bone];
 
@@ -490,6 +494,7 @@ public sealed class BepuPhysicsWorld : IPhysicsWorld
 
                 if (info.Mode == RigidBodyMode.PhysicsWithBoneAlignment)
                 {
+                    // 物理＋ボーン整合モード: 物理結果を既存姿勢と補間して適用
                     bone.Rotation = Quaternion.Slerp(bone.Rotation, localRot, BoneBlendFactor);
                 }
                 else
@@ -512,6 +517,7 @@ public sealed class BepuPhysicsWorld : IPhysicsWorld
 
                 if (info.Mode == RigidBodyMode.PhysicsWithBoneAlignment)
                 {
+                    // 物理＋ボーン整合モード: 物理結果を既存姿勢と補間して適用
                     bone.Translation = Vector3.Lerp(bone.Translation, localTrans, BoneBlendFactor);
                 }
                 else
