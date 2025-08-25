@@ -34,7 +34,6 @@ public class Joint
     public string Name { get; set; } = string.Empty;
     public int RigidBodyA { get; set; } = -1;
     public int RigidBodyB { get; set; } = -1;
-    public Vector3 Position { get; set; } = Vector3.Zero;
     public Vector3 Rotation { get; set; } = Vector3.Zero;
     public Vector3 PositionMin { get; set; } = Vector3.Zero;
     public Vector3 PositionMax { get; set; } = Vector3.Zero;
@@ -44,4 +43,6 @@ public class Joint
     public Vector3 SpringRotation { get; set; } = Vector3.Zero;
     public Vector3 DampingPosition { get; set; } = Vector3.Zero;
     public Vector3 DampingRotation { get; set; } = Vector3.Zero;
+    public Vector3 AnchorA { get; set; } = Vector3.Zero;
+    public Vector3 AnchorB { get; set; } = Vector3.Zero;
 }
