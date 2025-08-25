@@ -134,7 +134,7 @@ public sealed class BepuPhysicsWorld : IPhysicsWorld
             groundShape,
             ContinuousDetection.Discrete);
         var groundHandle = _simulation.Statics.Add(groundDesc);
-        _staticMaterialMap[groundHandle] = new Material(config.Friction, ConvertRestitutionToMaxRecovery(config.MaxRecoveryVelocity));
+        _staticMaterialMap[groundHandle] = new Material(config.Friction, config.MaxRecoveryVelocity);
         _staticFilterMap[groundHandle] = new SubgroupCollisionFilter(uint.MaxValue, uint.MaxValue);
 
         _cloth.Gravity = gravity;
@@ -969,6 +969,9 @@ public sealed class BepuPhysicsWorld : IPhysicsWorld
         return diff > 32 && diff > bodyCount / 2;
     }
 
+    /// <summary>
+    /// MMDの反発係数(0～1)を BepuPhysics の MaxRecoveryVelocity(0～10 m/s)に変換する。
+    /// </summary>
     private static float ConvertRestitutionToMaxRecovery(float restitution)
     {
         return Math.Clamp(restitution, 0f, 1f) * 10f;
