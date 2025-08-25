@@ -629,7 +629,9 @@ public sealed class BepuPhysicsWorld : IPhysicsWorld
 
             var pose = new RigidPose(rb.Position,
                 FromEulerZxy(rb.Rotation));
-            var filter = new SubgroupCollisionFilter((uint)rb.Group, (uint)rb.Mask);
+            // Group はビット位置なので 1u << rb.Group に変換
+            // Mask は「衝突させたくないグループ」なのでビット反転 (~rb.Mask & 0xFFFF)
+            var filter = new SubgroupCollisionFilter(1u << rb.Group, (uint)(~rb.Mask & 0xFFFF));
             var collidable = new CollidableDescription(shapeIndex, 0.1f);
 
             BodyDescription bodyDesc;
