@@ -18,12 +18,20 @@ public struct PhysicsConfig
 
     public float BoneBlendFactor { get; set; }
     public float GroundHeight { get; set; }
+    private float restitution;
+    /// <summary>反発係数 (0～1)。</summary>
+    public float Restitution
+    {
+        readonly get => restitution;
+        set => restitution = Math.Clamp(value, 0f, 1f);
+    }
+    /// <summary>衝突解決時の最大反発速度 (m/s)。</summary>
     public float MaxRecoveryVelocity { get; set; }
     public float Friction { get; set; }
     public bool LockTranslation { get; set; } = false;
     public int MaxThreadCount { get; set; }
 
-    public PhysicsConfig(Vector3 gravity, int solverIterationCount, int substepCount, float damping = 0.98f, float boneBlendFactor = 0.5f, float groundHeight = 0f, float maxRecoveryVelocity = 0.2f, float friction = 0.5f, bool lockTranslation = false, int maxThreadCount = 4)
+    public PhysicsConfig(Vector3 gravity, int solverIterationCount, int substepCount, float damping = 0.98f, float boneBlendFactor = 0.5f, float groundHeight = 0f, float restitution = 0.2f, float maxRecoveryVelocity = 0.2f, float friction = 0.5f, bool lockTranslation = false, int maxThreadCount = 4)
     {
         Gravity = gravity;
         SolverIterationCount = solverIterationCount;
@@ -31,6 +39,7 @@ public struct PhysicsConfig
         Damping = damping;
         BoneBlendFactor = boneBlendFactor;
         GroundHeight = groundHeight;
+        Restitution = restitution;
         MaxRecoveryVelocity = maxRecoveryVelocity;
         Friction = friction;
         LockTranslation = lockTranslation;
