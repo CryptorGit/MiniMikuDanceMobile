@@ -70,7 +70,7 @@ public class ClothSimulator
             return;
         }
 
-        if (pointA == pointB)
+        if (Vector3.Distance(pointA, pointB) < 1e-5f)
         {
             _logger.LogWarning("CapsuleCollider の pointA と pointB が同一点です。入力を無視します。");
             return;
