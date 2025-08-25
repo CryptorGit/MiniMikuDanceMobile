@@ -92,7 +92,9 @@ public sealed class BepuPhysicsWorld : IPhysicsWorld
             _logger.LogWarning("SolverIterationCount が 0 以下のため、1 に補正しました。");
             solverIterationCount = 1;
         }
-        _config = new PhysicsConfig(gravity, solverIterationCount, substepCount, config.Damping, config.BoneBlendFactor, config.GroundHeight, config.MaxRecoveryVelocity, config.Friction, config.LockTranslation, config.MaxThreadCount);
+
+        var damping = config.Damping;
+        _config = new PhysicsConfig(gravity, solverIterationCount, substepCount, damping, config.BoneBlendFactor, config.GroundHeight, config.MaxRecoveryVelocity, config.Friction, config.LockTranslation, config.MaxThreadCount);
         BoneBlendFactor = config.BoneBlendFactor;
         _bufferPool = new BufferPool();
         _threadDispatcher?.Dispose();
@@ -101,7 +103,7 @@ public sealed class BepuPhysicsWorld : IPhysicsWorld
         _simulation = Simulation.Create(_bufferPool,
             new SubgroupFilteredCallbacks(_materialMap, _bodyFilterMap, _staticMaterialMap, _staticFilterMap),
             // Damping は 1 秒あたりの減衰率 (0～1)
-            new SimplePoseIntegratorCallbacks(gravity, _config.Damping, _config.Damping, _dampingMap),
+            new SimplePoseIntegratorCallbacks(gravity, damping, damping, _dampingMap),
             new SolveDescription(solverIterationCount, substepCount));
         // Simulation 生成後に ConstraintRemover が確実に登録されているかチェック
         if (_simulation.NarrowPhase.ConstraintRemover == null)
@@ -125,7 +127,7 @@ public sealed class BepuPhysicsWorld : IPhysicsWorld
         _staticFilterMap[groundHandle] = new SubgroupCollisionFilter(uint.MaxValue, uint.MaxValue);
 
         _cloth.Gravity = gravity;
-        _cloth.Damping = config.Damping; // 1 秒基準のダンピング
+        _cloth.Damping = damping; // 1 秒基準のダンピング
         _cloth.GroundHeight = config.GroundHeight;
         _cloth.Restitution = config.MaxRecoveryVelocity;
         _cloth.Friction = config.Friction;
@@ -957,7 +959,7 @@ public sealed class BepuPhysicsWorld : IPhysicsWorld
 
     private static float ConvertRestitutionToMaxRecovery(float restitution)
     {
-        return MathF.Clamp(restitution, 0f, 1f) * 10f;
+        return Math.Clamp(restitution, 0f, 1f) * 10f;
     }
 
     private static void AppendCrashLog(string message, Exception? ex = null)
