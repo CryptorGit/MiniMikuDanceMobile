@@ -1,5 +1,4 @@
 using System;
-using System.Buffers;
 using System.Collections.Generic;
 using System.Numerics;
 using System.Runtime.InteropServices;
@@ -356,24 +355,23 @@ public partial class PmxRenderer
         {
             if (_bonesDirty)
             {
-                float[]? tmpVertexBuffer = null;
-                try
+                foreach (var rm in meshes)
                 {
-                    foreach (var rm in meshes)
+                    if (rm.JointIndices.Length != rm.BaseVertices.Length)
+                        continue;
+                    GL.BindBuffer(BufferTarget.ArrayBuffer, rm.Vbo);
+                    if (!CheckGLError("GL.BindBuffer", $"target={BufferTarget.ArrayBuffer}, buffer={rm.Vbo}"))
+                        return;
+                    int byteSize = rm.BaseVertices.Length * 8 * sizeof(float);
+                    IntPtr mapped = GL.MapBufferRange(BufferTarget.ArrayBuffer, IntPtr.Zero, byteSize, BufferAccessMask.MapWriteBit | BufferAccessMask.MapInvalidateBufferBit);
+                    if (mapped == IntPtr.Zero)
                     {
-                        if (rm.JointIndices.Length != rm.BaseVertices.Length)
-                            continue;
-                        int required = rm.BaseVertices.Length * 8;
-                        if (tmpVertexBuffer == null || tmpVertexBuffer.Length < required)
-                        {
-                            if (tmpVertexBuffer != null)
-                                ArrayPool<float>.Shared.Return(tmpVertexBuffer);
-                            tmpVertexBuffer = ArrayPool<float>.Shared.Rent(required);
-                        }
-                        else
-                        {
-                            Array.Clear(tmpVertexBuffer, 0, required);
-                        }
+                        CheckGLError("GL.MapBufferRange");
+                        continue;
+                    }
+                    unsafe
+                    {
+                        float* dst = (float*)mapped;
                         for (int vi = 0; vi < rm.BaseVertices.Length; vi++)
                         {
                             var pos = System.Numerics.Vector3.Zero;
@@ -424,26 +422,27 @@ public partial class PmxRenderer
                             if (norm.LengthSquared() > 0)
                                 norm = System.Numerics.Vector3.Normalize(norm);
 
-                            tmpVertexBuffer[vi * 8 + 0] = pos.X;
-                            tmpVertexBuffer[vi * 8 + 1] = pos.Y;
-                            tmpVertexBuffer[vi * 8 + 2] = pos.Z;
-                            tmpVertexBuffer[vi * 8 + 3] = norm.X;
-                            tmpVertexBuffer[vi * 8 + 4] = norm.Y;
-                            tmpVertexBuffer[vi * 8 + 5] = norm.Z;
+                            dst[vi * 8 + 0] = pos.X;
+                            dst[vi * 8 + 1] = pos.Y;
+                            dst[vi * 8 + 2] = pos.Z;
+                            dst[vi * 8 + 3] = norm.X;
+                            dst[vi * 8 + 4] = norm.Y;
+                            dst[vi * 8 + 5] = norm.Z;
                             if (vi < rm.TexCoords.Length)
                             {
                                 var uv = rm.TexCoords[vi];
                                 if (vi < rm.UvOffsets.Length)
                                     uv += rm.UvOffsets[vi];
-                                tmpVertexBuffer[vi * 8 + 6] = uv.X;
-                                tmpVertexBuffer[vi * 8 + 7] = uv.Y;
+                                dst[vi * 8 + 6] = uv.X;
+                                dst[vi * 8 + 7] = uv.Y;
                             }
                             else
                             {
-                                tmpVertexBuffer[vi * 8 + 6] = 0f;
-                                tmpVertexBuffer[vi * 8 + 7] = 0f;
+                                dst[vi * 8 + 6] = 0f;
+                                dst[vi * 8 + 7] = 0f;
                             }
                         }
+                      
                         GL.BindBuffer(BufferTarget.ArrayBuffer, rm.Vbo);
 #if DEBUG
                         if (!CheckGLError("GL.BindBuffer", $"target={BufferTarget.ArrayBuffer}, buffer={rm.Vbo}"))
@@ -481,21 +480,18 @@ public partial class PmxRenderer
                             handle.Free();
                         }
                     }
-                }
-                finally
-                {
-                    if (tmpVertexBuffer != null)
-                        ArrayPool<float>.Shared.Return(tmpVertexBuffer);
+                    GL.UnmapBuffer(BufferTarget.ArrayBuffer);
+                    if (!CheckGLError("GL.UnmapBuffer"))
+                        return;
+                    GL.Finish();
+                    if (!CheckGLError("GL.Finish"))
+                        return;
                 }
             }
             else if ((_morphDirty || _uvMorphDirty) && changedVerts != null)
             {
-                var small = new float[8];
-                var smallHandle = GCHandle.Alloc(small, GCHandleType.Pinned);
-                try
+                unsafe
                 {
-                    IntPtr smallPtr = smallHandle.AddrOfPinnedObject();
-                    int smallByteSize = small.Length * sizeof(float);
                     var span = CollectionsMarshal.AsSpan(changedVerts);
                     for (int ci = 0; ci < span.Length; ci++)
                     {
@@ -552,30 +548,34 @@ public partial class PmxRenderer
                             if (norm.LengthSquared() > 0)
                                 norm = System.Numerics.Vector3.Normalize(norm);
 
-                            small[0] = pos.X; small[1] = pos.Y; small[2] = pos.Z;
-                            small[3] = norm.X; small[4] = norm.Y; small[5] = norm.Z;
-                            if (vi < rm.TexCoords.Length)
-                            {
-                                var uv = rm.TexCoords[vi];
-                                if (vi < rm.UvOffsets.Length)
-                                    uv += rm.UvOffsets[vi];
-                                small[6] = uv.X; small[7] = uv.Y;
-                            }
-                            else { small[6] = 0f; small[7] = 0f; }
-
                             GL.BindBuffer(BufferTarget.ArrayBuffer, rm.Vbo);
 #if DEBUG
                             if (!CheckGLError("GL.BindBuffer", $"target={BufferTarget.ArrayBuffer}, buffer={rm.Vbo}"))
                                 return;
 #endif
                             IntPtr offset = new IntPtr(vi * 8 * sizeof(float));
-                            long total = (long)rm.BaseVertices.Length * 8 * sizeof(float);
-                            long end = offset.ToInt64() + 8 * sizeof(float);
-                            if (end > total)
+                            IntPtr ptr = GL.MapBufferRange(BufferTarget.ArrayBuffer, offset, 8 * sizeof(float), BufferAccessMask.MapWriteBit | BufferAccessMask.MapInvalidateRangeBit);
+                            if (ptr == IntPtr.Zero)
                             {
-                                Console.Error.WriteLine($"Vertex buffer overflow: offset={offset}, size={8 * sizeof(float)}, total={total}");
+                                CheckGLError("GL.MapBufferRange");
                                 continue;
                             }
+                            float* buf = stackalloc float[8];
+                            buf[0] = pos.X; buf[1] = pos.Y; buf[2] = pos.Z;
+                            buf[3] = norm.X; buf[4] = norm.Y; buf[5] = norm.Z;
+                            if (vi < rm.TexCoords.Length)
+                            {
+                                var uv = rm.TexCoords[vi];
+                                if (vi < rm.UvOffsets.Length)
+                                    uv += rm.UvOffsets[vi];
+                
+                                buf[6] = uv.X; buf[7] = uv.Y;
+                            }
+                            else { buf[6] = 0f; buf[7] = 0f; }
+
+                            Buffer.MemoryCopy(buf, (void*)ptr, 8 * sizeof(float), 8 * sizeof(float));
+                            GL.UnmapBuffer(BufferTarget.ArrayBuffer);
+                            if (!CheckGLError("GL.UnmapBuffer"))
                             GL.BufferSubData(BufferTarget.ArrayBuffer, offset, smallByteSize, smallPtr);
 #if DEBUG
                             if (!CheckGLError("GL.BufferSubData", $"offset={offset}, size={smallByteSize}, ptr={smallPtr}"))
@@ -590,53 +590,49 @@ public partial class PmxRenderer
                         }
                     }
                 }
-                finally
-                {
-                    smallHandle.Free();
-                }
             }
             else
             {
-                float[]? tmpVertexBuffer = null;
-                try
+                foreach (var rm in meshes)
                 {
-                    foreach (var rm in meshes)
+                    GL.BindBuffer(BufferTarget.ArrayBuffer, rm.Vbo);
+                    if (!CheckGLError("GL.BindBuffer", $"target={BufferTarget.ArrayBuffer}, buffer={rm.Vbo}"))
+                        return;
+                    int byteSize2 = rm.BaseVertices.Length * 8 * sizeof(float);
+                    IntPtr mapped2 = GL.MapBufferRange(BufferTarget.ArrayBuffer, IntPtr.Zero, byteSize2, BufferAccessMask.MapWriteBit | BufferAccessMask.MapInvalidateBufferBit);
+                    if (mapped2 == IntPtr.Zero)
                     {
-                        int required = rm.BaseVertices.Length * 8;
-                        if (tmpVertexBuffer == null || tmpVertexBuffer.Length < required)
-                        {
-                            if (tmpVertexBuffer != null)
-                                ArrayPool<float>.Shared.Return(tmpVertexBuffer);
-                            tmpVertexBuffer = ArrayPool<float>.Shared.Rent(required);
-                        }
-                        else
-                        {
-                            Array.Clear(tmpVertexBuffer, 0, required);
-                        }
+                        CheckGLError("GL.MapBufferRange");
+                        continue;
+                    }
+                    unsafe
+                    {
+                        float* dst = (float*)mapped2;
                         for (int vi = 0; vi < rm.BaseVertices.Length; vi++)
                         {
                             var pos = rm.BaseVertices[vi] + rm.VertexOffsets[vi];
                             var nor = vi < rm.Normals.Length ? rm.Normals[vi] : new Vector3(0, 0, 1);
-                            tmpVertexBuffer[vi * 8 + 0] = pos.X;
-                            tmpVertexBuffer[vi * 8 + 1] = pos.Y;
-                            tmpVertexBuffer[vi * 8 + 2] = pos.Z;
-                            tmpVertexBuffer[vi * 8 + 3] = nor.X;
-                            tmpVertexBuffer[vi * 8 + 4] = nor.Y;
-                            tmpVertexBuffer[vi * 8 + 5] = nor.Z;
+                            dst[vi * 8 + 0] = pos.X;
+                            dst[vi * 8 + 1] = pos.Y;
+                            dst[vi * 8 + 2] = pos.Z;
+                            dst[vi * 8 + 3] = nor.X;
+                            dst[vi * 8 + 4] = nor.Y;
+                            dst[vi * 8 + 5] = nor.Z;
                             if (vi < rm.TexCoords.Length)
                             {
                                 var uv = rm.TexCoords[vi];
                                 if (vi < rm.UvOffsets.Length)
                                     uv += rm.UvOffsets[vi];
-                                tmpVertexBuffer[vi * 8 + 6] = uv.X;
-                                tmpVertexBuffer[vi * 8 + 7] = uv.Y;
+                                dst[vi * 8 + 6] = uv.X;
+                                dst[vi * 8 + 7] = uv.Y;
                             }
                             else
                             {
-                                tmpVertexBuffer[vi * 8 + 6] = 0f;
-                                tmpVertexBuffer[vi * 8 + 7] = 0f;
+                                dst[vi * 8 + 6] = 0f;
+                                dst[vi * 8 + 7] = 0f;
                             }
                         }
+
                         GL.BindBuffer(BufferTarget.ArrayBuffer, rm.Vbo);
 #if DEBUG
                         if (!CheckGLError("GL.BindBuffer", $"target={BufferTarget.ArrayBuffer}, buffer={rm.Vbo}"))
@@ -674,11 +670,12 @@ public partial class PmxRenderer
                             handle2.Free();
                         }
                     }
-                }
-                finally
-                {
-                    if (tmpVertexBuffer != null)
-                        ArrayPool<float>.Shared.Return(tmpVertexBuffer);
+                    GL.UnmapBuffer(BufferTarget.ArrayBuffer);
+                    if (!CheckGLError("GL.UnmapBuffer"))
+                        return;
+                    GL.Finish();
+                    if (!CheckGLError("GL.Finish"))
+                        return;
                 }
             }
 
