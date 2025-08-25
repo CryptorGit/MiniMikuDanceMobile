@@ -120,7 +120,7 @@ public sealed class BepuPhysicsWorld : IPhysicsWorld
             groundShape,
             ContinuousDetection.Discrete);
         var groundHandle = _simulation.Statics.Add(groundDesc);
-        _staticMaterialMap[groundHandle] = new Material(config.Friction, config.Restitution);
+        _staticMaterialMap[groundHandle] = new Material(config.Restitution, config.Friction);
         _staticFilterMap[groundHandle] = new SubgroupCollisionFilter(uint.MaxValue, uint.MaxValue);
 
         _cloth.Gravity = gravity;
