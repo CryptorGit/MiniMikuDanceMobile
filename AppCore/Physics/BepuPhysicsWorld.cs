@@ -721,6 +721,13 @@ public sealed class BepuPhysicsWorld : IPhysicsWorld
                     var b = rb.Position - dir * half;
                     _cloth.AddCapsuleCollider(a, b, rb.Size.X);
                     break;
+                case RigidBodyShape.Box:
+                    var orientation = FromEulerZxy(rb.Rotation);
+                    _cloth.AddBoxCollider(rb.Position, rb.Size, orientation);
+                    break;
+                default:
+                    _logger.LogWarning("未対応の剛体形状をソフトボディ用コライダーとしてスキップ: {Shape}", rb.Shape);
+                    break;
             }
         }
 
