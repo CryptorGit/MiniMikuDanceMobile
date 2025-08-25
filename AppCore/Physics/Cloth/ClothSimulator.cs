@@ -28,6 +28,14 @@ public class ClothSimulator
 
     public List<SphereCollider> SphereColliders { get; } = new();
     public List<CapsuleCollider> CapsuleColliders { get; } = new();
+    public struct BoxCollider
+    {
+        public Vector3 Center;
+        public Vector3 HalfExtents;
+        public Quaternion Orientation;
+    }
+
+    public List<BoxCollider> BoxColliders { get; } = new();
 
     private readonly ILogger _logger;
 
@@ -40,6 +48,7 @@ public class ClothSimulator
     {
         SphereColliders.Clear();
         CapsuleColliders.Clear();
+        BoxColliders.Clear();
     }
 
     public void AddSphereCollider(Vector3 center, float radius)
@@ -68,6 +77,22 @@ public class ClothSimulator
         }
 
         CapsuleColliders.Add(new CapsuleCollider { PointA = pointA, PointB = pointB, Radius = radius });
+    }
+
+    public void AddBoxCollider(Vector3 center, Vector3 size, Quaternion rotation)
+    {
+        if (size.X <= 0f || size.Y <= 0f || size.Z <= 0f)
+        {
+            _logger.LogWarning("BoxCollider の size の各成分は 0 より大きい必要があります。入力値 {Size} を無視します。", size);
+            return;
+        }
+
+        BoxColliders.Add(new BoxCollider
+        {
+            Center = center,
+            HalfExtents = size * 0.5f,
+            Orientation = rotation
+        });
     }
 
     private Vector3 _gravity = new(0, -9.81f, 0);
@@ -236,6 +261,43 @@ public class ClothSimulator
                         collided = true;
                         var normal = dist > 1e-6f ? toNode / dist : Vector3.UnitY;
                         nextPos = closest + normal * capsule.Radius;
+                        var vn = Vector3.Dot(newVelocity, normal);
+                        if (vn < 0f)
+                        {
+                            var vt = newVelocity - vn * normal;
+                            newVelocity = vt * _friction - vn * _restitution * normal;
+                        }
+                    }
+                }
+
+                foreach (var box in BoxColliders)
+                {
+                    var local = Vector3.Transform(nextPos - box.Center, Quaternion.Conjugate(box.Orientation));
+                    if (MathF.Abs(local.X) <= box.HalfExtents.X && MathF.Abs(local.Y) <= box.HalfExtents.Y && MathF.Abs(local.Z) <= box.HalfExtents.Z)
+                    {
+                        collided = true;
+                        var px = box.HalfExtents.X - MathF.Abs(local.X);
+                        var py = box.HalfExtents.Y - MathF.Abs(local.Y);
+                        var pz = box.HalfExtents.Z - MathF.Abs(local.Z);
+                        Vector3 normalLocal;
+                        if (px < py && px < pz)
+                        {
+                            normalLocal = new Vector3(MathF.Sign(local.X), 0f, 0f);
+                            local.X = normalLocal.X * box.HalfExtents.X;
+                        }
+                        else if (py < pz)
+                        {
+                            normalLocal = new Vector3(0f, MathF.Sign(local.Y), 0f);
+                            local.Y = normalLocal.Y * box.HalfExtents.Y;
+                        }
+                        else
+                        {
+                            normalLocal = new Vector3(0f, 0f, MathF.Sign(local.Z));
+                            local.Z = normalLocal.Z * box.HalfExtents.Z;
+                        }
+
+                        var normal = Vector3.Transform(normalLocal, box.Orientation);
+                        nextPos = Vector3.Transform(local, box.Orientation) + box.Center;
                         var vn = Vector3.Dot(newVelocity, normal);
                         if (vn < 0f)
                         {
