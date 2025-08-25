@@ -52,11 +52,6 @@ public partial class PmxRenderer : IDisposable
         public Vector3[] Normals = Array.Empty<Vector3>();
         public Vector2[] TexCoords = Array.Empty<Vector2>();
         public Vector2[] UvOffsets = Array.Empty<Vector2>();
-        public Vector4[] JointIndices = Array.Empty<Vector4>();
-        public Vector4[] JointWeights = Array.Empty<Vector4>();
-        public Vector3[] SdefC = Array.Empty<Vector3>();
-        public Vector3[] SdefR0 = Array.Empty<Vector3>();
-        public Vector3[] SdefR1 = Array.Empty<Vector3>();
     }
     private readonly System.Collections.Generic.List<RenderMesh> _meshes = new();
     private readonly object _meshesLock = new();
@@ -135,6 +130,7 @@ public partial class PmxRenderer : IDisposable
     private int _modelUseToonTexLoc;
     private int _modelSphereStrengthLoc;
     private int _modelToonStrengthLoc;
+    private int _modelBonesLoc;
     private Matrix4 _modelTransform = Matrix4.Identity;
     public Matrix4 ModelTransform
     {
@@ -352,15 +348,29 @@ const string modelVert = @"#version 300 es
 layout(location = 0) in vec3 aPosition;
 layout(location = 1) in vec3 aNormal;
 layout(location = 2) in vec2 aTex;
+layout(location = 3) in vec4 aBoneIndices;
+layout(location = 4) in vec4 aBoneWeights;
 uniform mat4 uModel;
 uniform mat4 uView;
 uniform mat4 uProj;
 uniform float uPointSize;
+uniform mat4 uBones[256];
 out vec3 vNormal;
 out vec2 vTex;
 void main(){
-    vec4 pos = uModel * vec4(aPosition,1.0);
-    vNormal = mat3(uModel) * aNormal;
+    vec4 skinnedPos = vec4(0.0);
+    vec3 skinnedNorm = vec3(0.0);
+    for(int i=0;i<4;i++){
+        int idx = int(aBoneIndices[i]);
+        float w = aBoneWeights[i];
+        if(w > 0.0 && idx >= 0 && idx < 256){
+            mat4 m = uBones[idx];
+            skinnedPos += m * vec4(aPosition,1.0) * w;
+            skinnedNorm += (m * vec4(aNormal,0.0)).xyz * w;
+        }
+    }
+    vec4 pos = uModel * skinnedPos;
+    vNormal = mat3(uModel) * skinnedNorm;
     vTex = aTex;
     gl_Position = uProj * uView * pos;
     gl_PointSize = uPointSize;
@@ -496,6 +506,8 @@ void main(){
         _modelSphereStrengthLoc = GL.GetUniformLocation(_modelProgram, "uSphereStrength");
         CheckGLError("GL.GetUniformLocation");
         _modelToonStrengthLoc = GL.GetUniformLocation(_modelProgram, "uToonStrength");
+        CheckGLError("GL.GetUniformLocation");
+        _modelBonesLoc = GL.GetUniformLocation(_modelProgram, "uBones[0]");
         CheckGLError("GL.GetUniformLocation");
 
         GenerateGrid();
@@ -1139,36 +1151,66 @@ void main(){
     private static (float[] Verts, List<uint> Indices) CreateVertexData(MiniMikuDance.Import.SubMeshData sm, RenderMesh rm)
     {
         int vcount = sm.Mesh.VertexCount;
-        float[] verts = new float[vcount * 8];
+        float[] verts = new float[vcount * 16];
         for (int i = 0; i < vcount; i++)
         {
             var v = sm.Mesh.Vertices[i];
-            verts[i * 8 + 0] = v.X;
-            verts[i * 8 + 1] = v.Y;
-            verts[i * 8 + 2] = v.Z;
+            verts[i * 16 + 0] = v.X;
+            verts[i * 16 + 1] = v.Y;
+            verts[i * 16 + 2] = v.Z;
             if (i < sm.Mesh.Normals.Count)
             {
                 var n = sm.Mesh.Normals[i];
-                verts[i * 8 + 3] = n.X;
-                verts[i * 8 + 4] = n.Y;
-                verts[i * 8 + 5] = n.Z;
+                verts[i * 16 + 3] = n.X;
+                verts[i * 16 + 4] = n.Y;
+                verts[i * 16 + 5] = n.Z;
             }
             else
             {
-                verts[i * 8 + 3] = 0f;
-                verts[i * 8 + 4] = 0f;
-                verts[i * 8 + 5] = 1f;
+                verts[i * 16 + 3] = 0f;
+                verts[i * 16 + 4] = 0f;
+                verts[i * 16 + 5] = 1f;
             }
             if (i < sm.TexCoords.Count)
             {
                 var uv = sm.TexCoords[i];
-                verts[i * 8 + 6] = uv.X;
-                verts[i * 8 + 7] = uv.Y;
+                verts[i * 16 + 6] = uv.X;
+                verts[i * 16 + 7] = uv.Y;
             }
             else
             {
-                verts[i * 8 + 6] = 0f;
-                verts[i * 8 + 7] = 0f;
+                verts[i * 16 + 6] = 0f;
+                verts[i * 16 + 7] = 0f;
+            }
+            if (i < sm.JointIndices.Count)
+            {
+                var j = sm.JointIndices[i];
+                verts[i * 16 + 8] = j.X;
+                verts[i * 16 + 9] = j.Y;
+                verts[i * 16 +10] = j.Z;
+                verts[i * 16 +11] = j.W;
+            }
+            else
+            {
+                verts[i * 16 + 8] = 0f;
+                verts[i * 16 + 9] = 0f;
+                verts[i * 16 +10] = 0f;
+                verts[i * 16 +11] = 0f;
+            }
+            if (i < sm.JointWeights.Count)
+            {
+                var w = sm.JointWeights[i];
+                verts[i * 16 +12] = w.X;
+                verts[i * 16 +13] = w.Y;
+                verts[i * 16 +14] = w.Z;
+                verts[i * 16 +15] = w.W;
+            }
+            else
+            {
+                verts[i * 16 +12] = 0f;
+                verts[i * 16 +13] = 0f;
+                verts[i * 16 +14] = 0f;
+                verts[i * 16 +15] = 0f;
             }
         }
 
@@ -1207,36 +1249,6 @@ void main(){
             rm.TexCoords[i] = new Vector2(t.X, t.Y);
         }
 
-        int jointIndexCount = sm.JointIndices.Count;
-        rm.JointIndices = new Vector4[jointIndexCount];
-        for (int i = 0; i < jointIndexCount; i++)
-        {
-            var j = sm.JointIndices[i];
-            rm.JointIndices[i] = new Vector4(j.X, j.Y, j.Z, j.W);
-        }
-
-        int jointWeightCount = sm.JointWeights.Count;
-        rm.JointWeights = new Vector4[jointWeightCount];
-        for (int i = 0; i < jointWeightCount; i++)
-        {
-            var w = sm.JointWeights[i];
-            rm.JointWeights[i] = new Vector4(w.X, w.Y, w.Z, w.W);
-        }
-
-        int sdefCount = sm.SdefC.Count;
-        rm.SdefC = new Vector3[sdefCount];
-        rm.SdefR0 = new Vector3[sdefCount];
-        rm.SdefR1 = new Vector3[sdefCount];
-        for (int i = 0; i < sdefCount; i++)
-        {
-            var c = sm.SdefC[i];
-            rm.SdefC[i] = new Vector3(c.X, c.Y, c.Z);
-            var r0 = sm.SdefR0[i];
-            rm.SdefR0[i] = new Vector3(r0.X, r0.Y, r0.Z);
-            var r1 = sm.SdefR1[i];
-            rm.SdefR1[i] = new Vector3(r1.X, r1.Y, r1.Z);
-        }
-
         return (verts, indices);
     }
 
@@ -1270,7 +1282,7 @@ void main(){
         CheckGLError("GL.BindBuffer");
         GL.BufferData(BufferTarget.ArrayBuffer, verts.Length * sizeof(float), verts, BufferUsageHint.StaticDraw);
         CheckGLError("GL.BufferData");
-        int stride = 8 * sizeof(float);
+        int stride = 16 * sizeof(float);
         GL.VertexAttribPointer(0, 3, VertexAttribPointerType.Float, false, stride, 0);
         CheckGLError("GL.VertexAttribPointer");
         GL.EnableVertexAttribArray(0);
@@ -1282,6 +1294,14 @@ void main(){
         GL.VertexAttribPointer(2, 2, VertexAttribPointerType.Float, false, stride, 6 * sizeof(float));
         CheckGLError("GL.VertexAttribPointer");
         GL.EnableVertexAttribArray(2);
+        CheckGLError("GL.EnableVertexAttribArray");
+        GL.VertexAttribPointer(3, 4, VertexAttribPointerType.Float, false, stride, 8 * sizeof(float));
+        CheckGLError("GL.VertexAttribPointer");
+        GL.EnableVertexAttribArray(3);
+        CheckGLError("GL.EnableVertexAttribArray");
+        GL.VertexAttribPointer(4, 4, VertexAttribPointerType.Float, false, stride, 12 * sizeof(float));
+        CheckGLError("GL.VertexAttribPointer");
+        GL.EnableVertexAttribArray(4);
         CheckGLError("GL.EnableVertexAttribArray");
         GL.BindBuffer(BufferTarget.ElementArrayBuffer, rm.Ebo);
         CheckGLError("GL.BindBuffer");
