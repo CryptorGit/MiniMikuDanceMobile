@@ -21,6 +21,7 @@ public class ModelData
     public Assimp.Mesh Mesh { get; set; } = null!;
     public System.Numerics.Matrix4x4 Transform { get; set; } = System.Numerics.Matrix4x4.Identity;
     public List<BoneData> Bones { get; set; } = new();
+    public Dictionary<int, List<int>> BoneChildren { get; set; } = new();
     public Dictionary<string, int> HumanoidBones { get; set; } = new(StringComparer.OrdinalIgnoreCase);
     public List<(string Name, int Index)> HumanoidBoneList { get; set; } = new();
     public List<MorphData> Morphs { get; set; } = new();
@@ -558,6 +559,7 @@ public PmxImporter(ILogger<PmxImporter>? logger = null)
             {
                 Name = name,
                 NameEnglish = b.NameEnglish ?? string.Empty,
+                Index = i,
                 Parent = b.ParentBone,
                 Rotation = System.Numerics.Quaternion.Identity,
                 Translation = pos,
@@ -703,6 +705,13 @@ public PmxImporter(ILogger<PmxImporter>? logger = null)
             bd.InverseBindMatrix = inv;
         }
         data.Bones = boneDatas;
+        var boneChildren = new Dictionary<int, List<int>>(boneDatas.Count);
+        for (int i = 0; i < childIndices.Length; i++)
+        {
+            if (childIndices[i].Count > 0)
+                boneChildren[i] = childIndices[i];
+        }
+        data.BoneChildren = boneChildren;
 
         // ヒューマノイドボーンのマッピング
         foreach (var hb in MiniMikuDance.Import.HumanoidBones.StandardOrder)
