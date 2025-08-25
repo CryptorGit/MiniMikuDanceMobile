@@ -104,9 +104,8 @@ public sealed class BepuPhysicsWorld : IPhysicsWorld
             solverIterationCount = 1;
         }
 
-        var damping = config.Damping;
-        _config = new PhysicsConfig(gravity, solverIterationCount, substepCount, damping, config.BoneBlendFactor, config.GroundHeight, config.Restitution, config.MaxRecoveryVelocity, config.Friction, config.LockTranslation, config.MaxThreadCount);
-        BoneBlendFactor = config.BoneBlendFactor;
+        _config = new PhysicsConfig(gravity, solverIterationCount, substepCount, config.Damping, config.BoneBlendFactor, config.GroundHeight, config.Restitution, config.MaxRecoveryVelocity, config.Friction, config.LockTranslation, config.MaxThreadCount);
+        BoneBlendFactor = _config.BoneBlendFactor;
         _bufferPool = new BufferPool();
         _threadDispatcher?.Dispose();
         var threads = maxThreadCount > 0 ? Math.Clamp(Environment.ProcessorCount, 1, maxThreadCount) : Environment.ProcessorCount;
@@ -114,7 +113,7 @@ public sealed class BepuPhysicsWorld : IPhysicsWorld
         _simulation = Simulation.Create(_bufferPool,
             new SubgroupFilteredCallbacks(_materialMap, _bodyFilterMap, _staticMaterialMap, _staticFilterMap),
             // Damping は 1 秒あたりの減衰率 (0～1)
-            new SimplePoseIntegratorCallbacks(gravity, damping, damping, _dampingMap),
+            new SimplePoseIntegratorCallbacks(gravity, _config.Damping, _config.Damping, _dampingMap),
             new SolveDescription(solverIterationCount, substepCount));
         // Simulation 生成後に ConstraintRemover が確実に登録されているかチェック
         if (_simulation.NarrowPhase.ConstraintRemover == null)
@@ -127,23 +126,23 @@ public sealed class BepuPhysicsWorld : IPhysicsWorld
 
         // シミュレーション生成後に地面用の静的ボディを追加
         var groundShape = _simulation.Shapes.Add(new Box(1000f * _modelScale, 0.1f * _modelScale, 1000f * _modelScale));
-        var groundPose = new RigidPose(new Vector3(0f, config.GroundHeight - 0.05f * _modelScale, 0f));
+        var groundPose = new RigidPose(new Vector3(0f, _config.GroundHeight - 0.05f * _modelScale, 0f));
         var groundDesc = new StaticDescription(
             groundPose.Position,
             groundPose.Orientation,
             groundShape,
             ContinuousDetection.Discrete);
         var groundHandle = _simulation.Statics.Add(groundDesc);
-        _staticMaterialMap[groundHandle] = new Material(config.Friction, config.MaxRecoveryVelocity);
+        _staticMaterialMap[groundHandle] = new Material(_config.Friction, _config.MaxRecoveryVelocity);
         _staticFilterMap[groundHandle] = new SubgroupCollisionFilter(uint.MaxValue, uint.MaxValue);
 
         _cloth.Gravity = gravity;
-        _cloth.Damping = damping; // 1 秒基準のダンピング
-        _cloth.GroundHeight = config.GroundHeight;
-        _cloth.Restitution = config.Restitution;
-        _cloth.Friction = config.Friction;
-        _cloth.LockTranslation = config.LockTranslation;
-        _cloth.Substeps = config.SubstepCount;
+        _cloth.Damping = _config.Damping; // 1 秒基準のダンピング
+        _cloth.GroundHeight = _config.GroundHeight;
+        _cloth.Restitution = _config.Restitution;
+        _cloth.Friction = _config.Friction;
+        _cloth.LockTranslation = _config.LockTranslation;
+        _cloth.Substeps = _config.SubstepCount;
     }
 
     public void Step(float dt)
