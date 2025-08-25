@@ -44,11 +44,29 @@ public class ClothSimulator
 
     public void AddSphereCollider(Vector3 center, float radius)
     {
+        if (radius <= 0f)
+        {
+            _logger.LogWarning("SphereCollider の radius は 0 より大きい必要があります。入力値 {Radius} を無視します。", radius);
+            return;
+        }
+
         SphereColliders.Add(new SphereCollider { Center = center, Radius = radius });
     }
 
     public void AddCapsuleCollider(Vector3 pointA, Vector3 pointB, float radius)
     {
+        if (radius <= 0f)
+        {
+            _logger.LogWarning("CapsuleCollider の radius は 0 より大きい必要があります。入力値 {Radius} を無視します。", radius);
+            return;
+        }
+
+        if (pointA == pointB)
+        {
+            _logger.LogWarning("CapsuleCollider の pointA と pointB が同一点です。入力を無視します。");
+            return;
+        }
+
         CapsuleColliders.Add(new CapsuleCollider { PointA = pointA, PointB = pointB, Radius = radius });
     }
 
