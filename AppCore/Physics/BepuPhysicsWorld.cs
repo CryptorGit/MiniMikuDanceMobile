@@ -597,6 +597,11 @@ public sealed class BepuPhysicsWorld : IPhysicsWorld
         for (int i = 0; i < model.RigidBodies.Count; i++)
         {
             var rb = model.RigidBodies[i];
+            if (rb.Group > 15)
+            {
+                _logger.LogWarning("剛体グループが範囲外 ({Group}) のため 15 に補正しました: {Index}:{Name}", rb.Group, i, rb.Name);
+                rb.Group = 15;
+            }
             if (!IsValidRigidBody(rb))
             {
                 _logger.LogWarning("異常値の剛体をスキップ: {Index}:{Name}", i, rb.Name);
