@@ -49,7 +49,6 @@ public sealed class SimplePhysicsWorld : IPhysicsWorld
                 Name = j.Name,
                 RigidBodyA = j.RigidBodyA,
                 RigidBodyB = j.RigidBodyB,
-                Position = j.Position,
                 Rotation = j.Rotation,
                 PositionMin = j.PositionMin,
                 PositionMax = j.PositionMax,
@@ -58,6 +57,20 @@ public sealed class SimplePhysicsWorld : IPhysicsWorld
                 SpringPosition = j.SpringPosition,
                 SpringRotation = j.SpringRotation
             };
+            if (joint.RigidBodyA >= 0 && joint.RigidBodyA < model.RigidBodies.Count)
+            {
+                var rbA = model.RigidBodies[joint.RigidBodyA];
+                var rotA = Matrix4x4.CreateFromYawPitchRoll(rbA.Rotation.Y, rbA.Rotation.X, rbA.Rotation.Z);
+                Matrix4x4.Invert(rotA, out var invRotA);
+                joint.AnchorA = Vector3.Transform(j.Position - rbA.Position, invRotA);
+            }
+            if (joint.RigidBodyB >= 0 && joint.RigidBodyB < model.RigidBodies.Count)
+            {
+                var rbB = model.RigidBodies[joint.RigidBodyB];
+                var rotB = Matrix4x4.CreateFromYawPitchRoll(rbB.Rotation.Y, rbB.Rotation.X, rbB.Rotation.Z);
+                Matrix4x4.Invert(rotB, out var invRotB);
+                joint.AnchorB = Vector3.Transform(j.Position - rbB.Position, invRotB);
+            }
             Joints.Add(joint);
             if (joint.RigidBodyA >= 0 && joint.RigidBodyA < RigidBodies.Count)
             {
@@ -241,17 +254,17 @@ public sealed class SimplePhysicsWorld : IPhysicsWorld
 
         var a = RigidBodies[joint.RigidBodyA];
         var b = RigidBodies[joint.RigidBodyB];
-        var current = b.Position - a.Position;
-        var error = current - joint.Position;
-        var relVel = b.Velocity - a.Velocity;
+        var current = (a.Position + joint.AnchorA) - (b.Position + joint.AnchorB);
+        var error = current;
+        var relVel = a.Velocity - b.Velocity;
         var force = error * joint.SpringPosition - relVel * joint.SpringPosition;
         if (a.PhysicsType != RigidBodyPhysicsType.FollowBone && a.Mass > 0f)
         {
-            a.Velocity += force / a.Mass * dt;
+            a.Velocity -= force / a.Mass * dt;
         }
         if (b.PhysicsType != RigidBodyPhysicsType.FollowBone && b.Mass > 0f)
         {
-            b.Velocity -= force / b.Mass * dt;
+            b.Velocity += force / b.Mass * dt;
         }
 
         var rotError = (b.Rotation - a.Rotation) - joint.Rotation;
