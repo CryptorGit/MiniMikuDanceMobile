@@ -36,6 +36,7 @@ public sealed class BepuPhysicsWorld : IPhysicsWorld
     private readonly Dictionary<StaticHandle, SubgroupCollisionFilter> _staticFilterMap = new();
     private readonly ClothSimulator _cloth;
     private readonly Dictionary<int, (Vector3 Pos, Quaternion Rot)> _prevBonePoses = new();
+    private readonly Dictionary<BodyHandle, BodyInertia> _originalInertiaMap = new();
     private bool _skipSimulation;
     private PhysicsConfig _config = new() { LockTranslation = false };
     private float _modelScale = 1f;
@@ -49,8 +50,18 @@ public sealed class BepuPhysicsWorld : IPhysicsWorld
         get => _config.LockTranslation;
         set
         {
+            var wasLocked = _config.LockTranslation;
             _config.LockTranslation = value;
             _cloth.LockTranslation = value;
+            if (!value && wasLocked && _simulation is not null)
+            {
+                foreach (var pair in _originalInertiaMap)
+                {
+                    var body = _simulation.Bodies.GetBodyReference(pair.Key);
+                    body.LocalInertia = pair.Value;
+                }
+                _originalInertiaMap.Clear();
+            }
         }
     }
 
@@ -256,6 +267,8 @@ public sealed class BepuPhysicsWorld : IPhysicsWorld
                 body.Pose.Orientation = initPose.Rot;
                 body.Velocity.Linear = Vector3.Zero;
                 body.Velocity.Angular = Vector3.Zero;
+                if (!_originalInertiaMap.ContainsKey(handle))
+                    _originalInertiaMap[handle] = body.LocalInertia;
                 body.LocalInertia = default;
                 _prevBonePoses[info.Bone] = initPose;
                 continue;
@@ -528,6 +541,7 @@ public sealed class BepuPhysicsWorld : IPhysicsWorld
         _threadDispatcher = null;
         _staticMaterialMap.Clear();
         _staticFilterMap.Clear();
+        _originalInertiaMap.Clear();
     }
 
     public void LoadRigidBodies(ModelData model)
@@ -548,6 +562,7 @@ public sealed class BepuPhysicsWorld : IPhysicsWorld
         _bodyFilterMap.Clear();
         _dampingMap.Clear();
         _prevBonePoses.Clear();
+        _originalInertiaMap.Clear();
 
         var processed = 0;
         for (int i = 0; i < model.RigidBodies.Count; i++)
