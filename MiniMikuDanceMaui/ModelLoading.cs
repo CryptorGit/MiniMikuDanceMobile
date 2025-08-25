@@ -113,6 +113,13 @@ public partial class MainPage
                 }
                 _renderer.LoadModel(data);
                 _currentModel = data;
+                _scene.Bones.Clear();
+                _scene.Bones.AddRange(data.Bones);
+                if (_physics is SimplePhysicsWorld spw && _settings.EnablePhysics)
+                {
+                    spw.Load(data);
+                    spw.Initialize(_modelScale);
+                }
                 WritePhysicsLog(_currentModel);
                 UpdateRendererLightingProperties();
                 Viewer?.InvalidateSurface();
@@ -383,7 +390,11 @@ public partial class MainPage
             UpdateRendererLightingProperties();
             _scene.Bones.Clear();
             _scene.Bones.AddRange(_currentModel.Bones);
-            // 物理エンジン未実装のため処理なし
+            if (_physics is SimplePhysicsWorld spw && _settings.EnablePhysics)
+            {
+                spw.Load(_currentModel);
+                spw.Initialize(_modelScale);
+            }
 
             if (_poseMode && _currentModel != null)
             {

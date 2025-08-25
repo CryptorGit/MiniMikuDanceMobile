@@ -14,3 +14,5 @@
 - [x] Type2剛体のシミュレーション結果をボーン姿勢に書き戻す処理を実装する。
 - [ ] 速度減衰やBoneBlendFactorなど細かなパラメータ対応を検討する。
 - [ ] ジョイントの回転・移動制限(PositionMin/Max, RotationMin/Max)への対応。
+- [ ] Physics無効時にステップ処理をスキップする仕組みを導入する。
+- [ ] 読み込んだ剛体の未使用パラメータ(BoneBlendFactor等)に対応する。

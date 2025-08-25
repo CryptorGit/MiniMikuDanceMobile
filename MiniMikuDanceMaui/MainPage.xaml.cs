@@ -44,7 +44,7 @@ public partial class MainPage : ContentPage
     private bool _poseMode;
     private bool _glInitialized;
     private readonly Scene _scene = new();
-    private IPhysicsWorld _physics = new NullPhysicsWorld();
+    private IPhysicsWorld _physics = new SimplePhysicsWorld();
     private readonly object _physicsLock = new();
     private DateTime _lastFrameTime = DateTime.UtcNow;
     private readonly Dictionary<long, SKPoint> _touchPoints = new();
@@ -85,7 +85,7 @@ public partial class MainPage : ContentPage
 
     private PhysicsState BuildPhysicsState(bool enabled)
     {
-        var physics = new NullPhysicsWorld();
+        var physics = new SimplePhysicsWorld();
         if (enabled)
         {
             physics.Initialize(_modelScale);
@@ -340,7 +340,7 @@ public partial class MainPage : ContentPage
     protected override void OnDisappearing()
     {
         base.OnDisappearing();
-        SetPhysicsWorld(new NullPhysicsWorld());
+        SetPhysicsWorld(new SimplePhysicsWorld());
     }
 
     private void OnSizeChanged(object? sender, EventArgs e) => UpdateLayout();
