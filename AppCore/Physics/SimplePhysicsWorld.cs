@@ -17,7 +17,8 @@ public sealed class SimplePhysicsWorld : IPhysicsWorld
         RigidBodies.Clear();
         foreach (var rb in model.RigidBodies)
         {
-            var (mass, inertia) = PhysicsHelper.Compute(rb.Shape, rb.Size, rb.Mass);
+            var mass = rb.Mass;
+            var inertia = PhysicsHelper.ComputeInertiaFromMass(rb.Shape, rb.Size, mass);
             RigidBodies.Add(new RigidBody
             {
                 Name = rb.Name,

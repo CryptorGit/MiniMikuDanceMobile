@@ -6,6 +6,11 @@ namespace MiniMikuDance.Physics;
 
 public static class PhysicsHelper
 {
+    /// <summary>
+    /// Compute mass and inertia tensor from density.
+    /// Use this only when the material density is known.
+    /// If the mass is already given, call <see cref="ComputeInertiaFromMass"/> instead.
+    /// </summary>
     public static (float mass, Vector3 inertia) Compute(RigidBodyShape shape, Vector3 size, float density)
     {
         var mass = shape switch
@@ -18,6 +23,12 @@ public static class PhysicsHelper
         var inertia = ComputeInertia(shape, size, mass);
         return (mass, inertia);
     }
+
+    /// <summary>
+    /// Compute only the inertia tensor from mass.
+    /// </summary>
+    public static Vector3 ComputeInertiaFromMass(RigidBodyShape shape, Vector3 size, float mass)
+        => ComputeInertia(shape, size, mass);
 
     public static Vector3 ComputeInertia(RigidBodyShape shape, Vector3 size, float mass)
         => shape switch
