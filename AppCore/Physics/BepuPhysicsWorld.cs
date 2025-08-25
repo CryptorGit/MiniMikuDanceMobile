@@ -92,7 +92,7 @@ public sealed class BepuPhysicsWorld : IPhysicsWorld
             _logger.LogWarning("SolverIterationCount が 0 以下のため、1 に補正しました。");
             solverIterationCount = 1;
         }
-        _config = new PhysicsConfig(gravity, solverIterationCount, substepCount, config.Damping, config.BoneBlendFactor, config.GroundHeight, config.Restitution, config.Friction, config.LockTranslation, config.MaxThreadCount);
+        _config = new PhysicsConfig(gravity, solverIterationCount, substepCount, config.Damping, config.BoneBlendFactor, config.GroundHeight, config.MaxRecoveryVelocity, config.Friction, config.LockTranslation, config.MaxThreadCount);
         BoneBlendFactor = config.BoneBlendFactor;
         _bufferPool = new BufferPool();
         _threadDispatcher?.Dispose();
@@ -121,13 +121,13 @@ public sealed class BepuPhysicsWorld : IPhysicsWorld
             groundShape,
             ContinuousDetection.Discrete);
         var groundHandle = _simulation.Statics.Add(groundDesc);
-        _staticMaterialMap[groundHandle] = new Material(config.Restitution, config.Friction);
+        _staticMaterialMap[groundHandle] = new Material(config.Friction, ConvertRestitutionToMaxRecovery(config.MaxRecoveryVelocity));
         _staticFilterMap[groundHandle] = new SubgroupCollisionFilter(uint.MaxValue, uint.MaxValue);
 
         _cloth.Gravity = gravity;
         _cloth.Damping = config.Damping; // 1 秒基準のダンピング
         _cloth.GroundHeight = config.GroundHeight;
-        _cloth.Restitution = config.Restitution;
+        _cloth.Restitution = config.MaxRecoveryVelocity;
         _cloth.Friction = config.Friction;
         _cloth.LockTranslation = config.LockTranslation;
         _cloth.Substeps = config.SubstepCount;
@@ -149,7 +149,7 @@ public sealed class BepuPhysicsWorld : IPhysicsWorld
         _cloth.Gravity = _config.Gravity;
         _cloth.Damping = _config.Damping;
         _cloth.GroundHeight = _config.GroundHeight;
-        _cloth.Restitution = _config.Restitution;
+        _cloth.Restitution = _config.MaxRecoveryVelocity;
         _cloth.Friction = _config.Friction;
         _cloth.LockTranslation = _config.LockTranslation;
         _cloth.Substeps = _config.SubstepCount;
@@ -602,7 +602,7 @@ public sealed class BepuPhysicsWorld : IPhysicsWorld
             var handle = _simulation.Bodies.Add(bodyDesc);
             _rigidBodyHandles.Add(handle);
             _bodyBoneMap[handle] = (rb.BoneIndex, rb.Mode);
-            _materialMap[handle] = new Material(rb.Restitution, rb.Friction);
+            _materialMap[handle] = new Material(rb.Friction, ConvertRestitutionToMaxRecovery(rb.Restitution));
             _bodyFilterMap[handle] = filter;
             if (rb.LinearDamping != _config.Damping || rb.AngularDamping != _config.Damping)
                 _dampingMap[handle] = (rb.LinearDamping, rb.AngularDamping);
@@ -955,6 +955,11 @@ public sealed class BepuPhysicsWorld : IPhysicsWorld
         return diff > 32 && diff > bodyCount / 2;
     }
 
+    private static float ConvertRestitutionToMaxRecovery(float restitution)
+    {
+        return MathF.Clamp(restitution, 0f, 1f) * 10f;
+    }
+
     private static void AppendCrashLog(string message, Exception? ex = null)
     {
         try
@@ -1060,13 +1065,13 @@ public sealed class BepuPhysicsWorld : IPhysicsWorld
 
     private struct Material
     {
-        public float MaximumRecoveryVelocity;
         public float Friction;
+        public float MaximumRecoveryVelocity;
 
-        public Material(float maximumRecoveryVelocity, float friction)
+        public Material(float friction, float maximumRecoveryVelocity)
         {
-            MaximumRecoveryVelocity = maximumRecoveryVelocity;
             Friction = friction;
+            MaximumRecoveryVelocity = maximumRecoveryVelocity;
         }
     }
 
