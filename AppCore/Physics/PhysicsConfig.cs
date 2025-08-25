@@ -30,18 +30,18 @@ public struct PhysicsConfig
         set => restitution = Math.Clamp(value, 0f, 1f);
     }
 
-    private float maxRecoveryVelocity;
-    /// <summary>衝突解決時の最大反発速度 (m/s)。</summary>
-    public float MaxRecoveryVelocity
+    private float restitutionRecoveryScale;
+    /// <summary>Restitution から最大反発速度を計算する際のスケール係数 (m/s)。</summary>
+    public float RestitutionRecoveryScale
     {
-        readonly get => maxRecoveryVelocity;
+        readonly get => restitutionRecoveryScale;
         set
         {
             const float MaxLimit = 100f;
             var clamped = Math.Clamp(value, 0f, MaxLimit);
             if (clamped != value)
-                _logger?.LogWarning("MaxRecoveryVelocity は 0～{Limit} の範囲に収めてください。入力値 {Value} を {Clamped} に補正します。", value, clamped, MaxLimit);
-            maxRecoveryVelocity = clamped;
+                _logger?.LogWarning("RestitutionRecoveryScale は 0～{Limit} の範囲に収めてください。入力値 {Value} を {Clamped} に補正します。", value, clamped, MaxLimit);
+            restitutionRecoveryScale = clamped;
         }
     }
 
@@ -61,7 +61,7 @@ public struct PhysicsConfig
     public bool LockTranslation { get; set; } = false;
     public int MaxThreadCount { get; set; }
 
-    public PhysicsConfig(Vector3 gravity, int solverIterationCount, int substepCount, float damping = 0.98f, float boneBlendFactor = 0.5f, float groundHeight = 0f, float restitution = 0.2f, float maxRecoveryVelocity = 0.2f, float friction = 0.5f, bool lockTranslation = false, int maxThreadCount = 4, ILogger? logger = null)
+    public PhysicsConfig(Vector3 gravity, int solverIterationCount, int substepCount, float damping = 0.98f, float boneBlendFactor = 0.5f, float groundHeight = 0f, float restitution = 0.2f, float restitutionRecoveryScale = 0.2f, float friction = 0.5f, bool lockTranslation = false, int maxThreadCount = 4, ILogger? logger = null)
     {
         Gravity = gravity;
         SolverIterationCount = solverIterationCount;
@@ -71,7 +71,7 @@ public struct PhysicsConfig
         BoneBlendFactor = boneBlendFactor;
         GroundHeight = groundHeight;
         Restitution = restitution;
-        MaxRecoveryVelocity = maxRecoveryVelocity;
+        RestitutionRecoveryScale = restitutionRecoveryScale;
         Friction = friction;
         LockTranslation = lockTranslation;
         MaxThreadCount = maxThreadCount;

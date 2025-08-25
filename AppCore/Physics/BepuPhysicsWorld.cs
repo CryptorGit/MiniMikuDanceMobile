@@ -104,7 +104,7 @@ public sealed class BepuPhysicsWorld : IPhysicsWorld
             solverIterationCount = 1;
         }
 
-        _config = new PhysicsConfig(gravity, solverIterationCount, substepCount, config.Damping, config.BoneBlendFactor, config.GroundHeight, config.Restitution, config.MaxRecoveryVelocity, config.Friction, config.LockTranslation, config.MaxThreadCount);
+        _config = new PhysicsConfig(gravity, solverIterationCount, substepCount, config.Damping, config.BoneBlendFactor, config.GroundHeight, config.Restitution, config.RestitutionRecoveryScale, config.Friction, config.LockTranslation, config.MaxThreadCount);
         BoneBlendFactor = _config.BoneBlendFactor;
         _bufferPool = new BufferPool();
         _threadDispatcher?.Dispose();
@@ -133,7 +133,8 @@ public sealed class BepuPhysicsWorld : IPhysicsWorld
             groundShape,
             ContinuousDetection.Discrete);
         var groundHandle = _simulation.Statics.Add(groundDesc);
-        _staticMaterialMap[groundHandle] = new Material(_config.Friction, _config.MaxRecoveryVelocity);
+        var groundMaxRecovery = ComputeMaxRecoveryVelocity(_config.Restitution, _config.RestitutionRecoveryScale);
+        _staticMaterialMap[groundHandle] = new Material(_config.Friction, groundMaxRecovery);
         _staticFilterMap[groundHandle] = new SubgroupCollisionFilter(uint.MaxValue, uint.MaxValue);
 
         _cloth.Gravity = gravity;
@@ -618,7 +619,8 @@ public sealed class BepuPhysicsWorld : IPhysicsWorld
             var handle = _simulation.Bodies.Add(bodyDesc);
             _rigidBodyHandles.Add(handle);
             _bodyBoneMap[handle] = (rb.BoneIndex, rb.Mode);
-            _materialMap[handle] = new Material(rb.Friction, _config.MaxRecoveryVelocity);
+            var maxRecovery = ComputeMaxRecoveryVelocity(rb.Restitution, _config.RestitutionRecoveryScale);
+            _materialMap[handle] = new Material(rb.Friction, maxRecovery);
             _bodyFilterMap[handle] = filter;
             if (rb.LinearDamping != _config.Damping || rb.AngularDamping != _config.Damping)
                 _dampingMap[handle] = (rb.LinearDamping, rb.AngularDamping);
@@ -966,6 +968,14 @@ public sealed class BepuPhysicsWorld : IPhysicsWorld
     {
         var diff = Math.Abs(bodyCount - leafCount);
         return diff > 32 && diff > bodyCount / 2;
+    }
+
+    /// <summary>
+    /// Restitution (0～1) から最大反発速度を算出する。
+    /// </summary>
+    private static float ComputeMaxRecoveryVelocity(float restitution, float scale)
+    {
+        return Math.Clamp(restitution, 0f, 1f) * scale;
     }
 
     private static void AppendCrashLog(string message, Exception? ex = null)
