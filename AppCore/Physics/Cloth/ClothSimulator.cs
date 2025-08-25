@@ -2,6 +2,8 @@ using System;
 using System.Collections.Generic;
 using System.Numerics;
 using MiniMikuDance.App;
+using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Logging.Abstractions;
 
 namespace MiniMikuDance.Physics.Cloth;
 
@@ -26,6 +28,13 @@ public class ClothSimulator
 
     public List<SphereCollider> SphereColliders { get; } = new();
     public List<CapsuleCollider> CapsuleColliders { get; } = new();
+
+    private readonly ILogger _logger;
+
+    public ClothSimulator(ILogger? logger = null)
+    {
+        _logger = logger ?? NullLogger.Instance;
+    }
 
     public void ClearColliders()
     {
@@ -66,7 +75,13 @@ public class ClothSimulator
     public float Damping
     {
         get => _damping;
-        set => _damping = value;
+        set
+        {
+            var clamped = Math.Clamp(value, 0f, 1f);
+            if (clamped != value)
+                _logger.LogWarning("Damping は 0～1 の範囲に収めてください。入力値 {Value} を {Clamped} に補正します。", value, clamped);
+            _damping = clamped;
+        }
     }
 
     public float GroundHeight

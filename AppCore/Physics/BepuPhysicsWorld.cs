@@ -34,7 +34,7 @@ public sealed class BepuPhysicsWorld : IPhysicsWorld
     private readonly Dictionary<BodyHandle, (float Linear, float Angular)> _dampingMap = new();
     private readonly Dictionary<StaticHandle, Material> _staticMaterialMap = new();
     private readonly Dictionary<StaticHandle, SubgroupCollisionFilter> _staticFilterMap = new();
-    private readonly ClothSimulator _cloth = new();
+    private readonly ClothSimulator _cloth;
     private readonly Dictionary<int, (Vector3 Pos, Quaternion Rot)> _prevBonePoses = new();
     private bool _skipSimulation;
     private PhysicsConfig _config = new() { LockTranslation = false };
@@ -57,6 +57,7 @@ public sealed class BepuPhysicsWorld : IPhysicsWorld
     public BepuPhysicsWorld(ILogger? logger = null)
     {
         _logger = logger ?? NullLogger.Instance;
+        _cloth = new ClothSimulator(_logger);
     }
 
     /// <summary>
