@@ -49,8 +49,30 @@ public partial class MainPage : ContentPage
     private DateTime _lastFrameTime = DateTime.UtcNow;
     private readonly Dictionary<long, SKPoint> _touchPoints = new();
     private readonly long[] _touchIds = new long[2];
-    private bool _needsRender;
     private readonly IDispatcherTimer _renderTimer;
+    private bool _needsRenderValue;
+    private bool _needsRender
+    {
+        get => _needsRenderValue;
+        set
+        {
+            _needsRenderValue = value;
+            if (_renderTimer != null)
+            {
+                if (value)
+                {
+                    if (!_renderTimer.IsRunning)
+                    {
+                        _renderTimer.Start();
+                    }
+                }
+                else if (_renderTimer.IsRunning)
+                {
+                    _renderTimer.Stop();
+                }
+            }
+        }
+    }
     private int _renderTimerErrorCount;
     private Task? _physicsTask;
     private CancellationTokenSource _physicsCts = new();
@@ -213,8 +235,12 @@ public partial class MainPage : ContentPage
                 if (_needsRender)
                 {
                     Viewer?.InvalidateSurface();
+                    _renderTimerErrorCount = 0;
                 }
-                _renderTimerErrorCount = 0;
+                else
+                {
+                    _renderTimer.Stop();
+                }
             }
             catch (Exception ex)
             {
@@ -228,7 +254,6 @@ public partial class MainPage : ContentPage
                 }
             }
         };
-        _renderTimer.Start();
         _needsRender = true;
 
         if (SettingContent is SettingView setting)
