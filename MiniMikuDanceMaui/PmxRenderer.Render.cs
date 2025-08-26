@@ -8,7 +8,6 @@ using OpenTK.Graphics.ES30;
 using GL = OpenTK.Graphics.ES30.GL;
 using ErrorCode = OpenTK.Graphics.ES30.ErrorCode;
 using MiniMikuDance.Util;
-using MiniMikuDance.IK;
 using Vector2 = OpenTK.Mathematics.Vector2;
 using Vector3 = OpenTK.Mathematics.Vector3;
 using Vector4 = OpenTK.Mathematics.Vector4;
@@ -63,8 +62,8 @@ public partial class PmxRenderer
 
     private void DrawIkBones()
     {
-        IkBone[] iks;
-        UpdateIkBoneWorldPositions();
+        if (_bonesDirty)
+            UpdateIkBoneWorldPositions();
         lock (_ikBonesLock)
         {
             if (_ikBones.Count == 0)
@@ -193,8 +192,10 @@ public partial class PmxRenderer
         {
             if (_bones.Count > 0)
                 CpuSkinning();
+            bool bonesUpdated = _bonesDirty;
             UpdateVertexBuffers();
-            UpdateIkBoneWorldPositions();
+            if (bonesUpdated)
+                UpdateIkBoneWorldPositions();
         }
 
         DrawScene();
