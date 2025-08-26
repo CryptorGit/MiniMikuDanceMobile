@@ -509,9 +509,10 @@ public partial class MainPage : ContentPage
         }
         _renderer.Resize(e.BackendRenderTarget.Width, e.BackendRenderTarget.Height);
         _renderer.Render();
-#if DEBUG
-        GL.Flush();
-#endif
+        if (Debugger.IsAttached)
+        {
+            GL.Flush();
+        }
         _needsRender = false;
     }
 
