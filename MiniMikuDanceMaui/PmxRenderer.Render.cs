@@ -59,8 +59,6 @@ public partial class PmxRenderer
 
     private void DrawIkBones()
     {
-        UpdateIkBoneWorldPositions();
-
         IkBone[] iks;
         lock (_ikBonesLock)
         {
@@ -210,6 +208,7 @@ public partial class PmxRenderer
             if (_bones.Count > 0)
                 CpuSkinning();
             UpdateVertexBuffers();
+            UpdateIkBoneWorldPositions();
         }
 
         DrawScene();
@@ -280,8 +279,6 @@ public partial class PmxRenderer
 
         for (int i = 0; i < _bones.Count; i++)
             _skinMats[i] = _bones[i].InverseBindMatrix * _worldMats[i];
-
-        UpdateIkBoneWorldPositions();
 
         if (ShowBoneOutline)
         {
