@@ -725,6 +725,26 @@ public partial class PmxRenderer
         #if DEBUG
         if (!CheckGLError("GL.UniformMatrix4", $"loc={_modelMatrixLoc}")) return;
         #endif
+        GL.Uniform1(_modelSphereStrengthLoc, SphereStrength);
+        #if DEBUG
+        if (!CheckGLError("GL.Uniform1", $"loc={_modelSphereStrengthLoc}")) return;
+        #endif
+        GL.Uniform1(_modelToonStrengthLoc, ToonStrength);
+        #if DEBUG
+        if (!CheckGLError("GL.Uniform1", $"loc={_modelToonStrengthLoc}")) return;
+        #endif
+        GL.Uniform1(_modelTexLoc, 0);
+        #if DEBUG
+        if (!CheckGLError("GL.Uniform1", $"loc={_modelTexLoc}")) return;
+        #endif
+        GL.Uniform1(_modelSphereTexLoc, 1);
+        #if DEBUG
+        if (!CheckGLError("GL.Uniform1", $"loc={_modelSphereTexLoc}")) return;
+        #endif
+        GL.Uniform1(_modelToonTexLoc, 2);
+        #if DEBUG
+        if (!CheckGLError("GL.Uniform1", $"loc={_modelToonTexLoc}")) return;
+        #endif
         var meshes = _meshesArray;
         foreach (var rm in meshes)
         {
@@ -736,13 +756,10 @@ public partial class PmxRenderer
             GL.Uniform3(_modelToonColorLoc, rm.ToonColor);
             GL.Uniform4(_modelTexTintLoc, rm.TextureTint);
             GL.Uniform1(_modelSphereModeLoc, (int)rm.SphereMode);
-            GL.Uniform1(_modelSphereStrengthLoc, SphereStrength);
-            GL.Uniform1(_modelToonStrengthLoc, ToonStrength);
             if (rm.HasTexture)
             {
                 GL.ActiveTexture(TextureUnit.Texture0);
                 GL.BindTexture(TextureTarget.Texture2D, rm.Texture);
-                GL.Uniform1(_modelTexLoc, 0);
                 GL.Uniform1(_modelUseTexLoc, 1);
             }
             else
@@ -753,7 +770,6 @@ public partial class PmxRenderer
             {
                 GL.ActiveTexture(TextureUnit.Texture1);
                 GL.BindTexture(TextureTarget.Texture2D, rm.SphereTexture);
-                GL.Uniform1(_modelSphereTexLoc, 1);
                 GL.Uniform1(_modelUseSphereTexLoc, 1);
             }
             else
@@ -764,7 +780,6 @@ public partial class PmxRenderer
             {
                 GL.ActiveTexture(TextureUnit.Texture2);
                 GL.BindTexture(TextureTarget.Texture2D, rm.ToonTexture);
-                GL.Uniform1(_modelToonTexLoc, 2);
                 GL.Uniform1(_modelUseToonTexLoc, 1);
             }
             else
