@@ -60,6 +60,7 @@ public partial class PmxRenderer : IDisposable
     }
     private readonly System.Collections.Generic.List<RenderMesh> _meshes = new();
     private readonly object _meshesLock = new();
+    private RenderMesh[] _meshesArray = Array.Empty<RenderMesh>();
     private readonly Dictionary<string, MorphData> _morphs = new(StringComparer.OrdinalIgnoreCase);
     private readonly Dictionary<MorphCategory, List<MorphData>> _morphsByCategory = new();
     private readonly Dictionary<string, float> _morphValues = new(StringComparer.OrdinalIgnoreCase);
@@ -1572,8 +1573,9 @@ void main(){
         RenderMesh[] oldMeshes;
         lock (_meshesLock)
         {
-            oldMeshes = _meshes.ToArray();
+            oldMeshes = _meshesArray;
             _meshes.Clear();
+            _meshesArray = Array.Empty<RenderMesh>();
         }
         foreach (var rm in oldMeshes)
         {
@@ -1651,7 +1653,10 @@ void main(){
         }
 
         lock (_meshesLock)
+        {
             _meshes.AddRange(newMeshes);
+            _meshesArray = _meshes.ToArray();
+        }
 
         _morphs.Clear();
         _morphsByCategory.Clear();
@@ -1748,9 +1753,7 @@ void main(){
             list.Add(i);
         }
 
-        RenderMesh[] meshesSnapshot;
-        lock (_meshesLock)
-            meshesSnapshot = _meshes.ToArray();
+        var meshesSnapshot = _meshesArray;
         foreach (var rm in meshesSnapshot)
         {
             for (int i = 0; i < rm.BaseVertices.Length; i++)
@@ -1861,8 +1864,9 @@ void main(){
         RenderMesh[] meshes;
         lock (_meshesLock)
         {
-            meshes = _meshes.ToArray();
+            meshes = _meshesArray;
             _meshes.Clear();
+            _meshesArray = Array.Empty<RenderMesh>();
         }
         foreach (var rm in meshes)
         {
