@@ -440,6 +440,8 @@ public partial class MainPage : ContentPage
 
     private void OnPaintSurface(object? sender, SKPaintGLSurfaceEventArgs e)
     {
+        var physicsEnabled = _physics is not NullPhysicsWorld;
+
         if (!_glInitialized)
         {
             GL.LoadBindings(new SKGLViewBindingsContext());
@@ -451,7 +453,7 @@ public partial class MainPage : ContentPage
         var now = DateTime.UtcNow;
         float dt = (float)(now - _lastFrameTime).TotalSeconds;
         _lastFrameTime = now;
-        if (_physicsTask == null || _physicsTask.IsCompleted)
+        if (physicsEnabled && (_physicsTask == null || _physicsTask.IsCompleted))
         {
             var physics = _physics;
             var token = _physicsCts.Token;
