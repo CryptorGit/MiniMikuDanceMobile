@@ -560,6 +560,7 @@ public partial class MainPage : ContentPage
         }
         e.Handled = true;
         _needsRender = true;
+        Viewer?.InvalidateSurface();
     }
 
     private void HandlePoseTouch(SKTouchEventArgs e)
