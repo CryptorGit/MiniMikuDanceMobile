@@ -337,9 +337,7 @@ public partial class PmxRenderer
             }
         }
 
-        RenderMesh[] meshes;
-        lock (_meshesLock)
-            meshes = _meshes.ToArray();
+        var meshes = _meshesArray;
 
         if (_bones.Count > 0)
         {
@@ -740,9 +738,7 @@ public partial class PmxRenderer
         #if DEBUG
         if (!CheckGLError("GL.UniformMatrix4", $"loc={_modelMatrixLoc}")) return;
         #endif
-        RenderMesh[] meshes;
-        lock (_meshesLock)
-            meshes = _meshes.ToArray();
+        var meshes = _meshesArray;
         foreach (var rm in meshes)
         {
             GL.Uniform4(_modelColorLoc, rm.Color);

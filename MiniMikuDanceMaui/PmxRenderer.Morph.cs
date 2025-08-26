@@ -50,9 +50,7 @@ public partial class PmxRenderer
 
     private void RecalculateMaterialMorphs()
     {
-        RenderMesh[] meshes;
-        lock (_meshesLock)
-            meshes = _meshes.ToArray();
+        var meshes = _meshesArray;
         foreach (var rm in meshes)
         {
             rm.Color = rm.BaseColor;
