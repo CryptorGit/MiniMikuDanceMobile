@@ -60,58 +60,60 @@ public partial class PmxRenderer
     private void DrawIkBones()
     {
         IkBone[] iks;
+        UpdateIkBoneWorldPositions();
         lock (_ikBonesLock)
         {
             if (_ikBones.Count == 0)
                 return;
-            iks = _ikBones.ToArray();
+
+            EnsureIkBoneMesh();
+
+            GL.Disable(EnableCap.DepthTest);
+            #if DEBUG
+            if (!CheckGLError("GL.Disable", $"cap={EnableCap.DepthTest}")) return;
+            #endif
+            GL.Uniform1(_pointSizeLoc, 1f);
+            #if DEBUG
+            if (!CheckGLError("GL.Uniform1", $"loc={_pointSizeLoc}")) return;
+            #endif
+
+            GL.BindVertexArray(_ikBoneVao);
+            #if DEBUG
+            if (!CheckGLError("GL.BindVertexArray", $"vao={_ikBoneVao}")) return;
+            #endif
+
+            var span = CollectionsMarshal.AsSpan(_ikBones);
+            for (int i = 0; i < span.Length; i++)
+            {
+                var ik = span[i];
+                var worldPos = ik.Position.ToOpenTK();
+                float scale = _ikBoneScale * _distance;
+                if (ik.IsSelected)
+                    scale *= 1.4f;
+                var mat = Matrix4.CreateScale(scale) * Matrix4.CreateTranslation(worldPos);
+                GL.UniformMatrix4(_modelLoc, false, ref mat);
+                #if DEBUG
+                if (!CheckGLError("GL.UniformMatrix4", $"loc={_modelLoc}")) return;
+                #endif
+                var color = ik.IsSelected ? new Vector4(1f, 0f, 0f, 1f) : new Vector4(0f, 1f, 0f, 1f);
+                GL.Uniform4(_colorLoc, color);
+                #if DEBUG
+                if (!CheckGLError("GL.Uniform4", $"loc={_colorLoc}")) return;
+                #endif
+                GL.DrawElements(PrimitiveType.Triangles, _ikBoneIndexCount, DrawElementsType.UnsignedShort, 0);
+                #if DEBUG
+                if (!CheckGLError("GL.DrawElements", $"count={_ikBoneIndexCount}")) return;
+                #endif
+            }
+            GL.BindVertexArray(0);
+            #if DEBUG
+            if (!CheckGLError("GL.BindVertexArray", "vao=0")) return;
+            #endif
+            GL.Enable(EnableCap.DepthTest);
+            #if DEBUG
+            if (!CheckGLError("GL.Enable", $"cap={EnableCap.DepthTest}")) return;
+            #endif
         }
-
-        EnsureIkBoneMesh();
-
-        GL.Disable(EnableCap.DepthTest);
-        #if DEBUG
-        if (!CheckGLError("GL.Disable", $"cap={EnableCap.DepthTest}")) return;
-        #endif
-        GL.Uniform1(_pointSizeLoc, 1f);
-        #if DEBUG
-        if (!CheckGLError("GL.Uniform1", $"loc={_pointSizeLoc}")) return;
-        #endif
-
-        GL.BindVertexArray(_ikBoneVao);
-        #if DEBUG
-        if (!CheckGLError("GL.BindVertexArray", $"vao={_ikBoneVao}")) return;
-        #endif
-        for (int i = 0; i < iks.Length; i++)
-        {
-            var ik = iks[i];
-            var worldPos = ik.Position.ToOpenTK();
-            float scale = _ikBoneScale * _distance;
-            if (ik.IsSelected)
-                scale *= 1.4f;
-            var mat = Matrix4.CreateScale(scale) * Matrix4.CreateTranslation(worldPos);
-            GL.UniformMatrix4(_modelLoc, false, ref mat);
-            #if DEBUG
-            if (!CheckGLError("GL.UniformMatrix4", $"loc={_modelLoc}")) return;
-            #endif
-            var color = ik.IsSelected ? new Vector4(1f, 0f, 0f, 1f) : new Vector4(0f, 1f, 0f, 1f);
-            GL.Uniform4(_colorLoc, color);
-            #if DEBUG
-            if (!CheckGLError("GL.Uniform4", $"loc={_colorLoc}")) return;
-            #endif
-            GL.DrawElements(PrimitiveType.Triangles, _ikBoneIndexCount, DrawElementsType.UnsignedShort, 0);
-            #if DEBUG
-            if (!CheckGLError("GL.DrawElements", $"count={_ikBoneIndexCount}")) return;
-            #endif
-        }
-        GL.BindVertexArray(0);
-        #if DEBUG
-        if (!CheckGLError("GL.BindVertexArray", "vao=0")) return;
-        #endif
-        GL.Enable(EnableCap.DepthTest);
-        #if DEBUG
-        if (!CheckGLError("GL.Enable", $"cap={EnableCap.DepthTest}")) return;
-        #endif
     }
 
     private void DrawBoneMarkers()
@@ -132,13 +134,11 @@ public partial class PmxRenderer
         if (!CheckGLError("GL.Uniform1", $"loc={_pointSizeLoc}")) return;
         #endif
 
-        HashSet<int> ikIndices;
-        lock (_ikBonesLock)
-            ikIndices = new HashSet<int>(_ikBoneIndices);
-
         for (int i = 0; i < _bones.Count; i++)
         {
-            bool isIk = ikIndices.Contains(i);
+            bool isIk;
+            lock (_ikBonesLock)
+                isIk = _ikBoneIndices.Contains(i);
             if (isIk && ShowIkBones)
                 continue;
 
