@@ -18,8 +18,12 @@ namespace MiniMikuDanceMaui;
 public partial class PmxRenderer
 {
 #if DEBUG
+    public static bool EnableGlErrorCheck { get; set; }
+
     private static bool CheckGLError(string api, string details = "")
     {
+        if (!EnableGlErrorCheck)
+            return true;
         var error = GL.GetError();
         if (error == ErrorCode.NoError)
             return true;
@@ -70,16 +74,16 @@ public partial class PmxRenderer
 
             GL.Disable(EnableCap.DepthTest);
             #if DEBUG
-            if (!CheckGLError("GL.Disable", $"cap={EnableCap.DepthTest}")) return;
+            if (EnableGlErrorCheck && !CheckGLError("GL.Disable", $"cap={EnableCap.DepthTest}")) return;
             #endif
             GL.Uniform1(_pointSizeLoc, 1f);
             #if DEBUG
-            if (!CheckGLError("GL.Uniform1", $"loc={_pointSizeLoc}")) return;
+            if (EnableGlErrorCheck && !CheckGLError("GL.Uniform1", $"loc={_pointSizeLoc}")) return;
             #endif
 
             GL.BindVertexArray(_ikBoneVao);
             #if DEBUG
-            if (!CheckGLError("GL.BindVertexArray", $"vao={_ikBoneVao}")) return;
+            if (EnableGlErrorCheck && !CheckGLError("GL.BindVertexArray", $"vao={_ikBoneVao}")) return;
             #endif
 
             var span = CollectionsMarshal.AsSpan(_ikBones);
@@ -92,26 +96,20 @@ public partial class PmxRenderer
                     scale *= 1.4f;
                 var mat = Matrix4.CreateScale(scale) * Matrix4.CreateTranslation(worldPos);
                 GL.UniformMatrix4(_modelLoc, false, ref mat);
-                #if DEBUG
-                if (!CheckGLError("GL.UniformMatrix4", $"loc={_modelLoc}")) return;
-                #endif
                 var color = ik.IsSelected ? new Vector4(1f, 0f, 0f, 1f) : new Vector4(0f, 1f, 0f, 1f);
                 GL.Uniform4(_colorLoc, color);
-                #if DEBUG
-                if (!CheckGLError("GL.Uniform4", $"loc={_colorLoc}")) return;
-                #endif
                 GL.DrawElements(PrimitiveType.Triangles, _ikBoneIndexCount, DrawElementsType.UnsignedShort, 0);
                 #if DEBUG
-                if (!CheckGLError("GL.DrawElements", $"count={_ikBoneIndexCount}")) return;
+                if (EnableGlErrorCheck && !CheckGLError("GL.DrawElements", $"count={_ikBoneIndexCount}")) return;
                 #endif
             }
             GL.BindVertexArray(0);
             #if DEBUG
-            if (!CheckGLError("GL.BindVertexArray", "vao=0")) return;
+            if (EnableGlErrorCheck && !CheckGLError("GL.BindVertexArray", "vao=0")) return;
             #endif
             GL.Enable(EnableCap.DepthTest);
             #if DEBUG
-            if (!CheckGLError("GL.Enable", $"cap={EnableCap.DepthTest}")) return;
+            if (EnableGlErrorCheck && !CheckGLError("GL.Enable", $"cap={EnableCap.DepthTest}")) return;
             #endif
         }
     }
@@ -127,11 +125,11 @@ public partial class PmxRenderer
 
         GL.Disable(EnableCap.DepthTest);
         #if DEBUG
-        if (!CheckGLError("GL.Disable", $"cap={EnableCap.DepthTest}")) return;
+        if (EnableGlErrorCheck && !CheckGLError("GL.Disable", $"cap={EnableCap.DepthTest}")) return;
         #endif
         GL.Uniform1(_pointSizeLoc, 1f);
         #if DEBUG
-        if (!CheckGLError("GL.Uniform1", $"loc={_pointSizeLoc}")) return;
+        if (EnableGlErrorCheck && !CheckGLError("GL.Uniform1", $"loc={_pointSizeLoc}")) return;
         #endif
 
         for (int i = 0; i < _bones.Count; i++)
@@ -148,9 +146,6 @@ public partial class PmxRenderer
                 scale *= 1.4f;
             var mat = Matrix4.CreateScale(scale) * Matrix4.CreateTranslation(pos);
             GL.UniformMatrix4(_modelLoc, false, ref mat);
-            #if DEBUG
-            if (!CheckGLError("GL.UniformMatrix4", $"loc={_modelLoc}")) return;
-            #endif
             bool isPhysics = DistinguishBoneTypes && _physicsBones.Contains(i);
             bool isIkBone = DistinguishBoneTypes && isIk;
             Vector4 color = new Vector4(1f, 1f, 0f, 1f);
@@ -161,40 +156,31 @@ public partial class PmxRenderer
             else if (isIkBone)
                 color = new Vector4(0f, 1f, 0f, 1f);
             GL.Uniform4(_colorLoc, color);
-            #if DEBUG
-            if (!CheckGLError("GL.Uniform4", $"loc={_colorLoc}")) return;
-            #endif
 
             if (isPhysics)
             {
                 GL.BindVertexArray(_cubeVao);
-                #if DEBUG
-                if (!CheckGLError("GL.BindVertexArray", $"vao={_cubeVao}")) return;
-                #endif
                 GL.DrawElements(PrimitiveType.Triangles, _cubeIndexCount, DrawElementsType.UnsignedShort, 0);
                 #if DEBUG
-                if (!CheckGLError("GL.DrawElements", $"count={_cubeIndexCount}")) return;
+                if (EnableGlErrorCheck && !CheckGLError("GL.DrawElements", $"count={_cubeIndexCount}")) return;
                 #endif
             }
             else
             {
                 GL.BindVertexArray(_ikBoneVao);
-                #if DEBUG
-                if (!CheckGLError("GL.BindVertexArray", $"vao={_ikBoneVao}")) return;
-                #endif
                 GL.DrawElements(PrimitiveType.Triangles, _ikBoneIndexCount, DrawElementsType.UnsignedShort, 0);
                 #if DEBUG
-                if (!CheckGLError("GL.DrawElements", $"count={_ikBoneIndexCount}")) return;
+                if (EnableGlErrorCheck && !CheckGLError("GL.DrawElements", $"count={_ikBoneIndexCount}")) return;
                 #endif
             }
         }
         GL.BindVertexArray(0);
         #if DEBUG
-        if (!CheckGLError("GL.BindVertexArray", "vao=0")) return;
+        if (EnableGlErrorCheck && !CheckGLError("GL.BindVertexArray", "vao=0")) return;
         #endif
         GL.Enable(EnableCap.DepthTest);
         #if DEBUG
-        if (!CheckGLError("GL.Enable", $"cap={EnableCap.DepthTest}")) return;
+        if (EnableGlErrorCheck && !CheckGLError("GL.Enable", $"cap={EnableCap.DepthTest}")) return;
         #endif
     }
 
@@ -228,7 +214,8 @@ public partial class PmxRenderer
         _projMatrix = Matrix4.CreatePerspectiveFieldOfView(MathHelper.PiOver4, aspect, 0.1f, 100f);
         _viewProjDirty = false;
         #if DEBUG
-        CheckGLError(nameof(UpdateViewProjection));
+        if (EnableGlErrorCheck)
+            CheckGLError(nameof(UpdateViewProjection));
         #endif
     }
 
@@ -746,171 +733,69 @@ public partial class PmxRenderer
         foreach (var rm in meshes)
         {
             GL.Uniform4(_modelColorLoc, rm.Color);
-            #if DEBUG
-            if (!CheckGLError("GL.Uniform4", $"loc={_modelColorLoc}")) return;
-            #endif
             GL.Uniform3(_modelSpecularLoc, rm.Specular);
-            #if DEBUG
-            if (!CheckGLError("GL.Uniform3", $"loc={_modelSpecularLoc}")) return;
-            #endif
             GL.Uniform1(_modelSpecularPowerLoc, rm.SpecularPower);
-            #if DEBUG
-            if (!CheckGLError("GL.Uniform1", $"loc={_modelSpecularPowerLoc}")) return;
-            #endif
             GL.Uniform4(_modelEdgeColorLoc, rm.EdgeColor);
-            #if DEBUG
-            if (!CheckGLError("GL.Uniform4", $"loc={_modelEdgeColorLoc}")) return;
-            #endif
             GL.Uniform1(_modelEdgeSizeLoc, rm.EdgeSize);
-            #if DEBUG
-            if (!CheckGLError("GL.Uniform1", $"loc={_modelEdgeSizeLoc}")) return;
-            #endif
             GL.Uniform3(_modelToonColorLoc, rm.ToonColor);
-            #if DEBUG
-            if (!CheckGLError("GL.Uniform3", $"loc={_modelToonColorLoc}")) return;
-            #endif
             GL.Uniform4(_modelTexTintLoc, rm.TextureTint);
-            #if DEBUG
-            if (!CheckGLError("GL.Uniform4", $"loc={_modelTexTintLoc}")) return;
-            #endif
             GL.Uniform1(_modelSphereModeLoc, (int)rm.SphereMode);
-            #if DEBUG
-            if (!CheckGLError("GL.Uniform1", $"loc={_modelSphereModeLoc}")) return;
-            #endif
             GL.Uniform1(_modelSphereStrengthLoc, SphereStrength);
-            #if DEBUG
-            if (!CheckGLError("GL.Uniform1", $"loc={_modelSphereStrengthLoc}")) return;
-            #endif
             GL.Uniform1(_modelToonStrengthLoc, ToonStrength);
-            #if DEBUG
-            if (!CheckGLError("GL.Uniform1", $"loc={_modelToonStrengthLoc}")) return;
-            #endif
             if (rm.HasTexture)
             {
                 GL.ActiveTexture(TextureUnit.Texture0);
-                #if DEBUG
-                if (!CheckGLError("GL.ActiveTexture", $"unit={TextureUnit.Texture0}")) return;
-                #endif
                 GL.BindTexture(TextureTarget.Texture2D, rm.Texture);
-                #if DEBUG
-                if (!CheckGLError("GL.BindTexture", $"target={TextureTarget.Texture2D}, tex={rm.Texture}")) return;
-                #endif
                 GL.Uniform1(_modelTexLoc, 0);
-                #if DEBUG
-                if (!CheckGLError("GL.Uniform1", $"loc={_modelTexLoc}")) return;
-                #endif
                 GL.Uniform1(_modelUseTexLoc, 1);
-                #if DEBUG
-                if (!CheckGLError("GL.Uniform1", $"loc={_modelUseTexLoc}")) return;
-                #endif
             }
             else
             {
                 GL.Uniform1(_modelUseTexLoc, 0);
-                #if DEBUG
-                if (!CheckGLError("GL.Uniform1", $"loc={_modelUseTexLoc}")) return;
-                #endif
             }
             if (rm.HasSphereTexture)
             {
                 GL.ActiveTexture(TextureUnit.Texture1);
-                #if DEBUG
-                if (!CheckGLError("GL.ActiveTexture", $"unit={TextureUnit.Texture1}")) return;
-                #endif
                 GL.BindTexture(TextureTarget.Texture2D, rm.SphereTexture);
-                #if DEBUG
-                if (!CheckGLError("GL.BindTexture", $"target={TextureTarget.Texture2D}, tex={rm.SphereTexture}")) return;
-                #endif
                 GL.Uniform1(_modelSphereTexLoc, 1);
-                #if DEBUG
-                if (!CheckGLError("GL.Uniform1", $"loc={_modelSphereTexLoc}")) return;
-                #endif
                 GL.Uniform1(_modelUseSphereTexLoc, 1);
-                #if DEBUG
-                if (!CheckGLError("GL.Uniform1", $"loc={_modelUseSphereTexLoc}")) return;
-                #endif
             }
             else
             {
                 GL.Uniform1(_modelUseSphereTexLoc, 0);
-                #if DEBUG
-                if (!CheckGLError("GL.Uniform1", $"loc={_modelUseSphereTexLoc}")) return;
-                #endif
             }
             if (rm.HasToonTexture)
             {
                 GL.ActiveTexture(TextureUnit.Texture2);
-                #if DEBUG
-                if (!CheckGLError("GL.ActiveTexture", $"unit={TextureUnit.Texture2}")) return;
-                #endif
                 GL.BindTexture(TextureTarget.Texture2D, rm.ToonTexture);
-                #if DEBUG
-                if (!CheckGLError("GL.BindTexture", $"target={TextureTarget.Texture2D}, tex={rm.ToonTexture}")) return;
-                #endif
                 GL.Uniform1(_modelToonTexLoc, 2);
-                #if DEBUG
-                if (!CheckGLError("GL.Uniform1", $"loc={_modelToonTexLoc}")) return;
-                #endif
                 GL.Uniform1(_modelUseToonTexLoc, 1);
-                #if DEBUG
-                if (!CheckGLError("GL.Uniform1", $"loc={_modelUseToonTexLoc}")) return;
-                #endif
             }
             else
             {
                 GL.Uniform1(_modelUseToonTexLoc, 0);
-                #if DEBUG
-                if (!CheckGLError("GL.Uniform1", $"loc={_modelUseToonTexLoc}")) return;
-                #endif
             }
             GL.BindVertexArray(rm.Vao);
-            #if DEBUG
-            if (!CheckGLError("GL.BindVertexArray", $"vao={rm.Vao}")) return;
-            #endif
             GL.DrawElements(PrimitiveType.Triangles, rm.IndexCount, DrawElementsType.UnsignedInt, IntPtr.Zero);
-            #if DEBUG
-            if (!CheckGLError("GL.DrawElements", $"count={rm.IndexCount}")) return;
-            #endif
             GL.BindVertexArray(0);
-            #if DEBUG
-            if (!CheckGLError("GL.BindVertexArray", "vao=0")) return;
-            #endif
             if (rm.HasTexture)
             {
                 GL.ActiveTexture(TextureUnit.Texture0);
-                #if DEBUG
-                if (!CheckGLError("GL.ActiveTexture", $"unit={TextureUnit.Texture0}")) return;
-                #endif
                 GL.BindTexture(TextureTarget.Texture2D, 0);
-                #if DEBUG
-                if (!CheckGLError("GL.BindTexture", $"target={TextureTarget.Texture2D}, tex=0")) return;
-                #endif
             }
             if (rm.HasSphereTexture)
             {
                 GL.ActiveTexture(TextureUnit.Texture1);
-                #if DEBUG
-                if (!CheckGLError("GL.ActiveTexture", $"unit={TextureUnit.Texture1}")) return;
-                #endif
                 GL.BindTexture(TextureTarget.Texture2D, 0);
-                #if DEBUG
-                if (!CheckGLError("GL.BindTexture", $"target={TextureTarget.Texture2D}, tex=0")) return;
-                #endif
             }
             if (rm.HasToonTexture)
             {
                 GL.ActiveTexture(TextureUnit.Texture2);
-                #if DEBUG
-                if (!CheckGLError("GL.ActiveTexture", $"unit={TextureUnit.Texture2}")) return;
-                #endif
                 GL.BindTexture(TextureTarget.Texture2D, 0);
-                #if DEBUG
-                if (!CheckGLError("GL.BindTexture", $"target={TextureTarget.Texture2D}, tex=0")) return;
-                #endif
             }
             GL.ActiveTexture(TextureUnit.Texture0);
             #if DEBUG
-            if (!CheckGLError("GL.ActiveTexture", $"unit={TextureUnit.Texture0}")) return;
+            if (EnableGlErrorCheck && !CheckGLError("DrawMesh", $"vao={rm.Vao}")) return;
             #endif
         }
         GL.UseProgram(_program);
