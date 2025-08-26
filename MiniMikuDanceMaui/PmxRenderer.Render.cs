@@ -242,13 +242,9 @@ public partial class PmxRenderer
 
         if (_worldMats.Length != _bones.Count)
             _worldMats = new System.Numerics.Matrix4x4[_bones.Count];
-        else
-            Array.Clear(_worldMats, 0, _worldMats.Length);
 
         if (_skinMats.Length != _bones.Count)
             _skinMats = new System.Numerics.Matrix4x4[_bones.Count];
-        else
-            Array.Clear(_skinMats, 0, _skinMats.Length);
 
         for (int i = 0; i < _bones.Count; i++)
         {
@@ -365,10 +361,7 @@ public partial class PmxRenderer
                             if (tmpVertexBuffer != null)
                                 ArrayPool<float>.Shared.Return(tmpVertexBuffer);
                             tmpVertexBuffer = ArrayPool<float>.Shared.Rent(required);
-                        }
-                        else
-                        {
-                            Array.Clear(tmpVertexBuffer, 0, required);
+                            tmpVertexBuffer.AsSpan(0, required).Fill(0f);
                         }
                         for (int vi = 0; vi < rm.BaseVertices.Length; vi++)
                         {
@@ -602,10 +595,7 @@ public partial class PmxRenderer
                             if (tmpVertexBuffer != null)
                                 ArrayPool<float>.Shared.Return(tmpVertexBuffer);
                             tmpVertexBuffer = ArrayPool<float>.Shared.Rent(required);
-                        }
-                        else
-                        {
-                            Array.Clear(tmpVertexBuffer, 0, required);
+                            tmpVertexBuffer.AsSpan(0, required).Fill(0f);
                         }
                         for (int vi = 0; vi < rm.BaseVertices.Length; vi++)
                         {
