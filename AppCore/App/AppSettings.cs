@@ -76,15 +76,10 @@ public class AppSettings
     public bool DistinguishBoneTypes { get; set; }
         = false;
 
-    /// <summary>物理演算を有効にするか。</summary>
-    public bool EnablePhysics { get; set; } = false;
-
-
     private const string DefaultFile = "Configs/appsettings.json";
 
     /// <summary>
     /// 設定ファイルを読み込む。存在しない場合はデフォルト値で生成する。
-    /// 読み込んだ Physics.Gravity の値をログ出力する。
     /// </summary>
     public static AppSettings Load(string path = DefaultFile, ILogger<AppSettings>? logger = null)
     {
