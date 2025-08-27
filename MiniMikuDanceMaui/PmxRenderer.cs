@@ -167,6 +167,7 @@ public partial class PmxRenderer : IDisposable
     private readonly HashSet<int> _physicsBones = new();
     private int _selectedBoneIndex = -1;
     public event Action<int>? BoneSelectionChanged;
+    public bool PickEffectorOnly { get; set; } = true;
     private Quaternion _externalRotation = Quaternion.Identity;
     // デフォルトのカメラ感度をスライダーの最小値に合わせる
     public float RotateSensitivity { get; set; } = 0.1f;
@@ -1091,6 +1092,8 @@ void main(){
             best *= 1.5f; // IKボーンは選択しやすくする
             foreach (var bone in _ikBones)
             {
+                if (PickEffectorOnly && !bone.IsEffector)
+                    continue;
                 int i = bone.PmxBoneIndex;
                 var pos = _worldMats[i].Translation.ToOpenTK();
                 var v4 = new Vector4(pos, 1f);
