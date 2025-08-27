@@ -38,13 +38,6 @@
                     <TapGestureRecognizer Tapped="OnPoseModeButtonClicked" />
                 </ImageButton.GestureRecognizers>
             </ImageButton>
-            <ImageButton x:Name="PhysicsIcon"
-                         BackgroundColor="Transparent"
-                         mi:MauiIcon.Value="{mi:Material Icon=Science, IconColor=Gray}">
-                <ImageButton.GestureRecognizers>
-                    <TapGestureRecognizer Tapped="OnPhysicsButtonClicked" />
-                </ImageButton.GestureRecognizers>
-            </ImageButton>
         </HorizontalStackLayout>
         <Border x:Name="ViewMenu" IsVisible="False" Background="{StaticResource BackgroundColor}" Padding="0" ZIndex="20">
             <VerticalStackLayout Spacing="4" Padding="8">

@@ -16,8 +16,6 @@ using MiniMikuDance.Import;
 using MiniMikuDance.Util;
 using MiniMikuDance.App;
 using MiniMikuDance.IK;
-using MiniMikuDance.Physics;
-using System.Text;
 
 namespace MiniMikuDanceMaui;
 
@@ -113,7 +111,6 @@ public partial class MainPage
                 }
                 _renderer.LoadModel(data);
                 _currentModel = data;
-                WritePhysicsLog(_currentModel);
                 UpdateRendererLightingProperties();
                 Viewer?.InvalidateSurface();
             }
@@ -379,11 +376,7 @@ public partial class MainPage
             _renderer.ClearBoneRotations();
             _renderer.LoadModel(model);
             _currentModel = model;
-            WritePhysicsLog(_currentModel);
             UpdateRendererLightingProperties();
-            _scene.Bones.Clear();
-            _scene.Bones.AddRange(_currentModel.Bones);
-            // 物理エンジン未実装のため処理なし
 
             if (_poseMode && _currentModel != null)
             {
@@ -422,55 +415,6 @@ public partial class MainPage
                 gl.Touch -= OnViewTouch;
                 gl.Touch += OnViewTouch;
             }
-        }
-    }
-
-    private void WritePhysicsLog(ModelData model)
-    {
-        try
-        {
-            var logDir = MmdFileSystem.Ensure("Log");
-            var logPath = Path.Combine(logDir, "physics.txt");
-            var sb = new StringBuilder();
-            sb.AppendLine($"[{DateTime.Now:O}] {model.ModelName}");
-            sb.AppendLine($"EffectiveGravity: {_physics.GetGravity()}");
-            foreach (var rb in model.RigidBodies)
-            {
-                sb.AppendLine(
-                    $"RigidBody: {rb.Name} BoneIndex:{rb.BoneIndex} Mass:{rb.Mass} Shape:{rb.Shape} " +
-                    $"LinearDamping:{rb.LinearDamping} AngularDamping:{rb.AngularDamping} " +
-                    $"Restitution:{rb.Restitution} Friction:{rb.Friction} Position:{rb.Position} Rotation:{rb.Rotation} " +
-                    $"Size:{rb.Size} Group:{rb.Group} Mask:{rb.Mask} Mode:{rb.Mode}");
-            }
-            var jointCount = model.Joints.Count;
-            sb.AppendLine($"JointCount: {jointCount}");
-            if (jointCount == 0)
-            {
-                sb.AppendLine("Warning: No joints found");
-            }
-            else
-            {
-                foreach (var joint in model.Joints)
-                {
-                    var rbAName = joint.RigidBodyA >= 0 && joint.RigidBodyA < model.RigidBodies.Count
-                        ? model.RigidBodies[joint.RigidBodyA].Name
-                        : joint.RigidBodyA.ToString();
-                    var rbBName = joint.RigidBodyB >= 0 && joint.RigidBodyB < model.RigidBodies.Count
-                        ? model.RigidBodies[joint.RigidBodyB].Name
-                        : joint.RigidBodyB.ToString();
-                    sb.AppendLine(
-                        $"Joint: {joint.Name} BodyA:{rbAName} BodyB:{rbBName} " +
-                        $"PosMin:{joint.PositionMin} PosMax:{joint.PositionMax} " +
-                        $"RotMin:{joint.RotationMin} RotMax:{joint.RotationMax} " +
-                        $"SpringPos:{joint.SpringPosition} SpringRot:{joint.SpringRotation}");
-                }
-            }
-            sb.AppendLine();
-            File.AppendAllText(logPath, sb.ToString());
-        }
-        catch (Exception ex)
-        {
-            Debug.WriteLine(ex.ToString());
         }
     }
 
