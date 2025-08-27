@@ -1329,11 +1329,11 @@ void main(){
             handle.Free();
         }
 
-        GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureMinFilter, (All)TextureMinFilter.Linear);
+        GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureMinFilter, (int)TextureMinFilter.Linear);
         #if DEBUG
         CheckGLError("GL.TexParameter");
         #endif
-        GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureMagFilter, (All)TextureMagFilter.Linear);
+        GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureMagFilter, (int)TextureMagFilter.Linear);
         #if DEBUG
         CheckGLError("GL.TexParameter");
         #endif
