@@ -232,7 +232,10 @@ public static class IkManager
     public static Vector3? IntersectDragPlane((Vector3 Origin, Vector3 Direction) ray)
     {
         if (_selectedBoneIndex < 0)
+        {
+            Console.WriteLine("[IK] IntersectDragPlane called with no selected bone");
             return null;
+        }
 
         var origin = ray.Origin;
         var dir = ray.Direction;
@@ -247,11 +250,17 @@ public static class IkManager
 
         var denom = Vector3.Dot(_dragPlane.Normal, dir);
         if (System.Math.Abs(denom) < 1e-6f)
+        {
+            Console.WriteLine($"[IK] IntersectDragPlane ray parallel to plane (denom={denom})");
             return null;
+        }
 
         var t = -(Vector3.Dot(_dragPlane.Normal, origin) + _dragPlane.D) / denom;
         if (t < 0)
+        {
+            Console.WriteLine($"[IK] IntersectDragPlane intersection behind ray origin (t={t})");
             return null;
+        }
 
         return origin + dir * t;
     }
