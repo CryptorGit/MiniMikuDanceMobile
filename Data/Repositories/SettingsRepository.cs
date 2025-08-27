@@ -1,9 +1,10 @@
 using System;
 using System.IO;
+using MiniMikuDance.Domain.Interfaces;
 
-namespace MiniMikuDance.Data;
+namespace MiniMikuDance.Data.Repositories;
 
-public partial class DataManager : Util.Singleton<DataManager>
+public partial class SettingsRepository : Util.Singleton<SettingsRepository>, ISettingsRepository
 {
     public T LoadConfig<T>(string key) where T : new()
     {
@@ -58,10 +59,10 @@ public partial class DataManager : Util.Singleton<DataManager>
     }
 }
 
-public partial class DataManager
+public partial class SettingsRepository
 {
     // 非 MAUI 環境向け既定実装
-    static DataManager()
+    static SettingsRepository()
     {
         OpenPackageFileFunc = _ => null;
     }

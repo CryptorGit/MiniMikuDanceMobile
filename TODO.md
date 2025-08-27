@@ -1,0 +1,4 @@
+- ViewModels を実装し、各 View からロジックを移行する
+- Domain と Data のインターフェース分離を拡充する
+- MainPage のコードビハインドを ViewModel へ移行する
+- Domain 配下の既存モジュールを Entities/ValueObjects/UseCases へ整理する

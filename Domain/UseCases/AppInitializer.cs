@@ -1,13 +1,14 @@
 using MiniMikuDance.Import;
 using MiniMikuDance.Recording;
 using MiniMikuDance.UI;
-using MiniMikuDance.Data;
+using MiniMikuDance.Domain.Interfaces;
+using MiniMikuDance.App;
 using System;
 using System.IO;
 using System.Threading.Tasks;
 // ビューアーの依存を取り除くため、ビューアー関連のインターフェースを利用します。
 
-namespace MiniMikuDance.App;
+namespace MiniMikuDance.Domain.UseCases;
 
 public partial class AppInitializer : IDisposable
 {
@@ -19,6 +20,7 @@ public partial class AppInitializer : IDisposable
     public IViewer? Viewer { get; private set; }
     public RecorderController? Recorder { get; private set; }
     private Action<float>? _frameUpdatedHandler;
+    public ISettingsRepository? SettingsRepository { get; set; }
 
 
     public void Initialize(string? modelPath, string baseDir)
@@ -29,7 +31,7 @@ public partial class AppInitializer : IDisposable
             LoadModel(modelPath);
         }
 
-        DataManager.Instance.CleanupTemp();
+        SettingsRepository?.CleanupTemp();
         // Additional processing can be handled by the host application
     }
 

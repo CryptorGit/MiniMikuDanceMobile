@@ -26,11 +26,12 @@ using MiniMikuDance.IK;
 using MiniMikuDance.Util;
 using MiniMikuDance.Physics;
 using MauiIcons.Material;
+using MiniMikuDanceMaui.ViewModels;
 
 namespace MiniMikuDanceMaui;
 
-public partial class MainPage : ContentPage
-{
+    public partial class MainPage : ContentPage
+    {
 
     private const double TopMenuHeight = 36;
     private readonly AppSettings _settings = AppSettings.Load();
@@ -196,6 +197,7 @@ public partial class MainPage : ContentPage
     public MainPage()
     {
         InitializeComponent();
+        BindingContext = new MainViewModel();
         NavigationPage.SetHasNavigationBar(this, false);
         this.SizeChanged += OnSizeChanged;
         _sphereStrength = _settings.SphereStrength;

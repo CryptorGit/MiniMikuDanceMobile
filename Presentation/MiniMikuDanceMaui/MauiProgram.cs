@@ -5,7 +5,7 @@ using Microsoft.Maui.Controls.Hosting;
 using SkiaSharp.Views.Maui.Controls.Hosting;
 using MauiIcons.Material.Outlined;
 using MauiIcons.Material;
-using MiniMikuDance.Data;
+using MiniMikuDance.Data.Repositories;
 using Microsoft.Maui.Storage;
 
 namespace MiniMikuDanceMaui;
@@ -16,7 +16,7 @@ public static class MauiProgram
     {
         var builder = MauiApp.CreateBuilder();
 
-        DataManager.OpenPackageFileFunc = path =>
+        SettingsRepository.OpenPackageFileFunc = path =>
             FileSystem.OpenAppPackageFileAsync(path).GetAwaiter().GetResult();
 
         builder

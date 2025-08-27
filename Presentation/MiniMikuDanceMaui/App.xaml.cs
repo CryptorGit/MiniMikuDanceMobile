@@ -1,5 +1,6 @@
 using Microsoft.Maui.Controls;
-using MiniMikuDance.App;
+using MiniMikuDance.Domain.UseCases;
+using MiniMikuDance.Data.Repositories;
 using System;
 using System.IO;
 
@@ -14,6 +15,7 @@ public partial class App : Application, IDisposable
         InitializeComponent();
 
         Directory.SetCurrentDirectory(MmdFileSystem.BaseDir);
+        Initializer.SettingsRepository = SettingsRepository.Instance;
         Initializer.Initialize(null, MmdFileSystem.BaseDir);
 
         var baseDir = AppContext.BaseDirectory;

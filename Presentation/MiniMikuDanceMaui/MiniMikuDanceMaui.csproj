@@ -35,7 +35,8 @@
         </PropertyGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\AppCore\AppCore.csproj" />
+    <ProjectReference Include="..\..\Domain\Domain.csproj" />
+    <ProjectReference Include="..\..\Data\Data.csproj" />
   </ItemGroup>
     <ItemGroup>
       <PackageReference Include="AathifMahir.Maui.MauiIcons.Material" Version="4.0.0" />
