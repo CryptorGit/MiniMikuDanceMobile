@@ -1632,6 +1632,7 @@ void main(){
         _selectedBoneIndex = -1;
         _worldMats = new System.Numerics.Matrix4x4[_bones.Count];
         _skinMats = new System.Numerics.Matrix4x4[_bones.Count];
+        // 読み込み時に Z 軸反転済みの右手系データが渡される前提
         _modelTransform = data.Transform.ToMatrix4();
 
         if (data.SubMeshes.Count == 0)

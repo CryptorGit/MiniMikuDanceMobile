@@ -3,6 +3,13 @@ using OpenTK.Mathematics;
 
 namespace MiniMikuDance.Util;
 
+/// <summary>
+/// 数値型と OpenTK 型の相互変換ヘルパー。
+/// 
+/// 本アプリケーションではモデル読込時に Z 軸を反転し、右手系で統一しています。
+/// OpenGL ビュー空間は「前方 = -Z」のため、必要に応じて Z 軸を再反転できるよう
+/// オプションを用意します。
+/// </summary>
 public static class NumericsExtensions
 {
     public static Matrix4 ToMatrix4(this Matrix4x4 m)
@@ -35,13 +42,13 @@ public static class NumericsExtensions
         return qy * qx * qz;
     }
 
-    public static OpenTK.Mathematics.Vector3 ToOpenTK(this System.Numerics.Vector3 v)
+    public static OpenTK.Mathematics.Vector3 ToOpenTK(this System.Numerics.Vector3 v, bool flipZ = false)
     {
-        return new OpenTK.Mathematics.Vector3(v.X, v.Y, v.Z);
+        return new OpenTK.Mathematics.Vector3(v.X, v.Y, flipZ ? -v.Z : v.Z);
     }
 
-    public static System.Numerics.Vector3 ToNumerics(this OpenTK.Mathematics.Vector3 v)
+    public static System.Numerics.Vector3 ToNumerics(this OpenTK.Mathematics.Vector3 v, bool flipZ = false)
     {
-        return new System.Numerics.Vector3(v.X, v.Y, v.Z);
+        return new System.Numerics.Vector3(v.X, v.Y, flipZ ? -v.Z : v.Z);
     }
 }

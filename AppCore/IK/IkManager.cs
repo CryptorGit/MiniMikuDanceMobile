@@ -9,7 +9,7 @@ namespace MiniMikuDance.IK;
 public static class IkManager
 {
     private static readonly Dictionary<int, IkBone> BonesDict = new();
-    // IKアルゴリズム関連の処理を削除したため、ソルバーや固定軸の管理は不要
+    private static IReadOnlyList<BoneData>? _modelBones;
 
     // レンダラーから提供される各種処理を委譲用デリゲートとして保持
     public static System.Func<float, float, int>? PickFunc { get; set; }
@@ -31,6 +31,7 @@ public static class IkManager
     public static void LoadPmxIkBones(IReadOnlyList<BoneData> modelBones)
     {
         Clear();
+        _modelBones = modelBones;
         for (int i = 0; i < modelBones.Count; i++)
         {
             var ik = modelBones[i].Ik;
@@ -38,6 +39,8 @@ public static class IkManager
                 continue;
 
             RegisterIkBone(i, modelBones[i]);
+            // IK ターゲットおよびリンクボーンも登録
+            RegisterChainBones(ik);
         }
 
         // "足IK" ボーンが取りこぼされていないか確認する
@@ -59,6 +62,100 @@ public static class IkManager
         var rootPos = Vector3.Transform(Vector3.Zero, bRoot.BindMatrix);
         var rootRole = DetermineRole(bRoot.Name);
         BonesDict[index] = new IkBone(index, bRoot.Name, rootRole, rootPos, bRoot.Rotation, bRoot.BaseForward, bRoot.BaseUp);
+    }
+
+    private static void RegisterChainBones(IkInfo ikInfo)
+    {
+        if (_modelBones == null)
+            return;
+
+        if (!BonesDict.ContainsKey(ikInfo.Target))
+            RegisterIkBone(ikInfo.Target, _modelBones[ikInfo.Target]);
+
+        foreach (var link in ikInfo.Links)
+        {
+            if (!BonesDict.ContainsKey(link.BoneIndex))
+                RegisterIkBone(link.BoneIndex, _modelBones[link.BoneIndex]);
+        }
+    }
+
+    public static void SolveFootIk(int ikBoneIndex, Vector3 target)
+    {
+        if (_modelBones == null)
+            return;
+        if (ikBoneIndex < 0 || ikBoneIndex >= _modelBones.Count)
+            return;
+
+        var ikBoneData = _modelBones[ikBoneIndex];
+        var ik = ikBoneData.Ik;
+        if (ik == null)
+            return;
+
+        Console.WriteLine($"[IK] SolveFootIk {ikBoneData.Name} -> {target}");
+
+        var chain = new List<int> { ik.Target };
+        foreach (var link in ik.Links)
+            chain.Add(link.BoneIndex);
+
+        for (int iter = 0; iter < Math.Max(1, ik.Iterations); iter++)
+        {
+            for (int c = 0; c < chain.Count; c++)
+            {
+                int idx = chain[c];
+                if (!BonesDict.TryGetValue(idx, out var ikb))
+                    continue;
+
+                var jointPos = ikb.Position;
+                var endPos = BonesDict[ik.Target].Position;
+                var toEnd = Vector3.Normalize(endPos - jointPos);
+                var toTarget = Vector3.Normalize(target - jointPos);
+                var axis = Vector3.Cross(toEnd, toTarget);
+                if (axis.LengthSquared() < 1e-6f)
+                    continue;
+                axis = Vector3.Normalize(axis);
+                var angle = MathF.Acos(Math.Clamp(Vector3.Dot(toEnd, toTarget), -1f, 1f));
+                var rot = Quaternion.CreateFromAxisAngle(axis, angle);
+                var bd = _modelBones[idx];
+                bd.Rotation = Quaternion.Normalize(rot * bd.Rotation);
+
+                if (bd.HasRotationLimit)
+                {
+                    var euler = QuaternionToEuler(bd.Rotation);
+                    euler = ClampEuler(euler, bd.MinRotationDeg, bd.MaxRotationDeg);
+                    bd.Rotation = Quaternion.CreateFromYawPitchRoll(euler.Y, euler.X, euler.Z);
+                }
+
+                ikb.Rotation = bd.Rotation;
+            }
+        }
+    }
+
+    private const float Deg2Rad = MathF.PI / 180f;
+
+    private static Vector3 QuaternionToEuler(Quaternion q)
+    {
+        var ysqr = q.Y * q.Y;
+
+        var t0 = +2.0f * (q.W * q.X + q.Y * q.Z);
+        var t1 = +1.0f - 2.0f * (q.X * q.X + ysqr);
+        var pitch = MathF.Atan2(t0, t1);
+
+        var t2 = +2.0f * (q.W * q.Y - q.Z * q.X);
+        t2 = Math.Clamp(t2, -1f, 1f);
+        var yaw = MathF.Asin(t2);
+
+        var t3 = +2.0f * (q.W * q.Z + q.X * q.Y);
+        var t4 = +1.0f - 2.0f * (ysqr + q.Z * q.Z);
+        var roll = MathF.Atan2(t3, t4);
+
+        return new Vector3(pitch, yaw, roll);
+    }
+
+    private static Vector3 ClampEuler(Vector3 eulerRad, Vector3 minDeg, Vector3 maxDeg)
+    {
+        var min = minDeg * Deg2Rad;
+        var max = maxDeg * Deg2Rad;
+        return Vector3.Clamp(eulerRad, min, max);
     }
 
     // レンダラーから提供された情報を用いてボーン選択を行う
@@ -134,6 +231,7 @@ public static class IkManager
                 SetBoneWorldPosition(bone.PmxBoneIndex, worldPos.ToOpenTK());
             }
 
+            SolveFootIk(bone.PmxBoneIndex, bone.Position);
             InvalidateViewer?.Invoke();
         }
         catch (Exception ex)
@@ -155,6 +253,7 @@ public static class IkManager
     {
         ReleaseSelection();
         BonesDict.Clear();
+        _modelBones = null;
     }
 
     private static BoneRole DetermineRole(string name)
