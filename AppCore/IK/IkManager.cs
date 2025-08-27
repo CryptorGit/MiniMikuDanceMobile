@@ -74,7 +74,7 @@ public static class IkManager
         foreach (var link in ikInfo.Links)
         {
             if (!BonesDict.ContainsKey(link.BoneIndex))
-                RegisterIkBone(link.BoneIndex, _modelBones[link.BoneIndex]);
+                RegisterIkBone(link.BoneIndex, _modelBones[link.BoneIndex], true);
         }
     }
 
@@ -271,12 +271,6 @@ public static class IkManager
         {
             if (!BonesDict.TryGetValue(boneIndex, out var bone))
                 return;
-
-            if (!bone.IsEffector)
-            {
-                Console.WriteLine($"[IK] UpdateTarget ignored: {bone.Name} is not an IK effector");
-                return;
-            }
 
             Console.WriteLine($"[IK] UpdateTarget {bone.Name} -> {position}");
 

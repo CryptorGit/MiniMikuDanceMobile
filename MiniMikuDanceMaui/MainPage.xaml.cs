@@ -90,6 +90,7 @@ public partial class MainPage : ContentPage
         _renderer.SetExternalRotation(Quaternion.Identity);
         _renderer.ModelTransform = Matrix4.Identity;
         IkManager.LoadPmxIkBones(_currentModel!.Bones);
+        _renderer.PickEffectorOnly = false;
         try
         {
             var ikBones = IkManager.Bones.Values;
@@ -123,6 +124,7 @@ public partial class MainPage : ContentPage
         IkManager.ReleaseSelection();
         _renderer.ClearIkBones();
         IkManager.Clear();
+        _renderer.PickEffectorOnly = true;
         IkManager.PickFunc = null;
         IkManager.GetBonePositionFunc = null;
         IkManager.GetCameraPositionFunc = null;
