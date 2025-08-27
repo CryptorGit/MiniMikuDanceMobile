@@ -1165,7 +1165,7 @@ void main(){
         if (maxDist <= 0f)
         {
             var bone = _bones[index];
-            var dir = Vector3.TransformNormal(bone.BaseForward.ToOpenTK(), _worldMats[index]);
+            var dir = Vector3.TransformNormal(bone.BaseForward.ToOpenTK(), _worldMats[index].ToMatrix4());
             if (dir.LengthSquared > 1e-6f)
                 dir = Vector3.Normalize(dir);
             var len = bone.Translation.Length();
