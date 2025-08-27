@@ -42,7 +42,6 @@ public static class MmdFileSystem
         Directory.CreateDirectory(BaseDir);
         UsingInternalStorage = true;
 #endif
-        Directory.CreateDirectory(SystemPath.Combine(BaseDir, "Movie"));
     }
 
     public static string Ensure(string subdir)
