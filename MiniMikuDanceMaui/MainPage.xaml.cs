@@ -454,7 +454,22 @@ public partial class MainPage : ContentPage
 
     private void HandlePosePressed(SKTouchEventArgs e)
     {
-        IkManager.PickBone(e.Location.X, e.Location.Y);
+        var idx = IkManager.PickBone(e.Location.X, e.Location.Y);
+        if (idx >= 0)
+        {
+            if (IkManager.Bones.TryGetValue(idx, out var bone))
+            {
+                Console.WriteLine($"[Pose] Picked bone {bone.Name} (index={idx})");
+            }
+            else
+            {
+                Console.WriteLine($"[Pose] PickBone returned index {idx} not registered in IK bones");
+            }
+        }
+        else
+        {
+            Console.WriteLine("[Pose] PickBone returned no bone");
+        }
     }
 
     private void HandlePoseMoved(SKTouchEventArgs e)

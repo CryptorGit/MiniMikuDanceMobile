@@ -23,8 +23,9 @@ public class IkBone
     public Vector3 PrevUp { get; set; }
     public int PmxBoneIndex { get; }
     public bool IsSelected { get; set; }
+    public bool IsEffector { get; }
 
-    public IkBone(int pmxBoneIndex, string name, BoneRole role, Vector3 position, Quaternion baseRotation, Vector3 baseForward, Vector3 baseUp)
+    public IkBone(int pmxBoneIndex, string name, BoneRole role, Vector3 position, Quaternion baseRotation, Vector3 baseForward, Vector3 baseUp, bool isEffector = false)
     {
         PmxBoneIndex = pmxBoneIndex;
         Name = name;
@@ -37,5 +38,6 @@ public class IkBone
         BaseUp = baseUp;
         BasePlaneNormal = Vector3.Normalize(Vector3.Cross(baseForward, baseUp));
         PrevUp = baseUp;
+        IsEffector = isEffector;
     }
 }

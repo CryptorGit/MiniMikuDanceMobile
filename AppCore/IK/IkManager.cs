@@ -56,11 +56,11 @@ public static class IkManager
         }
     }
 
-    private static void RegisterIkBone(int index, BoneData bRoot)
+    private static void RegisterIkBone(int index, BoneData bRoot, bool isEffector = false)
     {
         var rootPos = Vector3.Transform(Vector3.Zero, bRoot.BindMatrix);
         var rootRole = DetermineRole(bRoot.Name);
-        BonesDict[index] = new IkBone(index, bRoot.Name, rootRole, rootPos, bRoot.Rotation, bRoot.BaseForward, bRoot.BaseUp);
+        BonesDict[index] = new IkBone(index, bRoot.Name, rootRole, rootPos, bRoot.Rotation, bRoot.BaseForward, bRoot.BaseUp, isEffector);
     }
 
     private static void RegisterChainBones(IkInfo ikInfo)
@@ -69,7 +69,7 @@ public static class IkManager
             return;
 
         if (!BonesDict.ContainsKey(ikInfo.Target))
-            RegisterIkBone(ikInfo.Target, _modelBones[ikInfo.Target]);
+            RegisterIkBone(ikInfo.Target, _modelBones[ikInfo.Target], true);
 
         foreach (var link in ikInfo.Links)
         {
@@ -232,7 +232,10 @@ public static class IkManager
     public static Vector3? IntersectDragPlane((Vector3 Origin, Vector3 Direction) ray)
     {
         if (_selectedBoneIndex < 0)
+        {
+            Console.WriteLine("[IK] IntersectDragPlane called with no selected bone");
             return null;
+        }
 
         var origin = ray.Origin;
         var dir = ray.Direction;
@@ -247,11 +250,17 @@ public static class IkManager
 
         var denom = Vector3.Dot(_dragPlane.Normal, dir);
         if (System.Math.Abs(denom) < 1e-6f)
+        {
+            Console.WriteLine($"[IK] IntersectDragPlane ray parallel to plane (denom={denom})");
             return null;
+        }
 
         var t = -(Vector3.Dot(_dragPlane.Normal, origin) + _dragPlane.D) / denom;
         if (t < 0)
+        {
+            Console.WriteLine($"[IK] IntersectDragPlane intersection behind ray origin (t={t})");
             return null;
+        }
 
         return origin + dir * t;
     }
@@ -262,6 +271,12 @@ public static class IkManager
         {
             if (!BonesDict.TryGetValue(boneIndex, out var bone))
                 return;
+
+            if (!bone.IsEffector)
+            {
+                Console.WriteLine($"[IK] UpdateTarget ignored: {bone.Name} is not an IK effector");
+                return;
+            }
 
             Console.WriteLine($"[IK] UpdateTarget {bone.Name} -> {position}");
 
