@@ -13,6 +13,3 @@ Google Material Symbolsを利用する
 
 #　作成するファイルに関して
 Binaryfileは作成しないでください
-
-#　物理に関して
-物理処理調査依頼.docxを参照してください
