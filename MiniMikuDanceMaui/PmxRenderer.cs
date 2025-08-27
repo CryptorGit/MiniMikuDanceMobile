@@ -1095,7 +1095,7 @@ void main(){
                 if (PickEffectorOnly && !bone.IsEffector)
                     continue;
                 int i = bone.PmxBoneIndex;
-                var pos = _worldMats[i].Translation.ToOpenTK();
+                var pos = GetBoneModelTipPosition(i);
                 var v4 = new Vector4(pos, 1f);
                 var clip = v4 * _viewMatrix;
                 clip = clip * _projMatrix;
@@ -1142,13 +1142,45 @@ void main(){
         return result;
     }
 
-    public System.Numerics.Vector3 GetBoneWorldPosition(int index)
+    private Vector3 GetBoneModelTipPosition(int index)
     {
         if (index < 0 || index >= _worldMats.Length)
-            return System.Numerics.Vector3.Zero;
-        var pos = _worldMats[index].Translation.ToOpenTK();
-        pos = Vector3.TransformPosition(pos, _modelTransform);
-        var result = pos.ToNumerics();
+            return Vector3.Zero;
+        var root = _worldMats[index].Translation.ToOpenTK();
+        var tip = root;
+        float maxDist = 0f;
+        int limit = Math.Min(_worldMats.Length, _bones.Count);
+        for (int i = 0; i < limit; i++)
+        {
+            if (_bones[i].Parent != index)
+                continue;
+            var childRoot = _worldMats[i].Translation.ToOpenTK();
+            var dist = (childRoot - root).Length;
+            if (dist > maxDist)
+            {
+                maxDist = dist;
+                tip = childRoot;
+            }
+        }
+        if (maxDist <= 0f)
+        {
+            var bone = _bones[index];
+            var dir = Vector3.TransformNormal(bone.BaseForward.ToOpenTK(), _worldMats[index]);
+            if (dir.LengthSquared > 1e-6f)
+                dir = Vector3.Normalize(dir);
+            var len = bone.Translation.Length();
+            if (len <= 0f)
+                len = 1f;
+            tip = root + dir * len;
+        }
+        return tip;
+    }
+
+    public System.Numerics.Vector3 GetBoneWorldPosition(int index)
+    {
+        var tip = GetBoneModelTipPosition(index);
+        tip = Vector3.TransformPosition(tip, _modelTransform);
+        var result = tip.ToNumerics();
         return result;
     }
 

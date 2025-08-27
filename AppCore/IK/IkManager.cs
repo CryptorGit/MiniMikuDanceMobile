@@ -59,8 +59,36 @@ public static class IkManager
     private static void RegisterIkBone(int index, BoneData bRoot, bool isEffector = false)
     {
         var rootPos = Vector3.Transform(Vector3.Zero, bRoot.BindMatrix);
+        var tipPos = rootPos;
+        float maxLen = 0f;
+        if (_modelBones != null)
+        {
+            for (int i = 0; i < _modelBones.Count; i++)
+            {
+                var child = _modelBones[i];
+                if (child.Parent != index)
+                    continue;
+                var childPos = Vector3.Transform(Vector3.Zero, child.BindMatrix);
+                var len = Vector3.Distance(childPos, rootPos);
+                if (len > maxLen)
+                {
+                    maxLen = len;
+                    tipPos = childPos;
+                }
+            }
+        }
+
+        if (maxLen <= 0f)
+        {
+            var dir = Vector3.Normalize(bRoot.BaseForward);
+            var len = bRoot.Translation.Length();
+            if (len <= 0f)
+                len = 1f;
+            tipPos = rootPos + dir * len;
+        }
+
         var rootRole = DetermineRole(bRoot.Name);
-        BonesDict[index] = new IkBone(index, bRoot.Name, rootRole, rootPos, bRoot.Rotation, bRoot.BaseForward, bRoot.BaseUp, isEffector);
+        BonesDict[index] = new IkBone(index, bRoot.Name, rootRole, tipPos, bRoot.Rotation, bRoot.BaseForward, bRoot.BaseUp, isEffector);
     }
 
     private static void RegisterChainBones(IkInfo ikInfo)
