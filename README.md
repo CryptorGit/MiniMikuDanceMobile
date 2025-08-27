@@ -75,8 +75,6 @@ maui run android
 - 2D描画: [SkiaSharp](https://github.com/mono/SkiaSharp) — GPU 加速された 2D 描画ライブラリ  
 - OpenGL バインディング: [OpenTK](https://opentk.net/) — OpenGL ES 3.0 を .NET から利用するためのバインディング  
 - モデル読み込み: [PMXParser (C#)](https://www.nuget.org/packages/PMXParser) — MMD 用 PMX/VMD 専用フォーマットパーサ
-- 物理: [BEPUphysics v2](https://github.com/bepu/bepuphysics2) — 純C#製の高性能物理エンジン + 簡易質点ばね実装 ✅
-  - 剛体/ジョイントと髪・布の質点ばねを実装済み（UI からのパラメータ調整は今後の課題）
 - 画像処理: [ImageSharp](https://github.com/SixLabors/ImageSharp) — マネージドな高性能画像処理ライブラリ
 
 > ❌ 除外したもの: bgfx, Bullet, Assimp  
@@ -86,7 +84,6 @@ maui run android
 
 ## 将来の拡張
 
-- ~~**物理演算の拡張**: BEPUphysics + 質点ばねモデルでの髪・服揺れ表現~~ ✅ 実装済み（UI パラメータ連携は未実装）
 - **IK ソルバー強化**: CCD / FABRIK による角度制約付き IK
 - **フォーマット拡張**: PMX/VMD 専用から glTF 読み込みへ拡大検討  
 - **録画強化**: PNG連番に加えて [FFmpegKit](https://github.com/arthenica/ffmpeg-kit) による動画変換オプション  
@@ -95,7 +92,6 @@ maui run android
 
 ## 開発方針 / Roadmap
 
-- BEPUphysics と質点ばねによる物理演算  
 - CCD/FABRIK + Clamp を用いた IK ソルバー  
 - PMX/VMD 専用機能の整理と glTF 対応検討  
 - FFmpegKit 連携による録画強化  
