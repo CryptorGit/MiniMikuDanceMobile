@@ -6,8 +6,6 @@ using Microsoft.Maui.Dispatching;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
-using System.Threading;
-using System.Threading.Tasks;
 using SkiaSharp.Views.Maui;
 using SkiaSharp.Views.Maui.Controls;
 using SkiaSharp;
@@ -24,7 +22,6 @@ using MiniMikuDance.App;
 using SixLabors.ImageSharp.PixelFormats;
 using MiniMikuDance.IK;
 using MiniMikuDance.Util;
-using MiniMikuDance.Physics;
 using MauiIcons.Material;
 
 namespace MiniMikuDanceMaui;
@@ -43,10 +40,6 @@ public partial class MainPage : ContentPage
     private float _toonStrength = 0f;
     private bool _poseMode;
     private bool _glInitialized;
-    private readonly Scene _scene = new();
-    private IPhysicsWorld _physics = new NullPhysicsWorld();
-    private readonly object _physicsLock = new();
-    private DateTime _lastFrameTime = DateTime.UtcNow;
     private readonly Dictionary<long, SKPoint> _touchPoints = new();
     private readonly long[] _touchIds = new long[2];
     private readonly IDispatcherTimer _renderTimer;
@@ -74,9 +67,6 @@ public partial class MainPage : ContentPage
         }
     }
     private int _renderTimerErrorCount;
-    private Task? _physicsTask;
-    private CancellationTokenSource _physicsCts = new();
-    private readonly TimeSpan _physicsTimeout = TimeSpan.FromSeconds(1);
     private void OnPoseModeButtonClicked(object? sender, TappedEventArgs e)
     {
         _poseMode = !_poseMode;
@@ -93,53 +83,6 @@ public partial class MainPage : ContentPage
         PoseModeIcon.SetIcon(_poseMode ? MaterialIcons.AccessibilityNew : MaterialIcons.PhotoCamera);
         PoseModeIcon.SetIconColor(_poseMode ? Colors.Green : Colors.Gray);
         Viewer?.InvalidateSurface();
-    }
-
-    private void OnPhysicsButtonClicked(object? sender, TappedEventArgs e)
-    {
-        var state = BuildPhysicsState(!_settings.EnablePhysics);
-        SetPhysicsWorld(state.World);
-        _settings.EnablePhysics = state.Enabled;
-        _settings.Save();
-        PhysicsIcon.SetIconColor(_settings.EnablePhysics ? Colors.Green : Colors.Gray);
-        Viewer?.InvalidateSurface();
-    }
-
-    private PhysicsState BuildPhysicsState(bool enabled)
-    {
-        var physics = new NullPhysicsWorld();
-        if (enabled)
-        {
-            physics.Initialize(_modelScale);
-        }
-        return new PhysicsState(physics, enabled);
-    }
-
-    private record struct PhysicsState(IPhysicsWorld World, bool Enabled);
-
-    public void SetPhysicsWorld(IPhysicsWorld world)
-    {
-        Task? task;
-        lock (_physicsLock)
-        {
-            _physicsCts.Cancel();
-            task = _physicsTask;
-        }
-        try
-        {
-            task?.Wait(_physicsTimeout);
-        }
-        catch (AggregateException ex)
-        {
-            Debug.WriteLine(ex.ToString());
-        }
-        lock (_physicsLock)
-        {
-            _physics.Dispose();
-            _physics = world;
-            _physicsCts = new CancellationTokenSource();
-            _physicsTask = null;
-        }
     }
 
     private void EnablePoseMode()
@@ -166,9 +109,8 @@ public partial class MainPage : ContentPage
         IkManager.PickFunc = _renderer.PickBone;
         IkManager.GetBonePositionFunc = _renderer.GetBoneWorldPosition;
         IkManager.GetCameraPositionFunc = _renderer.GetCameraPosition;
-        IkManager.SetBoneWorldPosition = _renderer.SetBoneWorldPosition;
+        IkManager.SetBoneRotation = _renderer.SetBoneRotation;
         IkManager.ToModelSpaceFunc = _renderer.WorldToModel;
-        IkManager.ToWorldSpaceFunc = _renderer.ModelToWorld;
         IkManager.InvalidateViewer = () =>
         {
             _needsRender = true;
@@ -184,9 +126,8 @@ public partial class MainPage : ContentPage
         IkManager.PickFunc = null;
         IkManager.GetBonePositionFunc = null;
         IkManager.GetCameraPositionFunc = null;
-        IkManager.SetBoneWorldPosition = null;
+        IkManager.SetBoneRotation = null;
         IkManager.ToModelSpaceFunc = null;
-        IkManager.ToWorldSpaceFunc = null;
         IkManager.InvalidateViewer = null;
     }
 
@@ -214,10 +155,6 @@ public partial class MainPage : ContentPage
         _renderer.ShowIkBones = _poseMode;
         _renderer.IkBoneScale = _settings.IkBoneScale;
         _modelScale = _settings.ModelScale;
-        var initState = BuildPhysicsState(_settings.EnablePhysics);
-        SetPhysicsWorld(initState.World);
-        _settings.EnablePhysics = initState.Enabled;
-        PhysicsIcon.SetIconColor(_settings.EnablePhysics ? Colors.Green : Colors.Gray);
 
         if (Viewer is SKGLView glView)
         {
@@ -362,12 +299,6 @@ public partial class MainPage : ContentPage
         Viewer?.InvalidateSurface();
     }
 
-    protected override void OnDisappearing()
-    {
-        base.OnDisappearing();
-        SetPhysicsWorld(new NullPhysicsWorld());
-    }
-
     private void OnSizeChanged(object? sender, EventArgs e) => UpdateLayout();
 
     private void UpdateLayout()
@@ -440,8 +371,6 @@ public partial class MainPage : ContentPage
 
     private void OnPaintSurface(object? sender, SKPaintGLSurfaceEventArgs e)
     {
-        var physicsEnabled = _physics is not NullPhysicsWorld;
-
         if (!_glInitialized)
         {
             GL.LoadBindings(new SKGLViewBindingsContext());
@@ -450,65 +379,6 @@ public partial class MainPage : ContentPage
         }
 
         LoadPendingModel();
-        var now = DateTime.UtcNow;
-        float dt = (float)(now - _lastFrameTime).TotalSeconds;
-        _lastFrameTime = now;
-        if (physicsEnabled && (_physicsTask == null || _physicsTask.IsCompleted))
-        {
-            var physics = _physics;
-            var token = _physicsCts.Token;
-            _physicsTask = Task.Run(() =>
-            {
-                if (token.IsCancellationRequested) return;
-                try
-                {
-                    lock (_physicsLock)
-                    {
-                        physics.SyncFromBones(_scene);
-                    }
-
-                    try
-                    {
-                        var stepTask = Task.Run(() => physics.Step(dt), token);
-                        if (!stepTask.Wait(_physicsTimeout, token))
-                        {
-                            Debug.WriteLine($"Physics step timeout after {_physicsTimeout.TotalMilliseconds}ms");
-                            return;
-                        }
-                    }
-                    catch (OperationCanceledException)
-                    {
-                        return;
-                    }
-                    catch (Exception ex)
-                    {
-                        Debug.WriteLine(ex.ToString());
-                        return;
-                    }
-
-                    lock (_physicsLock)
-                    {
-                        physics.SyncToBones(_scene);
-                    }
-                    _renderer.MarkBonesDirty();
-                }
-                catch (OperationCanceledException)
-                {
-                }
-                catch (Exception ex)
-                {
-                    Debug.WriteLine(ex.ToString());
-                }
-            }, token).ContinueWith(_ =>
-            {
-                if (token.IsCancellationRequested) return;
-                MainThread.BeginInvokeOnMainThread(() =>
-                {
-                    _needsRender = true;
-                    Viewer?.InvalidateSurface();
-                });
-            }, token);
-        }
         _renderer.Resize(e.BackendRenderTarget.Width, e.BackendRenderTarget.Height);
         _renderer.Render();
         if (Debugger.IsAttached)
