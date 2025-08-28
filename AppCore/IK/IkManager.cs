@@ -152,34 +152,16 @@ public static class IkManager
 
         var chain = chainFull.GetRange(start, chainFull.Count - start);
 
-        var updateBones = new List<int>(chainFull);
+        var updateBones = new List<int>(chain);
         if (!updateBones.Contains(ikRootIndex))
             updateBones.Add(ikRootIndex);
 
         var visited = new HashSet<int>(updateBones);
-        for (int i = 0; i < updateBones.Count; i++)
-        {
-            int parent = updateBones[i];
-            for (int j = 0; j < _modelBones.Count; j++)
-            {
-                if (_modelBones[j].Parent == parent && visited.Add(j))
-                    updateBones.Add(j);
-            }
-        }
+        foreach (var bIdx in updateBones.ToArray())
+            CollectDescendants(bIdx, updateBones, visited);
 
         RecalculateWorldMatricesFunc?.Invoke();
-        if (GetBonePositionFunc != null)
-        {
-            foreach (var bIdx in updateBones)
-            {
-                var worldPos = GetBonePositionFunc(bIdx);
-                var modelPos = ToModelSpaceFunc != null ? ToModelSpaceFunc(worldPos) : worldPos;
-                if (BonesDict.TryGetValue(bIdx, out var b))
-                    b.Position = modelPos;
-                else
-                    BonePositionCache[bIdx] = modelPos;
-            }
-        }
+        RefreshBonePositions(updateBones);
 
         Console.WriteLine($"[IK] SolveFootIk root={rootBone.Name} effector={_modelBones[effectorIndex].Name} target={target}");
 
@@ -223,19 +205,37 @@ public static class IkManager
                 }
 
                 RecalculateWorldMatricesFunc?.Invoke();
-                if (GetBonePositionFunc != null)
-                {
-                    foreach (var bIdx in updateBones)
-                    {
-                        var worldPos = GetBonePositionFunc(bIdx);
-                        var modelPos = ToModelSpaceFunc != null ? ToModelSpaceFunc(worldPos) : worldPos;
-                        if (BonesDict.TryGetValue(bIdx, out var b))
-                            b.Position = modelPos;
-                        else
-                            BonePositionCache[bIdx] = modelPos;
-                    }
-                }
+                RefreshBonePositions(updateBones);
             }
+        }
+    }
+
+    private static void CollectDescendants(int parentIndex, List<int> result, HashSet<int> visited)
+    {
+        if (_modelBones == null)
+            return;
+        for (int i = 0; i < _modelBones.Count; i++)
+        {
+            if (_modelBones[i].Parent == parentIndex && visited.Add(i))
+            {
+                result.Add(i);
+                CollectDescendants(i, result, visited);
+            }
+        }
+    }
+
+    private static void RefreshBonePositions(IEnumerable<int> updateBones)
+    {
+        if (GetBonePositionFunc == null)
+            return;
+        foreach (var bIdx in updateBones)
+        {
+            var worldPos = GetBonePositionFunc(bIdx);
+            var modelPos = ToModelSpaceFunc != null ? ToModelSpaceFunc(worldPos) : worldPos;
+            if (BonesDict.TryGetValue(bIdx, out var b))
+                b.Position = modelPos;
+            else
+                BonePositionCache[bIdx] = modelPos;
         }
     }
 
