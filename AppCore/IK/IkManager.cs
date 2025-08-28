@@ -16,6 +16,7 @@ public static class IkManager
     public static System.Func<int, Vector3>? GetBonePositionFunc { get; set; }
     public static System.Func<Vector3>? GetCameraPositionFunc { get; set; }
     public static System.Action<int, OpenTK.Mathematics.Vector3>? SetBoneRotation { get; set; }
+    public static System.Action? RecalculateWorldMatricesFunc { get; set; }
     public static System.Func<Vector3, Vector3>? ToModelSpaceFunc { get; set; }
     public static System.Action? InvalidateViewer { get; set; }
 
@@ -123,6 +124,7 @@ public static class IkManager
             }
         }
 
+        RecalculateWorldMatricesFunc?.Invoke();
         if (GetBonePositionFunc != null)
         {
             foreach (var bIdx in updateBones)
@@ -170,11 +172,12 @@ public static class IkManager
                 ikb.Rotation = bd.Rotation;
                 if (SetBoneRotation != null)
                 {
-                    
+
                     // OpenGL ビュー空間は "前方 = -Z" のため、回転結果をレンダラーへ渡す際も Z を反転
                     SetBoneRotation(idx, OpenTK.Mathematics.Vector3.Zero);
                 }
 
+                RecalculateWorldMatricesFunc?.Invoke();
                 if (GetBonePositionFunc != null)
                 {
                     foreach (var bIdx in updateBones)

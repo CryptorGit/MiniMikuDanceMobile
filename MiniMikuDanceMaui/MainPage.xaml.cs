@@ -112,6 +112,7 @@ public partial class MainPage : ContentPage
         IkManager.GetBonePositionFunc = _renderer.GetBoneWorldPosition;
         IkManager.GetCameraPositionFunc = _renderer.GetCameraPosition;
         IkManager.SetBoneRotation = _renderer.SetBoneRotation;
+        IkManager.RecalculateWorldMatricesFunc = _renderer.RecalculateWorldMatrices;
         IkManager.ToModelSpaceFunc = _renderer.WorldToModel;
         IkManager.InvalidateViewer = () =>
         {
@@ -131,6 +132,7 @@ public partial class MainPage : ContentPage
         IkManager.GetBonePositionFunc = null;
         IkManager.GetCameraPositionFunc = null;
         IkManager.SetBoneRotation = null;
+        IkManager.RecalculateWorldMatricesFunc = null;
         IkManager.ToModelSpaceFunc = null;
         IkManager.InvalidateViewer = null;
     }

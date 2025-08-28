@@ -225,41 +225,10 @@ public partial class PmxRenderer
         if (_bones.Count == 0)
             return;
 
-        EnsureBoneCapacity();
-
-        if (_worldMats.Length != _bones.Count)
-            _worldMats = new System.Numerics.Matrix4x4[_bones.Count];
+        RecalculateWorldMatrices();
 
         if (_skinMats.Length != _bones.Count)
             _skinMats = new System.Numerics.Matrix4x4[_bones.Count];
-
-        for (int i = 0; i < _bones.Count; i++)
-        {
-            var bone = _bones[i];
-            System.Numerics.Vector3 euler = i < _boneRotations.Count ? _boneRotations[i].ToNumerics() : System.Numerics.Vector3.Zero;
-            var delta = euler.FromEulerDegrees();
-            System.Numerics.Quaternion morphRot = i < _boneMorphRotations.Length ? _boneMorphRotations[i] : System.Numerics.Quaternion.Identity;
-            System.Numerics.Vector3 trans = bone.Translation;
-            if (i < _boneMorphTranslations.Length)
-                trans += _boneMorphTranslations[i];
-            var rot = bone.Rotation * morphRot * delta;
-            if (bone.InheritParent >= 0 && bone.InheritParent < _worldMats.Length)
-            {
-                var src = _worldMats[bone.InheritParent];
-                if (bone.InheritRotation)
-                {
-                    var srcRot = System.Numerics.Quaternion.CreateFromRotationMatrix(src);
-                    rot = System.Numerics.Quaternion.Normalize(System.Numerics.Quaternion.Slerp(System.Numerics.Quaternion.Identity, srcRot, bone.InheritRatio) * rot);
-                }
-                if (bone.InheritTranslation)
-                    trans += src.Translation * bone.InheritRatio;
-            }
-            var local = System.Numerics.Matrix4x4.CreateFromQuaternion(rot) * System.Numerics.Matrix4x4.CreateTranslation(trans);
-            if (bone.Parent >= 0)
-                _worldMats[i] = local * _worldMats[bone.Parent];
-            else
-                _worldMats[i] = local;
-        }
 
         for (int i = 0; i < _bones.Count; i++)
             _skinMats[i] = _bones[i].InverseBindMatrix * _worldMats[i];
