@@ -337,9 +337,10 @@ public static class IkManager
     {
         try
         {
-            boneIndex = FindEffectorForBone(boneIndex);
-            _selectedBoneIndex = boneIndex;
-            if (!BonesDict.TryGetValue(boneIndex, out var bone))
+            int originalIndex = boneIndex;
+            int effectorIndex = FindEffectorForBone(boneIndex);
+            _selectedBoneIndex = effectorIndex;
+            if (!BonesDict.TryGetValue(effectorIndex, out var bone))
                 return;
 
             if (!bone.IsEffector)
@@ -348,7 +349,14 @@ public static class IkManager
                 return;
             }
 
-            Console.WriteLine($"[IK] UpdateTarget {bone.Name} -> {position}");
+            var target = position;
+            if (effectorIndex != originalIndex && BonesDict.TryGetValue(originalIndex, out var selBone))
+            {
+                var offset = bone.BasePosition - selBone.BasePosition;
+                target += offset;
+            }
+
+            Console.WriteLine($"[IK] UpdateTarget {bone.Name} -> {target}");
 
             if (_modelBones != null)
             {
@@ -356,7 +364,7 @@ public static class IkManager
                 if (ikRoot >= 0)
                 {
                     Console.WriteLine($"[IK] root={_modelBones[ikRoot].Name} effector={bone.Name}");
-                    SolveFootIk(ikRoot, bone.PmxBoneIndex, position);
+                    SolveFootIk(ikRoot, bone.PmxBoneIndex, target);
 
                     if (GetBonePositionFunc != null)
                     {
