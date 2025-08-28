@@ -6,7 +6,8 @@ public enum BoneRole
 {
     None,
     Ankle,
-    Knee
+    Knee,
+    Waist
 }
 
 public class IkBone
