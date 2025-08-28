@@ -89,6 +89,8 @@ public partial class MainPage : ContentPage
     {
         _renderer.SetExternalRotation(Quaternion.Identity);
         _renderer.ModelTransform = Matrix4.Identity;
+        // Allow picking of any IK bone; selection will map to effector
+        _renderer.PickEffectorOnly = false;
         IkManager.LoadPmxIkBones(_currentModel!.Bones);
         try
         {
@@ -123,6 +125,8 @@ public partial class MainPage : ContentPage
         IkManager.ReleaseSelection();
         _renderer.ClearIkBones();
         IkManager.Clear();
+        // Restore default picking behavior
+        _renderer.PickEffectorOnly = true;
         IkManager.PickFunc = null;
         IkManager.GetBonePositionFunc = null;
         IkManager.GetCameraPositionFunc = null;

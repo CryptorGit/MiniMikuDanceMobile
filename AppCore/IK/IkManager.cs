@@ -139,9 +139,9 @@ public static class IkManager
                 ikb.Rotation = bd.Rotation;
                 if (SetBoneRotation != null)
                 {
-                    var eulerDeg = QuaternionToEuler(bd.Rotation) * Rad2Deg;
+                    
                     // OpenGL ビュー空間は "前方 = -Z" のため、回転結果をレンダラーへ渡す際も Z を反転
-                    SetBoneRotation(idx, eulerDeg.ToOpenTK(flipZ: true));
+                    SetBoneRotation(idx, OpenTK.Mathematics.Vector3.Zero);
                 }
 
                 if (GetBonePositionFunc != null)
@@ -208,6 +208,7 @@ public static class IkManager
             prev.IsSelected = false;
 
         int idx = PickFunc(screenX, screenY);
+
         _selectedBoneIndex = idx;
         if (idx >= 0)
         {
@@ -228,6 +229,8 @@ public static class IkManager
         InvalidateViewer?.Invoke();
         return idx;
     }
+
+    
 
     public static Vector3? IntersectDragPlane((Vector3 Origin, Vector3 Direction) ray)
     {
@@ -282,19 +285,7 @@ public static class IkManager
 
             if (_modelBones != null)
             {
-                int current = _modelBones[bone.PmxBoneIndex].Parent;
-                int ikRoot = -1;
-                while (current >= 0)
-                {
-                    var bd = _modelBones[current];
-                    if (bd.Ik != null)
-                    {
-                        ikRoot = current;
-                        break;
-                    }
-                    current = bd.Parent;
-                }
-
+                int ikRoot = FindIkRootForEffector(bone.PmxBoneIndex);
                 if (ikRoot >= 0)
                 {
                     Console.WriteLine($"[IK] root={_modelBones[ikRoot].Name} effector={bone.Name}");
@@ -307,6 +298,24 @@ public static class IkManager
                     }
                 }
             }
+            // Recompute drag plane to stay orthogonal to current view and pass through updated bone position
+            try
+            {
+                if (GetBonePositionFunc != null && GetCameraPositionFunc != null)
+                {
+                    var bonePos = GetBonePositionFunc(bone.PmxBoneIndex);
+                    var camPos = GetCameraPositionFunc();
+                    if (ToModelSpaceFunc != null)
+                    {
+                        bonePos = ToModelSpaceFunc(bonePos);
+                        camPos = ToModelSpaceFunc(camPos);
+                    }
+                    var normal = Vector3.Normalize(camPos - bonePos);
+                    _dragPlane = new Plane(normal, -Vector3.Dot(normal, bonePos));
+                }
+            }
+            catch { /* ignore plane refresh errors */ }
+
             InvalidateViewer?.Invoke();
         }
         catch (Exception ex)
@@ -314,6 +323,26 @@ public static class IkManager
             Console.Error.WriteLine(ex);
             throw;
         }
+    }
+
+    private static int FindIkRootForEffector(int effectorIndex)
+    {
+        if (_modelBones == null)
+            return -1;
+        for (int i = 0; i < _modelBones.Count; i++)
+        {
+            var ik = _modelBones[i].Ik;
+            if (ik == null)
+                continue;
+            if (ik.Target == effectorIndex)
+                return i;
+            foreach (var link in ik.Links)
+            {
+                if (link.BoneIndex == effectorIndex)
+                    return i;
+            }
+        }
+        return -1;
     }
 
     public static void ReleaseSelection()
