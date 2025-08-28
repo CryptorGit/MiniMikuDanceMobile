@@ -16,7 +16,9 @@ public static class IkManager
     public static System.Func<int, Vector3>? GetBonePositionFunc { get; set; }
     public static System.Func<Vector3>? GetCameraPositionFunc { get; set; }
     public static System.Action<int, OpenTK.Mathematics.Vector3>? SetBoneRotation { get; set; }
+    public static System.Action<int, Vector3>? SetBoneWorldPosition { get; set; }
     public static System.Func<Vector3, Vector3>? ToModelSpaceFunc { get; set; }
+    public static System.Func<Vector3, Vector3>? ToWorldSpaceFunc { get; set; }
     public static System.Action? InvalidateViewer { get; set; }
 
     private static int _selectedBoneIndex = -1;
@@ -272,13 +274,19 @@ public static class IkManager
             if (!BonesDict.TryGetValue(boneIndex, out var bone))
                 return;
 
+            Console.WriteLine($"[IK] UpdateTarget {bone.Name} -> {position}");
+
             if (!bone.IsEffector)
             {
-                Console.WriteLine($"[IK] UpdateTarget ignored: {bone.Name} is not an IK effector");
+                if (SetBoneWorldPosition != null)
+                {
+                    var worldPos = ToWorldSpaceFunc != null ? ToWorldSpaceFunc(position) : position;
+                    SetBoneWorldPosition(bone.PmxBoneIndex, worldPos);
+                    bone.Position = position;
+                }
+                InvalidateViewer?.Invoke();
                 return;
             }
-
-            Console.WriteLine($"[IK] UpdateTarget {bone.Name} -> {position}");
 
             if (_modelBones != null)
             {
