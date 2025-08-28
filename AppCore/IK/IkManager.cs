@@ -81,6 +81,26 @@ public static class IkManager
                 var isEffector = role == BoneRole.Knee || role == BoneRole.Waist;
                 RegisterIkBone(link.BoneIndex, bd, isEffector);
             }
+
+            // 末端ボーンから親を辿り、腰ボーンを登録
+            int parent = _modelBones[link.BoneIndex].Parent;
+            while (parent >= 0)
+            {
+                if (!BonesDict.ContainsKey(parent))
+                {
+                    var parentBd = _modelBones[parent];
+                    if (DetermineRole(parentBd.Name) == BoneRole.Waist)
+                    {
+                        RegisterIkBone(parent, parentBd, true);
+                        break;
+                    }
+                }
+                else if (BonesDict[parent].Role == BoneRole.Waist)
+                {
+                    break;
+                }
+                parent = _modelBones[parent].Parent;
+            }
         }
     }
 
