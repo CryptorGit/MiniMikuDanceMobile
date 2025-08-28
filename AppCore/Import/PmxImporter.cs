@@ -713,6 +713,37 @@ public PmxImporter(ILogger<PmxImporter>? logger = null)
         }
         data.BoneChildren = boneChildren;
 
+        for (int i = 0; i < boneDatas.Count; i++)
+        {
+            var b = bones[i];
+            var root = worldPositions[i];
+            System.Numerics.Vector3 tip;
+            if ((b.BoneFlag & BoneFlag.ConnectionDestination) != 0 && b.ConnectedBone >= 0)
+            {
+                tip = worldPositions[b.ConnectedBone];
+            }
+            else if (b.PositionOffset.X != 0 || b.PositionOffset.Y != 0 || b.PositionOffset.Z != 0)
+            {
+                tip = root + ScaleVectorFlipZ(b.PositionOffset);
+            }
+            else if (boneChildren.TryGetValue(i, out var children) && children.Count > 0)
+            {
+                tip = worldPositions[children[0]];
+            }
+            else if (b.ParentBone >= 0)
+            {
+                tip = root + (root - worldPositions[b.ParentBone]);
+            }
+            else
+            {
+                tip = root;
+            }
+            var offset = tip - root;
+            var bd = boneDatas[i];
+            bd.TipOffset = offset;
+            bd.Length = offset.Length();
+        }
+
         // ヒューマノイドボーンのマッピング
         foreach (var hb in MiniMikuDance.Import.HumanoidBones.StandardOrder)
         {
