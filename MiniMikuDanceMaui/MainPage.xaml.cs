@@ -481,10 +481,9 @@ public partial class MainPage : ContentPage
     private void HandlePoseMoved(SKTouchEventArgs e)
     {
         var ray = _renderer.ScreenPointToRay(e.Location.X, e.Location.Y);
-        var pos = IkManager.IntersectDragPlane(ray);
-        if (pos.HasValue && IkManager.SelectedBoneIndex >= 0)
+        if (IkManager.SelectedBoneIndex >= 0)
         {
-            IkManager.UpdateTarget(IkManager.SelectedBoneIndex, pos.Value);
+            IkManager.UpdateTarget(IkManager.SelectedBoneIndex, ray);
         }
     }
 

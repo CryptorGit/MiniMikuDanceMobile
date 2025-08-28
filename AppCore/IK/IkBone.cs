@@ -25,6 +25,9 @@ public class IkBone
     public int PmxBoneIndex { get; }
     public bool IsSelected { get; set; }
     public bool IsEffector { get; }
+    public bool IsDragging { get; set; }
+    public Vector3 DragPrevLocal { get; set; }
+    public Vector3 DragAccumulatedLocal { get; set; }
 
     public IkBone(int pmxBoneIndex, string name, BoneRole role, Vector3 position, Quaternion baseRotation, Vector3 baseForward, Vector3 baseUp, bool isEffector = false)
     {
