@@ -287,58 +287,13 @@ public static class IkManager
 
             var bonePos = GetBonePositionFunc(idx);
             var camPos = GetCameraPositionFunc();
-            if (ToModelSpaceFunc != null)
-            {
-                // レンダラー提供の WorldToModel で座標系を揃える
-                bonePos = ToModelSpaceFunc(bonePos);
-                camPos = ToModelSpaceFunc(camPos);
-            }
             var normal = Vector3.Normalize(camPos - bonePos);
             _dragPlane = new Plane(normal, -Vector3.Dot(normal, bonePos));
         }
         InvalidateViewer?.Invoke();
         return idx;
     }
-
-    
-
-    public static Vector3? IntersectDragPlane((Vector3 Origin, Vector3 Direction) ray)
-    {
-        if (_selectedBoneIndex < 0)
-        {
-            Console.WriteLine("[IK] IntersectDragPlane called with no selected bone");
-            return null;
-        }
-
-        var origin = ray.Origin;
-        var dir = ray.Direction;
-        if (ToModelSpaceFunc != null)
-        {
-            // レイの始点・方向ともにモデル座標系へ変換する
-            var originModel = ToModelSpaceFunc(origin);
-            var dirEnd = ToModelSpaceFunc(origin + dir);
-            dir = Vector3.Normalize(dirEnd - originModel);
-            origin = originModel;
-        }
-
-        var denom = Vector3.Dot(_dragPlane.Normal, dir);
-        if (System.Math.Abs(denom) < 1e-6f)
-        {
-            Console.WriteLine($"[IK] IntersectDragPlane ray parallel to plane (denom={denom})");
-            return null;
-        }
-
-        var t = -(Vector3.Dot(_dragPlane.Normal, origin) + _dragPlane.D) / denom;
-        if (t < 0)
-        {
-            Console.WriteLine($"[IK] IntersectDragPlane intersection behind ray origin (t={t})");
-            return null;
-        }
-
-        return origin + dir * t;
-    }
-
-    public static void UpdateTarget(int boneIndex, Vector3 position)
+    public static void UpdateTarget(int boneIndex, (Vector3 Origin, Vector3 Direction) ray)
     {
         try
         {
@@ -348,18 +303,41 @@ public static class IkManager
             if (!BonesDict.TryGetValue(effectorIndex, out var bone))
                 return;
 
+            if (!BonesDict.TryGetValue(originalIndex, out var selBone))
+                selBone = bone;
+
             if (!bone.IsEffector)
             {
                 Console.WriteLine($"[IK] UpdateTarget ignored: {bone.Name} is not an IK effector");
                 return;
             }
 
-            var target = position;
-            if (effectorIndex != originalIndex && BonesDict.TryGetValue(originalIndex, out var selBone))
+            var denom = Vector3.Dot(_dragPlane.Normal, ray.Direction);
+            if (System.Math.Abs(denom) < 1e-6f)
+                return;
+
+            var t = -(Vector3.Dot(_dragPlane.Normal, ray.Origin) + _dragPlane.D) / denom;
+            if (t < 0)
+                return;
+
+            var worldPos = ray.Origin + ray.Direction * t;
+            var modelPos = ToModelSpaceFunc != null ? ToModelSpaceFunc(worldPos) : worldPos;
+
+            var local = Vector3.Transform(modelPos - selBone.BasePosition, Quaternion.Inverse(selBone.BaseRotation));
+            if (!selBone.IsDragging)
             {
-                var offset = bone.BasePosition - selBone.BasePosition;
-                target += offset;
+                selBone.IsDragging = true;
+                selBone.DragPrevLocal = local;
+                selBone.DragAccumulatedLocal = Vector3.Zero;
             }
+            else
+            {
+                selBone.DragAccumulatedLocal += local - selBone.DragPrevLocal;
+                selBone.DragPrevLocal = local;
+            }
+
+            var worldDelta = Vector3.Transform(selBone.DragAccumulatedLocal, selBone.BaseRotation);
+            var target = bone.BasePosition + worldDelta;
 
             Console.WriteLine($"[IK] UpdateTarget {bone.Name} -> {target}");
 
@@ -373,8 +351,8 @@ public static class IkManager
 
                     if (GetBonePositionFunc != null)
                     {
-                        var worldPos = GetBonePositionFunc(bone.PmxBoneIndex);
-                        bone.Position = ToModelSpaceFunc != null ? ToModelSpaceFunc(worldPos) : worldPos;
+                        var boneWorldPos = GetBonePositionFunc(bone.PmxBoneIndex);
+                        bone.Position = ToModelSpaceFunc != null ? ToModelSpaceFunc(boneWorldPos) : boneWorldPos;
                     }
                 }
             }
@@ -385,11 +363,6 @@ public static class IkManager
                 {
                     var bonePos = GetBonePositionFunc(_selectedBoneIndex);
                     var camPos = GetCameraPositionFunc();
-                    if (ToModelSpaceFunc != null)
-                    {
-                        bonePos = ToModelSpaceFunc(bonePos);
-                        camPos = ToModelSpaceFunc(camPos);
-                    }
                     var normal = Vector3.Normalize(camPos - bonePos);
                     _dragPlane = new Plane(normal, -Vector3.Dot(normal, bonePos));
                 }
@@ -455,7 +428,12 @@ public static class IkManager
     public static void ReleaseSelection()
     {
         if (_selectedBoneIndex >= 0 && BonesDict.TryGetValue(_selectedBoneIndex, out var prev))
+        {
             prev.IsSelected = false;
+            prev.IsDragging = false;
+            prev.DragAccumulatedLocal = Vector3.Zero;
+            prev.DragPrevLocal = Vector3.Zero;
+        }
         _selectedBoneIndex = -1;
         InvalidateViewer?.Invoke();
     }
