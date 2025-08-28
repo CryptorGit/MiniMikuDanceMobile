@@ -1095,7 +1095,8 @@ void main(){
                 if (PickEffectorOnly && !bone.IsEffector)
                     continue;
                 int i = bone.PmxBoneIndex;
-                var pos = _worldMats[i].Translation.ToOpenTK();
+                var tip = System.Numerics.Vector3.Transform(_bones[i].TipOffset, _worldMats[i]);
+                var pos = tip.ToOpenTK();
                 var v4 = new Vector4(pos, 1f);
                 var clip = v4 * _viewMatrix;
                 clip = clip * _projMatrix;
@@ -1119,7 +1120,8 @@ void main(){
             int limit = Math.Min(_worldMats.Length, _bones.Count);
             for (int i = 0; i < limit; i++)
             {
-                var pos = _worldMats[i].Translation.ToOpenTK();
+                var tip = System.Numerics.Vector3.Transform(_bones[i].TipOffset, _worldMats[i]);
+                var pos = tip.ToOpenTK();
                 var v4 = new Vector4(pos, 1f);
                 var clip = v4 * _viewMatrix;
                 clip = clip * _projMatrix;
@@ -1144,9 +1146,10 @@ void main(){
 
     public System.Numerics.Vector3 GetBoneWorldPosition(int index)
     {
-        if (index < 0 || index >= _worldMats.Length)
+        if (index < 0 || index >= _worldMats.Length || index >= _bones.Count)
             return System.Numerics.Vector3.Zero;
-        var pos = _worldMats[index].Translation.ToOpenTK();
+        var tip = System.Numerics.Vector3.Transform(_bones[index].TipOffset, _worldMats[index]);
+        var pos = tip.ToOpenTK();
         pos = Vector3.TransformPosition(pos, _modelTransform);
         var result = pos.ToNumerics();
         return result;
