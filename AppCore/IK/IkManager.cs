@@ -338,6 +338,7 @@ public static class IkManager
         try
         {
             boneIndex = FindEffectorForBone(boneIndex);
+            _selectedBoneIndex = boneIndex;
             if (!BonesDict.TryGetValue(boneIndex, out var bone))
                 return;
 
