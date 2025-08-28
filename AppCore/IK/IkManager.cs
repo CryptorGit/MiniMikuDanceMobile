@@ -268,6 +268,17 @@ public static class IkManager
         return Vector3.Clamp(eulerRad, min, max);
     }
 
+    private static void RefreshDragPlane(int boneIndex)
+    {
+        if (GetBonePositionFunc == null || GetCameraPositionFunc == null)
+            return;
+
+        var bonePos = GetBonePositionFunc(boneIndex);
+        var camPos = GetCameraPositionFunc();
+        var normal = Vector3.Normalize(camPos - bonePos);
+        _dragPlane = new Plane(normal, -Vector3.Dot(normal, bonePos));
+    }
+
     // レンダラーから提供された情報を用いてボーン選択を行う
     public static int PickBone(float screenX, float screenY)
     {
@@ -285,10 +296,7 @@ public static class IkManager
             if (BonesDict.TryGetValue(idx, out var sel))
                 sel.IsSelected = true;
 
-            var bonePos = GetBonePositionFunc(idx);
-            var camPos = GetCameraPositionFunc();
-            var normal = Vector3.Normalize(camPos - bonePos);
-            _dragPlane = new Plane(normal, -Vector3.Dot(normal, bonePos));
+            RefreshDragPlane(idx);
         }
         InvalidateViewer?.Invoke();
         return idx;
@@ -302,6 +310,8 @@ public static class IkManager
             _selectedBoneIndex = effectorIndex;
             if (!BonesDict.TryGetValue(effectorIndex, out var bone))
                 return;
+
+            RefreshDragPlane(effectorIndex);
 
             if (!BonesDict.TryGetValue(originalIndex, out var selBone))
                 selBone = bone;
@@ -359,13 +369,7 @@ public static class IkManager
             // Recompute drag plane to stay orthogonal to current view and pass through updated bone position
             try
             {
-                if (GetBonePositionFunc != null && GetCameraPositionFunc != null)
-                {
-                    var bonePos = GetBonePositionFunc(_selectedBoneIndex);
-                    var camPos = GetCameraPositionFunc();
-                    var normal = Vector3.Normalize(camPos - bonePos);
-                    _dragPlane = new Plane(normal, -Vector3.Dot(normal, bonePos));
-                }
+                RefreshDragPlane(_selectedBoneIndex);
             }
             catch { /* ignore plane refresh errors */ }
 
