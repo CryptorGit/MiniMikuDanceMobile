@@ -9,6 +9,7 @@ namespace MiniMikuDance.IK;
 public static class IkManager
 {
     private static readonly Dictionary<int, IkBone> BonesDict = new();
+    private static readonly Dictionary<int, Vector3> BonePositionCache = new();
     private static IReadOnlyList<BoneData>? _modelBones;
 
     // レンダラーから提供される各種処理を委譲用デリゲートとして保持
@@ -175,6 +176,8 @@ public static class IkManager
                 var modelPos = ToModelSpaceFunc != null ? ToModelSpaceFunc(worldPos) : worldPos;
                 if (BonesDict.TryGetValue(bIdx, out var b))
                     b.Position = modelPos;
+                else
+                    BonePositionCache[bIdx] = modelPos;
             }
         }
 
@@ -228,6 +231,8 @@ public static class IkManager
                         var modelPos = ToModelSpaceFunc != null ? ToModelSpaceFunc(worldPos) : worldPos;
                         if (BonesDict.TryGetValue(bIdx, out var b))
                             b.Position = modelPos;
+                        else
+                            BonePositionCache[bIdx] = modelPos;
                     }
                 }
             }
@@ -459,7 +464,21 @@ public static class IkManager
     {
         ReleaseSelection();
         BonesDict.Clear();
+        BonePositionCache.Clear();
         _modelBones = null;
+    }
+
+    public static bool TryGetBonePosition(int boneIndex, out Vector3 position)
+    {
+        if (BonesDict.TryGetValue(boneIndex, out var b))
+        {
+            position = b.Position;
+            return true;
+        }
+        if (BonePositionCache.TryGetValue(boneIndex, out position))
+            return true;
+        position = default;
+        return false;
     }
 
     private static BoneRole DetermineRole(string name)
