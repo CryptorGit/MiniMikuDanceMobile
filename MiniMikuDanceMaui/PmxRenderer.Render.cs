@@ -139,7 +139,9 @@ public partial class PmxRenderer
             if (isIk && ShowIkBones)
                 continue;
 
-            var pos = _worldMats[i].Translation.ToOpenTK();
+            var bone = _bones[i];
+            var tip = System.Numerics.Vector3.Transform(bone.TipOffset, _worldMats[i]);
+            var pos = tip.ToOpenTK();
             float scale = _ikBoneScale * _distance;
             if (i == SelectedBoneIndex)
                 scale *= 1.4f;
