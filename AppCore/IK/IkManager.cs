@@ -74,7 +74,12 @@ public static class IkManager
         foreach (var link in ikInfo.Links)
         {
             if (!BonesDict.ContainsKey(link.BoneIndex))
-                RegisterIkBone(link.BoneIndex, _modelBones[link.BoneIndex]);
+            {
+                var bd = _modelBones[link.BoneIndex];
+                var role = DetermineRole(bd.Name);
+                var isEffector = role == BoneRole.Knee || role == BoneRole.Waist;
+                RegisterIkBone(link.BoneIndex, bd, isEffector);
+            }
         }
     }
 
@@ -325,6 +330,9 @@ public static class IkManager
         if (_modelBones == null || boneIndex < 0)
             return boneIndex;
 
+        if (BonesDict.TryGetValue(boneIndex, out var b) && b.IsEffector)
+            return boneIndex;
+
         for (int i = 0; i < _modelBones.Count; i++)
         {
             var ik = _modelBones[i].Ik;
@@ -385,6 +393,8 @@ public static class IkManager
             return BoneRole.Ankle;
         if (name.Contains("ひざ", StringComparison.Ordinal) || name.Contains("膝", StringComparison.Ordinal))
             return BoneRole.Knee;
+        if (name.Contains("腰", StringComparison.Ordinal))
+            return BoneRole.Waist;
         return BoneRole.None;
     }
 
