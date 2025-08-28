@@ -401,6 +401,7 @@ public partial class MainPage
                 IkManager.GetBonePositionFunc = _renderer.GetBoneWorldPosition;
                 IkManager.GetCameraPositionFunc = _renderer.GetCameraPosition;
                 IkManager.SetBoneRotation = _renderer.SetBoneRotation;
+                IkManager.RecalculateWorldMatricesFunc = _renderer.RecalculateWorldMatrices;
                 IkManager.ToModelSpaceFunc = _renderer.WorldToModel;
             }
         }
