@@ -228,7 +228,6 @@ public static class IkManager
             prev.IsSelected = false;
 
         int idx = PickFunc(screenX, screenY);
-        idx = FindEffectorForBone(idx);
 
         _selectedBoneIndex = idx;
         if (idx >= 0)
@@ -325,7 +324,7 @@ public static class IkManager
             {
                 if (GetBonePositionFunc != null && GetCameraPositionFunc != null)
                 {
-                    var bonePos = GetBonePositionFunc(bone.PmxBoneIndex);
+                    var bonePos = GetBonePositionFunc(_selectedBoneIndex);
                     var camPos = GetCameraPositionFunc();
                     if (ToModelSpaceFunc != null)
                     {
