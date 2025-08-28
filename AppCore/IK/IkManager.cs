@@ -208,6 +208,7 @@ public static class IkManager
             prev.IsSelected = false;
 
         int idx = PickFunc(screenX, screenY);
+        idx = FindEffectorForBone(idx);
 
         _selectedBoneIndex = idx;
         if (idx >= 0)
@@ -272,6 +273,7 @@ public static class IkManager
     {
         try
         {
+            boneIndex = FindEffectorForBone(boneIndex);
             if (!BonesDict.TryGetValue(boneIndex, out var bone))
                 return;
 
@@ -323,6 +325,30 @@ public static class IkManager
             Console.Error.WriteLine(ex);
             throw;
         }
+    }
+
+    private static int FindEffectorForBone(int boneIndex)
+    {
+        if (_modelBones == null || boneIndex < 0)
+            return boneIndex;
+
+        for (int i = 0; i < _modelBones.Count; i++)
+        {
+            var ik = _modelBones[i].Ik;
+            if (ik == null)
+                continue;
+
+            if (ik.Target == boneIndex || i == boneIndex)
+                return ik.Target;
+
+            foreach (var link in ik.Links)
+            {
+                if (link.BoneIndex == boneIndex)
+                    return ik.Target;
+            }
+        }
+
+        return boneIndex;
     }
 
     private static int FindIkRootForEffector(int effectorIndex)
