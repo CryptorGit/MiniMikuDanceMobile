@@ -1324,14 +1324,14 @@ void main(){
             : System.Numerics.Matrix4x4.Identity;
         System.Numerics.Matrix4x4.Invert(parentWorld, out var invParent);
         var localPos = System.Numerics.Vector3.Transform(worldPos.ToNumerics(), invParent);
-        var length = bone.InitialTranslation.Length();
+        var length = bone.Length;
         if (length < 1e-6f)
             return;
 
         var dir = System.Numerics.Vector3.Normalize(localPos);
         bone.Translation = dir * length;
 
-        var from = System.Numerics.Vector3.Normalize(bone.InitialTranslation);
+        var from = System.Numerics.Vector3.Normalize(bone.TipOffset);
         var axis = System.Numerics.Vector3.Cross(from, dir);
         float axisLen = axis.Length();
         System.Numerics.Quaternion rot;
@@ -1350,6 +1350,7 @@ void main(){
         }
         bone.Rotation = rot;
         _bonesDirty = true;
+        CalculateWorldMatrices();
         Viewer?.InvalidateSurface();
     }
 
