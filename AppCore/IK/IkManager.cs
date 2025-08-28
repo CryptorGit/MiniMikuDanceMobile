@@ -112,6 +112,28 @@ public static class IkManager
         if (!updateBones.Contains(ikRootIndex))
             updateBones.Add(ikRootIndex);
 
+        var visited = new HashSet<int>(updateBones);
+        for (int i = 0; i < updateBones.Count; i++)
+        {
+            int parent = updateBones[i];
+            for (int j = 0; j < _modelBones.Count; j++)
+            {
+                if (_modelBones[j].Parent == parent && visited.Add(j))
+                    updateBones.Add(j);
+            }
+        }
+
+        if (GetBonePositionFunc != null)
+        {
+            foreach (var bIdx in updateBones)
+            {
+                var worldPos = GetBonePositionFunc(bIdx);
+                var modelPos = ToModelSpaceFunc != null ? ToModelSpaceFunc(worldPos) : worldPos;
+                if (BonesDict.TryGetValue(bIdx, out var b))
+                    b.Position = modelPos;
+            }
+        }
+
         Console.WriteLine($"[IK] SolveFootIk root={rootBone.Name} effector={_modelBones[effectorIndex].Name} target={target}");
 
         for (int iter = 0; iter < Math.Max(1, ik.Iterations); iter++)
