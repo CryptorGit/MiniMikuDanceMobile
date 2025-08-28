@@ -103,6 +103,10 @@ public static class IkManager
 
         var chain = chainFull.GetRange(start, chainFull.Count - start);
 
+        var updateBones = new List<int>(chainFull);
+        if (!updateBones.Contains(ikRootIndex))
+            updateBones.Add(ikRootIndex);
+
         Console.WriteLine($"[IK] SolveFootIk root={rootBone.Name} effector={_modelBones[effectorIndex].Name} target={target}");
 
         for (int iter = 0; iter < Math.Max(1, ik.Iterations); iter++)
@@ -146,25 +150,14 @@ public static class IkManager
 
                 if (GetBonePositionFunc != null)
                 {
-                    var worldPos = GetBonePositionFunc(effectorIndex);
-                    var modelPos = ToModelSpaceFunc != null ? ToModelSpaceFunc(worldPos) : worldPos;
-                    if (BonesDict.TryGetValue(effectorIndex, out var eff))
-                        eff.Position = modelPos;
+                    foreach (var bIdx in updateBones)
+                    {
+                        var worldPos = GetBonePositionFunc(bIdx);
+                        var modelPos = ToModelSpaceFunc != null ? ToModelSpaceFunc(worldPos) : worldPos;
+                        if (BonesDict.TryGetValue(bIdx, out var b))
+                            b.Position = modelPos;
+                    }
                 }
-            }
-        }
-
-        if (GetBonePositionFunc != null)
-        {
-            var updateBones = new List<int>(chainFull);
-            if (!updateBones.Contains(ikRootIndex))
-                updateBones.Add(ikRootIndex);
-            foreach (var idx in updateBones)
-            {
-                var worldPos = GetBonePositionFunc(idx);
-                var modelPos = ToModelSpaceFunc != null ? ToModelSpaceFunc(worldPos) : worldPos;
-                if (BonesDict.TryGetValue(idx, out var ikb))
-                    ikb.Position = modelPos;
             }
         }
     }
