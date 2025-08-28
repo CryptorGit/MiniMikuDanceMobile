@@ -107,6 +107,28 @@ public static class IkManager
             return;
         }
 
+        // chainFull の先頭に含まれていない親ボーンを IK ルートまで遡って挿入する
+        if (start > 0)
+        {
+            int insertCount = 0;
+            int parent = _modelBones[chainFull[0]].Parent;
+            while (parent >= 0 && parent != ikRootIndex)
+            {
+                if (!chainFull.Contains(parent))
+                {
+                    chainFull.Insert(0, parent);
+                    insertCount++;
+                }
+                parent = _modelBones[parent].Parent;
+            }
+            if (parent == ikRootIndex && !chainFull.Contains(ikRootIndex))
+            {
+                chainFull.Insert(0, ikRootIndex);
+                insertCount++;
+            }
+            start += insertCount;
+        }
+
         var chain = chainFull.GetRange(start, chainFull.Count - start);
 
         var updateBones = new List<int>(chainFull);
